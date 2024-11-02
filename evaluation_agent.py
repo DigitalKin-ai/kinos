@@ -187,7 +187,9 @@ class EvaluationAgent(ParallagonAgent):
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response for evaluation tasks"""
-        prompt = f"""You are the Evaluation Agent in the Parallagon framework. Your role is to validate work and maintain evaluation.md.
+        try:
+            print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
+            prompt = f"""You are the Evaluation Agent in the Parallagon framework. Your role is to validate work and maintain evaluation.md.
 
 Current evaluation content:
 {context['evaluation']}
@@ -223,8 +225,6 @@ Important:
 - Add timestamps for new history entries
 - Be precise in evaluation feedback
 """
-
-        try:
             response = self.client.messages.create(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=4000,
@@ -234,9 +234,12 @@ Important:
                     "content": prompt
                 }]
             )
+            print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
             return response.content[0].text
         except Exception as e:
-            print(f"Error calling LLM: {e}")
+            print(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")  # Error log
+            import traceback
+            print(traceback.format_exc())
             return context['evaluation']
 
     def _extract_section(self, content: str, section_name: str) -> str:
