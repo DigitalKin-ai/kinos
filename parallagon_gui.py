@@ -85,6 +85,13 @@ class ParallagonGUI:
         )
         self.stop_button.pack(side=tk.LEFT, padx=5)
         
+        self.reset_button = ttk.Button(
+            self.control_frame, 
+            text="Reset Files", 
+            command=self.reset_files
+        )
+        self.reset_button.pack(side=tk.LEFT, padx=5)
+        
         self.status_label = ttk.Label(
             self.control_frame, 
             text="● Stopped", 
@@ -257,6 +264,95 @@ class ParallagonGUI:
         log_entry = f"[{timestamp}] {message}\n"
         self.log_text.insert(tk.END, log_entry)
         self.log_text.see(tk.END)  # Auto-scroll
+
+    def reset_files(self):
+        """Reset all files to their initial state"""
+        try:
+            # Initial content for each file
+            initial_contents = {
+                "demande.md": """# Demande Actuelle
+[timestamp: {}]
+[status: NEW]
+
+Entrez votre demande ici...
+
+# Historique des Demandes
+- [INIT] Création du fichier""".format(datetime.now().strftime("%Y-%m-%d %H:%M")),
+
+                "specifications.md": """# État Actuel
+[status: ACTIVE]
+En attente de nouvelles demandes.
+
+# Signaux
+- Aucun signal
+
+# Contenu Principal
+Spécifications du projet...
+
+# Historique
+- [INIT] Création du fichier""",
+
+                "management.md": """# État Actuel
+[status: ACTIVE]
+En attente de tâches à coordonner.
+
+# Signaux
+- Aucun signal
+
+# Contenu Principal
+## TodoList du Projet
+- [ ] En attente de demandes
+
+## Priorités Actuelles
+1. Traiter les nouvelles demandes
+
+## Blocages Potentiels
+- Aucun blocage
+
+# Historique
+- [INIT] Création du fichier""",
+
+                "production.md": """# État Actuel
+[status: READY]
+En attente de tâches de développement.
+
+# Signaux
+- Aucun signal
+
+# Contenu Principal
+En attente de spécifications techniques...
+
+# Historique
+- [INIT] Création du fichier""",
+
+                "evaluation.md": """# État Actuel
+[status: READY]
+En attente de contenu à évaluer.
+
+# Signaux
+- Aucun signal
+
+# Contenu Principal
+## Critères de Validation
+- Qualité du code
+- Tests unitaires
+- Documentation
+
+# Historique
+- [INIT] Création du fichier"""
+            }
+
+            # Write initial content to files
+            for filename, content in initial_contents.items():
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write(content)
+
+            # Update GUI panels
+            self.update_all_panels()
+            self.log_message("✨ Tous les fichiers ont été réinitialisés")
+
+        except Exception as e:
+            self.log_message(f"❌ Erreur lors de la réinitialisation : {str(e)}")
 
     def run(self):
         """Démarrage de l'interface"""
