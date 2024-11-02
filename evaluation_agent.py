@@ -109,7 +109,7 @@ If no changes are needed, return the exact current content.
 
         try:
             response = self.client.messages.create(
-                model="claude-3-sonnet",
+                model="claude-3-5-sonnet-20241022",
                 max_tokens=4000,
                 temperature=0,
                 messages=[{
@@ -225,7 +225,7 @@ Important:
 
         try:
             response = self.client.messages.create(
-                model="claude-3-sonnet",
+                model="claude-3-5-sonnet-20241022",
                 max_tokens=4000,
                 temperature=0,
                 messages=[{

@@ -1,5 +1,5 @@
 """
-SpecificationsAgent - Agent responsible for requirements analysis and specification
+SpecificationsAgent - Agent responsible for requirements analysis and specifications
 """
 import re
 from parallagon_agent import ParallagonAgent
@@ -106,7 +106,7 @@ Important:
 
         try:
             response = self.client.messages.create(
-                model="claude-3-sonnet",
+                model="claude-3-5-sonnet-20241022",
                 max_tokens=4000,
                 temperature=0,
                 messages=[{
