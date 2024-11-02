@@ -1,9 +1,11 @@
 """
 SpecificationsAgent - Agent responsible for requirements analysis and specification
 """
+import re
 from parallagon_agent import ParallagonAgent
 import anthropic
 from datetime import datetime
+from search_replace import SearchReplace
 
 class SpecificationsAgent(ParallagonAgent):
     """Agent handling project specifications and requirements"""
@@ -15,10 +17,6 @@ class SpecificationsAgent(ParallagonAgent):
     def determine_actions(self) -> None:
         """
         Analyze current context and determine if updates are needed.
-        The actual decisions will be made by the LLM based on:
-        - Current specifications content
-        - Other files content
-        - Any signals or questions present
         """
         # Prepare context for LLM
         context = {
@@ -26,12 +24,51 @@ class SpecificationsAgent(ParallagonAgent):
             "other_files": self.other_files
         }
         
-        # Get LLM response with fixed prompt
+        # Get LLM response
         response = self._get_llm_response(context)
         
-        # If LLM suggests changes, update the content
+        # Apply changes using SearchReplace if needed
         if response != self.current_content:
-            self.new_content = response
+            # Try to update section by section to ensure safe changes
+            sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
+            
+            for section in sections:
+                # Extract section content from LLM response
+                pattern = f"# {section}\n(.*?)(?=\n#|$)"
+                match = re.search(pattern, response, re.DOTALL)
+                if not match:
+                    continue
+                    
+                new_section_content = match.group(1).strip()
+                
+                # Use SearchReplace to safely update the section
+                result = SearchReplace.section_replace(
+                    self.current_content, 
+                    section, 
+                    new_section_content
+                )
+                
+                if result.success:
+                    self.current_content = result.new_content
+                else:
+                    print(f"Failed to update section {section}: {result.message}")
+
+            # Update status if needed
+            old_status_match = re.search(r'\[status: (\w+)\]', self.current_content)
+            new_status_match = re.search(r'\[status: (\w+)\]', response)
+            
+            if (old_status_match and new_status_match and 
+                old_status_match.group(1) != new_status_match.group(1)):
+                result = SearchReplace.exact_replace(
+                    self.current_content,
+                    f"[status: {old_status_match.group(1)}]",
+                    f"[status: {new_status_match.group(1)}]"
+                )
+                if result.success:
+                    self.current_content = result.new_content
+
+            # Set new content for update
+            self.new_content = self.current_content
 
     def _get_llm_response(self, context: dict) -> str:
         """
