@@ -120,10 +120,8 @@ Important:
 - Keep all existing sections in exact order:
   1. État Actuel
   2. Signaux
-  3. TodoList du Projet
-  4. Priorités Actuelles
-  5. Blocages Potentiels
-  6. Historique
+  3. Contenu Principal
+  4. Historique
 - Maintain exact markdown formatting
 - Do not include any explanatory text
 - Do not start with phrases like "Based on my review" or "After analyzing"
