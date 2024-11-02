@@ -9,7 +9,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any
 from search_replace import SearchReplace
-from search_replace import SearchReplace
 
 class ParallagonGUI:
     def __init__(self, config: Dict[str, Any]):
@@ -18,6 +17,10 @@ class ParallagonGUI:
         self.running = False
         self.update_interval = 1000  # ms
         self.config = config
+        
+        # Ajout des styles
+        style = ttk.Style()
+        style.configure('Updating.TLabelframe', background='#fff7e6')
         
         # Configuration de la fenêtre principale
         self.root.geometry("1200x800")
@@ -106,6 +109,16 @@ class ParallagonGUI:
         )
         self.submit_button.pack(pady=5)
         
+        # Ajouter une zone de logs
+        self.log_frame = ttk.LabelFrame(self.root, text="Logs")
+        self.log_frame.pack(fill=tk.X, padx=5, pady=5)
+        self.log_text = scrolledtext.ScrolledText(
+            self.log_frame,
+            height=4,
+            wrap=tk.WORD
+        )
+        self.log_text.pack(fill=tk.X, padx=5, pady=5)
+        
         # Panneaux des agents
         self.agents_frame = ttk.Frame(self.root)
         self.agents_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
@@ -138,13 +151,16 @@ class ParallagonGUI:
         self.status_label.config(text="● Running", foreground="green")
         
         # Démarrage des agents
-        for agent in self.agents.values():
+        self.log_message("🚀 Démarrage des agents...")
+        for name, agent in self.agents.items():
             threading.Thread(target=agent.run, daemon=True).start()
+            self.log_message(f"✓ Agent {name} démarré")
         
         # Démarrage de la boucle de mise à jour
         self.update_thread = threading.Thread(target=self.update_loop)
         self.update_thread.daemon = True
         self.update_thread.start()
+        self.log_message("✓ Boucle de mise à jour démarrée")
         
     def stop_agents(self):
         """Arrêt des agents"""
@@ -152,6 +168,7 @@ class ParallagonGUI:
         self.start_button.config(state=tk.NORMAL)
         self.stop_button.config(state=tk.DISABLED)
         self.status_label.config(text="● Stopped", foreground="red")
+        self.log_message("🛑 Arrêt des agents")
         
     def update_loop(self):
         """Boucle de mise à jour des panneaux"""
@@ -162,20 +179,40 @@ class ParallagonGUI:
     def update_all_panels(self):
         """Mise à jour de tous les panneaux d'agents"""
         file_mapping = {
-            "Specification": "specifications.md",  # Note the 's' at the end
+            "Specification": "specifications.md",
             "Management": "management.md",
             "Production": "production.md",
             "Evaluation": "evaluation.md"
         }
         
+        update_count = 0
         for name, panel in self.agent_panels.items():
             try:
+                # Indicateur visuel de mise à jour
+                panel.frame.configure(style='Updating.TLabelframe')
+                self.root.update_idletasks()
+                
                 file_path = file_mapping[name]
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content = f.read()
-                panel.update_content(content)
+                
+                # Vérifie si le contenu a changé
+                old_content = panel.text.get("1.0", tk.END).strip()
+                if content.strip() != old_content:
+                    panel.update_content(content)
+                    update_count += 1
+                    self.log_message(f"Mise à jour du panneau {name}")
+                
+                # Réinitialise le style après la mise à jour
+                panel.frame.configure(style='TLabelframe')
+                
             except Exception as e:
-                print(f"Error updating {name} panel: {e}")
+                error_msg = f"Error updating {name} panel: {e}"
+                print(error_msg)
+                self.log_message(f"❌ {error_msg}")
+        
+        if update_count > 0:
+            self.log_message(f"✓ {update_count} panneau(x) mis à jour")
                 
     def submit_request(self):
         """Soumission d'une nouvelle demande"""
@@ -210,6 +247,13 @@ class ParallagonGUI:
         except Exception as e:
             print(f"Error submitting request: {e}")
             
+    def log_message(self, message: str):
+        """Ajoute un message horodaté aux logs"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        log_entry = f"[{timestamp}] {message}\n"
+        self.log_text.insert(tk.END, log_entry)
+        self.log_text.see(tk.END)  # Auto-scroll
+
     def run(self):
         """Démarrage de l'interface"""
         self.root.mainloop()
