@@ -35,7 +35,31 @@ class ParallagonAgent:
 
     def analyze(self) -> None:
         """Analyze changes and signals"""
-        # TODO: Implement analysis logic
+        try:
+            # Extract current status
+            status_match = re.search(r'\[status: (\w+)\]', self.current_content)
+            self.current_status = status_match.group(1) if status_match else "UNKNOWN"
+
+            # Extract signals section
+            signals_match = re.search(r'# Signaux\n(.*?)(?=\n#|$)', 
+                                    self.current_content, 
+                                    re.DOTALL)
+            if signals_match:
+                signals_text = signals_match.group(1).strip()
+                self.signals = [s.strip() for s in signals_text.split('\n') if s.strip()]
+            else:
+                self.signals = []
+
+            # Analyze current content and other files to determine needed actions
+            self.determine_actions()
+
+        except Exception as e:
+            print(f"Error in analysis: {e}")
+            raise
+
+    def determine_actions(self) -> None:
+        """Determine what actions need to be taken based on current state"""
+        # This method should be implemented by specific agent subclasses
         pass
 
     def update(self) -> None:
