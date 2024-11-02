@@ -173,8 +173,12 @@ class ParallagonGUI:
     def update_loop(self):
         """Boucle de mise à jour des panneaux"""
         while self.running:
-            self.root.after(0, self.update_all_panels)
-            time.sleep(self.update_interval / 1000)
+            try:
+                self.root.after(0, self.update_all_panels)
+                self.log_message("🔄 Cycle de mise à jour")  # Log de debug
+                time.sleep(self.update_interval / 1000)
+            except Exception as e:
+                self.log_message(f"❌ Erreur dans la boucle de mise à jour: {e}")
             
     def update_all_panels(self):
         """Mise à jour de tous les panneaux d'agents"""

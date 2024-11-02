@@ -18,6 +18,7 @@ class SpecificationsAgent(ParallagonAgent):
         """
         Analyze current context and determine if updates are needed.
         """
+        print(f"[{self.__class__.__name__}] Analyzing...")  # Log de debug
         # Prepare context for LLM
         context = {
             "specifications": self.current_content,

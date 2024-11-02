@@ -18,6 +18,7 @@ class ManagementAgent(ParallagonAgent):
         """
         Analyze project status and coordinate tasks between agents
         """
+        print(f"[{self.__class__.__name__}] Analyzing...")  # Log de debug
         # Prepare context for LLM
         context = {
             "management": self.current_content,

@@ -18,6 +18,7 @@ class ProductionAgent(ParallagonAgent):
         """
         Analyze requirements and implement needed code changes
         """
+        print(f"[{self.__class__.__name__}] Analyzing...")  # Log de debug
         # Prepare context for LLM
         context = {
             "production": self.current_content,

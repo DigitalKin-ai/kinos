@@ -383,4 +383,11 @@ class AgentPanel:
 - Mode sombre/clair
 - Recherche dans les panneaux
 - Export des logs
-- Statistiques simples
+- Statistiques simples# Demande Actuelle
+[timestamp: NONE]
+[status: INIT]
+
+Aucune demande en cours.
+
+# Historique des Demandes
+- [INIT] Création du fichier

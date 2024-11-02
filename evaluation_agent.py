@@ -18,6 +18,7 @@ class EvaluationAgent(ParallagonAgent):
         """
         Evaluate implementation quality and validate against requirements
         """
+        print(f"[{self.__class__.__name__}] Analyzing...")  # Log de debug
         # Prepare context for LLM
         context = {
             "evaluation": self.current_content,
