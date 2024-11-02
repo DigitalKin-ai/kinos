@@ -22,9 +22,42 @@ class ParallagonGUI:
         # Configuration de la fenêtre principale
         self.root.geometry("1200x800")
         self.setup_ui()
-        
-        # Initialisation des agents
         self.init_agents()
+        
+    def init_agents(self):
+        """Initialisation des agents"""
+        from specifications_agent import SpecificationsAgent
+        from management_agent import ManagementAgent
+        from production_agent import ProductionAgent
+        from evaluation_agent import EvaluationAgent
+        
+        base_config = {
+            "check_interval": 5,
+            "anthropic_api_key": self.config["anthropic_api_key"]
+        }
+        
+        self.agents = {
+            "Specification": SpecificationsAgent({
+                **base_config,
+                "file_path": "specifications.md",
+                "watch_files": ["demande.md", "management.md", "production.md", "evaluation.md"]
+            }),
+            "Management": ManagementAgent({
+                **base_config,
+                "file_path": "management.md",
+                "watch_files": ["demande.md", "specifications.md", "production.md", "evaluation.md"]
+            }),
+            "Production": ProductionAgent({
+                **base_config,
+                "file_path": "production.md",
+                "watch_files": ["demande.md", "specifications.md", "management.md", "evaluation.md"]
+            }),
+            "Evaluation": EvaluationAgent({
+                **base_config,
+                "file_path": "evaluation.md",
+                "watch_files": ["demande.md", "specifications.md", "management.md", "production.md"]
+            })
+        }
 
 
         
