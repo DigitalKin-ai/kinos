@@ -2,10 +2,10 @@
 ParallagonAgent - Base class for autonomous parallel agents
 """
 import time
-import re
 from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
+from search_replace import SearchReplace, SearchReplaceResult
 
 
 class ParallagonAgent:
@@ -73,16 +73,18 @@ class ParallagonAgent:
             print(f"Error updating files: {e}")
             raise
 
-    def update_section(self, section_name: str, new_content: str) -> None:
+    def update_section(self, section_name: str, new_content: str) -> bool:
         """Update a specific section in the markdown file"""
         try:
-            import re
-            pattern = f"# {section_name}\n.*?(?=\n# |$)"
-            replacement = f"# {section_name}\n{new_content}"
-            self.new_content = re.sub(pattern, replacement, self.current_content, flags=re.DOTALL)
+            result = SearchReplace.section_replace(self.current_content, section_name, new_content)
+            if result.success:
+                self.new_content = result.new_content
+                return True
+            print(f"Error updating section: {result.message}")
+            return False
         except Exception as e:
             print(f"Error updating section: {e}")
-            raise
+            return False
 
     def run(self) -> None:
         """Main agent loop"""
