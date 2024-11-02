@@ -29,6 +29,11 @@ class ManagementAgent(ParallagonAgent):
         # Get LLM response
         response = self._get_llm_response(context)
         
+        # Validate response format
+        if not response.startswith("# État Actuel"):
+            print(f"[{self.__class__.__name__}] Invalid response format, ignoring")
+            return
+            
         # Log comparison
         print(f"[{self.__class__.__name__}] Comparing responses...")
         if response == self.current_content:
@@ -107,11 +112,32 @@ Your task:
 5. Update status if needed
 
 Important:
-- Keep existing task structure
-- Mark completed tasks with [x]
-- Add new tasks as needed
-- Be specific in signals to agents
-- Maintain clear priorities
+- Return ONLY the markdown content, starting with "# État Actuel"
+- Keep all existing sections in exact order:
+  1. État Actuel
+  2. Signaux
+  3. TodoList du Projet
+  4. Priorités Actuelles
+  5. Blocages Potentiels
+  6. Historique
+- Maintain exact markdown formatting
+- Do not include any explanatory text
+- Do not start with phrases like "Based on my review" or "After analyzing"
+- The response must be a valid markdown document that can directly replace the current content
+
+Example format:
+# État Actuel
+[status: STATUS]
+Description...
+
+# Signaux
+- Signal 1
+- Signal 2
+
+# TodoList du Projet
+### Phase 1
+- [x] Task 1
+- [ ] Task 2
 
 If changes are needed, return the complete updated content.
 If no changes are needed, return the exact current content.

@@ -29,6 +29,11 @@ class EvaluationAgent(ParallagonAgent):
         # Get LLM response
         response = self._get_llm_response(context)
         
+        # Validate response format
+        if not response.startswith("# État Actuel"):
+            print(f"[{self.__class__.__name__}] Invalid response format, ignoring")
+            return
+            
         # Log comparison
         print(f"[{self.__class__.__name__}] Comparing responses...")
         if response == self.current_content:
