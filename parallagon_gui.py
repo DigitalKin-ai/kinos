@@ -161,9 +161,16 @@ class ParallagonGUI:
             
     def update_all_panels(self):
         """Mise à jour de tous les panneaux d'agents"""
+        file_mapping = {
+            "Specification": "specifications.md",  # Note the 's' at the end
+            "Management": "management.md",
+            "Production": "production.md",
+            "Evaluation": "evaluation.md"
+        }
+        
         for name, panel in self.agent_panels.items():
             try:
-                file_path = f"{name.lower()}.md"
+                file_path = file_mapping[name]
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content = f.read()
                 panel.update_content(content)
