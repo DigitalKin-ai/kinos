@@ -34,25 +34,25 @@ class SearchReplace:
 
     @staticmethod
     def section_replace(content: str, section_name: str, new_section_content: str) -> SearchReplaceResult:
-        """
-        Replace content of a specific markdown section
-        
-        Example:
-        >>> old_content = "# Section1\\nold content\\n# Section2\\nother content"
-        >>> new_content = search_replace.section_replace(old_content, "Section1", "new content")
-        """
-        pattern = f"# {section_name}\n.*?(?=\n# |$)"
-        matches = list(re.finditer(pattern, content, re.DOTALL))
-        
-        if len(matches) == 0:
-            return SearchReplaceResult(False, f"Section '{section_name}' not found", None, 0)
-        elif len(matches) > 1:
-            return SearchReplaceResult(False, f"Multiple sections named '{section_name}' found", None, len(matches))
-        
-        replacement = f"# {section_name}\n{new_section_content}"
-        new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
-        
-        return SearchReplaceResult(True, "Section replaced successfully", new_content, 1)
+        try:
+            pattern = f"# {section_name}\n(.*?)(?=\n#|$)"
+            matches = list(re.finditer(pattern, content, re.DOTALL))
+            
+            if not matches:
+                return SearchReplaceResult(False, f"Section '{section_name}' not found", content, 0)
+            if len(matches) > 1:
+                return SearchReplaceResult(False, f"Multiple '{section_name}' sections found", content, len(matches))
+                
+            # Log section content for debugging
+            print(f"Replacing section {section_name}:")
+            print(f"Old: {matches[0].group(1).strip()}")
+            print(f"New: {new_section_content}")
+            
+            new_content = content[:matches[0].start()] + f"# {section_name}\n{new_section_content}" + content[matches[0].end():]
+            return SearchReplaceResult(True, "Section replaced successfully", new_content, 1)
+            
+        except Exception as e:
+            return SearchReplaceResult(False, f"Error in section_replace: {str(e)}", content, 0)
 
     @staticmethod
     def exact_replace(content: str, old_str: str, new_str: str) -> SearchReplaceResult:

@@ -19,6 +19,55 @@ class ParallagonAgent:
         self.check_interval = config.get("check_interval", 5)
         self.running = False
 
+    def _validate_markdown_response(self, response: str) -> bool:
+        """Validate that LLM response follows required markdown format"""
+        required_sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
+        
+        # Check starts with État Actuel
+        if not response.startswith("# État Actuel"):
+            print(f"[{self.__class__.__name__}] Response must start with '# État Actuel'")
+            return False
+            
+        # Check all required sections present
+        for section in required_sections:
+            if f"# {section}" not in response:
+                print(f"[{self.__class__.__name__}] Missing required section: {section}")
+                return False
+                
+        # Check status format
+        if not re.search(r'\[status: \w+\]', response):
+            print(f"[{self.__class__.__name__}] Invalid or missing status")
+            return False
+            
+        return True
+
+    def validate_content(self) -> bool:
+        """Validate file content structure and format"""
+        try:
+            # Check basic structure
+            if not self.current_content:
+                print(f"[{self.__class__.__name__}] Empty content")
+                return False
+                
+            # Check required sections
+            required_sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
+            for section in required_sections:
+                if f"# {section}" not in self.current_content:
+                    print(f"[{self.__class__.__name__}] Missing section: {section}")
+                    return False
+                    
+            # Check status format
+            status_match = re.search(r'\[status: (\w+)\]', self.current_content)
+            if not status_match:
+                print(f"[{self.__class__.__name__}] Invalid status format")
+                return False
+                
+            return True
+            
+        except Exception as e:
+            print(f"[{self.__class__.__name__}] Validation error: {str(e)}")
+            return False
+
     def read_files(self) -> None:
         """Read all relevant files for the agent"""
         try:
@@ -62,6 +111,31 @@ class ParallagonAgent:
         """Determine what actions need to be taken based on current state"""
         # This method should be implemented by specific agent subclasses
         pass
+
+    def _get_llm_response(self, context: dict) -> str:
+        max_retries = 3
+        retry_delay = 2
+        
+        for attempt in range(max_retries):
+            try:
+                response = self.client.messages.create(
+                    model="claude-3-5-sonnet-20241022",
+                    max_tokens=4000,
+                    temperature=0,
+                    messages=[{"role": "user", "content": self._build_prompt(context)}]
+                )
+                
+                content = response.content[0].text
+                if self._validate_markdown_response(content):
+                    return content
+                print(f"[{self.__class__.__name__}] Invalid response format, retrying...")
+                
+            except Exception as e:
+                print(f"[{self.__class__.__name__}] Attempt {attempt+1} failed: {str(e)}")
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    
+        return context[self.__class__.__name__.lower().replace('agent', '')]
 
     def update(self) -> None:
         """Make necessary updates to files"""
