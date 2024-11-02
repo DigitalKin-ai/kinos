@@ -3,7 +3,8 @@
 En attente de contenu à évaluer.
 
 # Signaux
-- Aucun signal
+- De Management: Préparer les critères de validation pour la classe ParallagonAgent
+- Action requise: Définir les tests unitaires nécessaires
 
 # Contenu Principal
 Prêt à effectuer les évaluations.

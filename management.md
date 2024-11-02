@@ -1,6 +1,6 @@
 # État Actuel
-[status: READY]
-En attente de demandes à traiter.
+[status: IN_PROGRESS]
+Phase 2 - Développement Core en cours.
 
 # Signaux
 - Aucun signal
