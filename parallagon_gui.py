@@ -25,6 +25,7 @@ class ParallagonGUI:
         
         # Initialisation des agents
         self.init_agents()
+
         
     def setup_ui(self):
         """Configuration de l'interface utilisateur"""
