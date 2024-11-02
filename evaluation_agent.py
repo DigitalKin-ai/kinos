@@ -46,25 +46,27 @@ class EvaluationAgent(ParallagonAgent):
             print(f"[{self.__class__.__name__}] New content starts with: {response[:100]}")
         
         if response != self.current_content:
-            # Update État Actuel with evaluation status
+            # Update État Actuel section
             result = SearchReplace.section_replace(
                 self.current_content,
                 "État Actuel",
                 self._extract_section(response, "État Actuel")
             )
+            print(f"[{self.__class__.__name__}] État Actuel replace: {'✓' if result.success else '❌'} - {result.message}")
             if result.success:
                 self.current_content = result.new_content
 
-            # Update Contenu Principal with evaluation results
+            # Update Contenu Principal section
             result = SearchReplace.section_replace(
                 self.current_content,
                 "Contenu Principal",
                 self._extract_section(response, "Contenu Principal")
             )
+            print(f"[{self.__class__.__name__}] Contenu Principal replace: {'✓' if result.success else '❌'} - {result.message}")
             if result.success:
                 self.current_content = result.new_content
 
-            # Handle evaluation feedback signals
+            # Update Signaux section
             new_signals = self._extract_section(response, "Signaux")
             if new_signals != self._extract_section(self.current_content, "Signaux"):
                 result = SearchReplace.section_replace(
@@ -72,10 +74,11 @@ class EvaluationAgent(ParallagonAgent):
                     "Signaux",
                     new_signals
                 )
+                print(f"[{self.__class__.__name__}] Signaux replace: {'✓' if result.success else '❌'} - {result.message}")
                 if result.success:
                     self.current_content = result.new_content
 
-            # Track evaluation history
+            # Update Historique section
             new_history = self._extract_section(response, "Historique")
             if new_history != self._extract_section(self.current_content, "Historique"):
                 result = SearchReplace.section_replace(
@@ -83,6 +86,7 @@ class EvaluationAgent(ParallagonAgent):
                     "Historique",
                     new_history
                 )
+                print(f"[{self.__class__.__name__}] Historique replace: {'✓' if result.success else '❌'} - {result.message}")
                 if result.success:
                     self.current_content = result.new_content
 

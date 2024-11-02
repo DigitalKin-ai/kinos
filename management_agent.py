@@ -46,21 +46,23 @@ class ManagementAgent(ParallagonAgent):
             print(f"[{self.__class__.__name__}] New content starts with: {response[:100]}")
         
         if response != self.current_content:
-            # Update TodoList if needed
+            # Update TodoList section
             result = SearchReplace.section_replace(
                 self.current_content,
                 "TodoList du Projet",
                 self._extract_section(response, "TodoList du Projet")
             )
+            print(f"[{self.__class__.__name__}] TodoList replace: {'✓' if result.success else '❌'} - {result.message}")
             if result.success:
                 self.current_content = result.new_content
 
-            # Update Priorités Actuelles if needed
+            # Update Priorités Actuelles section
             result = SearchReplace.section_replace(
                 self.current_content,
                 "Priorités Actuelles",
                 self._extract_section(response, "Priorités Actuelles")
             )
+            print(f"[{self.__class__.__name__}] Priorités replace: {'✓' if result.success else '❌'} - {result.message}")
             if result.success:
                 self.current_content = result.new_content
 
@@ -75,10 +77,11 @@ class ManagementAgent(ParallagonAgent):
                     f"[status: {old_status_match.group(1)}]",
                     f"[status: {new_status_match.group(1)}]"
                 )
+                print(f"[{self.__class__.__name__}] Status replace: {'✓' if result.success else '❌'} - {result.message}")
                 if result.success:
                     self.current_content = result.new_content
 
-            # Add new signals if needed
+            # Update Signaux section
             new_signals = self._extract_section(response, "Signaux")
             if new_signals != self._extract_section(self.current_content, "Signaux"):
                 result = SearchReplace.section_replace(
@@ -86,6 +89,7 @@ class ManagementAgent(ParallagonAgent):
                     "Signaux",
                     new_signals
                 )
+                print(f"[{self.__class__.__name__}] Signaux replace: {'✓' if result.success else '❌'} - {result.message}")
                 if result.success:
                     self.current_content = result.new_content
 

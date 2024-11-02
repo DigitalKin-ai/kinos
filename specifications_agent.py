@@ -47,7 +47,7 @@ class SpecificationsAgent(ParallagonAgent):
         
         # Apply changes using SearchReplace if needed
         if response != self.current_content:
-            # Try to update section by section to ensure safe changes
+            # Update each section with detailed logging
             sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
             
             for section in sections:
@@ -55,6 +55,7 @@ class SpecificationsAgent(ParallagonAgent):
                 pattern = f"# {section}\n(.*?)(?=\n#|$)"
                 match = re.search(pattern, response, re.DOTALL)
                 if not match:
+                    print(f"[{self.__class__.__name__}] {section} section not found in LLM response")
                     continue
                     
                 new_section_content = match.group(1).strip()
@@ -66,10 +67,9 @@ class SpecificationsAgent(ParallagonAgent):
                     new_section_content
                 )
                 
+                print(f"[{self.__class__.__name__}] {section} replace: {'✓' if result.success else '❌'} - {result.message}")
                 if result.success:
                     self.current_content = result.new_content
-                else:
-                    print(f"Failed to update section {section}: {result.message}")
 
             # Update status if needed
             old_status_match = re.search(r'\[status: (\w+)\]', self.current_content)
