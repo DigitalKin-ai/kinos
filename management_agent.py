@@ -18,7 +18,8 @@ class ManagementAgent(ParallagonAgent):
         """
         Analyze project status and coordinate tasks between agents
         """
-        print(f"[{self.__class__.__name__}] Analyzing...")  # Log de debug
+        print(f"[{self.__class__.__name__}] Analyzing...")
+        
         # Prepare context for LLM
         context = {
             "management": self.current_content,
@@ -27,6 +28,17 @@ class ManagementAgent(ParallagonAgent):
         
         # Get LLM response
         response = self._get_llm_response(context)
+        
+        # Log comparison
+        print(f"[{self.__class__.__name__}] Comparing responses...")
+        if response == self.current_content:
+            print(f"[{self.__class__.__name__}] No changes needed")
+        else:
+            print(f"[{self.__class__.__name__}] Changes detected, updating content")
+            
+            # Log the differences (first 100 chars)
+            print(f"[{self.__class__.__name__}] Current content starts with: {self.current_content[:100]}")
+            print(f"[{self.__class__.__name__}] New content starts with: {response[:100]}")
         
         if response != self.current_content:
             # Update TodoList if needed
