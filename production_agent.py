@@ -115,6 +115,33 @@ Focus on:
 - Testing requirements
 - Dependencies and integration points
 
+Important:
+- Return ONLY the markdown content, starting with "# État Actuel"
+- Keep all existing sections in exact order:
+  1. État Actuel
+  2. Signaux
+  3. Contenu Principal
+  4. Historique
+- Maintain exact markdown formatting
+- Do not include any explanatory text
+- Do not start with phrases like "Based on my review" or "After analyzing"
+- The response must be a valid markdown document that can directly replace the current content
+
+Example format:
+# État Actuel
+[status: STATUS]
+Implementation progress...
+
+# Signaux
+- Signal 1
+- Signal 2
+
+# Contenu Principal
+Technical details...
+
+# Historique
+- [Timestamp] Implementation step
+
 If changes are needed, return the complete updated content.
 If no changes are needed, return the exact current content.
 """
