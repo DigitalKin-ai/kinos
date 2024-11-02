@@ -67,11 +67,13 @@ class ParallagonAgent:
         """Make necessary updates to files"""
         try:
             if hasattr(self, 'new_content') and self.new_content != self.current_content:
+                print(f"[{self.__class__.__name__}] Updating file {self.file_path}")  # Debug log
                 with open(self.file_path, 'w', encoding='utf-8') as f:
                     f.write(self.new_content)
                 self.current_content = self.new_content
+                print(f"[{self.__class__.__name__}] File updated successfully")  # Debug log
         except Exception as e:
-            print(f"Error updating files: {e}")
+            print(f"[{self.__class__.__name__}] Error updating file: {str(e)}")  # Error log
             raise
 
     def update_section(self, section_name: str, new_content: str) -> bool:

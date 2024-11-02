@@ -76,7 +76,9 @@ class SpecificationsAgent(ParallagonAgent):
         Get LLM response using fixed prompt.
         The LLM will analyze specifications and other files to determine needed updates.
         """
-        prompt = f"""You are the Specifications Agent in the Parallagon framework. Your role is to maintain the specifications.md file.
+        try:
+            print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
+            prompt = f"""You are the Specifications Agent in the Parallagon framework. Your role is to maintain the specifications.md file.
 
 Current specifications content:
 {context['specifications']}
@@ -104,8 +106,6 @@ Important:
 - Add timestamps for new history entries
 - Be precise and concise in responses
 """
-
-        try:
             response = self.client.messages.create(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=4000,
@@ -115,9 +115,12 @@ Important:
                     "content": prompt
                 }]
             )
+            print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
             return response.content[0].text
         except Exception as e:
-            print(f"Error calling LLM: {e}")
+            print(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")  # Error log
+            import traceback
+            print(traceback.format_exc())
             return context['specifications']
 
     def _format_other_files(self, files: dict) -> str:

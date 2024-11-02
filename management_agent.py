@@ -77,7 +77,9 @@ class ManagementAgent(ParallagonAgent):
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response for management decisions"""
-        prompt = f"""You are the Management Agent in the Parallagon framework. Your role is to coordinate the project and manage tasks.
+        try:
+            print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
+            prompt = f"""You are the Management Agent in the Parallagon framework. Your role is to coordinate the project and manage tasks.
 
 Current management content:
 {context['management']}
@@ -102,8 +104,6 @@ Important:
 If changes are needed, return the complete updated content.
 If no changes are needed, return the exact current content.
 """
-
-        try:
             response = self.client.messages.create(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=4000,
@@ -113,9 +113,12 @@ If no changes are needed, return the exact current content.
                     "content": prompt
                 }]
             )
+            print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
             return response.content[0].text
         except Exception as e:
-            print(f"Error calling LLM: {e}")
+            print(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")  # Error log
+            import traceback
+            print(traceback.format_exc())
             return context['management']
 
     def _extract_section(self, content: str, section_name: str) -> str:
