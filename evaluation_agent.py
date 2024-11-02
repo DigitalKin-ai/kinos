@@ -171,8 +171,15 @@ If no changes are needed, return the exact current content.
     def _extract_section(self, content: str, section_name: str) -> str:
         """Extract content of a specific section"""
         pattern = f"# {section_name}\n(.*?)(?=\n#|$)"
-        match = re.search(pattern, content, re.DOTALL)
-        return match.group(1).strip() if match else ""
+        matches = list(re.finditer(pattern, content, re.DOTALL))
+        
+        if len(matches) == 0:
+            print(f"[{self.__class__.__name__}] Section '{section_name}' not found")
+            return ""
+        elif len(matches) > 1:
+            print(f"[{self.__class__.__name__}] Warning: Multiple '{section_name}' sections found, using first one")
+            
+        return matches[0].group(1).strip()
 
     def _format_other_files(self, files: dict) -> str:
         """Format other files content for the prompt"""
@@ -290,8 +297,15 @@ Important:
     def _extract_section(self, content: str, section_name: str) -> str:
         """Extract content of a specific section"""
         pattern = f"# {section_name}\n(.*?)(?=\n#|$)"
-        match = re.search(pattern, content, re.DOTALL)
-        return match.group(1).strip() if match else ""
+        matches = list(re.finditer(pattern, content, re.DOTALL))
+        
+        if len(matches) == 0:
+            print(f"[{self.__class__.__name__}] Section '{section_name}' not found")
+            return ""
+        elif len(matches) > 1:
+            print(f"[{self.__class__.__name__}] Warning: Multiple '{section_name}' sections found, using first one")
+            
+        return matches[0].group(1).strip()
 
     def _update_status(self, new_content: str) -> None:
         """Update status if changed"""
