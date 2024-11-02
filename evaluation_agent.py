@@ -1,0 +1,136 @@
+"""
+EvaluationAgent - Agent responsible for quality control and validation
+"""
+from parallagon_agent import ParallagonAgent
+from search_replace import SearchReplace
+import re
+from datetime import datetime
+import anthropic
+
+class EvaluationAgent(ParallagonAgent):
+    """Agent handling quality control and validation"""
+    
+    def __init__(self, config):
+        super().__init__(config)
+        self.client = anthropic.Anthropic(api_key=config["anthropic_api_key"])
+
+    def determine_actions(self) -> None:
+        """
+        Evaluate implementation quality and validate against requirements
+        """
+        # Prepare context for LLM
+        context = {
+            "evaluation": self.current_content,
+            "other_files": self.other_files
+        }
+        
+        # Get LLM response
+        response = self._get_llm_response(context)
+        
+        if response != self.current_content:
+            # Update État Actuel with evaluation status
+            result = SearchReplace.section_replace(
+                self.current_content,
+                "État Actuel",
+                self._extract_section(response, "État Actuel")
+            )
+            if result.success:
+                self.current_content = result.new_content
+
+            # Update Contenu Principal with evaluation results
+            result = SearchReplace.section_replace(
+                self.current_content,
+                "Contenu Principal",
+                self._extract_section(response, "Contenu Principal")
+            )
+            if result.success:
+                self.current_content = result.new_content
+
+            # Handle evaluation feedback signals
+            new_signals = self._extract_section(response, "Signaux")
+            if new_signals != self._extract_section(self.current_content, "Signaux"):
+                result = SearchReplace.section_replace(
+                    self.current_content,
+                    "Signaux",
+                    new_signals
+                )
+                if result.success:
+                    self.current_content = result.new_content
+
+            # Track evaluation history
+            new_history = self._extract_section(response, "Historique")
+            if new_history != self._extract_section(self.current_content, "Historique"):
+                result = SearchReplace.section_replace(
+                    self.current_content,
+                    "Historique",
+                    new_history
+                )
+                if result.success:
+                    self.current_content = result.new_content
+
+            # Set new content for update
+            self.new_content = self.current_content
+
+    def _get_llm_response(self, context: dict) -> str:
+        """Get LLM response for evaluation decisions"""
+        prompt = f"""You are the Evaluation Agent in the Parallagon framework. Your role is to evaluate quality and validate implementations.
+
+Current evaluation content:
+{context['evaluation']}
+
+Other files content:
+{self._format_other_files(context['other_files'])}
+
+Your task:
+1. Review specifications vs implementation
+2. Validate code quality and completeness
+3. Check test coverage and results
+4. Identify potential improvements
+5. Provide detailed feedback
+
+Focus on:
+- Requirements compliance
+- Code quality metrics
+- Test coverage and results
+- Performance considerations
+- Security aspects
+- Documentation completeness
+
+Evaluate and provide feedback on:
+- Implementation correctness
+- Code structure and organization
+- Error handling and edge cases
+- Integration points
+- Overall quality
+
+If changes are needed, return the complete updated content.
+If no changes are needed, return the exact current content.
+"""
+
+        try:
+            response = self.client.messages.create(
+                model="claude-3-sonnet",
+                max_tokens=4000,
+                temperature=0,
+                messages=[{
+                    "role": "user",
+                    "content": prompt
+                }]
+            )
+            return response.content[0].text
+        except Exception as e:
+            print(f"Error calling LLM: {e}")
+            return context['evaluation']
+
+    def _extract_section(self, content: str, section_name: str) -> str:
+        """Extract content of a specific section"""
+        pattern = f"# {section_name}\n(.*?)(?=\n#|$)"
+        match = re.search(pattern, content, re.DOTALL)
+        return match.group(1).strip() if match else ""
+
+    def _format_other_files(self, files: dict) -> str:
+        """Format other files content for the prompt"""
+        result = []
+        for file_path, content in files.items():
+            result.append(f"=== {file_path} ===\n{content}\n")
+        return "\n".join(result)
