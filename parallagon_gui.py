@@ -258,10 +258,10 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         # Configuration du style de base des tabs
         style.configure('TNotebook.Tab', padding=[10, 5])
         
-        # Créer les styles de flash pour chaque tab à l'avance
+        # Créer un style spécifique pour chaque état de tab
         for tab_name in self.TAB_NAMES:
             style.configure(
-                f'Flash{tab_name}.TNotebook.Tab',
+                f'Flash.{tab_name}.TNotebook.Tab',
                 background="#e8f0fe",
                 padding=[10, 5]
             )
@@ -501,8 +501,8 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 # Obtenir l'index du tab
                 tab_id = self.tab_control.index(self.tabs[tab_name])
                 
-                # Utiliser le style pré-configuré
-                self.tab_control.tab(tab_id, style=f'Flash{tab_name}.TNotebook.Tab')
+                # Appliquer le style de flash spécifique au tab
+                self.tab_control.tab(tab_id, style=f'Flash.{tab_name}.TNotebook.Tab')
                 
                 # Programmer le retour au style normal
                 self.tab_flash_tasks[tab_name] = self.root.after(
