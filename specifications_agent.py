@@ -239,7 +239,7 @@ class SpecificationsAgent(ParallagonAgent):
                                 new_content.append("[En attente de contenu]")
                 else:
                     # Nouvelle section avec hiérarchie complète
-                    new_content.append(f"[En attente de contenu - Contraintes: {section_info['constraints']}]")
+                    new_content.append(f"[En attente de contenu]\nContraintes: {section_info['constraints']}")
                     for subsection_name, subsection_info in section_info['subsections'].items():
                         new_content.append(f"\n## {subsection_name}")
                         new_content.append(f"[En attente de contenu - Contraintes: {subsection_info['constraints']}]")

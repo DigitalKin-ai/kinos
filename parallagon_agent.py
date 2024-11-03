@@ -175,8 +175,15 @@ class ParallagonAgent:
         - Reads all watched files into other_files dictionary
         - Maintains file state for change detection
         """
-        with open(self.file_path, 'r', encoding='utf-8') as f:
-            self.current_content = f.read()
+        # Ensure file exists
+        if not Path(self.file_path).exists():
+            with open(self.file_path, 'w', encoding='utf-8') as f:
+                initial_content = "# Contenu Initial\n[En attente de contenu à produire...]"
+                f.write(initial_content)
+                self.current_content = initial_content
+        else:
+            with open(self.file_path, 'r', encoding='utf-8') as f:
+                self.current_content = f.read()
         
         self.other_files = {}
         for file_path in self.config.get("watch_files", []):

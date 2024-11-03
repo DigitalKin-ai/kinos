@@ -90,7 +90,8 @@ En attente de nouvelles directives...
 # Actions Réalisées
 - [{datetime.now().strftime("%Y-%m-%d %H:%M")}] Création du fichier""",
 
-            "production": """En attente de contenu à produire...""",
+            "production": """# Contenu Initial
+[En attente de contenu à produire...]""",
 
             "evaluation": """# Évaluations en Cours
 - Critère 1: [⚠️] En attente
