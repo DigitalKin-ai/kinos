@@ -45,42 +45,43 @@ class ManagementAgent(ParallagonAgent):
                 self.logger(f"[{self.__class__.__name__}] Modifications détectées, tentative de mise à jour...")
                 temp_content = self.current_content
 
-                # Parse and validate Consignes Actuelles
-                consignes_pattern = r'# Consignes Actuelles\n\[section: (.+?)\]\n\[objectif: (.+?)\]\n\[attention: (.+?)\]'
-                consignes_match = re.search(consignes_pattern, response, re.DOTALL)
-                if not consignes_match:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Format invalide pour Consignes Actuelles")
-                else:
-                    result = SearchReplace.section_replace(
-                        temp_content,
-                        "Consignes Actuelles",
-                        response[consignes_match.start(1):consignes_match.end(3)]
-                    )
-                    if result.success:
-                        temp_content = result.new_content
-                        self.logger(f"[{self.__class__.__name__}] ✓ Consignes Actuelles mises à jour")
-
-                # Parse and validate TodoList
+                # Parse and validate TodoList with section-specific tasks
                 section_pattern = r'\[section: (.+?)\]\n\[contraintes: (.+?)\](.*?)(?=\[section:|$)'
                 task_pattern = r'- \[ \] \[priority: (HIGH|MEDIUM|LOW)\] (.+)$'
                 
                 todos = ["# TodoList"]
                 sections = re.finditer(section_pattern, response, re.MULTILINE | re.DOTALL)
                 
+                # Dictionary to store tasks by section
+                section_todos = {}
+                
                 for section_match in sections:
                     section_name = section_match.group(1)
                     section_constraints = section_match.group(2)
                     section_content = section_match.group(3)
                     
-                    todos.append(f"\n[section: {section_name}]")
-                    todos.append(f"[contraintes: {section_constraints}]")
+                    # Initialize task list for this section
+                    section_todos[section_name] = []
                     
+                    # Extract tasks for this section
                     tasks = re.finditer(task_pattern, section_content, re.MULTILINE)
                     for task_match in tasks:
                         priority = task_match.group(1)
                         task_description = task_match.group(2)
-                        todos.append(f"- [ ] [priority: {priority}] {task_description}")
+                        section_todos[section_name].append({
+                            'priority': priority,
+                            'description': task_description
+                        })
+                    
+                    # Add section to TodoList content
+                    todos.append(f"\n[section: {section_name}]")
+                    todos.append(f"[contraintes: {section_constraints}]")
+                    
+                    # Add tasks for this section
+                    for task in section_todos[section_name]:
+                        todos.append(f"- [ ] [priority: {task['priority']}] {task['description']}")
 
+                # Update TodoList section
                 result = SearchReplace.section_replace(
                     temp_content,
                     "TodoList",
@@ -91,32 +92,8 @@ class ManagementAgent(ParallagonAgent):
                     temp_content = result.new_content
                     self.logger(f"[{self.__class__.__name__}] ✓ TodoList mise à jour")
 
-                # Parse and validate Actions Réalisées
-                action_pattern = r'\[timestamp: (\d{4}-\d{2}-\d{2} \d{2}:\d{2})\] \[section: (.+?)\] \[impact: (.+?)\] (.+)$'
-                actions_section = re.search(r'# Actions Réalisées\n(.*?)(?=\n#|$)', response, re.DOTALL)
-                
-                if actions_section:
-                    actions = re.finditer(action_pattern, actions_section.group(1), re.MULTILINE)
-                    valid_actions = []
-                    
-                    for action in actions:
-                        timestamp = action.group(1)
-                        section = action.group(2)
-                        impact = action.group(3)
-                        description = action.group(4)
-                        valid_actions.append(
-                            f"[timestamp: {timestamp}] [section: {section}] [impact: {impact}] {description}"
-                        )
-                    
-                    if valid_actions:
-                        result = SearchReplace.section_replace(
-                            temp_content,
-                            "Actions Réalisées",
-                            '\n'.join(valid_actions)
-                        )
-                        if result.success:
-                            temp_content = result.new_content
-                            self.logger(f"[{self.__class__.__name__}] ✓ Actions Réalisées mises à jour")
+                    # Update Section objects' todo lists
+                    self._update_section_todos(section_todos)
 
                 self.new_content = temp_content
                 self.logger(f"[{self.__class__.__name__}] ✓ Mise à jour complète effectuée")
@@ -257,43 +234,6 @@ class ManagementAgent(ParallagonAgent):
         return "\n".join(result)
 
     def _build_prompt(self, context: dict) -> str:
-        """
-        Build prompt for management coordination.
-        
-        Includes:
-        - Current project status
-        - Agent activities and needs
-        - Task priorities and dependencies
-        - Coordination requirements
-        - Resource allocation guidance
-        
-        Args:
-            context: Current project state
-            
-        Returns:
-            str: Management coordination prompt
-        """
-        # Extract sections and their constraints from specifications
-        specs_content = context.get("other_files", {}).get("specifications.md", "")
-        sections_data = []
-        
-        # Find all sections and their constraints
-        section_matches = re.finditer(r'^# (.+)\n\[contraintes: (.+?)\]', specs_content, re.MULTILINE | re.DOTALL)
-        for match in section_matches:
-            section_name = match.group(1)
-            constraints = match.group(2).strip()
-            sections_data.append(f"- {section_name}\n  Contraintes: {constraints}")
-        
-        sections_list = "\n".join(sections_data)
-
-        # Get evaluation status
-        eval_content = context.get("other_files", {}).get("evaluation.md", "")
-        eval_status = "Pas d'évaluation disponible"
-        if eval_content:
-            vue_ensemble = re.search(r'# Vue d\'Ensemble\n(.*?)(?=\n#|$)', eval_content, re.DOTALL)
-            if vue_ensemble:
-                eval_status = vue_ensemble.group(1).strip()
-
         return f"""En tant que chef de projet expérimenté, votre rôle est de :
 1. Analyser la demande, les spécifications et l'état actuel
 2. Définir et prioriser les tâches par section en tenant compte des contraintes
@@ -302,34 +242,59 @@ class ManagementAgent(ParallagonAgent):
 Contexte actuel :
 {self._format_other_files(context['other_files'])}
 
-Sections du template et leurs contraintes :
-{sections_list}
-
-Format attendu STRICT à respecter :
-
-# Consignes Actuelles
-[section: nom_section]
-[objectif: description_objectif]
-[attention: points_critiques]
+Format attendu STRICT à respecter pour chaque section :
 
 # TodoList
-[section: Section 1]
+[section: Nom Section 1]
 [contraintes: contraintes_principales]
-- [ ] [priority: HIGH] Tâche 1.1
-- [ ] [priority: MEDIUM] Tâche 1.2
-- [ ] [priority: LOW] Tâche 1.3
+- [ ] [priority: HIGH] Tâche prioritaire 1
+- [ ] [priority: MEDIUM] Tâche moyenne 1
+- [ ] [priority: LOW] Tâche mineure 1
 
-[section: Section 2]
+[section: Nom Section 2]
 [contraintes: contraintes_principales]
-- [ ] [priority: HIGH] Tâche 2.1
-- [ ] [priority: MEDIUM] Tâche 2.2
+- [ ] [priority: HIGH] Tâche prioritaire 2
+- [ ] [priority: MEDIUM] Tâche moyenne 2
 
-# Actions Réalisées
-[timestamp: YYYY-MM-DD HH:mm] [section: nom_section] [impact: description_impact] Action effectuée
-
-Règles STRICTES de formatage :
-1. Chaque section doit commencer par [section: nom]
+Règles STRICTES :
+1. Chaque section doit avoir ses propres tâches
 2. Les priorités doivent être exactement HIGH, MEDIUM ou LOW
-3. Le format timestamp doit être YYYY-MM-DD HH:mm
-4. Chaque attribut doit être entre crochets avec le format [clé: valeur]
-5. Les tâches doivent commencer par "- [ ] " (avec les espaces)"""
+3. Chaque tâche doit commencer par "- [ ] "
+4. Les tâches doivent être spécifiques et actionnables
+5. Respecter les contraintes de chaque section"""
+    def _update_section_todos(self, section_todos: dict) -> None:
+        """
+        Update todo lists for each section.
+        
+        Args:
+            section_todos: Dictionary mapping section names to their tasks
+        """
+        try:
+            # Read specifications file to get sections
+            with open("specifications.md", 'r', encoding='utf-8') as f:
+                specs_content = f.read()
+                
+            # Extract sections and update their todo lists
+            section_pattern = r'^# (.+)$'
+            for match in re.finditer(section_pattern, specs_content, re.MULTILINE):
+                section_name = match.group(1)
+                if section_name in section_todos:
+                    # Convert tasks to simple list format
+                    tasks = [
+                        f"[{task['priority']}] {task['description']}"
+                        for task in section_todos[section_name]
+                    ]
+                    
+                    # Update section's todo list
+                    section = Section(
+                        title=section_name,
+                        constraints="",  # Will be filled by SpecificationsAgent
+                        content=None,    # Will be filled by ProductionAgent
+                        evaluation=None, # Will be filled by EvaluationAgent
+                        todo=tasks
+                    )
+                    
+                    self.logger(f"[{self.__class__.__name__}] ✓ Updated todos for section: {section_name}")
+                    
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Error updating section todos: {str(e)}")
