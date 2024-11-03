@@ -1,10 +1,11 @@
-# Spécification de Sortie
-En attente de nouvelles demandes...
+# Export des Logs
+[contraintes: Fonctionnalité d'export des logs avec horodatage et formatage lisible]
 
-# Critères de Succès
-- Critère principal 1
-  * Sous-critère A
-  * Sous-critère B
-- Critère principal 2
-  * Sous-critère A
-  * Sous-critère B
+# Interface Utilisateur
+[contraintes: Intégration dans l'interface graphique existante avec bouton d'export]
+
+# Format de Sortie
+[contraintes: Structure claire des logs avec timestamps et catégorisation]
+
+# Gestion des Fichiers
+[contraintes: Mécanisme de sauvegarde et nommage des fichiers de logs]
