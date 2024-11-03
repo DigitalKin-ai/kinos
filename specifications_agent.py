@@ -17,6 +17,7 @@ class SpecificationsAgent(ParallagonAgent):
     - Defines section requirements and constraints
     - Ensures structural consistency across documents
     - Synchronizes template changes with production
+    - Synchronizes template changes with production
     """
     
     def __init__(self, config):
