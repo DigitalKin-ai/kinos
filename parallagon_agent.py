@@ -60,32 +60,6 @@ class ParallagonAgent:
             
         return True
 
-    def validate_content(self) -> bool:
-        """Validate file content structure and format"""
-        try:
-            # Check basic structure
-            if not self.current_content:
-                print(f"[{self.__class__.__name__}] Empty content")
-                return False
-                
-            # Check required sections
-            required_sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
-            for section in required_sections:
-                if f"# {section}" not in self.current_content:
-                    print(f"[{self.__class__.__name__}] Missing section: {section}")
-                    return False
-                    
-            # Check status format
-            status_match = re.search(r'\[status: (\w+)\]', self.current_content)
-            if not status_match:
-                print(f"[{self.__class__.__name__}] Invalid status format")
-                return False
-                
-            return True
-            
-        except Exception as e:
-            print(f"[{self.__class__.__name__}] Validation error: {str(e)}")
-            return False
 
     def read_files(self) -> None:
         """Read all relevant files for the agent"""

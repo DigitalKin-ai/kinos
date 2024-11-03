@@ -15,45 +15,18 @@ class ProductionAgent(ParallagonAgent):
         self.client = anthropic.Anthropic(api_key=config["anthropic_api_key"])
 
     def determine_actions(self) -> None:
-        """
-        Analyze requirements and implement needed code changes
-        """
+        """Analyze requirements and implement needed code changes"""
         print(f"[{self.__class__.__name__}] Analyzing...")
         
-        # Prepare context for LLM
         context = {
             "production": self.current_content,
             "other_files": self.other_files
         }
         
-        # Get LLM response
         response = self._get_llm_response(context)
         
         if response != self.current_content:
-            # Use temporary content for replacements
-            temp_content = self.current_content
-            sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
-            
-            for section in sections:
-                pattern = f"# {section}\n(.*?)(?=\n#|$)"
-                match = re.search(pattern, response, re.DOTALL)
-                if not match:
-                    print(f"[{self.__class__.__name__}] {section} section not found in LLM response")
-                    continue
-                    
-                new_section_content = match.group(1).strip()
-                result = SearchReplace.section_replace(
-                    temp_content,
-                    section,
-                    new_section_content
-                )
-                if result.success:
-                    temp_content = result.new_content
-                    
-            self.new_content = temp_content
-            print(f"[{self.__class__.__name__}] Changes detected:")
-            print(f"Old content: {self.current_content[:100]}...")
-            print(f"New content: {self.new_content[:100]}...")
+            self.new_content = response
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response for implementation decisions"""
