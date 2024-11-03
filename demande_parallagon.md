@@ -43,16 +43,28 @@ Description de l'état...
 - [Timestamp] Modification réalisée
 ```
 
+### 2.3 Format du Template (specifications.md)
+```markdown
+# Section 1
+[contraintes: description des exigences pour cette section]
+
+# Section 2
+[contraintes: description des exigences pour cette section]
+
+# Section N
+[contraintes: description des exigences pour cette section]
+```
+
 ## 3. Agents
 
 ### 3.1 Agent Spécification
 - **Fichier**: specifications.md
-- **Rôle**: Définition et clarification des besoins
+- **Rôle**: Gestion du template et de la structure documentaire
 - **Responsabilités**:
-  * Analyse des besoins
-  * Documentation des exigences
-  * Réponse aux questions
-  * Validation des alignements
+  * Définition du template de document
+  * Gestion des sections requises
+  * Maintien des contraintes par section
+  * Synchronisation de la structure avec production.md
 
 ### 3.2 Agent Management
 - **Fichier**: management.md
@@ -65,12 +77,12 @@ Description de l'état...
 
 ### 3.3 Agent Production
 - **Fichier**: production.md
-- **Rôle**: Création et implémentation
+- **Rôle**: Création et implémentation du contenu
 - **Responsabilités**:
-  * Développement
+  * Développement du contenu selon le template
+  * Respect des contraintes de section
   * Documentation technique
-  * Tests unitaires
-  * Signalement des problèmes
+  * Signalement des problèmes de contenu
 
 ### 3.4 Agent Évaluation
 - **Fichier**: evaluation.md
@@ -139,6 +151,15 @@ new_str = """Section Alpha:
 - Chaque agent surveille ses signaux
 - Messages clairs et actionnables
 
+### 5.4 Synchronisation Template-Production
+1. L'agent Spécification définit/met à jour le template
+2. Détection automatique des changements de structure
+3. Synchronisation des sections dans production.md :
+   - Ajout des nouvelles sections avec placeholder
+   - Suppression des sections obsolètes
+   - Conservation du contenu existant des sections maintenues
+4. Notification des changements structurels aux autres agents
+
 ## 6. Implémentation
 
 ### 6.1 Prérequis
@@ -173,10 +194,10 @@ class ParallagonAgent:
 ## 7. Best Practices
 
 ### 7.1 Modification de Fichiers
-- Toujours vérifier l'unicité avant remplacement
-- Préférer plusieurs petites modifications précises
-- Maintenir des points d'ancrage clairs
-- Documenter les changements importants
+- Structure gérée exclusivement par l'agent Spécification
+- Modifications de contenu uniquement dans les sections définies
+- Respect des contraintes de section
+- Documentation des changements de contenu
 
 ### 7.2 Communication
 - Messages clairs et concis
