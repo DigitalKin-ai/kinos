@@ -69,7 +69,9 @@ class SearchReplace:
     @staticmethod
     def section_replace(content: str, section_name: str, new_section_content: str) -> SearchReplaceResult:
         try:
-            pattern = f"# {section_name}\n(.*?)(?=\n#|$)"
+            # Échapper les caractères spéciaux dans le titre de section, sauf les #
+            escaped_name = re.escape(section_name).replace(r'\#', '#')
+            pattern = f"{escaped_name}\n(.*?)(?=\n#{1,6}\s|$)"
             matches = list(re.finditer(pattern, content, re.DOTALL))
             
             if not matches:
@@ -82,7 +84,7 @@ class SearchReplace:
             print(f"Old: {matches[0].group(1).strip()}")
             print(f"New: {new_section_content}")
             
-            new_content = content[:matches[0].start()] + f"# {section_name}\n{new_section_content}" + content[matches[0].end():]
+            new_content = content[:matches[0].start()] + f"{section_name}\n{new_section_content}" + content[matches[0].end():]
             return SearchReplaceResult(True, "Section replaced successfully", new_content, 1)
             
         except Exception as e:
