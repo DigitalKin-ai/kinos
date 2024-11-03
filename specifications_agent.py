@@ -107,7 +107,7 @@ If no changes are needed, return the exact current content.
             print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
             return response.content[0].text
         except Exception as e:
-            print(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")  # Error log
+            print(f"[{self.__class__.__name__}] Error in LLM response processing: {str(e)}")
             import traceback
             print(traceback.format_exc())
             return context['specifications']
