@@ -149,21 +149,6 @@ class ProductionAgent(ParallagonAgent):
         Returns:
             str: Validated content updates
         """
-        """
-        Get LLM response for content creation and updates.
-        
-        Process:
-        1. Analyzes current content and requirements
-        2. Generates appropriate content updates
-        3. Ensures content quality and consistency
-        4. Validates response format
-        
-        Args:
-            context: Current content state and requirements
-            
-        Returns:
-            str: Validated content updates
-        """
         try:
             self.logger(f"[{self.__class__.__name__}] Calling LLM API...")
             
@@ -177,12 +162,17 @@ class ProductionAgent(ParallagonAgent):
             
             content = response.content[0].text
             
-            # Si le LLM indique qu'aucun changement n'est nécessaire
-            if content.strip() == "NO_CHANGES":
-                self.logger(f"[{self.__class__.__name__}] No changes needed")
-                return context['production']
-                
-            return content
+            # Modification ici : vérifier si le contenu est substantiel
+            if content.strip() and content.strip() != "NO_CHANGES":
+                # Vérifier que le contenu contient au moins une section
+                if '# ' in content:
+                    return content
+                else:
+                    self.logger(f"[{self.__class__.__name__}] Réponse invalide : pas de sections")
+                    return context['production']
+                    
+            self.logger(f"[{self.__class__.__name__}] No changes needed")
+            return context['production']
                 
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")
@@ -286,44 +276,37 @@ class ProductionAgent(ParallagonAgent):
         Returns:
             str: Content creation/update prompt
         """
-        return f"""Vous êtes le ProductionAgent, responsable UNIQUEMENT du contenu des sections.
+        return f"""Vous êtes le ProductionAgent, responsable de créer et mettre à jour le contenu des sections.
 
 IMPORTANT - VOS LIMITES :
 - Vous ne pouvez PAS créer de nouvelles sections
 - Vous ne pouvez PAS supprimer de sections existantes
 - Vous ne pouvez PAS modifier la structure du document
-- Vous pouvez UNIQUEMENT remplir et mettre à jour le contenu des sections existantes
+- Vous DEVEZ générer du contenu pour les sections vides ou marquées [En attente de contenu]
 
 Contexte actuel :
 {self._format_other_files(context['other_files'])}
 
-Votre rôle :
-1. Analyser les sections existantes et leurs contraintes
-2. Créer ou mettre à jour le contenu pour respecter ces contraintes
-3. Assurer la cohérence du contenu entre les sections
-4. Répondre aux demandes de modifications du ManagementAgent
+Instructions STRICTES :
+1. Pour chaque section existante :
+   - Si elle est vide ou contient [En attente de contenu] : VOUS DEVEZ générer du contenu
+   - Si elle a déjà du contenu : ne pas modifier
+   - Respecter les contraintes définies dans specifications.md
+   - Assurer la cohérence avec les autres sections
 
-Pour chaque section :
-1. Vérifiez les contraintes définies
-2. Produisez un contenu qui :
-   - Répond précisément aux exigences
-   - Respecte le format demandé
-   - S'intègre logiquement dans l'ensemble
-   - Est clair et bien structuré
+2. Le contenu généré doit être :
+   - Détaillé et substantiel
+   - Pertinent par rapport aux contraintes
+   - Bien structuré avec des sous-points si nécessaire
+   - En français et professionnel
 
-Format de réponse :
-- Conservez EXACTEMENT la structure existante
-- Modifiez UNIQUEMENT le contenu entre les titres
-- Respectez la hiérarchie des sections
-- Ne créez PAS de nouvelles sections
+3. Format de réponse OBLIGATOIRE :
+   - Conserver exactement les titres existants
+   - Inclure tout le contenu (nouveau et existant)
+   - Utiliser la hiérarchie actuelle des sections
 
-Si une section nécessite une modification structurelle :
-- NE LA FAITES PAS vous-même
-- Signalez-le au ManagementAgent qui coordonnera avec le SpecificationsAgent
-
-Retournez soit :
-1. "NO_CHANGES" si aucune modification n'est nécessaire
-2. Le contenu mis à jour en respectant strictement la structure existante"""
+NE JAMAIS retourner "NO_CHANGES" si une section est vide ou contient [En attente de contenu].
+TOUJOURS générer du contenu pour les sections vides."""
     def _extract_sections(self, content: str) -> dict:
         """
         Extract sections from content while preserving hierarchy.
