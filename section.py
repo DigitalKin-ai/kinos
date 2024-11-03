@@ -23,3 +23,4 @@ class Section:
     title: str
     constraints: Optional[str] = None
     content: Optional[str] = None
+    todo: Optional[list[str]] = None
