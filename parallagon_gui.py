@@ -543,15 +543,18 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                         updated_panels.append("Demande")
                         changes["Demande"] = {"old": old_content, "new": content}
                         self.flash_tab("Demande")
-                # Traitement normal pour les autres panneaux
-                elif name in self.agent_panels:
-                    old_content = self.agent_panels[name].text.get("1.0", tk.END).strip()
-                    if content.strip() != old_content:
-                        self.agent_panels[name].update_content(content)
-                        updated_panels.append(name)
-                        changes[name] = {"old": old_content, "new": content}
-                        if name != "Production":
-                            self.flash_tab(name)
+                # Traitement pour tous les autres panneaux
+                elif name in self.panel_mapping:
+                    panel_name = self.panel_mapping[name]
+                    panel = self.agent_panels.get(panel_name)
+                    if panel:
+                        old_content = panel.text.get("1.0", tk.END).strip()
+                        if content.strip() != old_content:
+                            panel.update_content(content)
+                            updated_panels.append(panel_name)
+                            changes[panel_name] = {"old": old_content, "new": content}
+                            if panel_name != "Production":  # Ne pas flasher Production car il est toujours visible
+                                self.flash_tab(panel_name)
 
             if updated_panels:
                 self._get_changes_summary(changes)
