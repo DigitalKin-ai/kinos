@@ -149,18 +149,26 @@ class LogManager:
         self.text_widget.tag_config('fade_in', background='#e8f0fe')
         
         # Add timestamp
+        timestamp_start = self.text_widget.index(tk.END)
         self.text_widget.insert(tk.END, f"[{log.timestamp}] ", 'timestamp')
         
-        # Add agent name only once if present
+        # Add agent name if present
         if log.agent:
             self.text_widget.insert(tk.END, f"[{log.agent}] ", log.level.name.lower())
         
         # Add message with proper tag and animation
-        start_index = self.text_widget.index(tk.END)
+        message_start = self.text_widget.index(tk.END)
         self.text_widget.insert(tk.END, f"{log.message}\n", (log.level.name.lower(), 'fade_in'))
+        message_end = self.text_widget.index(tk.END)
         
-        # Schedule animation removal
-        self.text_widget.after(1000, lambda: self.text_widget.tag_remove('fade_in', start_index, tk.END))
+        # Schedule animation removal with specific range
+        def remove_fade():
+            try:
+                self.text_widget.tag_remove('fade_in', message_start, message_end)
+            except Exception:
+                pass  # Handle case where text widget might be destroyed
+                
+        self.text_widget.after(1000, remove_fade)
     
     def clear(self):
         """Clear all log messages"""
