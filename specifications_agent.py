@@ -333,13 +333,6 @@ class SpecificationsAgent(ParallagonAgent):
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur globale: {str(e)}")
             import traceback
             self.logger(traceback.format_exc())
-            else:
-                self.logger(f"[{self.__class__.__name__}] Aucune modification nécessaire")
-                
-        except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'analyse: {str(e)}")
-            import traceback
-            self.logger(traceback.format_exc())
 
     def _get_llm_response(self, context: dict) -> str:
         """
