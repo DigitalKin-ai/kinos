@@ -17,7 +17,16 @@ class EvaluationAgent(ParallagonAgent):
         self.logger = config.get("logger", print)
 
     def determine_actions(self) -> None:
-        """Analyze current context and determine if validation/evaluation is needed."""
+        """
+        Analyze project status and coordinate tasks between agents.
+        
+        Process:
+        1. Reviews current project state and progress
+        2. Identifies blockers and dependencies
+        3. Prioritizes tasks across sections
+        4. Updates management directives
+        5. Coordinates agent activities
+        """
         try:
             self.logger("Début de l'analyse...")
             
@@ -64,7 +73,21 @@ class EvaluationAgent(ParallagonAgent):
             self.logger(traceback.format_exc())
 
     def _get_llm_response(self, context: dict) -> str:
-        """Get LLM response for evaluation tasks"""
+        """
+        Get LLM response for management decisions.
+        
+        Process:
+        1. Analyzes project context and agent status
+        2. Determines optimal task distribution
+        3. Generates coordinated action plans
+        4. Validates response format
+        
+        Args:
+            context: Current project state and agent status
+            
+        Returns:
+            str: Validated management directives
+        """
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
             response = self.client.chat.completions.create(
@@ -120,7 +143,22 @@ class EvaluationAgent(ParallagonAgent):
         return "\n".join(result)
 
     def _build_prompt(self, context: dict) -> str:
-        """Build prompt for evaluation decisions"""
+        """
+        Build prompt for management coordination.
+        
+        Includes:
+        - Current project status
+        - Agent activities and needs
+        - Task priorities and dependencies
+        - Coordination requirements
+        - Resource allocation guidance
+        
+        Args:
+            context: Current project state
+            
+        Returns:
+            str: Management coordination prompt
+        """
         return f"""You are the Evaluation Agent in the Parallagon framework, working in parallel with 3 other agents.
 
 Your role is to be an extremely thorough and critical quality controller. You must evaluate ONLY the content present in production.md - this is the COMPLETE deliverable to evaluate. Any element not present in production.md should be considered missing, regardless of mentions in other files.
