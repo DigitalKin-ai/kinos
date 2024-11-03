@@ -438,7 +438,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
 Résumez en une phrase précise ce qui a changé. Soyez factuel et concis."""
 
             response = self.client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0,
                 max_tokens=100
