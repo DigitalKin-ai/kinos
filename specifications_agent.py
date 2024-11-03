@@ -3,7 +3,7 @@ SpecificationsAgent - Agent responsible for requirements analysis and specificat
 """
 import re
 from parallagon_agent import ParallagonAgent
-import anthropic
+import openai
 from datetime import datetime
 from search_replace import SearchReplace
 
