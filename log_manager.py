@@ -3,8 +3,6 @@ LogManager - Centralized logging management for Parallagon GUI
 """
 from datetime import datetime
 import tkinter as tk
-from tkinter import filedialog
-from pathlib import Path
 from typing import Dict, Optional
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -111,33 +109,6 @@ class LogManager:
         self.logs.clear()
         self.text_widget.delete("1.0", tk.END)
     
-    def export_logs(self, default_filename: str = "parallagon_logs.txt") -> bool:
-        """Export logs to a text file"""
-        try:
-            filepath = filedialog.asksaveasfilename(
-                defaultextension=".txt",
-                initialfile=default_filename,
-                filetypes=[
-                    ("Text files", "*.txt"),
-                    ("Log files", "*.log"),
-                    ("All files", "*.*")
-                ]
-            )
-            
-            if not filepath:  # User cancelled
-                return False
-            
-            with open(filepath, 'w', encoding='utf-8') as f:
-                for entry in self.logs:
-                    f.write(self._format_log_entry(entry))
-                    
-            self.log(f"✨ Logs exported successfully to: {Path(filepath).name}")
-            return True
-            
-        except Exception as e:
-            self.log(f"❌ Error exporting logs: {str(e)}")
-            return False
-            
     def get_logs_by_level(self, level: LogLevel) -> list[LogEntry]:
         """Get all logs of a specific level"""
         return [log for log in self.logs if log.level == level]
