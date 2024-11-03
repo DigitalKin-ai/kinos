@@ -155,6 +155,12 @@ class SpecificationsAgent(ParallagonAgent):
                     # Ajouter nouvelle section avec placeholder
                     new_content.append(f"# {section}\n[En attente de contenu]")
             
+            # Initialize data structures
+            template_structure = {}
+            current_constraints = {}
+            current_section = None
+            current_subsection = None
+
             for line in template.split('\n'):
                 if line.startswith('# '):  # Section principale
                     if current_section:
@@ -193,7 +199,8 @@ class SpecificationsAgent(ParallagonAgent):
             current_section = None
             current_content = []
             
-            for line in output.split('\n'):
+            # Use current_content instead of undefined output
+            for line in self.current_content.split('\n'):
                 if line.startswith('# '):
                     if current_section:
                         output_structure[current_section] = '\n'.join(current_content).strip()
