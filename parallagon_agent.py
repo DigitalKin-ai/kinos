@@ -51,24 +51,12 @@ class ParallagonAgent:
                     return False
             return True
             
-        # For other agents
+        # Pour les autres agents (cas par défaut)
         required_sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
-        
-        # Check starts with État Actuel
-        if not response.startswith("# État Actuel"):
-            print(f"[{self.__class__.__name__}] Response must start with '# État Actuel'")
-            return False
-            
-        # Check all required sections present
         for section in required_sections:
             if f"# {section}" not in response:
                 print(f"[{self.__class__.__name__}] Missing required section: {section}")
                 return False
-                
-        # Check status format
-        if not re.search(r'\[status: \w+\]', response):
-            print(f"[{self.__class__.__name__}] Invalid or missing status")
-            return False
             
         return True
 
