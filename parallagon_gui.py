@@ -130,17 +130,21 @@ class ParallagonGUI:
         )
         self.status_label.pack(side=tk.RIGHT, padx=5)
         
-        # Zone de demande interactive
+        # Création d'un frame horizontal pour la demande et les logs
+        self.horizontal_frame = ttk.Frame(self.root)
+        self.horizontal_frame.pack(fill=tk.X, padx=20, pady=10)
+
+        # Zone de demande interactive (à gauche)
         self.request_frame = ttk.LabelFrame(
-            self.root, 
+            self.horizontal_frame, 
             text="Demande",
             style='Modern.TLabelframe'
         )
-        self.request_frame.pack(fill=tk.X, padx=20, pady=10)
+        self.request_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
 
         self.demand_text = scrolledtext.ScrolledText(
             self.request_frame, 
-            height=10,
+            height=4,  # Réduit la hauteur pour correspondre aux logs
             wrap=tk.WORD,
             font=('Segoe UI', 10),
             bg=self.colors['panel_bg'],
@@ -151,20 +155,33 @@ class ParallagonGUI:
             padx=10,
             pady=10
         )
-        self.demand_text.pack(fill=tk.X, padx=5, pady=5)
+        self.demand_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         # Ajouter un binding pour sauvegarder automatiquement
         self.demand_text.bind('<KeyRelease>', self.auto_save_demand)
-        
-        # Zone de logs
-        self.log_frame = ttk.LabelFrame(self.root, text="Logs")
-        self.log_frame.pack(fill=tk.X, padx=5, pady=5)
+
+        # Zone de logs (à droite)
+        self.log_frame = ttk.LabelFrame(
+            self.horizontal_frame, 
+            text="Logs",
+            style='Modern.TLabelframe'
+        )
+        self.log_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(5, 0))
+
         self.log_text = scrolledtext.ScrolledText(
             self.log_frame,
             height=4,
-            wrap=tk.WORD
+            wrap=tk.WORD,
+            font=('Segoe UI', 10),
+            bg=self.colors['panel_bg'],
+            fg=self.colors['text'],
+            insertbackground=self.colors['text'],
+            selectbackground=self.colors['accent'],
+            relief='flat',
+            padx=10,
+            pady=10
         )
-        self.log_text.pack(fill=tk.X, padx=5, pady=5)
+        self.log_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         # Style pour les zones de texte
         text_style = {
