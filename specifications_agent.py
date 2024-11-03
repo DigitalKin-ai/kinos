@@ -446,57 +446,64 @@ Règles ABSOLUES :
 6. Chaque section et sous-section DOIT avoir ses contraintes entre []
 
 IMPORTANT : Vous devez créer TOUTES les sections nécessaires, pas seulement la première !"""
-    def _parse_hierarchical_content(self, content: str) -> dict:
-        """
-        Parse markdown content into hierarchical structure.
-        
-        Extracts:
-        - Main section content
-        - Subsection content and constraints
-        - Nested hierarchical relationships
-        
-        Args:
-            content: Raw markdown content
-            
-        Returns:
-            dict: Hierarchical representation of content structure
-        """
-        result = {'main': '', 'subsections': {}}
+    def _parse_template_structure(self, content: str) -> dict:
+        """Parse le contenu du template en structure hiérarchique"""
+        structure = {}
+        current_section = None
         current_subsection = None
-        current_subsubsection = None
-        lines = []
         
         for line in content.split('\n'):
-            if line.startswith('## '):
-                if lines:
-                    if current_subsubsection:
-                        result['subsections'][current_subsection]['subsubsections'][current_subsubsection] = '\n'.join(lines)
-                    elif current_subsection:
-                        result['subsections'][current_subsection]['main'] = '\n'.join(lines)
-                    else:
-                        result['main'] = '\n'.join(lines)
-                lines = []
+            if line.startswith('# '):
+                current_section = line[2:].strip()
+                structure[current_section] = {
+                    'constraints': '',
+                    'subsections': {}
+                }
+                current_subsection = None
+                
+            elif line.startswith('## '):
                 current_subsection = line[3:].strip()
-                current_subsubsection = None
-                result['subsections'][current_subsection] = {'main': '', 'subsubsections': {}}
+                structure[current_section]['subsections'][current_subsection] = {
+                    'constraints': '',
+                    'subsubsections': []
+                }
+                
             elif line.startswith('### '):
-                if lines:
-                    if current_subsubsection:
-                        result['subsections'][current_subsection]['subsubsections'][current_subsubsection] = '\n'.join(lines)
-                    else:
-                        result['subsections'][current_subsection]['main'] = '\n'.join(lines)
-                lines = []
-                current_subsubsection = line[4:].strip()
-            else:
-                lines.append(line)
+                if current_subsection:
+                    subsubsection = line[4:].strip()
+                    structure[current_section]['subsections'][current_subsection]['subsubsections'].append(subsubsection)
+                    
+            elif line.startswith('[contraintes:'):
+                constraints = line[12:-1].strip()
+                if current_subsection:
+                    structure[current_section]['subsections'][current_subsection]['constraints'] = constraints
+                else:
+                    structure[current_section]['constraints'] = constraints
         
-        # Traiter le dernier bloc de contenu
-        if lines:
-            if current_subsubsection:
-                result['subsections'][current_subsection]['subsubsections'][current_subsubsection] = '\n'.join(lines)
-            elif current_subsection:
-                result['subsections'][current_subsection]['main'] = '\n'.join(lines)
-            else:
-                result['main'] = '\n'.join(lines)
+        return structure
+    def _build_hierarchical_content(self, template_structure: dict) -> str:
+        """Construit le contenu hiérarchique complet"""
+        new_content = []
         
-        return result
+        for section_name, section_info in template_structure.items():
+            # Section principale
+            new_content.append(f"# {section_name}")
+            if section_info['constraints']:
+                new_content.append(f"[contraintes: {section_info['constraints']}]")
+            new_content.append("[En attente de contenu]")
+            
+            # Sous-sections
+            for subsection_name, subsection_info in section_info['subsections'].items():
+                new_content.append(f"\n## {subsection_name}")
+                if subsection_info['constraints']:
+                    new_content.append(f"[contraintes: {subsection_info['constraints']}]")
+                new_content.append("[En attente de contenu]")
+                
+                # Sous-sous-sections
+                for subsubsection in subsection_info['subsubsections']:
+                    new_content.append(f"\n### {subsubsection}")
+                    new_content.append("[En attente de contenu]")
+            
+            new_content.append("")  # Ligne vide entre sections
+        
+        return '\n'.join(new_content)
