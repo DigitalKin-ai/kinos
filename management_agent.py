@@ -31,16 +31,6 @@ class ManagementAgent(ParallagonAgent):
         self.logger = config.get("logger", print)
 
     def determine_actions(self) -> None:
-        """
-        Analyze project status and coordinate tasks between agents.
-        
-        Process:
-        1. Reviews current project state and progress
-        2. Identifies blockers and dependencies
-        3. Prioritizes tasks across sections
-        4. Updates management directives
-        5. Coordinates agent activities
-        """
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
             
@@ -54,9 +44,44 @@ class ManagementAgent(ParallagonAgent):
             if response != self.current_content:
                 self.logger(f"[{self.__class__.__name__}] Modifications détectées, tentative de mise à jour...")
                 temp_content = self.current_content
+                
+                # Sections principales
                 sections = ["Consignes Actuelles", "TodoList", "Actions Réalisées"]
                 
-                for section in sections:
+                # Extraire les sections depuis specifications.md
+                specs_content = self.other_files.get("specifications.md", "")
+                spec_sections = re.finditer(r'^# (.+?)\n\[contraintes: (.+?)\]', specs_content, re.MULTILINE)
+                
+                # Construire la nouvelle TodoList avec les sections
+                todos = ["# TodoList"]
+                for match in spec_sections:
+                    section_name = match.group(1)
+                    constraints = match.group(2)
+                    todos.append(f"\n[{section_name} - Contraintes principales: {constraints}]")
+                    
+                    # Extraire les todos spécifiques à cette section depuis la réponse LLM
+                    section_pattern = rf"\[{re.escape(section_name)}.*?\](.*?)(?=\[|$)"
+                    section_todos = re.search(section_pattern, response, re.DOTALL)
+                    if section_todos:
+                        todos.extend(line.strip() for line in section_todos.group(1).split('\n') if line.strip())
+                    else:
+                        todos.append("- [ ] À définir")
+                
+                # Mettre à jour la TodoList
+                result = SearchReplace.section_replace(
+                    temp_content,
+                    "TodoList",
+                    '\n'.join(todos[1:])  # Exclure le titre "# TodoList"
+                )
+                
+                if result.success:
+                    temp_content = result.new_content
+                    self.logger(f"[{self.__class__.__name__}] ✓ TodoList mise à jour avec succès")
+                else:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Échec de la mise à jour de la TodoList: {result.message}")
+                
+                # Mettre à jour les autres sections
+                for section in ["Consignes Actuelles", "Actions Réalisées"]:
                     pattern = f"# {section}\n(.*?)(?=\n#|$)"
                     match = re.search(pattern, response, re.DOTALL)
                     if not match:
