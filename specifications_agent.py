@@ -12,7 +12,7 @@ class SpecificationsAgent(ParallagonAgent):
     
     def __init__(self, config):
         super().__init__(config)
-        self.client = anthropic.Anthropic(api_key=config["anthropic_api_key"])
+        self.client = openai.OpenAI(api_key=config["openai_api_key"])
 
     def determine_actions(self) -> None:
         """Analyze current context and determine if updates are needed."""
@@ -54,7 +54,32 @@ class SpecificationsAgent(ParallagonAgent):
         """
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
-            prompt = f"""You are the Specifications Agent in the Parallagon framework, working in parallel with 3 other agents:
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{
+                    "role": "user",
+                    "content": self._build_prompt(context)
+                }],
+                temperature=0,
+                max_tokens=4000
+            )
+            print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"[{self.__class__.__name__}] Error in LLM response processing: {str(e)}")
+            import traceback
+            print(traceback.format_exc())
+            return context['specifications']
+
+    def _format_other_files(self, files: dict) -> str:
+        """Format other files content for the prompt"""
+        result = []
+        for file_path, content in files.items():
+            result.append(f"=== {file_path} ===\n{content}\n")
+        return "\n".join(result)
+    def _build_prompt(self, context: dict) -> str:
+        """Build prompt for specifications decisions"""
+        return f"""You are the Specifications Agent in the Parallagon framework, working in parallel with 3 other agents:
 - Management Agent: coordinates tasks and tracks progress
 - Production Agent: creates and refines content
 - Evaluation Agent: validates quality and compliance
@@ -93,28 +118,4 @@ Guidelines:
 - Include all relevant constraints
 
 If changes are needed, return the complete updated content.
-If no changes are needed, return the exact current content.
-"""
-            response = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=4000,
-                temperature=0,
-                messages=[{
-                    "role": "user",
-                    "content": prompt
-                }]
-            )
-            print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
-            return response.content[0].text
-        except Exception as e:
-            print(f"[{self.__class__.__name__}] Error in LLM response processing: {str(e)}")
-            import traceback
-            print(traceback.format_exc())
-            return context['specifications']
-
-    def _format_other_files(self, files: dict) -> str:
-        """Format other files content for the prompt"""
-        result = []
-        for file_path, content in files.items():
-            result.append(f"=== {file_path} ===\n{content}\n")
-        return "\n".join(result)
+If no changes are needed, return the exact current content."""
