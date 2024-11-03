@@ -66,9 +66,25 @@ class SearchReplace:
         except Exception as e:
             return False, f"Erreur lors de la validation: {str(e)}", 0
 
-    @staticmethod
+    @staticmethod 
     def section_replace(content: str, section_name: str, new_section_content: str) -> SearchReplaceResult:
         try:
+            # Handle section deletion if specified
+            if new_section_content.strip() == "(to delete)":
+                # Échapper les caractères spéciaux dans le titre de section, sauf les #
+                escaped_name = re.escape(section_name).replace(r'\#', '#')
+                # Pattern qui capture la section entière jusqu'à la prochaine section
+                pattern = fr"({escaped_name}\n.*?)(?=\n#{{1,6}}\s|$)"
+                matches = list(re.finditer(pattern, content, re.DOTALL))
+                
+                if not matches:
+                    return SearchReplaceResult(False, f"Section '{section_name}' not found", content, 0)
+                    
+                # Supprimer la section et les lignes vides qui suivent
+                new_content = content[:matches[0].start()].rstrip() + content[matches[0].end():].lstrip()
+                return SearchReplaceResult(True, f"Section '{section_name}' deleted", new_content, 1)
+
+            # Regular section replacement
             # Échapper les caractères spéciaux dans le titre de section, sauf les #
             escaped_name = re.escape(section_name).replace(r'\#', '#')
             # Utiliser un raw string pour l'expression régulière
