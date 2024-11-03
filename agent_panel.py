@@ -18,12 +18,35 @@ class AgentPanel:
         )
         
     def update_content(self, content: str) -> None:
-        """Update panel content with highlighting"""
+        """Update panel content with smarter diff highlighting"""
         current = self.text.get("1.0", tk.END).strip()
         if content.strip() != current:
+            # Store scroll position
+            current_pos = self.text.yview()
+            
+            # Find differences
+            old_lines = current.split('\n')
+            new_lines = content.split('\n')
+            
+            # Clear and insert new content
             self.text.delete("1.0", tk.END)
             self.text.insert("1.0", content)
-            self.highlight_changes()
+            
+            # Highlight changed lines
+            self._highlight_changes(old_lines, new_lines)
+            
+            # Restore scroll position
+            self.text.yview_moveto(current_pos[0])
+
+    def _highlight_changes(self, old_lines: list, new_lines: list):
+        """Highlight changed lines using difflib"""
+        import difflib
+        matcher = difflib.SequenceMatcher(None, old_lines, new_lines)
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag in ('replace', 'insert'):
+                start = f"{j1 + 1}.0"
+                end = f"{j2 + 1}.0"
+                self.text.tag_add("highlight", start, end)
             
     def highlight_changes(self) -> None:
         """Temporarily highlight changes"""

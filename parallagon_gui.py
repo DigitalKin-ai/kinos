@@ -160,12 +160,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.init_agents()
         
     def init_agents(self):
-        """Initialisation des agents"""
-        from specifications_agent import SpecificationsAgent
-        from management_agent import ManagementAgent
-        from production_agent import ProductionAgent
-        from evaluation_agent import EvaluationAgent
-        
+        """Initialisation des agents avec une configuration standardisée"""
         base_config = {
             "check_interval": 5,
             "anthropic_api_key": self.config["anthropic_api_key"],

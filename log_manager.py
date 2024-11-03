@@ -112,23 +112,45 @@ class LogManager:
             agent=self._extract_agent_name(message)
         )
         
-        # Add to logs list with size limit
+        # Add to logs list and manage size
         self.logs.append(entry)
-        if len(self.logs) > self.MAX_LOGS:
-            self.logs.pop(0)
+        self._manage_log_size()
         
-        # Insert timestamp
-        self.text_widget.insert(tk.END, f"[{entry.timestamp}] ", 'timestamp')
-        
-        # Insert message with appropriate tag
-        self.text_widget.insert(
-            tk.END,
-            f"{message}\n",
-            entry.level.name.lower()
-        )
+        # Display the log entry
+        self._display_log(entry)
         
         # Auto-scroll to latest message
         self.text_widget.see(tk.END)
+
+    def _manage_log_size(self):
+        """Manage log size to prevent memory issues"""
+        if len(self.logs) > self.MAX_LOGS:
+            # Remove oldest logs while keeping important ones
+            important_logs = [log for log in self.logs 
+                            if log.level in (LogLevel.ERROR, LogLevel.WARNING)]
+            regular_logs = [log for log in self.logs 
+                          if log.level not in (LogLevel.ERROR, LogLevel.WARNING)]
+            
+            # Keep all important logs and trim regular logs
+            keep_regular = max(0, self.MAX_LOGS - len(important_logs))
+            self.logs = important_logs + regular_logs[-keep_regular:]
+            
+            # Update text widget
+            self.text_widget.delete("1.0", tk.END)
+            for log in self.logs:
+                self._display_log(log)
+
+    def _display_log(self, log: LogEntry):
+        """Display a single log entry with proper formatting"""
+        # Add timestamp
+        self.text_widget.insert(tk.END, f"[{log.timestamp}] ", 'timestamp')
+        
+        # Add agent name if present
+        if log.agent:
+            self.text_widget.insert(tk.END, f"[{log.agent}] ", log.level.name.lower())
+        
+        # Add message with proper tag
+        self.text_widget.insert(tk.END, f"{log.message}\n", log.level.name.lower())
     
     def clear(self):
         """Clear all log messages"""
