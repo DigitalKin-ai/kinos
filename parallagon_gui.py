@@ -164,6 +164,16 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.root.state('zoomed')  # Pour Windows
         # self.root.attributes('-zoomed', True)  # Pour Linux
         self.setup_ui()
+        
+        # Charger le contenu initial de la demande
+        try:
+            with open("demande.md", 'r', encoding='utf-8') as f:
+                initial_content = f.read()
+                self.demand_text.delete("1.0", tk.END)
+                self.demand_text.insert("1.0", initial_content)
+        except Exception as e:
+            self.log_message(f"❌ Erreur lors du chargement initial de la demande: {str(e)}")
+        
         self.init_agents()
         
     def init_agents(self):
