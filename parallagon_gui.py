@@ -299,6 +299,14 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             fg=self.gui_config.colors['text']
         )
 
+    def _extract_sections(self, content: str) -> str:
+        """Extrait et formate la liste des sections du contenu"""
+        sections = []
+        for line in content.split('\n'):
+            if line.startswith('# '):
+                sections.append(line[2:].strip())
+        return '\n'.join(sections)
+
     def _create_agent_panel(self, parent, title: str) -> AgentPanel:
         """Create a standardized agent panel"""
         text_widget = self._create_text_widget(parent)
@@ -493,16 +501,43 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         
         # Panneau droit (Production)
         self.right_frame = ttk.LabelFrame(self.main_container, text="Production")
+
+        # Créer un PanedWindow vertical pour diviser le panneau droit
+        self.right_paned = ttk.PanedWindow(self.right_frame, orient=tk.VERTICAL)
+        self.right_paned.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        # Panneau supérieur (Sections)
+        self.sections_frame = ttk.LabelFrame(self.right_paned, text="Sections")
+        self.sections_text = scrolledtext.ScrolledText(
+            self.sections_frame, 
+            wrap=tk.WORD, 
+            font=('Segoe UI', 10),
+            bg=self.gui_config.colors['panel_bg'], 
+            fg=self.gui_config.colors['text']
+        )
+        self.sections_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        # Panneau inférieur (Production)
+        self.production_frame = ttk.LabelFrame(self.right_paned, text="Production")
         self.production_text = scrolledtext.ScrolledText(
-            self.right_frame, wrap=tk.WORD, font=('Segoe UI', 10),
-            bg=self.gui_config.colors['panel_bg'], fg=self.gui_config.colors['text']
+            self.production_frame, 
+            wrap=tk.WORD, 
+            font=('Segoe UI', 10),
+            bg=self.gui_config.colors['panel_bg'], 
+            fg=self.gui_config.colors['text']
         )
         self.production_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        self.agent_panels["Production"] = AgentPanel(self.right_frame, "Production", self.production_text)
 
-        # Ajout des panneaux au conteneur principal
+        # Ajouter les deux panneaux au PanedWindow
+        self.right_paned.add(self.sections_frame, weight=1)
+        self.right_paned.add(self.production_frame, weight=1)
+
+        # Ajouter le panneau droit au conteneur principal
         self.main_container.add(self.left_frame, weight=1)
         self.main_container.add(self.right_frame, weight=1)
+
+        # Mettre à jour la référence pour l'AgentPanel
+        self.agent_panels["Production"] = AgentPanel(self.production_frame, "Production", self.production_text)
             
     def start_agents(self):
         """Démarrage de tous les agents"""
@@ -633,6 +668,14 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                         self.flash_tab("Demande")
                 # Traitement pour Production
                 elif name == "production":
+                    # Mise à jour du panneau Sections
+                    sections_content = self._extract_sections(content)
+                    old_sections_content = self.sections_text.get("1.0", tk.END).strip()
+                    if sections_content != old_sections_content:
+                        self.sections_text.delete("1.0", tk.END)
+                        self.sections_text.insert("1.0", sections_content)
+                    
+                    # Mise à jour du panneau Production
                     old_content = self.production_text.get("1.0", tk.END).strip()
                     if content.strip() != old_content:
                         self.production_text.delete("1.0", tk.END)
