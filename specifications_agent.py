@@ -306,7 +306,21 @@ class SpecificationsAgent(ParallagonAgent):
             return context['specifications']
 
     def _format_other_files(self, files: dict) -> str:
-        """Format other files content for the prompt"""
+        """
+        Format other files content for management context.
+        
+        Organizes:
+        - Agent status reports
+        - Task progress updates
+        - Coordination signals
+        - Project artifacts
+        
+        Args:
+            files: Dictionary of file contents
+            
+        Returns:
+            str: Formatted context for management decisions
+        """
         result = []
         for file_path, content in files.items():
             result.append(f"=== {file_path} ===\n{content}\n")
