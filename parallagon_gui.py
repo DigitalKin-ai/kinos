@@ -273,11 +273,11 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 self.log_text = scrolledtext.ScrolledText(
                     tab, 
                     wrap=tk.WORD, 
-                    font=('Segoe UI', 11),  # Police plus grande
+                    font=('Segoe UI', 12),  # Police plus grande
                     bg='#1e1e1e',          # Fond sombre
                     fg='#e0e0e0',          # Texte clair
-                    padx=10,               # Padding horizontal
-                    pady=10                # Padding vertical
+                    padx=15,               # Padding horizontal plus important
+                    pady=15                # Padding vertical plus important
                 )
                 self.log_text.pack(fill=tk.BOTH, expand=True)
             else:
@@ -438,15 +438,18 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         timestamp = datetime.now().strftime("%H:%M:%S")
         
         # Configuration des tags de couleur
-        self.log_text.tag_config('timestamp', foreground='#888888')  # Gris pour l'horodatage
+        self.log_text.tag_config('timestamp', foreground='#a0a0a0')  # Gris plus clair pour l'horodatage
         self.log_text.tag_config('success', foreground='#4CAF50')    # Vert pour les succès
         self.log_text.tag_config('error', foreground='#f44336')      # Rouge pour les erreurs
         self.log_text.tag_config('info', foreground='#2196F3')       # Bleu pour les infos
         self.log_text.tag_config('reset', foreground='#FF9800')      # Orange pour les resets
+        self.log_text.tag_config('changes', foreground='#9C27B0')    # Violet pour les résumés de changements
         
         # Détermination du type de message et de l'icône
         if "❌" in message:
             tag = 'error'
+        elif "✓" in message and any(panel in message for panel in ["Specification", "Evaluation", "Management", "Production", "Demande"]):
+            tag = 'changes'  # Nouveau tag pour les résumés de changements
         elif "✓" in message:
             tag = 'success'
         elif "✨" in message:
