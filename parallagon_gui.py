@@ -337,13 +337,20 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         """Extrait les sections et leurs contraintes depuis specifications.md"""
         sections = {}
         current_section = None
+        constraints = ""
         
         for line in specs_content.split('\n'):
             if line.startswith('# '):
+                if current_section:
+                    sections[current_section] = {"constraints": constraints.strip()}
                 current_section = line[2:].strip()
-                sections[current_section] = {"constraints": ""}
-            elif current_section and line.startswith('[contraintes:'):
-                sections[current_section]["constraints"] = line[12:-1].strip()
+                constraints = ""
+            elif line.startswith('[contraintes:'):
+                constraints = line[12:-1].strip()
+        
+        # Ajouter la dernière section
+        if current_section:
+            sections[current_section] = {"constraints": constraints.strip()}
                 
         return sections
 
@@ -355,17 +362,18 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         for line in prod_content.split('\n'):
             if line.startswith('# '):
                 if current_section and current_section in sections_data:
-                    sections_data[current_section]["content"] = '\n'.join(current_content)
+                    sections_data[current_section]["content"] = '\n'.join(current_content).strip()
                 current_section = line[2:].strip()
                 current_content = []
             else:
                 current_content.append(line)
                 
+        # Ajouter le dernier contenu
         if current_section and current_section in sections_data:
-            sections_data[current_section]["content"] = '\n'.join(current_content)
+            sections_data[current_section]["content"] = '\n'.join(current_content).strip()
 
     def _update_sections_display(self, sections_data: dict):
-        """Met à jour l'affichage des sections avec gestion des callbacks"""
+        """Met à jour l'affichage des sections"""
         # Supprimer les sections qui n'existent plus
         for title in list(self.sections.keys()):
             if title not in sections_data:
@@ -374,29 +382,26 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         
         # Mettre à jour ou créer les sections
         for title, data in sections_data.items():
-            callbacks = {
-                'on_edit': lambda s: self._edit_section(s),
-                'on_update': lambda s: self._update_section(s)
-            }
+            section = Section(
+                title=title,
+                constraints=data["constraints"],
+                content=data.get("content", ""),
+                todo=data.get("todo", [])
+            )
             
             if title in self.sections:
-                section = self.sections[title]
-                section.update_constraints(data["constraints"])
-                if "content" in data:
-                    section.update_content(data["content"])
-                if "todo" in data:  # Ajout de la mise à jour des todos
-                    section.update_todos(data["todo"])
+                # Mettre à jour la section existante
+                self.sections[title].update_content(data.get("content", ""))
+                self.sections[title].update_todos(data.get("todo", []))
             else:
-                section = Section(
-                    title=title,
-                    constraints=data["constraints"],
-                    content=data.get("content"),
-                    todo=data.get("todo", [])  # Ajout des todos
-                )
+                # Créer une nouvelle section
                 collapsible = CollapsibleSection(
                     self.sections_scrollable_frame,
                     section,
-                    callbacks=callbacks
+                    callbacks={
+                        'on_edit': lambda s=section: self._edit_section(s),
+                        'on_update': lambda s=section: self._update_section(s)
+                    }
                 )
                 collapsible.pack(fill=tk.X, padx=5, pady=2)
                 self.sections[title] = collapsible
@@ -602,6 +607,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
 
         # Panneau supérieur (Sections)
         self.sections_frame = ttk.LabelFrame(self.right_paned, text="Sections")
+        self.sections = {}  # Dictionnaire des sections {titre: CollapsibleSection}
         self.sections = {}  # Dictionnaire des sections {titre: CollapsibleSection}
         
         # Conteneur scrollable pour les sections
