@@ -15,44 +15,21 @@ class SpecificationsAgent(ParallagonAgent):
         self.client = anthropic.Anthropic(api_key=config["anthropic_api_key"])
 
     def determine_actions(self) -> None:
-        """
-        Analyze current context and determine if updates are needed.
-        """
+        """Analyze current context and determine if updates are needed."""
         print(f"[{self.__class__.__name__}] Analyzing...")
         
-        # Prepare context for LLM
         context = {
             "specifications": self.current_content,
             "other_files": self.other_files
         }
         
-        # Get LLM response
         response = self._get_llm_response(context)
         
-        # Validate response format
-        if not response.startswith("# État Actuel"):
-            print(f"[{self.__class__.__name__}] Invalid response format, ignoring")
-            return
-            
-        # Log comparison
-        print(f"[{self.__class__.__name__}] Comparing responses...")
-        if response == self.current_content:
-            print(f"[{self.__class__.__name__}] No changes needed")
-        else:
-            print(f"[{self.__class__.__name__}] Changes detected, updating content")
-            
-            # Log the differences (first 100 chars)
-            print(f"[{self.__class__.__name__}] Current content starts with: {self.current_content[:100]}")
-            print(f"[{self.__class__.__name__}] New content starts with: {response[:100]}")
-        
-        # Apply changes using SearchReplace if needed
         if response != self.current_content:
-            # Use temporary content for replacements
             temp_content = self.current_content
-            sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
+            sections = ["Spécification de Sortie", "Critères de Succès"]
             
             for section in sections:
-                # Extract section content from LLM response
                 pattern = f"# {section}\n(.*?)(?=\n#|$)"
                 match = re.search(pattern, response, re.DOTALL)
                 if not match:
@@ -60,34 +37,15 @@ class SpecificationsAgent(ParallagonAgent):
                     continue
                     
                 new_section_content = match.group(1).strip()
-                
-                # Use SearchReplace to safely update the section
                 result = SearchReplace.section_replace(
                     temp_content,
-                    section, 
+                    section,
                     new_section_content
                 )
-                
-                print(f"[{self.__class__.__name__}] {section} replace: {'✓' if result.success else '❌'} - {result.message}")
                 if result.success:
                     temp_content = result.new_content
-
-            # Update status if needed
-            old_status_match = re.search(r'\[status: (\w+)\]', self.current_content)
-            new_status_match = re.search(r'\[status: (\w+)\]', response)
-            
-            if (old_status_match and new_status_match and 
-                old_status_match.group(1) != new_status_match.group(1)):
-                result = SearchReplace.exact_replace(
-                    self.current_content,
-                    f"[status: {old_status_match.group(1)}]",
-                    f"[status: {new_status_match.group(1)}]"
-                )
-                if result.success:
-                    self.current_content = result.new_content
-
-            # Set new content for update
-            self.new_content = self.current_content
+                    
+            self.new_content = temp_content
 
     def _get_llm_response(self, context: dict) -> str:
         """
