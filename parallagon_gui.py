@@ -2,7 +2,7 @@
 ParallagonGUI - Interface graphique pour le framework Parallagon
 """
 import tkinter as tk
-from tkinter import ttk, scrolledtext
+from tkinter import ttk, scrolledtext, font as tkfont
 import threading
 import time
 from datetime import datetime
@@ -18,9 +18,38 @@ class ParallagonGUI:
         self.update_interval = 1000  # ms
         self.config = config
         
-        # Ajout des styles
+        # Configuration des couleurs et du thème
+        self.colors = {
+            'bg': '#f0f2f5',
+            'panel_bg': '#ffffff',
+            'accent': '#1a73e8',
+            'text': '#202124',
+            'secondary_text': '#5f6368',
+            'border': '#dadce0',
+            'highlight': '#e8f0fe'
+        }
+
+        # Configuration des styles
         style = ttk.Style()
-        style.configure('Updating.TLabelframe', background='#fff7e6')
+        style.configure('Modern.TButton', 
+            padding=10, 
+            font=('Segoe UI', 10),
+            background=self.colors['accent']
+        )
+        style.configure('Modern.TLabelframe', 
+            background=self.colors['panel_bg'],
+            padding=10
+        )
+        style.configure('Modern.TLabel', 
+            font=('Segoe UI', 10),
+            background=self.colors['bg']
+        )
+        style.configure('Updating.TLabelframe', 
+            background=self.colors['highlight']
+        )
+
+        # Configuration de la fenêtre
+        self.root.configure(bg=self.colors['bg'])
         
         # Configuration de la fenêtre principale
         self.root.state('zoomed')  # Pour Windows
@@ -68,13 +97,14 @@ class ParallagonGUI:
     def setup_ui(self):
         """Configuration de l'interface utilisateur"""
         # Panneau de contrôle
-        self.control_frame = ttk.Frame(self.root)
-        self.control_frame.pack(fill=tk.X, padx=5, pady=5)
+        self.control_frame = ttk.Frame(self.root, style='Modern.TFrame')
+        self.control_frame.pack(fill=tk.X, padx=20, pady=10)
         
         self.start_button = ttk.Button(
             self.control_frame, 
             text="Start", 
-            command=self.start_agents
+            command=self.start_agents,
+            style='Modern.TButton'
         )
         self.start_button.pack(side=tk.LEFT, padx=5)
         
@@ -100,9 +130,29 @@ class ParallagonGUI:
         )
         self.status_label.pack(side=tk.RIGHT, padx=5)
         
-        # Zone de demande
-        self.request_frame = ttk.LabelFrame(self.root, text="Demande")
-        self.request_frame.pack(fill=tk.X, padx=5, pady=5)
+        # Zone de demande avec style moderne
+        self.request_frame = ttk.LabelFrame(
+            self.root, 
+            text="Demande",
+            style='Modern.TLabelframe'
+        )
+        self.request_frame.pack(fill=tk.X, padx=20, pady=10)
+
+        # Style pour les zones de texte
+        text_style = {
+            'font': ('Segoe UI', 10),
+            'bg': self.colors['panel_bg'],
+            'fg': self.colors['text'],
+            'insertbackground': self.colors['text'],
+            'selectbackground': self.colors['accent'],
+            'relief': 'flat',
+            'padx': 10,
+            'pady': 10
+        }
+
+        self.request_text.configure(**text_style)
+        self.demand_display.configure(**text_style)
+        self.log_text.configure(**text_style)
         
         self.request_text = scrolledtext.ScrolledText(
             self.request_frame, 
@@ -281,7 +331,8 @@ class ParallagonGUI:
     def log_message(self, message: str):
         """Ajoute un message horodaté aux logs"""
         timestamp = datetime.now().strftime("%H:%M:%S")
-        log_entry = f"[{timestamp}] {message}\n"
+        icon = "✨" if "réinitialisés" in message else "🔄" if "mise à jour" in message else "ℹ️"
+        log_entry = f"{icon} [{timestamp}] {message}\n"
         self.log_text.insert(tk.END, log_entry)
         self.log_text.see(tk.END)  # Auto-scroll
 
@@ -382,20 +433,32 @@ En attente de contenu à évaluer.
 class AgentPanel:
     """Panneau d'affichage pour un agent"""
     def __init__(self, parent, title):
-        self.frame = ttk.LabelFrame(parent, text=title)
+        self.frame = ttk.LabelFrame(
+            parent, 
+            text=title,
+            style='Modern.TLabelframe'
+        )
         
         self.text = scrolledtext.ScrolledText(
             self.frame,
             wrap=tk.WORD,
             width=50,
-            height=20
+            height=20,
+            font=('Segoe UI', 10),
+            bg='#ffffff',
+            fg='#202124',
+            insertbackground='#202124',
+            selectbackground='#1a73e8',
+            relief='flat',
+            padx=10,
+            pady=10
         )
         self.text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
-        # Configuration des tags pour le highlighting
+        # Configuration du highlighting
         self.text.tag_configure(
             "highlight",
-            background="yellow"
+            background="#e8f0fe"
         )
         
     def update_content(self, content: str):
