@@ -66,8 +66,8 @@ class ProductionAgent(ParallagonAgent):
             section_pattern = r'(#{1,6})\s*([^#\n]+)\n(.*?)(?=\n#{1,6}\s|$)'
             sections = re.finditer(section_pattern, content, re.DOTALL)
             
-            # Trier les sections par niveau (plus de # en premier)
-            sections = sorted(list(sections), key=lambda m: len(m.group(1)), reverse=True)
+            # Trier les sections par niveau (moins de # en premier pour maintenir la hiérarchie)
+            sections = sorted(list(sections), key=lambda m: len(m.group(1)))
             
             for section_match in sections:
                 level = len(section_match.group(1))  # Nombre de #
