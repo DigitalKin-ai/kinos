@@ -15,40 +15,19 @@ class ManagementAgent(ParallagonAgent):
         self.client = anthropic.Anthropic(api_key=config["anthropic_api_key"])
 
     def determine_actions(self) -> None:
-        """
-        Analyze project status and coordinate tasks between agents
-        """
+        """Analyze project status and coordinate tasks between agents"""
         print(f"[{self.__class__.__name__}] Analyzing...")
         
-        # Prepare context for LLM
         context = {
             "management": self.current_content,
             "other_files": self.other_files
         }
         
-        # Get LLM response
         response = self._get_llm_response(context)
         
-        # Validate response format
-        if not response.startswith("# État Actuel"):
-            print(f"[{self.__class__.__name__}] Invalid response format, ignoring")
-            return
-            
-        # Log comparison
-        print(f"[{self.__class__.__name__}] Comparing responses...")
-        if response == self.current_content:
-            print(f"[{self.__class__.__name__}] No changes needed")
-        else:
-            print(f"[{self.__class__.__name__}] Changes detected, updating content")
-            
-            # Log the differences (first 100 chars)
-            print(f"[{self.__class__.__name__}] Current content starts with: {self.current_content[:100]}")
-            print(f"[{self.__class__.__name__}] New content starts with: {response[:100]}")
-        
         if response != self.current_content:
-            # Use temporary content for replacements
             temp_content = self.current_content
-            sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
+            sections = ["Consignes Actuelles", "TodoList", "Actions Réalisées"]
             
             for section in sections:
                 pattern = f"# {section}\n(.*?)(?=\n#|$)"
@@ -67,9 +46,6 @@ class ManagementAgent(ParallagonAgent):
                     temp_content = result.new_content
                     
             self.new_content = temp_content
-            print(f"[{self.__class__.__name__}] Changes detected:")
-            print(f"Old content: {self.current_content[:100]}...")
-            print(f"New content: {self.new_content[:100]}...")
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response for management decisions"""
