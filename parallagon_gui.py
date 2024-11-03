@@ -269,8 +269,13 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 self.demand_text.bind('<KeyRelease>', self.auto_save_demand)
             elif tab_name == "Suivi Mission":
                 self.log_text = scrolledtext.ScrolledText(
-                    tab, wrap=tk.WORD, font=('Segoe UI', 10),
-                    bg=self.colors['panel_bg'], fg=self.colors['text']
+                    tab, 
+                    wrap=tk.WORD, 
+                    font=('Segoe UI', 11),  # Police plus grande
+                    bg='#1e1e1e',          # Fond sombre
+                    fg='#e0e0e0',          # Texte clair
+                    padx=10,               # Padding horizontal
+                    pady=10                # Padding vertical
                 )
                 self.log_text.pack(fill=tk.BOTH, expand=True)
             else:
@@ -420,9 +425,30 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
     def log_message(self, message: str):
         """Ajoute un message horodaté aux logs"""
         timestamp = datetime.now().strftime("%H:%M:%S")
-        icon = "✨" if "réinitialisés" in message else "🔄" if "mise à jour" in message else "ℹ️"
-        log_entry = f"{icon} [{timestamp}] {message}\n"
-        self.log_text.insert(tk.END, log_entry)
+        
+        # Configuration des tags de couleur
+        self.log_text.tag_config('timestamp', foreground='#888888')  # Gris pour l'horodatage
+        self.log_text.tag_config('success', foreground='#4CAF50')    # Vert pour les succès
+        self.log_text.tag_config('error', foreground='#f44336')      # Rouge pour les erreurs
+        self.log_text.tag_config('info', foreground='#2196F3')       # Bleu pour les infos
+        self.log_text.tag_config('reset', foreground='#FF9800')      # Orange pour les resets
+        
+        # Détermination du type de message et de l'icône
+        if "❌" in message:
+            tag = 'error'
+        elif "✓" in message:
+            tag = 'success'
+        elif "✨" in message:
+            tag = 'reset'
+        else:
+            tag = 'info'
+        
+        # Insertion du message avec les tags appropriés
+        self.log_text.insert(tk.END, f"[", 'timestamp')
+        self.log_text.insert(tk.END, timestamp, 'timestamp')
+        self.log_text.insert(tk.END, f"] ", 'timestamp')
+        self.log_text.insert(tk.END, f"{message}\n", tag)
+        
         self.log_text.see(tk.END)  # Auto-scroll
 
     def reset_files(self):
