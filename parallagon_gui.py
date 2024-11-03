@@ -12,6 +12,8 @@ from search_replace import SearchReplace
 from log_manager import LogManager
 from agent_panel import AgentPanel
 from gui_config import GUIConfig
+from llm_service import LLMService
+from file_manager import FileManager
 import openai
 
 class ParallagonGUI:
@@ -121,7 +123,10 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.updating = False
         self.config = config
         self.gui_config = GUIConfig()
-        self.client = openai.OpenAI(api_key=config["openai_api_key"])
+        
+        # Initialize services
+        self.llm_service = LLMService(config["openai_api_key"])
+        self.file_manager = FileManager(self.FILE_PATHS)
         self.agent_threads = {}  # Store agent threads
         self.tab_states = {
             "Specification": False,
@@ -461,32 +466,8 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 self.log_message(f"✓ Mise à jour : {', '.join(updated_panels)}")
 
     def _get_changes_summary(self, changes: dict) -> str:
-        """Génère un résumé des changements en utilisant un petit modèle LLM"""
-        try:
-            # Préparer le contexte pour le LLM
-            context = "Changements détectés:\n"
-            for panel, content in changes.items():
-                context += f"\nDans {panel}:\n"
-                # Limiter la taille du contexte pour le petit modèle
-                old_snippet = content["old"][:200] + "..." if len(content["old"]) > 200 else content["old"]
-                new_snippet = content["new"][:200] + "..." if len(content["new"]) > 200 else content["new"]
-                context += f"Ancien: {old_snippet}\nNouveau: {new_snippet}\n"
-
-            prompt = f"""{context}
-
-Résumez en une phrase précise ce qui a changé. Soyez factuel et concis."""
-
-            response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0,
-                max_tokens=100
-            )
-            
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            print(f"Erreur lors de la génération du résumé: {e}")
-            return f"Mise à jour : {', '.join(changes.keys())}"
+        """Get summary of changes using LLM service"""
+        return self.llm_service.get_changes_summary(changes)
                 
     def auto_save_demand(self, event=None):
         """Sauvegarde automatique du contenu de la demande"""
@@ -509,61 +490,11 @@ Résumez en une phrase précise ce qui a changé. Soyez factuel et concis."""
 
     def reset_files(self):
         """Reset all files to their initial state"""
-        try:
-            # Initial content for each file
-            initial_contents = {
-                "demande.md": """# Demande Actuelle
-[timestamp: {}]
-[status: NEW]
-
-Écrivez votre demande ici...
-
-# Historique des Demandes""".format(datetime.now().strftime("%Y-%m-%d %H:%M")),
-
-                "specifications.md": """# Spécification de Sortie
-En attente de nouvelles demandes...
-
-# Critères de Succès
-- Critère principal 1
-  * Sous-critère A
-  * Sous-critère B
-- Critère principal 2
-  * Sous-critère A
-  * Sous-critère B""",
-
-                "management.md": """# Consignes Actuelles
-En attente de nouvelles directives...
-
-# TodoList
-- [ ] En attente de demandes
-
-# Actions Réalisées
-- [{}] Création du fichier""".format(datetime.now().strftime("%Y-%m-%d %H:%M")),
-
-                "production.md": """En attente de contenu à produire...""",
-
-                "evaluation.md": """# Évaluations en Cours
-- Critère 1: [⚠️] En attente
-- Critère 2: [⚠️] En attente
-
-# Vue d'Ensemble
-- Progression: 0%
-- Points forts: À déterminer
-- Points à améliorer: À déterminer
-- Statut global: EN_ATTENTE"""
-            }
-
-            # Write initial content to files
-            for filename, content in initial_contents.items():
-                with open(filename, 'w', encoding='utf-8') as f:
-                    f.write(content)
-
-            # Update GUI panels
+        if self.file_manager.reset_files():
             self.update_all_panels()
             self.log_message("✨ Tous les fichiers ont été réinitialisés")
-
-        except Exception as e:
-            self.log_message(f"❌ Erreur lors de la réinitialisation : {str(e)}")
+        else:
+            self.log_message("❌ Erreur lors de la réinitialisation des fichiers")
 
     def load_test_data(self):
         """Charge les données de test dans la zone de demande"""
