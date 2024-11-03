@@ -15,22 +15,17 @@ class EvaluationAgent(ParallagonAgent):
         self.client = anthropic.Anthropic(api_key=config["anthropic_api_key"])
 
     def determine_actions(self) -> None:
-        """
-        Analyze current context and determine if validation/evaluation is needed.
-        """
-        # Prepare context for LLM
+        """Analyze current context and determine if validation/evaluation is needed."""
         context = {
             "evaluation": self.current_content,
             "other_files": self.other_files
         }
         
-        # Get LLM response
         response = self._get_llm_response(context)
         
         if response != self.current_content:
-            # Use temporary content for replacements
             temp_content = self.current_content
-            sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
+            sections = ["Évaluations en Cours", "Vue d'Ensemble"]
             
             for section in sections:
                 pattern = f"# {section}\n(.*?)(?=\n#|$)"
@@ -49,9 +44,6 @@ class EvaluationAgent(ParallagonAgent):
                     temp_content = result.new_content
                     
             self.new_content = temp_content
-            print(f"[{self.__class__.__name__}] Changes detected:")
-            print(f"Old content: {self.current_content[:100]}...")
-            print(f"New content: {self.new_content[:100]}...")
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response for evaluation tasks"""
