@@ -345,6 +345,10 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.left_frame = ttk.Frame(self.main_container)
         self.tab_control = ttk.Notebook(self.left_frame)
         
+        # Configure tab style
+        style = ttk.Style()
+        style.configure('TNotebook.Tab', padding=[10, 5], background=self.gui_config.colors['bg'])
+        
         # Création des tabs
         self.tabs = {}
         self.agent_panels = {}
@@ -482,20 +486,22 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         """Fait flasher un tab pour indiquer une mise à jour"""
         if tab_name not in self.tab_flash_tasks:
             style = ttk.Style()
-            tab_style = f"Flash.{tab_name}.TFrame"
+            tab_id = self.tab_control.index(self.tabs[tab_name])
             
             def flash_cycle(count=0):
                 if count >= 6 or tab_name not in self.tab_flash_tasks:  # 3 flashs complets
                     if tab_name in self.tab_flash_tasks:
                         self.tab_flash_tasks.pop(tab_name)
-                    self.tab_states[tab_name] = False
+                    # Remettre le style par défaut
+                    style.configure(f'TNotebook.Tab', background=self.gui_config.colors['bg'])
                     return
                     
-                new_color = "#e8f0fe" if count % 2 == 0 else "white"
-                style.configure(tab_style, background=new_color)
+                # Alterner entre bleu clair et la couleur par défaut
+                new_color = "#e8f0fe" if count % 2 == 0 else self.gui_config.colors['bg']
+                style.configure(f'TNotebook.Tab', background=new_color)
                 
                 self.tab_flash_tasks[tab_name] = self.root.after(
-                    100,  # Plus rapide pour plus de fluidité
+                    200,  # Durée du flash
                     lambda: flash_cycle(count + 1)
                 )
                 
