@@ -25,43 +25,91 @@ class SpecificationsAgent(ParallagonAgent):
             with open("production.md", 'r', encoding='utf-8') as f:
                 output = f.read()
 
-            # Extraire les sections et leurs contraintes du template
-            template_sections = {}
-            matches = re.finditer(r'^# ([^\n]+)\n\[contraintes: ([^\]]+)\]', template, re.MULTILINE)
-            for match in matches:
-                section_name = match.group(1)
-                constraints = match.group(2).strip()
-                template_sections[section_name] = constraints
+            # Extraire les sections et leurs sous-sections du template
+            template_structure = {}
+            current_section = None
+            current_subsections = []
+            
+            for line in template.split('\n'):
+                if line.startswith('# '):  # Section principale
+                    if current_section:
+                        template_structure[current_section] = {
+                            'constraints': template_structure[current_section],
+                            'subsections': current_subsections
+                        }
+                    current_section = line[2:].strip()
+                    current_subsections = []
+                    template_structure[current_section] = ''
+                elif line.startswith('[contraintes:'):
+                    template_structure[current_section] = line[12:-1].strip()
+                elif line.startswith('## '):  # Sous-section
+                    current_subsections.append(line[3:].strip())
+                    
+            # Ajouter la dernière section
+            if current_section:
+                template_structure[current_section] = {
+                    'constraints': template_structure[current_section],
+                    'subsections': current_subsections
+                }
 
-            # Extraire les sections existantes et leur contenu du document de sortie
-            output_sections = {}
+            # Extraire la structure actuelle du document de sortie
+            output_structure = {}
             current_section = None
             current_content = []
             
             for line in output.split('\n'):
                 if line.startswith('# '):
                     if current_section:
-                        output_sections[current_section] = '\n'.join(current_content).strip()
+                        output_structure[current_section] = '\n'.join(current_content).strip()
                     current_section = line[2:].strip()
                     current_content = []
-                elif current_section:
+                else:
                     current_content.append(line)
                     
             if current_section:
-                output_sections[current_section] = '\n'.join(current_content).strip()
+                output_structure[current_section] = '\n'.join(current_content).strip()
 
             # Construire le nouveau contenu
             new_content = []
             
             # Ajouter les sections dans l'ordre du template
-            for section_name, constraints in template_sections.items():
+            for section_name, section_info in template_structure.items():
                 new_content.append(f"# {section_name}")
-                if section_name in output_sections and output_sections[section_name].strip():
-                    # Garder le contenu existant
-                    new_content.append(output_sections[section_name])
+                
+                if section_name in output_structure and output_structure[section_name].strip():
+                    # Vérifier et mettre à jour les sous-sections
+                    existing_content = output_structure[section_name]
+                    existing_subsections = set(re.findall(r'^## (.+)$', existing_content, re.MULTILINE))
+                    required_subsections = set(section_info['subsections'])
+                    
+                    # Conserver le contenu existant mais ajouter les sous-sections manquantes
+                    content_parts = existing_content.split('\n## ')
+                    main_content = content_parts[0].strip()
+                    subsection_contents = {
+                        re.match(r'([^\n]+)', part).group(1): part 
+                        for part in content_parts[1:] if part.strip()
+                    }
+                    
+                    # Ajouter le contenu principal
+                    if main_content and not main_content.startswith('[En attente'):
+                        new_content.append(main_content)
+                    else:
+                        new_content.append(f"[En attente de contenu - Contraintes: {section_info['constraints']}]")
+                    
+                    # Ajouter les sous-sections dans l'ordre du template
+                    for subsection in section_info['subsections']:
+                        new_content.append(f"\n## {subsection}")
+                        if subsection in subsection_contents:
+                            new_content.append(subsection_contents[subsection].split('\n', 1)[1].strip())
+                        else:
+                            new_content.append("[En attente de contenu]")
                 else:
-                    # Ajouter un placeholder pour nouvelle section
-                    new_content.append(f"[En attente de contenu - Contraintes: {constraints}]")
+                    # Nouvelle section avec placeholder
+                    new_content.append(f"[En attente de contenu - Contraintes: {section_info['constraints']}]")
+                    for subsection in section_info['subsections']:
+                        new_content.append(f"\n## {subsection}")
+                        new_content.append("[En attente de contenu]")
+                
                 new_content.append("")  # Ligne vide entre sections
 
             # Sauvegarder le nouveau contenu
@@ -69,9 +117,10 @@ class SpecificationsAgent(ParallagonAgent):
             with open("production.md", 'w', encoding='utf-8') as f:
                 f.write(final_content)
 
+            # Journaliser les changements
             changes = {
-                "added": set(template_sections.keys()) - set(output_sections.keys()),
-                "removed": set(output_sections.keys()) - set(template_sections.keys())
+                "added": set(template_structure.keys()) - set(output_structure.keys()),
+                "removed": set(output_structure.keys()) - set(template_structure.keys())
             }
             
             if changes["added"] or changes["removed"]:
