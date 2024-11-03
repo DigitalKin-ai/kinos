@@ -258,6 +258,12 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         # Configuration du style de base des tabs
         style.configure('TNotebook.Tab', padding=[10, 5])
         
+        # Style pour les boutons ON
+        style.configure('Success.TButton',
+            background='green',
+            foreground='white'
+        )
+        
         # Créer un style spécifique pour chaque état de tab
         for tab_name in self.TAB_NAMES:
             style.configure(
@@ -299,27 +305,113 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         text_widget.pack(fill=tk.BOTH, expand=True)
         return AgentPanel(parent, title, text_widget)
 
+    def toggle_agent(self, agent_name: str) -> None:
+        """Active ou désactive un agent spécifique"""
+        if agent_name in self.agent_states:
+            state = self.agent_states[agent_name]
+            if state["running"]:
+                self.stop_single_agent(agent_name)
+            else:
+                self.start_single_agent(agent_name)
+
+    def start_single_agent(self, agent_name: str) -> None:
+        """Démarre un agent spécifique"""
+        try:
+            if agent_name in self.agents:
+                # Démarrer l'agent
+                thread = threading.Thread(
+                    target=self.agents[agent_name].run,
+                    daemon=True
+                )
+                thread.start()
+                self.agent_threads[agent_name] = thread
+                
+                # Mettre à jour l'état et le bouton
+                self.agent_states[agent_name]["running"] = True
+                self.agent_states[agent_name]["button"].configure(
+                    text="ON",
+                    style="Success.TButton"
+                )
+                
+                self.log_message(f"✓ Agent {agent_name} démarré")
+        except Exception as e:
+            self.log_message(f"❌ Erreur lors du démarrage de l'agent {agent_name}: {str(e)}")
+
+    def stop_single_agent(self, agent_name: str) -> None:
+        """Arrête un agent spécifique"""
+        try:
+            if agent_name in self.agents:
+                # Arrêter l'agent
+                self.agents[agent_name].stop()
+                
+                if agent_name in self.agent_threads:
+                    self.agent_threads[agent_name].join(timeout=5)
+                    del self.agent_threads[agent_name]
+                
+                # Mettre à jour l'état et le bouton
+                self.agent_states[agent_name]["running"] = False
+                self.agent_states[agent_name]["button"].configure(
+                    text="OFF",
+                    style="TButton"
+                )
+                
+                self.log_message(f"✓ Agent {agent_name} arrêté")
+        except Exception as e:
+            self.log_message(f"❌ Erreur lors de l'arrêt de l'agent {agent_name}: {str(e)}")
+
     def setup_ui(self):
         """Configuration de l'interface utilisateur"""
         # Panneau de contrôle
         self.control_frame = ttk.Frame(self.root, style='Modern.TFrame')
         self.control_frame.pack(fill=tk.X, padx=20, pady=10)
         
+        # Ajouter un sous-frame pour les contrôles globaux
+        self.global_controls = ttk.Frame(self.control_frame)
+        self.global_controls.pack(side=tk.LEFT, padx=5)
+        
         self.start_button = ttk.Button(
-            self.control_frame, 
-            text="Start", 
+            self.global_controls, 
+            text="Start All", 
             command=self.start_agents,
             style='Modern.TButton'
         )
         self.start_button.pack(side=tk.LEFT, padx=5)
         
         self.stop_button = ttk.Button(
-            self.control_frame, 
-            text="Stop", 
+            self.global_controls, 
+            text="Stop All", 
             command=self.stop_agents,
             state=tk.DISABLED
         )
         self.stop_button.pack(side=tk.LEFT, padx=5)
+        
+        # Ajouter un sous-frame pour les contrôles individuels des agents
+        self.agent_controls = ttk.Frame(self.control_frame)
+        self.agent_controls.pack(side=tk.LEFT, padx=20)
+        
+        # Dictionnaire pour stocker les états des agents
+        self.agent_states = {}
+        
+        # Créer les boutons ON/OFF pour chaque agent
+        for agent_name in ["Specification", "Management", "Production", "Evaluation"]:
+            agent_frame = ttk.Frame(self.agent_controls)
+            agent_frame.pack(side=tk.LEFT, padx=10)
+            
+            ttk.Label(agent_frame, text=agent_name).pack(side=tk.TOP)
+            
+            toggle_button = ttk.Button(
+                agent_frame,
+                text="OFF",
+                width=8,
+                command=lambda n=agent_name: self.toggle_agent(n)
+            )
+            toggle_button.pack(side=tk.TOP, pady=2)
+            
+            # Stocker l'état et le bouton
+            self.agent_states[agent_name] = {
+                "running": False,
+                "button": toggle_button
+            }
         
         self.reset_button = ttk.Button(
             self.control_frame, 
@@ -413,20 +505,17 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.main_container.add(self.right_frame, weight=1)
             
     def start_agents(self):
-        """Démarrage des agents"""
+        """Démarrage de tous les agents"""
         self.running = True
         self.updating = True
         self.start_button.config(state=tk.DISABLED)
         self.stop_button.config(state=tk.NORMAL)
         self.status_label.config(text="● Running", foreground="green")
         
-        # Démarrage des agents
+        # Démarrer tous les agents
         self.log_message("🚀 Démarrage des agents...")
-        for name, agent in self.agents.items():
-            thread = threading.Thread(target=agent.run, daemon=True)
-            thread.start()
-            self.agent_threads[name] = thread  # Store the thread
-            self.log_message(f"✓ Agent {name} démarré")
+        for agent_name in self.agents.keys():
+            self.start_single_agent(agent_name)
         
         # Démarrage de la boucle de mise à jour
         self.update_thread = threading.Thread(target=self.update_loop)
@@ -435,34 +524,13 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.log_message("✓ Boucle de mise à jour démarrée")
         
     def stop_agents(self):
-        """Arrêt des agents"""
-        # D'abord arrêter les flags
+        """Arrêt de tous les agents"""
         self.running = False
         self.updating = False
         
-        # Arrêter chaque agent et attendre qu'il s'arrête
-        for name, agent in self.agents.items():
-            try:
-                agent.stop()  # Arrête l'agent
-                if name in self.agent_threads:
-                    # Attendre que le thread se termine avec un timeout
-                    thread = self.agent_threads[name]
-                    thread.join(timeout=5)  # Augmenter le timeout à 5 secondes
-                    
-                    # Vérifier si le thread tourne encore
-                    if thread.is_alive():
-                        self.log_message(f"⚠️ L'agent {name} ne répond pas, forçage de l'arrêt...")
-                        # Ici on pourrait implémenter un forçage plus agressif si nécessaire
-                    else:
-                        self.log_message(f"✓ Agent {name} arrêté")
-            except Exception as e:
-                self.log_message(f"❌ Erreur lors de l'arrêt de l'agent {name}: {e}")
-        
-        # Attendre que la boucle de mise à jour se termine
-        if hasattr(self, 'update_thread'):
-            self.update_thread.join(timeout=5)
-            if self.update_thread.is_alive():
-                self.log_message("⚠️ La boucle de mise à jour ne répond pas")
+        # Arrêter tous les agents
+        for agent_name in list(self.agent_threads.keys()):
+            self.stop_single_agent(agent_name)
         
         # Nettoyer les threads
         self.agent_threads.clear()
