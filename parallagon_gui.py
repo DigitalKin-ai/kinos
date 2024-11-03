@@ -139,6 +139,9 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.config = config
         self.gui_config = GUIConfig()
         
+        # Use update interval from gui_config
+        self.update_interval = self.gui_config.update_interval
+        
         # Initialize services
         self.llm_service = LLMService(config["openai_api_key"])
         self.file_manager = FileManager(self.FILE_PATHS)
@@ -412,7 +415,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 self.root.after(0, lambda: self.update_indicator.config(text="●"))  # cercle plein pendant la mise à jour
                 self.root.after(0, self.update_all_panels)
                 self.root.after(100, lambda: self.update_indicator.config(text="○"))  # cercle vide après la mise à jour
-                time.sleep(self.update_interval / 1000)
+                time.sleep(self.update_interval / 1000)  # Convert ms to seconds
             except Exception as e:
                 self.log_message(f"❌ Erreur dans la boucle de mise à jour: {e}")
             
