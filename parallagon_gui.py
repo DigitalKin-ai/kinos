@@ -107,6 +107,14 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.updating = False
         self.update_interval = 1000  # ms
         self.config = config
+        self.tab_states = {
+            "Specification": False,
+            "Evaluation": False,
+            "Management": False,
+            "Demande": False,
+            "Logs": False
+        }
+        self.tab_flash_tasks = {}
         
         # Configuration des couleurs et du thème
         self.colors = {
@@ -304,29 +312,58 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.demand_text.configure(**text_style)
         self.log_text.configure(**text_style)
         
-        # Panneaux des agents
-        self.agents_frame = ttk.Frame(self.root)
-        self.agents_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        # Création du conteneur principal
+        self.main_container = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        self.main_container.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        # Panneau gauche avec tabs
+        self.left_frame = ttk.Frame(self.main_container)
+        self.tab_control = ttk.Notebook(self.left_frame)
         
-        # Configuration du grid 2x2 pour les agents
-        self.agents_frame.columnconfigure(0, weight=1)
-        self.agents_frame.columnconfigure(1, weight=1)
-        self.agents_frame.rowconfigure(0, weight=1)
-        self.agents_frame.rowconfigure(1, weight=1)
-        
-        # Création des panneaux d'agents
+        # Création des tabs
+        self.tabs = {}
         self.agent_panels = {}
-        agents_config = [
-            ("Specification", 0, 0),
-            ("Management", 0, 1),
-            ("Production", 1, 0),
-            ("Evaluation", 1, 1)
-        ]
+        for tab_name in ["Specification", "Evaluation", "Management", "Demande", "Logs"]:
+            tab = ttk.Frame(self.tab_control)
+            self.tabs[tab_name] = tab
+            self.tab_control.add(tab, text=tab_name)
+            
+            # Création du contenu pour chaque tab
+            if tab_name == "Demande":
+                self.demand_text = scrolledtext.ScrolledText(
+                    tab, wrap=tk.WORD, font=('Segoe UI', 10),
+                    bg=self.colors['panel_bg'], fg=self.colors['text']
+                )
+                self.demand_text.pack(fill=tk.BOTH, expand=True)
+                self.demand_text.bind('<KeyRelease>', self.auto_save_demand)
+            elif tab_name == "Logs":
+                self.log_text = scrolledtext.ScrolledText(
+                    tab, wrap=tk.WORD, font=('Segoe UI', 10),
+                    bg=self.colors['panel_bg'], fg=self.colors['text']
+                )
+                self.log_text.pack(fill=tk.BOTH, expand=True)
+            else:
+                text_widget = scrolledtext.ScrolledText(
+                    tab, wrap=tk.WORD, font=('Segoe UI', 10),
+                    bg=self.colors['panel_bg'], fg=self.colors['text']
+                )
+                text_widget.pack(fill=tk.BOTH, expand=True)
+                self.agent_panels[tab_name] = AgentPanel(tab, tab_name, text_widget)
+
+        self.tab_control.pack(fill=tk.BOTH, expand=True)
         
-        for name, row, col in agents_config:
-            panel = AgentPanel(self.agents_frame, name)
-            panel.frame.grid(row=row, column=col, sticky="nsew", padx=2, pady=2)
-            self.agent_panels[name] = panel
+        # Panneau droit (Production)
+        self.right_frame = ttk.LabelFrame(self.main_container, text="Production")
+        self.production_text = scrolledtext.ScrolledText(
+            self.right_frame, wrap=tk.WORD, font=('Segoe UI', 10),
+            bg=self.colors['panel_bg'], fg=self.colors['text']
+        )
+        self.production_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.agent_panels["Production"] = AgentPanel(self.right_frame, "Production", self.production_text)
+
+        # Ajout des panneaux au conteneur principal
+        self.main_container.add(self.left_frame, weight=1)
+        self.main_container.add(self.right_frame, weight=1)
             
     def start_agents(self):
         """Démarrage des agents"""
@@ -368,6 +405,24 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             except Exception as e:
                 self.log_message(f"❌ Erreur dans la boucle de mise à jour: {e}")
             
+    def flash_tab(self, tab_name):
+        """Fait flasher un tab pour indiquer une mise à jour"""
+        if tab_name not in self.tab_flash_tasks:
+            original_color = self.tab_control.tab(self.tabs[tab_name])['background']
+            
+            def flash_cycle(count=0):
+                if count >= 6:  # 3 flashs complets
+                    self.tab_control.tab(self.tabs[tab_name], background=original_color)
+                    self.tab_states[tab_name] = False
+                    self.tab_flash_tasks.pop(tab_name, None)
+                    return
+                
+                new_color = "#e8f0fe" if count % 2 == 0 else original_color
+                self.tab_control.tab(self.tabs[tab_name], background=new_color)
+                self.tab_flash_tasks[tab_name] = self.root.after(500, lambda: flash_cycle(count + 1))
+
+            flash_cycle()
+
     def update_all_panels(self):
         """Mise à jour de tous les panneaux d'agents"""
         file_mapping = {
@@ -377,46 +432,41 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             "Evaluation": "evaluation.md"
         }
         
-        # Mise à jour de l'affichage de la demande
+        updated_panels = []
+        
+        # Mise à jour de la demande
         try:
             with open("demande.md", 'r', encoding='utf-8') as f:
                 demand_content = f.read()
             current_demand = self.demand_text.get("1.0", tk.END).strip()
             if demand_content.strip() != current_demand:
-                cursor_pos = self.demand_text.index(tk.INSERT)
                 self.demand_text.delete("1.0", tk.END)
                 self.demand_text.insert("1.0", demand_content)
-                cursor_pos = self.demand_text.mark_set(tk.INSERT, cursor_pos)
+                self.flash_tab("Demande")
+                updated_panels.append("Demande")
         except Exception as e:
             self.log_message(f"❌ Erreur lors de la mise à jour de la demande: {e}")
-        
-        updated_panels = []
-        for name, panel in self.agent_panels.items():
+
+        # Mise à jour des autres panneaux
+        for name, file_path in file_mapping.items():
             try:
-                # Indicateur visuel de mise à jour
-                panel.frame.configure(style='Updating.TLabelframe')
-                self.root.update_idletasks()
-                
-                file_path = file_mapping[name]
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content = f.read()
                 
-                # Vérifie si le contenu a changé
+                panel = self.agent_panels[name]
                 old_content = panel.text.get("1.0", tk.END).strip()
+                
                 if content.strip() != old_content:
                     panel.update_content(content)
                     updated_panels.append(name)
+                    if name != "Production":  # Production est toujours visible
+                        self.flash_tab(name)
                     
-                # Réinitialise le style après la mise à jour
-                panel.frame.configure(style='TLabelframe')
-                
             except Exception as e:
-                error_msg = f"Error updating {name} panel: {e}"
-                print(error_msg)
-                self.log_message(f"❌ {error_msg}")
+                self.log_message(f"❌ Erreur lors de la mise à jour de {name}: {e}")
         
         if updated_panels:
-            self.log_message(f"✓ Mise à jour des panneaux : {', '.join(updated_panels)}")
+            self.log_message(f"✓ Mise à jour : {', '.join(updated_panels)}")
                 
     def auto_save_demand(self, event=None):
         """Sauvegarde automatique du contenu de la demande"""
@@ -572,28 +622,9 @@ En attente de nouvelles directives...
 
 class AgentPanel:
     """Panneau d'affichage pour un agent"""
-    def __init__(self, parent, title):
-        self.frame = ttk.LabelFrame(
-            parent, 
-            text=title,
-            style='Modern.TLabelframe'
-        )
-        
-        self.text = scrolledtext.ScrolledText(
-            self.frame,
-            wrap=tk.WORD,
-            width=50,
-            height=20,
-            font=('Segoe UI', 10),
-            bg='#ffffff',
-            fg='#202124',
-            insertbackground='#202124',
-            selectbackground='#1a73e8',
-            relief='flat',
-            padx=10,
-            pady=10
-        )
-        self.text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+    def __init__(self, parent, title, text_widget):
+        self.frame = parent
+        self.text = text_widget
         
         # Configuration du highlighting
         self.text.tag_configure(
