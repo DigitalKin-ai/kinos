@@ -130,7 +130,7 @@ class ParallagonGUI:
         )
         self.status_label.pack(side=tk.RIGHT, padx=5)
         
-        # Zone de demande avec style moderne
+        # Zone de demande interactive
         self.request_frame = ttk.LabelFrame(
             self.root, 
             text="Demande",
@@ -138,26 +138,23 @@ class ParallagonGUI:
         )
         self.request_frame.pack(fill=tk.X, padx=20, pady=10)
 
-        # Création des widgets de texte
-        self.request_text = scrolledtext.ScrolledText(
+        self.demand_text = scrolledtext.ScrolledText(
             self.request_frame, 
-            height=2
+            height=10,
+            wrap=tk.WORD,
+            font=('Segoe UI', 10),
+            bg=self.colors['panel_bg'],
+            fg=self.colors['text'],
+            insertbackground=self.colors['text'],
+            selectbackground=self.colors['accent'],
+            relief='flat',
+            padx=10,
+            pady=10
         )
-        self.request_text.pack(fill=tk.X, padx=5, pady=5)
-        
-        self.submit_button = ttk.Button(
-            self.request_frame, 
-            text="Soumettre", 
-            command=self.submit_request
-        )
-        self.submit_button.pack(pady=5)
-        
-        self.demand_display = scrolledtext.ScrolledText(
-            self.request_frame, 
-            height=4,
-            wrap=tk.WORD
-        )
-        self.demand_display.pack(fill=tk.X, padx=5, pady=5)
+        self.demand_text.pack(fill=tk.X, padx=5, pady=5)
+
+        # Ajouter un binding pour sauvegarder automatiquement
+        self.demand_text.bind('<KeyRelease>', self.auto_save_demand)
         
         # Zone de logs
         self.log_frame = ttk.LabelFrame(self.root, text="Logs")
@@ -260,10 +257,14 @@ class ParallagonGUI:
         try:
             with open("demande.md", 'r', encoding='utf-8') as f:
                 demand_content = f.read()
-            current_demand = self.demand_display.get("1.0", tk.END).strip()
+            current_demand = self.demand_text.get("1.0", tk.END).strip()
             if demand_content.strip() != current_demand:
-                self.demand_display.delete("1.0", tk.END)
-                self.demand_display.insert("1.0", demand_content)
+                # Sauvegarder la position du curseur
+                cursor_pos = self.demand_text.index(tk.INSERT)
+                self.demand_text.delete("1.0", tk.END)
+                self.demand_text.insert("1.0", demand_content)
+                # Restaurer la position du curseur
+                self.demand_text.mark_set(tk.INSERT, cursor_pos)
         except Exception as e:
             self.log_message(f"❌ Erreur lors de la mise à jour de la demande: {e}")
         
@@ -296,38 +297,17 @@ class ParallagonGUI:
         if update_count > 0:
             self.log_message(f"✓ {update_count} panneau(x) mis à jour")
                 
-    def submit_request(self):
-        """Soumission d'une nouvelle demande"""
-        request_text = self.request_text.get("1.0", tk.END).strip()
-        if not request_text:
-            return
-            
+    def auto_save_demand(self, event=None):
+        """Sauvegarde automatique du contenu de la demande"""
         try:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-            new_request = f"""# Demande Actuelle
-[timestamp: {timestamp}]
-[status: EN_COURS]
-
-{request_text}
-
-# Historique des Demandes"""
+            current_content = self.demand_text.get("1.0", tk.END).strip()
             
-            with open("demande.md", 'r+', encoding='utf-8') as f:
-                content = f.read()
-                result = SearchReplace.section_replace(
-                    content,
-                    "Demande Actuelle",
-                    new_request
-                )
-                if result.success:
-                    f.seek(0)
-                    f.write(result.new_content)
-                    f.truncate()
-                    
-            self.request_text.delete("1.0", tk.END)
-            
+            with open("demande.md", 'w', encoding='utf-8') as f:
+                f.write(current_content)
+                
+            self.log_message("✓ Demande mise à jour")
         except Exception as e:
-            print(f"Error submitting request: {e}")
+            self.log_message(f"❌ Erreur lors de la sauvegarde : {str(e)}")
             
     def log_message(self, message: str):
         """Ajoute un message horodaté aux logs"""
@@ -346,10 +326,9 @@ class ParallagonGUI:
 [timestamp: {}]
 [status: NEW]
 
-Entrez votre demande ici...
+Écrivez votre demande ici...
 
-# Historique des Demandes
-- [INIT] Création du fichier""".format(datetime.now().strftime("%Y-%m-%d %H:%M")),
+# Historique des Demandes""".format(datetime.now().strftime("%Y-%m-%d %H:%M")),
 
                 "specifications.md": """# Spécification de Sortie
 En attente de nouvelles demandes...
