@@ -156,6 +156,10 @@ class ParallagonAgent:
             print(f"Error updating section: {e}")
             return False
 
+    def stop(self) -> None:
+        """Stop the agent's execution"""
+        self.running = False
+
     def run(self) -> None:
         """Main agent loop"""
         self.running = True
@@ -163,8 +167,9 @@ class ParallagonAgent:
             try:
                 self.read_files()
                 self.analyze()
+                self.determine_actions()
                 self.update()
-                time.sleep(self.check_interval)
+                time.sleep(self.config["check_interval"])
             except Exception as e:
                 print(f"Error in agent loop: {e}")
                 # TODO: Add proper error handling and logging
