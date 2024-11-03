@@ -105,6 +105,12 @@ class ParallagonAgent:
         # This method should be implemented by specific agent subclasses
         pass
 
+    def _build_prompt(self, context: dict) -> str:
+        """Construction du prompt pour l'agent"""
+        # This is a base implementation that should be overridden by subclasses
+        return f"""Analyze the following context and provide appropriate response:
+{context}"""
+
     def _get_llm_response(self, context: dict) -> str:
         max_retries = 3
         retry_delay = 2
