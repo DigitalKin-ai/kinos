@@ -124,7 +124,18 @@ class ParallagonAgent:
     }
 
     def _validate_markdown_response(self, response: str) -> bool:
-        """Validate that LLM response follows required markdown format"""
+        """
+        Validate that LLM response follows required markdown format.
+        
+        Validation rules:
+        - Checks for required sections based on agent type
+        - Validates heading structure
+        - Ensures content format compliance
+        - Applies agent-specific validation rules
+        
+        Returns:
+            bool: True if response is valid, False otherwise
+        """
         agent_type = self.__class__.__name__
         config = self.VALIDATION_CONFIGS.get(agent_type, {})
         
@@ -156,7 +167,14 @@ class ParallagonAgent:
 
     @agent_error_handler("read_files")
     def read_files(self) -> None:
-        """Read all relevant files for the agent"""
+        """
+        Read all relevant files for the agent.
+        
+        Responsibilities:
+        - Reads the agent's primary file into current_content
+        - Reads all watched files into other_files dictionary
+        - Maintains file state for change detection
+        """
         with open(self.file_path, 'r', encoding='utf-8') as f:
             self.current_content = f.read()
         
@@ -167,7 +185,15 @@ class ParallagonAgent:
 
     @agent_error_handler("analyze")
     def analyze(self) -> None:
-        """Analyze changes and signals"""
+        """
+        Analyze changes and signals in the monitored files.
+        
+        Key operations:
+        - Extracts current status from file content
+        - Identifies active signals and messages
+        - Triggers appropriate response actions
+        - Updates internal state based on analysis
+        """
         # Extract current status
         status_match = re.search(r'\[status: (\w+)\]', self.current_content)
         self.current_status = status_match.group(1) if status_match else "UNKNOWN"
@@ -186,7 +212,18 @@ class ParallagonAgent:
         self.determine_actions()
 
     def determine_actions(self) -> None:
-        """Determine what actions need to be taken based on current state"""
+        """
+        Determine what actions need to be taken based on current state.
+        
+        This is the core decision-making method that:
+        - Evaluates the current context
+        - Identifies necessary changes
+        - Plans appropriate responses
+        - Prepares content updates
+        
+        Must be implemented by specific agent subclasses to define
+        their unique decision-making logic.
+        """
         # This method should be implemented by specific agent subclasses
         pass
 
@@ -254,7 +291,15 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
 
     @agent_error_handler("update")
     def update(self) -> None:
-        """Make necessary updates to files"""
+        """
+        Make necessary updates to files based on determined actions.
+        
+        Responsibilities:
+        - Validates proposed changes
+        - Applies updates to file content
+        - Maintains file consistency
+        - Logs successful changes
+        """
         if hasattr(self, 'new_content') and self.new_content != self.current_content:
             self.logger(f"[{self.__class__.__name__}] Updating file {self.file_path}")
             with open(self.file_path, 'w', encoding='utf-8') as f:
@@ -263,7 +308,21 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
             self.logger(f"[{self.__class__.__name__}] ✓ File updated successfully")
 
     def update_section(self, section_name: str, new_content: str) -> bool:
-        """Update a specific section in the markdown file"""
+        """
+        Update a specific section in the markdown file.
+        
+        Args:
+            section_name: Name of the section to update
+            new_content: New content for the section
+            
+        Returns:
+            bool: True if update successful, False otherwise
+            
+        Ensures:
+        - Section exists before update
+        - Content format is valid
+        - Update is atomic
+        """
         try:
             result = SearchReplace.section_replace(self.current_content, section_name, new_content)
             if result.success:
@@ -276,14 +335,30 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
             return False
 
     def _format_other_files(self, context: dict) -> str:
-        """Format the context files for the prompt"""
+        """
+        Format the context files for the prompt.
+        
+        Transforms the raw file contents into a structured format
+        suitable for LLM processing, maintaining clear separation
+        between different files and their contents.
+        
+        Returns:
+            str: Formatted context string for LLM prompt
+        """
         formatted = []
         for filename, content in context.items():
             formatted.append(f"=== {filename} ===\n{content}\n")
         return "\n".join(formatted)
 
     def stop(self) -> None:
-        """Stop the agent's execution"""
+        """
+        Stop the agent's execution gracefully.
+        
+        Ensures:
+        - Current operations complete
+        - Resources are released
+        - State is properly saved
+        """
         self.running = False
 
     def should_run(self) -> bool:
@@ -307,10 +382,16 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
 
     def calculate_dynamic_interval(self) -> float:
         """
-        Adjusts execution interval based on activity level:
-        - Increases delay when no changes detected
-        - Returns to base rhythm when activity resumes
-        - Prevents excessive resource usage during quiet periods
+        Calculate the optimal interval between agent executions.
+        
+        Factors considered:
+        - Recent change frequency
+        - System activity level
+        - Resource utilization
+        - Agent-specific timing requirements
+        
+        Returns:
+            float: Calculated interval in seconds
         """
         base_interval = self.check_interval
         
