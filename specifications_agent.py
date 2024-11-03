@@ -202,10 +202,11 @@ class SpecificationsAgent(ParallagonAgent):
                     
                     # Ajouter le contenu principal de la section
                     main_content = content_parts.get('main', '').strip()
-                    if main_content and not main_content.startswith('[En attente'):
-                        new_content.append(main_content)
-                    else:
+                    # Ne remplacer que si la section est vide ou contient le message d'attente
+                    if not main_content or main_content.startswith('[En attente'):
                         new_content.append(f"[En attente de contenu - Contraintes: {section_info['constraints']}]")
+                    else:
+                        new_content.append(main_content)  # Préserver le contenu existant
                     
                     # Parcourir les sous-sections
                     for subsection_name, subsection_info in section_info['subsections'].items():
@@ -214,10 +215,11 @@ class SpecificationsAgent(ParallagonAgent):
                         if subsection_name in content_parts.get('subsections', {}):
                             subsection_content = content_parts['subsections'][subsection_name]
                             main_subsection_content = subsection_content.get('main', '').strip()
-                            if main_subsection_content and not main_subsection_content.startswith('[En attente'):
-                                new_content.append(main_subsection_content)
-                            else:
+                            # Ne remplacer que si la sous-section est vide ou contient le message d'attente
+                            if not main_subsection_content or main_subsection_content.startswith('[En attente'):
                                 new_content.append(f"[En attente de contenu - Contraintes: {subsection_info['constraints']}]")
+                            else:
+                                new_content.append(main_subsection_content)  # Préserver le contenu existant
                             
                             # Parcourir les sous-sous-sections
                             for subsubsection in subsection_info['subsubsections']:
