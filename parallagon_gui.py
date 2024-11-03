@@ -11,6 +11,13 @@ from typing import Dict, Any
 from search_replace import SearchReplace
 
 class ParallagonGUI:
+    TEST_DATA = """# Demande de Revue de Connaissances LLM : L'Impact de l'IA Générative sur l'Industrie Musicale
+
+## 1. Contexte de la demande
+
+### Demandeur de la revue
+[...]"""  # Insérez ici tout le texte que vous avez fourni
+
     def __init__(self, config: Dict[str, Any]):
         self.root = tk.Tk()
         self.root.title("⚫ Parallagon")
@@ -123,6 +130,13 @@ class ParallagonGUI:
             command=self.reset_files
         )
         self.reset_button.pack(side=tk.LEFT, padx=5)
+
+        self.test_data_button = ttk.Button(
+            self.control_frame, 
+            text="Données de test", 
+            command=self.load_test_data
+        )
+        self.test_data_button.pack(side=tk.LEFT, padx=5)
         
         self.status_label = ttk.Label(
             self.control_frame, 
@@ -338,6 +352,22 @@ class ParallagonGUI:
         """Reset all files to their initial state"""
         try:
             # Initial content for each file
+
+    def load_test_data(self):
+        """Charge les données de test dans la zone de demande"""
+        try:
+            # Mise à jour du widget de texte
+            self.demand_text.delete("1.0", tk.END)
+            self.demand_text.insert("1.0", self.TEST_DATA)
+            
+            # Sauvegarde dans le fichier
+            with open("demande.md", 'w', encoding='utf-8') as f:
+                f.write(self.TEST_DATA)
+                
+            self.log_message("✨ Données de test chargées")
+            
+        except Exception as e:
+            self.log_message(f"❌ Erreur lors du chargement des données de test : {str(e)}")
             initial_contents = {
                 "demande.md": """# Demande Actuelle
 [timestamp: {}]
