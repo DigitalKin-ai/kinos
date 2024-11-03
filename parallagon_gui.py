@@ -218,6 +218,22 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             background=self.gui_config.colors['highlight']
         )
 
+    def _create_text_widget(self, parent) -> scrolledtext.ScrolledText:
+        """Create a standardized text widget"""
+        return scrolledtext.ScrolledText(
+            parent,
+            wrap=tk.WORD,
+            font=(self.gui_config.font_family, self.gui_config.font_size),
+            bg=self.gui_config.colors['panel_bg'],
+            fg=self.gui_config.colors['text']
+        )
+
+    def _create_agent_panel(self, parent, title: str) -> AgentPanel:
+        """Create a standardized agent panel"""
+        text_widget = self._create_text_widget(parent)
+        text_widget.pack(fill=tk.BOTH, expand=True)
+        return AgentPanel(parent, title, text_widget)
+
     def setup_ui(self):
         """Configuration de l'interface utilisateur"""
         # Panneau de contrôle

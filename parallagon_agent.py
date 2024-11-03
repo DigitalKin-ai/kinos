@@ -28,6 +28,14 @@ def agent_error_handler(method_name: str):
 class ParallagonAgent:
     """Base class for Parallagon autonomous agents"""
     
+    # Validation configurations for different agent types
+    VALIDATION_CONFIGS = {
+        'ProductionAgent': {'validate_raw': True},
+        'ManagementAgent': {'required_sections': ["Consignes Actuelles", "TodoList", "Actions Réalisées"]},
+        'SpecificationsAgent': {'require_level1_heading': True},
+        'EvaluationAgent': {'required_sections': ["Évaluations en Cours", "Vue d'Ensemble"]}
+    }
+
     def __init__(self, config: Dict[str, Any]):
         """Initialize the agent with configuration"""
         self.config = config
