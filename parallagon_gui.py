@@ -165,14 +165,29 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         # self.root.attributes('-zoomed', True)  # Pour Linux
         self.setup_ui()
         
-        # Charger le contenu initial de la demande
+        # Initialisation du contenu des panneaux
         try:
-            with open("demande.md", 'r', encoding='utf-8') as f:
-                initial_content = f.read()
-                self.demand_text.delete("1.0", tk.END)
-                self.demand_text.insert("1.0", initial_content)
+            # Charger le contenu initial de tous les fichiers
+            for name, file_path in self.FILE_PATHS.items():
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        
+                        # Traitement spécial pour le panneau Demande
+                        if name == "demande":
+                            self.demand_text.delete("1.0", tk.END)
+                            self.demand_text.insert("1.0", content)
+                        # Traitement pour les autres panneaux
+                        elif name in self.agent_panels:
+                            self.agent_panels[name].text.delete("1.0", tk.END)
+                            self.agent_panels[name].text.insert("1.0", content)
+                            
+                    self.log_message(f"✓ {name} initialisé")
+                except Exception as e:
+                    self.log_message(f"❌ Erreur lors de l'initialisation de {name}: {str(e)}")
+                    
         except Exception as e:
-            self.log_message(f"❌ Erreur lors du chargement initial de la demande: {str(e)}")
+            self.log_message(f"❌ Erreur lors de l'initialisation des panneaux: {str(e)}")
         
         self.init_agents()
         
