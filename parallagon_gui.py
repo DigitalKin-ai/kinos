@@ -483,29 +483,24 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             self.log_message(f"❌ Erreur lors de la mise à jour: {e}")
             
     def flash_tab(self, tab_name):
-        """Fait flasher un tab pour indiquer une mise à jour"""
+        """Fait flasher un tab en bleu pendant 1 seconde"""
         if tab_name not in self.tab_flash_tasks:
             style = ttk.Style()
-            tab_id = self.tab_control.index(self.tabs[tab_name])
             
-            def flash_cycle(count=0):
-                if count >= 6 or tab_name not in self.tab_flash_tasks:  # 3 flashs complets
-                    if tab_name in self.tab_flash_tasks:
-                        self.tab_flash_tasks.pop(tab_name)
-                    # Remettre le style par défaut
-                    style.configure(f'TNotebook.Tab', background=self.gui_config.colors['bg'])
-                    return
-                    
-                # Alterner entre bleu clair et la couleur par défaut
-                new_color = "#e8f0fe" if count % 2 == 0 else self.gui_config.colors['bg']
-                style.configure(f'TNotebook.Tab', background=new_color)
-                
-                self.tab_flash_tasks[tab_name] = self.root.after(
-                    200,  # Durée du flash
-                    lambda: flash_cycle(count + 1)
-                )
-                
-            flash_cycle()
+            # Appliquer le flash bleu
+            style.configure('TNotebook.Tab', background="#e8f0fe")
+            
+            # Programmer le retour à la couleur normale après 1 seconde
+            self.tab_flash_tasks[tab_name] = self.root.after(
+                1000,  # Durée du flash (1 seconde)
+                lambda: self._remove_tab_flash(tab_name, style)
+            )
+
+    def _remove_tab_flash(self, tab_name, style):
+        """Retire le flash et restaure la couleur normale du tab"""
+        if tab_name in self.tab_flash_tasks:
+            self.tab_flash_tasks.pop(tab_name)
+        style.configure('TNotebook.Tab', background=self.gui_config.colors['bg'])
 
     def update_all_panels(self):
         """Mise à jour de tous les panneaux d'agents"""
