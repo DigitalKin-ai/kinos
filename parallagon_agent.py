@@ -7,7 +7,20 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
 from search_replace import SearchReplace, SearchReplaceResult
+from functools import wraps
 
+def error_handler(func):
+    """Decorator for handling errors in agent methods"""
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Error: {str(e)}")
+            import traceback
+            self.logger(traceback.format_exc())
+            return args[0].get('production', '') if args else ''
+    return wrapper
 
 class ParallagonAgent:
     """Base class for Parallagon autonomous agents"""
@@ -18,6 +31,7 @@ class ParallagonAgent:
         self.file_path = config["file_path"]
         self.check_interval = config.get("check_interval", 5)
         self.running = False
+        self.logger = config.get("logger", print)
 
     # Validation configurations for different agent types
     VALIDATION_CONFIGS = {
@@ -58,44 +72,36 @@ class ParallagonAgent:
         return True
 
 
+    @error_handler
     def read_files(self) -> None:
         """Read all relevant files for the agent"""
-        try:
-            with open(self.file_path, 'r', encoding='utf-8') as f:
-                self.current_content = f.read()
-            
-            # Read other relevant files based on agent type
-            self.other_files = {}
-            for file_path in self.config.get("watch_files", []):
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    self.other_files[file_path] = f.read()
-        except Exception as e:
-            print(f"Error reading files: {e}")
-            raise
+        with open(self.file_path, 'r', encoding='utf-8') as f:
+            self.current_content = f.read()
+        
+        self.other_files = {}
+        for file_path in self.config.get("watch_files", []):
+            with open(file_path, 'r', encoding='utf-8') as f:
+                self.other_files[file_path] = f.read()
 
+    @error_handler
     def analyze(self) -> None:
         """Analyze changes and signals"""
-        try:
-            # Extract current status
-            status_match = re.search(r'\[status: (\w+)\]', self.current_content)
-            self.current_status = status_match.group(1) if status_match else "UNKNOWN"
+        # Extract current status
+        status_match = re.search(r'\[status: (\w+)\]', self.current_content)
+        self.current_status = status_match.group(1) if status_match else "UNKNOWN"
 
-            # Extract signals section
-            signals_match = re.search(r'# Signaux\n(.*?)(?=\n#|$)', 
-                                    self.current_content, 
-                                    re.DOTALL)
-            if signals_match:
-                signals_text = signals_match.group(1).strip()
-                self.signals = [s.strip() for s in signals_text.split('\n') if s.strip()]
-            else:
-                self.signals = []
+        # Extract signals section
+        signals_match = re.search(r'# Signaux\n(.*?)(?=\n#|$)', 
+                                self.current_content, 
+                                re.DOTALL)
+        if signals_match:
+            signals_text = signals_match.group(1).strip()
+            self.signals = [s.strip() for s in signals_text.split('\n') if s.strip()]
+        else:
+            self.signals = []
 
-            # Analyze current content and other files to determine needed actions
-            self.determine_actions()
-
-        except Exception as e:
-            print(f"Error in analysis: {e}")
-            raise
+        # Analyze current content and other files to determine needed actions
+        self.determine_actions()
 
     def determine_actions(self) -> None:
         """Determine what actions need to be taken based on current state"""
@@ -164,18 +170,15 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
                     
         return context[self.__class__.__name__.lower().replace('agent', '')]
 
+    @error_handler
     def update(self) -> None:
         """Make necessary updates to files"""
-        try:
-            if hasattr(self, 'new_content') and self.new_content != self.current_content:
-                print(f"[{self.__class__.__name__}] Updating file {self.file_path}")  # Debug log
-                with open(self.file_path, 'w', encoding='utf-8') as f:
-                    f.write(self.new_content)
-                self.current_content = self.new_content
-                print(f"[{self.__class__.__name__}] File updated successfully")  # Debug log
-        except Exception as e:
-            print(f"[{self.__class__.__name__}] Error updating file: {str(e)}")  # Error log
-            raise
+        if hasattr(self, 'new_content') and self.new_content != self.current_content:
+            self.logger(f"[{self.__class__.__name__}] Updating file {self.file_path}")
+            with open(self.file_path, 'w', encoding='utf-8') as f:
+                f.write(self.new_content)
+            self.current_content = self.new_content
+            self.logger(f"[{self.__class__.__name__}] ✓ File updated successfully")
 
     def update_section(self, section_name: str, new_content: str) -> bool:
         """Update a specific section in the markdown file"""
