@@ -250,6 +250,8 @@ class Section:
     content: Optional[str]    # Contenu actuel
     evaluation: Optional[str] # État d'évaluation
     todo: Optional[List[str]] # Liste des tâches à faire
+    level: int = 1           # Niveau hiérarchique (1, 2, 3, etc.)
+    subsections: List['Section'] = field(default_factory=list)  # Sous-sections
 ```
 
 ### 10.2 Responsabilités des Agents
@@ -258,10 +260,12 @@ class Section:
 - **Rôle Principal**: Définition et gestion de la structure des sections
 - **Interactions**:
   * Crée les sections avec leurs contraintes initiales
-  * Définit la hiérarchie des sections (niveau 1, 2, 3)
+  * Gère la hiérarchie complète des sections et sous-sections
+  * Définit les niveaux (1 à N) et relations parent-enfant
   * Met à jour les contraintes selon l'évolution des besoins
   * Synchronise la structure avec production.md
-- **Attributs gérés**: `title`, `constraints`
+  * Maintient la cohérence de l'arborescence
+- **Attributs gérés**: `title`, `constraints`, `level`, `subsections`
 
 #### ProductionAgent
 - **Rôle Principal**: Gestion du contenu des sections
@@ -296,7 +300,7 @@ class Section:
 
 1. **Création & Structure** (SpecificationsAgent)
    ```plaintext
-   Section créée → Contraintes définies → Structure synchronisée
+   Section créée → Niveau défini → Sous-sections créées → Contraintes définies → Structure synchronisée
    ```
 
 2. **Production de Contenu** (ProductionAgent)
@@ -318,8 +322,10 @@ class Section:
 
 1. **Modifications Structurelles**
    - Exclusivement via SpecificationsAgent
+   - Gestion récursive des sections et sous-sections
+   - Maintien des relations hiérarchiques
    - Nécessite synchronisation avec production.md
-   - Préserve le contenu existant
+   - Préserve le contenu existant à tous les niveaux
 
 2. **Modifications de Contenu**
    - Uniquement via ProductionAgent
