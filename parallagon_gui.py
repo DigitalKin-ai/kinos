@@ -104,6 +104,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.root = tk.Tk()
         self.root.title("⚫ Parallagon")
         self.running = False
+        self.updating = False
         self.update_interval = 1000  # ms
         self.config = config
         
@@ -227,6 +228,13 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         )
         self.status_label.pack(side=tk.RIGHT, padx=5)
         
+        self.update_indicator = ttk.Label(
+            self.control_frame,
+            text="○",  # cercle vide quand pas de mise à jour
+            foreground="blue"
+        )
+        self.update_indicator.pack(side=tk.RIGHT, padx=2)
+        
         # Création d'un frame horizontal pour la demande et les logs
         self.horizontal_frame = ttk.Frame(self.root)
         self.horizontal_frame.pack(fill=tk.X, padx=20, pady=10)
@@ -345,14 +353,17 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.start_button.config(state=tk.NORMAL)
         self.stop_button.config(state=tk.DISABLED)
         self.status_label.config(text="● Stopped", foreground="red")
+        self.update_indicator.config(text="○")  # Réinitialiser l'indicateur
         self.log_message("🛑 Arrêt des agents")
         
     def update_loop(self):
         """Boucle de mise à jour des panneaux"""
         while self.running:
             try:
+                self.updating = True
+                self.root.after(0, lambda: self.update_indicator.config(text="●"))  # cercle plein pendant la mise à jour
                 self.root.after(0, self.update_all_panels)
-                self.log_message("🔄 Cycle de mise à jour")  # Log de debug
+                self.root.after(100, lambda: self.update_indicator.config(text="○"))  # cercle vide après la mise à jour
                 time.sleep(self.update_interval / 1000)
             except Exception as e:
                 self.log_message(f"❌ Erreur dans la boucle de mise à jour: {e}")
