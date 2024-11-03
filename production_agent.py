@@ -100,16 +100,34 @@ Nouveau texte...
             if content == "NO_CHANGES":
                 return context['production']
                 
-            # Process SEARCH/REPLACE pairs
+            # Process SEARCH/REPLACE pairs with improved error handling
             new_content = context['production']
             pairs = re.findall(r'SEARCH<<<\n(.*?)\n>>>\n\nREPLACE<<<\n(.*?)\n>>>', content, re.DOTALL)
             
-            for search, replace in pairs:
-                result = SearchReplace.exact_replace(new_content, search.strip(), replace.strip())
-                if result.success:
-                    new_content = result.new_content
-                else:
-                    print(f"[{self.__class__.__name__}] Search/Replace failed: {result.message}")
+            if not pairs:
+                print(f"[{self.__class__.__name__}] No valid SEARCH/REPLACE pairs found in response")
+                return context['production']
+                
+            for i, (search, replace) in enumerate(pairs, 1):
+                search = search.strip()
+                replace = replace.strip()
+                
+                # Validate the search string exists exactly once
+                valid, message, count = SearchReplace.validate_replacement(new_content, search)
+                if not valid:
+                    print(f"[{self.__class__.__name__}] Pair {i}: {message}")
+                    continue
+                    
+                try:
+                    result = SearchReplace.exact_replace(new_content, search, replace)
+                    if result.success:
+                        new_content = result.new_content
+                        print(f"[{self.__class__.__name__}] Successfully applied replacement {i}")
+                    else:
+                        print(f"[{self.__class__.__name__}] Failed to apply replacement {i}: {result.message}")
+                except Exception as e:
+                    print(f"[{self.__class__.__name__}] Error processing pair {i}: {str(e)}")
+                    continue
                     
             return new_content
             
