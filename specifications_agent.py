@@ -19,48 +19,67 @@ class SpecificationsAgent(ParallagonAgent):
     def synchronize_template(self) -> None:
         """Synchronise la structure du document de sortie avec le template"""
         try:
-            # Lire le template (specifications.md) et le document de sortie
+            # Lire le template et le document de sortie
             with open("specifications.md", 'r', encoding='utf-8') as f:
                 template = f.read()
             with open("production.md", 'r', encoding='utf-8') as f:
                 output = f.read()
 
-            # Extraire les sections du template
-            template_sections = re.findall(r'^# (.+)$', template, re.MULTILINE)
-            
-            # Extraire les sections existantes du document de sortie
-            output_sections = re.findall(r'^# (.+)$', output, re.MULTILINE)
+            # Extraire les sections et leurs contraintes du template
+            template_sections = {}
+            matches = re.finditer(r'^# ([^\n]+)\n\[contraintes: ([^\]]+)\]', template, re.MULTILINE)
+            for match in matches:
+                section_name = match.group(1)
+                constraints = match.group(2).strip()
+                template_sections[section_name] = constraints
 
-            # Sections à ajouter (présentes dans template mais pas dans output)
-            sections_to_add = set(template_sections) - set(output_sections)
+            # Extraire les sections existantes et leur contenu du document de sortie
+            output_sections = {}
+            current_section = None
+            current_content = []
             
-            # Sections à supprimer (présentes dans output mais pas dans template)
-            sections_to_remove = set(output_sections) - set(template_sections)
+            for line in output.split('\n'):
+                if line.startswith('# '):
+                    if current_section:
+                        output_sections[current_section] = '\n'.join(current_content).strip()
+                    current_section = line[2:].strip()
+                    current_content = []
+                elif current_section:
+                    current_content.append(line)
+                    
+            if current_section:
+                output_sections[current_section] = '\n'.join(current_content).strip()
 
-            # Créer le nouveau contenu
-            new_content = output
+            # Construire le nouveau contenu
+            new_content = []
             
-            # Supprimer les sections obsolètes
-            for section in sections_to_remove:
-                pattern = f"# {section}.*?(?=# |$)"
-                new_content = re.sub(pattern, '', new_content, flags=re.DOTALL)
-
-            # Ajouter les nouvelles sections
-            for section in sections_to_add:
-                # Trouver les contraintes dans le template
-                constraints = re.search(f"# {section}\n\\[contraintes: (.+?)\\]", 
-                                      template, 
-                                      re.DOTALL)
-                constraints_text = constraints.group(1) if constraints else "À compléter"
-                
-                new_section = f"\n\n# {section}\n[En attente de contenu - {constraints_text}]\n"
-                new_content += new_section
+            # Ajouter les sections dans l'ordre du template
+            for section_name, constraints in template_sections.items():
+                new_content.append(f"# {section_name}")
+                if section_name in output_sections and output_sections[section_name].strip():
+                    # Garder le contenu existant
+                    new_content.append(output_sections[section_name])
+                else:
+                    # Ajouter un placeholder pour nouvelle section
+                    new_content.append(f"[En attente de contenu - Contraintes: {constraints}]")
+                new_content.append("")  # Ligne vide entre sections
 
             # Sauvegarder le nouveau contenu
+            final_content = '\n'.join(new_content).strip()
             with open("production.md", 'w', encoding='utf-8') as f:
-                f.write(new_content.strip())
-                
-            self.logger(f"[{self.__class__.__name__}] ✓ Structure du document synchronisée")
+                f.write(final_content)
+
+            changes = {
+                "added": set(template_sections.keys()) - set(output_sections.keys()),
+                "removed": set(output_sections.keys()) - set(template_sections.keys())
+            }
+            
+            if changes["added"] or changes["removed"]:
+                added_msg = f"Sections ajoutées: {', '.join(changes['added'])}" if changes["added"] else ""
+                removed_msg = f"Sections supprimées: {', '.join(changes['removed'])}" if changes["removed"] else ""
+                self.logger(f"[{self.__class__.__name__}] ✓ Structure synchronisée - {added_msg} {removed_msg}")
+            else:
+                self.logger(f"[{self.__class__.__name__}] ✓ Structure déjà synchronisée")
 
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de la synchronisation du template: {str(e)}")
