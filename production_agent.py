@@ -48,6 +48,16 @@ class ProductionAgent(ParallagonAgent):
         4. Validates changes against requirements
         5. Updates content sections atomically
         """
+        """
+        Analyze requirements and implement needed content changes.
+        
+        Process:
+        1. Reviews specifications and management directives
+        2. Identifies required content updates
+        3. Implements changes while maintaining quality
+        4. Validates changes against requirements
+        5. Updates content sections atomically
+        """
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
             
@@ -93,6 +103,21 @@ class ProductionAgent(ParallagonAgent):
             self.logger(traceback.format_exc())
 
     def _get_llm_response(self, context: dict) -> str:
+        """
+        Get LLM response for content creation and updates.
+        
+        Process:
+        1. Analyzes current content and requirements
+        2. Generates appropriate content updates
+        3. Ensures content quality and consistency
+        4. Validates response format
+        
+        Args:
+            context: Current content state and requirements
+            
+        Returns:
+            str: Validated content updates
+        """
         """
         Get LLM response for content creation and updates.
         
@@ -177,12 +202,43 @@ class ProductionAgent(ParallagonAgent):
         Returns:
             str: Formatted context for content decisions
         """
+        """
+        Format other files content for production context.
+        
+        Organizes:
+        - Specifications requirements
+        - Management directives
+        - Evaluation feedback
+        - Related content references
+        
+        Args:
+            files: Dictionary of file contents
+            
+        Returns:
+            str: Formatted context for content decisions
+        """
         result = []
         for file_path, content in files.items():
             result.append(f"=== {file_path} ===\n{content}\n")
         return "\n".join(result)
 
     def _build_prompt(self, context: dict) -> str:
+        """
+        Build prompt for content creation and updates.
+        
+        Includes:
+        - Current content state
+        - Required changes and updates
+        - Quality requirements
+        - Format specifications
+        - Content guidelines
+        
+        Args:
+            context: Current project state
+            
+        Returns:
+            str: Content creation/update prompt
+        """
         """
         Build prompt for content creation and updates.
         
@@ -258,6 +314,20 @@ Return either:
 1. "NO_CHANGES" if no updates needed
 2. The specific section(s) you want to edit, with their exact heading levels and content ONLY"""
     def _extract_sections(self, content: str) -> dict:
+        """
+        Extract sections from content while preserving hierarchy.
+        
+        Used for:
+        - Maintaining document structure
+        - Processing section-specific updates
+        - Preserving content organization
+        
+        Args:
+            content: Full document content
+            
+        Returns:
+            dict: Mapping of section names to content
+        """
         """
         Extract sections from content while preserving hierarchy.
         
