@@ -59,7 +59,7 @@ class ProductionAgent(ParallagonAgent):
         """Get LLM response for implementation decisions"""
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
-            prompt = f"""You are the Production Agent in the Parallagon framework. Your role is to implement code and handle technical tasks.
+            prompt = f"""You are the Production Agent in the Parallagon framework. Your role is to create and refine the actual text content.
 
 Current production content:
 {context['production']}
@@ -68,18 +68,18 @@ Other files content:
 {self._format_other_files(context['other_files'])}
 
 Your task:
-1. Review specifications and management requirements
-2. Update current implementation status
-3. Document technical decisions and progress
-4. Respond to technical questions
-5. Signal any blocking issues or needs
+1. Create new text content based on specifications
+2. Refine and improve existing content
+3. Apply literary techniques and style guidelines
+4. Ensure adherence to creative requirements
+5. Implement requested revisions
 
 Focus on:
-- Clear implementation steps
-- Technical documentation
-- Code structure and organization
-- Testing requirements
-- Dependencies and integration points
+- Writing quality and style
+- Creative expression
+- Literary devices
+- Rhythm and flow
+- Thematic consistency
 
 Important:
 - Return ONLY the markdown content, starting with "# État Actuel"
