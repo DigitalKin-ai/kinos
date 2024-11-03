@@ -93,3 +93,42 @@ class ProductionAgent(ParallagonAgent):
         for file_path, content in files.items():
             result.append(f"=== {file_path} ===\n{content}\n")
         return "\n".join(result)
+
+    def _build_prompt(self, context: dict) -> str:
+        """Build prompt for production decisions"""
+        return f"""You are the Production Agent in the Parallagon framework, working in parallel with 3 other agents.
+Your role is to create and refine content based on specifications and management directives.
+
+Current production content:
+{context['production']}
+
+Other files content:
+{self._format_other_files(context['other_files'])}
+
+Your task:
+1. Review current content against specifications
+2. Implement changes requested by management
+3. Address evaluation feedback
+4. Maintain content quality and consistency
+
+Important:
+- Use SEARCH/REPLACE format for changes:
+  ```
+  SEARCH:
+  [exact text to replace]
+  
+  REPLACE:
+  [new text]
+  ```
+- You can include multiple SEARCH/REPLACE blocks
+- Text must match exactly for replacement
+- If no changes needed, return "NO_CHANGES"
+
+Guidelines:
+- Keep existing content that meets requirements
+- Make only necessary changes
+- Maintain document structure
+- Ensure all sections are complete
+- Follow writing style guidelines
+
+Return either "NO_CHANGES" or SEARCH/REPLACE blocks."""
