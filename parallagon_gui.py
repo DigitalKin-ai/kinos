@@ -485,28 +485,33 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
     def flash_tab(self, tab_name):
         """Fait flasher un tab en bleu pendant 1 seconde"""
         if tab_name not in self.tab_flash_tasks:
-            style = ttk.Style()
-            
-            # Créer un style unique pour ce tab sans le préfixe "-"
-            tab_style = f'Flash.TNotebook.Tab.{tab_name}'
-            style.configure(tab_style, background="#e8f0fe")
-            
-            # Appliquer le style au tab spécifique en utilisant style=
-            tab_id = self.tab_control.index(self.tabs[tab_name])
-            self.tab_control.tab(tab_id, style=tab_style)
-            
-            # Programmer le retour à la couleur normale
-            self.tab_flash_tasks[tab_name] = self.root.after(
-                1000,  # Durée du flash (1 seconde)
-                lambda: self._remove_tab_flash(tab_name, tab_id)
-            )
+            try:
+                # Obtenir l'index du tab
+                tab_id = self.tab_control.index(self.tabs[tab_name])
+                
+                # Sauvegarder la configuration actuelle
+                original_config = self.tab_control.tab(tab_id)
+                
+                # Appliquer la couleur de flash directement
+                self.tab_control.tab(tab_id, background="#e8f0fe")
+                
+                # Programmer le retour à la couleur normale
+                self.tab_flash_tasks[tab_name] = self.root.after(
+                    1000,  # Durée du flash (1 seconde)
+                    lambda: self._restore_tab_style(tab_name, tab_id, original_config)
+                )
+            except Exception as e:
+                self.log_message(f"❌ Erreur lors du flash du tab {tab_name}: {str(e)}")
 
-    def _remove_tab_flash(self, tab_name, tab_id):
-        """Retire le flash et restaure la couleur normale du tab"""
+    def _restore_tab_style(self, tab_name, tab_id, original_config):
+        """Restaure le style original du tab"""
         if tab_name in self.tab_flash_tasks:
-            self.tab_flash_tasks.pop(tab_name)
-            # Retirer le style en utilisant une chaîne vide
-            self.tab_control.tab(tab_id, style='TNotebook.Tab')
+            try:
+                self.tab_flash_tasks.pop(tab_name)
+                # Restaurer la configuration originale
+                self.tab_control.tab(tab_id, **original_config)
+            except Exception as e:
+                self.log_message(f"❌ Erreur lors de la restauration du style du tab {tab_name}: {str(e)}")
 
     def update_all_panels(self):
         """Mise à jour de tous les panneaux d'agents"""
