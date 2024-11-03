@@ -786,23 +786,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                         updated_panels.append("Demande")
                         changes["Demande"] = {"old": old_content, "new": content}
                         self.flash_tab("Demande")
-                # Traitement pour Production
-                elif name == "production":
-                    # Mise à jour du panneau Sections
-                    sections_content = self._extract_sections(content)
-                    old_sections_content = self.sections_text.get("1.0", tk.END).strip()
-                    if sections_content != old_sections_content:
-                        self.sections_text.delete("1.0", tk.END)
-                        self.sections_text.insert("1.0", sections_content)
-                    
-                    # Mise à jour du panneau Production
-                    old_content = self.production_text.get("1.0", tk.END).strip()
-                    if content.strip() != old_content:
-                        self.production_text.delete("1.0", tk.END)
-                        self.production_text.insert("1.0", content)
-                        updated_panels.append("Production")
-                        changes["Production"] = {"old": old_content, "new": content}
-                # Traitement pour tous les autres panneaux
+                # Traitement pour les autres panneaux
                 elif name in self.panel_mapping:
                     panel_name = self.panel_mapping[name]
                     panel = self.agent_panels.get(panel_name)
@@ -814,6 +798,18 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                             changes[panel_name] = {"old": old_content, "new": content}
                             if panel_name != "Production":
                                 self.flash_tab(panel_name)
+
+                        # Si c'est le panneau Specification, mettre à jour les sections
+                        if panel_name == "Specification":
+                            specs_content = content
+                            prod_content = file_contents.get("production", "")
+                            if specs_content and prod_content:
+                                # Extraire les sections et leurs contraintes depuis specifications.md
+                                sections_data = self._parse_sections(specs_content)
+                                # Ajouter le contenu depuis production.md
+                                self._add_production_content(sections_data, prod_content)
+                                # Mettre à jour l'affichage des sections
+                                self._update_sections_display(sections_data)
 
             if updated_panels:
                 self._get_changes_summary(changes)
