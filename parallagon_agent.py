@@ -10,6 +10,7 @@ from search_replace import SearchReplace, SearchReplaceResult
 from production_agent import ProductionAgent
 from management_agent import ManagementAgent
 from specifications_agent import SpecificationsAgent
+from evaluation_agent import EvaluationAgent
 
 
 class ParallagonAgent:
