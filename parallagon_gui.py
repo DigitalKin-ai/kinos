@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Dict, Any
 from search_replace import SearchReplace
 from log_manager import LogManager
+from log_manager import LogManager
 from agent_panel import AgentPanel
 from gui_config import GUIConfig
 from llm_service import LLMService
