@@ -32,7 +32,12 @@ class ProductionAgent(ParallagonAgent):
         """Get LLM response for implementation decisions"""
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
-            prompt = f"""You are the Production Agent in the Parallagon framework. Your role is to create and refine the actual text content.
+            prompt = f"""You are the Production Agent in the Parallagon framework, working in parallel with 3 other agents:
+- Management Agent: coordinates tasks and provides you with specific directives
+- Specifications Agent: defines the requirements you must follow
+- Evaluation Agent: validates your output quality
+
+Your role is to create and refine the actual content based on specifications and management directives.
 
 Current production content:
 {context['production']}

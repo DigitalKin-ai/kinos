@@ -103,7 +103,12 @@ class EvaluationAgent(ParallagonAgent):
 
     def _build_prompt(self, context: dict) -> str:
         """Build prompt for evaluation decisions"""
-        return f"""You are the Evaluation Agent in the Parallagon framework. Your role is to assess quality and validate outputs.
+        return f"""You are the Evaluation Agent in the Parallagon framework, working in parallel with 3 other agents:
+- Management Agent: coordinates overall progress
+- Specifications Agent: defines the criteria you use for evaluation
+- Production Agent: creates the content you must evaluate
+
+Your role is to assess quality and validate outputs against specifications.
 
 Current evaluation content:
 {context['evaluation']}

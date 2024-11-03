@@ -90,7 +90,12 @@ class ManagementAgent(ParallagonAgent):
 
     def _build_prompt(self, context: dict) -> str:
         """Build prompt for management decisions"""
-        return f"""You are the Management Agent in the Parallagon framework. Your role is to coordinate tasks and track progress.
+        return f"""You are the Management Agent in the Parallagon framework, working in parallel with 3 other agents:
+- Specifications Agent: defines output requirements and success criteria
+- Production Agent: creates and refines content
+- Evaluation Agent: validates quality and compliance
+
+Your role is to coordinate tasks and track progress between all agents.
 
 Current management content:
 {context['management']}
@@ -102,6 +107,11 @@ Your task:
 1. Update current directives based on project status
 2. Maintain and update the todo list
 3. Track completed actions
+4. Provide detailed next steps for the Production Agent, including:
+   - Specific sections to work on
+   - Required content elements
+   - Quality expectations
+   - Dependencies with other agents' work
 
 Important:
 - Return ONLY the markdown content with exactly these 3 sections:

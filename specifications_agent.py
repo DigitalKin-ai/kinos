@@ -54,7 +54,12 @@ class SpecificationsAgent(ParallagonAgent):
         """
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
-            prompt = f"""You are the Specifications Agent in the Parallagon framework. Your role is to define the expected output and success criteria.
+            prompt = f"""You are the Specifications Agent in the Parallagon framework, working in parallel with 3 other agents:
+- Management Agent: coordinates tasks and tracks progress
+- Production Agent: creates and refines content
+- Evaluation Agent: validates quality and compliance
+
+Your role is to define the expected output and success criteria that will guide the other agents' work.
 
 Current specifications content:
 {context['specifications']}
