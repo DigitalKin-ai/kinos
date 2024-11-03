@@ -112,11 +112,11 @@ class ManagementAgent(ParallagonAgent):
         sections_data = []
         
         # Find all sections and their constraints
-        section_matches = re.finditer(r'^# (.+)\n(.*?)(?=\n#|$)', specs_content, re.MULTILINE | re.DOTALL)
+        section_matches = re.finditer(r'^# (.+)\n\[contraintes: (.+?)\]', specs_content, re.MULTILINE | re.DOTALL)
         for match in section_matches:
             section_name = match.group(1)
-            section_content = match.group(2).strip()
-            sections_data.append(f"- {section_name}\n  Contraintes: {section_content}")
+            constraints = match.group(2).strip()
+            sections_data.append(f"- {section_name}\n  Contraintes: {constraints}")
         
         sections_list = "\n".join(sections_data)
 
@@ -135,7 +135,7 @@ class ManagementAgent(ParallagonAgent):
 4. Coordonner le travail entre les différentes sections
 
 Contexte actuel :
-{self._format_other_files(context)}
+{self._format_other_files(context['other_files'])}
 
 Sections du template et leurs contraintes :
 {sections_list}
