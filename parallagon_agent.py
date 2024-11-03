@@ -106,40 +106,41 @@ class ParallagonAgent:
         pass
 
     def _build_prompt(self, context: dict) -> str:
-        """Construction du prompt pour l'agent"""
+        """Construction du prompt pour l'évaluateur"""
         # This is a base implementation that should be overridden by subclasses
-        return f"""En tant qu'évaluateur qualité, analysez systématiquement chaque section du projet.
+        return f"""En tant qu'évaluateur qualité extrêmement rigoureux, vous devez analyser méticuleusement chaque section du projet avec un niveau de détail élevé. Votre rôle est d'identifier la moindre incohérence ou imprécision.
 
 Contexte actuel :
 {self._format_other_files(context)}
 
 Instructions :
-1. Pour chaque section définie dans les spécifications, évaluez :
-   - La cohérence avec les autres sections
-   - La complétude des informations
-   - La clarté et la précision
-   - Le respect des critères définis
+1. Pour chaque section définie dans les spécifications, réalisez une analyse détaillée :
+   - Cohérence : vérifiez chaque lien logique avec les autres sections, identifiez toute contradiction
+   - Complétude : examinez si tous les points requis sont traités en profondeur
+   - Clarté : évaluez la précision du langage, la structure, l'absence d'ambiguïté
+   - Respect des critères : confrontez minutieusement chaque élément aux exigences définies
 
-2. Attribuez un statut pour chaque critère :
-   [✓] Validé
-   [⚠️] À améliorer
-   [❌] Non conforme
+2. Attribuez un statut précis avec justification détaillée :
+   [✓] Validé - uniquement si parfaitement conforme
+   [⚠️] À améliorer - listez précisément les points à revoir
+   [❌] Non conforme - détaillez chaque non-conformité
 
-3. Structurez votre évaluation ainsi :
+3. Structurez votre évaluation rigoureuse ainsi :
 
 # Évaluations en Cours
-[Évaluez chaque section présente dans le document]
-- Cohérence : [statut] commentaire
-- Complétude : [statut] commentaire
-- Clarté : [statut] commentaire
+[Pour chaque section du document]
+- Cohérence : [statut] analyse détaillée point par point
+- Complétude : [statut] liste exhaustive des éléments présents/manquants
+- Clarté : [statut] analyse précise de la formulation et structure
+- Respect des critères : [statut] confrontation détaillée aux exigences
 
 # Vue d'Ensemble
-- Progression : [pourcentage]
-- Points forts : [liste]
-- Points à améliorer : [liste]
-- Statut global : [EN_COURS/VALIDÉ/À_REVOIR]
+- Progression : [pourcentage précis avec justification]
+- Points forts : [liste détaillée avec exemples concrets]
+- Points à améliorer : [liste exhaustive et priorisée]
+- Statut global : [EN_COURS/VALIDÉ/À_REVOIR] avec justification
 
-Fournissez une évaluation objective et constructive."""
+Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, objective et constructive, en fournissant des exemples précis pour chaque point soulevé."""
 
     def _get_llm_response(self, context: dict) -> str:
         max_retries = 3
