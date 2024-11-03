@@ -1,5 +1,11 @@
 """
 ParallagonAgent - Base class for autonomous parallel agents
+
+Defines the core behavior and lifecycle of a Parallagon agent. Each agent:
+- Operates independently on its assigned file
+- Maintains its own rhythm of execution
+- Communicates through file content changes
+- Self-adjusts its activity based on changes detected
 """
 import re
 import time
@@ -43,26 +49,53 @@ def agent_error_handler(method_name: str):
     return decorator
 
 class ParallagonAgent:
-    """Base class for Parallagon autonomous agents"""
+    """
+    Foundation for autonomous file-focused agents.
     
-    # Validation configurations for different agent types
+    Each agent is responsible for:
+    - Monitoring and updating its dedicated file
+    - Analyzing changes in related files
+    - Making independent decisions
+    - Adapting its execution rhythm
+    
+    Key behaviors:
+    - File-based state persistence
+    - Self-regulated execution cycles
+    - Automatic error recovery
+    - Activity-based timing adjustments
+    """
+    
+    # Validation rules for different agent types
     VALIDATION_CONFIGS = {
-        'ProductionAgent': {'validate_raw': True},
-        'ManagementAgent': {'required_sections': ["Consignes Actuelles", "TodoList", "Actions Réalisées"]},
-        'SpecificationsAgent': {'require_level1_heading': True},
-        'EvaluationAgent': {'required_sections': ["Évaluations en Cours", "Vue d'Ensemble"]}
+        'ProductionAgent': {'validate_raw': True},  # Allows raw content updates
+        'ManagementAgent': {                        # Requires specific sections
+            'required_sections': ["Consignes Actuelles", "TodoList", "Actions Réalisées"]
+        },
+        'SpecificationsAgent': {                    # Enforces structural rules
+            'require_level1_heading': True
+        },
+        'EvaluationAgent': {                        # Maintains evaluation structure
+            'required_sections': ["Évaluations en Cours", "Vue d'Ensemble"]
+        }
     }
 
-    # Default intervals for each agent type (in seconds)
+    # Base execution rhythms for each agent type
     DEFAULT_INTERVALS = {
-        'SpecificationsAgent': 30,  # Slower
-        'ManagementAgent': 10,      # Medium
-        'ProductionAgent': 5,       # Fast
-        'EvaluationAgent': 15       # Moderate
+        'SpecificationsAgent': 30,  # Template changes - slower pace
+        'ManagementAgent': 10,      # Coordination updates - medium pace
+        'ProductionAgent': 5,       # Content creation - rapid pace
+        'EvaluationAgent': 15       # Quality control - moderate pace
     }
 
     def __init__(self, config: Dict[str, Any]):
-        """Initialize the agent with configuration"""
+        """
+        Initialize agent with its operational parameters.
+        
+        The config defines:
+        - File responsibilities (main file and watched files)
+        - Communication channels (logging)
+        - Execution timing
+        """
         self.config = config
         self.file_path = config["file_path"]
         
@@ -254,7 +287,12 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
         self.running = False
 
     def should_run(self) -> bool:
-        """Determine if agent should run based on rhythm and history"""
+        """
+        Determines if agent should execute based on:
+        - Time since last execution
+        - Recent activity level
+        - Dynamic timing adjustments
+        """
         now = datetime.now()
         
         # First run
@@ -268,7 +306,12 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
         return (now - self.last_run) >= timedelta(seconds=delay)
 
     def calculate_dynamic_interval(self) -> float:
-        """Calculate dynamic interval based on recent activity"""
+        """
+        Adjusts execution interval based on activity level:
+        - Increases delay when no changes detected
+        - Returns to base rhythm when activity resumes
+        - Prevents excessive resource usage during quiet periods
+        """
         base_interval = self.check_interval
         
         # If no recent changes, gradually increase interval
@@ -280,7 +323,14 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
         return base_interval
 
     def run(self) -> None:
-        """Main agent loop with adaptive timing"""
+        """
+        Main agent lifecycle:
+        - Reads current state from files
+        - Analyzes changes and makes decisions
+        - Updates files when needed
+        - Self-adjusts timing
+        - Handles errors and recovery
+        """
         self.running = True
         while self.running:
             try:
