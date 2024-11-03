@@ -7,6 +7,8 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
 from search_replace import SearchReplace, SearchReplaceResult
+from production_agent import ProductionAgent
+from management_agent import ManagementAgent
 
 
 class ParallagonAgent:
