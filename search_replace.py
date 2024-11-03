@@ -1,5 +1,11 @@
 """
 search_replace.py - Implementation of the SEARCH/REPLACE pattern for Parallagon
+
+Key features:
+- Exact text matching with validation
+- Section-based content updates
+- Safe atomic replacements
+- Content normalization
 """
 from typing import Tuple, Optional
 import re
@@ -18,7 +24,21 @@ class SearchReplace:
 
     @staticmethod
     def _normalize_text(text: str) -> str:
-        """Normalise le texte pour une comparaison plus permissive"""
+        """
+        Normalize text for permissive comparison.
+        
+        Normalizations:
+        - Remove multiple spaces
+        - Trim line whitespace
+        - Standardize line endings
+        - Remove leading/trailing spaces
+        
+        Args:
+            text: Raw text to normalize
+            
+        Returns:
+            str: Normalized text for comparison
+        """
         # Supprime les espaces multiples et les remplace par un seul espace
         text = re.sub(r'\s+', ' ', text)
         # Supprime les espaces en début et fin
@@ -32,8 +52,19 @@ class SearchReplace:
     @staticmethod
     def validate_replacement(content: str, old_str: str) -> Tuple[bool, str, int]:
         """
-        Valide que le texte à remplacer apparaît exactement une fois
-        avec une comparaison permissive
+        Validate text replacement with permissive matching.
+        
+        Checks:
+        - Text exists in content
+        - Exactly one occurrence found
+        - Match corresponds to search text
+        
+        Args:
+            content: Full document content
+            old_str: Text to find and replace
+            
+        Returns:
+            Tuple[bool, str, int]: Success, message, occurrences
         """
         try:
             # Normalise le contenu et la recherche
@@ -68,6 +99,24 @@ class SearchReplace:
 
     @staticmethod 
     def section_replace(content: str, section_name: str, new_section_content: str) -> SearchReplaceResult:
+        """
+        Replace content of a markdown section.
+        
+        Operations:
+        - Find section by name
+        - Handle section deletion
+        - Create missing sections
+        - Replace section content
+        - Preserve document structure
+        
+        Args:
+            content: Full document content
+            section_name: Name of section to update
+            new_section_content: New content for section
+            
+        Returns:
+            SearchReplaceResult: Operation result and updated content
+        """
         try:
             # Handle section deletion if specified
             if new_section_content.strip() == "(to delete)":
@@ -118,7 +167,21 @@ class SearchReplace:
     @staticmethod
     def exact_replace(content: str, old_str: str, new_str: str) -> SearchReplaceResult:
         """
-        Effectue un remplacement exact avec validation permissive
+        Perform exact text replacement with validation.
+        
+        Process:
+        - Normalize content for search
+        - Find exact match
+        - Validate single occurrence
+        - Replace while preserving format
+        
+        Args:
+            content: Full document content
+            old_str: Text to find
+            new_str: Replacement text
+            
+        Returns:
+            SearchReplaceResult: Operation result and updated content
         """
         try:
             # Normalise pour la recherche
@@ -150,11 +213,22 @@ class SearchReplace:
     def add_to_section(content: str, section_name: str, new_entry: str, 
                       position: str = "end") -> SearchReplaceResult:
         """
-        Add content to a section (at start or end)
+        Add content to a specific section.
         
-        Example:
-        >>> old_content = "# Signals\\n- Old signal"
-        >>> new_content = search_replace.add_to_section(old_content, "Signals", "- New signal")
+        Features:
+        - Add at start or end of section
+        - Preserve section formatting
+        - Handle missing sections
+        - Validate section uniqueness
+        
+        Args:
+            content: Full document content
+            section_name: Target section name
+            new_entry: Content to add
+            position: Where to add ("start" or "end")
+            
+        Returns:
+            SearchReplaceResult: Operation result and updated content
         """
         pattern = f"# {section_name}\n(.*?)(?=\n# |$)"
         matches = list(re.finditer(pattern, content, re.DOTALL))
