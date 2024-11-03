@@ -135,7 +135,21 @@ class ProductionAgent(ParallagonAgent):
             return context['production']
 
     def _extract_section(self, content: str, section_name: str) -> str:
-        """Extract content of a specific section"""
+        """
+        Extract content of a specific management section.
+        
+        Used for:
+        - Isolating current directives
+        - Accessing task lists
+        - Retrieving action history
+        
+        Args:
+            content: Full management content
+            section_name: Name of section to extract
+            
+        Returns:
+            str: Content of specified section
+        """
         pattern = f"# {section_name}\n(.*?)(?=\n#|$)"
         matches = list(re.finditer(pattern, content, re.DOTALL))
         
