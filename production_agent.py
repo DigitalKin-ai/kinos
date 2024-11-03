@@ -29,13 +29,13 @@ class ProductionAgent(ParallagonAgent):
             self.new_content = response
 
     def _get_llm_response(self, context: dict) -> str:
-        """Get LLM response for implementation decisions"""
+        """Build prompt for implementation decisions"""
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
             prompt = f"""You are the Production Agent in the Parallagon framework, working in parallel with 3 other agents:
-- Management Agent: coordinates tasks and provides you with specific directives
-- Specifications Agent: defines the requirements you must follow
-- Evaluation Agent: validates your output quality
+- Specifications Agent: defines output requirements and success criteria
+- Management Agent: coordinates tasks and provides directives
+- Evaluation Agent: validates quality and compliance
 
 Your role is to create and refine the actual content based on specifications and management directives.
 
@@ -46,49 +46,20 @@ Other files content:
 {self._format_other_files(context['other_files'])}
 
 Your task:
-1. Create new text content based on specifications
-2. Refine and improve existing content
-3. Apply literary techniques and style guidelines
-4. Ensure adherence to creative requirements
-5. Implement requested revisions
-
-Focus on:
-- Writing quality and style
-- Creative expression
-- Literary devices
-- Rhythm and flow
-- Thematic consistency
+1. Create or update the content according to specifications
+2. Follow management directives
+3. Ensure all required elements are present
+4. Maintain professional quality
 
 Important:
-- Return ONLY the markdown content, starting with "# État Actuel"
-- Keep all existing sections in exact order:
-  1. État Actuel
-  2. Signaux
-  3. Contenu Principal
-  4. Historique
-- Maintain exact markdown formatting
-- Do not include any explanatory text
-- Do not start with phrases like "Based on my review" or "After analyzing"
-- The response must be a valid markdown document that can directly replace the current content
-
-Example format:
-# État Actuel
-[status: STATUS]
-Implementation progress...
-
-# Signaux
-- Signal 1
-- Signal 2
-
-# Contenu Principal
-Technical details...
-
-# Historique
-- [Timestamp] Implementation step
+- Return ONLY the actual content
+- Do not include version numbers, status indicators, or meta-information
+- Do not describe the content - provide the content itself
+- Do not include explanatory text or notes
+- The response must be the actual deliverable content
 
 If changes are needed, return the complete updated content.
-If no changes are needed, return the exact current content.
-"""
+If no changes are needed, return the exact current content."""
             response = self.client.messages.create(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=4000,
