@@ -57,28 +57,30 @@ class ProductionAgent(ParallagonAgent):
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
 
-            # Lire le contenu actuel
-            with open(self.file_path, 'r', encoding='utf-8') as f:
-                current_content = f.read()
-
-            # Extraire les sections existantes
-            existing_sections = {}
+            # Extraire les sections existantes avec leur contenu complet
+            existing_content = {}
             current_section = None
-            current_content_lines = []
+            current_lines = []
             
-            for line in current_content.split('\n'):
+            for line in self.current_content.split('\n'):
                 if line.startswith('# '):
                     if current_section:
-                        existing_sections[current_section] = '\n'.join(current_content_lines).strip()
+                        existing_content[current_section] = {
+                            'content': '\n'.join(current_lines[1:]).strip(),  # Exclure la ligne de titre
+                            'full': '\n'.join(current_lines)  # Contenu complet avec titre
+                        }
                     current_section = line[2:].strip()
-                    current_content_lines = []
+                    current_lines = [line]
                 else:
-                    current_content_lines.append(line)
+                    current_lines.append(line)
                     
             if current_section:
-                existing_sections[current_section] = '\n'.join(current_content_lines).strip()
+                existing_content[current_section] = {
+                    'content': '\n'.join(current_lines[1:]).strip(),
+                    'full': '\n'.join(current_lines)
+                }
 
-            # Obtenir la réponse du LLM
+            # Obtenir les suggestions du LLM
             context = {
                 "production": self.current_content,
                 "other_files": self.other_files
@@ -86,43 +88,40 @@ class ProductionAgent(ParallagonAgent):
             
             response = self._get_llm_response(context)
             
-            # Extraire les sections de la réponse
+            # Extraire les suggestions du LLM
             new_sections = {}
             current_section = None
-            current_content_lines = []
+            current_lines = []
             
             for line in response.split('\n'):
                 if line.startswith('# '):
                     if current_section:
-                        new_sections[current_section] = '\n'.join(current_content_lines).strip()
+                        new_sections[current_section] = '\n'.join(current_lines[1:]).strip()
                     current_section = line[2:].strip()
-                    current_content_lines = []
+                    current_lines = [line]
                 else:
-                    current_content_lines.append(line)
+                    current_lines.append(line)
                     
             if current_section:
-                new_sections[current_section] = '\n'.join(current_content_lines).strip()
+                new_sections[current_section] = '\n'.join(current_lines[1:]).strip()
 
-            # Fusionner les sections en préservant le contenu existant
+            # Fusionner en ne modifiant que les sections vides
             final_sections = []
-            all_sections = set(list(existing_sections.keys()) + list(new_sections.keys()))
             
-            for section in all_sections:
-                final_sections.append(f"# {section}")
-                if section in existing_sections and existing_sections[section].strip():
-                    # Garder le contenu existant s'il existe
-                    final_sections.append(existing_sections[section])
-                elif section in new_sections:
-                    # Utiliser le nouveau contenu si la section était vide
-                    final_sections.append(new_sections[section])
+            for section in existing_content:
+                if (existing_content[section]['content'].strip() == '' or 
+                    existing_content[section]['content'].strip() == '[En attente de contenu]'):
+                    # Section vide ou avec placeholder - utiliser nouvelle suggestion
+                    if section in new_sections:
+                        final_sections.append(f"# {section}\n{new_sections[section]}")
+                    else:
+                        final_sections.append(existing_content[section]['full'])
                 else:
-                    # Section vide si aucun contenu disponible
-                    final_sections.append("[En attente de contenu]")
-                
-                final_sections.append("")  # Ligne vide entre les sections
+                    # Section avec contenu existant - préserver
+                    final_sections.append(existing_content[section]['full'])
 
             # Mettre à jour le contenu
-            self.new_content = '\n'.join(final_sections).strip()
+            self.new_content = '\n\n'.join(final_sections)
             if self.new_content != self.current_content:
                 self.update()
                 self.logger(f"[{self.__class__.__name__}] ✓ Contenu mis à jour en préservant l'existant")

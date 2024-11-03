@@ -117,50 +117,43 @@ class SpecificationsAgent(ParallagonAgent):
         - Maintains section hierarchy and constraints
         """
         try:
-            # Lire le template et le document de sortie
+            # Lire le template et le document de production
             with open("specifications.md", 'r', encoding='utf-8') as f:
                 template = f.read()
             with open("production.md", 'r', encoding='utf-8') as f:
-                output = f.read()
+                production = f.read()
 
-            # Initialize data structures
-            template_structure = {}
-            current_section = None
-            current_subsection = None
-            current_constraints = {}
-            output_structure = {}
+            # Extraire la structure du template
+            template_sections = set(re.findall(r'^#\s+(.+)$', template, re.MULTILINE))
             
-            # Extract the complete hierarchical structure of the template
-            for line in template.split('\n'):
-                if line.startswith('# '):  # Main section
+            # Extraire les sections existantes de production avec leur contenu complet
+            existing_content = {}
+            current_section = None
+            current_lines = []
+            
+            for line in production.split('\n'):
+                if line.startswith('# '):
                     if current_section:
-                        existing_sections[current_section] = '\n'.join(current_content).strip()
+                        existing_content[current_section] = '\n'.join(current_lines)
                     current_section = line[2:].strip()
-                    current_content = []
+                    current_lines = [line]
                 else:
-                    current_content.append(line)
+                    current_lines.append(line)
                     
             if current_section:
-                existing_sections[current_section] = '\n'.join(current_content).strip()
+                existing_content[current_section] = '\n'.join(current_lines)
 
             # Construire le nouveau contenu
             new_content = []
             
-            # Parcourir les sections du template
-            current_section = None
-            for line in template.split('\n'):
-                if line.startswith('# '):
-                    section_name = line[2:].strip()
-                    new_content.append(f"# {section_name}")
-                    
-                    # Si la section existe déjà, utiliser son contenu
-                    if section_name in existing_sections and existing_sections[section_name].strip():
-                        new_content.append(existing_sections[section_name])
-                    else:
-                        # Sinon, ajouter un placeholder
-                        new_content.append("[En attente de contenu]")
-                    
-                    new_content.append("")  # Ligne vide entre les sections
+            # Ajouter les sections du template
+            for section in template_sections:
+                if section in existing_content:
+                    # Garder le contenu existant complet
+                    new_content.append(existing_content[section])
+                else:
+                    # Ajouter nouvelle section avec placeholder
+                    new_content.append(f"# {section}\n[En attente de contenu]")
                     
                 elif line.startswith('[contraintes:'):
                     # Ignorer les contraintes dans la sortie
@@ -277,22 +270,11 @@ class SpecificationsAgent(ParallagonAgent):
                 new_content.append("")  # Ligne vide entre sections
 
             # Sauvegarder le nouveau contenu
-            final_content = '\n'.join(new_content).strip()
+            final_content = '\n\n'.join(new_content)
             with open("production.md", 'w', encoding='utf-8') as f:
                 f.write(final_content)
 
-            # Journaliser les changements
-            changes = {
-                "added": set(template_structure.keys()) - set(output_structure.keys()),
-                "removed": set(output_structure.keys()) - set(template_structure.keys())
-            }
-            
-            if changes["added"] or changes["removed"]:
-                added_msg = f"Sections ajoutées: {', '.join(changes['added'])}" if changes["added"] else ""
-                removed_msg = f"Sections supprimées: {', '.join(changes['removed'])}" if changes["removed"] else ""
-                self.logger(f"[{self.__class__.__name__}] ✓ Structure synchronisée - {added_msg} {removed_msg}")
-            else:
-                self.logger(f"[{self.__class__.__name__}] ✓ Structure déjà synchronisée")
+            self.logger(f"[{self.__class__.__name__}] ✓ Structure synchronisée en préservant le contenu")
 
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de la synchronisation du template: {str(e)}")
