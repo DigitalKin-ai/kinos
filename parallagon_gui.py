@@ -14,6 +14,10 @@ from agent_panel import AgentPanel
 from gui_config import GUIConfig
 from llm_service import LLMService
 from file_manager import FileManager
+from specifications_agent import SpecificationsAgent
+from management_agent import ManagementAgent
+from production_agent import ProductionAgent
+from evaluation_agent import EvaluationAgent
 import openai
 
 class ParallagonGUI:

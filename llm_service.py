@@ -3,6 +3,7 @@ LLMService - Handles LLM interactions for change summaries
 """
 from typing import Dict
 import openai
+import time
 
 class LLMService:
     """Service for handling LLM interactions"""
