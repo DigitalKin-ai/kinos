@@ -6,6 +6,12 @@ Key responsibilities:
 - Implements changes requested by management
 - Maintains content quality and consistency 
 - Responds to evaluation feedback
+
+Workflow:
+1. Monitors specifications and management directives
+2. Creates/updates content sections as needed
+3. Validates content against requirements
+4. Maintains document structure integrity
 """
 from parallagon_agent import ParallagonAgent
 from search_replace import SearchReplace
