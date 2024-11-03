@@ -197,8 +197,7 @@ class ParallagonGUI:
         }
 
         # Application du style aux widgets de texte
-        self.request_text.configure(**text_style)
-        self.demand_display.configure(**text_style)
+        self.demand_text.configure(**text_style)
         self.log_text.configure(**text_style)
         
         # Panneaux des agents
