@@ -338,17 +338,22 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         sections = {}
         current_section = None
         current_subsection = None
+        current_content = []
         constraints = ""
         
         for line in specs_content.split('\n'):
             # Gestion des titres de niveau 1
             if line.startswith('# '):
+                # Sauvegarder la section précédente
                 if current_section:
-                    if not sections.get(current_section):
+                    if current_section not in sections:
                         sections[current_section] = {
                             "constraints": constraints.strip(),
+                            "content": "",
                             "subsections": {}
                         }
+            
+                # Nouvelle section
                 current_section = line[2:].strip()
                 current_subsection = None
                 constraints = ""
@@ -358,10 +363,19 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                         "content": "",
                         "subsections": {}
                     }
-        
+                
             # Gestion des titres de niveau 2
             elif line.startswith('## '):
+                # Sauvegarder la sous-section précédente
+                if current_subsection and current_section:
+                    sections[current_section]["subsections"][current_subsection] = {
+                        "constraints": constraints.strip(),
+                        "content": ""
+                    }
+            
+                # Nouvelle sous-section
                 current_subsection = line[3:].strip()
+                constraints = ""
                 if current_section:
                     if current_subsection not in sections[current_section]["subsections"]:
                         sections[current_section]["subsections"][current_subsection] = {
@@ -378,12 +392,15 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                     else:
                         sections[current_section]["constraints"] = constraints
 
-        # Ajouter la dernière section
-        if current_section and not sections.get(current_section):
-            sections[current_section] = {
-                "constraints": constraints.strip(),
-                "subsections": {}
-            }
+        # Sauvegarder la dernière section/sous-section
+        if current_section:
+            if current_subsection:
+                sections[current_section]["subsections"][current_subsection] = {
+                    "constraints": constraints.strip(),
+                    "content": ""
+                }
+            else:
+                sections[current_section]["constraints"] = constraints.strip()
                 
         return sections
 
