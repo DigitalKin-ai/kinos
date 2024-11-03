@@ -57,7 +57,7 @@ class EvaluationAgent(ParallagonAgent):
         """Get LLM response for evaluation tasks"""
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
-            prompt = f"""You are the Evaluation Agent in the Parallagon framework. Your role is to validate work and maintain evaluation.md.
+            prompt = f"""You are the Evaluation Agent in the Parallagon framework. Your role is to assess quality and track progress.
 
 Current evaluation content:
 {context['evaluation']}
@@ -66,32 +66,32 @@ Other files content:
 {self._format_other_files(context['other_files'])}
 
 Your task:
-1. Review work from other agents
-2. Validate implementation quality
-3. Check for validation requests
-4. If needed, provide an updated version of evaluation.md that:
-   - Evaluates code quality
-   - Validates implementations
-   - Provides feedback
-   - Approves or requests changes
-   - Maintains exact markdown structure
-
-Focus on:
-- Code quality standards
-- Implementation correctness
-- Documentation completeness
-- Test coverage
-- Performance considerations
-
-If no changes are needed, return the exact current content.
-If changes are needed, return the complete updated content.
+1. Evaluate current work against specifications
+2. Track progress and quality metrics
+3. Provide detailed assessment
 
 Important:
-- Keep all existing sections
-- Maintain same formatting
-- Only make necessary changes
-- Add timestamps for new history entries
-- Be precise in evaluation feedback
+- Return ONLY the markdown content with exactly these 2 sections:
+
+# Évaluations en Cours
+- Criterion: [✓/⚠️/❌] Status
+  * Sub-criterion: [✓/⚠️/❌] Details
+[Use ✓ for validated, ⚠️ for warning, ❌ for failed]
+
+# Vue d'Ensemble
+- Progression: [0-100%]
+- Points forts: [list key strengths]
+- Points à améliorer: [list areas for improvement]
+- Statut global: [EN_COURS/VALIDÉ/REJETÉ]
+
+Guidelines:
+- Be specific in assessments
+- Use clear status indicators
+- Provide actionable feedback
+- Track overall progress
+
+If changes are needed, return the complete updated content.
+If no changes are needed, return the exact current content.
 """
             response = self.client.messages.create(
                 model="claude-3-5-sonnet-20241022",
