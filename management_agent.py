@@ -106,74 +106,53 @@ class ManagementAgent(ParallagonAgent):
         return "\n".join(result)
 
     def _build_prompt(self, context: dict) -> str:
-        """Build prompt for management decisions"""
-        return f"""You are the Management Agent in the Parallagon framework. Your role is to analyze the current production and provide SPECIFIC, ACTIONABLE directives.
+        """Build the prompt for the LLM"""
+        # Extract sections from specifications
+        specs_content = context.get("other_files", {}).get("specifications.md", "")
+        template_sections = re.findall(r'^# (.+)$', specs_content, re.MULTILINE)
+        sections_list = "\n".join([f"- {section}" for section in template_sections])
 
-Current management content:
-{context['management']}
+        return f"""En tant que chef de projet expérimenté, votre rôle est de :
+1. Analyser la demande et les spécifications
+2. Définir et prioriser les tâches par section
+3. Suivre l'avancement
+4. Coordonner le travail
 
-Other files content:
-{self._format_other_files(context['other_files'])}
+Contexte actuel :
+{self._format_other_files(context)}
 
-Your task:
-1. READ CAREFULLY the current production.md content
-2. Compare it with specifications.md requirements
-3. Consider evaluation.md feedback
-4. Identify SPECIFIC gaps and improvements needed
-5. Provide DETAILED, CONCRETE directives
+Sections du template :
+{sections_list}
 
-Important - Your response must follow this exact structure:
+Instructions :
+1. Analysez tous les documents pour comprendre l'état actuel
+2. Pour chaque section du template, identifiez les tâches nécessaires
+3. Priorisez les tâches au sein de chaque section
+4. Donnez des consignes claires pour la suite
+
+Format attendu :
 
 # Consignes Actuelles
-[SPECIFIC directives for the Production Agent, including:
-- Exact sections to improve/create
-- Precise content elements to add
-- Specific quality improvements needed
-- Clear formatting requirements
-Example:
-1. Add a detailed "Impact Économique" section under "Corps Principal" with:
-   - Analysis of revenue models disruption
-   - Specific examples of AI music monetization
-   - Data on market size and growth projections
-2. Expand the "Technologies Clés" section with:
-   - Technical details of current AI music models
-   - Specific capabilities and limitations
-   - Concrete examples of applications]
-
-# Top Priorité
-🔥 [ONE specific, high-impact task from the directives above]
-- Section: [Exact section name]
-- Action: [Precise action required]
-- Details: [Specific elements to include]
-- Success criteria: [How to validate completion]
+[Consignes claires et précises pour la prochaine étape, en précisant la section concernée]
 
 # TodoList
-[Ordered list of remaining tasks, from highest to lowest priority]
-- [ ] Specific task 1 with clear deliverable
-- [ ] Specific task 2 with clear deliverable
-[etc.]
+[Section 1]
+- [ ] Tâche 1.1
+- [ ] Tâche 1.2
+
+[Section 2]
+- [ ] Tâche 2.1
+- [ ] Tâche 2.2
+
+etc...
 
 # Actions Réalisées
-- [Timestamp] Specific completed action
-[etc.]
+- [timestamp] Action effectuée (Section concernée)
+etc...
 
-Guidelines:
-- Always READ the current production.md before giving directives
-- Give CONCRETE, ACTIONABLE instructions
-- Specify EXACT sections and content needed
-- Include CLEAR quality criteria
-- Prioritize based on evaluation feedback
-- Track progress with timestamps
-- FOCUS ON ONE SECTION AT A TIME - do not try to fix everything at once
-- Instruct to write in complete, well-structured sentences
-- Avoid bullet points in the content - use proper paragraphs instead
-
-Production Rules to Enforce:
-1. Focus on ONE section at a time - complete it fully before moving to the next
-2. Write in complete, grammatically correct sentences
-3. Use paragraphs to develop ideas, not bullet points
-4. Ensure each paragraph flows logically to the next
-5. Only move to a new section once the current one is complete and validated
-
-If changes are needed, return the complete updated content.
-If no changes are needed, return the exact current content."""
+Règles :
+- Organisez les tâches par section du template
+- Priorisez les tâches au sein de chaque section
+- Indiquez toujours la section concernée
+- Soyez précis et concis dans les descriptions
+- Gardez une trace des actions avec leur section"""
