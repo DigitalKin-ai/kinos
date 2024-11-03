@@ -313,6 +313,15 @@ class SpecificationsAgent(ParallagonAgent):
             
             if response != self.current_content:
                 self.logger(f"[{self.__class__.__name__}] Modifications détectées, mise à jour du template...")
+                
+                # Log sections before update
+                old_sections = set(re.findall(r'^#\s+(.+)$', self.current_content, re.MULTILINE))
+                new_sections = set(re.findall(r'^#\s+(.+)$', response, re.MULTILINE))
+                
+                self.logger(f"[{self.__class__.__name__}] Sections actuelles: {old_sections}")
+                self.logger(f"[{self.__class__.__name__}] Nouvelles sections: {new_sections}")
+                self.logger(f"[{self.__class__.__name__}] Sections ajoutées: {new_sections - old_sections}")
+                
                 self.new_content = response
                 self.update()
                 
