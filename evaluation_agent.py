@@ -19,7 +19,7 @@ class EvaluationAgent(ParallagonAgent):
     def determine_actions(self) -> None:
         """Analyze current context and determine if validation/evaluation is needed."""
         try:
-            self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
+            self.logger("Début de l'analyse...")
             
             context = {
                 "evaluation": self.current_content,
@@ -29,7 +29,7 @@ class EvaluationAgent(ParallagonAgent):
             response = self._get_llm_response(context)
             
             if response != self.current_content:
-                self.logger(f"[{self.__class__.__name__}] Modifications détectées, tentative de mise à jour...")
+                self.logger("Modifications détectées, tentative de mise à jour...")
                 temp_content = self.current_content
                 sections = ["Évaluations en Cours", "Vue d'Ensemble"]
                 
