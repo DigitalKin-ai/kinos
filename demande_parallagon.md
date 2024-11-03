@@ -249,6 +249,7 @@ class Section:
     constraints: str          # Contraintes définies
     content: Optional[str]    # Contenu actuel
     evaluation: Optional[str] # État d'évaluation
+    todo: Optional[List[str]] # Liste des tâches à faire
 ```
 
 ### 10.2 Responsabilités des Agents
@@ -287,8 +288,9 @@ class Section:
   * Coordonne les mises à jour entre agents
   * Suit l'avancement global
   * Gère les blocages et dépendances
+  * Définit et met à jour les tâches par section
 - **Attributs consultés**: Tous
-- **Attributs modifiés**: Aucun (rôle de coordination)
+- **Attributs modifiés**: `todo` (liste des tâches à faire)
 
 ### 10.3 Flux de Travail des Sections
 
