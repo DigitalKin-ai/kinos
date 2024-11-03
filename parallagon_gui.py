@@ -509,10 +509,9 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             except Exception as e:
                 # Fallback au message standard en cas d'erreur
                 self.log_message(f"✓ Mise à jour : {', '.join(updated_panels)}")
-                
-    finally:
-        # Restaurer le curseur d'origine
-        self.root.config(cursor=current_cursor)
+        finally:
+            # Restaurer le curseur d'origine
+            self.root.config(cursor=current_cursor)
 
     def _get_changes_summary(self, changes: dict) -> str:
         """Get summary of changes using LLM service"""
