@@ -54,19 +54,31 @@ class ProductionAgent(ParallagonAgent):
         4. Validates changes against requirements
         5. Updates content sections atomically
         """
-        """
-        Analyze requirements and implement needed content changes.
-        
-        Process:
-        1. Reviews specifications and management directives
-        2. Identifies required content updates
-        3. Implements changes while maintaining quality
-        4. Validates changes against requirements
-        5. Updates content sections atomically
-        """
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
 
+            # Lire le contenu actuel
+            with open(self.file_path, 'r', encoding='utf-8') as f:
+                current_content = f.read()
+
+            # Extraire les sections existantes
+            existing_sections = {}
+            current_section = None
+            current_content_lines = []
+            
+            for line in current_content.split('\n'):
+                if line.startswith('# '):
+                    if current_section:
+                        existing_sections[current_section] = '\n'.join(current_content_lines).strip()
+                    current_section = line[2:].strip()
+                    current_content_lines = []
+                else:
+                    current_content_lines.append(line)
+                    
+            if current_section:
+                existing_sections[current_section] = '\n'.join(current_content_lines).strip()
+
+            # Obtenir la réponse du LLM
             context = {
                 "production": self.current_content,
                 "other_files": self.other_files
@@ -74,12 +86,46 @@ class ProductionAgent(ParallagonAgent):
             
             response = self._get_llm_response(context)
             
-            # Si la réponse est différente du contenu actuel
-            if response != self.current_content:
-                self.logger(f"[{self.__class__.__name__}] Modifications détectées, mise à jour...")
-                self.new_content = response  # Définir directement new_content
-                self.update()  # Appeler update() immédiatement
-                self.logger(f"[{self.__class__.__name__}] ✓ Mise à jour effectuée")
+            # Extraire les sections de la réponse
+            new_sections = {}
+            current_section = None
+            current_content_lines = []
+            
+            for line in response.split('\n'):
+                if line.startswith('# '):
+                    if current_section:
+                        new_sections[current_section] = '\n'.join(current_content_lines).strip()
+                    current_section = line[2:].strip()
+                    current_content_lines = []
+                else:
+                    current_content_lines.append(line)
+                    
+            if current_section:
+                new_sections[current_section] = '\n'.join(current_content_lines).strip()
+
+            # Fusionner les sections en préservant le contenu existant
+            final_sections = []
+            all_sections = set(list(existing_sections.keys()) + list(new_sections.keys()))
+            
+            for section in all_sections:
+                final_sections.append(f"# {section}")
+                if section in existing_sections and existing_sections[section].strip():
+                    # Garder le contenu existant s'il existe
+                    final_sections.append(existing_sections[section])
+                elif section in new_sections:
+                    # Utiliser le nouveau contenu si la section était vide
+                    final_sections.append(new_sections[section])
+                else:
+                    # Section vide si aucun contenu disponible
+                    final_sections.append("[En attente de contenu]")
+                
+                final_sections.append("")  # Ligne vide entre les sections
+
+            # Mettre à jour le contenu
+            self.new_content = '\n'.join(final_sections).strip()
+            if self.new_content != self.current_content:
+                self.update()
+                self.logger(f"[{self.__class__.__name__}] ✓ Contenu mis à jour en préservant l'existant")
             else:
                 self.logger(f"[{self.__class__.__name__}] Aucune modification nécessaire")
                 

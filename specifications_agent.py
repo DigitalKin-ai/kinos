@@ -116,16 +116,6 @@ class SpecificationsAgent(ParallagonAgent):
         - Removes obsolete sections
         - Maintains section hierarchy and constraints
         """
-        """
-        Synchronize production document structure with template.
-        
-        Operations:
-        - Extracts template structure and constraints
-        - Preserves existing content in matching sections
-        - Adds missing sections with placeholders
-        - Removes obsolete sections
-        - Maintains section hierarchy and constraints
-        """
         try:
             # Lire le template et le document de sortie
             with open("specifications.md", 'r', encoding='utf-8') as f:
@@ -133,11 +123,45 @@ class SpecificationsAgent(ParallagonAgent):
             with open("production.md", 'r', encoding='utf-8') as f:
                 output = f.read()
 
-            # Extraire la structure hiérarchique complète du template
-            template_structure = {}
+            # Extraire les sections existantes du document de production
+            existing_sections = {}
             current_section = None
-            current_subsection = None
-            current_constraints = {}
+            current_content = []
+            
+            for line in output.split('\n'):
+                if line.startswith('# '):
+                    if current_section:
+                        existing_sections[current_section] = '\n'.join(current_content).strip()
+                    current_section = line[2:].strip()
+                    current_content = []
+                else:
+                    current_content.append(line)
+                    
+            if current_section:
+                existing_sections[current_section] = '\n'.join(current_content).strip()
+
+            # Construire le nouveau contenu
+            new_content = []
+            
+            # Parcourir les sections du template
+            current_section = None
+            for line in template.split('\n'):
+                if line.startswith('# '):
+                    section_name = line[2:].strip()
+                    new_content.append(f"# {section_name}")
+                    
+                    # Si la section existe déjà, utiliser son contenu
+                    if section_name in existing_sections and existing_sections[section_name].strip():
+                        new_content.append(existing_sections[section_name])
+                    else:
+                        # Sinon, ajouter un placeholder
+                        new_content.append("[En attente de contenu]")
+                    
+                    new_content.append("")  # Ligne vide entre les sections
+                    
+                elif line.startswith('[contraintes:'):
+                    # Ignorer les contraintes dans la sortie
+                    continue
             
             for line in template.split('\n'):
                 if line.startswith('# '):  # Section principale
