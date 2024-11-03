@@ -430,20 +430,23 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                     sections_data[current_section]["subsections"][current_subsection]["content"] = '\n'.join(current_content).strip()
             elif current_section in sections_data:
                 sections_data[current_section]["content"] = '\n'.join(current_content).strip()
-                        sections_data[current_subsection]["content"] = '\n'.join(current_content).strip()
-                    current_subsection = line[3:].strip()
-                    current_content = []
-            
-            # Ajout du contenu
-            else:
-                current_content.append(line)
+                else:
+                    if current_section in sections_data:
+                        sections_data[current_section]["content"] = '\n'.join(current_content).strip()
+            current_subsection = line[3:].strip()
+            current_content = []
         
-        # Ajouter le dernier contenu
-        if current_section:
-            if current_subsection and current_subsection in sections_data:
-                sections_data[current_subsection]["content"] = '\n'.join(current_content).strip()
-            elif current_section in sections_data:
-                sections_data[current_section]["content"] = '\n'.join(current_content).strip()
+        # Ajout du contenu
+        else:
+            current_content.append(line)
+    
+    # Ajouter le dernier contenu
+    if current_section:
+        if current_subsection:
+            if current_section in sections_data and current_subsection in sections_data[current_section]["subsections"]:
+                sections_data[current_section]["subsections"][current_subsection]["content"] = '\n'.join(current_content).strip()
+        elif current_section in sections_data:
+            sections_data[current_section]["content"] = '\n'.join(current_content).strip()
 
     def _update_sections_display(self, sections_data: dict):
         """Met à jour l'affichage des sections"""
