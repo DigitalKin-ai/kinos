@@ -21,6 +21,10 @@ class ParallagonAgent:
 
     def _validate_markdown_response(self, response: str) -> bool:
         """Validate that LLM response follows required markdown format"""
+        # Exception for ProductionAgent which returns raw text
+        if self.__class__.__name__ == "ProductionAgent":
+            return True
+            
         required_sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
         
         # Check starts with État Actuel
