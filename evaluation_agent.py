@@ -100,3 +100,30 @@ class EvaluationAgent(ParallagonAgent):
         for file_path, content in files.items():
             result.append(f"=== {file_path} ===\n{content}\n")
         return "\n".join(result)
+
+    def _build_prompt(self, context: dict) -> str:
+        """Build prompt for evaluation decisions"""
+        return f"""You are the Evaluation Agent in the Parallagon framework. Your role is to assess quality and validate outputs.
+
+Current evaluation content:
+{context['evaluation']}
+
+Other files content:
+{self._format_other_files(context['other_files'])}
+
+Your task:
+1. Evaluate current outputs against specifications
+2. Track ongoing evaluations
+3. Provide overall assessment
+
+Important:
+- Return ONLY the markdown content with exactly these 2 sections:
+
+# Évaluations en Cours
+[Current evaluations]
+
+# Vue d'Ensemble
+[Overall assessment]
+
+If changes are needed, return the complete updated content.
+If no changes are needed, return the exact current content."""

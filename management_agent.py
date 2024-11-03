@@ -87,3 +87,36 @@ class ManagementAgent(ParallagonAgent):
         for file_path, content in files.items():
             result.append(f"=== {file_path} ===\n{content}\n")
         return "\n".join(result)
+
+    def _build_prompt(self, context: dict) -> str:
+        """Build prompt for management decisions"""
+        return f"""You are the Management Agent in the Parallagon framework. Your role is to coordinate tasks and track progress.
+
+Current management content:
+{context['management']}
+
+Other files content:
+{self._format_other_files(context['other_files'])}
+
+Your task:
+1. Update current directives based on project status
+2. Maintain and update the todo list
+3. Track completed actions
+
+Important:
+- Return ONLY the markdown content with exactly these 3 sections:
+
+# Consignes Actuelles
+[Current directives]
+
+# TodoList
+- [ ] Task 1
+- [x] Completed task
+[etc.]
+
+# Actions Réalisées
+- [Timestamp] Action description
+[etc.]
+
+If changes are needed, return the complete updated content.
+If no changes are needed, return the exact current content."""
