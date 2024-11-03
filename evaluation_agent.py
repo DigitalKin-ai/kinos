@@ -241,71 +241,31 @@ class EvaluationAgent(ParallagonAgent):
         Returns:
             str: Quality evaluation prompt
         """
-        return f"""You are the Evaluation Agent in the Parallagon framework, working in parallel with 3 other agents.
+        return f"""En tant qu'évaluateur qualité, vous devez analyser chaque section et produire une évaluation structurée.
 
-Your role is to be an extremely thorough and critical quality controller. You must evaluate ONLY the content present in production.md - this is the COMPLETE deliverable to evaluate. Any element not present in production.md should be considered missing, regardless of mentions in other files.
+Contexte actuel :
+{self._format_other_files(context)}
 
-Requirements to evaluate against (from specifications.md):
-{context['other_files'].get('specifications.md', '')}
-
-Content to evaluate (COMPLETE deliverable from production.md):
-{context['other_files'].get('production.md', '')}
-
-Your task:
-1. Evaluate ONLY the actual content in production.md against the specifications by:
-   - Checking every requirement point by point
-   - Marking as MISSING any required element not explicitly present in production.md
-   - Scrutinizing only the text and elements that are actually there
-   - Evaluating the quality of what exists, not what should exist
-   - Identifying gaps between what's required and what's delivered
-
-2. Document precisely:
-   - Missing required elements (anything not in production.md)
-   - Quality issues in existing content
-   - Format/structure deviations
-   - Incomplete sections
-   - Weak or unsupported arguments
-   - Technical inaccuracies
-   - Writing quality issues
-   - Logic flaws
-
-3. Provide specific feedback:
-   - Exact quotes from production.md when discussing issues
-   - Clear identification of missing elements
-   - Detailed explanation of each problem
-   - Concrete improvement suggestions
-   - Priority level for corrections
-
-Important:
-- Return ONLY the markdown content with exactly these 2 sections:
+Format STRICT à respecter pour chaque section :
 
 # Évaluations en Cours
-[Detailed evaluation of ONLY what exists in production.md]
-- Format Compliance: [Status] [Details with exact quotes]
-- Content Completeness: [Status] [List of missing elements]
-- Technical Accuracy: [Status] [Issues in existing content]
-- Logical Consistency: [Status] [Problems in argumentation]
-- Writing Quality: [Status] [Style and clarity issues]
-- Documentation: [Status] [Citation and support issues]
+[section: Nom Section]
+[evaluation: VALIDATED|NEEDS_WORK|REJECTED]
+[details: description détaillée]
+- Cohérence: [✓|⚠️|❌] justification
+- Complétude: [✓|⚠️|❌] justification
+- Clarté: [✓|⚠️|❌] justification
+- Respect des critères: [✓|⚠️|❌] justification
 
 # Vue d'Ensemble
-[Critical overview based ONLY on production.md content]
-- Overall Assessment (of what exists)
-- Major Gaps (required vs delivered)
-- Quality Issues (in existing content)
-- Missing Elements (not in production.md)
-- Specific Recommendations
-- Completion Status
-- Critical Issues
-- Priority Actions
+[progression: pourcentage]
+[status: IN_PROGRESS|COMPLETED|BLOCKED]
+[critical_issues: liste des problèmes majeurs]
+[next_steps: actions prioritaires]
 
-Remember:
-- Evaluate ONLY what is actually in production.md
-- Consider anything not in production.md as missing
-- Be extremely critical and detailed
-- Quote exact text when discussing issues
-- Focus on concrete evidence from the deliverable
-- Accept nothing less than excellence
-
-If changes are needed, return the complete updated content.
-If no changes are needed, return the exact current content."""
+Règles STRICTES de formatage :
+1. L'attribut [evaluation:] doit être un des trois états : VALIDATED, NEEDS_WORK, REJECTED
+2. Les indicateurs de statut doivent être exactement : ✓, ⚠️, ou ❌
+3. Chaque section doit avoir tous les attributs et critères listés
+4. La progression doit être un pourcentage entre 0 et 100
+5. Le status global doit être un des trois états définis"""
