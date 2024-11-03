@@ -166,29 +166,45 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.setup_ui()
         
         # Initialisation du contenu des panneaux
-        try:
-            # Charger le contenu initial de tous les fichiers
-            for name, file_path in self.FILE_PATHS.items():
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                        
-                        # Traitement spécial pour le panneau Demande
-                        if name == "demande":
+        self.log_message("🚀 Initialisation des panneaux...")
+        
+        for name, file_path in self.FILE_PATHS.items():
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    
+                    # Traitement spécial pour le panneau Demande
+                    if name == "demande":
+                        if hasattr(self, 'demand_text'):  # Vérifier que le widget existe
                             self.demand_text.delete("1.0", tk.END)
                             self.demand_text.insert("1.0", content)
-                        # Traitement pour les autres panneaux
-                        elif name in self.agent_panels:
+                            self.log_message(f"✓ Panneau Demande initialisé")
+                    
+                    # Traitement pour les autres panneaux
+                    elif name in self.agent_panels:
+                        if name in self.agent_panels:  # Vérifier que le panneau existe
                             self.agent_panels[name].text.delete("1.0", tk.END)
                             self.agent_panels[name].text.insert("1.0", content)
-                            
-                    self.log_message(f"✓ {name} initialisé")
-                except Exception as e:
-                    self.log_message(f"❌ Erreur lors de l'initialisation de {name}: {str(e)}")
+                            self.log_message(f"✓ Panneau {name} initialisé")
                     
-        except Exception as e:
-            self.log_message(f"❌ Erreur lors de l'initialisation des panneaux: {str(e)}")
+            except FileNotFoundError:
+                self.log_message(f"⚠️ Fichier {file_path} non trouvé, utilisation du contenu par défaut")
+                # Utiliser le contenu par défaut du FileManager
+                default_content = self.file_manager._get_initial_contents().get(name, "")
+                
+                if name == "demande" and hasattr(self, 'demand_text'):
+                    self.demand_text.delete("1.0", tk.END)
+                    self.demand_text.insert("1.0", default_content)
+                elif name in self.agent_panels:
+                    self.agent_panels[name].text.delete("1.0", tk.END)
+                    self.agent_panels[name].text.insert("1.0", default_content)
+                    
+            except Exception as e:
+                self.log_message(f"❌ Erreur lors de l'initialisation de {name}: {str(e)}")
         
+        self.log_message("✓ Initialisation des panneaux terminée")
+        
+        # Initialisation des agents après les panneaux
         self.init_agents()
         
     def init_agents(self):
