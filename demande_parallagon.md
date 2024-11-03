@@ -239,6 +239,152 @@ class ParallagonAgent:
 - Gestion de documentation
 - Projets créatifs
 
+## 10. Relations avec l'Objet Section
+
+### 10.1 Structure de l'Objet Section
+```python
+@dataclass
+class Section:
+    title: str                # Titre de la section
+    constraints: str          # Contraintes définies
+    content: Optional[str]    # Contenu actuel
+    evaluation: Optional[str] # État d'évaluation
+```
+
+### 10.2 Responsabilités des Agents
+
+#### SpecificationsAgent
+- **Rôle Principal**: Définition et gestion de la structure des sections
+- **Interactions**:
+  * Crée les sections avec leurs contraintes initiales
+  * Définit la hiérarchie des sections (niveau 1, 2, 3)
+  * Met à jour les contraintes selon l'évolution des besoins
+  * Synchronise la structure avec production.md
+- **Attributs gérés**: `title`, `constraints`
+
+#### ProductionAgent
+- **Rôle Principal**: Gestion du contenu des sections
+- **Interactions**:
+  * Remplit le contenu des sections existantes
+  * Met à jour le contenu selon les directives
+  * Respecte les contraintes définies
+  * Ne peut pas modifier la structure
+- **Attributs gérés**: `content`
+
+#### EvaluationAgent
+- **Rôle Principal**: Évaluation de la qualité des sections
+- **Interactions**:
+  * Analyse le contenu par rapport aux contraintes
+  * Attribue un état d'évaluation (VALIDATED|NEEDS_WORK|REJECTED)
+  * Fournit des retours détaillés par section
+  * Maintient les métriques de qualité
+- **Attributs gérés**: `evaluation`
+
+#### ManagementAgent
+- **Rôle Principal**: Coordination et suivi des sections
+- **Interactions**:
+  * Priorise les sections à traiter
+  * Coordonne les mises à jour entre agents
+  * Suit l'avancement global
+  * Gère les blocages et dépendances
+- **Attributs consultés**: Tous
+- **Attributs modifiés**: Aucun (rôle de coordination)
+
+### 10.3 Flux de Travail des Sections
+
+1. **Création & Structure** (SpecificationsAgent)
+   ```plaintext
+   Section créée → Contraintes définies → Structure synchronisée
+   ```
+
+2. **Production de Contenu** (ProductionAgent)
+   ```plaintext
+   Section vide → Contenu initial → Mises à jour itératives
+   ```
+
+3. **Évaluation** (EvaluationAgent)
+   ```plaintext
+   Contenu produit → Analyse → Attribution état → Feedback
+   ```
+
+4. **Coordination** (ManagementAgent)
+   ```plaintext
+   Suivi états → Priorisation → Résolution blocages → Direction
+   ```
+
+### 10.4 Règles de Modification
+
+1. **Modifications Structurelles**
+   - Exclusivement via SpecificationsAgent
+   - Nécessite synchronisation avec production.md
+   - Préserve le contenu existant
+
+2. **Modifications de Contenu**
+   - Uniquement via ProductionAgent
+   - Dans les sections existantes
+   - Respecte les contraintes
+
+3. **Modifications d'Évaluation**
+   - Exclusivement via EvaluationAgent
+   - Format standardisé
+   - Basées sur critères définis
+
+4. **Coordination**
+   - ManagementAgent orchestre
+   - Ne modifie pas directement
+   - Communique via signaux
+
+### 10.5 Communication Inter-Agents
+
+```plaintext
+SpecificationsAgent ←→ ProductionAgent
+    - Synchronisation structure
+    - Mise à jour contraintes
+
+ProductionAgent ←→ EvaluationAgent
+    - Soumission contenu
+    - Retours évaluation
+
+EvaluationAgent ←→ ManagementAgent
+    - Rapports qualité
+    - Priorisation révisions
+
+ManagementAgent ←→ Tous
+    - Coordination globale
+    - Résolution blocages
+```
+
+### 10.6 Gestion des États
+
+1. **États de Section**
+   - Structure: Définie/En révision
+   - Contenu: Vide/En cours/Complet
+   - Évaluation: VALIDATED/NEEDS_WORK/REJECTED
+
+2. **Transitions**
+   ```plaintext
+   Création → Production → Évaluation → Validation
+   ↑__________________________|
+   (Si révision nécessaire)
+   ```
+
+3. **Synchronisation**
+   - Atomique par section
+   - Préservation des données
+   - Gestion des conflits
+
+### 9.1 Améliorations Potentielles
+- Support multi-projets
+- Agents spécialisés additionnels
+- Interface de monitoring
+- Analyse de performance
+
+### 9.2 Domaines d'Application
+- Développement logiciel
+- Création de contenu
+- Gestion de documentation
+- Projets créatifs
+
 # Interface Graphique Parallagon
 
 ## 1. Structure des Fichiers
