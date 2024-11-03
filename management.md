@@ -1,8 +1,8 @@
 # Consignes Actuelles
-En attente de nouvelles consignes.
+En attente de nouvelles directives...
 
 # TodoList
 - [ ] En attente de demandes
 
 # Actions Réalisées
-- [INIT] Création du fichier
+- [2024-11-03 17:17] Création du fichier

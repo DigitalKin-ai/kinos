@@ -1,8 +1,7 @@
 # Demande Actuelle
-[timestamp: 2024-11-03 00:32]
-[status: EN_COURS]
+[timestamp: 2024-11-03 17:17]
+[status: NEW]
 
-un poeme sur les llms
+Écrivez votre demande ici...
 
 # Historique des Demandes
-- [INIT] Création du fichier

@@ -1,15 +1,9 @@
 # Évaluations en Cours
-- Critères Poétiques: ✓ Validé
-  * Pertinence thématique: ✓ Concepts LLMs et Parallagon bien intégrés
-  * Structure poétique: ✓ Quatrains et rimes ABAB conformes
-  * Style et créativité: ✓ Métaphores appropriées
-- Documentation: ✓ Validé
-  * Clarté: ✓ Message cohérent
-  * Accessibilité: ✓ Vocabulaire adapté
-  * Progression: ✓ Structure logique
+- Critère 1: [⚠️] En attente
+- Critère 2: [⚠️] En attente
 
 # Vue d'Ensemble
-- Progression: 100%
-- Points forts: Structure poétique maîtrisée, thématique bien développée, métaphores pertinentes
-- Points à améliorer: Aucun point majeur à améliorer
-- Statut global: VALIDÉ
+- Progression: 0%
+- Points forts: À déterminer
+- Points à améliorer: À déterminer
+- Statut global: EN_ATTENTE
