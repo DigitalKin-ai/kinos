@@ -430,11 +430,6 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                     sections_data[current_section]["subsections"][current_subsection]["content"] = '\n'.join(current_content).strip()
             elif current_section in sections_data:
                 sections_data[current_section]["content"] = '\n'.join(current_content).strip()
-                else:
-                    if current_section in sections_data:
-                        sections_data[current_section]["content"] = '\n'.join(current_content).strip()
-            current_subsection = line[3:].strip()
-            current_content = []
         
         # Ajout du contenu
         else:
