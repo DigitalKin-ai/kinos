@@ -109,6 +109,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.update_interval = 1000  # ms
         self.config = config
         self.client = openai.OpenAI(api_key=config["openai_api_key"])
+        self.agent_threads = {}  # Store agent threads
         self.tab_states = {
             "Specification": False,
             "Evaluation": False,
@@ -314,7 +315,9 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         # Démarrage des agents
         self.log_message("🚀 Démarrage des agents...")
         for name, agent in self.agents.items():
-            threading.Thread(target=agent.run, daemon=True).start()
+            thread = threading.Thread(target=agent.run, daemon=True)
+            thread.start()
+            self.agent_threads[name] = thread  # Store the thread
             self.log_message(f"✓ Agent {name} démarré")
         
         # Démarrage de la boucle de mise à jour
@@ -326,18 +329,22 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
     def stop_agents(self):
         """Arrêt des agents"""
         self.running = False
-        self.start_button.config(state=tk.NORMAL)
-        self.stop_button.config(state=tk.DISABLED)
-        self.status_label.config(text="● Stopped", foreground="red")
-        self.update_indicator.config(text="○")  # Réinitialiser l'indicateur
         
         # Arrêter chaque agent
         for name, agent in self.agents.items():
             try:
                 agent.stop()
+                if name in self.agent_threads:
+                    self.agent_threads[name].join(timeout=2)  # Wait for thread completion
                 self.log_message(f"✓ Agent {name} arrêté")
             except Exception as e:
                 self.log_message(f"❌ Erreur lors de l'arrêt de l'agent {name}: {e}")
+        
+        self.agent_threads.clear()  # Clear thread dictionary
+        self.start_button.config(state=tk.NORMAL)
+        self.stop_button.config(state=tk.DISABLED)
+        self.status_label.config(text="● Stopped", foreground="red")
+        self.update_indicator.config(text="○")  # Réinitialiser l'indicateur
         
         self.log_message("🛑 Tous les agents ont été arrêtés")
         
