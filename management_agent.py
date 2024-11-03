@@ -104,17 +104,24 @@ Other files content:
 {self._format_other_files(context['other_files'])}
 
 Your task:
-1. Update current directives based on project status
-2. Maintain and update the todo list
-3. Track completed actions
-4. Provide detailed next steps for the Production Agent, including:
+1. Identify the single most critical task that needs immediate attention
+2. Update current directives based on project status
+3. Maintain and update the todo list
+4. Track completed actions
+5. Provide detailed next steps for the Production Agent, including:
    - Specific sections to work on
    - Required content elements
    - Quality expectations
    - Dependencies with other agents' work
 
 Important:
-- Return ONLY the markdown content with exactly these 3 sections:
+- Return ONLY the markdown content with exactly these 4 sections:
+
+# Top Priorité
+🔥 [Single most important task that requires immediate attention]
+- Impact: [Why this is critical]
+- Blockers: [What's preventing completion]
+- Next step: [Immediate action needed]
 
 # Consignes Actuelles
 [Current directives]
@@ -127,6 +134,13 @@ Important:
 # Actions Réalisées
 - [Timestamp] Action description
 [etc.]
+
+Guidelines for Top Priority:
+- Choose only ONE task as top priority
+- Select based on urgency and impact
+- Consider dependencies between agents
+- Update when the priority task changes
+- Be specific about what needs to be done
 
 If changes are needed, return the complete updated content.
 If no changes are needed, return the exact current content."""
