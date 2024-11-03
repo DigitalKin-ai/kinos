@@ -6,6 +6,12 @@ Key responsibilities:
 - Validates compliance with specifications
 - Provides detailed feedback and recommendations
 - Tracks overall project quality status
+
+Workflow:
+1. Reviews content against specifications
+2. Performs quality checks and validations
+3. Generates detailed evaluation reports
+4. Updates quality status and metrics
 """
 from parallagon_agent import ParallagonAgent
 from search_replace import SearchReplace
