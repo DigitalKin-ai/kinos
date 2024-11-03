@@ -5,14 +5,14 @@ from parallagon_agent import ParallagonAgent
 from search_replace import SearchReplace
 import re
 from datetime import datetime
-import anthropic
+import openai
 
 class EvaluationAgent(ParallagonAgent):
     """Agent handling quality control and validation"""
     
     def __init__(self, config):
         super().__init__(config)
-        self.client = anthropic.Anthropic(api_key=config["anthropic_api_key"])
+        self.client = openai.OpenAI(api_key=config["openai_api_key"])
 
     def determine_actions(self) -> None:
         """Analyze current context and determine if validation/evaluation is needed."""
@@ -49,53 +49,17 @@ class EvaluationAgent(ParallagonAgent):
         """Get LLM response for evaluation tasks"""
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
-            prompt = f"""You are the Evaluation Agent in the Parallagon framework. Your role is to assess quality and track progress.
-
-Current evaluation content:
-{context['evaluation']}
-
-Other files content:
-{self._format_other_files(context['other_files'])}
-
-Your task:
-1. Evaluate current work against specifications
-2. Track progress and quality metrics
-3. Provide detailed assessment
-
-Important:
-- Return ONLY the markdown content with exactly these 2 sections:
-
-# Évaluations en Cours
-- Criterion: [✓/⚠️/❌] Status
-  * Sub-criterion: [✓/⚠️/❌] Details
-[Use ✓ for validated, ⚠️ for warning, ❌ for failed]
-
-# Vue d'Ensemble
-- Progression: [0-100%]
-- Points forts: [list key strengths]
-- Points à améliorer: [list areas for improvement]
-- Statut global: [EN_COURS/VALIDÉ/REJETÉ]
-
-Guidelines:
-- Be specific in assessments
-- Use clear status indicators
-- Provide actionable feedback
-- Track overall progress
-
-If changes are needed, return the complete updated content.
-If no changes are needed, return the exact current content.
-"""
-            response = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=4000,
-                temperature=0,
+            response = self.client.chat.completions.create(
+                model="gpt-4",
                 messages=[{
                     "role": "user",
-                    "content": prompt
-                }]
+                    "content": self._build_prompt(context)
+                }],
+                temperature=0,
+                max_tokens=4000
             )
             print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
-            return response.content[0].text
+            return response.choices[0].message.content
         except Exception as e:
             print(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")  # Error log
             import traceback
