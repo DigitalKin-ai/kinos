@@ -339,17 +339,23 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
     def flash_tab(self, tab_name):
         """Fait flasher un tab pour indiquer une mise à jour"""
         if tab_name not in self.tab_flash_tasks:
-            original_color = self.tab_control.tab(self.tabs[tab_name])['background']
+            style = ttk.Style()
+            
+            # Créer un style unique pour ce tab
+            tab_style = f"Flash.{tab_name}.TFrame"
+            style.configure(tab_style, background="white")
             
             def flash_cycle(count=0):
                 if count >= 6:  # 3 flashs complets
-                    self.tab_control.tab(self.tabs[tab_name], background=original_color)
+                    if tab_name in self.tab_flash_tasks:
+                        self.tab_flash_tasks.pop(tab_name)
                     self.tab_states[tab_name] = False
-                    self.tab_flash_tasks.pop(tab_name, None)
                     return
                 
-                new_color = "#e8f0fe" if count % 2 == 0 else original_color
-                self.tab_control.tab(self.tabs[tab_name], background=new_color)
+                # Alterner entre bleu clair et blanc
+                new_color = "#e8f0fe" if count % 2 == 0 else "white"
+                style.configure(tab_style, background=new_color)
+                
                 self.tab_flash_tasks[tab_name] = self.root.after(500, lambda: flash_cycle(count + 1))
 
             flash_cycle()
