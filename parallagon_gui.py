@@ -112,7 +112,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             "Evaluation": False,
             "Management": False,
             "Demande": False,
-            "Logs": False
+            "Suivi Mission": False
         }
         self.tab_flash_tasks = {}
         
@@ -254,7 +254,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         # Création des tabs
         self.tabs = {}
         self.agent_panels = {}
-        for tab_name in ["Specification", "Evaluation", "Management", "Demande", "Logs"]:
+        for tab_name in ["Specification", "Evaluation", "Management", "Demande", "Suivi Mission"]:
             tab = ttk.Frame(self.tab_control)
             self.tabs[tab_name] = tab
             self.tab_control.add(tab, text=tab_name)
@@ -267,7 +267,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 )
                 self.demand_text.pack(fill=tk.BOTH, expand=True)
                 self.demand_text.bind('<KeyRelease>', self.auto_save_demand)
-            elif tab_name == "Logs":
+            elif tab_name == "Suivi Mission":
                 self.log_text = scrolledtext.ScrolledText(
                     tab, wrap=tk.WORD, font=('Segoe UI', 10),
                     bg=self.colors['panel_bg'], fg=self.colors['text']
