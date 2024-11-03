@@ -341,59 +341,20 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         constraints = ""
         
         for line in specs_content.split('\n'):
-            # Gestion des titres de niveau 1
-            if line.startswith('# '):
-                # Sauvegarder la section précédente
-                if current_section:
-                    sections[current_section] = {
-                        "constraints": constraints.strip(),
-                        "content": "\n".join(current_content).strip(),
-                        "subsections": {}
-                    }
-            
-                # Nouvelle section
-                current_section = line[2:].strip()
-                current_content = []
-                constraints = ""
-                
-            # Gestion des titres de niveau 2
-            elif line.startswith('## '):
-                # Sauvegarder la sous-section précédente
-                if current_subsection and current_section:
-                    sections[current_section]["subsections"][current_subsection] = {
-                        "constraints": constraints.strip(),
-                        "content": ""
-                    }
-            
-                # Nouvelle sous-section
-                current_subsection = line[3:].strip()
-                constraints = ""
-                if current_section:
-                    if current_subsection not in sections[current_section]["subsections"]:
-                        sections[current_section]["subsections"][current_subsection] = {
-                            "constraints": "",
-                            "content": ""
-                        }
-        
             # Gestion des contraintes
             elif line.startswith('[contraintes:'):
                 constraints = line[12:-1].strip()
-                if current_section:
-                    if current_subsection:
-                        sections[current_section]["subsections"][current_subsection]["constraints"] = constraints
-                    else:
-                        sections[current_section]["constraints"] = constraints
-
-        # Sauvegarder la dernière section/sous-section
-        if current_section:
-            if current_subsection:
-                sections[current_section]["subsections"][current_subsection] = {
-                    "constraints": constraints.strip(),
-                    "content": ""
-                }
             else:
-                sections[current_section]["constraints"] = constraints.strip()
-                
+                current_content.append(line)
+    
+        # Sauvegarder la dernière section
+        if current_section:
+            sections[current_section] = {
+                "constraints": constraints.strip(),
+                "content": "\n".join(current_content).strip(),
+                "subsections": {}
+            }
+        
         return sections
 
     def _add_production_content(self, sections_data: dict, prod_content: str):
