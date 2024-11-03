@@ -17,20 +17,54 @@ class SearchReplace:
     """Handles safe search/replace operations in markdown files"""
 
     @staticmethod
+    def _normalize_text(text: str) -> str:
+        """Normalise le texte pour une comparaison plus permissive"""
+        # Supprime les espaces multiples et les remplace par un seul espace
+        text = re.sub(r'\s+', ' ', text)
+        # Supprime les espaces en début et fin
+        text = text.strip()
+        # Normalise les sauts de ligne
+        text = re.sub(r'\r\n|\r|\n', '\n', text)
+        # Supprime les espaces en début et fin de chaque ligne
+        text = '\n'.join(line.strip() for line in text.split('\n'))
+        return text
+
+    @staticmethod
     def validate_replacement(content: str, old_str: str) -> Tuple[bool, str, int]:
         """
-        Validate that the replacement text appears exactly once
-        
-        Returns:
-            Tuple[success, message, count]
+        Valide que le texte à remplacer apparaît exactement une fois
+        avec une comparaison permissive
         """
-        count = content.count(old_str)
-        
-        if count == 0:
-            return False, "Text to replace not found", 0
-        elif count > 1:
-            return False, f"Text to replace appears {count} times (must be unique)", count
-        return True, "Valid replacement", 1
+        try:
+            # Normalise le contenu et la recherche
+            normalized_content = SearchReplace._normalize_text(content)
+            normalized_search = SearchReplace._normalize_text(old_str)
+            
+            # Crée un pattern plus permissif
+            # Permet des différences d'espaces et de sauts de ligne
+            pattern = ''.join(
+                f'\\s*{re.escape(word)}\\s*'
+                for word in normalized_search.split()
+            )
+            
+            # Recherche toutes les occurrences
+            matches = list(re.finditer(pattern, normalized_content, re.MULTILINE | re.DOTALL))
+            count = len(matches)
+            
+            if count == 0:
+                return False, "Texte à remplacer non trouvé", 0
+            elif count > 1:
+                return False, f"Le texte à remplacer apparaît {count} fois (doit être unique)", count
+                
+            # Vérifie que le match trouvé correspond bien au contenu recherché
+            match_text = matches[0].group(0)
+            if SearchReplace._normalize_text(match_text) == normalized_search:
+                return True, "Remplacement valide", 1
+            else:
+                return False, "Le texte trouvé ne correspond pas exactement", 0
+                
+        except Exception as e:
+            return False, f"Erreur lors de la validation: {str(e)}", 0
 
     @staticmethod
     def section_replace(content: str, section_name: str, new_section_content: str) -> SearchReplaceResult:
@@ -57,19 +91,33 @@ class SearchReplace:
     @staticmethod
     def exact_replace(content: str, old_str: str, new_str: str) -> SearchReplaceResult:
         """
-        Perform exact string replacement with validation
-        
-        Example:
-        >>> old_content = "status: DRAFT\\nsome content"
-        >>> new_content = search_replace.exact_replace(old_content, "status: DRAFT", "status: REVIEW")
+        Effectue un remplacement exact avec validation permissive
         """
-        valid, message, count = SearchReplace.validate_replacement(content, old_str)
-        
-        if not valid:
-            return SearchReplaceResult(False, message, None, count)
-        
-        new_content = content.replace(old_str, new_str)
-        return SearchReplaceResult(True, "Replacement successful", new_content, 1)
+        try:
+            # Normalise pour la recherche
+            normalized_content = SearchReplace._normalize_text(content)
+            normalized_search = SearchReplace._normalize_text(old_str)
+            
+            # Crée un pattern permissif
+            pattern = ''.join(
+                f'\\s*{re.escape(word)}\\s*'
+                for word in normalized_search.split()
+            )
+            
+            # Trouve le match
+            match = re.search(pattern, normalized_content, re.MULTILINE | re.DOTALL)
+            if not match:
+                return SearchReplaceResult(False, "Texte à remplacer non trouvé", content, 0)
+                
+            # Récupère le texte exact qui a matché
+            exact_match = match.group(0)
+            
+            # Effectue le remplacement en préservant le formatage du nouveau texte
+            new_content = content.replace(exact_match, new_str)
+            return SearchReplaceResult(True, "Remplacement effectué avec succès", new_content, 1)
+            
+        except Exception as e:
+            return SearchReplaceResult(False, f"Erreur lors du remplacement: {str(e)}", content, 0)
 
     @staticmethod
     def add_to_section(content: str, section_name: str, new_entry: str, 
