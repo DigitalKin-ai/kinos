@@ -123,13 +123,16 @@ class SpecificationsAgent(ParallagonAgent):
             with open("production.md", 'r', encoding='utf-8') as f:
                 output = f.read()
 
-            # Extraire les sections existantes du document de production
-            existing_sections = {}
+            # Initialize data structures
+            template_structure = {}
             current_section = None
-            current_content = []
+            current_subsection = None
+            current_constraints = {}
+            output_structure = {}
             
-            for line in output.split('\n'):
-                if line.startswith('# '):
+            # Extract the complete hierarchical structure of the template
+            for line in template.split('\n'):
+                if line.startswith('# '):  # Main section
                     if current_section:
                         existing_sections[current_section] = '\n'.join(current_content).strip()
                     current_section = line[2:].strip()
