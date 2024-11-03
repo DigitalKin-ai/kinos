@@ -154,3 +154,106 @@ Guidelines:
 
 If changes are needed, return the complete updated content.
 If no changes are needed, return the exact current content."""
+"""
+SpecificationsAgent - Template manager for document structure
+"""
+from typing import Dict, Any
+import re
+from parallagon_agent import ParallagonAgent
+
+class SpecificationsAgent(ParallagonAgent):
+    def _build_prompt(self, context: dict) -> str:
+        return f"""En tant que gestionnaire de template, votre rôle est de définir la structure exacte du document final.
+
+Contexte actuel :
+{self._format_other_files(context)}
+
+Instructions :
+1. Analysez la demande pour identifier toutes les sections nécessaires
+2. Créez un template complet avec :
+   - Toutes les sections requises (niveau 1 avec #)
+   - Une brève description des contraintes pour chaque section
+   - L'ordre logique des sections
+
+Format de sortie attendu :
+
+# Section 1
+[contraintes: description courte des attentes pour cette section]
+
+# Section 2
+[contraintes: description courte des attentes pour cette section]
+
+etc...
+
+Règles :
+- Utilisez uniquement des titres de niveau 1 (#)
+- Chaque section doit avoir ses contraintes entre []
+- Soyez précis mais concis dans les descriptions
+- La structure doit être complète et cohérente"""
+
+    def synchronize_template(self) -> None:
+        """Synchronise la structure du document de sortie avec le template"""
+        try:
+            # Lire le template (specifications.md) et le document de sortie
+            with open("specifications.md", 'r', encoding='utf-8') as f:
+                template = f.read()
+            with open("production.md", 'r', encoding='utf-8') as f:
+                output = f.read()
+
+            # Extraire les sections du template
+            template_sections = re.findall(r'^# (.+)$', template, re.MULTILINE)
+            
+            # Extraire les sections existantes du document de sortie
+            output_sections = re.findall(r'^# (.+)$', output, re.MULTILINE)
+
+            # Sections à ajouter (présentes dans template mais pas dans output)
+            sections_to_add = set(template_sections) - set(output_sections)
+            
+            # Sections à supprimer (présentes dans output mais pas dans template)
+            sections_to_remove = set(output_sections) - set(template_sections)
+
+            # Créer le nouveau contenu
+            new_content = output
+            
+            # Supprimer les sections obsolètes
+            for section in sections_to_remove:
+                pattern = f"# {section}.*?(?=# |$)"
+                new_content = re.sub(pattern, '', new_content, flags=re.DOTALL)
+
+            # Ajouter les nouvelles sections
+            for section in sections_to_add:
+                # Trouver les contraintes dans le template
+                constraints = re.search(f"# {section}\n\\[contraintes: (.+?)\\]", 
+                                      template, 
+                                      re.DOTALL)
+                constraints_text = constraints.group(1) if constraints else "À compléter"
+                
+                new_section = f"\n\n# {section}\n[En attente de contenu - {constraints_text}]\n"
+                new_content += new_section
+
+            # Sauvegarder le nouveau contenu
+            with open("production.md", 'w', encoding='utf-8') as f:
+                f.write(new_content.strip())
+
+        except Exception as e:
+            print(f"Erreur lors de la synchronisation du template: {e}")
+
+    def determine_actions(self) -> None:
+        """Détermine les actions à effectuer"""
+        try:
+            # Logique existante pour mettre à jour le template
+            context = {
+                "demande": self.other_files.get("demande.md", ""),
+                "production": self.other_files.get("production.md", "")
+            }
+            
+            response = self._get_llm_response(context)
+            if response != self.current_content:
+                self.new_content = response
+                self.update()
+                
+                # Synchroniser le document de sortie après chaque mise à jour du template
+                self.synchronize_template()
+                
+        except Exception as e:
+            print(f"Erreur dans determine_actions: {e}")

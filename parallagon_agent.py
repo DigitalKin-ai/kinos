@@ -37,11 +37,10 @@ class ParallagonAgent:
                     return False
             return True
         elif isinstance(self, SpecificationsAgent):
-            required_sections = ["Spécification de Sortie", "Critères de Succès"]
-            for section in required_sections:
-                if f"# {section}" not in response:
-                    print(f"[{self.__class__.__name__}] Missing required section: {section}")
-                    return False
+            # For SpecificationsAgent, just verify it has at least one level 1 heading
+            if not re.search(r'^# .+$', response, re.MULTILINE):
+                print(f"[{self.__class__.__name__}] No level 1 headings found")
+                return False
             return True
         elif isinstance(self, EvaluationAgent):
             required_sections = ["Évaluations en Cours", "Vue d'Ensemble"]
