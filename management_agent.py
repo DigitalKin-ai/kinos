@@ -15,7 +15,15 @@ from datetime import datetime
 import openai
 
 class ManagementAgent(ParallagonAgent):
-    """Agent handling project coordination and task management"""
+    """
+    Agent responsible for project coordination and planning.
+    
+    Key responsibilities:
+    - Coordinates work between agents
+    - Manages task prioritization and scheduling  
+    - Tracks project progress and blockers
+    - Provides direction and guidance to other agents
+    """
     
     def __init__(self, config):
         super().__init__(config)
