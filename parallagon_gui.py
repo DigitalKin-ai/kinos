@@ -254,6 +254,18 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
     def _setup_styles(self):
         """Configure les styles de l'interface"""
         style = ttk.Style()
+        
+        # Configuration du style de base des tabs
+        style.configure('TNotebook.Tab', padding=[10, 5])
+        
+        # Créer les styles de flash pour chaque tab à l'avance
+        for tab_name in self.TAB_NAMES:
+            style.configure(
+                f'Flash{tab_name}.TNotebook.Tab',
+                background="#e8f0fe",
+                padding=[10, 5]
+            )
+            
         style.configure('Modern.TButton', 
             padding=10, 
             font=('Segoe UI', 10),
@@ -486,24 +498,15 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         """Fait flasher un tab en bleu pendant 1 seconde"""
         if tab_name not in self.tab_flash_tasks:
             try:
-                # Créer un style unique pour ce tab
-                style = ttk.Style()
-                style_name = f'Flash{tab_name}.TNotebook.Tab'
-                
-                # Configurer le style en copiant d'abord le style de base
-                style.configure(style_name, 
-                              background="#e8f0fe",
-                              padding=[10, 5])  # Reprendre le padding de base
-                
                 # Obtenir l'index du tab
                 tab_id = self.tab_control.index(self.tabs[tab_name])
                 
-                # Appliquer le style en utilisant la syntaxe correcte de ttk
-                self.tab_control.tab(tab_id, style=style_name)
+                # Utiliser le style pré-configuré
+                self.tab_control.tab(tab_id, style=f'Flash{tab_name}.TNotebook.Tab')
                 
                 # Programmer le retour au style normal
                 self.tab_flash_tasks[tab_name] = self.root.after(
-                    1000,  # Durée du flash (1 seconde)
+                    1000,
                     lambda: self._restore_tab_style(tab_name, tab_id)
                 )
             except Exception as e:
@@ -514,7 +517,6 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         if tab_name in self.tab_flash_tasks:
             try:
                 self.tab_flash_tasks.pop(tab_name)
-                # Utiliser le style de base de ttk
                 self.tab_control.tab(tab_id, style='TNotebook.Tab')
             except Exception as e:
                 self.log_message(f"❌ Erreur lors de la restauration du style du tab {tab_name}: {str(e)}")
