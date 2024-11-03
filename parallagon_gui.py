@@ -138,22 +138,7 @@ class ParallagonGUI:
         )
         self.request_frame.pack(fill=tk.X, padx=20, pady=10)
 
-        # Style pour les zones de texte
-        text_style = {
-            'font': ('Segoe UI', 10),
-            'bg': self.colors['panel_bg'],
-            'fg': self.colors['text'],
-            'insertbackground': self.colors['text'],
-            'selectbackground': self.colors['accent'],
-            'relief': 'flat',
-            'padx': 10,
-            'pady': 10
-        }
-
-        self.request_text.configure(**text_style)
-        self.demand_display.configure(**text_style)
-        self.log_text.configure(**text_style)
-        
+        # Création des widgets de texte
         self.request_text = scrolledtext.ScrolledText(
             self.request_frame, 
             height=4
@@ -167,7 +152,6 @@ class ParallagonGUI:
         )
         self.submit_button.pack(pady=5)
         
-        # Affichage du contenu de la demande actuelle
         self.demand_display = scrolledtext.ScrolledText(
             self.request_frame, 
             height=8,
@@ -175,7 +159,7 @@ class ParallagonGUI:
         )
         self.demand_display.pack(fill=tk.X, padx=5, pady=5)
         
-        # Ajouter une zone de logs
+        # Zone de logs
         self.log_frame = ttk.LabelFrame(self.root, text="Logs")
         self.log_frame.pack(fill=tk.X, padx=5, pady=5)
         self.log_text = scrolledtext.ScrolledText(
@@ -184,6 +168,23 @@ class ParallagonGUI:
             wrap=tk.WORD
         )
         self.log_text.pack(fill=tk.X, padx=5, pady=5)
+
+        # Style pour les zones de texte
+        text_style = {
+            'font': ('Segoe UI', 10),
+            'bg': self.colors['panel_bg'],
+            'fg': self.colors['text'],
+            'insertbackground': self.colors['text'],
+            'selectbackground': self.colors['accent'],
+            'relief': 'flat',
+            'padx': 10,
+            'pady': 10
+        }
+
+        # Application du style aux widgets de texte
+        self.request_text.configure(**text_style)
+        self.demand_display.configure(**text_style)
+        self.log_text.configure(**text_style)
         
         # Panneaux des agents
         self.agents_frame = ttk.Frame(self.root)
