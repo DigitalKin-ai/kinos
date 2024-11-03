@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Dict, Any
 from search_replace import SearchReplace
 from log_manager import LogManager
-from log_manager import LogManager
 from agent_panel import AgentPanel
 from gui_config import GUIConfig
 from llm_service import LLMService
@@ -512,56 +511,11 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             
         except Exception as e:
             self.log_message(f"❌ Erreur lors du chargement des données de test : {str(e)}")
-            initial_contents = {
-                "demande.md": """# Demande Actuelle
-[timestamp: {}]
-[status: NEW]
-
-Écrivez votre demande ici...
-
-# Historique des Demandes""".format(datetime.now().strftime("%Y-%m-%d %H:%M")),
-
-                "specifications.md": """# Spécification de Sortie
-En attente de nouvelles demandes...
-
-# Critères de Succès
-- Critère principal 1
-  * Sous-critère A
-  * Sous-critère B
-- Critère principal 2
-  * Sous-critère A
-  * Sous-critère B""",
-
-                "management.md": """# Consignes Actuelles
-En attente de nouvelles directives...
-
-# TodoList
-- [ ] En attente de demandes
-
-# Actions Réalisées
-- [{}] Création du fichier""".format(datetime.now().strftime("%Y-%m-%d %H:%M")),
-
-                "production.md": """En attente de contenu à produire...""",
-
-                "evaluation.md": """# Évaluations en Cours
-- Critère 1: [⚠️] En attente
-- Critère 2: [⚠️] En attente
-
-# Vue d'Ensemble
-- Progression: 0%
-- Points forts: À déterminer
-- Points à améliorer: À déterminer
-- Statut global: EN_ATTENTE"""
-            }
-
-            # Write initial content to files
-            for filename, content in initial_contents.items():
-                with open(filename, 'w', encoding='utf-8') as f:
-                    f.write(content)
-
-            # Update GUI panels
-            self.update_all_panels()
-            self.log_message("✨ Tous les fichiers ont été réinitialisés")
+            if self.file_manager.reset_files():
+                self.update_all_panels()
+                self.log_message("✨ Tous les fichiers ont été réinitialisés")
+            else:
+                self.log_message("❌ Erreur lors de la réinitialisation des fichiers")
 
         except Exception as e:
             self.log_message(f"❌ Erreur lors de la réinitialisation : {str(e)}")
