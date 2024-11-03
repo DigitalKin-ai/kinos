@@ -167,7 +167,8 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         base_config = {
             "check_interval": 5,
             "anthropic_api_key": self.config["anthropic_api_key"],
-            "openai_api_key": self.config["openai_api_key"]
+            "openai_api_key": self.config["openai_api_key"],
+            "logger": self.log_message
         }
         
         self.agents = {

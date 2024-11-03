@@ -14,39 +14,54 @@ class ManagementAgent(ParallagonAgent):
     def __init__(self, config):
         super().__init__(config)
         self.client = openai.OpenAI(api_key=config["openai_api_key"])
+        self.logger = config.get("logger", print)
 
     def determine_actions(self) -> None:
         """Analyze project status and coordinate tasks between agents"""
-        print(f"[{self.__class__.__name__}] Analyzing...")
-        
-        context = {
-            "management": self.current_content,
-            "other_files": self.other_files
-        }
-        
-        response = self._get_llm_response(context)
-        
-        if response != self.current_content:
-            temp_content = self.current_content
-            sections = ["Consignes Actuelles", "TodoList", "Actions Réalisées"]
+        try:
+            self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
             
-            for section in sections:
-                pattern = f"# {section}\n(.*?)(?=\n#|$)"
-                match = re.search(pattern, response, re.DOTALL)
-                if not match:
-                    print(f"[{self.__class__.__name__}] {section} section not found in LLM response")
-                    continue
+            context = {
+                "management": self.current_content,
+                "other_files": self.other_files
+            }
+            
+            response = self._get_llm_response(context)
+            
+            if response != self.current_content:
+                self.logger(f"[{self.__class__.__name__}] Modifications détectées, tentative de mise à jour...")
+                temp_content = self.current_content
+                sections = ["Consignes Actuelles", "TodoList", "Actions Réalisées"]
+                
+                for section in sections:
+                    pattern = f"# {section}\n(.*?)(?=\n#|$)"
+                    match = re.search(pattern, response, re.DOTALL)
+                    if not match:
+                        self.logger(f"[{self.__class__.__name__}] ❌ Section '{section}' non trouvée dans la réponse LLM")
+                        continue
+                        
+                    new_section_content = match.group(1).strip()
+                    result = SearchReplace.section_replace(
+                        temp_content,
+                        section,
+                        new_section_content
+                    )
                     
-                new_section_content = match.group(1).strip()
-                result = SearchReplace.section_replace(
-                    temp_content,
-                    section,
-                    new_section_content
-                )
-                if result.success:
-                    temp_content = result.new_content
-                    
-            self.new_content = temp_content
+                    if result.success:
+                        temp_content = result.new_content
+                        self.logger(f"[{self.__class__.__name__}] ✓ Section '{section}' mise à jour avec succès")
+                    else:
+                        self.logger(f"[{self.__class__.__name__}] ❌ Échec de la mise à jour de la section '{section}': {result.message}")
+                
+                self.new_content = temp_content
+                self.logger(f"[{self.__class__.__name__}] ✓ Mise à jour complète effectuée")
+            else:
+                self.logger(f"[{self.__class__.__name__}] Aucune modification nécessaire")
+                
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'analyse: {str(e)}")
+            import traceback
+            self.logger(traceback.format_exc())
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response for management decisions"""

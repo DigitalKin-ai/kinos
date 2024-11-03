@@ -13,20 +13,31 @@ class ProductionAgent(ParallagonAgent):
     def __init__(self, config):
         super().__init__(config)
         self.client = anthropic.Anthropic(api_key=config["anthropic_api_key"])
+        self.logger = config.get("logger", print)
 
     def determine_actions(self) -> None:
         """Analyze requirements and implement needed code changes"""
-        print(f"[{self.__class__.__name__}] Analyzing...")
-        
-        context = {
-            "production": self.current_content,
-            "other_files": self.other_files
-        }
-        
-        response = self._get_llm_response(context)
-        
-        if response != self.current_content:
-            self.new_content = response
+        try:
+            self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
+            
+            context = {
+                "production": self.current_content,
+                "other_files": self.other_files
+            }
+            
+            response = self._get_llm_response(context)
+            
+            if response != self.current_content:
+                self.logger(f"[{self.__class__.__name__}] Modifications détectées, tentative de mise à jour...")
+                self.new_content = response
+                self.logger(f"[{self.__class__.__name__}] ✓ Mise à jour complète effectuée")
+            else:
+                self.logger(f"[{self.__class__.__name__}] Aucune modification nécessaire")
+                
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'analyse: {str(e)}")
+            import traceback
+            self.logger(traceback.format_exc())
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response for implementation decisions"""
