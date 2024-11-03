@@ -329,6 +329,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
     def stop_agents(self):
         """Arrêt des agents"""
         self.running = False
+        self.updating = False  # Arrêter la boucle de mise à jour
         
         # Arrêter chaque agent
         for name, agent in self.agents.items():
@@ -339,6 +340,10 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 self.log_message(f"✓ Agent {name} arrêté")
             except Exception as e:
                 self.log_message(f"❌ Erreur lors de l'arrêt de l'agent {name}: {e}")
+        
+        # Attendre que la boucle de mise à jour se termine
+        if hasattr(self, 'update_thread'):
+            self.update_thread.join(timeout=2)
         
         self.agent_threads.clear()  # Clear thread dictionary
         self.start_button.config(state=tk.NORMAL)
