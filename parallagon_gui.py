@@ -155,6 +155,14 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         }
         self.tab_flash_tasks = {}
 
+        # Mapping entre les noms de fichiers et les noms de panneaux
+        self.panel_mapping = {
+            "specifications": "Specification",
+            "management": "Management", 
+            "production": "Production",
+            "evaluation": "Evaluation"
+        }
+
         self._setup_styles()
         
         # Configuration de la fenêtre
@@ -168,39 +176,41 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         # Initialisation du contenu des panneaux
         self.log_message("🚀 Initialisation des panneaux...")
         
-        for name, file_path in self.FILE_PATHS.items():
+        for file_key, file_path in self.FILE_PATHS.items():
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content = f.read()
                     
                     # Traitement spécial pour le panneau Demande
-                    if name == "demande":
-                        if hasattr(self, 'demand_text'):  # Vérifier que le widget existe
+                    if file_key == "demande":
+                        if hasattr(self, 'demand_text'):
                             self.demand_text.delete("1.0", tk.END)
                             self.demand_text.insert("1.0", content)
                             self.log_message(f"✓ Panneau Demande initialisé")
                     
                     # Traitement pour les autres panneaux
-                    elif name in self.agent_panels:
-                        if name in self.agent_panels:  # Vérifier que le panneau existe
-                            self.agent_panels[name].text.delete("1.0", tk.END)
-                            self.agent_panels[name].text.insert("1.0", content)
-                            self.log_message(f"✓ Panneau {name} initialisé")
-                    
+                    elif file_key in self.panel_mapping:
+                        panel_name = self.panel_mapping[file_key]
+                        if panel_name in self.agent_panels:
+                            self.agent_panels[panel_name].text.delete("1.0", tk.END)
+                            self.agent_panels[panel_name].text.insert("1.0", content)
+                            self.log_message(f"✓ Panneau {panel_name} initialisé")
+                
             except FileNotFoundError:
                 self.log_message(f"⚠️ Fichier {file_path} non trouvé, utilisation du contenu par défaut")
-                # Utiliser le contenu par défaut du FileManager
-                default_content = self.file_manager._get_initial_contents().get(name, "")
+                default_content = self.file_manager._get_initial_contents().get(file_key, "")
                 
-                if name == "demande" and hasattr(self, 'demand_text'):
+                if file_key == "demande" and hasattr(self, 'demand_text'):
                     self.demand_text.delete("1.0", tk.END)
                     self.demand_text.insert("1.0", default_content)
-                elif name in self.agent_panels:
-                    self.agent_panels[name].text.delete("1.0", tk.END)
-                    self.agent_panels[name].text.insert("1.0", default_content)
+                elif file_key in self.panel_mapping:
+                    panel_name = self.panel_mapping[file_key]
+                    if panel_name in self.agent_panels:
+                        self.agent_panels[panel_name].text.delete("1.0", tk.END)
+                        self.agent_panels[panel_name].text.insert("1.0", default_content)
                     
             except Exception as e:
-                self.log_message(f"❌ Erreur lors de l'initialisation de {name}: {str(e)}")
+                self.log_message(f"❌ Erreur lors de l'initialisation de {file_key}: {str(e)}")
         
         self.log_message("✓ Initialisation des panneaux terminée")
         
