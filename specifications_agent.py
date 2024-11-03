@@ -102,6 +102,7 @@ class SpecificationsAgent(ParallagonAgent):
 - Evaluation Agent: validates quality and compliance
 
 Your role is to define the expected output and success criteria that will guide the other agents' work.
+You must also maintain the document structure template in production.md.
 
 Current specifications content:
 {context['specifications']}
@@ -113,12 +114,27 @@ Your task:
 1. Define the expected output format and content
 2. Establish detailed success criteria
 3. Update based on new requirements
+4. Create and maintain document structure
 
 Important:
-- Return ONLY the markdown content with exactly these 2 sections:
+- Return ONLY the markdown content with exactly these 3 sections:
 
 # Spécification de Sortie
 [Detailed description of expected output]
+
+# Structure du Document
+[Create or update the exact structure that Production Agent should follow]
+- Use # for main sections
+- Use ## for subsections
+- Use ### for sub-subsections
+- Add (empty) after each section title to indicate where content should go
+- Example:
+# Executive Summary
+(empty)
+## Technologies Clés
+(empty)
+## Impacts Majeurs
+(empty)
 
 # Critères de Succès
 - Main criterion 1
@@ -133,6 +149,8 @@ Guidelines:
 - Use hierarchical bullet points
 - Focus on output quality
 - Include all relevant constraints
+- Maintain complete document structure
+- Update structure when requirements change
 
 If changes are needed, return the complete updated content.
 If no changes are needed, return the exact current content."""
