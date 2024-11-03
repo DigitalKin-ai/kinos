@@ -170,7 +170,22 @@ class ManagementAgent(ParallagonAgent):
         return "\n".join(result)
 
     def _build_prompt(self, context: dict) -> str:
-        """Build the prompt for the LLM"""
+        """
+        Build prompt for management coordination.
+        
+        Includes:
+        - Current project status
+        - Agent activities and needs
+        - Task priorities and dependencies
+        - Coordination requirements
+        - Resource allocation guidance
+        
+        Args:
+            context: Current project state
+            
+        Returns:
+            str: Management coordination prompt
+        """
         # Extract sections and their constraints from specifications
         specs_content = context.get("other_files", {}).get("specifications.md", "")
         sections_data = []
