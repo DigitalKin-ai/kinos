@@ -472,14 +472,18 @@ Résumez en une phrase précise ce qui a changé. Soyez factuel et concis."""
         self.log_text.tag_config('info', foreground='#2196F3')       # Bleu pour les infos
         self.log_text.tag_config('reset', foreground='#FF9800')      # Orange pour les resets
         self.log_text.tag_config('changes', foreground='#9C27B0')    # Violet pour les résumés de changements
+        self.log_text.tag_config('no_changes', foreground='#808080') # Gris pour les messages "aucun changement"
         
         # Détermination du type de message et de l'icône
         if "❌" in message:
             tag = 'error'
-        elif "✓" in message and any(panel in message for panel in ["Specification", "Evaluation", "Management", "Production", "Demande"]):
-            tag = 'changes'  # Nouveau tag pour les résumés de changements
         elif "✓" in message:
-            tag = 'success'
+            if "Aucun changement" in message:
+                tag = 'no_changes'  # Nouveau tag pour les messages sans changement
+            elif any(panel in message for panel in ["Specification", "Evaluation", "Management", "Production", "Demande"]):
+                tag = 'changes'
+            else:
+                tag = 'success'
         elif "✨" in message:
             tag = 'reset'
         else:
