@@ -159,7 +159,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.panel_mapping = {
             "specifications": "Specification",
             "management": "Management", 
-            "production": "Production",
+            "production": "Production",  # Ajout de production
             "evaluation": "Evaluation"
         }
 
