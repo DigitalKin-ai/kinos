@@ -20,6 +20,20 @@ def error_handler(func):
             self.logger(traceback.format_exc())
             return args[0].get('production', '') if args else ''
     return wrapper
+from functools import wraps
+
+def error_handler(func):
+    """Decorator for handling errors in agent methods"""
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Error: {str(e)}")
+            import traceback
+            self.logger(traceback.format_exc())
+            return args[0].get('production', '') if args else ''
+    return wrapper
 
 class ProductionAgent(ParallagonAgent):
     """Agent handling code production and implementation"""
