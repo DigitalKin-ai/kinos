@@ -273,22 +273,6 @@ class ManagementAgent(ParallagonAgent):
         Returns:
             str: Management coordination prompt
         """
-        """
-        Build prompt for management coordination.
-        
-        Includes:
-        - Current project status
-        - Agent activities and needs
-        - Task priorities and dependencies
-        - Coordination requirements
-        - Resource allocation guidance
-        
-        Args:
-            context: Current project state
-            
-        Returns:
-            str: Management coordination prompt
-        """
         # Extract sections and their constraints from specifications
         specs_content = context.get("other_files", {}).get("specifications.md", "")
         sections_data = []
@@ -314,7 +298,6 @@ class ManagementAgent(ParallagonAgent):
 1. Analyser la demande, les spécifications et l'état actuel
 2. Définir et prioriser les tâches par section en tenant compte des contraintes
 3. Suivre l'avancement et adapter le plan selon les évaluations
-4. Coordonner le travail entre les différentes sections
 
 Contexte actuel :
 {self._format_other_files(context['other_files'])}
@@ -322,40 +305,31 @@ Contexte actuel :
 Sections du template et leurs contraintes :
 {sections_list}
 
-État de l'évaluation :
-{eval_status}
-
-Instructions :
-1. Analysez tous les documents pour comprendre l'état actuel et les blocages
-2. Pour chaque section du template :
-   - Identifiez les tâches nécessaires pour respecter les contraintes
-   - Priorisez les tâches selon l'évaluation actuelle
-   - Proposez des actions correctives si nécessaire
-3. Donnez des consignes claires et actionnables
-
-Format attendu :
+Format attendu STRICT à respecter :
 
 # Consignes Actuelles
-[Consignes précises pour la prochaine étape]
-- Section concernée : [nom de la section]
-- Objectif : [but à atteindre]
-- Points d'attention : [éléments critiques à surveiller]
+[section: nom_section]
+[objectif: description_objectif]
+[attention: points_critiques]
 
 # TodoList
-[Section 1 - Contraintes principales]
-- [ ] Tâche 1.1 (Priorité: Haute/Moyenne/Basse)
-- [ ] Tâche 1.2 (Priorité: Haute/Moyenne/Basse)
+[section: Section 1]
+[contraintes: contraintes_principales]
+- [ ] [priority: HIGH] Tâche 1.1
+- [ ] [priority: MEDIUM] Tâche 1.2
+- [ ] [priority: LOW] Tâche 1.3
 
-[Section 2 - Contraintes principales]
-- [ ] Tâche 2.1 (Priorité: Haute/Moyenne/Basse)
-- [ ] Tâche 2.2 (Priorité: Haute/Moyenne/Basse)
+[section: Section 2]
+[contraintes: contraintes_principales]
+- [ ] [priority: HIGH] Tâche 2.1
+- [ ] [priority: MEDIUM] Tâche 2.2
 
 # Actions Réalisées
-- [timestamp] Action effectuée (Section: nom_section | Impact: description_impact)
+[timestamp: YYYY-MM-DD HH:mm] [section: nom_section] [impact: description_impact] Action effectuée
 
-Règles :
-- Organisez les tâches par section avec leurs contraintes principales
-- Priorisez les tâches selon l'évaluation et les blocages identifiés
-- Indiquez toujours la section concernée et l'impact attendu
-- Soyez précis et concis dans les descriptions
-- Gardez une trace des actions avec leur section et leur impact"""
+Règles STRICTES de formatage :
+1. Chaque section doit commencer par [section: nom]
+2. Les priorités doivent être exactement HIGH, MEDIUM ou LOW
+3. Le format timestamp doit être YYYY-MM-DD HH:mm
+4. Chaque attribut doit être entre crochets avec le format [clé: valeur]
+5. Les tâches doivent commencer par "- [ ] " (avec les espaces)"""
