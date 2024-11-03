@@ -75,7 +75,7 @@ class ParallagonAgent:
         return True
 
 
-    @error_handler
+    @agent_error_handler("read_files")
     def read_files(self) -> None:
         """Read all relevant files for the agent"""
         with open(self.file_path, 'r', encoding='utf-8') as f:
@@ -86,7 +86,7 @@ class ParallagonAgent:
             with open(file_path, 'r', encoding='utf-8') as f:
                 self.other_files[file_path] = f.read()
 
-    @error_handler
+    @agent_error_handler("analyze")
     def analyze(self) -> None:
         """Analyze changes and signals"""
         # Extract current status
@@ -173,7 +173,7 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
                     
         return context[self.__class__.__name__.lower().replace('agent', '')]
 
-    @error_handler
+    @agent_error_handler("update")
     def update(self) -> None:
         """Make necessary updates to files"""
         if hasattr(self, 'new_content') and self.new_content != self.current_content:
