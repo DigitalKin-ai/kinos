@@ -71,7 +71,8 @@ class SearchReplace:
         try:
             # Échapper les caractères spéciaux dans le titre de section, sauf les #
             escaped_name = re.escape(section_name).replace(r'\#', '#')
-            pattern = f"{escaped_name}\n(.*?)(?=\n#{1,6}\s|$)"
+            # Utiliser un raw string pour l'expression régulière
+            pattern = fr"{escaped_name}\n(.*?)(?=\n#{{1,6}}\s|$)"
             matches = list(re.finditer(pattern, content, re.DOTALL))
             
             if not matches:
