@@ -126,22 +126,6 @@ class CollapsibleSection(ttk.Frame):
                 ).pack(anchor=tk.W, padx=5, pady=2)
         self.section.todo = todos
         
-    def update_todos(self, todos: list):
-        """Update todos display"""
-        if hasattr(self, 'todos_frame'):
-            self.todos_frame.destroy()
-            
-        if todos:
-            self.todos_frame = ttk.Frame(self.content_frame)
-            self.todos_frame.pack(fill=tk.X, pady=(5,0))
-            ttk.Label(self.todos_frame, text="Tâches:").pack(anchor=tk.W)
-            for task in todos:
-                ttk.Label(
-                    self.todos_frame,
-                    text=f"• {task}",
-                    wraplength=400
-                ).pack(anchor=tk.W)
-        self.section.todo = todos
 """
 CollapsibleSection - Collapsible section widget for Parallagon GUI
 """
