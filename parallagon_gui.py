@@ -337,19 +337,39 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         """Extrait les sections et leurs contraintes depuis specifications.md"""
         sections = {}
         current_section = None
+        current_subsection = None
         constraints = ""
         
         for line in specs_content.split('\n'):
+            # Gestion des titres de niveau 1
             if line.startswith('# '):
                 if current_section:
-                    sections[current_section] = {"constraints": constraints.strip()}
+                    if not sections.get(current_section):
+                        sections[current_section] = {"constraints": constraints.strip()}
                 current_section = line[2:].strip()
+                current_subsection = None
                 constraints = ""
+                if current_section not in sections:
+                    sections[current_section] = {"constraints": "", "content": ""}
+            
+            # Gestion des titres de niveau 2
+            elif line.startswith('## '):
+                if current_section:
+                    current_subsection = line[3:].strip()
+                    if current_subsection not in sections:
+                        sections[current_subsection] = {"constraints": "", "content": ""}
+            
+            # Gestion des contraintes
             elif line.startswith('[contraintes:'):
                 constraints = line[12:-1].strip()
+                if current_section:
+                    if current_subsection:
+                        sections[current_subsection]["constraints"] = constraints
+                    else:
+                        sections[current_section]["constraints"] = constraints
         
         # Ajouter la dernière section
-        if current_section:
+        if current_section and not sections.get(current_section):
             sections[current_section] = {"constraints": constraints.strip()}
                 
         return sections
@@ -357,20 +377,36 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
     def _add_production_content(self, sections_data: dict, prod_content: str):
         """Ajoute le contenu de production aux sections"""
         current_section = None
+        current_subsection = None
         current_content = []
         
         for line in prod_content.split('\n'):
+            # Gestion des titres de niveau 1
             if line.startswith('# '):
                 if current_section and current_section in sections_data:
                     sections_data[current_section]["content"] = '\n'.join(current_content).strip()
                 current_section = line[2:].strip()
+                current_subsection = None
                 current_content = []
+            
+            # Gestion des titres de niveau 2
+            elif line.startswith('## '):
+                if current_section:
+                    if current_subsection and current_subsection in sections_data:
+                        sections_data[current_subsection]["content"] = '\n'.join(current_content).strip()
+                    current_subsection = line[3:].strip()
+                    current_content = []
+            
+            # Ajout du contenu
             else:
                 current_content.append(line)
-                
+        
         # Ajouter le dernier contenu
-        if current_section and current_section in sections_data:
-            sections_data[current_section]["content"] = '\n'.join(current_content).strip()
+        if current_section:
+            if current_subsection and current_subsection in sections_data:
+                sections_data[current_subsection]["content"] = '\n'.join(current_content).strip()
+            elif current_section in sections_data:
+                sections_data[current_section]["content"] = '\n'.join(current_content).strip()
 
     def _update_sections_display(self, sections_data: dict):
         """Met à jour l'affichage des sections"""
@@ -382,9 +418,13 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         
         # Mettre à jour ou créer les sections
         for title, data in sections_data.items():
+            # Ignorer les sections vides
+            if not data.get("constraints") and not data.get("content"):
+                continue
+                
             section = Section(
                 title=title,
-                constraints=data["constraints"],
+                constraints=data.get("constraints", ""),
                 content=data.get("content", ""),
                 todo=data.get("todo", [])
             )
@@ -392,7 +432,8 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             if title in self.sections:
                 # Mettre à jour la section existante
                 self.sections[title].update_content(data.get("content", ""))
-                self.sections[title].update_todos(data.get("todo", []))
+                if hasattr(self.sections[title], 'update_todos'):
+                    self.sections[title].update_todos(data.get("todo", []))
             else:
                 # Créer une nouvelle section
                 collapsible = CollapsibleSection(
