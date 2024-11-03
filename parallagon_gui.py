@@ -16,7 +16,89 @@ class ParallagonGUI:
 ## 1. Contexte de la demande
 
 ### Demandeur de la revue
-[...]"""  # Insérez ici tout le texte que vous avez fourni
+- Nom, prénom : Dupont, Marie
+- Fonction : Responsable Innovation
+- Département : R&D
+- Mail : m.dupont@entreprise.com
+
+### Destinataire principal
+[x] Équipe/service spécifique : Division Innovation & Stratégie Digitale
+
+### But d'usage
+[x] Support pour prise de décision
+*Précision : Aide à la définition de notre stratégie d'intégration des IA génératives dans notre processus de production musicale*
+
+### Qualité principale attendue
+[x] Rigueur du raisonnement
+*Critère de succès : La revue permet d'identifier clairement les opportunités et risques liés à l'IA générative en musique, avec une argumentation solide pour chaque point.*
+
+### Niveau de profondeur
+[x] Approfondi (10-15 pages)
+
+## 2. Spécification de la demande
+
+### Sujet de synthèse
+Réaliser une revue approfondie des impacts actuels et potentiels de l'IA générative sur l'industrie musicale, en se concentrant sur les aspects créatifs, économiques et juridiques.
+
+### Objectif principal
+Être capable de comprendre et d'anticiper les transformations majeures que l'IA générative apportera à l'industrie musicale dans les 5 prochaines années.
+
+### Axes d'analyse spécifiques
+- Axe 1 : Être capable d'identifier les principales technologies d'IA générative en musique et leurs capacités actuelles/futures
+- Axe 2 : Être capable d'évaluer l'impact économique sur les différents acteurs de l'industrie musicale (artistes, labels, plateformes)
+- Axe 3 : Être capable de comprendre les enjeux juridiques et éthiques liés à l'utilisation de l'IA en création musicale
+
+### Domaines de connaissances
+1. Technologies de l'IA
+2. Industrie musicale
+3. Économie numérique
+4. Droit de la propriété intellectuelle
+5. Éthique des technologies
+
+## 3. Contraintes de format
+
+### Structure demandée
+1. Executive Summary
+   - Synthèse des technologies clés
+   - Impacts majeurs identifiés
+   - Recommandations stratégiques
+
+2. Corps principal structuré par axes
+   - Technologies et capacités
+   - Impact économique
+   - Enjeux juridiques et éthiques
+
+3. Annexes
+   - Glossaire technique
+   - Scénarios prospectifs
+
+### Spécifications formelles
+- Respect de toutes les contraintes de format standard du template
+- Maximum 3 figures illustratives par axe
+- Inclusion d'un tableau récapitulatif par section
+
+### Éléments spécifiques requis
+- Matrice SWOT pour l'industrie musicale face à l'IA
+- Timeline prévisionnelle des évolutions technologiques
+- Framework d'évaluation des risques et opportunités
+
+## 4. Limitations et avertissements
+
+### Précisions sur la nature des connaissances
+Je comprends que cette synthèse sera basée uniquement sur les connaissances intégrées du LLM, sans recherche externe. Une attention particulière est demandée pour :
+- Identifier clairement les zones d'incertitude
+- Distinguer les faits établis des projections
+- Signaler les domaines nécessitant une validation externe
+
+### Validation requise
+[x] Vérification des concepts clés
+[x] Confirmation des conclusions principales
+[x] Identification des zones d'incertitude
+
+### Notes additionnelles
+- Privilégier les exemples concrets pour illustrer les concepts
+- Inclure des points de vue contradictoires quand ils existent
+- Mettre en évidence les questions ouvertes et débats en cours"""
 
     def __init__(self, config: Dict[str, Any]):
         self.root = tk.Tk()
