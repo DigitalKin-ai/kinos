@@ -429,38 +429,71 @@ Règles ABSOLUES :
 
 IMPORTANT : Vous devez créer TOUTES les sections nécessaires, pas seulement la première !"""
     def _parse_template_structure(self, content: str) -> dict:
-        """Parse le contenu du template en structure hiérarchique"""
+        """Parse le contenu du template en sections distinctes"""
         structure = {}
         current_section = None
-        current_subsection = None
+        lines = content.split('\n')
+        i = 0
         
-        for line in content.split('\n'):
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            # Nouvelle section principale
             if line.startswith('# '):
                 current_section = line[2:].strip()
                 structure[current_section] = {
                     'constraints': '',
+                    'content': '',
                     'subsections': {}
                 }
-                current_subsection = None
                 
+                # Collecter le contenu jusqu'au prochain délimiteur
+                content_lines = []
+                i += 1
+                while i < len(lines) and not lines[i].strip().startswith(('#')):
+                    content_line = lines[i].strip()
+                    if content_line.startswith('[contraintes:'):
+                        structure[current_section]['constraints'] = content_line[12:-1].strip()
+                    elif content_line:
+                        content_lines.append(content_line)
+                    i += 1
+                i -= 1  # Reculer d'une ligne pour le prochain tour
+                
+                structure[current_section]['content'] = '\n'.join(content_lines)
+                
+            # Sous-section
             elif line.startswith('## '):
-                current_subsection = line[3:].strip()
-                structure[current_section]['subsections'][current_subsection] = {
-                    'constraints': '',
-                    'subsubsections': []
-                }
-                
-            elif line.startswith('### '):
-                if current_subsection:
-                    subsubsection = line[4:].strip()
-                    structure[current_section]['subsections'][current_subsection]['subsubsections'].append(subsubsection)
+                if current_section:
+                    subsection_name = line[3:].strip()
+                    structure[current_section]['subsections'][subsection_name] = {
+                        'constraints': '',
+                        'content': '',
+                        'subsubsections': []
+                    }
                     
-            elif line.startswith('[contraintes:'):
-                constraints = line[12:-1].strip()
-                if current_subsection:
-                    structure[current_section]['subsections'][current_subsection]['constraints'] = constraints
-                else:
-                    structure[current_section]['constraints'] = constraints
+                    # Collecter le contenu jusqu'au prochain délimiteur
+                    content_lines = []
+                    i += 1
+                    while i < len(lines) and not lines[i].strip().startswith(('#')):
+                        content_line = lines[i].strip()
+                        if content_line.startswith('[contraintes:'):
+                            structure[current_section]['subsections'][subsection_name]['constraints'] = content_line[12:-1].strip()
+                        elif content_line:
+                            content_lines.append(content_line)
+                        i += 1
+                    i -= 1  # Reculer d'une ligne pour le prochain tour
+                    
+                    structure[current_section]['subsections'][subsection_name]['content'] = '\n'.join(content_lines)
+                    
+            # Point détaillé
+            elif line.startswith('### '):
+                if current_section:
+                    last_subsection = list(structure[current_section]['subsections'].keys())[-1] if structure[current_section]['subsections'] else None
+                    if last_subsection:
+                        subsubsection = line[4:].strip()
+                        structure[current_section]['subsections'][last_subsection]['subsubsections'].append(subsubsection)
+            
+            i += 1
         
         return structure
     def _build_hierarchical_content(self, template_structure: dict) -> str:
