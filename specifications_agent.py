@@ -154,10 +154,6 @@ class SpecificationsAgent(ParallagonAgent):
                 else:
                     # Ajouter nouvelle section avec placeholder
                     new_content.append(f"# {section}\n[En attente de contenu]")
-                    
-                elif line.startswith('[contraintes:'):
-                    # Ignorer les contraintes dans la sortie
-                    continue
             
             for line in template.split('\n'):
                 if line.startswith('# '):  # Section principale
