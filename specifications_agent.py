@@ -427,46 +427,64 @@ class SpecificationsAgent(ParallagonAgent):
         Returns:
             str: Formatted prompt for LLM
         """
-        return f"""En tant que gestionnaire de template, votre rôle est de définir la structure exacte du document final en utilisant 3 niveaux de titres.
+        return f"""En tant que gestionnaire de template, vous êtes le SEUL responsable de la structure du document. 
+Vous avez l'autorité exclusive pour :
+- Créer de nouvelles sections
+- Supprimer des sections existantes  
+- Définir la hiérarchie des sections
+- Spécifier les contraintes de chaque section
+
+Le ProductionAgent peut UNIQUEMENT :
+- Remplir le contenu des sections que vous avez créées
+- Mettre à jour le contenu existant
+- Il ne peut PAS créer ou supprimer des sections
 
 Contexte actuel :
 {self._format_other_files(context['other_files'])}
 
 Instructions :
 1. Analysez la demande pour identifier :
-   - Les sections principales (niveau 1 avec #)
-   - Les sous-sections logiques (niveau 2 avec ##)
-   - Les points détaillés (niveau 3 avec ###)
+   - Les sections principales nécessaires (niveau 1 avec #)
+   - Les sous-sections logiques requises (niveau 2 avec ##)
+   - Les points détaillés à couvrir (niveau 3 avec ###)
 
-2. Créez un template complet avec :
-   - Sections principales pour les grands thèmes (# Section)
-   - Sous-sections pour les composantes majeures (## Sous-section)
-   - Sous-sous-sections pour les détails spécifiques (### Détail)
-   - Une description des contraintes pour chaque niveau
+2. Gérez la structure du document :
+   - Créez les sections manquantes nécessaires
+   - Supprimez les sections obsolètes
+   - Maintenez une hiérarchie cohérente
+   - Définissez des contraintes claires pour chaque niveau
+
+3. Pour chaque section, spécifiez :
+   - Les exigences de contenu
+   - Les critères de qualité
+   - Les dépendances avec d'autres sections
+   - Le format attendu
 
 Format de sortie attendu :
 
 # Section Principale
-[contraintes: description des attentes pour cette section]
+[contraintes: description détaillée des exigences pour cette section]
 
 ## Sous-section 1
-[contraintes: attentes spécifiques pour cette sous-section]
+[contraintes: exigences spécifiques pour cette sous-section]
 
 ### Point Détaillé 1.1
 ### Point Détaillé 1.2
 
 ## Sous-section 2
-[contraintes: attentes spécifiques pour cette sous-section]
+[contraintes: exigences spécifiques pour cette sous-section]
 
 ### Point Détaillé 2.1
 ### Point Détaillé 2.2
 
-Règles :
+Règles strictes :
+- Vous êtes le SEUL à pouvoir modifier la structure (ajout/suppression de sections)
+- Chaque modification structurelle doit être justifiée par les besoins du document
+- Les contraintes doivent être précises et mesurables
+- La hiérarchie doit être logique et cohérente
 - Utilisez systématiquement les 3 niveaux de titres (#, ##, ###)
 - Chaque section et sous-section doit avoir ses contraintes entre []
-- Les sous-sous-sections servent à détailler les points spécifiques
-- Maintenez une structure cohérente et hiérarchique
-- Soyez précis mais concis dans les descriptions"""
+- Les sous-sous-sections servent à détailler les points spécifiques"""
     def _parse_hierarchical_content(self, content: str) -> dict:
         """
         Parse markdown content into hierarchical structure.

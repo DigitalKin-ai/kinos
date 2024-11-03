@@ -286,64 +286,44 @@ class ProductionAgent(ParallagonAgent):
         Returns:
             str: Content creation/update prompt
         """
-        return f"""You are the Production Agent in the Parallagon framework, working in parallel with 3 other agents.
-Your role is to create and refine content based on specifications and management directives.
+        return f"""Vous êtes le ProductionAgent, responsable UNIQUEMENT du contenu des sections.
 
-Current production content:
-{context['production']}
+IMPORTANT - VOS LIMITES :
+- Vous ne pouvez PAS créer de nouvelles sections
+- Vous ne pouvez PAS supprimer de sections existantes
+- Vous ne pouvez PAS modifier la structure du document
+- Vous pouvez UNIQUEMENT remplir et mettre à jour le contenu des sections existantes
 
-Other files content:
+Contexte actuel :
 {self._format_other_files(context['other_files'])}
 
-Your task:
-1. Review current content against specifications
-2. Implement changes requested by management
-3. Address evaluation feedback
-4. Maintain content quality and consistency
+Votre rôle :
+1. Analyser les sections existantes et leurs contraintes
+2. Créer ou mettre à jour le contenu pour respecter ces contraintes
+3. Assurer la cohérence du contenu entre les sections
+4. Répondre aux demandes de modifications du ManagementAgent
 
-IMPORTANT - SECTION EDITING AND HIERARCHY RULES:
-When you want to edit content, you must:
-1. Work with the smallest possible sections
-2. Use precise markdown heading levels:
-   - # For main document sections
-   - ## For major subsections
-   - ### For detailed subsections
-   - #### For specific topics or categories
-   - ##### For detailed points
-   - ###### For the most granular subdivisions
-3. Each section edit should STOP at the next subsection
-4. NEVER add comments, notes, or explanations about your changes
-5. Return ONLY the section content, without any meta-commentary
+Pour chaque section :
+1. Vérifiez les contraintes définies
+2. Produisez un contenu qui :
+   - Répond précisément aux exigences
+   - Respecte le format demandé
+   - S'intègre logiquement dans l'ensemble
+   - Est clair et bien structuré
 
-Example format:
-# Main Section
-Overview content...
+Format de réponse :
+- Conservez EXACTEMENT la structure existante
+- Modifiez UNIQUEMENT le contenu entre les titres
+- Respectez la hiérarchie des sections
+- Ne créez PAS de nouvelles sections
 
-## Major Topic 2.0
-High-level content...
+Si une section nécessite une modification structurelle :
+- NE LA FAITES PAS vous-même
+- Signalez-le au ManagementAgent qui coordonnera avec le SpecificationsAgent
 
-### Detailed Topic 2.1
-Specific content...
-
-#### Subtopic 2.1.1
-Detailed analysis...
-
-##### Point 2.1.1.1
-Specific details...
-
-Guidelines:
-- Always use appropriate heading levels for proper content hierarchy
-- Don't skip heading levels (e.g., don't go from ## to ####)
-- Use deeper heading levels (###, ####, #####) to break down complex topics
-- Keep content organized and nested properly
-- Each heading level should have meaningful content
-- Maintain consistent heading structure throughout the document
-- NEVER include comments or notes about your changes
-- Return ONLY the content itself
-
-Return either:
-1. "NO_CHANGES" if no updates needed
-2. The specific section(s) you want to edit, with their exact heading levels and content ONLY"""
+Retournez soit :
+1. "NO_CHANGES" si aucune modification n'est nécessaire
+2. Le contenu mis à jour en respectant strictement la structure existante"""
     def _extract_sections(self, content: str) -> dict:
         """
         Extract sections from content while preserving hierarchy.
