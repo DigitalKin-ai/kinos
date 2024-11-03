@@ -109,9 +109,10 @@ Nouveau texte...
             
             content = response.content[0].text
             if content == "NO_CHANGES":
+                print(f"[{self.__class__.__name__}] No changes needed")
                 return context['production']
                 
-            # Process SEARCH/REPLACE pairs with improved error handling
+            # Process SEARCH/REPLACE pairs
             new_content = context['production']
             pairs = re.findall(r'SEARCH<<<\n(.*?)\n>>>\n\nREPLACE<<<\n(.*?)\n>>>', content, re.DOTALL)
             
@@ -119,11 +120,11 @@ Nouveau texte...
                 print(f"[{self.__class__.__name__}] No valid SEARCH/REPLACE pairs found in response")
                 return context['production']
                 
+            changes_made = False
             for i, (search, replace) in enumerate(pairs, 1):
                 search = search.strip()
                 replace = replace.strip()
                 
-                # Validate the search string exists exactly once
                 valid, message, count = SearchReplace.validate_replacement(new_content, search)
                 if not valid:
                     print(f"[{self.__class__.__name__}] Pair {i}: {message}")
@@ -133,14 +134,16 @@ Nouveau texte...
                     result = SearchReplace.exact_replace(new_content, search, replace)
                     if result.success:
                         new_content = result.new_content
+                        changes_made = True
                         print(f"[{self.__class__.__name__}] Successfully applied replacement {i}")
                     else:
                         print(f"[{self.__class__.__name__}] Failed to apply replacement {i}: {result.message}")
                 except Exception as e:
                     print(f"[{self.__class__.__name__}] Error processing pair {i}: {str(e)}")
                     continue
-                    
-            return new_content
+            
+            # Only return new content if changes were actually made
+            return new_content if changes_made else context['production']
             
         except Exception as e:
             print(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")
