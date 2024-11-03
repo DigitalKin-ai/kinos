@@ -345,32 +345,45 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             if line.startswith('# '):
                 if current_section:
                     if not sections.get(current_section):
-                        sections[current_section] = {"constraints": constraints.strip()}
+                        sections[current_section] = {
+                            "constraints": constraints.strip(),
+                            "subsections": {}
+                        }
                 current_section = line[2:].strip()
                 current_subsection = None
                 constraints = ""
                 if current_section not in sections:
-                    sections[current_section] = {"constraints": "", "content": ""}
-            
+                    sections[current_section] = {
+                        "constraints": "",
+                        "content": "",
+                        "subsections": {}
+                    }
+        
             # Gestion des titres de niveau 2
             elif line.startswith('## '):
+                current_subsection = line[3:].strip()
                 if current_section:
-                    current_subsection = line[3:].strip()
-                    if current_subsection not in sections:
-                        sections[current_subsection] = {"constraints": "", "content": ""}
-            
+                    if current_subsection not in sections[current_section]["subsections"]:
+                        sections[current_section]["subsections"][current_subsection] = {
+                            "constraints": "",
+                            "content": ""
+                        }
+        
             # Gestion des contraintes
             elif line.startswith('[contraintes:'):
                 constraints = line[12:-1].strip()
                 if current_section:
                     if current_subsection:
-                        sections[current_subsection]["constraints"] = constraints
+                        sections[current_section]["subsections"][current_subsection]["constraints"] = constraints
                     else:
                         sections[current_section]["constraints"] = constraints
-        
+
         # Ajouter la dernière section
         if current_section and not sections.get(current_section):
-            sections[current_section] = {"constraints": constraints.strip()}
+            sections[current_section] = {
+                "constraints": constraints.strip(),
+                "subsections": {}
+            }
                 
         return sections
 
@@ -383,8 +396,13 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         for line in prod_content.split('\n'):
             # Gestion des titres de niveau 1
             if line.startswith('# '):
-                if current_section and current_section in sections_data:
-                    sections_data[current_section]["content"] = '\n'.join(current_content).strip()
+                if current_section:
+                    if current_subsection:
+                        if current_section in sections_data and current_subsection in sections_data[current_section]["subsections"]:
+                            sections_data[current_section]["subsections"][current_subsection]["content"] = '\n'.join(current_content).strip()
+                    else:
+                        if current_section in sections_data:
+                            sections_data[current_section]["content"] = '\n'.join(current_content).strip()
                 current_section = line[2:].strip()
                 current_subsection = None
                 current_content = []
@@ -392,7 +410,26 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             # Gestion des titres de niveau 2
             elif line.startswith('## '):
                 if current_section:
-                    if current_subsection and current_subsection in sections_data:
+                    if current_subsection:
+                        if current_section in sections_data and current_subsection in sections_data[current_section]["subsections"]:
+                            sections_data[current_section]["subsections"][current_subsection]["content"] = '\n'.join(current_content).strip()
+                    else:
+                        if current_section in sections_data:
+                            sections_data[current_section]["content"] = '\n'.join(current_content).strip()
+                current_subsection = line[3:].strip()
+                current_content = []
+            
+            # Ajout du contenu
+            else:
+                current_content.append(line)
+        
+        # Ajouter le dernier contenu
+        if current_section:
+            if current_subsection:
+                if current_section in sections_data and current_subsection in sections_data[current_section]["subsections"]:
+                    sections_data[current_section]["subsections"][current_subsection]["content"] = '\n'.join(current_content).strip()
+            elif current_section in sections_data:
+                sections_data[current_section]["content"] = '\n'.join(current_content).strip()
                         sections_data[current_subsection]["content"] = '\n'.join(current_content).strip()
                     current_subsection = line[3:].strip()
                     current_content = []
