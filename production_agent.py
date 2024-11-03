@@ -59,26 +59,35 @@ class ProductionAgent(ParallagonAgent):
                 self.logger(f"[{self.__class__.__name__}] No changes needed")
                 return context['production']
                 
-            # Traiter chaque section
+            # Traiter chaque section, en commençant par les plus spécifiques (plus de #)
             current_content = context['production']
-            sections = re.finditer(r'#\s*([^#\n]+)\n(.*?)(?=\n#|$)', content, re.DOTALL)
+            
+            # Regex qui capture le niveau de titre (nombre de #) et le titre
+            section_pattern = r'(#{1,6})\s*([^#\n]+)\n(.*?)(?=\n#{1,6}\s|$)'
+            sections = re.finditer(section_pattern, content, re.DOTALL)
+            
+            # Trier les sections par niveau (plus de # en premier)
+            sections = sorted(list(sections), key=lambda m: len(m.group(1)), reverse=True)
             
             for section_match in sections:
-                section_name = section_match.group(1).strip()
-                new_section_content = section_match.group(2).strip()
+                level = len(section_match.group(1))  # Nombre de #
+                section_name = section_match.group(2).strip()
+                new_section_content = section_match.group(3).strip()
                 
                 try:
+                    # Construire le pattern exact pour ce niveau de titre
+                    title_marker = '#' * level
                     result = SearchReplace.section_replace(
                         current_content,
-                        section_name,
+                        f"{title_marker} {section_name}",
                         new_section_content
                     )
                     
                     if result.success:
                         current_content = result.new_content
-                        self.logger(f"[{self.__class__.__name__}] Section '{section_name}' updated successfully")
+                        self.logger(f"[{self.__class__.__name__}] Section '{section_name}' (niveau {level}) updated successfully")
                     else:
-                        self.logger(f"[{self.__class__.__name__}] Failed to update section '{section_name}': {result.message}")
+                        self.logger(f"[{self.__class__.__name__}] Failed to update section '{section_name}' (niveau {level}): {result.message}")
                         
                 except Exception as e:
                     self.logger(f"[{self.__class__.__name__}] Error processing section '{section_name}': {str(e)}")
