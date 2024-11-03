@@ -74,33 +74,12 @@ class ProductionAgent(ParallagonAgent):
             
             response = self._get_llm_response(context)
             
+            # Si la réponse est différente du contenu actuel
             if response != self.current_content:
-                self.logger(f"[{self.__class__.__name__}] Modifications détectées, tentative de mise à jour...")
-                
-                # Si le contenu est vide ou contient juste le message d'attente, remplacer tout
-                if not self.current_content.strip() or self.current_content.strip() == "En attente de contenu à produire...":
-                    self.new_content = response
-                    self.logger(f"[{self.__class__.__name__}] ✓ Contenu initial créé")
-                else:
-                    # Sinon, mettre à jour section par section
-                    sections = self._extract_sections(response)
-                    temp_content = self.current_content
-                    
-                    for section_name, section_content in sections.items():
-                        result = SearchReplace.section_replace(
-                            temp_content,
-                            section_name,
-                            section_content
-                        )
-                        if result.success:
-                            temp_content = result.new_content
-                            self.logger(f"[{self.__class__.__name__}] ✓ Section '{section_name}' mise à jour")
-                        else:
-                            self.logger(f"[{self.__class__.__name__}] ⚠️ Section '{section_name}' non modifiée: {result.message}")
-                    
-                    self.new_content = temp_content
-                
-                self.logger(f"[{self.__class__.__name__}] ✓ Mise à jour complète effectuée")
+                self.logger(f"[{self.__class__.__name__}] Modifications détectées, mise à jour...")
+                self.new_content = response  # Définir directement new_content
+                self.update()  # Appeler update() immédiatement
+                self.logger(f"[{self.__class__.__name__}] ✓ Mise à jour effectuée")
             else:
                 self.logger(f"[{self.__class__.__name__}] Aucune modification nécessaire")
                 
