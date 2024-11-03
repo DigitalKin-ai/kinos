@@ -42,113 +42,36 @@ class ProductionAgent(ParallagonAgent):
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response for implementation decisions"""
         try:
-            print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
-            prompt = f"""You are the Production Agent in the Parallagon framework. You must work ONLY using the SEARCH/REPLACE pattern.
-
-Current production content:
-{context['production']}
-
-Other files content:
-{self._format_other_files(context['other_files'])}
-
-Your task:
-1. Analyze the current content and requirements
-2. Identify specific sections or elements that need to be updated
-3. Return ONLY a list of search/replace operations in this exact format:
-
-SEARCH<<<
-[exact text to find]
->>>
-
-REPLACE<<<
-[new text to insert]
->>>
-
-Important rules:
-- Each SEARCH must match EXACTLY ONE occurrence in the text
-- Include enough context in SEARCH to ensure unique matches
-- REPLACE must maintain consistent formatting and style
-- You can provide multiple SEARCH/REPLACE pairs
-- Each pair must be complete and independent
-- Do not include any explanations or comments
-- If no changes are needed, return "NO_CHANGES"
-
-Example response:
-SEARCH<<<
-# Technologies Clés
-- Point 1
-- Point 2
->>>
-
-REPLACE<<<
-# Technologies Clés
-- Updated point 1
-- Updated point 2
-- New point 3
->>>
-
-SEARCH<<<
-### Impact Économique
-Ancien texte...
->>>
-
-REPLACE<<<
-### Impact Économique
-Nouveau texte...
->>>"""
-
+            self.logger(f"[{self.__class__.__name__}] Calling LLM API...")
+            
+            prompt = self._build_prompt(context)
             response = self.client.messages.create(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=4000,
                 temperature=0,
-                messages=[{
-                    "role": "user",
-                    "content": prompt
-                }]
+                messages=[{"role": "user", "content": prompt}]
             )
             
             content = response.content[0].text
-            if content == "NO_CHANGES":
-                print(f"[{self.__class__.__name__}] No changes needed")
+            
+            # If LLM indicates no changes needed
+            if content.strip() == "NO_CHANGES":
+                self.logger(f"[{self.__class__.__name__}] No changes needed")
                 return context['production']
                 
-            # Process SEARCH/REPLACE pairs
-            new_content = context['production']
-            pairs = re.findall(r'SEARCH<<<\n(.*?)\n>>>\n\nREPLACE<<<\n(.*?)\n>>>', content, re.DOTALL)
-            
-            if not pairs:
-                print(f"[{self.__class__.__name__}] No valid SEARCH/REPLACE pairs found in response")
-                return context['production']
+            # If content is different, return it directly
+            if content.strip() != context['production'].strip():
+                self.logger(f"[{self.__class__.__name__}] Changes detected")
+                return content
                 
-            changes_made = False
-            for i, (search, replace) in enumerate(pairs, 1):
-                search = search.strip()
-                replace = replace.strip()
-                
-                valid, message, count = SearchReplace.validate_replacement(new_content, search)
-                if not valid:
-                    print(f"[{self.__class__.__name__}] Pair {i}: {message}")
-                    continue
-                    
-                try:
-                    result = SearchReplace.exact_replace(new_content, search, replace)
-                    if result.success:
-                        new_content = result.new_content
-                        changes_made = True
-                        print(f"[{self.__class__.__name__}] Successfully applied replacement {i}")
-                    else:
-                        print(f"[{self.__class__.__name__}] Failed to apply replacement {i}: {result.message}")
-                except Exception as e:
-                    print(f"[{self.__class__.__name__}] Error processing pair {i}: {str(e)}")
-                    continue
-            
-            # Only return new content if changes were actually made
-            return new_content if changes_made else context['production']
+            # If we get here, no changes needed
+            self.logger(f"[{self.__class__.__name__}] No changes needed")
+            return context['production']
             
         except Exception as e:
-            print(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")
+            self.logger(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")
             import traceback
-            print(traceback.format_exc())
+            self.logger(traceback.format_exc())
             return context['production']
 
     def _extract_section(self, content: str, section_name: str) -> str:
