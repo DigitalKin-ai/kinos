@@ -1,12 +1,10 @@
-# État Actuel
-[status: ACTIVE]
+# Spécification de Sortie
 En attente de nouvelles demandes.
 
-# Signaux
-- Aucun signal
-
-# Contenu Principal
-Spécifications du projet...
-
-# Historique
-- [INIT] Création du fichier
+# Critères de Succès
+- Format du Résultat
+  * Structure conforme aux exigences
+  * Contenu adapté au besoin
+- Qualité
+  * Répond aux critères spécifiques
+  * Validation complète

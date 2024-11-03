@@ -33,6 +33,13 @@ class ParallagonAgent:
                     print(f"[{self.__class__.__name__}] Missing required section: {section}")
                     return False
             return True
+        elif isinstance(self, SpecificationsAgent):
+            required_sections = ["Spécification de Sortie", "Critères de Succès"]
+            for section in required_sections:
+                if f"# {section}" not in response:
+                    print(f"[{self.__class__.__name__}] Missing required section: {section}")
+                    return False
+            return True
             
         # For other agents
         required_sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]

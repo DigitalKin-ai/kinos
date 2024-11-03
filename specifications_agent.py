@@ -96,7 +96,7 @@ class SpecificationsAgent(ParallagonAgent):
         """
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
-            prompt = f"""You are the Specifications Agent in the Parallagon framework. Your role is to maintain the specifications.md file.
+            prompt = f"""You are the Specifications Agent in the Parallagon framework. Your role is to define the expected output and success criteria.
 
 Current specifications content:
 {context['specifications']}
@@ -105,44 +105,32 @@ Other files content:
 {self._format_other_files(context['other_files'])}
 
 Your task:
-1. Review the current specifications
-2. Check other files for questions or needs related to specifications
-3. If needed, provide an updated version of specifications.md that:
-   - Answers any questions directed to Specifications
-   - Clarifies any unclear points
-   - Updates status if needed
-   - Adds relevant information to the history section
-   - Maintains the exact same markdown structure
-
-If no changes are needed, return the exact current content.
-If changes are needed, return the complete updated content.
+1. Define the expected output format and content
+2. Establish detailed success criteria
+3. Update based on new requirements
 
 Important:
-- Return ONLY the markdown content, starting with "# État Actuel"
-- Keep all existing sections in exact order:
-  1. État Actuel
-  2. Signaux 
-  3. Contenu Principal
-  4. Historique
-- Maintain exact markdown formatting
-- Do not include any explanatory text
-- Do not start with phrases like "Based on my review" or "After analyzing"
-- The response must be a valid markdown document that can directly replace the current content
+- Return ONLY the markdown content with exactly these 2 sections:
 
-Example format:
-# État Actuel
-[status: STATUS]
-Description...
+# Spécification de Sortie
+[Detailed description of expected output]
 
-# Signaux
-- Signal 1
-- Signal 2
+# Critères de Succès
+- Main criterion 1
+  * Sub-criterion A
+  * Sub-criterion B
+- Main criterion 2
+  * Sub-criterion A
+  * Sub-criterion B
 
-# Contenu Principal
-Content...
+Guidelines:
+- Be specific and measurable in criteria
+- Use hierarchical bullet points
+- Focus on output quality
+- Include all relevant constraints
 
-# Historique
-- [Timestamp] Action
+If changes are needed, return the complete updated content.
+If no changes are needed, return the exact current content.
 """
             response = self.client.messages.create(
                 model="claude-3-5-sonnet-20241022",
