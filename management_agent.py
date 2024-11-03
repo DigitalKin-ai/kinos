@@ -44,63 +44,80 @@ class ManagementAgent(ParallagonAgent):
             if response != self.current_content:
                 self.logger(f"[{self.__class__.__name__}] Modifications détectées, tentative de mise à jour...")
                 temp_content = self.current_content
+
+                # Parse and validate Consignes Actuelles
+                consignes_pattern = r'# Consignes Actuelles\n\[section: (.+?)\]\n\[objectif: (.+?)\]\n\[attention: (.+?)\]'
+                consignes_match = re.search(consignes_pattern, response, re.DOTALL)
+                if not consignes_match:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Format invalide pour Consignes Actuelles")
+                else:
+                    result = SearchReplace.section_replace(
+                        temp_content,
+                        "Consignes Actuelles",
+                        response[consignes_match.start(1):consignes_match.end(3)]
+                    )
+                    if result.success:
+                        temp_content = result.new_content
+                        self.logger(f"[{self.__class__.__name__}] ✓ Consignes Actuelles mises à jour")
+
+                # Parse and validate TodoList
+                section_pattern = r'\[section: (.+?)\]\n\[contraintes: (.+?)\](.*?)(?=\[section:|$)'
+                task_pattern = r'- \[ \] \[priority: (HIGH|MEDIUM|LOW)\] (.+)$'
                 
-                # Sections principales
-                sections = ["Consignes Actuelles", "TodoList", "Actions Réalisées"]
-                
-                # Extraire les sections depuis specifications.md
-                specs_content = self.other_files.get("specifications.md", "")
-                spec_sections = re.finditer(r'^# (.+?)\n\[contraintes: (.+?)\]', specs_content, re.MULTILINE)
-                
-                # Construire la nouvelle TodoList avec les sections
                 todos = ["# TodoList"]
-                for match in spec_sections:
-                    section_name = match.group(1)
-                    constraints = match.group(2)
-                    todos.append(f"\n[{section_name} - Contraintes principales: {constraints}]")
-                    
-                    # Extraire les todos spécifiques à cette section depuis la réponse LLM
-                    section_pattern = rf"\[{re.escape(section_name)}.*?\](.*?)(?=\[|$)"
-                    section_todos = re.search(section_pattern, response, re.DOTALL)
-                    if section_todos:
-                        todos.extend(line.strip() for line in section_todos.group(1).split('\n') if line.strip())
-                    else:
-                        todos.append("- [ ] À définir")
+                sections = re.finditer(section_pattern, response, re.MULTILINE | re.DOTALL)
                 
-                # Mettre à jour la TodoList
+                for section_match in sections:
+                    section_name = section_match.group(1)
+                    section_constraints = section_match.group(2)
+                    section_content = section_match.group(3)
+                    
+                    todos.append(f"\n[section: {section_name}]")
+                    todos.append(f"[contraintes: {section_constraints}]")
+                    
+                    tasks = re.finditer(task_pattern, section_content, re.MULTILINE)
+                    for task_match in tasks:
+                        priority = task_match.group(1)
+                        task_description = task_match.group(2)
+                        todos.append(f"- [ ] [priority: {priority}] {task_description}")
+
                 result = SearchReplace.section_replace(
                     temp_content,
                     "TodoList",
-                    '\n'.join(todos[1:])  # Exclure le titre "# TodoList"
+                    '\n'.join(todos[1:])  # Exclude the "# TodoList" title
                 )
                 
                 if result.success:
                     temp_content = result.new_content
-                    self.logger(f"[{self.__class__.__name__}] ✓ TodoList mise à jour avec succès")
-                else:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Échec de la mise à jour de la TodoList: {result.message}")
+                    self.logger(f"[{self.__class__.__name__}] ✓ TodoList mise à jour")
+
+                # Parse and validate Actions Réalisées
+                action_pattern = r'\[timestamp: (\d{4}-\d{2}-\d{2} \d{2}:\d{2})\] \[section: (.+?)\] \[impact: (.+?)\] (.+)$'
+                actions_section = re.search(r'# Actions Réalisées\n(.*?)(?=\n#|$)', response, re.DOTALL)
                 
-                # Mettre à jour les autres sections
-                for section in ["Consignes Actuelles", "Actions Réalisées"]:
-                    pattern = f"# {section}\n(.*?)(?=\n#|$)"
-                    match = re.search(pattern, response, re.DOTALL)
-                    if not match:
-                        self.logger(f"[{self.__class__.__name__}] ❌ Section '{section}' non trouvée dans la réponse LLM")
-                        continue
-                        
-                    new_section_content = match.group(1).strip()
-                    result = SearchReplace.section_replace(
-                        temp_content,
-                        section,
-                        new_section_content
-                    )
+                if actions_section:
+                    actions = re.finditer(action_pattern, actions_section.group(1), re.MULTILINE)
+                    valid_actions = []
                     
-                    if result.success:
-                        temp_content = result.new_content
-                        self.logger(f"[{self.__class__.__name__}] ✓ Section '{section}' mise à jour avec succès")
-                    else:
-                        self.logger(f"[{self.__class__.__name__}] ❌ Échec de la mise à jour de la section '{section}': {result.message}")
-                
+                    for action in actions:
+                        timestamp = action.group(1)
+                        section = action.group(2)
+                        impact = action.group(3)
+                        description = action.group(4)
+                        valid_actions.append(
+                            f"[timestamp: {timestamp}] [section: {section}] [impact: {impact}] {description}"
+                        )
+                    
+                    if valid_actions:
+                        result = SearchReplace.section_replace(
+                            temp_content,
+                            "Actions Réalisées",
+                            '\n'.join(valid_actions)
+                        )
+                        if result.success:
+                            temp_content = result.new_content
+                            self.logger(f"[{self.__class__.__name__}] ✓ Actions Réalisées mises à jour")
+
                 self.new_content = temp_content
                 self.logger(f"[{self.__class__.__name__}] ✓ Mise à jour complète effectuée")
             else:
