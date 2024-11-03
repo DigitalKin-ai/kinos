@@ -54,20 +54,38 @@ class ProductionAgent(ParallagonAgent):
             
             content = response.content[0].text
             
-            # If LLM indicates no changes needed
+            # Si le LLM indique qu'aucun changement n'est nécessaire
             if content.strip() == "NO_CHANGES":
                 self.logger(f"[{self.__class__.__name__}] No changes needed")
                 return context['production']
                 
-            # If content is different, return it directly
-            if content.strip() != context['production'].strip():
-                self.logger(f"[{self.__class__.__name__}] Changes detected")
-                return content
-                
-            # If we get here, no changes needed
-            self.logger(f"[{self.__class__.__name__}] No changes needed")
-            return context['production']
+            # Traiter chaque section
+            current_content = context['production']
+            sections = re.finditer(r'#\s*([^#\n]+)\n(.*?)(?=\n#|$)', content, re.DOTALL)
             
+            for section_match in sections:
+                section_name = section_match.group(1).strip()
+                new_section_content = section_match.group(2).strip()
+                
+                try:
+                    result = SearchReplace.section_replace(
+                        current_content,
+                        section_name,
+                        new_section_content
+                    )
+                    
+                    if result.success:
+                        current_content = result.new_content
+                        self.logger(f"[{self.__class__.__name__}] Section '{section_name}' updated successfully")
+                    else:
+                        self.logger(f"[{self.__class__.__name__}] Failed to update section '{section_name}': {result.message}")
+                        
+                except Exception as e:
+                    self.logger(f"[{self.__class__.__name__}] Error processing section '{section_name}': {str(e)}")
+                    continue
+                    
+            return current_content
+                
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")
             import traceback
