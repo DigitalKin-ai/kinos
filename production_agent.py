@@ -29,15 +29,10 @@ class ProductionAgent(ParallagonAgent):
             self.new_content = response
 
     def _get_llm_response(self, context: dict) -> str:
-        """Build prompt for implementation decisions"""
+        """Get LLM response for implementation decisions"""
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
-            prompt = f"""You are the Production Agent in the Parallagon framework, working in parallel with 3 other agents:
-- Specifications Agent: defines output requirements and success criteria
-- Management Agent: coordinates tasks and provides directives
-- Evaluation Agent: validates quality and compliance
-
-Your role is to create and refine the actual content based on specifications and management directives.
+            prompt = f"""You are the Production Agent in the Parallagon framework. You must work ONLY using the SEARCH/REPLACE pattern.
 
 Current production content:
 {context['production']}
@@ -46,20 +41,51 @@ Other files content:
 {self._format_other_files(context['other_files'])}
 
 Your task:
-1. Create or update the content according to specifications
-2. Follow management directives
-3. Ensure all required elements are present
-4. Maintain professional quality
+1. Analyze the current content and requirements
+2. Identify specific sections or elements that need to be updated
+3. Return ONLY a list of search/replace operations in this exact format:
 
-Important:
-- Return ONLY the actual content
-- Do not include version numbers, status indicators, or meta-information
-- Do not describe the content - provide the content itself
-- Do not include explanatory text or notes
-- The response must be the actual deliverable content
+SEARCH<<<
+[exact text to find]
+>>>
 
-If changes are needed, return the complete updated content.
-If no changes are needed, return the exact current content."""
+REPLACE<<<
+[new text to insert]
+>>>
+
+Important rules:
+- Each SEARCH must match EXACTLY ONE occurrence in the text
+- Include enough context in SEARCH to ensure unique matches
+- REPLACE must maintain consistent formatting and style
+- You can provide multiple SEARCH/REPLACE pairs
+- Each pair must be complete and independent
+- Do not include any explanations or comments
+- If no changes are needed, return "NO_CHANGES"
+
+Example response:
+SEARCH<<<
+# Technologies Clés
+- Point 1
+- Point 2
+>>>
+
+REPLACE<<<
+# Technologies Clés
+- Updated point 1
+- Updated point 2
+- New point 3
+>>>
+
+SEARCH<<<
+### Impact Économique
+Ancien texte...
+>>>
+
+REPLACE<<<
+### Impact Économique
+Nouveau texte...
+>>>"""
+
             response = self.client.messages.create(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=4000,
@@ -69,10 +95,26 @@ If no changes are needed, return the exact current content."""
                     "content": prompt
                 }]
             )
-            print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
-            return response.content[0].text
+            
+            content = response.content[0].text
+            if content == "NO_CHANGES":
+                return context['production']
+                
+            # Process SEARCH/REPLACE pairs
+            new_content = context['production']
+            pairs = re.findall(r'SEARCH<<<\n(.*?)\n>>>\n\nREPLACE<<<\n(.*?)\n>>>', content, re.DOTALL)
+            
+            for search, replace in pairs:
+                result = SearchReplace.exact_replace(new_content, search.strip(), replace.strip())
+                if result.success:
+                    new_content = result.new_content
+                else:
+                    print(f"[{self.__class__.__name__}] Search/Replace failed: {result.message}")
+                    
+            return new_content
+            
         except Exception as e:
-            print(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")  # Error log
+            print(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")
             import traceback
             print(traceback.format_exc())
             return context['production']
