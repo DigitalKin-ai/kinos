@@ -24,6 +24,25 @@ class LogEntry:
     message: str
     level: LogLevel
     agent: Optional[str] = None
+from enum import Enum, auto
+
+class LogLevel(Enum):
+    """Log levels with their associated symbols and colors"""
+    SUCCESS = ("✓", "#4CAF50")
+    ERROR = ("❌", "#f44336")
+    INFO = ("ℹ", "#2196F3")
+    RESET = ("✨", "#FF9800")
+    CHANGES = ("↻", "#9C27B0")
+    NO_CHANGES = ("≡", "#808080")
+    WARNING = ("⚠️", "#FFC107")
+
+@dataclass
+class LogEntry:
+    """Represents a single log entry"""
+    timestamp: str
+    message: str
+    level: LogLevel
+    agent: Optional[str] = None
 
 class LogManager:
     """Manages logging display and formatting in the GUI"""

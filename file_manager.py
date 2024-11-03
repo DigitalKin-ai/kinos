@@ -11,6 +11,11 @@ class FileManager:
     class FileError(Exception):
         """Exception personnalisée pour les erreurs de fichiers"""
         pass
+    """Manages file operations for the GUI"""
+    
+    class FileError(Exception):
+        """Exception personnalisée pour les erreurs de fichiers"""
+        pass
     
     def __init__(self, file_paths: Dict[str, str]):
         self.file_paths = file_paths
