@@ -347,7 +347,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         
         # Configure tab style
         style = ttk.Style()
-        style.configure('TNotebook.Tab', padding=[10, 5], background=self.gui_config.colors['bg'])
+        style.configure('TNotebook.Tab', padding=[10, 5])  # Style de base pour tous les tabs
         
         # Création des tabs
         self.tabs = {}
@@ -487,20 +487,26 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         if tab_name not in self.tab_flash_tasks:
             style = ttk.Style()
             
-            # Appliquer le flash bleu
-            style.configure('TNotebook.Tab', background="#e8f0fe")
+            # Créer un style unique pour ce tab
+            tab_style = f'Flash.TNotebook.Tab.{tab_name}'
+            style.configure(tab_style, background="#e8f0fe")
             
-            # Programmer le retour à la couleur normale après 1 seconde
+            # Appliquer le style au tab spécifique
+            tab_id = self.tab_control.index(self.tabs[tab_name])
+            self.tab_control.tab(tab_id, style=tab_style)
+            
+            # Programmer le retour à la couleur normale
             self.tab_flash_tasks[tab_name] = self.root.after(
                 1000,  # Durée du flash (1 seconde)
-                lambda: self._remove_tab_flash(tab_name, style)
+                lambda: self._remove_tab_flash(tab_name, style, tab_id)
             )
 
-    def _remove_tab_flash(self, tab_name, style):
+    def _remove_tab_flash(self, tab_name, style, tab_id):
         """Retire le flash et restaure la couleur normale du tab"""
         if tab_name in self.tab_flash_tasks:
             self.tab_flash_tasks.pop(tab_name)
-        style.configure('TNotebook.Tab', background=self.gui_config.colors['bg'])
+            # Retirer le style personnalisé et revenir au style par défaut
+            self.tab_control.tab(tab_id, style='')
 
     def update_all_panels(self):
         """Mise à jour de tous les panneaux d'agents"""
