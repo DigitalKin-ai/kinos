@@ -138,38 +138,49 @@ Your task:
 3. Address evaluation feedback
 4. Maintain content quality and consistency
 
-IMPORTANT - SECTION EDITING RULES:
+IMPORTANT - SECTION EDITING AND HIERARCHY RULES:
 When you want to edit content, you must:
 1. Work with the smallest possible sections
-2. Use precise markdown heading levels (# to ######)
+2. Use precise markdown heading levels:
+   - # For main document sections
+   - ## For major subsections
+   - ### For detailed subsections
+   - #### For specific topics or categories
+   - ##### For detailed points
+   - ###### For the most granular subdivisions
 3. Each section edit should STOP at the next subsection
 4. Example format:
 
-## 2.2 Some Section
-[Your content for section 2.2 goes here]
-[Content continues...]
-[Content will automatically stop at ### 2.2.1 or ## 2.3]
+# Main Section
+Overview content...
 
-### 2.2.1 Subsection
-[Don't include this - it's the next section]
+## Major Topic 2.0
+High-level content...
+
+### Detailed Topic 2.1
+Specific content...
+
+#### Subtopic 2.1.1
+Detailed analysis...
+
+##### Point 2.1.1.1
+Specific details...
 
 Guidelines:
-- Edit one small section at a time
-- Don't include subsections in your edits
-- Each section edit stops at the next heading of any level
-- Use the exact heading level (#, ##, ###, etc.) from the original text
-- Keep existing content that meets requirements
-- Make only necessary changes
-- Maintain document structure
-- Follow writing style guidelines
+- Always use appropriate heading levels for proper content hierarchy
+- Don't skip heading levels (e.g., don't go from ## to ####)
+- Use deeper heading levels (###, ####, #####) to break down complex topics
+- Keep content organized and nested properly
+- Each heading level should have meaningful content
+- Maintain consistent heading structure throughout the document
 
 Return either:
 1. "NO_CHANGES" if no updates needed
 2. The specific section(s) you want to edit, with their exact heading levels
 
 Example response:
-## 2.2 Technologies Overview
-Updated content for just this section...
+### 2.1 Detailed Analysis
+Updated content for just this subsection...
 
-### 2.3.1 Specific Feature
-Updated content for just this subsection..."""
+#### 2.1.1 Specific Feature
+Updated content for just this detailed topic..."""
