@@ -431,91 +431,106 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         """Fait flasher un tab pour indiquer une mise à jour"""
         if tab_name not in self.tab_flash_tasks:
             style = ttk.Style()
-            
-            # Créer un style unique pour ce tab
             tab_style = f"Flash.{tab_name}.TFrame"
-            style.configure(tab_style, background="white")
             
             def flash_cycle(count=0):
-                if count >= 6:  # 3 flashs complets
+                if count >= 6 or tab_name not in self.tab_flash_tasks:  # 3 flashs complets
                     if tab_name in self.tab_flash_tasks:
                         self.tab_flash_tasks.pop(tab_name)
                     self.tab_states[tab_name] = False
                     return
-                
-                # Alterner entre bleu clair et blanc
+                    
                 new_color = "#e8f0fe" if count % 2 == 0 else "white"
                 style.configure(tab_style, background=new_color)
                 
-                self.tab_flash_tasks[tab_name] = self.root.after(500, lambda: flash_cycle(count + 1))
-
+                self.tab_flash_tasks[tab_name] = self.root.after(
+                    100,  # Plus rapide pour plus de fluidité
+                    lambda: flash_cycle(count + 1)
+                )
+                
             flash_cycle()
 
     def update_all_panels(self):
         """Mise à jour de tous les panneaux d'agents"""
-        # Sauvegarder le curseur actuel
-        current_cursor = self.root.cget("cursor")
-        try:
-            file_mapping = {
-                "Specification": "specifications.md",
-                "Management": "management.md",
-                "Production": "production.md",
-                "Evaluation": "evaluation.md"
-            }
-            
-            updated_panels = []
-            changes = {}  # Pour stocker les changements détectés
-            
-            # Mise à jour de la demande
-            try:
-                with open("demande.md", 'r', encoding='utf-8') as f:
-                    demand_content = f.read()
-                current_demand = self.demand_text.get("1.0", tk.END).strip()
-                if demand_content.strip() != current_demand:
-                    self.demand_text.delete("1.0", tk.END)
-                    self.demand_text.insert("1.0", demand_content)
-                    self.flash_tab("Demande")
-                    updated_panels.append("Demande")
-                    changes["Demande"] = {"old": current_demand, "new": demand_content}
-            except Exception as e:
-                self.log_message(f"❌ Erreur lors de la mise à jour de la demande: {e}")
-        except Exception as e:
-            self.log_message(f"❌ Erreur lors de la mise à jour de la demande: {e}")
-
-        # Mise à jour des autres panneaux
-        for name, file_path in file_mapping.items():
+        def read_file_content(file_path):
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                
-                panel = self.agent_panels[name]
-                old_content = panel.text.get("1.0", tk.END).strip()
-                
-                if content.strip() != old_content:
-                    panel.update_content(content)
+                    return f.read()
+            except Exception:
+                return None
+
+        def update_panel(name, content, old_content):
+            if content and content.strip() != old_content.strip():
+                if name == "Demande":
+                    self.demand_text.delete("1.0", tk.END)
+                    self.demand_text.insert("1.0", content)
+                else:
+                    self.agent_panels[name].update_content(content)
+                return True
+            return False
+
+        try:
+            updated_panels = []
+            changes = {}
+
+            # Lecture des fichiers en parallèle
+            file_contents = {}
+            threads = []
+            
+            for name, file_path in {**{"Demande": "demande.md"}, **self.FILE_PATHS}.items():
+                def read_for_file(n=name, p=file_path):
+                    file_contents[n] = read_file_content(p)
+                thread = threading.Thread(target=read_for_file)
+                thread.start()
+                threads.append(thread)
+
+            # Attendre la fin des lectures
+            for thread in threads:
+                thread.join(timeout=0.1)  # Court timeout pour éviter le blocage
+
+            # Mise à jour de l'interface
+            for name, content in file_contents.items():
+                if content is None:
+                    continue
+                    
+                old_content = (self.demand_text.get("1.0", tk.END) if name == "Demande" 
+                              else self.agent_panels[name].text.get("1.0", tk.END))
+                    
+                if update_panel(name, content, old_content):
                     updated_panels.append(name)
                     changes[name] = {"old": old_content, "new": content}
-                    if name != "Production":  # Production est toujours visible
+                    if name != "Production":
                         self.flash_tab(name)
-                    
-            except Exception as e:
-                self.log_message(f"❌ Erreur lors de la mise à jour de {name}: {e}")
-        
-        if updated_panels:
-            try:
-                # Appel au LLM pour générer un résumé des changements 
-                summary = self._get_changes_summary(changes)
-                self.log_message(f"✓ {summary}")
-            except Exception as e:
-                # Fallback au message standard en cas d'erreur
-                self.log_message(f"✓ Mise à jour : {', '.join(updated_panels)}")
-        finally:
-            # Restaurer le curseur d'origine
-            self.root.config(cursor=current_cursor)
 
-    def _get_changes_summary(self, changes: dict) -> str:
-        """Get summary of changes using LLM service"""
-        return self.llm_service.get_changes_summary(changes)
+            if updated_panels:
+                self._get_changes_summary(changes)  # Asynchrone maintenant
+
+        except Exception as e:
+            self.log_message(f"❌ Erreur lors de la mise à jour des panneaux: {str(e)}")
+
+    def _background_task(self, task, callback=None):
+        """Execute heavy tasks in background thread"""
+        def wrapper():
+            try:
+                result = task()
+                if callback:
+                    self.root.after(0, lambda: callback(result))
+            except Exception as e:
+                self.log_message(f"❌ Erreur dans la tâche en arrière-plan: {str(e)}")
+        
+        thread = threading.Thread(target=wrapper, daemon=True)
+        thread.start()
+
+    def _get_changes_summary(self, changes: dict) -> None:
+        """Get summary of changes using LLM service asynchronously"""
+        def task():
+            return self.llm_service.get_changes_summary(changes)
+            
+        def callback(summary):
+            if summary:
+                self.log_message(f"✓ {summary}")
+        
+        self._background_task(task, callback)
                 
     def auto_save_demand(self, event=None):
         """Sauvegarde automatique du contenu de la demande"""
