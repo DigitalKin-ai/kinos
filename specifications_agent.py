@@ -283,24 +283,6 @@ class SpecificationsAgent(ParallagonAgent):
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de la synchronisation du template: {str(e)}")
 
     def determine_actions(self) -> None:
-        """
-        Analyze current context and determine template updates.
-        
-        Process:
-        1. Analyzes demand changes and requirements
-        2. Updates template structure if needed
-        3. Adjusts section constraints based on requirements
-        4. Triggers synchronization when template changes
-        """
-        """
-        Analyze current context and determine template updates.
-        
-        Process:
-        1. Analyzes demand changes and requirements
-        2. Updates template structure if needed
-        3. Adjusts section constraints based on requirements
-        4. Triggers synchronization when template changes
-        """
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
             
@@ -309,23 +291,23 @@ class SpecificationsAgent(ParallagonAgent):
                 "other_files": self.other_files
             }
             
+            # Obtenir la réponse du LLM avec la structure complète
             response = self._get_llm_response(context)
             
-            if response != self.current_content:
+            # Extraire la structure hiérarchique actuelle et nouvelle
+            current_structure = self._parse_template_structure(self.current_content)
+            new_structure = self._parse_template_structure(response)
+            
+            if current_structure != new_structure:
                 self.logger(f"[{self.__class__.__name__}] Modifications détectées, mise à jour du template...")
                 
-                # Log sections before update
-                old_sections = set(re.findall(r'^#\s+(.+)$', self.current_content, re.MULTILINE))
-                new_sections = set(re.findall(r'^#\s+(.+)$', response, re.MULTILINE))
+                # Construire le nouveau contenu avec la hiérarchie complète
+                new_content = self._build_hierarchical_content(new_structure)
                 
-                self.logger(f"[{self.__class__.__name__}] Sections actuelles: {old_sections}")
-                self.logger(f"[{self.__class__.__name__}] Nouvelles sections: {new_sections}")
-                self.logger(f"[{self.__class__.__name__}] Sections ajoutées: {new_sections - old_sections}")
-                
-                self.new_content = response
+                self.new_content = new_content
                 self.update()
                 
-                # Synchroniser le document de sortie après chaque mise à jour du template
+                # Synchroniser le document de production
                 self.synchronize_template()
             else:
                 self.logger(f"[{self.__class__.__name__}] Aucune modification nécessaire")
