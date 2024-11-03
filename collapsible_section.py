@@ -63,6 +63,18 @@ class CollapsibleSection(ttk.Frame):
             self.content_text.insert("1.0", section.content)
         self.content_text.config(state="disabled")
         
+        # Add todos display
+        if section.todo:
+            self.todos_frame = ttk.Frame(self.content_frame)
+            self.todos_frame.pack(fill=tk.X, pady=(5,0))
+            ttk.Label(self.todos_frame, text="Tâches:").pack(anchor=tk.W)
+            for task in section.todo:
+                ttk.Label(
+                    self.todos_frame, 
+                    text=f"• {task}",
+                    wraplength=400
+                ).pack(anchor=tk.W)
+        
     def toggle(self):
         """Toggle section expansion"""
         self.expanded = not self.expanded
@@ -85,6 +97,23 @@ class CollapsibleSection(ttk.Frame):
         self.content_text.insert("1.0", content)
         self.content_text.config(state="disabled")
         self.section.content = content
+        
+    def update_todos(self, todos: list):
+        """Update todos display"""
+        if hasattr(self, 'todos_frame'):
+            self.todos_frame.destroy()
+            
+        if todos:
+            self.todos_frame = ttk.Frame(self.content_frame)
+            self.todos_frame.pack(fill=tk.X, pady=(5,0))
+            ttk.Label(self.todos_frame, text="Tâches:").pack(anchor=tk.W)
+            for task in todos:
+                ttk.Label(
+                    self.todos_frame,
+                    text=f"• {task}",
+                    wraplength=400
+                ).pack(anchor=tk.W)
+        self.section.todo = todos
 """
 CollapsibleSection - Collapsible section widget for Parallagon GUI
 """

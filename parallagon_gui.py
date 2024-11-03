@@ -384,11 +384,14 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 section.update_constraints(data["constraints"])
                 if "content" in data:
                     section.update_content(data["content"])
+                if "todo" in data:  # Ajout de la mise à jour des todos
+                    section.update_todos(data["todo"])
             else:
                 section = Section(
                     title=title,
                     constraints=data["constraints"],
-                    content=data.get("content")
+                    content=data.get("content"),
+                    todo=data.get("todo", [])  # Ajout des todos
                 )
                 collapsible = CollapsibleSection(
                     self.sections_scrollable_frame,
