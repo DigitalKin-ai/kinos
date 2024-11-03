@@ -7,10 +7,6 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
 from search_replace import SearchReplace, SearchReplaceResult
-from production_agent import ProductionAgent
-from management_agent import ManagementAgent
-from specifications_agent import SpecificationsAgent
-from evaluation_agent import EvaluationAgent
 
 
 class ParallagonAgent:
@@ -25,6 +21,11 @@ class ParallagonAgent:
 
     def _validate_markdown_response(self, response: str) -> bool:
         """Validate that LLM response follows required markdown format"""
+        from production_agent import ProductionAgent
+        from management_agent import ManagementAgent
+        from specifications_agent import SpecificationsAgent
+        from evaluation_agent import EvaluationAgent
+
         # Exception for ProductionAgent which returns raw text
         if isinstance(self, ProductionAgent):
             return True
