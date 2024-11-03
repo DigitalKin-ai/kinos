@@ -108,8 +108,38 @@ class ParallagonAgent:
     def _build_prompt(self, context: dict) -> str:
         """Construction du prompt pour l'agent"""
         # This is a base implementation that should be overridden by subclasses
-        return f"""Analyze the following context and provide appropriate response:
-{context}"""
+        return f"""En tant qu'évaluateur qualité, analysez systématiquement chaque section du projet.
+
+Contexte actuel :
+{self._format_other_files(context)}
+
+Instructions :
+1. Pour chaque section définie dans les spécifications, évaluez :
+   - La cohérence avec les autres sections
+   - La complétude des informations
+   - La clarté et la précision
+   - Le respect des critères définis
+
+2. Attribuez un statut pour chaque critère :
+   [✓] Validé
+   [⚠️] À améliorer
+   [❌] Non conforme
+
+3. Structurez votre évaluation ainsi :
+
+# Évaluations en Cours
+[Évaluez chaque section présente dans le document]
+- Cohérence : [statut] commentaire
+- Complétude : [statut] commentaire
+- Clarté : [statut] commentaire
+
+# Vue d'Ensemble
+- Progression : [pourcentage]
+- Points forts : [liste]
+- Points à améliorer : [liste]
+- Statut global : [EN_COURS/VALIDÉ/À_REVOIR]
+
+Fournissez une évaluation objective et constructive."""
 
     def _get_llm_response(self, context: dict) -> str:
         max_retries = 3
@@ -161,6 +191,13 @@ class ParallagonAgent:
         except Exception as e:
             print(f"Error updating section: {e}")
             return False
+
+    def _format_other_files(self, context: dict) -> str:
+        """Format the context files for the prompt"""
+        formatted = []
+        for filename, content in context.items():
+            formatted.append(f"=== {filename} ===\n{content}\n")
+        return "\n".join(formatted)
 
     def stop(self) -> None:
         """Stop the agent's execution"""
