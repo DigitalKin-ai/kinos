@@ -141,7 +141,7 @@ class ParallagonGUI:
         # Création des widgets de texte
         self.request_text = scrolledtext.ScrolledText(
             self.request_frame, 
-            height=4
+            height=2
         )
         self.request_text.pack(fill=tk.X, padx=5, pady=5)
         
@@ -154,7 +154,7 @@ class ParallagonGUI:
         
         self.demand_display = scrolledtext.ScrolledText(
             self.request_frame, 
-            height=8,
+            height=4,
             wrap=tk.WORD
         )
         self.demand_display.pack(fill=tk.X, padx=5, pady=5)
