@@ -116,6 +116,14 @@ class ParallagonGUI:
         )
         self.submit_button.pack(pady=5)
         
+        # Affichage du contenu de la demande actuelle
+        self.demand_display = scrolledtext.ScrolledText(
+            self.request_frame, 
+            height=8,
+            wrap=tk.WORD
+        )
+        self.demand_display.pack(fill=tk.X, padx=5, pady=5)
+        
         # Ajouter une zone de logs
         self.log_frame = ttk.LabelFrame(self.root, text="Logs")
         self.log_frame.pack(fill=tk.X, padx=5, pady=5)
@@ -195,6 +203,17 @@ class ParallagonGUI:
             "Production": "production.md",
             "Evaluation": "evaluation.md"
         }
+        
+        # Mise à jour de l'affichage de la demande
+        try:
+            with open("demande.md", 'r', encoding='utf-8') as f:
+                demand_content = f.read()
+            current_demand = self.demand_display.get("1.0", tk.END).strip()
+            if demand_content.strip() != current_demand:
+                self.demand_display.delete("1.0", tk.END)
+                self.demand_display.insert("1.0", demand_content)
+        except Exception as e:
+            self.log_message(f"❌ Erreur lors de la mise à jour de la demande: {e}")
         
         update_count = 0
         for name, panel in self.agent_panels.items():
