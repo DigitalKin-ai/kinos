@@ -308,6 +308,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
     def start_agents(self):
         """Démarrage des agents"""
         self.running = True
+        self.updating = True
         self.start_button.config(state=tk.DISABLED)
         self.stop_button.config(state=tk.NORMAL)
         self.status_label.config(text="● Running", foreground="green")
@@ -355,9 +356,8 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         
     def update_loop(self):
         """Boucle de mise à jour des panneaux"""
-        while self.running:
+        while self.running and self.updating:
             try:
-                self.updating = True
                 self.root.after(0, lambda: self.update_indicator.config(text="●"))  # cercle plein pendant la mise à jour
                 self.root.after(0, self.update_all_panels)
                 self.root.after(100, lambda: self.update_indicator.config(text="○"))  # cercle vide après la mise à jour
