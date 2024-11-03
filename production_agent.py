@@ -1,5 +1,11 @@
 """
-ProductionAgent - Agent responsible for code implementation and technical tasks
+ProductionAgent - Agent responsible for content creation and implementation.
+
+Key responsibilities:
+- Creates and updates content based on specifications
+- Implements changes requested by management
+- Maintains content quality and consistency 
+- Responds to evaluation feedback
 """
 from parallagon_agent import ParallagonAgent
 from search_replace import SearchReplace
@@ -32,7 +38,16 @@ class ProductionAgent(ParallagonAgent):
         self.logger = config.get("logger", print)
 
     def determine_actions(self) -> None:
-        """Analyze requirements and implement needed code changes"""
+        """
+        Analyze requirements and implement needed content changes.
+        
+        Process:
+        1. Reviews specifications and management directives
+        2. Identifies required content updates
+        3. Implements changes while maintaining quality
+        4. Validates changes against requirements
+        5. Updates content sections atomically
+        """
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
             
@@ -78,7 +93,21 @@ class ProductionAgent(ParallagonAgent):
             self.logger(traceback.format_exc())
 
     def _get_llm_response(self, context: dict) -> str:
-        """Get LLM response for implementation decisions"""
+        """
+        Get LLM response for content creation and updates.
+        
+        Process:
+        1. Analyzes current content and requirements
+        2. Generates appropriate content updates
+        3. Ensures content quality and consistency
+        4. Validates response format
+        
+        Args:
+            context: Current content state and requirements
+            
+        Returns:
+            str: Validated content updates
+        """
         try:
             self.logger(f"[{self.__class__.__name__}] Calling LLM API...")
             
@@ -119,14 +148,43 @@ class ProductionAgent(ParallagonAgent):
         return matches[0].group(1).strip()
 
     def _format_other_files(self, files: dict) -> str:
-        """Format other files content for the prompt"""
+        """
+        Format other files content for production context.
+        
+        Organizes:
+        - Specifications requirements
+        - Management directives
+        - Evaluation feedback
+        - Related content references
+        
+        Args:
+            files: Dictionary of file contents
+            
+        Returns:
+            str: Formatted context for content decisions
+        """
         result = []
         for file_path, content in files.items():
             result.append(f"=== {file_path} ===\n{content}\n")
         return "\n".join(result)
 
     def _build_prompt(self, context: dict) -> str:
-        """Build prompt for production decisions"""
+        """
+        Build prompt for content creation and updates.
+        
+        Includes:
+        - Current content state
+        - Required changes and updates
+        - Quality requirements
+        - Format specifications
+        - Content guidelines
+        
+        Args:
+            context: Current project state
+            
+        Returns:
+            str: Content creation/update prompt
+        """
         return f"""You are the Production Agent in the Parallagon framework, working in parallel with 3 other agents.
 Your role is to create and refine content based on specifications and management directives.
 
@@ -186,7 +244,20 @@ Return either:
 1. "NO_CHANGES" if no updates needed
 2. The specific section(s) you want to edit, with their exact heading levels and content ONLY"""
     def _extract_sections(self, content: str) -> dict:
-        """Extract sections from content while preserving hierarchy"""
+        """
+        Extract sections from content while preserving hierarchy.
+        
+        Used for:
+        - Maintaining document structure
+        - Processing section-specific updates
+        - Preserving content organization
+        
+        Args:
+            content: Full document content
+            
+        Returns:
+            dict: Mapping of section names to content
+        """
         sections = {}
         current_section = None
         current_content = []
