@@ -155,7 +155,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self._setup_styles()
         
         # Configuration de la fenêtre
-        self.root.configure(bg=self.colors['bg'])
+        self.root.configure(bg=self.gui_config.colors['bg'])
         
         # Configuration de la fenêtre principale
         self.root.state('zoomed')  # Pour Windows
@@ -303,7 +303,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             if tab_name == "Demande":
                 self.demand_text = scrolledtext.ScrolledText(
                     tab, wrap=tk.WORD, font=('Segoe UI', 10),
-                    bg=self.colors['panel_bg'], fg=self.colors['text']
+                    bg=self.gui_config.colors['panel_bg'], fg=self.gui_config.colors['text']
                 )
                 self.demand_text.pack(fill=tk.BOTH, expand=True)
                 self.demand_text.bind('<KeyRelease>', self.auto_save_demand)
@@ -312,8 +312,8 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                     tab, 
                     wrap=tk.WORD, 
                     font=('Segoe UI', 12),  # Police plus grande
-                    bg='#1e1e1e',          # Fond sombre
-                    fg='#e0e0e0',          # Texte clair
+                    bg=self.gui_config.colors['panel_bg'],  # Use configured color
+                    fg=self.gui_config.colors['text'],      # Use configured color
                     padx=15,               # Padding horizontal plus important
                     pady=15                # Padding vertical plus important
                 )
@@ -322,7 +322,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             else:
                 text_widget = scrolledtext.ScrolledText(
                     tab, wrap=tk.WORD, font=('Segoe UI', 10),
-                    bg=self.colors['panel_bg'], fg=self.colors['text']
+                    bg=self.gui_config.colors['panel_bg'], fg=self.gui_config.colors['text']
                 )
                 text_widget.pack(fill=tk.BOTH, expand=True)
                 self.agent_panels[tab_name] = AgentPanel(tab, tab_name, text_widget)
@@ -333,7 +333,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.right_frame = ttk.LabelFrame(self.main_container, text="Production")
         self.production_text = scrolledtext.ScrolledText(
             self.right_frame, wrap=tk.WORD, font=('Segoe UI', 10),
-            bg=self.colors['panel_bg'], fg=self.colors['text']
+            bg=self.gui_config.colors['panel_bg'], fg=self.gui_config.colors['text']
         )
         self.production_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         self.agent_panels["Production"] = AgentPanel(self.right_frame, "Production", self.production_text)
