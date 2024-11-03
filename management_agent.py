@@ -164,6 +164,16 @@ Guidelines:
 - Include CLEAR quality criteria
 - Prioritize based on evaluation feedback
 - Track progress with timestamps
+- FOCUS ON ONE SECTION AT A TIME - do not try to fix everything at once
+- Instruct to write in complete, well-structured sentences
+- Avoid bullet points in the content - use proper paragraphs instead
+
+Production Rules to Enforce:
+1. Focus on ONE section at a time - complete it fully before moving to the next
+2. Write in complete, grammatically correct sentences
+3. Use paragraphs to develop ideas, not bullet points
+4. Ensure each paragraph flows logically to the next
+5. Only move to a new section once the current one is complete and validated
 
 If changes are needed, return the complete updated content.
 If no changes are needed, return the exact current content."""
