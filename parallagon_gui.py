@@ -412,12 +412,20 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         """Boucle de mise à jour des panneaux"""
         while self.running and self.updating:
             try:
-                self.root.after(0, lambda: self.update_indicator.config(text="●"))  # cercle plein pendant la mise à jour
-                self.root.after(0, self.update_all_panels)
-                self.root.after(100, lambda: self.update_indicator.config(text="○"))  # cercle vide après la mise à jour
+                # Utiliser after() au lieu d'appels directs pour éviter le blocage de l'interface
+                self.root.after(0, self._do_update)
                 time.sleep(self.update_interval / 1000)  # Convert ms to seconds
             except Exception as e:
                 self.log_message(f"❌ Erreur dans la boucle de mise à jour: {e}")
+
+    def _do_update(self):
+        """Effectue la mise à jour sans bloquer l'interface"""
+        try:
+            self.update_indicator.config(text="●")
+            self.update_all_panels()
+            self.root.after(100, lambda: self.update_indicator.config(text="○"))
+        except Exception as e:
+            self.log_message(f"❌ Erreur lors de la mise à jour: {e}")
             
     def flash_tab(self, tab_name):
         """Fait flasher un tab pour indiquer une mise à jour"""
@@ -445,15 +453,18 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
 
     def update_all_panels(self):
         """Mise à jour de tous les panneaux d'agents"""
-        file_mapping = {
-            "Specification": "specifications.md",
-            "Management": "management.md",
-            "Production": "production.md",
-            "Evaluation": "evaluation.md"
-        }
-        
-        updated_panels = []
-        changes = {}  # Pour stocker les changements détectés
+        # Sauvegarder le curseur actuel
+        current_cursor = self.root.cget("cursor")
+        try:
+            file_mapping = {
+                "Specification": "specifications.md",
+                "Management": "management.md",
+                "Production": "production.md",
+                "Evaluation": "evaluation.md"
+            }
+            
+            updated_panels = []
+            changes = {}  # Pour stocker les changements détectés
         
         # Mise à jour de la demande
         try:
@@ -496,6 +507,10 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             except Exception as e:
                 # Fallback au message standard en cas d'erreur
                 self.log_message(f"✓ Mise à jour : {', '.join(updated_panels)}")
+                
+    finally:
+        # Restaurer le curseur d'origine
+        self.root.config(cursor=current_cursor)
 
     def _get_changes_summary(self, changes: dict) -> str:
         """Get summary of changes using LLM service"""
