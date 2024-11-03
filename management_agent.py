@@ -9,6 +9,7 @@ Key responsibilities:
 """
 from parallagon_agent import ParallagonAgent
 from search_replace import SearchReplace
+from section import Section
 import re
 import time
 from datetime import datetime
