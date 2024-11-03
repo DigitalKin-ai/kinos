@@ -15,6 +15,41 @@ class SpecificationsAgent(ParallagonAgent):
         super().__init__(config)
         self.client = openai.OpenAI(api_key=config["openai_api_key"])
         self.logger = config.get("logger", print)
+        self._last_demand = None
+
+    def should_run(self) -> bool:
+        """Specific rules for specifications agent"""
+        if super().should_run():
+            # Check for significant changes
+            if self.other_files.get("demande.md") != self._last_demand:
+                self._last_demand = self.other_files.get("demande.md")
+                return True
+                
+            # Check if synchronization needed
+            if self.needs_synchronization():
+                return True
+                
+            # Otherwise use normal rhythm
+            return True
+            
+        return False
+
+    def needs_synchronization(self) -> bool:
+        """Check if synchronization is needed"""
+        try:
+            with open("specifications.md", 'r', encoding='utf-8') as f:
+                specs = f.read()
+            with open("production.md", 'r', encoding='utf-8') as f:
+                prod = f.read()
+                
+            # Check for structure differences
+            specs_sections = set(re.findall(r'^#\s+(.+)$', specs, re.MULTILINE))
+            prod_sections = set(re.findall(r'^#\s+(.+)$', prod, re.MULTILINE))
+            
+            return specs_sections != prod_sections
+            
+        except Exception:
+            return True  # When in doubt, allow execution
 
     def synchronize_template(self) -> None:
         """Synchronise la structure du document de sortie avec le template"""

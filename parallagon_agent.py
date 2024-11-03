@@ -6,6 +6,7 @@ import time
 from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
+from datetime import datetime, timedelta
 from search_replace import SearchReplace, SearchReplaceResult
 from functools import wraps
 
@@ -52,13 +53,31 @@ class ParallagonAgent:
         'EvaluationAgent': {'required_sections': ["Évaluations en Cours", "Vue d'Ensemble"]}
     }
 
+    # Default intervals for each agent type (in seconds)
+    DEFAULT_INTERVALS = {
+        'SpecificationsAgent': 30,  # Slower
+        'ManagementAgent': 10,      # Medium
+        'ProductionAgent': 5,       # Fast
+        'EvaluationAgent': 15       # Moderate
+    }
+
     def __init__(self, config: Dict[str, Any]):
         """Initialize the agent with configuration"""
         self.config = config
         self.file_path = config["file_path"]
-        self.check_interval = config.get("check_interval", 5)
+        
+        # Use agent-specific rhythm or default value
+        agent_type = self.__class__.__name__
+        self.check_interval = config.get(
+            "check_interval", 
+            self.DEFAULT_INTERVALS.get(agent_type, 5)
+        )
+        
         self.running = False
         self.logger = config.get("logger", print)
+        self.last_run = None
+        self.last_change = None
+        self.consecutive_no_changes = 0
 
     # Validation configurations for different agent types
     VALIDATION_CONFIGS = {
@@ -231,19 +250,64 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
         """Stop the agent's execution"""
         self.running = False
 
+    def should_run(self) -> bool:
+        """Determine if agent should run based on rhythm and history"""
+        now = datetime.now()
+        
+        # First run
+        if self.last_run is None:
+            return True
+            
+        # Calculate dynamic delay
+        delay = self.calculate_dynamic_interval()
+        
+        # Check if enough time has elapsed
+        return (now - self.last_run) >= timedelta(seconds=delay)
+
+    def calculate_dynamic_interval(self) -> float:
+        """Calculate dynamic interval based on recent activity"""
+        base_interval = self.check_interval
+        
+        # If no recent changes, gradually increase interval
+        if self.last_change and self.consecutive_no_changes > 0:
+            # Increase interval up to 5x base rhythm
+            multiplier = min(5, 1 + (self.consecutive_no_changes * 0.5))
+            return base_interval * multiplier
+            
+        return base_interval
+
     def run(self) -> None:
-        """Main agent loop"""
+        """Main agent loop with adaptive timing"""
         self.running = True
-        while self.running:  # Cette condition doit être vérifiée en premier
+        while self.running:
             try:
-                if not self.running:  # Double vérification
-                    break
+                if not self.should_run():
+                    time.sleep(1)  # Short pause before next check
+                    continue
+                    
+                # Save state before modifications
+                previous_content = self.current_content if hasattr(self, 'current_content') else None
+                
+                # Execute normal cycle
                 self.read_files()
                 self.analyze()
                 self.determine_actions()
                 self.update()
-                time.sleep(self.config["check_interval"])
+                
+                # Update metrics
+                self.last_run = datetime.now()
+                
+                # Check for changes
+                if hasattr(self, 'current_content') and previous_content == self.current_content:
+                    self.consecutive_no_changes += 1
+                else:
+                    self.consecutive_no_changes = 0
+                    self.last_change = datetime.now()
+                
+                # Adaptive pause
+                time.sleep(1)
+                
             except Exception as e:
-                print(f"Error in agent loop: {e}")
-                if not self.running:  # Vérifier aussi ici
+                self.logger(f"Error in agent loop: {e}")
+                if not self.running:
                     break
