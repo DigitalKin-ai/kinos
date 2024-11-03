@@ -172,6 +172,19 @@ class ManagementAgent(ParallagonAgent):
         Returns:
             str: Content of specified section
         """
+        
+    def _extract_section_todos(self, section_content: str) -> list[str]:
+        """Extract todos from section content"""
+        todos = []
+        for line in section_content.split('\n'):
+            if line.startswith('- [ ]'):
+                # Extract priority and task description
+                match = re.match(r'- \[ \] \[priority: (HIGH|MEDIUM|LOW)\] (.+)$', line)
+                if match:
+                    priority = match.group(1)
+                    task = match.group(2)
+                    todos.append(f"[{priority}] {task}")
+        return todos
         """
         Extract content of a specific management section.
         
