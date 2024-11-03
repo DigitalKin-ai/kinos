@@ -2,6 +2,7 @@
 SpecificationsAgent - Agent responsible for requirements analysis and specifications
 """
 import re
+import time
 from parallagon_agent import ParallagonAgent
 import openai
 from datetime import datetime
@@ -64,6 +65,7 @@ class SpecificationsAgent(ParallagonAgent):
                 max_tokens=4000
             )
             print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
+            time.sleep(30)  # Pause de 30 secondes
             return response.choices[0].message.content
         except Exception as e:
             print(f"[{self.__class__.__name__}] Error in LLM response processing: {str(e)}")

@@ -4,6 +4,7 @@ EvaluationAgent - Agent responsible for quality control and validation
 from parallagon_agent import ParallagonAgent
 from search_replace import SearchReplace
 import re
+import time
 from datetime import datetime
 import openai
 
@@ -59,6 +60,7 @@ class EvaluationAgent(ParallagonAgent):
                 max_tokens=4000
             )
             print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
+            time.sleep(20)  # Pause de 20 secondes
             return response.choices[0].message.content
         except Exception as e:
             print(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")  # Error log
