@@ -490,13 +490,13 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 style = ttk.Style()
                 style_name = f'Flash.TNotebook.Tab'
                 
-                # Configurer le style
+                # Configurer le style avec configure() au lieu de -style
                 style.configure(style_name, background="#e8f0fe")
                 
                 # Obtenir l'index du tab
                 tab_id = self.tab_control.index(self.tabs[tab_name])
                 
-                # Appliquer le style
+                # Appliquer le style avec style=
                 self.tab_control.tab(tab_id, style=style_name)
                 
                 # Programmer le retour au style normal
@@ -505,17 +505,17 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                     lambda: self._restore_tab_style(tab_name, tab_id)
                 )
             except Exception as e:
-                self.log_message(f"❌ Erreur lors du flash du tab {tab_name}: {str(e)}")
+                self.logger(f"❌ Erreur lors du flash du tab {tab_name}: {str(e)}")
 
     def _restore_tab_style(self, tab_name, tab_id):
         """Restaure le style normal du tab"""
         if tab_name in self.tab_flash_tasks:
             try:
                 self.tab_flash_tasks.pop(tab_name)
-                # Retourner au style par défaut
+                # Retourner au style par défaut avec style=
                 self.tab_control.tab(tab_id, style='TNotebook.Tab')
             except Exception as e:
-                self.log_message(f"❌ Erreur lors de la restauration du style du tab {tab_name}: {str(e)}")
+                self.logger(f"❌ Erreur lors de la restauration du style du tab {tab_name}: {str(e)}")
 
     def update_all_panels(self):
         """Mise à jour de tous les panneaux d'agents"""
