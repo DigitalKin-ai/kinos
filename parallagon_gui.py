@@ -9,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any
 from search_replace import SearchReplace
+from log_manager import LogManager
 import openai
 
 class ParallagonGUI:
@@ -508,7 +509,10 @@ Résumez en une phrase précise ce qui a changé. Soyez factuel et concis."""
             
     def log_message(self, message: str):
         """Add a timestamped message to logs"""
-        self.log_manager.log(message)
+        if hasattr(self, 'log_manager'):
+            self.log_manager.log(message)
+        else:
+            print(f"Log: {message}")  # Fallback if log_manager not initialized
 
     def reset_files(self):
         """Reset all files to their initial state"""
