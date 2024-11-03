@@ -149,8 +149,10 @@ When you want to edit content, you must:
    - ##### For detailed points
    - ###### For the most granular subdivisions
 3. Each section edit should STOP at the next subsection
-4. Example format:
+4. NEVER add comments, notes, or explanations about your changes
+5. Return ONLY the section content, without any meta-commentary
 
+Example format:
 # Main Section
 Overview content...
 
@@ -173,14 +175,9 @@ Guidelines:
 - Keep content organized and nested properly
 - Each heading level should have meaningful content
 - Maintain consistent heading structure throughout the document
+- NEVER include comments or notes about your changes
+- Return ONLY the content itself
 
 Return either:
 1. "NO_CHANGES" if no updates needed
-2. The specific section(s) you want to edit, with their exact heading levels
-
-Example response:
-### 2.1 Detailed Analysis
-Updated content for just this subsection...
-
-#### 2.1.1 Specific Feature
-Updated content for just this detailed topic..."""
+2. The specific section(s) you want to edit, with their exact heading levels and content ONLY"""
