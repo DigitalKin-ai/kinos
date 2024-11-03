@@ -218,33 +218,46 @@ class SpecificationsAgent(ParallagonAgent):
             result.append(f"=== {file_path} ===\n{content}\n")
         return "\n".join(result)
     def _build_prompt(self, context: dict) -> str:
-        return f"""En tant que gestionnaire de template, votre rôle est de définir la structure exacte du document final.
+        return f"""En tant que gestionnaire de template, votre rôle est de définir la structure exacte du document final en utilisant 3 niveaux de titres.
 
 Contexte actuel :
 {self._format_other_files(context['other_files'])}
 
 Instructions :
-1. Analysez la demande pour identifier toutes les sections nécessaires
+1. Analysez la demande pour identifier :
+   - Les sections principales (niveau 1 avec #)
+   - Les sous-sections logiques (niveau 2 avec ##)
+   - Les points détaillés (niveau 3 avec ###)
+
 2. Créez un template complet avec :
-   - Toutes les sections requises (niveau 1 avec #)
-   - Une brève description des contraintes pour chaque section
-   - L'ordre logique des sections
+   - Sections principales pour les grands thèmes (# Section)
+   - Sous-sections pour les composantes majeures (## Sous-section)
+   - Sous-sous-sections pour les détails spécifiques (### Détail)
+   - Une description des contraintes pour chaque niveau
 
 Format de sortie attendu :
 
-# Section 1
-[contraintes: description courte des attentes pour cette section]
+# Section Principale
+[contraintes: description des attentes pour cette section]
 
-# Section 2
-[contraintes: description courte des attentes pour cette section]
+## Sous-section 1
+[contraintes: attentes spécifiques pour cette sous-section]
 
-etc...
+### Point Détaillé 1.1
+### Point Détaillé 1.2
+
+## Sous-section 2
+[contraintes: attentes spécifiques pour cette sous-section]
+
+### Point Détaillé 2.1
+### Point Détaillé 2.2
 
 Règles :
-- Utilisez uniquement des titres de niveau 1 (#)
-- Chaque section doit avoir ses contraintes entre []
-- Soyez précis mais concis dans les descriptions
-- La structure doit être complète et cohérente"""
+- Utilisez systématiquement les 3 niveaux de titres (#, ##, ###)
+- Chaque section et sous-section doit avoir ses contraintes entre []
+- Les sous-sous-sections servent à détailler les points spécifiques
+- Maintenez une structure cohérente et hiérarchique
+- Soyez précis mais concis dans les descriptions"""
     def _parse_hierarchical_content(self, content: str) -> dict:
         """Parse le contenu existant en structure hiérarchique"""
         result = {'main': '', 'subsections': {}}
