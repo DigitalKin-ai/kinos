@@ -292,6 +292,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                     pady=15                # Padding vertical plus important
                 )
                 self.log_text.pack(fill=tk.BOTH, expand=True)
+                self.log_manager = LogManager(self.log_text)
             else:
                 text_widget = scrolledtext.ScrolledText(
                     tab, wrap=tk.WORD, font=('Segoe UI', 10),
