@@ -67,6 +67,9 @@ class LogManager:
         # Base tag for timestamps
         self.text_widget.tag_config('timestamp', foreground='#a0a0a0')
         
+        # Animation tag
+        self.text_widget.tag_config('fade_in', background='#e8f0fe')
+        
         # Tags for each log level
         for level in LogLevel:
             self.text_widget.tag_config(
@@ -141,16 +144,23 @@ class LogManager:
                 self._display_log(log)
 
     def _display_log(self, log: LogEntry):
-        """Display a single log entry with proper formatting"""
+        """Display a single log entry with proper formatting and animation"""
+        # Configure animation tag
+        self.text_widget.tag_config('fade_in', background='#e8f0fe')
+        
         # Add timestamp
         self.text_widget.insert(tk.END, f"[{log.timestamp}] ", 'timestamp')
         
-        # Add agent name if present
+        # Add agent name only once if present
         if log.agent:
             self.text_widget.insert(tk.END, f"[{log.agent}] ", log.level.name.lower())
         
-        # Add message with proper tag
-        self.text_widget.insert(tk.END, f"{log.message}\n", log.level.name.lower())
+        # Add message with proper tag and animation
+        start_index = self.text_widget.index(tk.END)
+        self.text_widget.insert(tk.END, f"{log.message}\n", (log.level.name.lower(), 'fade_in'))
+        
+        # Schedule animation removal
+        self.text_widget.after(1000, lambda: self.text_widget.tag_remove('fade_in', start_index, tk.END))
     
     def clear(self):
         """Clear all log messages"""
