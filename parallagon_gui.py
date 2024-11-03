@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Dict, Any
 from search_replace import SearchReplace
 from log_manager import LogManager
+from agent_panel import AgentPanel
+from gui_config import GUIConfig
 import openai
 
 class ParallagonGUI:
@@ -118,6 +120,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.running = False
         self.updating = False
         self.config = config
+        self.gui_config = GUIConfig()
         self.client = openai.OpenAI(api_key=config["openai_api_key"])
         self.agent_threads = {}  # Store agent threads
         self.tab_states = {
@@ -128,17 +131,6 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             "Suivi Mission": False
         }
         self.tab_flash_tasks = {}
-        
-        # Configuration des couleurs et du thème
-        self.colors = {
-            'bg': '#f0f2f5',
-            'panel_bg': '#ffffff',
-            'accent': '#1a73e8',
-            'text': '#202124',
-            'secondary_text': '#5f6368',
-            'border': '#dadce0',
-            'highlight': '#e8f0fe'
-        }
 
         # Configuration des styles
         style = ttk.Style()
@@ -642,39 +634,27 @@ En attente de nouvelles directives...
         except Exception as e:
             self.log_message(f"❌ Erreur lors de la réinitialisation : {str(e)}")
 
+    def _create_text_widget(self, parent) -> scrolledtext.ScrolledText:
+        """Create a standardized text widget"""
+        return scrolledtext.ScrolledText(
+            parent,
+            wrap=tk.WORD,
+            font=(self.gui_config.font_family, self.gui_config.font_size),
+            bg=self.gui_config.colors['panel_bg'],
+            fg=self.gui_config.colors['text']
+        )
+
+    def _create_agent_panel(self, parent, title: str) -> AgentPanel:
+        """Create a standardized agent panel"""
+        text_widget = self._create_text_widget(parent)
+        text_widget.pack(fill=tk.BOTH, expand=True)
+        return AgentPanel(parent, title, text_widget)
+
     def run(self):
         """Démarrage de l'interface"""
         self.root.mainloop()
 
 
-class AgentPanel:
-    """Panneau d'affichage pour un agent"""
-    def __init__(self, parent, title, text_widget):
-        self.frame = parent
-        self.text = text_widget
-        
-        # Configuration du highlighting
-        self.text.tag_configure(
-            "highlight",
-            background="#e8f0fe"
-        )
-        
-    def update_content(self, content: str):
-        """Mise à jour du contenu avec highlighting des changements"""
-        current = self.text.get("1.0", tk.END).strip()
-        if content.strip() != current:
-            self.text.delete("1.0", tk.END)
-            self.text.insert("1.0", content)
-            self.highlight_changes()
-            
-    def highlight_changes(self):
-        """Mise en évidence temporaire des changements"""
-        self.text.tag_add("highlight", "1.0", tk.END)
-        self.frame.after(1000, self.clear_highlight)
-        
-    def clear_highlight(self):
-        """Suppression du highlighting"""
-        self.text.tag_remove("highlight", "1.0", tk.END)
 
 
 if __name__ == "__main__":
