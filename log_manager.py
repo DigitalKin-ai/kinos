@@ -29,6 +29,13 @@ class LogManager:
     """Manages logging display and formatting in the GUI"""
     
     MAX_LOGS = 1000  # Maximum number of logs to keep in memory
+    COLORS = {
+        'timestamp': '#a0a0a0',
+        'success': '#4CAF50',
+        'error': '#f44336',
+        'info': '#2196F3',
+        'warning': '#FFC107'
+    }
     
     def __init__(self, text_widget: tk.Text):
         """Initialize the log manager with a text widget"""

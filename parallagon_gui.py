@@ -17,6 +17,17 @@ from file_manager import FileManager
 import openai
 
 class ParallagonGUI:
+    # Class constants
+    UPDATE_INTERVAL = 1000  # ms
+    FILE_PATHS = {
+        "demande": "demande.md",
+        "specifications": "specifications.md", 
+        "management": "management.md",
+        "production": "production.md",
+        "evaluation": "evaluation.md"
+    }
+    TAB_NAMES = ["Specification", "Evaluation", "Management", "Demande", "Suivi Mission"]
+
     TEST_DATA = """# Demande de Revue de Connaissances LLM : L'Impact de l'IA Générative sur l'Industrie Musicale
 
 ## 1. Contexte de la demande
@@ -137,25 +148,8 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         }
         self.tab_flash_tasks = {}
 
-        # Configuration des styles
-        style = ttk.Style()
-        style.configure('Modern.TButton', 
-            padding=10, 
-            font=('Segoe UI', 10),
-            background=self.colors['accent']
-        )
-        style.configure('Modern.TLabelframe', 
-            background=self.colors['panel_bg'],
-            padding=10
-        )
-        style.configure('Modern.TLabel', 
-            font=('Segoe UI', 10),
-            background=self.colors['bg']
-        )
-        style.configure('Updating.TLabelframe', 
-            background=self.colors['highlight']
-        )
-
+        self._setup_styles()
+        
         # Configuration de la fenêtre
         self.root.configure(bg=self.colors['bg'])
         
@@ -204,6 +198,26 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
 
 
         
+    def _setup_styles(self):
+        """Configure les styles de l'interface"""
+        style = ttk.Style()
+        style.configure('Modern.TButton', 
+            padding=10, 
+            font=('Segoe UI', 10),
+            background=self.gui_config.colors['accent']
+        )
+        style.configure('Modern.TLabelframe', 
+            background=self.gui_config.colors['panel_bg'],
+            padding=10
+        )
+        style.configure('Modern.TLabel', 
+            font=('Segoe UI', 10),
+            background=self.gui_config.colors['bg']
+        )
+        style.configure('Updating.TLabelframe', 
+            background=self.gui_config.colors['highlight']
+        )
+
     def setup_ui(self):
         """Configuration de l'interface utilisateur"""
         # Panneau de contrôle

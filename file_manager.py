@@ -8,6 +8,10 @@ from datetime import datetime
 class FileManager:
     """Manages file operations for the GUI"""
     
+    class FileError(Exception):
+        """Exception personnalisée pour les erreurs de fichiers"""
+        pass
+    
     def __init__(self, file_paths: Dict[str, str]):
         self.file_paths = file_paths
         
@@ -16,13 +20,12 @@ class FileManager:
         try:
             file_path = self.file_paths.get(file_name)
             if not file_path:
-                return None
+                raise self.FileError(f"Chemin non trouvé pour {file_name}")
                 
             with open(file_path, 'r', encoding='utf-8') as f:
                 return f.read()
         except Exception as e:
-            print(f"Error reading file {file_name}: {e}")
-            return None
+            raise self.FileError(f"Erreur lecture {file_name}: {str(e)}")
             
     def write_file(self, file_name: str, content: str) -> bool:
         """Write content to a file"""

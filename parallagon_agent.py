@@ -9,18 +9,21 @@ from pathlib import Path
 from search_replace import SearchReplace, SearchReplaceResult
 from functools import wraps
 
-def error_handler(func):
-    """Decorator for handling errors in agent methods"""
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        try:
-            return func(self, *args, **kwargs)
-        except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Error: {str(e)}")
-            import traceback
-            self.logger(traceback.format_exc())
-            return args[0].get('production', '') if args else ''
-    return wrapper
+def agent_error_handler(method_name: str):
+    """Décorateur générique pour la gestion des erreurs des agents"""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            try:
+                return func(self, *args, **kwargs)
+            except Exception as e:
+                error_msg = f"[{self.__class__.__name__}] ❌ Erreur dans {method_name}: {str(e)}"
+                self.logger(error_msg)
+                import traceback
+                self.logger(traceback.format_exc())
+                return None
+        return wrapper
+    return decorator
 
 class ParallagonAgent:
     """Base class for Parallagon autonomous agents"""
