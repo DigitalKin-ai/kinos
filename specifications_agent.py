@@ -37,6 +37,17 @@ class SpecificationsAgent(ParallagonAgent):
         Returns:
             bool: True if agent should execute, False otherwise
         """
+        """
+        Determines execution timing based on template-specific criteria.
+        
+        Triggers execution when:
+        - New demand is detected
+        - Template-Production synchronization needed
+        - Regular check interval elapsed
+        
+        Returns:
+            bool: True if agent should execute, False otherwise
+        """
         if super().should_run():
             # Check for significant changes
             current_demand = getattr(self, 'other_files', {}).get("demande.md")
@@ -67,6 +78,17 @@ class SpecificationsAgent(ParallagonAgent):
         Returns:
             bool: True if synchronization needed, False otherwise
         """
+        """
+        Check if template-production synchronization is needed.
+        
+        Verifies:
+        - Section structure matches between template and production
+        - All required sections are present
+        - Section hierarchy is consistent
+        
+        Returns:
+            bool: True if synchronization needed, False otherwise
+        """
         try:
             with open("specifications.md", 'r', encoding='utf-8') as f:
                 specs = f.read()
@@ -83,6 +105,16 @@ class SpecificationsAgent(ParallagonAgent):
             return True  # When in doubt, allow execution
 
     def synchronize_template(self) -> None:
+        """
+        Synchronize production document structure with template.
+        
+        Operations:
+        - Extracts template structure and constraints
+        - Preserves existing content in matching sections
+        - Adds missing sections with placeholders
+        - Removes obsolete sections
+        - Maintains section hierarchy and constraints
+        """
         """
         Synchronize production document structure with template.
         
@@ -245,6 +277,15 @@ class SpecificationsAgent(ParallagonAgent):
         3. Adjusts section constraints based on requirements
         4. Triggers synchronization when template changes
         """
+        """
+        Analyze current context and determine template updates.
+        
+        Process:
+        1. Analyzes demand changes and requirements
+        2. Updates template structure if needed
+        3. Adjusts section constraints based on requirements
+        4. Triggers synchronization when template changes
+        """
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
             
@@ -271,6 +312,21 @@ class SpecificationsAgent(ParallagonAgent):
             self.logger(traceback.format_exc())
 
     def _get_llm_response(self, context: dict) -> str:
+        """
+        Get LLM response for template decisions.
+        
+        Process:
+        1. Sends formatted prompt to LLM
+        2. Validates response format and structure
+        3. Handles retries on validation failure
+        4. Returns validated template updates
+        
+        Args:
+            context: Current state and file contents
+            
+        Returns:
+            str: Validated template updates from LLM
+        """
         """
         Get LLM response for template decisions.
         
@@ -326,6 +382,21 @@ class SpecificationsAgent(ParallagonAgent):
             result.append(f"=== {file_path} ===\n{content}\n")
         return "\n".join(result)
     def _build_prompt(self, context: dict) -> str:
+        """
+        Build LLM prompt for template analysis and updates.
+        
+        Includes:
+        - Current template structure
+        - Project requirements and constraints
+        - Section relationships and hierarchy
+        - Validation rules and format requirements
+        
+        Args:
+            context: Current state and file contents
+            
+        Returns:
+            str: Formatted prompt for LLM
+        """
         """
         Build LLM prompt for template analysis and updates.
         
