@@ -351,67 +351,37 @@ Entrez votre demande ici...
 # Historique des Demandes
 - [INIT] Création du fichier""".format(datetime.now().strftime("%Y-%m-%d %H:%M")),
 
-                "specifications.md": """# État Actuel
-[status: ACTIVE]
-En attente de nouvelles demandes.
+                "specifications.md": """# Spécification de Sortie
+En attente de nouvelles demandes...
 
-# Signaux
-- Aucun signal
+# Critères de Succès
+- Critère principal 1
+  * Sous-critère A
+  * Sous-critère B
+- Critère principal 2
+  * Sous-critère A
+  * Sous-critère B""",
 
-# Contenu Principal
-Spécifications du projet...
+                "management.md": """# Consignes Actuelles
+En attente de nouvelles directives...
 
-# Historique
-- [INIT] Création du fichier""",
-
-                "management.md": """# État Actuel
-[status: ACTIVE]
-En attente de tâches à coordonner.
-
-# Signaux
-- Aucun signal
-
-# Contenu Principal
-## TodoList du Projet
+# TodoList
 - [ ] En attente de demandes
 
-## Priorités Actuelles
-1. Traiter les nouvelles demandes
+# Actions Réalisées
+- [{}] Création du fichier""".format(datetime.now().strftime("%Y-%m-%d %H:%M")),
 
-## Blocages Potentiels
-- Aucun blocage
+                "production.md": """En attente de contenu à produire...""",
 
-# Historique
-- [INIT] Création du fichier""",
+                "evaluation.md": """# Évaluations en Cours
+- Critère 1: [⚠️] En attente
+- Critère 2: [⚠️] En attente
 
-                "production.md": """# État Actuel
-[status: READY]
-En attente de tâches de développement.
-
-# Signaux
-- Aucun signal
-
-# Contenu Principal
-En attente de spécifications techniques...
-
-# Historique
-- [INIT] Création du fichier""",
-
-                "evaluation.md": """# État Actuel
-[status: READY]
-En attente de contenu à évaluer.
-
-# Signaux
-- Aucun signal
-
-# Contenu Principal
-## Critères de Validation
-- Qualité du code
-- Tests unitaires
-- Documentation
-
-# Historique
-- [INIT] Création du fichier"""
+# Vue d'Ensemble
+- Progression: 0%
+- Points forts: À déterminer
+- Points à améliorer: À déterminer
+- Statut global: EN_ATTENTE"""
             }
 
             # Write initial content to files
