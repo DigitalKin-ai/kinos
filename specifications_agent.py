@@ -291,24 +291,48 @@ class SpecificationsAgent(ParallagonAgent):
                 "other_files": self.other_files
             }
             
-            # Obtenir la réponse du LLM avec la structure complète
+            # Obtenir la réponse du LLM
             response = self._get_llm_response(context)
             
-            # Extraire la structure hiérarchique actuelle et nouvelle
-            current_structure = self._parse_template_structure(self.current_content)
-            new_structure = self._parse_template_structure(response)
-            
-            if current_structure != new_structure:
-                self.logger(f"[{self.__class__.__name__}] Modifications détectées, mise à jour du template...")
+            # Valider que la réponse contient des sections
+            if not response or not '#' in response:
+                self.logger(f"[{self.__class__.__name__}] ❌ Réponse LLM invalide - pas de sections")
+                return
+
+            # Extraire et valider les structures
+            try:
+                current_structure = self._parse_template_structure(self.current_content)
+                new_structure = self._parse_template_structure(response)
                 
-                # Construire le nouveau contenu avec la hiérarchie complète
-                new_content = self._build_hierarchical_content(new_structure)
+                # Valider que la nouvelle structure contient des sections
+                if not new_structure:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Nouvelle structure invalide")
+                    return
+                    
+                # Log des différences pour debug
+                self._log_structure_differences(current_structure, new_structure)
                 
-                self.new_content = new_content
-                self.update()
+                # Mise à jour si différent
+                if current_structure != new_structure:
+                    self.logger(f"[{self.__class__.__name__}] ✓ Modifications détectées, mise à jour du template...")
+                    
+                    # Utiliser directement la réponse du LLM comme nouveau contenu
+                    self.new_content = response
+                    self.update()
+                    
+                    # Forcer la synchronisation
+                    self.synchronize_template()
+                    self.logger(f"[{self.__class__.__name__}] ✓ Template et production synchronisés")
+                else:
+                    self.logger(f"[{self.__class__.__name__}] ℹ Aucune modification nécessaire")
+                    
+            except Exception as e:
+                self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors du parsing des structures: {str(e)}")
                 
-                # Synchroniser le document de production
-                self.synchronize_template()
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur globale: {str(e)}")
+            import traceback
+            self.logger(traceback.format_exc())
             else:
                 self.logger(f"[{self.__class__.__name__}] Aucune modification nécessaire")
                 
@@ -366,6 +390,35 @@ class SpecificationsAgent(ParallagonAgent):
             import traceback
             print(traceback.format_exc())
             return context['specifications']
+
+    def _log_structure_differences(self, current: dict, new: dict) -> None:
+        """Log les différences entre les structures pour debug"""
+        self.logger("=== Différences de structure ===")
+        
+        # Sections principales
+        current_sections = set(current.keys())
+        new_sections = set(new.keys())
+        
+        added = new_sections - current_sections
+        removed = current_sections - new_sections
+        
+        if added:
+            self.logger(f"Sections ajoutées: {added}")
+        if removed:
+            self.logger(f"Sections supprimées: {removed}")
+            
+        # Sous-sections
+        for section in current_sections & new_sections:
+            current_subsections = set(current[section]['subsections'].keys())
+            new_subsections = set(new[section]['subsections'].keys())
+            
+            added_sub = new_subsections - current_subsections
+            removed_sub = current_subsections - new_subsections
+            
+            if added_sub:
+                self.logger(f"Sous-sections ajoutées dans {section}: {added_sub}")
+            if removed_sub:
+                self.logger(f"Sous-sections supprimées dans {section}: {removed_sub}")
 
     def _format_other_files(self, files: dict) -> str:
         """
