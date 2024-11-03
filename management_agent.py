@@ -31,6 +31,11 @@ class ManagementAgent(ParallagonAgent):
         self.client = openai.OpenAI(api_key=config["openai_api_key"])
         self.logger = config.get("logger", print)
 
+    def _sort_todos(self, todos: list[dict]) -> list[dict]:
+        """Sort todos by priority"""
+        priority_order = {'HIGH': 0, 'MEDIUM': 1, 'LOW': 2}
+        return sorted(todos, key=lambda x: priority_order[x['priority']])
+
     def determine_actions(self) -> None:
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
@@ -78,8 +83,9 @@ class ManagementAgent(ParallagonAgent):
                     todos.append(f"\n[section: {section_name}]")
                     todos.append(f"[contraintes: {section_constraints}]")
                     
-                    # Add tasks for this section
-                    for task in section_todos[section_name]:
+                    # Add sorted tasks for this section
+                    sorted_tasks = self._sort_todos(section_todos[section_name])
+                    for task in sorted_tasks:
                         todos.append(f"- [ ] [priority: {task['priority']}] {task['description']}")
 
                 # Update TodoList section

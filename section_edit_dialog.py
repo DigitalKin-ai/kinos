@@ -6,6 +6,16 @@ from tkinter import ttk
 from section import Section
 
 class SectionEditDialog:
+    def _format_todo_item(self, task: str) -> str:
+        """Format todo item with priority highlighting"""
+        if '[HIGH]' in task:
+            return f"🔴 {task.replace('[HIGH]', '')}"
+        elif '[MEDIUM]' in task:
+            return f"🟡 {task.replace('[MEDIUM]', '')}"
+        elif '[LOW]' in task:
+            return f"🟢 {task.replace('[LOW]', '')}"
+        return f"• {task}"
+
     def __init__(self, parent, section: Section):
         self.dialog = tk.Toplevel(parent)
         self.dialog.title(f"Edit {section.title}")
@@ -31,15 +41,16 @@ class SectionEditDialog:
                 wraplength=550
             ).pack(padx=5, pady=5)
             
-        # Add todos area
+        # Add todos area with priority formatting
         if section.todo:
             todos_frame = ttk.LabelFrame(self.dialog, text="Tâches à faire")
             todos_frame.pack(fill=tk.X, padx=5, pady=5)
-            
+                
             for task in section.todo:
+                formatted_task = self._format_todo_item(task)
                 ttk.Label(
                     todos_frame, 
-                    text=f"• {task}", 
+                    text=formatted_task, 
                     wraplength=550
                 ).pack(anchor=tk.W, padx=5, pady=2)
             
