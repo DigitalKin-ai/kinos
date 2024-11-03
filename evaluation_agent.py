@@ -28,10 +28,30 @@ class EvaluationAgent(ParallagonAgent):
         response = self._get_llm_response(context)
         
         if response != self.current_content:
-            self.new_content = response
+            # Use temporary content for replacements
+            temp_content = self.current_content
+            sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
+            
+            for section in sections:
+                pattern = f"# {section}\n(.*?)(?=\n#|$)"
+                match = re.search(pattern, response, re.DOTALL)
+                if not match:
+                    print(f"[{self.__class__.__name__}] {section} section not found in LLM response")
+                    continue
+                    
+                new_section_content = match.group(1).strip()
+                result = SearchReplace.section_replace(
+                    temp_content,
+                    section,
+                    new_section_content
+                )
+                if result.success:
+                    temp_content = result.new_content
+                    
+            self.new_content = temp_content
             print(f"[{self.__class__.__name__}] Changes detected:")
             print(f"Old content: {self.current_content[:100]}...")
-            print(f"New content: {response[:100]}...")
+            print(f"New content: {self.new_content[:100]}...")
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response for evaluation tasks"""

@@ -47,7 +47,8 @@ class SpecificationsAgent(ParallagonAgent):
         
         # Apply changes using SearchReplace if needed
         if response != self.current_content:
-            # Update each section with detailed logging
+            # Use temporary content for replacements
+            temp_content = self.current_content
             sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
             
             for section in sections:
@@ -62,14 +63,14 @@ class SpecificationsAgent(ParallagonAgent):
                 
                 # Use SearchReplace to safely update the section
                 result = SearchReplace.section_replace(
-                    self.current_content, 
+                    temp_content,
                     section, 
                     new_section_content
                 )
                 
                 print(f"[{self.__class__.__name__}] {section} replace: {'✓' if result.success else '❌'} - {result.message}")
                 if result.success:
-                    self.current_content = result.new_content
+                    temp_content = result.new_content
 
             # Update status if needed
             old_status_match = re.search(r'\[status: (\w+)\]', self.current_content)
