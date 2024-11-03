@@ -75,53 +75,40 @@ class ManagementAgent(ParallagonAgent):
         """Get LLM response for management decisions"""
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
-            prompt = f"""You are the Specifications Agent in the Parallagon framework. Your role is to define and maintain creative writing requirements.
+            prompt = f"""You are the Management Agent in the Parallagon framework. Your role is to coordinate tasks and maintain project guidelines.
 
-Current specifications content:
-{context['specifications']}
+Current management content:
+{context['management']}
 
 Other files content:
 {self._format_other_files(context['other_files'])}
 
 Your task:
-1. Review the current creative writing specifications
-2. Define and clarify writing style, tone, and format requirements
-3. Specify literary constraints (rhyme scheme, meter, etc.)
-4. Ensure consistency in creative direction
-5. Respond to questions about creative requirements
-
-Focus on:
-- Literary style guidelines
-- Thematic elements
-- Structural requirements
-- Creative constraints
-- Quality criteria
+1. Review and update current guidelines
+2. Manage the project todolist
+3. Track completed actions
+4. Coordinate between agents
+5. Ensure project progress
 
 Important:
-- Return ONLY the markdown content, starting with "# État Actuel"
-- Keep all existing sections in exact order:
-  1. État Actuel
-  2. Signaux
-  3. Contenu Principal
-  4. Historique
-- Maintain exact markdown formatting
-- Do not include any explanatory text
-- Do not start with phrases like "Based on my review" or "After analyzing"
-- The response must be a valid markdown document that can directly replace the current content
+- Return ONLY the markdown content with exactly these 3 sections:
 
-Example format:
-# État Actuel
-[status: STATUS]
-Description...
+# Consignes Actuelles
+[Current guidelines and constraints]
 
-# Signaux
-- Signal 1
-- Signal 2
+# TodoList
+- [ ] Uncompleted task
+- [x] Completed task
 
-# TodoList du Projet
-### Phase 1
-- [x] Task 1
-- [ ] Task 2
+# Actions Réalisées
+- [Timestamp] Action description
+
+Guidelines:
+- Keep tasks clear and actionable
+- Use checkboxes for todo items
+- Add timestamps for all actions
+- Be specific in guidelines
+- Maintain chronological order in actions
 
 If changes are needed, return the complete updated content.
 If no changes are needed, return the exact current content.

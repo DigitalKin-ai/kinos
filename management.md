@@ -1,19 +1,8 @@
-# État Actuel
-[status: ACTIVE]
-En attente de tâches à coordonner.
+# Consignes Actuelles
+En attente de nouvelles consignes.
 
-# Signaux
-- Aucun signal
-
-# Contenu Principal
-## TodoList du Projet
+# TodoList
 - [ ] En attente de demandes
 
-## Priorités Actuelles
-1. Traiter les nouvelles demandes
-
-## Blocages Potentiels
-- Aucun blocage
-
-# Historique
+# Actions Réalisées
 - [INIT] Création du fichier
