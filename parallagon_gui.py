@@ -487,26 +487,26 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         if tab_name not in self.tab_flash_tasks:
             style = ttk.Style()
             
-            # Créer un style unique pour ce tab
+            # Créer un style unique pour ce tab sans le préfixe "-"
             tab_style = f'Flash.TNotebook.Tab.{tab_name}'
             style.configure(tab_style, background="#e8f0fe")
             
-            # Appliquer le style au tab spécifique
+            # Appliquer le style au tab spécifique en utilisant style=
             tab_id = self.tab_control.index(self.tabs[tab_name])
             self.tab_control.tab(tab_id, style=tab_style)
             
             # Programmer le retour à la couleur normale
             self.tab_flash_tasks[tab_name] = self.root.after(
                 1000,  # Durée du flash (1 seconde)
-                lambda: self._remove_tab_flash(tab_name, style, tab_id)
+                lambda: self._remove_tab_flash(tab_name, tab_id)
             )
 
-    def _remove_tab_flash(self, tab_name, style, tab_id):
+    def _remove_tab_flash(self, tab_name, tab_id):
         """Retire le flash et restaure la couleur normale du tab"""
         if tab_name in self.tab_flash_tasks:
             self.tab_flash_tasks.pop(tab_name)
-            # Retirer le style personnalisé et revenir au style par défaut
-            self.tab_control.tab(tab_id, style='')
+            # Retirer le style en utilisant une chaîne vide
+            self.tab_control.tab(tab_id, style='TNotebook.Tab')
 
     def update_all_panels(self):
         """Mise à jour de tous les panneaux d'agents"""
