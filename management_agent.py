@@ -107,52 +107,73 @@ class ManagementAgent(ParallagonAgent):
 
     def _build_prompt(self, context: dict) -> str:
         """Build the prompt for the LLM"""
-        # Extract sections from specifications
+        # Extract sections and their constraints from specifications
         specs_content = context.get("other_files", {}).get("specifications.md", "")
-        template_sections = re.findall(r'^# (.+)$', specs_content, re.MULTILINE)
-        sections_list = "\n".join([f"- {section}" for section in template_sections])
+        sections_data = []
+        
+        # Find all sections and their constraints
+        section_matches = re.finditer(r'^# (.+)\n(.*?)(?=\n#|$)', specs_content, re.MULTILINE | re.DOTALL)
+        for match in section_matches:
+            section_name = match.group(1)
+            section_content = match.group(2).strip()
+            sections_data.append(f"- {section_name}\n  Contraintes: {section_content}")
+        
+        sections_list = "\n".join(sections_data)
+
+        # Get evaluation status
+        eval_content = context.get("other_files", {}).get("evaluation.md", "")
+        eval_status = "Pas d'évaluation disponible"
+        if eval_content:
+            vue_ensemble = re.search(r'# Vue d\'Ensemble\n(.*?)(?=\n#|$)', eval_content, re.DOTALL)
+            if vue_ensemble:
+                eval_status = vue_ensemble.group(1).strip()
 
         return f"""En tant que chef de projet expérimenté, votre rôle est de :
-1. Analyser la demande et les spécifications
-2. Définir et prioriser les tâches par section
-3. Suivre l'avancement
-4. Coordonner le travail
+1. Analyser la demande, les spécifications et l'état actuel
+2. Définir et prioriser les tâches par section en tenant compte des contraintes
+3. Suivre l'avancement et adapter le plan selon les évaluations
+4. Coordonner le travail entre les différentes sections
 
 Contexte actuel :
 {self._format_other_files(context)}
 
-Sections du template :
+Sections du template et leurs contraintes :
 {sections_list}
 
+État de l'évaluation :
+{eval_status}
+
 Instructions :
-1. Analysez tous les documents pour comprendre l'état actuel
-2. Pour chaque section du template, identifiez les tâches nécessaires
-3. Priorisez les tâches au sein de chaque section
-4. Donnez des consignes claires pour la suite
+1. Analysez tous les documents pour comprendre l'état actuel et les blocages
+2. Pour chaque section du template :
+   - Identifiez les tâches nécessaires pour respecter les contraintes
+   - Priorisez les tâches selon l'évaluation actuelle
+   - Proposez des actions correctives si nécessaire
+3. Donnez des consignes claires et actionnables
 
 Format attendu :
 
 # Consignes Actuelles
-[Consignes claires et précises pour la prochaine étape, en précisant la section concernée]
+[Consignes précises pour la prochaine étape]
+- Section concernée : [nom de la section]
+- Objectif : [but à atteindre]
+- Points d'attention : [éléments critiques à surveiller]
 
 # TodoList
-[Section 1]
-- [ ] Tâche 1.1
-- [ ] Tâche 1.2
+[Section 1 - Contraintes principales]
+- [ ] Tâche 1.1 (Priorité: Haute/Moyenne/Basse)
+- [ ] Tâche 1.2 (Priorité: Haute/Moyenne/Basse)
 
-[Section 2]
-- [ ] Tâche 2.1
-- [ ] Tâche 2.2
-
-etc...
+[Section 2 - Contraintes principales]
+- [ ] Tâche 2.1 (Priorité: Haute/Moyenne/Basse)
+- [ ] Tâche 2.2 (Priorité: Haute/Moyenne/Basse)
 
 # Actions Réalisées
-- [timestamp] Action effectuée (Section concernée)
-etc...
+- [timestamp] Action effectuée (Section: nom_section | Impact: description_impact)
 
 Règles :
-- Organisez les tâches par section du template
-- Priorisez les tâches au sein de chaque section
-- Indiquez toujours la section concernée
+- Organisez les tâches par section avec leurs contraintes principales
+- Priorisez les tâches selon l'évaluation et les blocages identifiés
+- Indiquez toujours la section concernée et l'impact attendu
 - Soyez précis et concis dans les descriptions
-- Gardez une trace des actions avec leur section"""
+- Gardez une trace des actions avec leur section et leur impact"""
