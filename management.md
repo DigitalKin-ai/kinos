@@ -1,46 +1,19 @@
 # État Actuel
-[status: IN_PROGRESS]
-Phase 2 - Développement Core en cours.
+[status: ACTIVE]
+En attente de tâches à coordonner.
 
 # Signaux
 - Aucun signal
 
 # Contenu Principal
-
 ## TodoList du Projet
+- [ ] En attente de demandes
 
-### Phase 1 - Setup Initial
-- [x] Création des fichiers de base
-- [x] Structure initiale des agents
-- [ ] Validation du format de communication
+## Priorités Actuelles
+1. Traiter les nouvelles demandes
 
-### Phase 2 - Développement Core
-- [ ] Implémentation de la classe ParallagonAgent
-- [ ] Système de lecture/écriture fichiers
-- [ ] Gestion des signaux entre agents
-- [ ] Tests unitaires de base
-
-### Phase 3 - Interface Utilisateur
-- [ ] Structure de base GUI Tkinter
-- [ ] Panneau de contrôle (Start/Stop)
-- [ ] Zones d'affichage des agents
-- [ ] Système de mise à jour en temps réel
-
-### Phase 4 - Tests et Optimisation
-- [ ] Tests d'intégration
-- [ ] Tests de performance
-- [ ] Optimisation des mises à jour
-- [ ] Documentation utilisateur
-
-### Priorités Actuelles
-1. Finaliser l'implémentation de base des agents
-2. Mettre en place le système de communication
-3. Développer l'interface utilisateur minimale
-
-### Blocages Potentiels
-- Gestion des accès concurrents aux fichiers
-- Synchronisation des mises à jour GUI
-- Performance des opérations de lecture/écriture
+## Blocages Potentiels
+- Aucun blocage
 
 # Historique
 - [INIT] Création du fichier

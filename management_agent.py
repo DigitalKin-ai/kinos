@@ -75,20 +75,27 @@ class ManagementAgent(ParallagonAgent):
         """Get LLM response for management decisions"""
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
-            prompt = f"""You are the Management Agent in the Parallagon framework. Your role is to coordinate the project and manage tasks.
+            prompt = f"""You are the Specifications Agent in the Parallagon framework. Your role is to define and maintain creative writing requirements.
 
-Current management content:
-{context['management']}
+Current specifications content:
+{context['specifications']}
 
 Other files content:
 {self._format_other_files(context['other_files'])}
 
 Your task:
-1. Review all files and current project status
-2. Update the TodoList with completed/new tasks
-3. Adjust priorities based on progress
-4. Add signals to coordinate between agents
-5. Update status if needed
+1. Review the current creative writing specifications
+2. Define and clarify writing style, tone, and format requirements
+3. Specify literary constraints (rhyme scheme, meter, etc.)
+4. Ensure consistency in creative direction
+5. Respond to questions about creative requirements
+
+Focus on:
+- Literary style guidelines
+- Thematic elements
+- Structural requirements
+- Creative constraints
+- Quality criteria
 
 Important:
 - Return ONLY the markdown content, starting with "# État Actuel"
