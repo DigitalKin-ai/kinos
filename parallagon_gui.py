@@ -30,7 +30,7 @@ class ParallagonGUI:
         "production": "production.md",
         "evaluation": "evaluation.md"
     }
-    TAB_NAMES = ["Specification", "Evaluation", "Management", "Demande", "Suivi Mission"]
+    TAB_NAMES = ["Demande", "Specification", "Management", "Evaluation", "Suivi Mission"]
 
     TEST_DATA = """# Demande de Revue de Connaissances LLM : L'Impact de l'IA Générative sur l'Industrie Musicale
 
@@ -348,7 +348,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         # Création des tabs
         self.tabs = {}
         self.agent_panels = {}
-        for tab_name in ["Specification", "Evaluation", "Management", "Demande", "Suivi Mission"]:
+        for tab_name in ["Demande", "Specification", "Management", "Evaluation", "Suivi Mission"]:
             tab = ttk.Frame(self.tab_control)
             self.tabs[tab_name] = tab
             self.tab_control.add(tab, text=tab_name)
@@ -365,11 +365,11 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 self.log_text = scrolledtext.ScrolledText(
                     tab, 
                     wrap=tk.WORD, 
-                    font=('Segoe UI', 12),  # Police plus grande
-                    bg=self.gui_config.colors['panel_bg'],  # Use configured color
-                    fg=self.gui_config.colors['text'],      # Use configured color
-                    padx=15,               # Padding horizontal plus important
-                    pady=15                # Padding vertical plus important
+                    font=('Segoe UI', 12),
+                    bg=self.gui_config.colors['panel_bg'],
+                    fg=self.gui_config.colors['text'],
+                    padx=15,
+                    pady=15
                 )
                 self.log_text.pack(fill=tk.BOTH, expand=True)
                 self.log_manager = LogManager(self.log_text)
