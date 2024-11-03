@@ -337,7 +337,6 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         """Extrait les sections et leurs contraintes depuis specifications.md"""
         sections = {}
         current_section = None
-        current_subsection = None
         current_content = []
         constraints = ""
         
@@ -346,23 +345,16 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             if line.startswith('# '):
                 # Sauvegarder la section précédente
                 if current_section:
-                    if current_section not in sections:
-                        sections[current_section] = {
-                            "constraints": constraints.strip(),
-                            "content": "",
-                            "subsections": {}
-                        }
+                    sections[current_section] = {
+                        "constraints": constraints.strip(),
+                        "content": "\n".join(current_content).strip(),
+                        "subsections": {}
+                    }
             
                 # Nouvelle section
                 current_section = line[2:].strip()
-                current_subsection = None
+                current_content = []
                 constraints = ""
-                if current_section not in sections:
-                    sections[current_section] = {
-                        "constraints": "",
-                        "content": "",
-                        "subsections": {}
-                    }
                 
             # Gestion des titres de niveau 2
             elif line.startswith('## '):
