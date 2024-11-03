@@ -107,6 +107,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.updating = False
         self.update_interval = 1000  # ms
         self.config = config
+        self.client = openai.OpenAI(api_key=config["openai_api_key"])
         self.tab_states = {
             "Specification": False,
             "Evaluation": False,
@@ -375,6 +376,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         }
         
         updated_panels = []
+        changes = {}  # Pour stocker les changements détectés
         
         # Mise à jour de la demande
         try:
@@ -386,6 +388,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 self.demand_text.insert("1.0", demand_content)
                 self.flash_tab("Demande")
                 updated_panels.append("Demande")
+                changes["Demande"] = {"old": current_demand, "new": demand_content}
         except Exception as e:
             self.log_message(f"❌ Erreur lors de la mise à jour de la demande: {e}")
 
@@ -401,6 +404,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 if content.strip() != old_content:
                     panel.update_content(content)
                     updated_panels.append(name)
+                    changes[name] = {"old": old_content, "new": content}
                     if name != "Production":  # Production est toujours visible
                         self.flash_tab(name)
                     
@@ -408,7 +412,13 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 self.log_message(f"❌ Erreur lors de la mise à jour de {name}: {e}")
         
         if updated_panels:
-            self.log_message(f"✓ Mise à jour : {', '.join(updated_panels)}")
+            try:
+                # Appel au LLM pour générer un résumé des changements
+                summary = self._get_changes_summary(changes)
+                self.log_message(f"✓ {summary}")
+            except Exception as e:
+                # Fallback au message standard en cas d'erreur
+                self.log_message(f"✓ Mise à jour : {', '.join(updated_panels)}")
                 
     def auto_save_demand(self, event=None):
         """Sauvegarde automatique du contenu de la demande"""
@@ -611,6 +621,34 @@ class AgentPanel:
     def clear_highlight(self):
         """Suppression du highlighting"""
         self.text.tag_remove("highlight", "1.0", tk.END)
+
+    def _get_changes_summary(self, changes: dict) -> str:
+        """Génère un résumé des changements en utilisant un petit modèle LLM"""
+        try:
+            # Préparer le contexte pour le LLM
+            context = "Changements détectés:\n"
+            for panel, content in changes.items():
+                context += f"\nDans {panel}:\n"
+                # Limiter la taille du contexte pour le petit modèle
+                old_snippet = content["old"][:200] + "..." if len(content["old"]) > 200 else content["old"]
+                new_snippet = content["new"][:200] + "..." if len(content["new"]) > 200 else content["new"]
+                context += f"Ancien: {old_snippet}\nNouveau: {new_snippet}\n"
+
+            prompt = f"""{context}
+
+Résumez en une phrase précise ce qui a changé. Soyez factuel et concis."""
+
+            response = self.client.chat.completions.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0,
+                max_tokens=100
+            )
+            
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"Erreur lors de la génération du résumé: {e}")
+            return f"Mise à jour : {', '.join(changes.keys())}"
 
 
 if __name__ == "__main__":
