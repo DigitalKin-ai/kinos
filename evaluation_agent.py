@@ -1,5 +1,11 @@
 """
-EvaluationAgent - Agent responsible for quality control and validation
+EvaluationAgent - Agent responsible for quality control and validation.
+
+Key responsibilities:
+- Evaluates content quality and completeness
+- Validates compliance with specifications
+- Provides detailed feedback and recommendations
+- Tracks overall project quality status
 """
 from parallagon_agent import ParallagonAgent
 from search_replace import SearchReplace
@@ -18,14 +24,14 @@ class EvaluationAgent(ParallagonAgent):
 
     def determine_actions(self) -> None:
         """
-        Analyze project status and coordinate tasks between agents.
+        Analyze content and perform quality evaluation.
         
         Process:
-        1. Reviews current project state and progress
-        2. Identifies blockers and dependencies
-        3. Prioritizes tasks across sections
-        4. Updates management directives
-        5. Coordinates agent activities
+        1. Reviews content against specifications
+        2. Identifies quality issues and gaps
+        3. Evaluates compliance and completeness
+        4. Updates evaluation status and feedback
+        5. Provides actionable recommendations
         """
         try:
             self.logger("Début de l'analyse...")
@@ -74,19 +80,19 @@ class EvaluationAgent(ParallagonAgent):
 
     def _get_llm_response(self, context: dict) -> str:
         """
-        Get LLM response for management decisions.
+        Get LLM response for quality evaluation.
         
         Process:
-        1. Analyzes project context and agent status
-        2. Determines optimal task distribution
-        3. Generates coordinated action plans
-        4. Validates response format
+        1. Analyzes content against quality criteria
+        2. Identifies issues and improvements
+        3. Generates detailed evaluation report
+        4. Validates evaluation format
         
         Args:
-            context: Current project state and agent status
+            context: Current content and specifications
             
         Returns:
-            str: Validated management directives
+            str: Validated evaluation report
         """
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
@@ -108,7 +114,21 @@ class EvaluationAgent(ParallagonAgent):
             return context['evaluation']
 
     def _extract_section(self, content: str, section_name: str) -> str:
-        """Extract content of a specific section"""
+        """
+        Extract content of a specific evaluation section.
+        
+        Used for:
+        - Accessing current evaluations
+        - Retrieving quality metrics
+        - Tracking evaluation history
+        
+        Args:
+            content: Full evaluation content
+            section_name: Name of section to extract
+            
+        Returns:
+            str: Content of specified section
+        """
         pattern = f"# {section_name}\n(.*?)(?=\n#|$)"
         matches = list(re.finditer(pattern, content, re.DOTALL))
         
@@ -121,7 +141,18 @@ class EvaluationAgent(ParallagonAgent):
         return matches[0].group(1).strip()
 
     def _update_status(self, new_content: str) -> None:
-        """Update status if changed"""
+        """
+        Update evaluation status based on findings.
+        
+        Updates:
+        - Overall quality status
+        - Section-specific ratings
+        - Completion metrics
+        - Critical issues flags
+        
+        Args:
+            new_content: Updated evaluation content
+        """
         old_status_match = re.search(r'\[status: (\w+)\]', self.current_content)
         new_status_match = re.search(r'\[status: (\w+)\]', new_content)
         
@@ -136,7 +167,21 @@ class EvaluationAgent(ParallagonAgent):
                 self.current_content = result.new_content
 
     def _format_other_files(self, files: dict) -> str:
-        """Format other files content for the prompt"""
+        """
+        Format other files content for evaluation context.
+        
+        Organizes:
+        - Content to evaluate
+        - Quality requirements
+        - Previous evaluations
+        - Related feedback
+        
+        Args:
+            files: Dictionary of file contents
+            
+        Returns:
+            str: Formatted context for evaluation
+        """
         result = []
         for file_path, content in files.items():
             result.append(f"=== {file_path} ===\n{content}\n")
@@ -144,20 +189,20 @@ class EvaluationAgent(ParallagonAgent):
 
     def _build_prompt(self, context: dict) -> str:
         """
-        Build prompt for management coordination.
+        Build prompt for quality evaluation.
         
         Includes:
-        - Current project status
-        - Agent activities and needs
-        - Task priorities and dependencies
-        - Coordination requirements
-        - Resource allocation guidance
+        - Quality criteria and standards
+        - Content requirements
+        - Evaluation metrics
+        - Feedback guidelines
+        - Rating system
         
         Args:
             context: Current project state
             
         Returns:
-            str: Management coordination prompt
+            str: Quality evaluation prompt
         """
         return f"""You are the Evaluation Agent in the Parallagon framework, working in parallel with 3 other agents.
 
