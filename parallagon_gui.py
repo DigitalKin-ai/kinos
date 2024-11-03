@@ -674,6 +674,29 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.sections_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.sections_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
+        # Initialiser les sections avec le contenu de production.md
+        try:
+            with open("production.md", 'r', encoding='utf-8') as f:
+                prod_content = f.read()
+            with open("specifications.md", 'r', encoding='utf-8') as f:
+                specs_content = f.read()
+                
+            # Extraire les sections et leurs contraintes depuis specifications.md
+            sections_data = self._parse_sections(specs_content)
+            
+            # Ajouter le contenu depuis production.md
+            self._add_production_content(sections_data, prod_content)
+            
+            # Créer les sections dans l'interface
+            self._update_sections_display(sections_data)
+            
+            self.logger("✓ Sections initialisées avec succès")
+            
+        except FileNotFoundError:
+            self.logger("⚠️ Fichiers de sections non trouvés, initialisation par défaut")
+        except Exception as e:
+            self.logger(f"❌ Erreur lors de l'initialisation des sections: {str(e)}")
+
         # Panneau inférieur (Production)
         self.production_frame = ttk.LabelFrame(self.right_paned, text="Production")
         self.production_text = scrolledtext.ScrolledText(
