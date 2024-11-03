@@ -369,13 +369,13 @@ class SpecificationsAgent(ParallagonAgent):
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4",
                 messages=[{
                     "role": "user",
                     "content": self._build_prompt(context)
                 }],
                 temperature=0,
-                max_tokens=4000
+                max_tokens=8000
             )
             print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
             return response.choices[0].message.content
