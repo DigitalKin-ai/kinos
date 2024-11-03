@@ -76,7 +76,15 @@ class SearchReplace:
             matches = list(re.finditer(pattern, content, re.DOTALL))
             
             if not matches:
-                return SearchReplaceResult(False, f"Section '{section_name}' not found", content, 0)
+                # Si la section n'existe pas, on l'ajoute à la fin du document
+                if content.strip() == "En attente de contenu à produire..." or not content.strip():
+                    # Si le document est vide ou contient juste le message d'attente
+                    new_content = f"{section_name}\n{new_section_content}"
+                else:
+                    # Sinon on ajoute après une ligne vide
+                    new_content = f"{content.rstrip()}\n\n{section_name}\n{new_section_content}"
+                return SearchReplaceResult(True, f"Section '{section_name}' created", new_content, 1)
+            
             if len(matches) > 1:
                 return SearchReplaceResult(False, f"Multiple '{section_name}' sections found", content, len(matches))
                 
