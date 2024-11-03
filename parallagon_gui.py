@@ -341,6 +341,10 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         constraints = ""
         
         for line in specs_content.split('\n'):
+            # Gestion des titres de niveau 1
+            if line.startswith('# '):
+                current_section = line[2:].strip()
+                current_subsection = None
             # Gestion des contraintes
             elif line.startswith('[contraintes:'):
                 constraints = line[12:-1].strip()
