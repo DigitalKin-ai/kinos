@@ -163,8 +163,10 @@ class ParallagonAgent:
     def run(self) -> None:
         """Main agent loop"""
         self.running = True
-        while self.running:
+        while self.running:  # Cette condition doit être vérifiée en premier
             try:
+                if not self.running:  # Double vérification
+                    break
                 self.read_files()
                 self.analyze()
                 self.determine_actions()
@@ -172,4 +174,5 @@ class ParallagonAgent:
                 time.sleep(self.config["check_interval"])
             except Exception as e:
                 print(f"Error in agent loop: {e}")
-                # TODO: Add proper error handling and logging
+                if not self.running:  # Vérifier aussi ici
+                    break

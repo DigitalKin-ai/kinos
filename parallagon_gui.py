@@ -329,28 +329,42 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         
     def stop_agents(self):
         """Arrêt des agents"""
+        # D'abord arrêter les flags
         self.running = False
-        self.updating = False  # Arrêter la boucle de mise à jour
+        self.updating = False
         
-        # Arrêter chaque agent
+        # Arrêter chaque agent et attendre qu'il s'arrête
         for name, agent in self.agents.items():
             try:
-                agent.stop()
+                agent.stop()  # Arrête l'agent
                 if name in self.agent_threads:
-                    self.agent_threads[name].join(timeout=2)  # Wait for thread completion
-                self.log_message(f"✓ Agent {name} arrêté")
+                    # Attendre que le thread se termine avec un timeout
+                    thread = self.agent_threads[name]
+                    thread.join(timeout=5)  # Augmenter le timeout à 5 secondes
+                    
+                    # Vérifier si le thread tourne encore
+                    if thread.is_alive():
+                        self.log_message(f"⚠️ L'agent {name} ne répond pas, forçage de l'arrêt...")
+                        # Ici on pourrait implémenter un forçage plus agressif si nécessaire
+                    else:
+                        self.log_message(f"✓ Agent {name} arrêté")
             except Exception as e:
                 self.log_message(f"❌ Erreur lors de l'arrêt de l'agent {name}: {e}")
         
         # Attendre que la boucle de mise à jour se termine
         if hasattr(self, 'update_thread'):
-            self.update_thread.join(timeout=2)
+            self.update_thread.join(timeout=5)
+            if self.update_thread.is_alive():
+                self.log_message("⚠️ La boucle de mise à jour ne répond pas")
         
-        self.agent_threads.clear()  # Clear thread dictionary
+        # Nettoyer les threads
+        self.agent_threads.clear()
+        
+        # Mettre à jour l'interface
         self.start_button.config(state=tk.NORMAL)
         self.stop_button.config(state=tk.DISABLED)
         self.status_label.config(text="● Stopped", foreground="red")
-        self.update_indicator.config(text="○")  # Réinitialiser l'indicateur
+        self.update_indicator.config(text="○")
         
         self.log_message("🛑 Tous les agents ont été arrêtés")
         
