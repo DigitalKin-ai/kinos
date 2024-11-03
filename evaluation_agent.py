@@ -50,7 +50,7 @@ class EvaluationAgent(ParallagonAgent):
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
             response = self.client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[{
                     "role": "user",
                     "content": self._build_prompt(context)
