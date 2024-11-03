@@ -690,12 +690,12 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             # Créer les sections dans l'interface
             self._update_sections_display(sections_data)
             
-            self.logger("✓ Sections initialisées avec succès")
+            self.log_message("✓ Sections initialisées avec succès")
             
         except FileNotFoundError:
-            self.logger("⚠️ Fichiers de sections non trouvés, initialisation par défaut")
+            self.log_message("⚠️ Fichiers de sections non trouvés, initialisation par défaut")
         except Exception as e:
-            self.logger(f"❌ Erreur lors de l'initialisation des sections: {str(e)}")
+            self.log_message(f"❌ Erreur lors de l'initialisation des sections: {str(e)}")
 
         # Panneau inférieur (Production)
         self.production_frame = ttk.LabelFrame(self.right_paned, text="Production")
