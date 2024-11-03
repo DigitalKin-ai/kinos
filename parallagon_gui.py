@@ -469,16 +469,6 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             except Exception:
                 return None
 
-        def update_panel(name, content, old_content):
-            if content and content.strip() != old_content.strip():
-                if name == "Demande":
-                    self.demand_text.delete("1.0", tk.END)
-                    self.demand_text.insert("1.0", content)
-                else:
-                    self.agent_panels[name].update_content(content)
-                return True
-            return False
-
         try:
             updated_panels = []
             changes = {}
@@ -487,7 +477,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             file_contents = {}
             threads = []
             
-            for name, file_path in {**{"Demande": "demande.md"}, **self.FILE_PATHS}.items():
+            for name, file_path in self.FILE_PATHS.items():
                 def read_for_file(n=name, p=file_path):
                     file_contents[n] = read_file_content(p)
                 thread = threading.Thread(target=read_for_file)
@@ -503,17 +493,27 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 if content is None:
                     continue
                     
-                old_content = (self.demand_text.get("1.0", tk.END) if name == "Demande" 
-                              else self.agent_panels[name].text.get("1.0", tk.END))
-                    
-                if update_panel(name, content, old_content):
-                    updated_panels.append(name)
-                    changes[name] = {"old": old_content, "new": content}
-                    if name != "Production":
-                        self.flash_tab(name)
+                # Traitement spécial pour le panneau Demande
+                if name == "demande":
+                    old_content = self.demand_text.get("1.0", tk.END).strip()
+                    if content.strip() != old_content:
+                        self.demand_text.delete("1.0", tk.END)
+                        self.demand_text.insert("1.0", content)
+                        updated_panels.append("Demande")
+                        changes["Demande"] = {"old": old_content, "new": content}
+                        self.flash_tab("Demande")
+                # Traitement normal pour les autres panneaux
+                elif name in self.agent_panels:
+                    old_content = self.agent_panels[name].text.get("1.0", tk.END).strip()
+                    if content.strip() != old_content:
+                        self.agent_panels[name].update_content(content)
+                        updated_panels.append(name)
+                        changes[name] = {"old": old_content, "new": content}
+                        if name != "Production":
+                            self.flash_tab(name)
 
             if updated_panels:
-                self._get_changes_summary(changes)  # Asynchrone maintenant
+                self._get_changes_summary(changes)
 
         except Exception as e:
             self.log_message(f"❌ Erreur lors de la mise à jour des panneaux: {str(e)}")
