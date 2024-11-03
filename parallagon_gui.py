@@ -23,7 +23,8 @@ class ParallagonGUI:
         style.configure('Updating.TLabelframe', background='#fff7e6')
         
         # Configuration de la fenêtre principale
-        self.root.geometry("1200x800")
+        self.root.state('zoomed')  # Pour Windows
+        # self.root.attributes('-zoomed', True)  # Pour Linux
         self.setup_ui()
         self.init_agents()
         
