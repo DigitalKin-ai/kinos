@@ -102,6 +102,21 @@ class ManagementAgent(ParallagonAgent):
         Returns:
             str: Validated management directives
         """
+        """
+        Get LLM response for management decisions.
+        
+        Process:
+        1. Analyzes project context and agent status
+        2. Determines optimal task distribution
+        3. Generates coordinated action plans
+        4. Validates response format
+        
+        Args:
+            context: Current project state and agent status
+            
+        Returns:
+            str: Validated management directives
+        """
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
             response = self.client.chat.completions.create(
@@ -122,6 +137,21 @@ class ManagementAgent(ParallagonAgent):
             return context['management']
 
     def _extract_section(self, content: str, section_name: str) -> str:
+        """
+        Extract content of a specific management section.
+        
+        Used for:
+        - Isolating current directives
+        - Accessing task lists
+        - Retrieving action history
+        
+        Args:
+            content: Full management content
+            section_name: Name of section to extract
+            
+        Returns:
+            str: Content of specified section
+        """
         """
         Extract content of a specific management section.
         
@@ -164,12 +194,43 @@ class ManagementAgent(ParallagonAgent):
         Returns:
             str: Formatted context for management decisions
         """
+        """
+        Format other files content for management context.
+        
+        Organizes:
+        - Agent status reports
+        - Task progress updates
+        - Coordination signals
+        - Project artifacts
+        
+        Args:
+            files: Dictionary of file contents
+            
+        Returns:
+            str: Formatted context for management decisions
+        """
         result = []
         for file_path, content in files.items():
             result.append(f"=== {file_path} ===\n{content}\n")
         return "\n".join(result)
 
     def _build_prompt(self, context: dict) -> str:
+        """
+        Build prompt for management coordination.
+        
+        Includes:
+        - Current project status
+        - Agent activities and needs
+        - Task priorities and dependencies
+        - Coordination requirements
+        - Resource allocation guidance
+        
+        Args:
+            context: Current project state
+            
+        Returns:
+            str: Management coordination prompt
+        """
         """
         Build prompt for management coordination.
         
