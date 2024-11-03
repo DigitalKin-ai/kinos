@@ -3,6 +3,8 @@ ParallagonGUI - Interface graphique pour le framework Parallagon
 """
 import tkinter as tk
 from tkinter import ttk, scrolledtext, font as tkfont
+from section import Section
+from collapsible_section import CollapsibleSection
 import threading
 import time
 from datetime import datetime
@@ -299,13 +301,64 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             fg=self.gui_config.colors['text']
         )
 
-    def _extract_sections(self, content: str) -> str:
-        """Extrait et formate la liste des sections du contenu"""
-        sections = []
-        for line in content.split('\n'):
+    def _parse_sections(self, specs_content: str) -> dict:
+        """Extrait les sections et leurs contraintes depuis specifications.md"""
+        sections = {}
+        current_section = None
+        
+        for line in specs_content.split('\n'):
             if line.startswith('# '):
-                sections.append(line[2:].strip())
-        return '\n'.join(sections)
+                current_section = line[2:].strip()
+                sections[current_section] = {"constraints": ""}
+            elif current_section and line.startswith('[contraintes:'):
+                sections[current_section]["constraints"] = line[12:-1].strip()
+                
+        return sections
+
+    def _add_production_content(self, sections_data: dict, prod_content: str):
+        """Ajoute le contenu de production aux sections"""
+        current_section = None
+        current_content = []
+        
+        for line in prod_content.split('\n'):
+            if line.startswith('# '):
+                if current_section and current_section in sections_data:
+                    sections_data[current_section]["content"] = '\n'.join(current_content)
+                current_section = line[2:].strip()
+                current_content = []
+            else:
+                current_content.append(line)
+                
+        if current_section and current_section in sections_data:
+            sections_data[current_section]["content"] = '\n'.join(current_content)
+
+    def _update_sections_display(self, sections_data: dict):
+        """Met à jour l'affichage des sections"""
+        # Supprimer les sections qui n'existent plus
+        for title in list(self.sections.keys()):
+            if title not in sections_data:
+                self.sections[title].destroy()
+                del self.sections[title]
+        
+        # Mettre à jour ou créer les sections
+        for title, data in sections_data.items():
+            if title in self.sections:
+                section = self.sections[title]
+                section.update_constraints(data["constraints"])
+                if "content" in data:
+                    section.update_content(data["content"])
+            else:
+                section = Section(
+                    title=title,
+                    constraints=data["constraints"],
+                    content=data.get("content")
+                )
+                collapsible = CollapsibleSection(
+                    self.sections_scrollable_frame,
+                    section
+                )
+                collapsible.pack(fill=tk.X, padx=5, pady=2)
+                self.sections[title] = collapsible
 
     def _create_agent_panel(self, parent, title: str) -> AgentPanel:
         """Create a standardized agent panel"""
@@ -508,14 +561,30 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
 
         # Panneau supérieur (Sections)
         self.sections_frame = ttk.LabelFrame(self.right_paned, text="Sections")
-        self.sections_text = scrolledtext.ScrolledText(
+        self.sections = {}  # Dictionnaire des sections {titre: CollapsibleSection}
+        
+        # Conteneur scrollable pour les sections
+        self.sections_canvas = tk.Canvas(self.sections_frame)
+        self.sections_scrollbar = ttk.Scrollbar(
             self.sections_frame, 
-            wrap=tk.WORD, 
-            font=('Segoe UI', 10),
-            bg=self.gui_config.colors['panel_bg'], 
-            fg=self.gui_config.colors['text']
+            orient="vertical", 
+            command=self.sections_canvas.yview
         )
-        self.sections_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.sections_scrollable_frame = ttk.Frame(self.sections_canvas)
+        
+        self.sections_scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.sections_canvas.configure(
+                scrollregion=self.sections_canvas.bbox("all")
+            )
+        )
+        
+        self.sections_canvas.create_window((0, 0), window=self.sections_scrollable_frame, anchor="nw")
+        self.sections_canvas.configure(yscrollcommand=self.sections_scrollbar.set)
+        
+        # Packing
+        self.sections_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.sections_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         # Panneau inférieur (Production)
         self.production_frame = ttk.LabelFrame(self.right_paned, text="Production")
@@ -632,6 +701,16 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                     return f.read()
             except Exception:
                 return None
+
+        def update_sections(specs_content, prod_content):
+            # Extraire les sections et leurs contraintes depuis specifications.md
+            sections_data = self._parse_sections(specs_content)
+            
+            # Ajouter le contenu depuis production.md
+            self._add_production_content(sections_data, prod_content)
+            
+            # Mettre à jour l'affichage des sections
+            self._update_sections_display(sections_data)
 
         try:
             updated_panels = []
