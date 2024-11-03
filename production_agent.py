@@ -112,17 +112,19 @@ Your task:
 4. Maintain content quality and consistency
 
 Important:
-- Use SEARCH/REPLACE format for changes:
-  ```
-  SEARCH:
-  [exact text to replace]
-  
-  REPLACE:
-  [new text]
-  ```
-- You can include multiple SEARCH/REPLACE blocks
-- Text must match exactly for replacement
-- If no changes needed, return "NO_CHANGES"
+- Structure your response using markdown sections with # titles
+- Each section should contain its complete content
+- Return either "NO_CHANGES" if no updates needed, or the complete content with all sections
+- Example format:
+
+# Executive Summary
+[Complete executive summary content]
+
+# Technologies d'IA Générative
+[Complete section content]
+
+# Impact Économique
+[Complete section content]
 
 Guidelines:
 - Keep existing content that meets requirements
@@ -131,4 +133,4 @@ Guidelines:
 - Ensure all sections are complete
 - Follow writing style guidelines
 
-Return either "NO_CHANGES" or SEARCH/REPLACE blocks."""
+Return either "NO_CHANGES" or the complete content with all sections."""
