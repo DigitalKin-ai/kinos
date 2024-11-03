@@ -138,26 +138,38 @@ Your task:
 3. Address evaluation feedback
 4. Maintain content quality and consistency
 
-Important:
-- Structure your response using markdown sections with # titles
-- Each section should contain its complete content
-- Return either "NO_CHANGES" if no updates needed, or the complete content with all sections
-- Example format:
+IMPORTANT - SECTION EDITING RULES:
+When you want to edit content, you must:
+1. Work with the smallest possible sections
+2. Use precise markdown heading levels (# to ######)
+3. Each section edit should STOP at the next subsection
+4. Example format:
 
-# Executive Summary
-[Complete executive summary content]
+## 2.2 Some Section
+[Your content for section 2.2 goes here]
+[Content continues...]
+[Content will automatically stop at ### 2.2.1 or ## 2.3]
 
-# Technologies d'IA Générative
-[Complete section content]
-
-# Impact Économique
-[Complete section content]
+### 2.2.1 Subsection
+[Don't include this - it's the next section]
 
 Guidelines:
+- Edit one small section at a time
+- Don't include subsections in your edits
+- Each section edit stops at the next heading of any level
+- Use the exact heading level (#, ##, ###, etc.) from the original text
 - Keep existing content that meets requirements
 - Make only necessary changes
 - Maintain document structure
-- Ensure all sections are complete
 - Follow writing style guidelines
 
-Return either "NO_CHANGES" or the complete content with all sections."""
+Return either:
+1. "NO_CHANGES" if no updates needed
+2. The specific section(s) you want to edit, with their exact heading levels
+
+Example response:
+## 2.2 Technologies Overview
+Updated content for just this section...
+
+### 2.3.1 Specific Feature
+Updated content for just this subsection..."""
