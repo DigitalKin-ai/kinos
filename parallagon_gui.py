@@ -604,11 +604,39 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
 
     def reset_files(self):
         """Reset all files to their initial state"""
-        if self.file_manager.reset_files():
-            self.update_all_panels()
-            self.log_message("✨ Tous les fichiers ont été réinitialisés")
-        else:
-            self.log_message("❌ Erreur lors de la réinitialisation des fichiers")
+        try:
+            if self.file_manager.reset_files():
+                # Forcer la mise à jour immédiate de tous les panneaux
+                for file_key, file_path in self.FILE_PATHS.items():
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                            
+                            # Mise à jour du panneau Demande
+                            if file_key == "demande":
+                                self.demand_text.delete("1.0", tk.END)
+                                self.demand_text.insert("1.0", content)
+                                
+                            # Mise à jour des autres panneaux
+                            elif file_key in self.panel_mapping:
+                                panel_name = self.panel_mapping[file_key]
+                                if panel_name in self.agent_panels:
+                                    self.agent_panels[panel_name].text.delete("1.0", tk.END)
+                                    self.agent_panels[panel_name].text.insert("1.0", content)
+                                    self.agent_panels[panel_name].highlight_changes()
+                                    
+                    except Exception as e:
+                        self.log_message(f"❌ Erreur lors de la mise à jour du panneau {file_key}: {str(e)}")
+                        
+                self.log_message("✨ Tous les fichiers ont été réinitialisés")
+                return True
+            else:
+                self.log_message("❌ Erreur lors de la réinitialisation des fichiers")
+                return False
+                
+        except Exception as e:
+            self.log_message(f"❌ Erreur lors de la réinitialisation : {str(e)}")
+            return False
 
     def load_test_data(self):
         """Charge les données de test dans la zone de demande"""
