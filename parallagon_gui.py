@@ -505,7 +505,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                     lambda: self._restore_tab_style(tab_name, tab_id)
                 )
             except Exception as e:
-                self.logger(f"❌ Erreur lors du flash du tab {tab_name}: {str(e)}")
+                self.log_message(f"❌ Erreur lors du flash du tab {tab_name}: {str(e)}")
 
     def _restore_tab_style(self, tab_name, tab_id):
         """Restaure le style normal du tab"""
@@ -515,7 +515,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 # Retourner au style par défaut avec style=
                 self.tab_control.tab(tab_id, style='TNotebook.Tab')
             except Exception as e:
-                self.logger(f"❌ Erreur lors de la restauration du style du tab {tab_name}: {str(e)}")
+                self.log_message(f"❌ Erreur lors de la restauration du style du tab {tab_name}: {str(e)}")
 
     def update_all_panels(self):
         """Mise à jour de tous les panneaux d'agents"""
