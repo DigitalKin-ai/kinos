@@ -3,8 +3,11 @@ ParallagonGUI - Interface graphique pour le framework Parallagon
 """
 import tkinter as tk
 from tkinter import ttk, scrolledtext, font as tkfont
+import tkinter as tk
+from tkinter import ttk, scrolledtext, font as tkfont
 from section import Section
 from collapsible_section import CollapsibleSection
+from section_edit_dialog import SectionEditDialog
 import threading
 import time
 from datetime import datetime
@@ -291,6 +294,35 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             background=self.gui_config.colors['highlight']
         )
 
+    def _edit_section(self, section: Section):
+        """Open edit dialog for a section"""
+        dialog = SectionEditDialog(self.root, section)
+        if dialog.result:
+            self._update_section(section)
+            
+    def _update_section(self, section: Section):
+        """Update section content in files"""
+        try:
+            # Update in production.md
+            with open("production.md", 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            result = SearchReplace.section_replace(
+                content,
+                section.title,
+                section.content or "[En attente de contenu]"
+            )
+            
+            if result.success:
+                with open("production.md", 'w', encoding='utf-8') as f:
+                    f.write(result.new_content)
+                self.log_message(f"✓ Section '{section.title}' mise à jour")
+            else:
+                self.log_message(f"❌ Erreur lors de la mise à jour de la section: {result.message}")
+                
+        except Exception as e:
+            self.log_message(f"❌ Erreur lors de la mise à jour: {str(e)}")
+            
     def _create_text_widget(self, parent) -> scrolledtext.ScrolledText:
         """Create a standardized text widget"""
         return scrolledtext.ScrolledText(
@@ -333,7 +365,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             sections_data[current_section]["content"] = '\n'.join(current_content)
 
     def _update_sections_display(self, sections_data: dict):
-        """Met à jour l'affichage des sections"""
+        """Met à jour l'affichage des sections avec gestion des callbacks"""
         # Supprimer les sections qui n'existent plus
         for title in list(self.sections.keys()):
             if title not in sections_data:
@@ -342,6 +374,11 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         
         # Mettre à jour ou créer les sections
         for title, data in sections_data.items():
+            callbacks = {
+                'on_edit': lambda s: self._edit_section(s),
+                'on_update': lambda s: self._update_section(s)
+            }
+            
             if title in self.sections:
                 section = self.sections[title]
                 section.update_constraints(data["constraints"])
@@ -355,7 +392,8 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 )
                 collapsible = CollapsibleSection(
                     self.sections_scrollable_frame,
-                    section
+                    section,
+                    callbacks=callbacks
                 )
                 collapsible.pack(fill=tk.X, padx=5, pady=2)
                 self.sections[title] = collapsible
