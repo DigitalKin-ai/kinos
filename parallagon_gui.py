@@ -383,16 +383,14 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 demand_content = f.read()
             current_demand = self.demand_text.get("1.0", tk.END).strip()
             if demand_content.strip() != current_demand:
-                # Sauvegarder la position du curseur
                 cursor_pos = self.demand_text.index(tk.INSERT)
                 self.demand_text.delete("1.0", tk.END)
                 self.demand_text.insert("1.0", demand_content)
-                # Restaurer la position du curseur
-                self.demand_text.mark_set(tk.INSERT, cursor_pos)
+                cursor_pos = self.demand_text.mark_set(tk.INSERT, cursor_pos)
         except Exception as e:
             self.log_message(f"❌ Erreur lors de la mise à jour de la demande: {e}")
         
-        update_count = 0
+        updated_panels = []
         for name, panel in self.agent_panels.items():
             try:
                 # Indicateur visuel de mise à jour
@@ -407,9 +405,8 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 old_content = panel.text.get("1.0", tk.END).strip()
                 if content.strip() != old_content:
                     panel.update_content(content)
-                    update_count += 1
-                    self.log_message(f"Mise à jour du panneau {name}")
-                
+                    updated_panels.append(name)
+                    
                 # Réinitialise le style après la mise à jour
                 panel.frame.configure(style='TLabelframe')
                 
@@ -418,8 +415,8 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 print(error_msg)
                 self.log_message(f"❌ {error_msg}")
         
-        if update_count > 0:
-            self.log_message(f"✓ {update_count} panneau(x) mis à jour")
+        if updated_panels:
+            self.log_message(f"✓ Mise à jour des panneaux : {', '.join(updated_panels)}")
                 
     def auto_save_demand(self, event=None):
         """Sauvegarde automatique du contenu de la demande"""
