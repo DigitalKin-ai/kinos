@@ -98,8 +98,18 @@ class CollapsibleSection(ttk.Frame):
         self.content_text.config(state="disabled")
         self.section.content = content
         
+    def _format_todo_item(self, task: str) -> str:
+        """Format todo item with priority highlighting"""
+        if '[HIGH]' in task:
+            return f"🔴 {task.replace('[HIGH]', '')}"
+        elif '[MEDIUM]' in task:
+            return f"🟡 {task.replace('[MEDIUM]', '')}"
+        elif '[LOW]' in task:
+            return f"🟢 {task.replace('[LOW]', '')}"
+        return f"• {task}"
+
     def update_todos(self, todos: list):
-        """Update todos display"""
+        """Update todos display with priority formatting"""
         if hasattr(self, 'todos_frame'):
             self.todos_frame.destroy()
             
@@ -108,11 +118,12 @@ class CollapsibleSection(ttk.Frame):
             self.todos_frame.pack(fill=tk.X, pady=(5,0))
             ttk.Label(self.todos_frame, text="Tâches:").pack(anchor=tk.W)
             for task in todos:
+                formatted_task = self._format_todo_item(task)
                 ttk.Label(
                     self.todos_frame,
-                    text=f"• {task}",
+                    text=formatted_task,
                     wraplength=400
-                ).pack(anchor=tk.W)
+                ).pack(anchor=tk.W, padx=5, pady=2)
         self.section.todo = todos
         
     def update_todos(self, todos: list):
