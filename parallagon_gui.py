@@ -465,18 +465,20 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             
             updated_panels = []
             changes = {}  # Pour stocker les changements détectés
-        
-        # Mise à jour de la demande
-        try:
-            with open("demande.md", 'r', encoding='utf-8') as f:
-                demand_content = f.read()
-            current_demand = self.demand_text.get("1.0", tk.END).strip()
-            if demand_content.strip() != current_demand:
-                self.demand_text.delete("1.0", tk.END)
-                self.demand_text.insert("1.0", demand_content)
-                self.flash_tab("Demande")
-                updated_panels.append("Demande")
-                changes["Demande"] = {"old": current_demand, "new": demand_content}
+            
+            # Mise à jour de la demande
+            try:
+                with open("demande.md", 'r', encoding='utf-8') as f:
+                    demand_content = f.read()
+                current_demand = self.demand_text.get("1.0", tk.END).strip()
+                if demand_content.strip() != current_demand:
+                    self.demand_text.delete("1.0", tk.END)
+                    self.demand_text.insert("1.0", demand_content)
+                    self.flash_tab("Demande")
+                    updated_panels.append("Demande")
+                    changes["Demande"] = {"old": current_demand, "new": demand_content}
+            except Exception as e:
+                self.log_message(f"❌ Erreur lors de la mise à jour de la demande: {e}")
         except Exception as e:
             self.log_message(f"❌ Erreur lors de la mise à jour de la demande: {e}")
 
