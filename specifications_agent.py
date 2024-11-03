@@ -21,8 +21,11 @@ class SpecificationsAgent(ParallagonAgent):
         """Specific rules for specifications agent"""
         if super().should_run():
             # Check for significant changes
-            if self.other_files.get("demande.md") != self._last_demand:
-                self._last_demand = self.other_files.get("demande.md")
+            current_demand = getattr(self, 'other_files', {}).get("demande.md")
+            last_demand = getattr(self, '_last_demand', None)
+            
+            if current_demand != last_demand:
+                self._last_demand = current_demand
                 return True
                 
             # Check if synchronization needed

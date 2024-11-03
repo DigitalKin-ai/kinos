@@ -66,6 +66,9 @@ class ParallagonAgent:
         self.config = config
         self.file_path = config["file_path"]
         
+        # Initialize other_files
+        self.other_files = {}
+        
         # Use agent-specific rhythm or default value
         agent_type = self.__class__.__name__
         self.check_interval = config.get(
