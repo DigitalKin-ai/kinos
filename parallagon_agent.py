@@ -19,36 +19,34 @@ class ParallagonAgent:
         self.check_interval = config.get("check_interval", 5)
         self.running = False
 
+    # Validation configurations for different agent types
+    VALIDATION_CONFIGS = {
+        'ProductionAgent': {'validate_raw': True},
+        'ManagementAgent': {'required_sections': ["Consignes Actuelles", "TodoList", "Actions Réalisées"]},
+        'SpecificationsAgent': {'require_level1_heading': True},
+        'EvaluationAgent': {'required_sections': ["Évaluations en Cours", "Vue d'Ensemble"]}
+    }
+
     def _validate_markdown_response(self, response: str) -> bool:
         """Validate that LLM response follows required markdown format"""
-        from production_agent import ProductionAgent
-        from management_agent import ManagementAgent
-        from specifications_agent import SpecificationsAgent
-        from evaluation_agent import EvaluationAgent
-
-        # Exception for ProductionAgent which returns raw text
-        if isinstance(self, ProductionAgent):
+        agent_type = self.__class__.__name__
+        config = self.VALIDATION_CONFIGS.get(agent_type, {})
+        
+        if config.get('validate_raw'):
             return True
-        elif isinstance(self, ManagementAgent):
-            required_sections = ["Consignes Actuelles", "TodoList", "Actions Réalisées"]
-            for section in required_sections:
-                if f"# {section}" not in response:
-                    print(f"[{self.__class__.__name__}] Missing required section: {section}")
-                    return False
-            return True
-        elif isinstance(self, SpecificationsAgent):
-            # For SpecificationsAgent, just verify it has at least one level 1 heading
+            
+        if config.get('require_level1_heading'):
             if not re.search(r'^# .+$', response, re.MULTILINE):
-                print(f"[{self.__class__.__name__}] No level 1 headings found")
+                print(f"[{agent_type}] No level 1 headings found")
                 return False
-            return True
-        elif isinstance(self, EvaluationAgent):
-            required_sections = ["Évaluations en Cours", "Vue d'Ensemble"]
-            for section in required_sections:
-                if f"# {section}" not in response:
-                    print(f"[{self.__class__.__name__}] Missing required section: {section}")
-                    return False
-            return True
+                
+        required_sections = config.get('required_sections', [])
+        for section in required_sections:
+            if f"# {section}" not in response:
+                print(f"[{agent_type}] Missing required section: {section}")
+                return False
+                
+        return True
             
         # Pour les autres agents (cas par défaut)
         required_sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]

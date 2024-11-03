@@ -159,35 +159,6 @@ import re
 from parallagon_agent import ParallagonAgent
 
 class SpecificationsAgent(ParallagonAgent):
-    def _build_prompt(self, context: dict) -> str:
-        return f"""En tant que gestionnaire de template, votre rôle est de définir la structure exacte du document final.
-
-Contexte actuel :
-{self._format_other_files(context)}
-
-Instructions :
-1. Analysez la demande pour identifier toutes les sections nécessaires
-2. Créez un template complet avec :
-   - Toutes les sections requises (niveau 1 avec #)
-   - Une brève description des contraintes pour chaque section
-   - L'ordre logique des sections
-
-Format de sortie attendu :
-
-# Section 1
-[contraintes: description courte des attentes pour cette section]
-
-# Section 2
-[contraintes: description courte des attentes pour cette section]
-
-etc...
-
-Règles :
-- Utilisez uniquement des titres de niveau 1 (#)
-- Chaque section doit avoir ses contraintes entre []
-- Soyez précis mais concis dans les descriptions
-- La structure doit être complète et cohérente"""
-
     def synchronize_template(self) -> None:
         """Synchronise la structure du document de sortie avec le template"""
         try:

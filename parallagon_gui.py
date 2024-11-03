@@ -101,12 +101,21 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
 - Inclure des points de vue contradictoires quand ils existent
 - Mettre en évidence les questions ouvertes et débats en cours"""
 
+    # Class constants
+    UPDATE_INTERVAL = 1000  # ms
+    FILE_PATHS = {
+        "demande": "demande.md",
+        "specifications": "specifications.md",
+        "management": "management.md",
+        "production": "production.md",
+        "evaluation": "evaluation.md"
+    }
+    
     def __init__(self, config: Dict[str, Any]):
         self.root = tk.Tk()
         self.root.title("⚫ Parallagon")
         self.running = False
         self.updating = False
-        self.update_interval = 1000  # ms
         self.config = config
         self.client = openai.OpenAI(api_key=config["openai_api_key"])
         self.agent_threads = {}  # Store agent threads
@@ -498,40 +507,8 @@ Résumez en une phrase précise ce qui a changé. Soyez factuel et concis."""
             self.log_message(f"❌ Erreur lors de la sauvegarde : {str(e)}")
             
     def log_message(self, message: str):
-        """Ajoute un message horodaté aux logs"""
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        
-        # Configuration des tags de couleur
-        self.log_text.tag_config('timestamp', foreground='#a0a0a0')  # Gris plus clair pour l'horodatage
-        self.log_text.tag_config('success', foreground='#4CAF50')    # Vert pour les succès
-        self.log_text.tag_config('error', foreground='#f44336')      # Rouge pour les erreurs
-        self.log_text.tag_config('info', foreground='#2196F3')       # Bleu pour les infos
-        self.log_text.tag_config('reset', foreground='#FF9800')      # Orange pour les resets
-        self.log_text.tag_config('changes', foreground='#9C27B0')    # Violet pour les résumés de changements
-        self.log_text.tag_config('no_changes', foreground='#808080') # Gris pour les messages "aucun changement"
-        
-        # Détermination du type de message et de l'icône
-        if "❌" in message:
-            tag = 'error'
-        elif "✓" in message:
-            if "Aucun changement" in message:
-                tag = 'no_changes'  # Nouveau tag pour les messages sans changement
-            elif any(panel in message for panel in ["Specification", "Evaluation", "Management", "Production", "Demande"]):
-                tag = 'changes'
-            else:
-                tag = 'success'
-        elif "✨" in message:
-            tag = 'reset'
-        else:
-            tag = 'info'
-        
-        # Insertion du message avec les tags appropriés
-        self.log_text.insert(tk.END, f"[", 'timestamp')
-        self.log_text.insert(tk.END, timestamp, 'timestamp')
-        self.log_text.insert(tk.END, f"] ", 'timestamp')
-        self.log_text.insert(tk.END, f"{message}\n", tag)
-        
-        self.log_text.see(tk.END)  # Auto-scroll
+        """Add a timestamped message to logs"""
+        self.log_manager.log(message)
 
     def reset_files(self):
         """Reset all files to their initial state"""
