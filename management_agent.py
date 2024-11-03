@@ -46,55 +46,10 @@ class ManagementAgent(ParallagonAgent):
             print(f"[{self.__class__.__name__}] New content starts with: {response[:100]}")
         
         if response != self.current_content:
-            # Update TodoList section
-            result = SearchReplace.section_replace(
-                self.current_content,
-                "TodoList du Projet",
-                self._extract_section(response, "TodoList du Projet")
-            )
-            print(f"[{self.__class__.__name__}] TodoList replace: {'✓' if result.success else '❌'} - {result.message}")
-            if result.success:
-                self.current_content = result.new_content
-
-            # Update Priorités Actuelles section
-            result = SearchReplace.section_replace(
-                self.current_content,
-                "Priorités Actuelles",
-                self._extract_section(response, "Priorités Actuelles")
-            )
-            print(f"[{self.__class__.__name__}] Priorités replace: {'✓' if result.success else '❌'} - {result.message}")
-            if result.success:
-                self.current_content = result.new_content
-
-            # Update status if needed
-            old_status_match = re.search(r'\[status: (\w+)\]', self.current_content)
-            new_status_match = re.search(r'\[status: (\w+)\]', response)
-            
-            if (old_status_match and new_status_match and 
-                old_status_match.group(1) != new_status_match.group(1)):
-                result = SearchReplace.exact_replace(
-                    self.current_content,
-                    f"[status: {old_status_match.group(1)}]",
-                    f"[status: {new_status_match.group(1)}]"
-                )
-                print(f"[{self.__class__.__name__}] Status replace: {'✓' if result.success else '❌'} - {result.message}")
-                if result.success:
-                    self.current_content = result.new_content
-
-            # Update Signaux section
-            new_signals = self._extract_section(response, "Signaux")
-            if new_signals != self._extract_section(self.current_content, "Signaux"):
-                result = SearchReplace.section_replace(
-                    self.current_content,
-                    "Signaux",
-                    new_signals
-                )
-                print(f"[{self.__class__.__name__}] Signaux replace: {'✓' if result.success else '❌'} - {result.message}")
-                if result.success:
-                    self.current_content = result.new_content
-
-            # Set new content for update
-            self.new_content = self.current_content
+            self.new_content = response
+            print(f"[{self.__class__.__name__}] Changes detected:")
+            print(f"Old content: {self.current_content[:100]}...")
+            print(f"New content: {response[:100]}...")
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response for management decisions"""

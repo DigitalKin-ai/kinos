@@ -46,48 +46,10 @@ class ProductionAgent(ParallagonAgent):
             print(f"[{self.__class__.__name__}] New content starts with: {response[:100]}")
         
         if response != self.current_content:
-            # Update État Actuel section
-            result = SearchReplace.section_replace(
-                self.current_content,
-                "État Actuel",
-                self._extract_section(response, "État Actuel")
-            )
-            print(f"[{self.__class__.__name__}] État Actuel replace: {'✓' if result.success else '❌'} - {result.message}")
-            if result.success:
-                self.current_content = result.new_content
-
-            # Update Signaux section
-            result = SearchReplace.section_replace(
-                self.current_content,
-                "Signaux",
-                self._extract_section(response, "Signaux")
-            )
-            print(f"[{self.__class__.__name__}] Signaux replace: {'✓' if result.success else '❌'} - {result.message}")
-            if result.success:
-                self.current_content = result.new_content
-
-            # Update Contenu Principal section
-            result = SearchReplace.section_replace(
-                self.current_content,
-                "Contenu Principal",
-                self._extract_section(response, "Contenu Principal")
-            )
-            print(f"[{self.__class__.__name__}] Contenu Principal replace: {'✓' if result.success else '❌'} - {result.message}")
-            if result.success:
-                self.current_content = result.new_content
-
-            # Update Historique section
-            result = SearchReplace.section_replace(
-                self.current_content,
-                "Historique",
-                self._extract_section(response, "Historique")
-            )
-            print(f"[{self.__class__.__name__}] Historique replace: {'✓' if result.success else '❌'} - {result.message}")
-            if result.success:
-                self.current_content = result.new_content
-
-            # Set new content for update
-            self.new_content = self.current_content
+            self.new_content = response
+            print(f"[{self.__class__.__name__}] Changes detected:")
+            print(f"Old content: {self.current_content[:100]}...")
+            print(f"New content: {response[:100]}...")
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response for implementation decisions"""
