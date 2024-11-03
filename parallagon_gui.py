@@ -486,30 +486,34 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         """Fait flasher un tab en bleu pendant 1 seconde"""
         if tab_name not in self.tab_flash_tasks:
             try:
+                # Créer un style unique pour ce tab
+                style = ttk.Style()
+                style_name = f'Flash.TNotebook.Tab'
+                
+                # Configurer le style
+                style.configure(style_name, background="#e8f0fe")
+                
                 # Obtenir l'index du tab
                 tab_id = self.tab_control.index(self.tabs[tab_name])
                 
-                # Sauvegarder la configuration actuelle
-                original_config = self.tab_control.tab(tab_id)
+                # Appliquer le style
+                self.tab_control.tab(tab_id, style=style_name)
                 
-                # Appliquer la couleur de flash directement
-                self.tab_control.tab(tab_id, background="#e8f0fe")
-                
-                # Programmer le retour à la couleur normale
+                # Programmer le retour au style normal
                 self.tab_flash_tasks[tab_name] = self.root.after(
                     1000,  # Durée du flash (1 seconde)
-                    lambda: self._restore_tab_style(tab_name, tab_id, original_config)
+                    lambda: self._restore_tab_style(tab_name, tab_id)
                 )
             except Exception as e:
                 self.log_message(f"❌ Erreur lors du flash du tab {tab_name}: {str(e)}")
 
-    def _restore_tab_style(self, tab_name, tab_id, original_config):
-        """Restaure le style original du tab"""
+    def _restore_tab_style(self, tab_name, tab_id):
+        """Restaure le style normal du tab"""
         if tab_name in self.tab_flash_tasks:
             try:
                 self.tab_flash_tasks.pop(tab_name)
-                # Restaurer la configuration originale
-                self.tab_control.tab(tab_id, **original_config)
+                # Retourner au style par défaut
+                self.tab_control.tab(tab_id, style='TNotebook.Tab')
             except Exception as e:
                 self.log_message(f"❌ Erreur lors de la restauration du style du tab {tab_name}: {str(e)}")
 
