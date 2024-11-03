@@ -330,7 +330,16 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.stop_button.config(state=tk.DISABLED)
         self.status_label.config(text="● Stopped", foreground="red")
         self.update_indicator.config(text="○")  # Réinitialiser l'indicateur
-        self.log_message("🛑 Arrêt des agents")
+        
+        # Arrêter chaque agent
+        for name, agent in self.agents.items():
+            try:
+                agent.stop()
+                self.log_message(f"✓ Agent {name} arrêté")
+            except Exception as e:
+                self.log_message(f"❌ Erreur lors de l'arrêt de l'agent {name}: {e}")
+        
+        self.log_message("🛑 Tous les agents ont été arrêtés")
         
     def update_loop(self):
         """Boucle de mise à jour des panneaux"""
