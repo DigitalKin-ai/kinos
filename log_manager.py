@@ -145,6 +145,9 @@ class LogManager:
 
     def _display_log(self, log: LogEntry):
         """Display a single log entry with proper formatting and animation"""
+        # Supprimer d'abord tous les tags fade_in existants
+        self.text_widget.tag_remove('fade_in', "1.0", tk.END)
+        
         # Configure animation tag
         self.text_widget.tag_config('fade_in', background='#e8f0fe')
         
@@ -164,11 +167,12 @@ class LogManager:
         # Schedule animation removal with specific range
         def remove_fade():
             try:
-                self.text_widget.tag_remove('fade_in', message_start, message_end)
+                self.text_widget.tag_remove('fade_in', "1.0", tk.END)  # Supprimer pour tout le texte
             except Exception:
                 pass  # Handle case where text widget might be destroyed
                 
-        self.text_widget.after(1000, remove_fade)
+        # Utiliser after_idle pour garantir l'exécution après l'affichage
+        self.text_widget.after_idle(lambda: self.text_widget.after(1000, remove_fade))
     
     def clear(self):
         """Clear all log messages"""
