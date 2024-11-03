@@ -1,5 +1,11 @@
 """
-ManagementAgent - Agent responsible for project coordination and planning
+ManagementAgent - Agent responsible for project coordination and planning.
+
+Key responsibilities:
+- Coordinates work between agents
+- Manages task prioritization and scheduling  
+- Tracks project progress and blockers
+- Provides direction and guidance to other agents
 """
 from parallagon_agent import ParallagonAgent
 from search_replace import SearchReplace
@@ -17,7 +23,16 @@ class ManagementAgent(ParallagonAgent):
         self.logger = config.get("logger", print)
 
     def determine_actions(self) -> None:
-        """Analyze project status and coordinate tasks between agents"""
+        """
+        Analyze project status and coordinate tasks between agents.
+        
+        Process:
+        1. Reviews current project state and progress
+        2. Identifies blockers and dependencies
+        3. Prioritizes tasks across sections
+        4. Updates management directives
+        5. Coordinates agent activities
+        """
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
             
@@ -64,7 +79,21 @@ class ManagementAgent(ParallagonAgent):
             self.logger(traceback.format_exc())
 
     def _get_llm_response(self, context: dict) -> str:
-        """Get LLM response for management decisions"""
+        """
+        Get LLM response for management decisions.
+        
+        Process:
+        1. Analyzes project context and agent status
+        2. Determines optimal task distribution
+        3. Generates coordinated action plans
+        4. Validates response format
+        
+        Args:
+            context: Current project state and agent status
+            
+        Returns:
+            str: Validated management directives
+        """
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
             response = self.client.chat.completions.create(
@@ -85,7 +114,21 @@ class ManagementAgent(ParallagonAgent):
             return context['management']
 
     def _extract_section(self, content: str, section_name: str) -> str:
-        """Extract content of a specific section"""
+        """
+        Extract content of a specific management section.
+        
+        Used for:
+        - Isolating current directives
+        - Accessing task lists
+        - Retrieving action history
+        
+        Args:
+            content: Full management content
+            section_name: Name of section to extract
+            
+        Returns:
+            str: Content of specified section
+        """
         pattern = f"# {section_name}\n(.*?)(?=\n#|$)"
         matches = list(re.finditer(pattern, content, re.DOTALL))
         
@@ -98,7 +141,21 @@ class ManagementAgent(ParallagonAgent):
         return matches[0].group(1).strip()
 
     def _format_other_files(self, files: dict) -> str:
-        """Format other files content for the prompt"""
+        """
+        Format other files content for management context.
+        
+        Organizes:
+        - Agent status reports
+        - Task progress updates
+        - Coordination signals
+        - Project artifacts
+        
+        Args:
+            files: Dictionary of file contents
+            
+        Returns:
+            str: Formatted context for management decisions
+        """
         result = []
         for file_path, content in files.items():
             result.append(f"=== {file_path} ===\n{content}\n")
