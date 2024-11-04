@@ -96,7 +96,23 @@ En attente d'initialisation...
                 
             # Always call callback with full file path after successful write
             if self.on_content_changed:
-                self.on_content_changed(file_path, content)
+                # Convert filename to panel name
+                panel_name = None
+                if file_name == "specifications":
+                    panel_name = "Specification"
+                elif file_name == "management":
+                    panel_name = "Management"
+                elif file_name == "production":
+                    panel_name = "Production"
+                elif file_name == "evaluation":
+                    panel_name = "Evaluation"
+                elif file_name == "demande":
+                    panel_name = "Demande"
+                    
+                if panel_name:
+                    self.on_content_changed(file_path, content, panel_name)
+                else:
+                    self.on_content_changed(file_path, content)
                 
             return True
         except Exception as e:

@@ -151,7 +151,10 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         
         # Initialize services
         self.llm_service = LLMService(config["openai_api_key"])
-        self.file_manager = FileManager(self.FILE_PATHS)
+        self.file_manager = FileManager(
+            self.FILE_PATHS,
+            on_content_changed=self._handle_file_change
+        )
         self.agent_threads = {}  # Store agent threads
         self.tab_states = {
             "Specification": False,
@@ -636,6 +639,27 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         except Exception as e:
             self.log_message(f"❌ Erreur lors de la mise à jour forcée du panneau {panel_name}: {str(e)}")
             
+    def _handle_file_change(self, file_path: str, content: str, panel_name: str = None):
+        """Handle file content changes and trigger visual updates"""
+        try:
+            # If panel_name is provided, use it directly
+            if panel_name:
+                self.root.after(0, lambda: self.flash_tab(panel_name))
+                return
+                
+            # Otherwise, deduce panel_name from file_path
+            for name, path in self.FILE_PATHS.items():
+                if path == file_path:
+                    if name in self.panel_mapping:
+                        panel_name = self.panel_mapping[name]
+                        self.root.after(0, lambda: self.flash_tab(panel_name))
+                    elif name == "demande":
+                        self.root.after(0, lambda: self.flash_tab("Demande"))
+                    break
+                    
+        except Exception as e:
+            self.log_message(f"❌ Erreur lors du traitement du changement de fichier: {str(e)}")
+
     def flash_tab(self, tab_name):
         """Fait flasher un tab en bleu pendant 1 seconde"""
         if tab_name not in self.tab_flash_tasks:
