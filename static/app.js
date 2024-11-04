@@ -424,18 +424,21 @@ const ParallagonApp = {
             } finally {
                 this.loading = false;
             }
-        },
-
-        async mounted() {
-            try {
-                await this.loadInitialContent();
+        }
+    },
+    
+    mounted() {
+        this.loadInitialContent()
+            .then(() => {
                 this.startPolling();
                 this.addLog('info', 'Application initialized');
-            } catch (error) {
+            })
+            .catch(error => {
                 console.error('Error in mounted:', error);
                 this.addNotification('error', 'Failed to initialize application');
-            }
-        },
+            });
+    },
+    
     beforeUnmount() {
         this.stopUpdateLoop();
     }
