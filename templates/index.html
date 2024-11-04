@@ -107,6 +107,12 @@
                 <i class="mdi mdi-stop"></i>
                 Stop
             </button>
+            <button class="btn btn-test" 
+                    @click="loadTestData"
+                    :disabled="running">
+                <i class="mdi mdi-test-tube"></i>
+                Données test
+            </button>
             <div class="status-indicator">
                 <span>${ running ? "Running" : "Stopped" }</span>
             </div>
