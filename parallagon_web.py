@@ -302,12 +302,29 @@ class ParallagonWeb:
         def get_changes():
             """Return and clear pending changes"""
             try:
-                # Only return notifications from last 3 seconds
-                current_time = time.time()
-                recent_notifications = [
-                    n for n in self.notifications_queue 
-                    if time.mktime(datetime.strptime(n['timestamp'], "%H:%M:%S").timetuple()) > current_time - 3
-                ]
+                # Obtenir le timestamp actuel
+                current_time = datetime.now()
+                
+                # Convertir les timestamps des notifications en objets datetime pour comparaison
+                recent_notifications = []
+                for n in self.notifications_queue:
+                    try:
+                        # Convertir le timestamp de la notification en datetime
+                        notif_time = datetime.strptime(n['timestamp'], "%H:%M:%S")
+                        # Utiliser la date d'aujourd'hui avec l'heure de la notification
+                        notif_datetime = current_time.replace(
+                            hour=notif_time.hour,
+                            minute=notif_time.minute,
+                            second=notif_time.second
+                        )
+                        
+                        # Garder seulement les notifications des 3 dernières secondes
+                        if (current_time - notif_datetime).total_seconds() <= 3:
+                            recent_notifications.append(n)
+                            
+                    except ValueError as e:
+                        self.log_message(f"Invalid timestamp format in notification: {e}", level='error')
+                        continue
                 
                 # Debug logging
                 if recent_notifications:
@@ -320,7 +337,7 @@ class ParallagonWeb:
                 self.notifications_queue = []
                 
                 return jsonify(recent_notifications)
-                
+                    
             except Exception as e:
                 self.log_message(f"Error in get_changes: {str(e)}", level='error')
                 return jsonify([])
