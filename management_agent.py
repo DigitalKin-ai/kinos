@@ -225,28 +225,13 @@ class ManagementAgent(ParallagonAgent):
         Returns:
             str: Formatted context for management decisions
         """
-        """
-        Format other files content for management context.
-        
-        Organizes:
-        - Agent status reports
-        - Task progress updates
-        - Coordination signals
-        - Project artifacts
-        
-        Args:
-            files: Dictionary of file contents
-            
-        Returns:
-            str: Formatted context for management decisions
-        """
         result = []
         for file_path, content in files.items():
             result.append(f"=== {file_path} ===\n{content}\n")
         return "\n".join(result)
 
     def _build_prompt(self, context: dict) -> str:
-        return f"""En tant que chef de projet experimente, votre role est de :
+        return f'''En tant que chef de projet experimente, votre role est de :
 1. Analyser la demande, les specifications et l'etat actuel
 2. Definir et prioriser les taches par section en tenant compte des contraintes
 3. Suivre l'avancement et adapter le plan selon les evaluations
@@ -273,4 +258,4 @@ Regles STRICTES :
 2. Les priorites doivent etre exactement HIGH, MEDIUM ou LOW
 3. Chaque tache doit commencer par "- [ ] "
 4. Les taches doivent etre specifiques et actionnables
-5. Respecter les contraintes de chaque section"""
+5. Respecter les contraintes de chaque section'''
