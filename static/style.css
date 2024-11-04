@@ -260,14 +260,21 @@
 }
 
 /* Content areas */
-.content-area {
-    @apply w-full h-64 p-4 bg-gray-50 rounded border focus:ring-2 focus:ring-blue-400 focus:border-transparent;
+.content-area, .content-display {
+    @apply w-full bg-gray-50 rounded border;
+    flex: 1;
+    min-height: 200px;
+    overflow: auto;
+    padding: 1rem;
     font-family: 'Monaco', 'Consolas', monospace;
 }
 
+.content-area {
+    @apply focus:ring-2 focus:ring-blue-400 focus:border-transparent;
+}
+
 .content-display {
-    @apply w-full h-64 p-4 bg-gray-50 rounded overflow-auto whitespace-pre-wrap;
-    font-family: 'Monaco', 'Consolas', monospace;
+    @apply whitespace-pre-wrap;
 }
 
 /* Buttons */
@@ -423,13 +430,39 @@
     box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
 }
 
-/* Logs */
-.suivi-mission-panel {
-    @apply col-span-2;
+/* Suivi Mission specific styles */
+.suivi-mission-content {
+    @apply bg-gray-900 rounded;
+    flex: 1;
+    min-height: 200px;
+    max-height: 400px;
+    overflow: auto;
+    padding: 1rem;
 }
 
-.suivi-mission-content {
-    @apply h-64 overflow-auto bg-gray-900 rounded p-4;
+/* Grid layout */
+.grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.col-span-2 {
+    grid-column: span 2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .lg\:grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+    
+    .panel {
+        min-height: 250px;
+    }
 }
 
 .log-entry {
