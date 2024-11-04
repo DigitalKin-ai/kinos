@@ -246,31 +246,31 @@ class ManagementAgent(ParallagonAgent):
         return "\n".join(result)
 
     def _build_prompt(self, context: dict) -> str:
-        return f"""En tant que chef de projet expérimenté, votre rôle est de :
-1. Analyser la demande, les spécifications et l'état actuel
-2. Définir et prioriser les tâches par section en tenant compte des contraintes
-3. Suivre l'avancement et adapter le plan selon les évaluations
+        return f"""En tant que chef de projet experimente, votre role est de :
+1. Analyser la demande, les specifications et l'etat actuel
+2. Definir et prioriser les taches par section en tenant compte des contraintes
+3. Suivre l'avancement et adapter le plan selon les evaluations
 
 Contexte actuel :
 {self._format_other_files(context['other_files'])}
 
-Format attendu STRICT à respecter pour chaque section :
+Format attendu STRICT a respecter pour chaque section :
 
 # TodoList
 [section: Nom Section 1]
 [contraintes: contraintes_principales]
-- [ ] [priority: HIGH] Tâche prioritaire 1
-- [ ] [priority: MEDIUM] Tâche moyenne 1
-- [ ] [priority: LOW] Tâche mineure 1
+- [ ] [priority: HIGH] Tache prioritaire 1
+- [ ] [priority: MEDIUM] Tache moyenne 1
+- [ ] [priority: LOW] Tache mineure 1
 
 [section: Nom Section 2]
 [contraintes: contraintes_principales]
-- [ ] [priority: HIGH] Tâche prioritaire 2
-- [ ] [priority: MEDIUM] Tâche moyenne 2
+- [ ] [priority: HIGH] Tache prioritaire 2
+- [ ] [priority: MEDIUM] Tache moyenne 2
 
-Règles STRICTES :
-1. Chaque section doit avoir ses propres tâches
-2. Les priorités doivent être exactement HIGH, MEDIUM ou LOW
-3. Chaque tâche doit commencer par "- [ ] "
-4. Les tâches doivent être spécifiques et actionnables
+Regles STRICTES :
+1. Chaque section doit avoir ses propres taches
+2. Les priorites doivent etre exactement HIGH, MEDIUM ou LOW
+3. Chaque tache doit commencer par "- [ ] "
+4. Les taches doivent etre specifiques et actionnables
 5. Respecter les contraintes de chaque section"""
