@@ -11,6 +11,7 @@ import re
 import time
 import openai
 import anthropic
+import os
 from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
@@ -375,12 +376,36 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
         - Maintains file consistency
         - Logs successful changes
         """
-        if hasattr(self, 'new_content') and self.new_content != self.current_content:
-            self.logger(f"[{self.__class__.__name__}] Updating file {self.file_path}")
-            with open(self.file_path, 'w', encoding='utf-8') as f:
-                f.write(self.new_content)
-            self.current_content = self.new_content
-            self.logger(f"[{self.__class__.__name__}] ✓ File updated successfully")
+        try:
+            if hasattr(self, 'new_content') and self.new_content != self.current_content:
+                self.logger(f"[{self.__class__.__name__}] Updating file {self.file_path}")
+                
+                # Ensure the file exists
+                if not os.path.exists(self.file_path):
+                    with open(self.file_path, 'w', encoding='utf-8') as f:
+                        f.write("")
+                
+                # Read current content to verify it hasn't changed
+                with open(self.file_path, 'r', encoding='utf-8') as f:
+                    current = f.read()
+                    
+                # Only update if content actually differs
+                if current != self.new_content:
+                    with open(self.file_path, 'w', encoding='utf-8') as f:
+                        f.write(self.new_content)
+                    self.current_content = self.new_content
+                    self.logger(f"[{self.__class__.__name__}] ✓ File updated successfully")
+                    
+                    # Notify about the change
+                    if hasattr(self, 'handle_file_change'):
+                        self.handle_file_change(self.file_path, self.new_content)
+                else:
+                    self.logger(f"[{self.__class__.__name__}] ℹ File content unchanged")
+                    
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Error updating file: {str(e)}")
+            import traceback
+            self.logger(traceback.format_exc())
 
     def update_production_file(self, section_name: str, new_content: str) -> bool:
         """
