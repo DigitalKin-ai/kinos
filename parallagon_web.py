@@ -19,6 +19,15 @@ from production_agent import ProductionAgent
 from evaluation_agent import EvaluationAgent
 
 class ParallagonWeb:
+    # Log level colors
+    LOG_COLORS = {
+        'info': 'blue',
+        'success': 'green', 
+        'warning': 'orange',
+        'error': 'red',
+        'debug': 'gray'
+    }
+
     TEST_DATA = """# Demande de Revue de Connaissances LLM : L'Impact de l'IA Générative sur l'Industrie Musicale
 
 ## 1. Contexte de la demande
@@ -135,7 +144,7 @@ class ParallagonWeb:
             try:
                 success = self.file_manager.write_file('demande', self.TEST_DATA)
                 if success:
-                    self.log_message("✨ Données de test chargées")
+                    self.log_message("✨ Données de test chargées", level='success')
                     return jsonify({'status': 'success'})
                 else:
                     return jsonify({'error': 'Failed to write test data'}), 500
@@ -290,7 +299,7 @@ class ParallagonWeb:
                     try:
                         self.check_content_updates()
                     except Exception as e:
-                        self.log_message(f"❌ Erreur dans la boucle de mise à jour: {str(e)}")
+                        self.log_message(f"❌ Erreur dans la boucle de mise à jour: {str(e)}", level='error')
                     time.sleep(1)
             
             # Start update loop in separate thread
@@ -304,7 +313,7 @@ class ParallagonWeb:
                     thread.start()
                     self.log_message(f"✓ Agent {name} démarré")
                 except Exception as e:
-                    self.log_message(f"❌ Erreur démarrage agent {name}: {str(e)}")
+                    self.log_message(f"❌ Erreur démarrage agent {name}: {str(e)}", level='error')
                     
             self.log_message("✨ Tous les agents sont actifs")
             
@@ -318,10 +327,13 @@ class ParallagonWeb:
             agent.stop()
 
     def log_message(self, message, operation: str = None, status: str = None, level: str = 'info'):
-        """Log a message with optional operation and status"""
+        """Log a message with optional operation, status and color"""
         try:
             # Utiliser un format de date cohérent
             timestamp = datetime.now().strftime("%H:%M:%S")  # Format court HH:MM:SS
+            
+            # Determine color based on level
+            color = self.LOG_COLORS.get(level, 'black')
             
             # Format log entry
             if operation and status:
@@ -329,14 +341,16 @@ class ParallagonWeb:
                     'id': len(self.logs_buffer),
                     'timestamp': timestamp,
                     'message': f"{operation}: {status} - {message}",
-                    'level': level
+                    'level': level,
+                    'color': color
                 }
             else:
                 log_entry = {
                     'id': len(self.logs_buffer),
                     'timestamp': timestamp,
                     'message': message,
-                    'level': level
+                    'level': level,
+                    'color': color
                 }
             
             # Add to logs buffer
