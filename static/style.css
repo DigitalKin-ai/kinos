@@ -491,7 +491,7 @@ textarea.content-area {
 
 /* Responsive adjustments */
 @media (max-width: 1024px) {
-    .lg\:grid-cols-2 {
+    .lg-grid-cols-2 {
         grid-template-columns: 1fr;
     }
     
