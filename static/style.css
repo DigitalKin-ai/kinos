@@ -536,25 +536,25 @@
 
 /* Scrollbar styling */
 .content-display::-webkit-scrollbar,
-.logs-content::-webkit-scrollbar {
+.suivi-mission-content::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
 
 .content-display::-webkit-scrollbar-track,
-.logs-content::-webkit-scrollbar-track {
+.suivi-mission-content::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 4px;
 }
 
 .content-display::-webkit-scrollbar-thumb,
-.logs-content::-webkit-scrollbar-thumb {
+.suivi-mission-content::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 4px;
 }
 
 .content-display::-webkit-scrollbar-thumb:hover,
-.logs-content::-webkit-scrollbar-thumb:hover {
+.suivi-mission-content::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.3);
 }
 
