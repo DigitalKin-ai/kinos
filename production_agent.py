@@ -272,32 +272,6 @@ etc..."""
             sections[current_section] = '\n'.join(current_content).strip()
             
         return sections
-"""
-ProductionAgent - Agent responsible for content production based on specifications
-"""
-import re
-import time
-from parallagon_agent import ParallagonAgent
-import openai
-from datetime import datetime
-from search_replace import SearchReplace
-
-class ProductionAgent(ParallagonAgent):
-    """
-    Agent responsible for producing content according to specifications.
-    
-    Key responsibilities:
-    - Content creation based on specifications
-    - Following section constraints
-    - Technical documentation
-    - Content issue reporting
-    """
-    
-    def __init__(self, config):
-        super().__init__(config)
-        self.client = openai.OpenAI(api_key=config["openai_api_key"])
-        self.logger = config.get("logger", print)
-        self._last_demand = None
 
     def _validate_diff_format(self, content: str) -> bool:
         """
