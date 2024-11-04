@@ -10,6 +10,8 @@ class AgentPanel:
         self.frame = parent
         self.title = title
         self.text = text_widget
+        self.flash_count = 0
+        self.flash_active = False
         
         # Configuration du highlighting
         self.text.tag_configure(
@@ -56,3 +58,24 @@ class AgentPanel:
     def clear_highlight(self) -> None:
         """Remove highlighting"""
         self.text.tag_remove("highlight", "1.0", tk.END)
+
+    def flash_tab(self):
+        """Flash the tab background to indicate changes"""
+        if self.flash_count >= 6:  # 3 flashes (on/off cycles)
+            self.flash_count = 0
+            self.flash_active = False
+            self.frame.configure(background='SystemButtonFace')  # Reset to default
+            return
+            
+        if self.flash_active:
+            color = '#ffeb99' if self.flash_count % 2 else 'SystemButtonFace'
+            self.frame.configure(background=color)
+            self.flash_count += 1
+            self.frame.after(500, self.flash_tab)  # Flash every 500ms
+            
+    def start_flash(self):
+        """Start the flashing effect"""
+        if not self.flash_active:
+            self.flash_active = True
+            self.flash_count = 0
+            self.flash_tab()

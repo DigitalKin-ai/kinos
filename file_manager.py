@@ -107,7 +107,7 @@ En attente d'initialisation...
             if self.on_content_changed:
                 panel_name = panel_mapping.get(file_name)
                 if panel_name:
-                    self.on_content_changed(file_path, content, panel_name)
+                    self.on_content_changed(file_path, content, panel_name, flash=True)
                 else:
                     self.on_content_changed(file_path, content)
                 
