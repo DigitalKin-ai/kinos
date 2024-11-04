@@ -45,14 +45,16 @@ class ParallagonWeb:
 
     def init_agents(self, config):
         """Initialisation des agents avec configuration standard"""
-        base_config = {
-            "check_interval": 5,
-            "anthropic_api_key": config["anthropic_api_key"],
-            "openai_api_key": config["openai_api_key"],
-            "logger": self.log_message
-        }
-        
-        self.agents = {
+        try:
+            self.log_message("Initializing agents...")
+            base_config = {
+                "check_interval": 5,
+                "anthropic_api_key": config["anthropic_api_key"],
+                "openai_api_key": config["openai_api_key"],
+                "logger": self.log_message
+            }
+            
+            self.agents = {
             "Specification": SpecificationsAgent({
                 **base_config,
                 "file_path": "specifications.md",
@@ -74,6 +76,11 @@ class ParallagonWeb:
                 "watch_files": ["demande.md", "specifications.md", "management.md", "production.md"]
             })
         }
+        self.log_message("Agents initialized successfully")
+        
+    except Exception as e:
+        self.log_message(f"Error initializing agents: {str(e)}")
+        raise
 
     def handle_content_change(self, file_name: str, content: str):
         """Handle content change notifications"""
@@ -203,21 +210,39 @@ class ParallagonWeb:
 
     def start_agents(self):
         """Start all agents"""
-        self.running = True
-        # Start content update loop
-        def update_loop():
-            while self.running:
-                self.check_content_updates()
-                time.sleep(1)  # Check for updates every second
-                
-        # Start update loop in separate thread
-        threading.Thread(target=update_loop, daemon=True).start()
-        
-        # Start agents in separate threads
-        for name, agent in self.agents.items():
-            thread = threading.Thread(target=agent.run, daemon=True)
-            thread.start()
-            self.log_message(f"Agent {name} started")
+        try:
+            self.log_message("Starting agents...")
+            self.running = True
+            
+            # Start content update loop
+            def update_loop():
+                self.log_message("Content update loop started")
+                while self.running:
+                    try:
+                        self.check_content_updates()
+                    except Exception as e:
+                        self.log_message(f"Error in update loop: {str(e)}")
+                    time.sleep(1)
+            
+            # Start update loop in separate thread
+            update_thread = threading.Thread(target=update_loop, daemon=True)
+            update_thread.start()
+            self.log_message("Update loop thread started")
+            
+            # Start agents in separate threads
+            for name, agent in self.agents.items():
+                try:
+                    thread = threading.Thread(target=agent.run, daemon=True)
+                    thread.start()
+                    self.log_message(f"Agent {name} started successfully")
+                except Exception as e:
+                    self.log_message(f"Error starting agent {name}: {str(e)}")
+                    
+            self.log_message("All agents started successfully")
+            
+        except Exception as e:
+            self.log_message(f"Error in start_agents: {str(e)}")
+            raise
 
     def stop_agents(self):
         self.running = False
