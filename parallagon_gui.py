@@ -642,18 +642,34 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
     def _handle_file_change(self, file_path: str, content: str, panel_name: str = None):
         """Handle file content changes and trigger visual updates"""
         try:
-            # If panel_name is provided, use it directly
+            # Si panel_name est fourni, l'utiliser directement
             if panel_name:
+                # Mettre à jour le contenu du panneau
+                if panel_name in self.agent_panels:
+                    self.agent_panels[panel_name].text.delete("1.0", tk.END)
+                    self.agent_panels[panel_name].text.insert("1.0", content)
+                    self.agent_panels[panel_name].highlight_changes()
+                
+                # Déclencher le flash
                 self.root.after(0, lambda: self.flash_tab(panel_name))
                 return
                 
-            # Otherwise, deduce panel_name from file_path
+            # Sinon, déduire panel_name du file_path
             for name, path in self.FILE_PATHS.items():
                 if path == file_path:
                     if name in self.panel_mapping:
                         panel_name = self.panel_mapping[name]
+                        # Mettre à jour le contenu
+                        if panel_name in self.agent_panels:
+                            self.agent_panels[panel_name].text.delete("1.0", tk.END)
+                            self.agent_panels[panel_name].text.insert("1.0", content)
+                            self.agent_panels[panel_name].highlight_changes()
+                        # Déclencher le flash
                         self.root.after(0, lambda: self.flash_tab(panel_name))
                     elif name == "demande":
+                        # Mise à jour spéciale pour le panneau Demande
+                        self.demand_text.delete("1.0", tk.END)
+                        self.demand_text.insert("1.0", content)
                         self.root.after(0, lambda: self.flash_tab("Demande"))
                     break
                     

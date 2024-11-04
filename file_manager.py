@@ -94,21 +94,18 @@ En attente d'initialisation...
                 f.write(content)
                 portalocker.unlock(f)
                 
-            # Always call callback with full file path after successful write
+            # Mapping plus complet et cohérent
+            panel_mapping = {
+                "specifications": "Specification",
+                "management": "Management", 
+                "production": "Production",
+                "evaluation": "Evaluation",
+                "demande": "Demande"
+            }
+        
+            # Appel du callback avec le nom du panneau correct
             if self.on_content_changed:
-                # Convert filename to panel name
-                panel_name = None
-                if file_name == "specifications":
-                    panel_name = "Specification"
-                elif file_name == "management":
-                    panel_name = "Management"
-                elif file_name == "production":
-                    panel_name = "Production"
-                elif file_name == "evaluation":
-                    panel_name = "Evaluation"
-                elif file_name == "demande":
-                    panel_name = "Demande"
-                    
+                panel_name = panel_mapping.get(file_name)
                 if panel_name:
                     self.on_content_changed(file_path, content, panel_name)
                 else:

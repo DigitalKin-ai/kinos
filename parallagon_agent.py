@@ -367,15 +367,7 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
 
     @agent_error_handler("update")
     def update(self) -> None:
-        """
-        Make necessary updates to files based on determined actions.
-        
-        Responsibilities:
-        - Validates proposed changes
-        - Applies updates to file content
-        - Maintains file consistency
-        - Logs successful changes
-        """
+        """Make necessary updates to files based on determined actions."""
         try:
             if hasattr(self, 'new_content') and self.new_content != self.current_content:
                 self.logger(f"[{self.__class__.__name__}] Updating file {self.file_path}")
@@ -404,6 +396,8 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
                     
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Error updating file: {str(e)}")
+            import traceback
+            self.logger(traceback.format_exc())
             import traceback
             self.logger(traceback.format_exc())
 
