@@ -113,10 +113,15 @@ class ParallagonWeb:
             self.logs_buffer.pop(0)
         print(log_entry)
 
+    def get_app(self):
+        """Return the Flask app instance"""
+        return self.app
+
 if __name__ == "__main__":
     config = {
         "anthropic_api_key": "your-api-key-here",
         "openai_api_key": "your-api-key-here"
     }
     app = ParallagonWeb(config)
-    app.run()
+    # Use Flask's development server when running directly 
+    app.run(debug=True)
