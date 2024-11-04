@@ -55,32 +55,32 @@ class ParallagonWeb:
             }
             
             self.agents = {
-            "Specification": SpecificationsAgent({
-                **base_config,
-                "file_path": "specifications.md",
-                "watch_files": ["demande.md", "management.md", "production.md", "evaluation.md"]
-            }),
-            "Management": ManagementAgent({
-                **base_config,
-                "file_path": "management.md",
-                "watch_files": ["demande.md", "specifications.md", "production.md", "evaluation.md"]
-            }),
-            "Production": ProductionAgent({
-                **base_config,
-                "file_path": "production.md",
-                "watch_files": ["demande.md", "specifications.md", "management.md", "evaluation.md"]
-            }),
-            "Evaluation": EvaluationAgent({
-                **base_config,
-                "file_path": "evaluation.md",
-                "watch_files": ["demande.md", "specifications.md", "management.md", "production.md"]
-            })
-        }
-        self.log_message("Agents initialized successfully")
-        
-    except Exception as e:
-        self.log_message(f"Error initializing agents: {str(e)}")
-        raise
+                "Specification": SpecificationsAgent({
+                    **base_config,
+                    "file_path": "specifications.md",
+                    "watch_files": ["demande.md", "management.md", "production.md", "evaluation.md"]
+                }),
+                "Management": ManagementAgent({
+                    **base_config,
+                    "file_path": "management.md",
+                    "watch_files": ["demande.md", "specifications.md", "production.md", "evaluation.md"]
+                }),
+                "Production": ProductionAgent({
+                    **base_config,
+                    "file_path": "production.md",
+                    "watch_files": ["demande.md", "specifications.md", "management.md", "evaluation.md"]
+                }),
+                "Evaluation": EvaluationAgent({
+                    **base_config,
+                    "file_path": "evaluation.md",
+                    "watch_files": ["demande.md", "specifications.md", "management.md", "production.md"]
+                })
+            }
+            self.log_message("Agents initialized successfully")
+            
+        except Exception as e:
+            self.log_message(f"Error initializing agents: {str(e)}")
+            raise
 
     def handle_content_change(self, file_name: str, content: str):
         """Handle content change notifications"""
