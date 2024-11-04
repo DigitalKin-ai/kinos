@@ -87,19 +87,21 @@ En attente d'initialisation...
         try:
             file_path = self.file_paths.get(file_name)
             if not file_path:
+                print(f"FileManager: No path found for {file_name}")
                 return False
                 
             # Check if content has changed before writing
             current_content = self.read_file(file_name)
             if current_content == content:
-                return True  # No need to write if content is identical
+                print(f"FileManager: Content unchanged for {file_name}")
+                return True
                 
             with open(file_path, 'w', encoding='utf-8') as f:
                 portalocker.lock(f, portalocker.LOCK_EX)
                 f.write(content)
                 portalocker.unlock(f)
                 
-            # Simplified and consistent mapping
+            # Notification mapping
             panel_mapping = {
                 "specifications": "Specification",
                 "management": "Management", 
@@ -108,12 +110,14 @@ En attente d'initialisation...
                 "demande": "Demande"
             }
         
-            # Systematic change notification
+            # Systematic notification
             if self.on_content_changed:
                 panel_name = panel_mapping.get(file_name)
                 if panel_name:
+                    print(f"FileManager: Notifying change for {file_name} -> {panel_name}")
                     self.on_content_changed(file_path, content, panel_name, flash=True)
-                    print(f"FileManager: File {file_name} updated, notifying {panel_name}")
+                else:
+                    print(f"FileManager: No panel mapping for {file_name}")
                 
             return True
         except Exception as e:

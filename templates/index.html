@@ -191,38 +191,36 @@ function checkForChanges() {
         .then(response => response.json())
         .then(changes => {
             console.debug('Received changes:', changes);
-            if (changes.length > 0) {
-                console.debug('Processing ' + changes.length + ' changes');
-            }
             changes.forEach(change => {
                 console.debug('Processing change:', change);
                 if (change.operation === 'flash_tab' && change.status) {
                     const tabId = tabIds[change.status];
+                    console.debug('Tab ID mapping:', change.status, '->', tabId);
                     if (tabId) {
-                        console.debug('Flashing tab:', tabId);
                         const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
+                        console.debug('Found tab element:', tab);
                         if (tab) {
                             tab.classList.remove('flash-tab');
                             void tab.offsetWidth; // Force reflow
                             tab.classList.add('flash-tab');
+                            console.debug('Flash animation started for', tabId);
                             
                             setTimeout(() => {
                                 tab.classList.remove('flash-tab');
+                                console.debug('Flash animation completed for', tabId);
                             }, 1000);
-                            
-                            console.debug('Tab flash animation started for:', tabId);
                         } else {
-                            console.debug('Tab element not found for:', tabId);
+                            console.debug('Tab element not found for', tabId);
                         }
                     } else {
-                        console.debug('No matching tabId for:', change.status);
+                        console.debug('No tab mapping found for', change.status);
                     }
                 }
             });
         })
         .catch(error => {
             console.error('Error checking changes:', error);
-            console.debug('Full error details:', error);
+            console.debug('Full error stack:', error.stack);
         });
 }
 

@@ -62,30 +62,38 @@ class AgentPanel:
         self.text.tag_remove("highlight", "1.0", tk.END)
 
     def flash_tab(self):
-        """Flash the tab background and show notification to indicate changes"""
-        if self.flash_count >= 6:  # 3 flashes (on/off cycles)
+        """Flash the tab background to indicate changes"""
+        try:
+            print(f"AgentPanel: Starting flash for {self.title}")
+            self.flash_active = True
             self.flash_count = 0
-            self.flash_active = False
-            self.frame.configure(background='SystemButtonFace')  # Reset to default
-            return
             
-        if self.flash_active:
-            # Use a more noticeable color scheme
-            color = '#ffd700' if self.flash_count % 2 else 'SystemButtonFace'  # Gold color
+            # Force immediate UI update
+            self.frame.update_idletasks()
+            
+            # Start flash animation
+            self.frame.after(0, self._do_flash)
+            
+        except Exception as e:
+            print(f"AgentPanel Flash Error: {str(e)}")
+
+    def _do_flash(self):
+        """Handle the actual flashing animation"""
+        try:
+            if self.flash_count >= 6:  # 3 flashes
+                self.flash_active = False
+                self.frame.configure(background='SystemButtonFace')
+                print(f"AgentPanel: Flash complete for {self.title}")
+                return
+                
+            color = '#ffd700' if self.flash_count % 2 else 'SystemButtonFace'
             self.frame.configure(background=color)
             
-            # Add notification on first flash
-            if self.flash_count == 0:
-                notification = {
-                    'type': 'info',
-                    'message': f'Nouveau contenu dans {self.title}'
-                }
-                # Dispatch notification event
-                self.frame.event_generate('<<ShowNotification>>', 
-                                        data=json.dumps(notification))
-            
             self.flash_count += 1
-            self.frame.after(400, self.flash_tab)  # Slightly faster flash (400ms)
+            self.frame.after(400, self._do_flash)
+            
+        except Exception as e:
+            print(f"AgentPanel Flash Animation Error: {str(e)}")
             
     def start_flash(self):
         """Start the flashing effect"""
