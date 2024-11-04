@@ -94,8 +94,9 @@ En attente d'initialisation...
                 f.write(content)
                 portalocker.unlock(f)
                 
+            # Always call callback with full file path after successful write
             if self.on_content_changed:
-                self.on_content_changed(file_name, content)
+                self.on_content_changed(file_path, content)
                 
             return True
         except Exception as e:
