@@ -88,6 +88,8 @@ const ParallagonApp = {
                 await fetch('/api/start', { method: 'POST' });
                 this.running = true;
                 this.startUpdateLoop();
+                // Activer l'onglet Suivi Mission
+                this.activeTab = 'suivi-mission';
                 this.addNotification('success', 'Agents started successfully');
                 // Start logs update
                 this.startLogsUpdate();

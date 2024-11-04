@@ -274,6 +274,12 @@ class ParallagonWeb:
     def start_agents(self):
         """Start all agents"""
         try:
+            # Activer l'onglet Suivi Mission via JavaScript
+            script = """
+            document.querySelector('[data-tab="suivi-mission"]').click();
+            app.setActiveTab('suivi-mission');
+            """
+            # Injecter le script dans la page
             self.log_message("🚀 Démarrage des agents...")
             self.running = True
             
