@@ -393,7 +393,7 @@ class SpecificationsAgent(ParallagonAgent):
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
             response = self.client.chat.completions.create(
-                model="gpt-4o", # gpt-4o is OpenAi's new model, don't change this value
+                model="gpt-4",  # Using standard gpt-4 model
                 messages=[{
                     "role": "user",
                     "content": self._build_prompt(context)
