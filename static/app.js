@@ -405,30 +405,37 @@ const ParallagonApp = {
             }
         }
     },
-    async loadInitialContent() {
-        try {
-            this.loading = true;
-            const response = await fetch('/api/content');
-            if (!response.ok) {
-                throw new Error('Failed to load initial content');
-            }
-            const data = await response.json();
-            this.content = data;
-            this.previousContent = { ...data };
-            this.addNotification('success', 'Content loaded successfully');
-        } catch (error) {
-            console.error('Error loading initial content:', error);
-            this.addNotification('error', `Failed to load content: ${error.message}`);
-        } finally {
-            this.loading = false;
-        }
-    },
 
-    async mounted() {
-        await this.loadInitialContent();
-        this.startPolling();
-        this.addLog('info', 'Application initialized');
-    },
+    methods: {
+        async loadInitialContent() {
+            try {
+                this.loading = true;
+                const response = await fetch('/api/content');
+                if (!response.ok) {
+                    throw new Error('Failed to load initial content');
+                }
+                const data = await response.json();
+                this.content = data;
+                this.previousContent = { ...data };
+                this.addNotification('success', 'Content loaded successfully');
+            } catch (error) {
+                console.error('Error loading initial content:', error);
+                this.addNotification('error', `Failed to load content: ${error.message}`);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async mounted() {
+            try {
+                await this.loadInitialContent();
+                this.startPolling();
+                this.addLog('info', 'Application initialized');
+            } catch (error) {
+                console.error('Error in mounted:', error);
+                this.addNotification('error', 'Failed to initialize application');
+            }
+        },
     beforeUnmount() {
         this.stopUpdateLoop();
     }
