@@ -156,7 +156,17 @@ class ManagementAgent(ParallagonAgent):
         Returns:
             str: Content of specified section
         """
+        pattern = f"# {section_name}\n(.*?)(?=\n#|$)"
+        matches = list(re.finditer(pattern, content, re.DOTALL))
         
+        if len(matches) == 0:
+            self.logger(f"[{self.__class__.__name__}] Section '{section_name}' not found")
+            return ""
+        elif len(matches) > 1:
+            self.logger(f"[{self.__class__.__name__}] Warning: Multiple '{section_name}' sections found, using first one")
+            
+        return matches[0].group(1).strip()
+
     def _extract_section_todos(self, section_content: str) -> list[str]:
         """Extract todos from section content"""
         todos = []
@@ -169,17 +179,6 @@ class ManagementAgent(ParallagonAgent):
                     task = match.group(2)
                     todos.append(f"[{priority}] {task}")
         return todos
-
-        pattern = f"# {section_name}\n(.*?)(?=\n#|$)"
-        matches = list(re.finditer(pattern, content, re.DOTALL))
-        
-        if len(matches) == 0:
-            self.logger(f"[{self.__class__.__name__}] Section '{section_name}' not found")
-            return ""
-        elif len(matches) > 1:
-            self.logger(f"[{self.__class__.__name__}] Warning: Multiple '{section_name}' sections found, using first one")
-            
-        return matches[0].group(1).strip()
 
     def _format_other_files(self, files: dict) -> str:
         """
