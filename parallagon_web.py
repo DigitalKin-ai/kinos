@@ -63,6 +63,7 @@ class ParallagonWeb:
         self.content_cache = {}
         self.last_modified = {}
         self.last_content = {}
+        self.notifications_queue = []
         self.setup_error_handlers()
         # Add file paths configuration
         self.file_paths = {
@@ -129,31 +130,39 @@ class ParallagonWeb:
 
     def handle_content_change(self, file_name: str, content: str, panel_name: str = None, flash: bool = False):
         """Handle content change notifications"""
-        # Update cache
-        self.content_cache[file_name] = content
-        self.last_modified[file_name] = time.time()
-        
-        # Notify relevant agents
-        for agent in self.agents.values():
-            if hasattr(agent, 'watch_files') and file_name in agent.watch_files:
-                agent.handle_file_change(file_name, content)
-
-        # Ensure correct .md extension
-        if not file_name.endswith('.md'):
-            file_name = f"{file_name}.md"
+        try:
+            # Update cache
+            self.content_cache[file_name] = content
+            self.last_modified[file_name] = time.time()
             
-        # Amélioration du format des notifications
-        notification = {
-            'type': 'info',  # ou 'success', 'warning', 'error'
-            'message': f'Nouveau contenu dans {panel_name or file_name}',
-            'timestamp': datetime.now().strftime("%H:%M:%S"),
-            'operation': 'flash_tab',
-            'status': file_name,
-            'details': 'Contenu mis à jour'  # Ajout de détails optionnels
-        }
-        
-        self.logs_buffer.append(notification)
-        self.log_message(f"File updated: {file_name}", operation="flash_tab", status=file_name)
+            # Notify relevant agents
+            for agent in self.agents.values():
+                if hasattr(agent, 'watch_files') and file_name in agent.watch_files:
+                    agent.handle_file_change(file_name, content)
+
+            # Ensure correct .md extension
+            if not file_name.endswith('.md'):
+                file_name = f"{file_name}.md"
+                
+            # Create detailed notification
+            notification = {
+                'operation': 'flash_tab',
+                'status': os.path.basename(file_name),
+                'panel': panel_name or os.path.splitext(file_name)[0].capitalize(),
+                'timestamp': datetime.now().strftime("%H:%M:%S"),
+                'type': 'info',
+                'message': f'Mise à jour dans {panel_name or file_name}'
+            }
+            
+            self.notifications_queue.append(notification)
+            self.log_message(f"Added notification for {notification['panel']}", level='debug')
+            
+            # Add to logs buffer for history
+            self.logs_buffer.append(notification)
+            self.log_message(f"File updated: {file_name}", operation="flash_tab", status=file_name)
+            
+        except Exception as e:
+            self.log_message(f"Error handling content change: {str(e)}", level='error')
 
     def setup_routes(self):
         @self.app.route('/api/test-data', methods=['POST'])
@@ -294,6 +303,33 @@ class ParallagonWeb:
                 return jsonify({'status': 'success'})
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
+
+        @self.app.route('/api/changes')
+        def get_changes():
+            """Return and clear pending changes"""
+            try:
+                # Only return notifications from last 3 seconds
+                current_time = time.time()
+                recent_notifications = [
+                    n for n in self.notifications_queue 
+                    if time.mktime(datetime.strptime(n['timestamp'], "%H:%M:%S").timetuple()) > current_time - 3
+                ]
+                
+                # Debug logging
+                if recent_notifications:
+                    self.log_message(
+                        f"Sending {len(recent_notifications)} notifications", 
+                        level='debug'
+                    )
+                
+                # Clear queue after getting notifications
+                self.notifications_queue = []
+                
+                return jsonify(recent_notifications)
+                
+            except Exception as e:
+                self.log_message(f"Error in get_changes: {str(e)}", level='error')
+                return jsonify([])
 
         @self.app.route('/api/notifications', methods=['GET'])
         def get_notifications():
