@@ -310,12 +310,6 @@ class ParallagonWeb:
     def start_agents(self):
         """Start all agents"""
         try:
-            # Activer l'onglet Suivi Mission via JavaScript
-            script = """
-            document.querySelector('[data-tab="suivi-mission"]').click();
-            app.setActiveTab('suivi-mission');
-            """
-            # Injecter le script dans la page
             self.log_message("🚀 Démarrage des agents...", level='info')
             self.running = True
             
@@ -327,11 +321,11 @@ class ParallagonWeb:
                         self.check_content_updates()
                     except Exception as e:
                         self.log_message(f"❌ Erreur dans la boucle de mise à jour: {str(e)}", level='error')
-                    time.sleep(1)
+                    time.sleep(1)  # Check every second
             
             # Start update loop in separate thread
-            update_thread = threading.Thread(target=update_loop, daemon=True)
-            update_thread.start()
+            self.update_thread = threading.Thread(target=update_loop, daemon=True)
+            self.update_thread.start()
             
             # Start agents in separate threads
             for name, agent in self.agents.items():
@@ -349,9 +343,13 @@ class ParallagonWeb:
             raise
 
     def stop_agents(self):
+        """Stop all agents and update loop"""
         self.running = False
+        if hasattr(self, 'update_thread'):
+            self.update_thread.join(timeout=2)  # Wait for update thread to finish
         for agent in self.agents.values():
             agent.stop()
+        self.log_message("Agents stopped", level='info')
 
     def log_message(self, message, operation: str = None, status: str = None, level: str = 'info'):
         """Log a message with optional operation, status and color"""
@@ -425,18 +423,25 @@ class ParallagonWeb:
     def check_content_updates(self):
         """Check for content updates"""
         try:
-            current_content = {
-                'demande': self.file_manager.read_file('demande'),
-                'specifications': self.file_manager.read_file('specifications'),
-                'management': self.file_manager.read_file('management'),
-                'production': self.file_manager.read_file('production'),
-                'evaluation': self.file_manager.read_file('evaluation')
-            }
-            
-            if current_content != self.last_content:
-                self.last_content = current_content.copy()
-                self.log_message("Content updated", level='info')
-                
+            # Read current content of all files
+            current_content = {}
+            for file_name, path in self.file_paths.items():
+                content = self.file_manager.read_file(file_name)
+                if content is not None:
+                    current_content[file_name] = content
+
+            # Compare with last known content
+            if not hasattr(self, 'last_content'):
+                self.last_content = {}
+
+            # Check changes for each file
+            for file_name, content in current_content.items():
+                if file_name not in self.last_content or content != self.last_content[file_name]:
+                    # Content modified or new file
+                    self.handle_content_change(file_name, content)
+                    self.last_content[file_name] = content
+                    self.log_message(f"Content updated in {file_name}", level='info')
+
         except Exception as e:
             self.log_message(f"Error checking content updates: {str(e)}", level='error')
 
