@@ -191,30 +191,39 @@ function checkForChanges() {
         .then(response => response.json())
         .then(changes => {
             console.debug('Received changes:', changes);
+            if (changes.length > 0) {
+                console.debug('Processing ' + changes.length + ' changes');
+            }
             changes.forEach(change => {
+                console.debug('Processing change:', change);
                 if (change.operation === 'flash_tab' && change.status) {
-                    console.debug('Processing change:', change);
                     const tabId = tabIds[change.status];
-                    console.debug('Tab ID:', tabId);
-                    
                     if (tabId) {
+                        console.debug('Flashing tab:', tabId);
                         const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
                         if (tab) {
-                            console.debug('Flashing tab:', tabId);
                             tab.classList.remove('flash-tab');
                             void tab.offsetWidth; // Force reflow
                             tab.classList.add('flash-tab');
                             
-                            // Remove class after animation
                             setTimeout(() => {
                                 tab.classList.remove('flash-tab');
                             }, 1000);
+                            
+                            console.debug('Tab flash animation started for:', tabId);
+                        } else {
+                            console.debug('Tab element not found for:', tabId);
                         }
+                    } else {
+                        console.debug('No matching tabId for:', change.status);
                     }
                 }
             });
         })
-        .catch(error => console.error('Error checking changes:', error));
+        .catch(error => {
+            console.error('Error checking changes:', error);
+            console.debug('Full error details:', error);
+        });
 }
 
 // Check for changes more frequently

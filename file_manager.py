@@ -89,12 +89,17 @@ En attente d'initialisation...
             if not file_path:
                 return False
                 
+            # Check if content has changed before writing
+            current_content = self.read_file(file_name)
+            if current_content == content:
+                return True  # No need to write if content is identical
+                
             with open(file_path, 'w', encoding='utf-8') as f:
                 portalocker.lock(f, portalocker.LOCK_EX)
                 f.write(content)
                 portalocker.unlock(f)
                 
-            # Mapping plus complet et cohérent
+            # Simplified and consistent mapping
             panel_mapping = {
                 "specifications": "Specification",
                 "management": "Management", 
@@ -103,18 +108,12 @@ En attente d'initialisation...
                 "demande": "Demande"
             }
         
-            # Appel du callback avec le nom du panneau correct et flash
+            # Systematic change notification
             if self.on_content_changed:
                 panel_name = panel_mapping.get(file_name)
                 if panel_name:
-                    # Always flash when content changes and notify
                     self.on_content_changed(file_path, content, panel_name, flash=True)
-                    print(f"Debug: Triggering notification for {panel_name}")  # Debug log
-                    # Notify any listeners about the change
-                    if hasattr(self, 'handle_file_change'):
-                        self.handle_file_change(file_path, content)
-                else:
-                    self.on_content_changed(file_path, content)
+                    print(f"FileManager: File {file_name} updated, notifying {panel_name}")
                 
             return True
         except Exception as e:
