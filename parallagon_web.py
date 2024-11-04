@@ -1,11 +1,9 @@
-from flask import Flask, render_template, jsonify, request, url_for, make_response
-from flask_sock import Sock
-from geventwebsocket.websocket import WebSocket
+from flask import Flask, render_template, jsonify, request
 import threading
 import time
 import json
 from datetime import datetime
-from typing import Dict, Set, Any
+from typing import Dict, Any
 from file_manager import FileManager
 from llm_service import LLMService
 from specifications_agent import SpecificationsAgent
@@ -16,10 +14,6 @@ from evaluation_agent import EvaluationAgent
 class ParallagonWeb:
     def __init__(self, config):
         self.app = Flask(__name__)
-        self.sock = Sock(self.app)
-        self.clients = set()  # Store WebSocket clients
-        self.sock = Sock(self.app)
-        self.clients: Set[Any] = set()  # Store WebSocket clients
         self.last_content: Dict[str, str] = {}  # Cache last content
         # Add file paths configuration
         self.file_paths = {
@@ -70,38 +64,6 @@ class ParallagonWeb:
         }
 
     def setup_routes(self):
-        @self.sock.route('/ws')
-        def handle_websocket(ws: WebSocket):
-            """Handle WebSocket connections"""
-            self.clients.add(ws)
-            self.log_message("New WebSocket client connected")
-            
-            try:
-                # Send initial content
-                initial_content = {
-                    'type': 'content_update',
-                    'content': {
-                        'demande': self.file_manager.read_file('demande.md'),
-                        'specifications': self.file_manager.read_file('specifications.md'),
-                        'management': self.file_manager.read_file('management.md'),
-                        'production': self.file_manager.read_file('production.md'),
-                        'evaluation': self.file_manager.read_file('evaluation.md')
-                    }
-                }
-                ws.send(json.dumps(initial_content))
-                
-                while not ws.closed:
-                    message = ws.receive()
-                    if message is None:
-                        break
-                    self.process_websocket_message(message, ws)
-                    
-            except Exception as e:
-                self.log_message(f"WebSocket error: {str(e)}")
-            finally:
-                self.clients.remove(ws)
-                self.log_message("WebSocket client disconnected")
-
         @self.app.route('/')
         def home():
             # Initialize empty notifications list
@@ -187,11 +149,12 @@ class ParallagonWeb:
         self.app.run(host=host, port=port, **kwargs)
 
     def start_agents(self):
+        """Start all agents"""
         self.running = True
         # Start content update loop
         def update_loop():
             while self.running:
-                self.broadcast_content_update()
+                self.check_content_updates()
                 time.sleep(1)  # Check for updates every second
                 
         # Start update loop in separate thread
@@ -225,61 +188,23 @@ class ParallagonWeb:
             self.logs_buffer.pop(0)
         print(log_entry)
 
-    def broadcast_message(self, message: dict):
-        """Broadcast message to all connected WebSocket clients"""
-        disconnected = set()
-        
-        for client in self.clients:
-            try:
-                client.send(json.dumps(message))
-            except Exception:
-                disconnected.add(client)
-                
-        # Remove disconnected clients
-        self.clients -= disconnected
-
-    def process_websocket_message(self, message: str, ws):
-        """Process incoming WebSocket messages"""
-        try:
-            data = json.loads(message)
-            message_type = data.get('type')
-            
-            if message_type == 'save_demande':
-                content = data.get('content')
-                if content:
-                    success = self.file_manager.write_file('demande.md', content)
-                    if success:
-                        self.broadcast_content_update()
-                        self.log_message("Demande updated successfully")
-                    else:
-                        self.log_message("Failed to update demande")
-            elif message_type == 'ping':
-                ws.send(json.dumps({'type': 'pong'}))
-                        
-        except Exception as e:
-            self.log_message(f"Error processing WebSocket message: {str(e)}")
-
-    def broadcast_content_update(self):
-        """Broadcast content updates to all clients"""
+    def check_content_updates(self):
+        """Check for content updates"""
         try:
             current_content = {
-                'demande': self.file_manager.read_file('demande.md'),
-                'specifications': self.file_manager.read_file('specifications.md'),
-                'management': self.file_manager.read_file('management.md'),
-                'production': self.file_manager.read_file('production.md'),
-                'evaluation': self.file_manager.read_file('evaluation.md')
+                'demande': self.file_manager.read_file('demande'),
+                'specifications': self.file_manager.read_file('specifications'),
+                'management': self.file_manager.read_file('management'),
+                'production': self.file_manager.read_file('production'),
+                'evaluation': self.file_manager.read_file('evaluation')
             }
             
-            # Check for changes
             if current_content != self.last_content:
                 self.last_content = current_content.copy()
-                self.broadcast_message({
-                    'type': 'content_update',
-                    'content': current_content
-                })
+                self.log_message("Content updated")
                 
         except Exception as e:
-            self.log_message(f"Error broadcasting content update: {str(e)}")
+            self.log_message(f"Error checking content updates: {str(e)}")
 
     def get_app(self):
         """Return the Flask app instance"""
