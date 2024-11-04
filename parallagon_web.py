@@ -142,13 +142,14 @@ class ParallagonWeb:
         if not file_name.endswith('.md'):
             file_name = f"{file_name}.md"
             
-        # Always add a notification when content changes
+        # Amélioration du format des notifications
         notification = {
-            'type': 'info',
+            'type': 'info',  # ou 'success', 'warning', 'error'
             'message': f'Nouveau contenu dans {panel_name or file_name}',
             'timestamp': datetime.now().strftime("%H:%M:%S"),
             'operation': 'flash_tab',
-            'status': file_name
+            'status': file_name,
+            'details': 'Contenu mis à jour'  # Ajout de détails optionnels
         }
         
         self.logs_buffer.append(notification)

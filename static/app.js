@@ -126,10 +126,18 @@ const ParallagonApp = {
 
         addNotification(type, message) {
             const id = Date.now();
-            this.notifications.push({ id, type, message });
+            // Ajout de classes CSS pour le style
+            const notification = {
+                id,
+                type,
+                message,
+                class: `notification-${type}` // Ajout d'une classe pour le style
+            };
+            
+            this.notifications.push(notification);
             
             // Log pour debug
-            console.log('Adding notification:', { id, type, message });
+            console.log('Adding notification:', notification);
             
             // Auto-remove after 5 seconds
             setTimeout(() => {
@@ -458,6 +466,11 @@ const ParallagonApp = {
 
     
     mounted() {
+        // Add notifications container to body
+        const notificationsContainer = document.createElement('div');
+        notificationsContainer.className = 'notifications-container';
+        document.body.appendChild(notificationsContainer);
+        
         this.loadInitialContent()
             .then(() => {
                 this.startPolling();
