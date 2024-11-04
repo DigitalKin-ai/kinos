@@ -1,4 +1,7 @@
 from flask import Flask, render_template, jsonify, request, make_response
+from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import threading
 import time
 import json
@@ -14,7 +17,14 @@ from evaluation_agent import EvaluationAgent
 class ParallagonWeb:
     def __init__(self, config):
         self.app = Flask(__name__)
+        CORS(self.app)  # Enable CORS
+        self.limiter = Limiter(
+            app=self.app,
+            key_func=get_remote_address,
+            default_limits=["200 per minute"]
+        )
         self.last_content: Dict[str, str] = {}  # Cache last content
+        self.setup_error_handlers()
         # Add file paths configuration
         self.file_paths = {
             "demande": "demande.md",
@@ -205,6 +215,19 @@ class ParallagonWeb:
                 
         except Exception as e:
             self.log_message(f"Error checking content updates: {str(e)}")
+
+    def setup_error_handlers(self):
+        @self.app.errorhandler(404)
+        def not_found_error(error):
+            return jsonify({'error': 'Resource not found'}), 404
+
+        @self.app.errorhandler(500)
+        def internal_error(error):
+            return jsonify({'error': 'Internal server error'}), 500
+
+        @self.app.errorhandler(Exception)
+        def handle_exception(error):
+            return jsonify({'error': str(error)}), 500
 
     def get_app(self):
         """Return the Flask app instance"""

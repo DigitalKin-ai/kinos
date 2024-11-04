@@ -97,36 +97,17 @@ const ParallagonApp = {
             }
         },
 
-        initWebSocket() {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${protocol}//${window.location.host}/ws`;
-            
-            console.log('Connecting to WebSocket:', wsUrl);
-            
-            this.ws = new WebSocket(wsUrl);
-            
-            this.ws.onopen = () => {
-                console.log('WebSocket connected');
-                this.connectionStatus = 'connected';
-                this.addNotification('success', 'Connected to server');
-                
-                // Start ping interval
-                this.pingInterval = setInterval(() => {
-                    if (this.ws.readyState === WebSocket.OPEN) {
-                        this.ws.send(JSON.stringify({ type: 'ping' }));
-                    }
-                }, 30000); // Send ping every 30 seconds
-            };
-            
-            this.ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    console.log('Received WebSocket message:', data);
-                    
-                    if (data.type === 'content_update') {
-                        this.previousContent = { ...this.content };
-                        this.content = data.content;
+        startPolling() {
+            setInterval(async () => {
+                if (this.running) {
+                    try {
+                        const response = await fetch('/api/content');
+                        const data = await response.json();
                         
+                        this.previousContent = { ...this.content };
+                        this.content = data;
+
+                        // Check for changes and update UI
                         this.panels.forEach(panel => {
                             const hasChanged = this.previousContent[panel.id] !== this.content[panel.id];
                             panel.updating = hasChanged;
@@ -134,37 +115,12 @@ const ParallagonApp = {
                                 this.addLog('info', `${panel.name} content updated`);
                             }
                         });
-                    } else if (data.type === 'log') {
-                        this.addLog(data.level || 'info', data.message);
+                    } catch (error) {
+                        console.error('Failed to poll content:', error);
+                        this.addLog('error', 'Failed to update content: ' + error.message);
                     }
-                } catch (error) {
-                    console.error('Error processing WebSocket message:', error);
                 }
-            };
-            
-            this.ws.onclose = (event) => {
-                console.log('WebSocket disconnected:', event);
-                this.connectionStatus = 'disconnected';
-                this.addNotification('warning', 'Connection lost. Reconnecting...');
-                
-                // Clear ping interval
-                if (this.pingInterval) {
-                    clearInterval(this.pingInterval);
-                }
-                
-                // Wait 5 seconds before attempting to reconnect
-                setTimeout(() => {
-                    if (this.ws.readyState === WebSocket.CLOSED) {
-                        this.initWebSocket();
-                    }
-                }, 5000);
-            };
-
-            this.ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                this.error = 'WebSocket error occurred';
-                this.addNotification('error', 'Connection error');
-            };
+            }, 1000); // Poll every second
         },
 
         async updateContent() {
@@ -349,13 +305,10 @@ const ParallagonApp = {
         }
     },
     mounted() {
-        this.initWebSocket();
+        this.startPolling();
         this.addLog('info', 'Application initialized');
     },
     beforeUnmount() {
-        if (this.ws) {
-            this.ws.close();
-        }
         this.stopUpdateLoop();
     }
 };

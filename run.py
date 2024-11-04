@@ -1,12 +1,8 @@
-from gevent import pywsgi, monkey
-from geventwebsocket.handler import WebSocketHandler
+from flask import Flask
 from parallagon_web import ParallagonWeb
 import logging
 import os
 from dotenv import load_dotenv
-
-# Apply gevent monkey patching at the start
-monkey.patch_all()
 
 def get_config():
     # Load environment variables from .env file
@@ -44,13 +40,8 @@ def main():
         logger.info("Starting Parallagon Web with gevent-websocket...")
         logger.info("Server running at http://0.0.0.0:5000")
         
-        # Run with gevent-websocket
-        server = pywsgi.WSGIServer(
-            ('0.0.0.0', 5000), 
-            flask_app,
-            handler_class=WebSocketHandler
-        )
-        server.serve_forever()
+        # Run with Flask's development server
+        flask_app.run(host='0.0.0.0', port=5000, debug=True)
 
     except Exception as e:
         logger.error(f"Failed to start server: {str(e)}")
