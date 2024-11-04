@@ -1,3 +1,16 @@
+// Debounce utility function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func.apply(this, args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 const ParallagonApp = {
     data() {
         return {
@@ -18,7 +31,8 @@ const ParallagonApp = {
             logs: [],
             demandeChanged: false,
             updateInterval: null,
-            previousContent: {}
+            previousContent: {},
+            ws: null
         }
     },
     methods: {
@@ -44,26 +58,56 @@ const ParallagonApp = {
             }
         },
 
-        async updateContent() {
-            try {
-                const response = await fetch('/api/content');
-                const data = await response.json();
+        initWebSocket() {
+            this.ws = new WebSocket(`ws://${window.location.host}/ws`);
+            
+            this.ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
                 
-                // Store previous content for diff highlighting
-                this.previousContent = { ...this.content };
-                this.content = data;
+                if (data.type === 'content_update') {
+                    // Store previous content for diff highlighting
+                    this.previousContent = { ...this.content };
+                    this.content = data.content;
+                    
+                    // Update panel status
+                    this.panels.forEach(panel => {
+                        const hasChanged = this.previousContent[panel.id] !== this.content[panel.id];
+                        panel.updating = hasChanged;
+                        if (hasChanged) {
+                            this.addLog('info', `${panel.name} content updated`);
+                        }
+                    });
+                } else if (data.type === 'log') {
+                    this.addLog(data.level, data.message);
+                }
+            };
+            
+            this.ws.onclose = () => {
+                this.addLog('warning', 'WebSocket connection closed. Attempting to reconnect...');
+                setTimeout(() => this.initWebSocket(), 5000);
+            };
+        },
 
-                // Update panel status
-                this.panels.forEach(panel => {
-                    const hasChanged = this.previousContent[panel.id] !== this.content[panel.id];
-                    panel.updating = hasChanged;
-                    if (hasChanged) {
-                        this.addLog('info', `${panel.name} content updated`);
-                    }
-                });
-            } catch (error) {
-                console.error('Failed to update content:', error);
-                this.addLog('error', 'Failed to update content: ' + error.message);
+        async updateContent() {
+            if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+                try {
+                    const response = await fetch('/api/content');
+                    const data = await response.json();
+                    
+                    this.previousContent = { ...this.content };
+                    this.content = data;
+
+                    this.panels.forEach(panel => {
+                        const hasChanged = this.previousContent[panel.id] !== this.content[panel.id];
+                        panel.updating = hasChanged;
+                        if (hasChanged) {
+                            this.addLog('info', `${panel.name} content updated`);
+                        }
+                    });
+                } catch (error) {
+                    console.error('Failed to update content:', error);
+                    this.addLog('error', 'Failed to update content: ' + error.message);
+                }
             }
         },
 
@@ -89,8 +133,39 @@ const ParallagonApp = {
             }
         },
 
+        debouncedSaveDemande: debounce(async function() {
+            await this.saveDemande();
+        }, 1000),
+
         onDemandeInput() {
             this.demandeChanged = true;
+            this.debouncedSaveDemande();
+        },
+
+        computeDiff(oldLines, newLines) {
+            const diff = [];
+            let i = 0, j = 0;
+            
+            while (i < oldLines.length || j < newLines.length) {
+                if (i >= oldLines.length) {
+                    diff.push({ added: true, value: newLines[j] });
+                    j++;
+                } else if (j >= newLines.length) {
+                    diff.push({ removed: true, value: oldLines[i] });
+                    i++;
+                } else if (oldLines[i] !== newLines[j]) {
+                    diff.push({ removed: true, value: oldLines[i] });
+                    diff.push({ added: true, value: newLines[j] });
+                    i++;
+                    j++;
+                } else {
+                    diff.push({ value: oldLines[i] });
+                    i++;
+                    j++;
+                }
+            }
+            
+            return diff;
         },
 
         highlightContent(panelId) {
@@ -99,16 +174,20 @@ const ParallagonApp = {
             
             if (oldContent === newContent) return newContent;
 
-            // Simple diff highlighting
             const oldLines = oldContent.split('\n');
             const newLines = newContent.split('\n');
             let html = '';
 
-            newLines.forEach((line, i) => {
-                if (line !== oldLines[i]) {
-                    html += `<span class="highlight-change">${line}</span>\n`;
+            // Use diff algorithm to identify changes
+            const diff = this.computeDiff(oldLines, newLines);
+            
+            diff.forEach(part => {
+                if (part.added) {
+                    html += `<span class="highlight-add">${part.value}</span>\n`;
+                } else if (part.removed) {
+                    html += `<span class="highlight-remove">${part.value}</span>\n`;
                 } else {
-                    html += line + '\n';
+                    html += `${part.value}\n`;
                 }
             });
 
@@ -121,12 +200,15 @@ const ParallagonApp = {
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                
                 a.href = url;
-                a.download = `parallagon-logs-${new Date().toISOString()}.txt`;
+                a.download = `parallagon-logs-${timestamp}.txt`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
+                
                 this.addLog('success', 'Logs exported successfully');
             } catch (error) {
                 console.error('Failed to export logs:', error);
@@ -182,10 +264,13 @@ const ParallagonApp = {
         }
     },
     mounted() {
-        this.updateContent();
+        this.initWebSocket();
         this.addLog('info', 'Application initialized');
     },
     beforeUnmount() {
+        if (this.ws) {
+            this.ws.close();
+        }
         this.stopUpdateLoop();
     }
 };
