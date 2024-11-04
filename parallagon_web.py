@@ -136,32 +136,25 @@ class ParallagonWeb:
             
             # Create notification with all required fields
             notification = {
-                'operation': 'flash_tab',
                 'type': 'info',
-                'status': os.path.basename(file_path),
-                'panel': panel_name or os.path.splitext(os.path.basename(file_path))[0].capitalize(),
+                'message': f'Content updated in {panel_name or os.path.basename(file_path)}',
                 'timestamp': timestamp,
-                'message': f'Content change in {panel_name or file_path}'
+                'panel': panel_name or os.path.splitext(os.path.basename(file_path))[0],
+                'status': os.path.basename(file_path),
+                'operation': 'flash_tab',
+                'id': len(self.notifications_queue)
             }
             
             # Add to notifications queue
             self.notifications_queue.append(notification)
             
-            # Add to logs buffer with operation field
-            self.log_message(
-                f"Content change in {file_path} -> {panel_name}",
-                operation='flash_tab',
-                status=os.path.basename(file_path),
-                level='info'
-            )
+            # Debug logs
+            print(f"Added notification: {notification}")
+            print(f"Current notifications queue: {self.notifications_queue}")
             
             # Update cache
             self.content_cache[file_path] = content
             self.last_modified[file_path] = time.time()
-            
-            # Debug logs
-            self.log_message(f"Added notification for {notification['panel']}")
-            self.log_message(f"Notifications queue size: {len(self.notifications_queue)}")
             
         except Exception as e:
             self.log_message(f"Error handling content change: {str(e)}", level='error')

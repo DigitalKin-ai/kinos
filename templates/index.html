@@ -8,7 +8,8 @@
 <style>
 @keyframes flash-tab {
     0% { background-color: transparent; }
-    50% { background-color: #ffd700; }
+    25% { background-color: #ffd700; }
+    75% { background-color: #ffd700; }
     100% { background-color: transparent; }
 }
 .flash-tab {
@@ -16,6 +17,7 @@
 }
 .tab-item {
     transition: background-color 0.3s ease;
+    position: relative;
 }
 </style>
 {% endblock %}
@@ -52,7 +54,7 @@
                 <div class="tab-item" 
                      v-for="tab in tabs" 
                      :key="tab.id"
-                     :class="{ active: activeTab === tab.id }"
+                     :class="{ active: activeTab === tab.id, 'flash-tab': false }"
                      :data-tab="tab.id"
                      @click="setActiveTab(tab.id)">
                     <i :class="tab.icon"></i>
