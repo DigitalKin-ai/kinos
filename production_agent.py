@@ -190,14 +190,14 @@ class ProductionAgent(ParallagonAgent):
             self.logger(f"[{self.__class__.__name__}] Calling LLM API...")
             
             prompt = self._build_prompt(context)
-            response = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=4000,
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": prompt}],
                 temperature=0,
-                messages=[{"role": "user", "content": prompt}]
+                max_tokens=4000
             )
             
-            content = response.content[0].text
+            content = response.choices[0].message.content
             
             # Modification ici : vérifier si le contenu est substantiel
             if content.strip() and content.strip() != "NO_CHANGES":
