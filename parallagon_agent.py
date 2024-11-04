@@ -295,41 +295,25 @@ class ParallagonAgent:
             self.logger(traceback.format_exc())
 
     def _build_prompt(self, context: dict) -> str:
-        """Construction du prompt pour l'évaluateur"""
-        # This is a base implementation that should be overridden by subclasses
-        return f"""En tant qu'évaluateur qualité extrêmement rigoureux, vous devez analyser méticuleusement chaque section du projet avec un niveau de détail élevé. Votre rôle est d'identifier la moindre incohérence ou imprécision.
+        return f"""Vous êtes l'agent d'évaluation. Votre rôle est de vérifier la qualité du contenu produit.
 
 Contexte actuel :
 {self._format_other_files(context)}
 
-Instructions :
-1. Pour chaque section définie dans les spécifications, réalisez une analyse détaillée :
-   - Cohérence : vérifiez chaque lien logique avec les autres sections, identifiez toute contradiction
-   - Complétude : examinez si tous les points requis sont traités en profondeur
-   - Clarté : évaluez la précision du langage, la structure, l'absence d'ambiguïté
-   - Respect des critères : confrontez minutieusement chaque élément aux exigences définies
+Votre tâche :
+1. Vérifier le respect des spécifications
+2. Évaluer la qualité du contenu
+3. Identifier les points à améliorer
 
-2. Attribuez un statut précis avec justification détaillée :
-   [✓] Validé - uniquement si parfaitement conforme
-   [⚠️] À améliorer - listez précisément les points à revoir
-   [❌] Non conforme - détaillez chaque non-conformité
-
-3. Structurez votre évaluation rigoureuse ainsi :
-
+Format de réponse :
 # Évaluations en Cours
-[Pour chaque section du document]
-- Cohérence : [statut] analyse détaillée point par point
-- Complétude : [statut] liste exhaustive des éléments présents/manquants
-- Clarté : [statut] analyse précise de la formulation et structure
-- Respect des critères : [statut] confrontation détaillée aux exigences
+[section: Nom Section]
+- Qualité: [✓|⚠️|❌] Commentaire
+- Conformité: [✓|⚠️|❌] Commentaire
 
 # Vue d'Ensemble
-- Progression : [pourcentage précis avec justification]
-- Points forts : [liste détaillée avec exemples concrets]
-- Points à améliorer : [liste exhaustive et priorisée]
-- Statut global : [EN_COURS/VALIDÉ/À_REVOIR] avec justification
-
-Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, objective et constructive, en fournissant des exemples précis pour chaque point soulevé."""
+[progression: X%]
+[status: VALIDATED|NEEDS_WORK|REJECTED]"""
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response with fallback between providers"""
