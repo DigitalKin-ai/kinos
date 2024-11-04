@@ -23,6 +23,9 @@
                 <button class="btn-reset" @click="resetFiles" :disabled="running">
                     ↺ Reset
                 </button>
+                <button class="btn-test" @click="loadTestData" :disabled="running">
+                    🧪 Test
+                </button>
                 <span class="status" :class="{ 'status-running': running }">
                     ● ${ running ? 'Running' : 'Stopped' }
                 </span>

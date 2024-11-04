@@ -140,6 +140,16 @@ class ParallagonWeb:
                     return jsonify({'error': 'Failed to write test data'}), 500
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
+        def load_test_data():
+            try:
+                success = self.file_manager.write_file('demande', self.TEST_DATA)
+                if success:
+                    self.log_message("✨ Données de test chargées")
+                    return jsonify({'status': 'success'})
+                else:
+                    return jsonify({'error': 'Failed to write test data'}), 500
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/reset', methods=['POST'])
         def reset_files():
