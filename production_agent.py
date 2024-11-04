@@ -187,35 +187,27 @@ class ProductionAgent(ParallagonAgent):
         Returns:
             str: Formatted context for content decisions
         """
-        """
-        Format other files content for production context.
-        
-        Organizes:
-        - Specifications requirements
-        - Management directives
-        - Evaluation feedback
-        - Related content references
-        
-        Args:
-            files: Dictionary of file contents
-            
-        Returns:
-            str: Formatted context for content decisions
-        """
         result = []
         for file_path, content in files.items():
             result.append(f"=== {file_path} ===\n{content}\n")
         return "\n".join(result)
 
     def _build_prompt(self, context: dict) -> str:
-        return f"""Vous êtes l'agent de production. Votre rôle est de créer le contenu selon les spécifications.
+        return f"""Vous êtes l'agent de production. Votre rôle est de produire le contenu selon les spécifications.
 
 Contexte actuel :
 {self._format_other_files(context['other_files'])}
 
+Contenu actuel :
+{context['production']}
+
 Votre tâche :
-1. Lire les spécifications
-2. Créer le contenu pour chaque section
+1. Analyser les spécifications et la demande
+2. Proposer des modifications au contenu actuel
+3. Utiliser EXACTEMENT ce format pour chaque modification :
+
+<<<<<<< ANCIEN
+[texte exact à remplacer]
 3. Respecter les contraintes définies
 
 Format de réponse :
