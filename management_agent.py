@@ -146,14 +146,29 @@ Contexte actuel :
 
 Votre tâche :
 1. Analyser les spécifications et l'état actuel
-2. Définir les tâches prioritaires
-3. Suivre l'avancement
+2. Définir les tâches prioritaires pour chaque section
+3. Suivre l'avancement global
 
 Format de réponse :
 # TodoList
-[section: Nom Section]
+
+[section: Introduction]
+- [ ] [priority: HIGH|MEDIUM|LOW] Description tâche
+- [ ] [priority: HIGH|MEDIUM|LOW] Description tâche
+
+[section: Section 1]
+- [ ] [priority: HIGH|MEDIUM|LOW] Description tâche
+- [ ] [priority: HIGH|MEDIUM|LOW] Description tâche
+
+[section: Section N]
 - [ ] [priority: HIGH|MEDIUM|LOW] Description tâche
 
 # Vue d'Ensemble
 [progression: X%]
-[status: EN_COURS|TERMINE|BLOQUE]"""
+[status: EN_COURS|TERMINE|BLOQUE]
+
+IMPORTANT:
+- Chaque section doit avoir sa propre liste de tâches
+- Les tâches doivent être spécifiques et actionnables
+- La priorité doit être explicitement indiquée
+- Les tâches complétées doivent être marquées [x]"""
