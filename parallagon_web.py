@@ -428,10 +428,24 @@ class ParallagonWeb:
         return self.app
 
 if __name__ == "__main__":
+    # Load keys from .env file
+    from dotenv import load_dotenv
+    import os
+    
+    load_dotenv()
+    
     config = {
-        "anthropic_api_key": "your-api-key-here",
-        "openai_api_key": "your-api-key-here"
+        "anthropic_api_key": os.getenv("ANTHROPIC_API_KEY"),
+        "openai_api_key": os.getenv("OPENAI_API_KEY")
     }
+    
+    # Validate API keys
+    if not config["openai_api_key"] or config["openai_api_key"] == "your-api-key-here":
+        raise ValueError("OPENAI_API_KEY not configured in .env file")
+        
+    if not config["anthropic_api_key"] or config["anthropic_api_key"] == "your-api-key-here":
+        raise ValueError("ANTHROPIC_API_KEY not configured in .env file")
+    
     app = ParallagonWeb(config)
     # Use Flask's development server when running directly 
     app.run(debug=True)
