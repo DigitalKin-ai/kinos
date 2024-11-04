@@ -70,11 +70,36 @@ const ParallagonApp = {
                 this.running = true;
                 this.startUpdateLoop();
                 this.addNotification('success', 'Agents started successfully');
+                // Start logs update
+                this.startLogsUpdate();
             } catch (error) {
                 this.error = error.message;
                 this.addNotification('error', `Failed to start agents: ${error.message}`);
             } finally {
                 this.loading = false;
+            }
+        },
+
+        startLogsUpdate() {
+            if (!this.logsInterval) {
+                this.logsInterval = setInterval(async () => {
+                    try {
+                        const response = await fetch('/api/logs');
+                        const data = await response.json();
+                        if (data.logs && Array.isArray(data.logs)) {
+                            this.logs = data.logs;
+                            // Auto-scroll to bottom
+                            this.$nextTick(() => {
+                                const logsContent = document.querySelector('.suivi-mission-content');
+                                if (logsContent) {
+                                    logsContent.scrollTop = logsContent.scrollHeight;
+                                }
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch logs:', error);
+                    }
+                }, 1000);
             }
         },
 
