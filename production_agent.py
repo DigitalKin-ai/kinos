@@ -209,6 +209,9 @@ Votre tâche :
 <<<<<<< ANCIEN
 [texte exact à remplacer]
 3. Respecter les contraintes définies
+~~~~~~~
+[nouveau texte à ajouter]
+>>>>>>> NOUVEAU
 
 Format de réponse :
 # Section 1
@@ -268,10 +271,10 @@ etc..."""
     def _validate_diff_format(self, content: str) -> bool:
         """
         Valide que le contenu suit le format de diff attendu.
-        Format: <<<<<<< ANCIEN\n[texte]\n=======\n[texte]\n>>>>>>> NOUVEAU
+        Format: <<<<<<< ANCIEN\n[texte]\n~~~~~~~\n[texte]\n>>>>>>> NOUVEAU
         """
         import re
-        pattern = r'<<<<<<< ANCIEN\n(.*?)\n=======\n(.*?)\n>>>>>>> NOUVEAU'
+        pattern = r'<<<<<<< ANCIEN\n(.*?)\n~~~~~~~\n(.*?)\n>>>>>>> NOUVEAU'
         matches = re.findall(pattern, content, re.DOTALL)
         return len(matches) > 0
 
@@ -281,7 +284,7 @@ etc..."""
         Retourne une liste de tuples (ancien_texte, nouveau_texte)
         """
         import re
-        pattern = r'<<<<<<< ANCIEN\n(.*?)\n=======\n(.*?)\n>>>>>>> NOUVEAU'
+        pattern = r'<<<<<<< ANCIEN\n(.*?)\n~~~~~~~\n(.*?)\n>>>>>>> NOUVEAU'
         return re.findall(pattern, content, re.DOTALL)
 
     def _apply_diffs(self, current_content: str, diffs: list[tuple[str, str]]) -> str:
