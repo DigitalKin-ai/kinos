@@ -59,22 +59,45 @@ class LogManager:
     def __init__(self, text_widget: tk.Text):
         """Initialize the log manager with a text widget"""
         self.text_widget = text_widget
+        
+        # Configure widget to be more discrete
+        self.text_widget.configure(
+            height=6,  # Reduced height
+            width=50,  # Reduced width
+            background='#f8f9fa',  # Slightly grayed background
+            fg='#666666',  # Dark gray text
+            font=('TkDefaultFont', 9)  # Smaller font
+        )
+        
+        # Position at bottom left
+        self.text_widget.pack(side='left', anchor='sw', padx=5, pady=5)
+        
         self.logs: list[LogEntry] = []
         self.setup_tags()
         
     def setup_tags(self):
         """Configure text tags for different message types"""
-        # Base tag for timestamps
-        self.text_widget.tag_config('timestamp', foreground='#a0a0a0')
+        # Base tag for timestamps - more discrete
+        self.text_widget.tag_config('timestamp', foreground='#999999')
         
-        # Animation tag
-        self.text_widget.tag_config('fade_in', background='#e8f0fe')
+        # Animation tag - more subtle
+        self.text_widget.tag_config('fade_in', background='#f8f9fa')
         
-        # Tags for each log level
+        # Tags for each log level - softer colors
+        colors = {
+            'SUCCESS': '#4CAF50',
+            'ERROR': '#f44336',
+            'INFO': '#78909C',  # Blueish gray, more discrete
+            'RESET': '#FF9800',
+            'CHANGES': '#9C27B0',
+            'NO_CHANGES': '#90A4AE',  # Lighter gray
+            'WARNING': '#FFA726'  # Softer orange
+        }
+        
         for level in LogLevel:
             self.text_widget.tag_config(
                 level.name.lower(),
-                foreground=level.value[1]
+                foreground=colors.get(level.name, '#666666')
             )
     
     def _determine_log_level(self, message: str) -> LogLevel:
