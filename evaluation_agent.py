@@ -30,7 +30,7 @@ class EvaluationAgent(ParallagonAgent):
 
     def determine_actions(self) -> None:
         try:
-            self.logger("Début de l'analyse...")
+            self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
             
             context = {
                 "evaluation": self.current_content,
@@ -38,82 +38,15 @@ class EvaluationAgent(ParallagonAgent):
             }
             
             response = self._get_llm_response(context)
-            
-            if response != self.current_content:
-                self.logger("Modifications détectées, tentative de mise à jour...")
-                temp_content = self.current_content
-
-                # Validation du format des évaluations
-                section_pattern = r'\[section: (.+?)\]\n\[evaluation: (VALIDATED|NEEDS_WORK|REJECTED)\]\n\[details: (.+?)\]'
-                criteria_pattern = r'- (\w+): \[(✓|⚠️|❌)\] (.+)$'
-                
-                # Extraire et valider les évaluations
-                evaluations_section = re.search(r'# Évaluations en Cours\n(.*?)(?=\n#|$)', response, re.DOTALL)
-                if evaluations_section:
-                    sections = re.finditer(section_pattern, evaluations_section.group(1), re.MULTILINE | re.DOTALL)
-                    valid_evaluations = []
-                    
-                    for section in sections:
-                        section_name = section.group(1)
-                        evaluation = section.group(2)
-                        details = section.group(3)
-                        
-                        # Extraire les critères
-                        criteria = re.finditer(criteria_pattern, details, re.MULTILINE)
-                        criteria_list = []
-                        for criterion in criteria:
-                            name = criterion.group(1)
-                            status = criterion.group(2)
-                            justification = criterion.group(3)
-                            criteria_list.append(f"- {name}: [{status}] {justification}")
-                        
-                        # Construire l'évaluation formatée
-                        valid_evaluations.append(
-                            f"[section: {section_name}]\n"
-                            f"[evaluation: {evaluation}]\n"
-                            f"[details: {details}]\n"
-                            f"{chr(10).join(criteria_list)}"
-                        )
-                    
-                    # Mettre à jour la section des évaluations
-                    if valid_evaluations:
-                        result = SearchReplace.section_replace(
-                            temp_content,
-                            "Évaluations en Cours",
-                            '\n\n'.join(valid_evaluations)
-                        )
-                        if result.success:
-                            temp_content = result.new_content
-                            self.logger("✓ Évaluations mises à jour")
-
-                # Validation et mise à jour de la vue d'ensemble
-                overview_pattern = (
-                    r'\[progression: (\d+)%\]\n'
-                    r'\[status: (IN_PROGRESS|COMPLETED|BLOCKED)\]\n'
-                    r'\[critical_issues: (.+?)\]\n'
-                    r'\[next_steps: (.+?)\]'
-                )
-                
-                overview_section = re.search(r'# Vue d\'Ensemble\n(.*?)(?=\n#|$)', response, re.DOTALL)
-                if overview_section and re.search(overview_pattern, overview_section.group(1), re.DOTALL):
-                    result = SearchReplace.section_replace(
-                        temp_content,
-                        "Vue d'Ensemble",
-                        overview_section.group(1).strip()
-                    )
-                    if result.success:
-                        temp_content = result.new_content
-                        self.logger("✓ Vue d'ensemble mise à jour")
-
-                self.new_content = temp_content
-                self.logger("✓ Mise à jour complète effectuée")
-            else:
-                self.logger("Aucune modification nécessaire")
+            if response and response != self.current_content:
+                # Écrire directement dans le fichier
+                with open(self.file_path, 'w', encoding='utf-8') as f:
+                    f.write(response)
+                self.current_content = response
+                self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
                 
         except Exception as e:
-            self.logger(f"❌ Erreur lors de l'analyse: {str(e)}")
-            import traceback
-            self.logger(traceback.format_exc())
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response with standardized error handling"""

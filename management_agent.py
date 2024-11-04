@@ -45,50 +45,15 @@ class ManagementAgent(ParallagonAgent):
             }
             
             response = self._get_llm_response(context)
-            
-            if response != self.current_content:
-                self.logger(f"[{self.__class__.__name__}] Modifications détectées, mise à jour...")
-                
-                # Parse and validate TodoList
-                todos = ["# TodoList"]
-                task_pattern = r'- \[ \] \[priority: (HIGH|MEDIUM|LOW)\] (.+)$'
-                
-                # Extract tasks and sort them by priority
-                tasks = []
-                for match in re.finditer(task_pattern, response, re.MULTILINE):
-                    priority = match.group(1)
-                    task_description = match.group(2)
-                    tasks.append({
-                        'priority': priority,
-                        'description': task_description
-                    })
-                
-                # Sort tasks
-                sorted_tasks = self._sort_todos(tasks)
-                
-                # Add sorted tasks to content
-                for task in sorted_tasks:
-                    todos.append(f"- [ ] [priority: {task['priority']}] {task['description']}")
-                
-                # Update TodoList section
-                result = SearchReplace.section_replace(
-                    response,
-                    "TodoList",
-                    '\n'.join(todos[1:])  # Exclude the "# TodoList" title
-                )
-                
-                if result.success:
-                    self.new_content = result.new_content
-                    self.logger(f"[{self.__class__.__name__}] ✓ Mise à jour complète effectuée")
-                else:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Échec de la mise à jour: {result.message}")
-            else:
-                self.logger(f"[{self.__class__.__name__}] Aucune modification nécessaire")
+            if response and response != self.current_content:
+                # Écrire directement dans le fichier
+                with open(self.file_path, 'w', encoding='utf-8') as f:
+                    f.write(response)
+                self.current_content = response
+                self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
                 
         except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'analyse: {str(e)}")
-            import traceback
-            self.logger(traceback.format_exc())
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response with standardized error handling"""

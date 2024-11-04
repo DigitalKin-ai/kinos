@@ -311,46 +311,22 @@ class SpecificationsAgent(ParallagonAgent):
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
             
-            # Vérifier si une nouvelle demande nécessite des changements
-            demand_content = self.other_files.get("demande.md")
-            if not demand_content:
-                self.logger(f"[{self.__class__.__name__}] ⚠️ Pas de fichier demande.md trouvé")
-                return
-
-            # Obtenir la réponse du LLM avec le contexte complet
+            # Obtenir la réponse du LLM
             context = {
                 "specifications": self.current_content,
                 "other_files": self.other_files
             }
             
             response = self._get_llm_response(context)
-            if not response:
-                self.logger(f"[{self.__class__.__name__}] ❌ Pas de réponse du LLM")
-                return
-
-            # Vérifier si le contenu est différent avant de mettre à jour
-            if response.strip() != self.current_content.strip():
-                self.logger(f"[{self.__class__.__name__}] ✨ Modifications détectées")
-                self.new_content = response
-                
-                # Forcer la mise à jour du fichier
-                try:
-                    with open(self.file_path, 'w', encoding='utf-8') as f:
-                        f.write(self.new_content)
-                    self.current_content = self.new_content
-                    self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
-                    
-                    # Forcer la synchronisation avec production
-                    self.synchronize_template()
-                except Exception as e:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur d'écriture: {str(e)}")
-            else:
-                self.logger(f"[{self.__class__.__name__}] ℹ Aucune modification nécessaire")
+            if response and response != self.current_content:
+                # Écrire directement dans le fichier
+                with open(self.file_path, 'w', encoding='utf-8') as f:
+                    f.write(response)
+                self.current_content = response
+                self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
                 
         except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'analyse: {str(e)}")
-            import traceback
-            self.logger(traceback.format_exc())
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response with standardized error handling"""
