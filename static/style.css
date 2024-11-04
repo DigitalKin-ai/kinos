@@ -266,22 +266,50 @@
     flex-direction: column;
 }
 
-/* Content areas */
-.content-area, .content-display {
-    @apply w-full bg-gray-50 rounded border;
-    flex: 1;
-    min-height: 200px;
-    overflow: auto;
-    padding: 1rem;
-    font-family: 'Monaco', 'Consolas', monospace;
+/* Panel in tabs */
+.panel {
+    @apply bg-white rounded-lg shadow-md overflow-hidden;
+    height: calc(100vh - 200px);
+    display: flex;
+    flex-direction: column;
 }
 
-.content-area {
-    @apply focus:ring-2 focus:ring-blue-400 focus:border-transparent;
+.panel-content {
+    @apply p-4;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Text areas and content displays */
+textarea.content-area {
+    @apply w-full bg-gray-50 rounded border;
+    flex: 1;
+    resize: none;
+    font-family: monospace;
 }
 
 .content-display {
-    @apply whitespace-pre-wrap;
+    @apply w-full bg-gray-50 rounded border;
+    flex: 1;
+    overflow: auto;
+    padding: 1rem;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+/* Suivi Mission specific */
+.suivi-mission-content {
+    @apply bg-gray-900 rounded;
+    flex: 1;
+    overflow: auto;
+    padding: 1rem;
+}
+
+.suivi-mission-entry {
+    @apply flex items-start space-x-2 text-sm font-mono mb-1 text-gray-300;
+    animation: fadeIn 0.3s ease-in-out;
 }
 
 /* Buttons */
