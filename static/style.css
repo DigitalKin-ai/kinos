@@ -484,8 +484,6 @@ textarea.content-area {
 .suivi-mission-content {
     @apply bg-gray-900 rounded;
     flex: 1;
-    min-height: 200px;
-    max-height: 400px;
     overflow: auto;
     padding: 1rem;
 }
