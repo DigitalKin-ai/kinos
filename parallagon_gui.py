@@ -263,7 +263,10 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         style = ttk.Style()
         
         # Configuration du style de base des tabs
-        style.configure('TNotebook.Tab', padding=[10, 5])
+        style.configure('TNotebook.Tab', 
+            padding=[10, 5],
+            background='white'  # Ajout d'une couleur de fond par défaut
+        )
         
         # Style pour les boutons ON
         style.configure('Success.TButton',
@@ -275,8 +278,10 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         for tab_name in self.TAB_NAMES:
             style.configure(
                 f'Flash.{tab_name}.TNotebook.Tab',
-                background="#e8f0fe",  # Couleur de flash (bleu clair)
-                padding=[10, 5]
+                padding=[10, 5],
+                background='#e8f0fe',  # Bleu clair plus visible
+                lightcolor='#e8f0fe',
+                bordercolor='#e8f0fe'
             )
         
         # Créer un style spécifique pour chaque état de tab
@@ -687,7 +692,8 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                             self.demand_text.insert("1.0", content)
                             updated_panels.append("Demande")
                             changes["Demande"] = {"old": old_content, "new": content}
-                            self.flash_tab("Demande")
+                            # Forcer le flash immédiatement
+                            self.root.after(0, lambda: self.flash_tab("Demande"))
                             
                     # Traitement pour les autres panneaux
                     elif name in self.panel_mapping:
@@ -698,11 +704,12 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                             if content.strip() != old_content:
                                 panel.text.delete("1.0", tk.END)
                                 panel.text.insert("1.0", content)
-                                panel.highlight_changes()  # Appel explicite pour mettre en évidence les changements
+                                panel.highlight_changes()
                                 updated_panels.append(panel_name)
                                 changes[panel_name] = {"old": old_content, "new": content}
+                                # Forcer le flash immédiatement
                                 if panel_name != "Production":  # Ne pas flasher l'onglet Production
-                                    self.flash_tab(panel_name)
+                                    self.root.after(0, lambda n=panel_name: self.flash_tab(n))
                                     
                 except Exception as e:
                     self.log_message(f"❌ Erreur lors de la lecture de {file_path}: {str(e)}")
