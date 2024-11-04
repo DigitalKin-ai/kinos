@@ -53,6 +53,7 @@ class ParallagonWeb:
         )
         self.content_cache = {}
         self.last_modified = {}
+        self.last_content = {}
         self.setup_error_handlers()
         # Add file paths configuration
         self.file_paths = {
