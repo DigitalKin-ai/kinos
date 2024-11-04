@@ -40,12 +40,6 @@
                      @click="setActiveTab(tab.id)">
                     <i :class="tab.icon"></i>
                     <span>${ tab.name }</span>
-                    <button v-if="tab.id === 'demande'" 
-                            class="btn-save"
-                            @click.stop="saveDemande"
-                            :disabled="!demandeChanged">
-                        Save
-                    </button>
                 </div>
                 
                 <!-- Logs controls -->
@@ -142,11 +136,6 @@
                         <i class="mdi mdi-file-document-outline mr-2"></i>Demande
                     </h2>
                     <div class="panel-controls">
-                        <button @click="saveDemande" 
-                                class="btn-save"
-                                :disabled="!demandeChanged">
-                            <i class="mdi mdi-content-save mr-1"></i> Save
-                        </button>
                     </div>
                 </div>
                 <div class="panel-content">

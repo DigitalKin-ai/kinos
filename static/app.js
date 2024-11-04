@@ -166,27 +166,6 @@ const ParallagonApp = {
             }
         },
 
-        async saveDemande() {
-            try {
-                const response = await fetch('/api/demande', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ content: this.content.demande })
-                });
-                
-                if (response.ok) {
-                    this.demandeChanged = false;
-                    this.addLog('success', 'Demande saved successfully');
-                } else {
-                    throw new Error('Failed to save demande');
-                }
-            } catch (error) {
-                console.error('Failed to save demande:', error);
-                this.addLog('error', 'Failed to save demande: ' + error.message);
-            }
-        },
 
         debouncedSaveDemande: debounce(async function() {
             await this.saveDemande();
