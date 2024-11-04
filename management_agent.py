@@ -169,35 +169,7 @@ class ManagementAgent(ParallagonAgent):
                     task = match.group(2)
                     todos.append(f"[{priority}] {task}")
         return todos
-        """
-        Extract content of a specific management section.
-        
-        Used for:
-        - Isolating current directives
-        - Accessing task lists
-        - Retrieving action history
-        
-        Args:
-            content: Full management content
-            section_name: Name of section to extract
-            
-        Returns:
-            str: Content of specified section
-        """
-        Extract content of a specific management section.
-        
-        Used for:
-        - Isolating current directives
-        - Accessing task lists
-        - Retrieving action history
-        
-        Args:
-            content: Full management content
-            section_name: Name of section to extract
-            
-        Returns:
-            str: Content of specified section
-        """
+
         pattern = f"# {section_name}\n(.*?)(?=\n#|$)"
         matches = list(re.finditer(pattern, content, re.DOTALL))
         
