@@ -368,10 +368,16 @@ IMPORTANT:
             
             response = self._get_llm_response(context)
             
+            # Ajouté: Vérifier d'abord si c'est "Aucune modification nécessaire"
+            if response and response.strip() == "Aucune modification nécessaire":
+                self.logger(f"[{self.__class__.__name__}] ≡ Aucune modification nécessaire")
+                return
+                
             # Vérifier si la réponse est dans le bon format
             if not response or not self._validate_diff_format(response):
                 self.logger(f"[{self.__class__.__name__}] ❌ Format de réponse LLM invalide")
-                self.logger(f"[{self.__class__.__name__}] Réponse reçue:\n{response}")
+                # Ajouté: Log plus détaillé de la réponse invalide
+                self.logger(f"[{self.__class__.__name__}] Réponse complète reçue:\n{response}")
                 return
                 
             # Extraire les diffs
