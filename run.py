@@ -15,12 +15,13 @@ def get_config():
         "openai_api_key": os.getenv("OPENAI_API_KEY")
     }
     
-    # Vérification des clés
-    if not config["anthropic_api_key"]:
-        raise ValueError("ANTHROPIC_API_KEY not found in environment variables")
-    if not config["openai_api_key"]:
-        raise ValueError("OPENAI_API_KEY not found in environment variables")
+    # Validate API keys
+    if not config["openai_api_key"] or config["openai_api_key"] == "your-api-key-here":
+        logger.warning("⚠️ OpenAI API key not properly configured")
         
+    if not config["anthropic_api_key"] or config["anthropic_api_key"] == "your-api-key-here":
+        logger.warning("⚠️ Anthropic API key not properly configured")
+    
     return config
 
 def signal_handler(signum, frame, app, logger):

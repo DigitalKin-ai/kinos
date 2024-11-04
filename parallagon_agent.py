@@ -315,29 +315,38 @@ Instructions :
 Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, objective et constructive, en fournissant des exemples précis pour chaque point soulevé."""
 
     def _get_llm_response(self, context: dict) -> str:
-        max_retries = 3
-        retry_delay = 2
-        
-        for attempt in range(max_retries):
+        """Get LLM response with fallback between providers"""
+        try:
+            # Try OpenAI first
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[{
+                    "role": "user", 
+                    "content": self._build_prompt(context)
+                }],
+                temperature=0,
+                max_tokens=4000
+            )
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur OpenAI: {str(e)}")
             try:
+                # Fallback to Anthropic
                 response = self.client.messages.create(
-                    model="claude-3-5-sonnet-20241022",
+                    model="claude-3-sonnet-20240229",
                     max_tokens=4000,
-                    temperature=0,
-                    messages=[{"role": "user", "content": self._build_prompt(context)}]
+                    messages=[{
+                        "role": "user",
+                        "content": self._build_prompt(context)
+                    }]
                 )
-                
-                content = response.content[0].text
-                if self._validate_markdown_response(content):
-                    return content
-                print(f"[{self.__class__.__name__}] Invalid response format, retrying...")
+                return response.content
                 
             except Exception as e:
-                print(f"[{self.__class__.__name__}] Attempt {attempt+1} failed: {str(e)}")
-                if attempt < max_retries - 1:
-                    time.sleep(retry_delay)
-                    
-        return context[self.__class__.__name__.lower().replace('agent', '')]
+                self.logger(f"[{self.__class__.__name__}] ❌ Erreur Anthropic: {str(e)}")
+                # Return current content as fallback
+                return context.get('specifications', '')
 
     @agent_error_handler("update")
     def update(self) -> None:
