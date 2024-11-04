@@ -110,23 +110,39 @@ class ProductionAgent(ParallagonAgent):
         """Get LLM response with standardized error handling"""
         try:
             self.logger(f"[{self.__class__.__name__}] Calling LLM API...")
-            response = self.client.chat.completions.create(
-                model="gpt-4o-mini",  # Modèle standardisé pour tous les agents
-                messages=[{
-                    "role": "user",
-                    "content": self._build_prompt(context)
-                }],
-                temperature=0,
-                max_tokens=4000
-            )
-            self.logger(f"[{self.__class__.__name__}] LLM response received")
-            return response.choices[0].message.content
             
+            # Try OpenAI first
+            try:
+                response = self.openai_client.chat.completions.create(
+                    model="gpt-4",  # Using GPT-4 model
+                    messages=[{
+                        "role": "user",
+                        "content": self._build_prompt(context)
+                    }],
+                    temperature=0,
+                    max_tokens=4000
+                )
+                return response.choices[0].message.content
+                
+            except Exception as openai_error:
+                self.logger(f"[{self.__class__.__name__}] OpenAI error, falling back to Anthropic: {str(openai_error)}")
+                
+                # Fallback to Anthropic
+                response = self.client.messages.create(
+                    model="claude-3-sonnet-20240229",
+                    max_tokens=4000,
+                    messages=[{
+                        "role": "user",
+                        "content": self._build_prompt(context)
+                    }]
+                )
+                return response.content
+                
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")
             import traceback
             self.logger(traceback.format_exc())
-            return context.get(self.__class__.__name__.lower().replace('agent', ''), '')
+            return context.get('production', '')  # Return current content as fallback
 
     def _extract_section(self, content: str, section_name: str) -> str:
         """
