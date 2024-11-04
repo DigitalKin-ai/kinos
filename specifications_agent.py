@@ -343,7 +343,7 @@ class SpecificationsAgent(ParallagonAgent):
                     
                     # Utiliser directement la réponse du LLM comme nouveau contenu
                     self.new_content = response
-                    self.update()
+                    self.update()  # Appel à la méthode update héritée de ParallagonAgent
                     
                     # Forcer la synchronisation
                     self.synchronize_template()
