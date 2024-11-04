@@ -237,7 +237,7 @@ IMPORTANT:
 - Ne pas inclure les crochets []
 - Une seule modification par bloc
 - Attention à toujours renvoyer les 3 marqueurs <<<<<<< ANCIEN, ======= et >>>>>>> NOUVEAU
-- Si aucune modification n'est nécessaire, répondre 'Aucune modification nécessaire'"""
+- Vous devez TOUJOURS proposer au moins une modification, même mineure"""
     def _extract_sections(self, content: str) -> dict:
         """
         Extract sections from content while preserving hierarchy.
@@ -367,36 +367,28 @@ IMPORTANT:
             }
             
             response = self._get_llm_response(context)
-            
-            # Ajouté: Vérifier d'abord si c'est "Aucune modification nécessaire"
-            if response and response.strip() == "Aucune modification nécessaire":
-                self.logger(f"[{self.__class__.__name__}] ≡ Aucune modification nécessaire")
-                return
                 
             # Vérifier si la réponse est dans le bon format
             if not response or not self._validate_diff_format(response):
                 self.logger(f"[{self.__class__.__name__}] ❌ Format de réponse LLM invalide")
-                # Ajouté: Log plus détaillé de la réponse invalide
+                # Log plus détaillé de la réponse invalide
                 self.logger(f"[{self.__class__.__name__}] Réponse complète reçue:\n{response}")
                 return
                 
             # Extraire les diffs
             diffs = self._extract_diff_parts(response)
             if not diffs:
-                self.logger(f"[{self.__class__.__name__}] ≡ Aucune modification proposée")
+                self.logger(f"[{self.__class__.__name__}] ❌ Aucune modification proposée - réponse invalide")
                 return
                 
             # Appliquer les modifications
             new_content = self._apply_diffs(self.current_content, diffs)
             
-            if new_content != self.current_content:
-                # Écrire dans le fichier
-                with open(self.file_path, 'w', encoding='utf-8') as f:
-                    f.write(new_content)
-                self.current_content = new_content
-                self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour avec succès")
-            else:
-                self.logger(f"[{self.__class__.__name__}] ≡ Aucune modification nécessaire")
+            # Écrire dans le fichier même si le contenu est identique
+            with open(self.file_path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+            self.current_content = new_content
+            self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
                 
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
