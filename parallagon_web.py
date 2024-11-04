@@ -127,7 +127,7 @@ class ParallagonWeb:
             self.log_message(f"Error initializing agents: {str(e)}", level='error')
             raise
 
-    def handle_content_change(self, file_name: str, content: str):
+    def handle_content_change(self, file_name: str, content: str, panel_name: str = None, flash: bool = False):
         """Handle content change notifications"""
         # Update cache
         self.content_cache[file_name] = content
@@ -138,16 +138,20 @@ class ParallagonWeb:
             if hasattr(agent, 'watch_files') and file_name in agent.watch_files:
                 agent.handle_file_change(file_name, content)
 
-        # Add flash notification to logs buffer
         # Ensure correct .md extension
         if not file_name.endswith('.md'):
             file_name = f"{file_name}.md"
-        self.log_message(f"File updated: {file_name}", operation="flash_tab", status=file_name)
-
-        # Add flash notification to logs buffer
-        # Ensure correct .md extension
-        if not file_name.endswith('.md'):
-            file_name = f"{file_name}.md"
+            
+        # Always add a notification when content changes
+        notification = {
+            'type': 'info',
+            'message': f'Nouveau contenu dans {panel_name or file_name}',
+            'timestamp': datetime.now().strftime("%H:%M:%S"),
+            'operation': 'flash_tab',
+            'status': file_name
+        }
+        
+        self.logs_buffer.append(notification)
         self.log_message(f"File updated: {file_name}", operation="flash_tab", status=file_name)
 
     def setup_routes(self):

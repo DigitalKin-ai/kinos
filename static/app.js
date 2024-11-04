@@ -428,7 +428,24 @@ const ParallagonApp = {
             this.updateInterval = setInterval(() => {
                 this.updateContent();
                 this.updateLogs();  // Add logs update
+                this.checkNotifications();  // Add notifications check
             }, 1000);
+        },
+
+        async checkNotifications() {
+            try {
+                const response = await fetch('/api/notifications');
+                const notifications = await response.json();
+                
+                if (Array.isArray(notifications)) {
+                    notifications.forEach(notification => {
+                        console.log('Received notification:', notification); // Debug log
+                        this.addNotification(notification.type, notification.message);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to check notifications:', error);
+            }
         },
 
         stopUpdateLoop() {

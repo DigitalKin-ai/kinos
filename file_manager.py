@@ -107,8 +107,9 @@ En attente d'initialisation...
             if self.on_content_changed:
                 panel_name = panel_mapping.get(file_name)
                 if panel_name:
-                    # Always flash when content changes
+                    # Always flash when content changes and notify
                     self.on_content_changed(file_path, content, panel_name, flash=True)
+                    print(f"Debug: Triggering notification for {panel_name}")  # Debug log
                     # Notify any listeners about the change
                     if hasattr(self, 'handle_file_change'):
                         self.handle_file_change(file_path, content)
