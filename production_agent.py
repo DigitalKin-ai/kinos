@@ -318,9 +318,9 @@ IMPORTANT:
             new_text = new_text.strip()
             
             # Utiliser SearchReplace pour faire la modification
-            result = SearchReplace.exact_replace(modified_content, old_text, new_text)
+            result = SearchReplace.section_replace(modified_content, old_text, new_text)
             if result.success:
-                modified_content = result.new_content
+                modified_content = result.content
                 self.logger(f"✓ Remplacement effectué: '{old_text}' -> '{new_text}'")
             else:
                 self.logger(f"❌ Échec du remplacement: {result.message}")
