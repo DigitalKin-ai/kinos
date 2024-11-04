@@ -106,6 +106,10 @@ class ParallagonAgent:
             
         self.config = config
         self.file_path = config["file_path"]
+        self.watch_files = config.get("watch_files", [])
+        # Make sure file_path is in watch_files if not already
+        if self.file_path not in self.watch_files:
+            self.watch_files.append(self.file_path)
         
         # Initialisation des clients API avec les clés validées
         self.client = anthropic.Client(api_key=config["anthropic_api_key"])
