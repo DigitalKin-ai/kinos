@@ -138,7 +138,7 @@ class ProductionAgent(ParallagonAgent):
             # Try OpenAI first
             try:
                 response = self.openai_client.chat.completions.create(
-                    model="gpt-4o-mini",  # Modèle standard de openai (ne pas remplacer)
+                    model="gpt-4o",  # Modèle standard de openai (ne pas remplacer)
                     messages=[{
                         "role": "user",
                         "content": self._build_prompt(context)
@@ -236,6 +236,7 @@ IMPORTANT:
 - Le texte ANCIEN doit être une copie exacte du texte existant
 - Ne pas inclure les crochets []
 - Une seule modification par bloc
+- Attention à toujours renvoyer les 3 marqueurs <<<<<<< ANCIEN, ======= et >>>>>>> NOUVEAU
 - Si aucune modification n'est nécessaire, répondre 'Aucune modification nécessaire'"""
     def _extract_sections(self, content: str) -> dict:
         """
