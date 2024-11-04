@@ -1,15 +1,31 @@
 /* Base styles */
 :root {
-    --primary-color: #3b82f6;
-    --success-color: #10b981;
-    --danger-color: #ef4444;
-    --warning-color: #f59e0b;
-    --info-color: #3b82f6;
+    --primary-color: #1a202c;
+    --secondary-color: #2d3748;
+    --accent-color: #4299e1;
+    --text-color: #e2e8f0;
+    --error-color: #f56565;
+    --success-color: #48bb78;
+    --warning-color: #ed8936;
 }
 
-/* Layout */
+/* Header */
 .parallagon-header {
-    @apply sticky top-0 z-50;
+    background-color: var(--primary-color);
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--secondary-color);
+}
+
+.parallagon-title {
+    color: var(--text-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 /* Panels */
