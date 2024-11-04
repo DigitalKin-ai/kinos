@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, url_for
+from flask import Flask, render_template, jsonify, request, url_for, make_response
 import threading
 import time
 from file_manager import FileManager
@@ -96,6 +96,47 @@ class ParallagonWeb:
             return jsonify({
                 'logs': self.logs_buffer
             })
+            
+        @self.app.route('/api/logs/export')
+        def export_logs():
+            try:
+                timestamp = time.strftime("%Y%m%d-%H%M%S")
+                filename = f"parallagon-logs-{timestamp}.txt"
+                
+                # Format logs with timestamps
+                formatted_logs = "\n".join(self.logs_buffer)
+                
+                # Create response with file download
+                response = make_response(formatted_logs)
+                response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+                response.headers["Content-Type"] = "text/plain"
+                
+                return response
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+
+        @self.app.route('/api/logs/clear', methods=['POST'])
+        def clear_logs():
+            try:
+                self.logs_buffer.clear()
+                return jsonify({'status': 'success'})
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+
+        @self.app.route('/api/demande', methods=['POST'])
+        def update_demande():
+            try:
+                content = request.json.get('content')
+                if not content:
+                    return jsonify({'error': 'No content provided'}), 400
+                    
+                success = self.file_manager.write_file('demande.md', content)
+                if success:
+                    return jsonify({'status': 'success'})
+                else:
+                    return jsonify({'error': 'Failed to write file'}), 500
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
 
     def run(self, host='0.0.0.0', port=5000, **kwargs):
         """Run the Flask application with optional configuration parameters"""
