@@ -268,14 +268,25 @@ const ParallagonApp = {
             }
         },
 
-        addLog(level, message) {
+        addLog(level, message, operation = null, status = null) {
             const timestamp = new Date().toISOString();
-            this.logs.push({
+            const logEntry = {
                 id: Date.now(),
                 timestamp,
                 level,
-                message
-            });
+                message,
+                operation,
+                status
+            };
+            
+            // Format message with operation and status if present
+            if (operation && status) {
+                logEntry.formattedMessage = `${operation}: ${status} - ${message}`;
+            } else {
+                logEntry.formattedMessage = message;
+            }
+            
+            this.logs.push(logEntry);
 
             // Keep only last 100 logs
             if (this.logs.length > 100) {

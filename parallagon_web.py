@@ -6,6 +6,7 @@ import threading
 import time
 import os
 import json
+import git
 from datetime import datetime
 from typing import Dict, Any
 from file_manager import FileManager
@@ -49,11 +50,19 @@ class ParallagonWeb:
         """Initialisation des agents avec configuration standard"""
         try:
             self.log_message("Initializing agents...")
+            # Initialize git repo
+            try:
+                self.repo = git.Repo(os.getcwd())
+            except git.InvalidGitRepositoryError:
+                self.repo = git.Repo.init(os.getcwd())
+                self.log_message("Initialized new git repository")
+
             base_config = {
                 "check_interval": 5,
                 "anthropic_api_key": config["anthropic_api_key"],
                 "openai_api_key": config["openai_api_key"],
-                "logger": self.log_message
+                "logger": self.log_message,
+                "repo": self.repo
             }
             
             self.agents = {
@@ -251,22 +260,64 @@ class ParallagonWeb:
         for agent in self.agents.values():
             agent.stop()
 
-    def log_message(self, message):
+    def log_message(self, message, operation: str = None, status: str = None):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_entry = f"[{timestamp}] {message}"
+        
+        # Format log entry
+        if operation and status:
+            log_entry = f"[{timestamp}] {operation}: {status} - {message}"
+        else:
+            log_entry = f"[{timestamp}] {message}"
+            
         self.logs_buffer.append(log_entry)
         
         # Broadcast log to all WebSocket clients
         self.broadcast_message({
             'type': 'log',
             'timestamp': timestamp,
-            'message': message
+            'message': message,
+            'operation': operation,
+            'status': status
         })
         
         # Keep only last 100 logs
         if len(self.logs_buffer) > 100:
             self.logs_buffer.pop(0)
+            
+        # Write to audit log file
+        with open("agent_operations.log", 'a') as f:
+            f.write(f"{log_entry}\n")
+            
         print(log_entry)
+
+    def safe_operation(self, operation_func):
+        """Decorator for safe operation execution with recovery"""
+        def wrapper(*args, **kwargs):
+            max_retries = 3
+            retry_count = 0
+            
+            while retry_count < max_retries:
+                try:
+                    return operation_func(*args, **kwargs)
+                except Exception as e:
+                    retry_count += 1
+                    self.log_message(
+                        str(e),
+                        operation=operation_func.__name__,
+                        status=f"RETRY {retry_count}/{max_retries}"
+                    )
+                    
+                    if retry_count == max_retries:
+                        self.log_message(
+                            "Operation failed permanently",
+                            operation=operation_func.__name__,
+                            status="FAILED"
+                        )
+                        raise
+                    
+                    time.sleep(1)  # Wait before retry
+                    
+        return wrapper
 
     def check_content_updates(self):
         """Check for content updates"""
