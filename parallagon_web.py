@@ -11,7 +11,15 @@ from evaluation_agent import EvaluationAgent
 class ParallagonWeb:
     def __init__(self, config):
         self.app = Flask(__name__)
-        self.file_manager = FileManager()
+        # Add file paths configuration
+        self.file_paths = {
+            "demande": "demande.md",
+            "specifications": "specifications.md",
+            "management": "management.md", 
+            "production": "production.md",
+            "evaluation": "evaluation.md"
+        }
+        self.file_manager = FileManager(self.file_paths)
         self.llm_service = LLMService(config["openai_api_key"])
         self.running = False
         self.agents = {}
