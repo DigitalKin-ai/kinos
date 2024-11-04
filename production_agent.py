@@ -138,7 +138,7 @@ class ProductionAgent(ParallagonAgent):
             # Try OpenAI first
             try:
                 response = self.openai_client.chat.completions.create(
-                    model="gpt-4",  # Using GPT-4 model
+                    model="gpt-4o-mini",  # Modèle standard de openai (ne pas remplacer)
                     messages=[{
                         "role": "user",
                         "content": self._build_prompt(context)
