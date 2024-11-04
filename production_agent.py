@@ -192,69 +192,24 @@ class ProductionAgent(ParallagonAgent):
         return "\n".join(result)
 
     def _build_prompt(self, context: dict) -> str:
-        """
-        Build prompt for content creation and updates.
-        
-        Includes:
-        - Current content state
-        - Required changes and updates
-        - Quality requirements
-        - Format specifications
-        - Content guidelines
-        
-        Args:
-            context: Current project state
-            
-        Returns:
-            str: Content creation/update prompt
-        """
-        """
-        Build prompt for content creation and updates.
-        
-        Includes:
-        - Current content state
-        - Required changes and updates
-        - Quality requirements
-        - Format specifications
-        - Content guidelines
-        
-        Args:
-            context: Current project state
-            
-        Returns:
-            str: Content creation/update prompt
-        """
-        return f"""Vous êtes le ProductionAgent, responsable de créer et mettre à jour le contenu des sections.
-
-IMPORTANT - VOS LIMITES :
-- Vous ne pouvez PAS créer de nouvelles sections
-- Vous ne pouvez PAS supprimer de sections existantes
-- Vous ne pouvez PAS modifier la structure du document
-- Vous DEVEZ générer du contenu pour les sections vides ou marquées [En attente de contenu]
+        return f"""Vous êtes l'agent de production. Votre rôle est de créer le contenu selon les spécifications.
 
 Contexte actuel :
 {self._format_other_files(context['other_files'])}
 
-Instructions STRICTES :
-1. Pour chaque section existante :
-   - Si elle est vide ou contient [En attente de contenu] : VOUS DEVEZ générer du contenu
-   - Si elle a déjà du contenu : ne pas modifier
-   - Respecter les contraintes définies dans specifications.md
-   - Assurer la cohérence avec les autres sections
+Votre tâche :
+1. Lire les spécifications
+2. Créer le contenu pour chaque section
+3. Respecter les contraintes définies
 
-2. Le contenu généré doit être :
-   - Détaillé et substantiel
-   - Pertinent par rapport aux contraintes
-   - Bien structuré avec des sous-points si nécessaire
-   - En français et professionnel
+Format de réponse :
+# Section 1
+[Contenu détaillé de la section]
 
-3. Format de réponse OBLIGATOIRE :
-   - Conserver exactement les titres existants
-   - Inclure tout le contenu (nouveau et existant)
-   - Utiliser la hiérarchie actuelle des sections
+# Section 2
+[Contenu détaillé de la section]
 
-NE JAMAIS retourner "NO_CHANGES" si une section est vide ou contient [En attente de contenu].
-TOUJOURS générer du contenu pour les sections vides."""
+etc..."""
     def _extract_sections(self, content: str) -> dict:
         """
         Extract sections from content while preserving hierarchy.

@@ -422,46 +422,29 @@ class SpecificationsAgent(ParallagonAgent):
             return False
 
     def _build_prompt(self, context: dict) -> str:
-        """
-        Build LLM prompt for template analysis and updates.
-        """
-        return f"""En tant que gestionnaire de template, vous êtes le SEUL responsable de la structure du document. 
-Analysez la demande et créez TOUTES les sections nécessaires.
+        return f"""Vous êtes l'agent des spécifications. Votre rôle est d'analyser la demande et de définir la structure du document final.
 
 Contexte actuel :
 {self._format_other_files(context['other_files'])}
 
-Instructions STRICTES :
-1. Analysez la demande pour identifier TOUTES les sections requises :
-   - Créez une section pour CHAQUE partie majeure de la demande
-   - Créez une section pour CHAQUE thème principal
-   - Créez une section pour CHAQUE aspect à traiter
+Votre tâche :
+1. Analyser la demande dans demande.md
+2. Créer les sections nécessaires avec leurs contraintes
+3. Définir la structure complète du document
 
-2. Pour CHAQUE section identifiée, vous DEVEZ :
-   - Créer un titre de niveau 1 (avec #)
-   - Définir des contraintes précises
-   - Ajouter des sous-sections si nécessaire (avec ##)
-   - Spécifier les points détaillés (avec ###)
+Format de réponse :
+# Section 1
+[contraintes: exigences pour cette section]
 
-3. Format OBLIGATOIRE pour CHAQUE section :
+# Section 2
+[contraintes: exigences pour cette section]
 
-# Titre Section
-[contraintes: description détaillée des exigences]
+etc...
 
-## Sous-section (si nécessaire)
-[contraintes: exigences spécifiques]
-
-### Point Détaillé (si nécessaire)
-
-Règles ABSOLUES :
-1. TOUTES les sections de la demande doivent être créées
-2. CHAQUE section doit avoir ses contraintes
-3. La structure doit être complète et exhaustive
-4. Aucune section de la demande ne doit être oubliée
-5. Utilisez systématiquement les 3 niveaux de titres (#, ##, ###)
-6. Chaque section et sous-section DOIT avoir ses contraintes entre []
-
-IMPORTANT : Vous devez créer TOUTES les sections nécessaires, pas seulement la première !"""
+Chaque section doit avoir :
+- Un titre clair avec #
+- Des contraintes entre []
+- Une description des exigences"""
     def _parse_hierarchical_content(self, content: str) -> dict:
         """
         Parse le contenu en préservant la hiérarchie complète.

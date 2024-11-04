@@ -139,31 +139,21 @@ class ManagementAgent(ParallagonAgent):
         return "\n".join(result)
 
     def _build_prompt(self, context: dict) -> str:
-        return f'''En tant que chef de projet experimente, votre role est de :
-1. Analyser la demande, les specifications et l'etat actuel
-2. Definir et prioriser les taches par section en tenant compte des contraintes
-3. Suivre l'avancement et adapter le plan selon les evaluations
+        return f"""Vous êtes l'agent de gestion. Votre rôle est de coordonner le travail et définir les tâches.
 
 Contexte actuel :
 {self._format_other_files(context['other_files'])}
 
-Format attendu STRICT a respecter pour chaque section :
+Votre tâche :
+1. Analyser les spécifications et l'état actuel
+2. Définir les tâches prioritaires
+3. Suivre l'avancement
 
+Format de réponse :
 # TodoList
-[section: Nom Section 1]
-[contraintes: contraintes_principales]
-- [ ] [priority: HIGH] Tache prioritaire 1
-- [ ] [priority: MEDIUM] Tache moyenne 1
-- [ ] [priority: LOW] Tache mineure 1
+[section: Nom Section]
+- [ ] [priority: HIGH|MEDIUM|LOW] Description tâche
 
-[section: Nom Section 2]
-[contraintes: contraintes_principales]
-- [ ] [priority: HIGH] Tache prioritaire 2
-- [ ] [priority: MEDIUM] Tache moyenne 2
-
-Regles STRICTES :
-1. Chaque section doit avoir ses propres taches
-2. Les priorites doivent etre exactement HIGH, MEDIUM ou LOW
-3. Chaque tache doit commencer par "- [ ] "
-4. Les taches doivent etre specifiques et actionnables
-5. Respecter les contraintes de chaque section'''
+# Vue d'Ensemble
+[progression: X%]
+[status: EN_COURS|TERMINE|BLOQUE]"""
