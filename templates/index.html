@@ -5,6 +5,16 @@
 {% block head %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+@keyframes flash-tab {
+    0% { background-color: inherit; }
+    50% { background-color: #fff3cd; }
+    100% { background-color: inherit; }
+}
+.flash-tab {
+    animation: flash-tab 1s ease-in-out;
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -158,4 +168,33 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='app.js') }}"></script>
+<script>
+// Map of file names to tab IDs
+const tabIds = {{ tab_ids|tojson|safe }};
+
+// Check for changes periodically
+function checkForChanges() {
+    if (!app.running) return;
+    
+    fetch('/api/changes')
+        .then(response => response.json())
+        .then(changes => {
+            changes.forEach(change => {
+                const tabId = tabIds[change.status];
+                if (tabId) {
+                    const tab = document.getElementById(tabId);
+                    if (tab) {
+                        tab.classList.remove('flash-tab');
+                        void tab.offsetWidth; // Force reflow
+                        tab.classList.add('flash-tab');
+                    }
+                }
+            });
+        })
+        .catch(console.error);
+}
+
+// Check for changes every 2 seconds
+setInterval(checkForChanges, 2000);
+</script>
 {% endblock %}
