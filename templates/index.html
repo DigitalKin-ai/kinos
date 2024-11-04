@@ -21,7 +21,7 @@
                     ■ Stop
                 </button>
                 <span class="status" :class="{ 'status-running': running }">
-                    ● {{ running ? 'Running' : 'Stopped' }}
+                    ● ${ running ? 'Running' : 'Stopped' }
                 </span>
             </div>
         </div>
@@ -36,7 +36,7 @@
                      :class="{ active: activeTab === tab.id }"
                      @click="setActiveTab(tab.id)">
                     <i :class="tab.icon"></i>
-                    <span>${tab.name}</span>
+                    <span>${ tab.name }</span>
                     <button v-if="tab.id === 'demande'" 
                             class="btn-save"
                             @click.stop="saveDemande"
@@ -105,7 +105,7 @@
                 Stop
             </button>
             <div class="status-indicator">
-                <span>${running ? "Running" : "Stopped"}</span>
+                <span>${ running ? "Running" : "Stopped" }</span>
             </div>
         </div>
     </header>
@@ -188,8 +188,8 @@
                      :key="log.id" 
                      class="log-entry"
                      :class="log.level">
-                    <span class="log-timestamp">${log.timestamp}</span>
-                    <span class="log-message">${log.message}</span>
+                    <span class="log-timestamp">${ log.timestamp }</span>
+                    <span class="log-message">${ log.message }</span>
                 </div>
             </div>
         </div>
