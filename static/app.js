@@ -15,12 +15,20 @@ const ParallagonApp = {
     delimiters: ['${', '}'],  // Use different delimiters to avoid Jinja2 conflicts
     data() {
         return {
+            logCounter: 0,
             running: false,
             loading: false,
             error: null,
             notifications: [],
             connectionStatus: 'disconnected',
             activeTab: 'demande',
+            tabIds: {
+                'demande.md': 'demande',
+                'specifications.md': 'specifications',
+                'management.md': 'management',
+                'production.md': 'production',
+                'evaluation.md': 'evaluation'
+            },
             tabs: [
                 { id: 'demande', name: 'Demande', icon: 'mdi mdi-file-document-outline' },
                 { id: 'specifications', name: 'Specifications', icon: 'mdi mdi-file-tree' },
@@ -389,7 +397,7 @@ const ParallagonApp = {
         addLog(level, message, operation = null, status = null) {
             const timestamp = new Date().toISOString();
             const logEntry = {
-                id: Date.now(),
+                id: this.logCounter++,
                 timestamp,
                 level,
                 message,
@@ -432,14 +440,45 @@ const ParallagonApp = {
             }
         },
 
+        async checkForChanges() {
+            if (!this.running) {
+                console.debug('App not running, skipping change check');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/changes');
+                const changes = await response.json();
+                
+                changes.forEach(change => {
+                    if (change.operation === 'flash_tab' && change.status) {
+                        const tabId = this.tabIds[change.status];
+                        if (tabId) {
+                            const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
+                            if (tab) {
+                                tab.classList.remove('flash-tab');
+                                void tab.offsetWidth; // Force reflow
+                                tab.classList.add('flash-tab');
+                                
+                                setTimeout(() => {
+                                    tab.classList.remove('flash-tab');
+                                }, 1000);
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error checking changes:', error);
+            }
+        },
+
         startUpdateLoop() {
-            // Un seul intervalle pour toutes les vérifications
             this.updateInterval = setInterval(() => {
                 this.updateContent();
                 this.updateLogs();
                 this.checkNotifications();
-                this.checkForChanges();  // Intégré dans la même boucle
-            }, 200);  // Vérifie tout toutes les 200ms
+                this.checkForChanges();
+            }, 200);
         },
 
         async checkNotifications() {
