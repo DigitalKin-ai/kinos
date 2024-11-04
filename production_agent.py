@@ -86,20 +86,29 @@ class ProductionAgent(ParallagonAgent):
             self.logger(f"❌ Error generating content: {str(e)}")
             return "[En attente de contenu]"
             
-    def _validate_response_format(self, response: str) -> bool:
+    def _validate_diff_format(self, content: str) -> bool:
         """
-        Validate that the response follows the expected diff format.
-        Returns True if the format is correct, False otherwise.
+        Valide que le contenu suit le format de diff avec une grande permissivité.
+        Cherche simplement la présence des marqueurs essentiels dans le bon ordre.
         """
-        if not response:
-            return False
-            
-        # Check for required markers
-        has_start = "<<<<<<< ANCIEN" in response
-        has_separator = "~~~~~~~" in response
-        has_end = ">>>>>>> NOUVEAU" in response
+        # Vérifier simplement la présence des marqueurs clés dans le bon ordre
+        markers = [
+            "<<<<<<< ANCIEN",
+            "=======",
+            ">>>>>>> NOUVEAU"
+        ]
         
-        return has_start and has_separator and has_end
+        pos = -1
+        for marker in markers:
+            new_pos = content.find(marker, pos + 1)
+            if new_pos == -1:
+                self.logger(f"[{self.__class__.__name__}] ❌ Format invalide: marqueur '{marker}' manquant")
+                # Log la réponse complète pour debug
+                self.logger(f"[{self.__class__.__name__}] Réponse reçue:\n{content}")
+                return False
+            pos = new_pos
+        
+        return True
 
     def determine_actions(self) -> None:
         try:
@@ -305,16 +314,21 @@ IMPORTANT:
         Accepte tout type de séparateur et d'espacement.
         """
         import re
-        # Pattern très permissif
-        pattern = r'<{3,}\s*ANCIEN\s*(.*?)\s*[=~]{3,}\s*(.*?)\s*>{3,}\s*NOUVEAU'
+        # Pattern très permissif qui accepte tout type d'espacement
+        pattern = r'<{3,}\s*ANCIEN\s*([^=~]*?)\s*[=~]{3,}\s*(.*?)\s*>{3,}\s*NOUVEAU'
         matches = re.findall(pattern, content, re.DOTALL | re.IGNORECASE)
         
         # Nettoyer les résultats
         cleaned_matches = []
         for old_text, new_text in matches:
-            # Enlever les espaces superflus mais garder les retours à la ligne internes
-            old_clean = '\n'.join(line.strip() for line in old_text.splitlines())
+            # Enlever les crochets si présents
+            old_clean = old_text.strip('[]')
+            new_clean = new_text.strip()
+            
+            # Nettoyer les espaces tout en préservant la structure
+            old_clean = '\n'.join(line.strip() for line in old_clean.splitlines())
             new_clean = '\n'.join(line.strip() for line in new_text.splitlines())
+            
             if old_clean and new_clean:  # Garder seulement si les deux parties ont du contenu
                 cleaned_matches.append((old_clean, new_clean))
                 
