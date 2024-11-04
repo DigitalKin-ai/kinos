@@ -272,3 +272,126 @@ etc..."""
             sections[current_section] = '\n'.join(current_content).strip()
             
         return sections
+"""
+ProductionAgent - Agent responsible for content production based on specifications
+"""
+import re
+import time
+from parallagon_agent import ParallagonAgent
+import openai
+from datetime import datetime
+from search_replace import SearchReplace
+
+class ProductionAgent(ParallagonAgent):
+    """
+    Agent responsible for producing content according to specifications.
+    
+    Key responsibilities:
+    - Content creation based on specifications
+    - Following section constraints
+    - Technical documentation
+    - Content issue reporting
+    """
+    
+    def __init__(self, config):
+        super().__init__(config)
+        self.client = openai.OpenAI(api_key=config["openai_api_key"])
+        self.logger = config.get("logger", print)
+        self._last_demand = None
+
+    def _validate_diff_format(self, content: str) -> bool:
+        """
+        Valide que le contenu suit le format de diff attendu.
+        Format: <<<<<<< ANCIEN\n[texte]\n=======\n[texte]\n>>>>>>> NOUVEAU
+        """
+        import re
+        pattern = r'<<<<<<< ANCIEN\n(.*?)\n=======\n(.*?)\n>>>>>>> NOUVEAU'
+        matches = re.findall(pattern, content, re.DOTALL)
+        return len(matches) > 0
+
+    def _extract_diff_parts(self, content: str) -> list[tuple[str, str]]:
+        """
+        Extrait les parties ancien/nouveau du format diff.
+        Retourne une liste de tuples (ancien_texte, nouveau_texte)
+        """
+        import re
+        pattern = r'<<<<<<< ANCIEN\n(.*?)\n=======\n(.*?)\n>>>>>>> NOUVEAU'
+        return re.findall(pattern, content, re.DOTALL)
+
+    def _apply_diffs(self, current_content: str, diffs: list[tuple[str, str]]) -> str:
+        """
+        Applique les diffs au contenu actuel en utilisant SearchReplace
+        """
+        from search_replace import SearchReplace
+        
+        modified_content = current_content
+        for old_text, new_text in diffs:
+            # Nettoyer les textes
+            old_text = old_text.strip()
+            new_text = new_text.strip()
+            
+            # Utiliser SearchReplace pour faire la modification
+            result = SearchReplace.exact_replace(modified_content, old_text, new_text)
+            if result.success:
+                modified_content = result.new_content
+                self.logger(f"✓ Remplacement effectué: '{old_text}' -> '{new_text}'")
+            else:
+                self.logger(f"❌ Échec du remplacement: {result.message}")
+                
+        return modified_content
+
+    def determine_actions(self) -> None:
+        """Détermine et exécute les actions de production"""
+        try:
+            self.logger(f"[{self.__class__.__name__}] Analyse du contenu...")
+            
+            # Obtenir la réponse du LLM
+            context = {
+                "production": self.current_content,
+                "other_files": self.other_files
+            }
+            
+            response = self._get_llm_response(context)
+            
+            # Vérifier si la réponse est dans le bon format
+            if not response or not self._validate_diff_format(response):
+                self.logger(f"[{self.__class__.__name__}] ❌ Format de réponse LLM invalide")
+                return
+                
+            # Extraire les diffs
+            diffs = self._extract_diff_parts(response)
+            if not diffs:
+                self.logger(f"[{self.__class__.__name__}] ≡ Aucune modification proposée")
+                return
+                
+            # Appliquer les modifications
+            new_content = self._apply_diffs(self.current_content, diffs)
+            
+            if new_content != self.current_content:
+                # Écrire dans le fichier
+                with open(self.file_path, 'w', encoding='utf-8') as f:
+                    f.write(new_content)
+                self.current_content = new_content
+                self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour avec succès")
+            else:
+                self.logger(f"[{self.__class__.__name__}] ≡ Aucune modification nécessaire")
+                
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
+
+    def _build_prompt(self, context: dict) -> str:
+        return f"""Vous êtes l'agent de production. Votre rôle est de produire le contenu selon les spécifications.
+
+Contexte actuel :
+{self._format_other_files(context['other_files'])}
+
+Contenu actuel :
+{context['production']}
+
+Votre tâche :
+1. Analyser les spécifications et la demande
+2. Proposer des modifications au contenu actuel
+3. Utiliser EXACTEMENT ce format pour chaque modification :
+
+<<<<<<< ANCIEN
+[texte exact à remplacer]
