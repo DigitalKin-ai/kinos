@@ -214,6 +214,111 @@
     @apply text-red-400;
 }
 
+/* Notifications */
+.notifications-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.notification {
+    padding: 1rem;
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-width: 300px;
+}
+
+.notification.success {
+    background-color: var(--success-color);
+}
+
+.notification.error {
+    background-color: var(--error-color);
+}
+
+.notification.warning {
+    background-color: var(--warning-color);
+}
+
+/* Notification animations */
+.notification-enter-active,
+.notification-leave-active {
+    transition: all 0.3s ease;
+}
+
+.notification-enter-from {
+    opacity: 0;
+    transform: translateX(30px);
+}
+
+.notification-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
+}
+
+/* Loading states */
+.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    border: 3px solid var(--accent-color);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 1;
+}
+
+/* Connection status */
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.connection-status.connected {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.connection-status.disconnected {
+    background-color: var(--error-color);
+    color: white;
+}
+
 /* Animations */
 @keyframes spin {
     from { transform: rotate(0deg); }

@@ -11,10 +11,15 @@
 <div id="app" class="min-h-screen">
     <!-- Header -->
     <header class="parallagon-header">
-        <h1 class="parallagon-title">
-            <span class="status-dot" :class="running ? 'running' : 'stopped'"></span>
-            Parallagon
-        </h1>
+        <div class="flex items-center gap-4">
+            <h1 class="parallagon-title">
+                <span class="status-dot" :class="running ? 'running' : 'stopped'"></span>
+                Parallagon
+            </h1>
+            <div class="connection-status" :class="connectionStatus">
+                {{ connectionStatus }}
+            </div>
+        </div>
         <div class="control-buttons">
             <button class="btn btn-start" 
                     @click="startAgents" 
@@ -33,6 +38,19 @@
             </div>
         </div>
     </header>
+
+    <!-- Notifications -->
+    <div class="notifications-container">
+        <transition-group name="notification">
+            <div v-for="notification in notifications"
+                 :key="notification.id"
+                 class="notification"
+                 :class="notification.type">
+                <i :class="notificationIcon(notification.type)"></i>
+                <span class="notification-message">{{ notification.message }}</span>
+            </div>
+        </transition-group>
+    </div>
 
     <!-- Main content -->
     <div class="container mx-auto p-4">

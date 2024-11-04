@@ -15,6 +15,10 @@ const ParallagonApp = {
     data() {
         return {
             running: false,
+            loading: false,
+            error: null,
+            notifications: [],
+            connectionStatus: 'disconnected',
             content: {
                 demande: '',
                 specifications: '',
@@ -38,13 +42,25 @@ const ParallagonApp = {
     methods: {
         async startAgents() {
             try {
+                this.loading = true;
                 await fetch('/api/start', { method: 'POST' });
                 this.running = true;
                 this.startUpdateLoop();
+                this.addNotification('success', 'Agents started successfully');
             } catch (error) {
-                console.error('Failed to start agents:', error);
-                this.addLog('error', 'Failed to start agents: ' + error.message);
+                this.error = error.message;
+                this.addNotification('error', `Failed to start agents: ${error.message}`);
+            } finally {
+                this.loading = false;
             }
+        },
+
+        addNotification(type, message) {
+            const id = Date.now();
+            this.notifications.push({ id, type, message });
+            setTimeout(() => {
+                this.notifications = this.notifications.filter(n => n.id !== id);
+            }, 5000);
         },
 
         async stopAgents() {
@@ -60,6 +76,11 @@ const ParallagonApp = {
 
         initWebSocket() {
             this.ws = new WebSocket(`ws://${window.location.host}/ws`);
+            
+            this.ws.onopen = () => {
+                this.connectionStatus = 'connected';
+                this.addNotification('success', 'Connected to server');
+            };
             
             this.ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
@@ -83,8 +104,14 @@ const ParallagonApp = {
             };
             
             this.ws.onclose = () => {
-                this.addLog('warning', 'WebSocket connection closed. Attempting to reconnect...');
+                this.connectionStatus = 'disconnected';
+                this.addNotification('warning', 'Connection lost. Reconnecting...');
                 setTimeout(() => this.initWebSocket(), 5000);
+            };
+
+            this.ws.onerror = (error) => {
+                this.error = 'WebSocket error occurred';
+                this.addNotification('error', 'Connection error');
             };
         },
 
@@ -174,24 +201,26 @@ const ParallagonApp = {
             
             if (oldContent === newContent) return newContent;
 
-            const oldLines = oldContent.split('\n');
-            const newLines = newContent.split('\n');
-            let html = '';
+            const diff = this.computeDiff(
+                oldContent.split('\n'),
+                newContent.split('\n')
+            );
 
-            // Use diff algorithm to identify changes
-            const diff = this.computeDiff(oldLines, newLines);
-            
-            diff.forEach(part => {
+            return diff.map(part => {
                 if (part.added) {
-                    html += `<span class="highlight-add">${part.value}</span>\n`;
-                } else if (part.removed) {
-                    html += `<span class="highlight-remove">${part.value}</span>\n`;
-                } else {
-                    html += `${part.value}\n`;
+                    return `<span class="highlight-add">${this.escapeHtml(part.value)}</span>`;
                 }
-            });
+                if (part.removed) {
+                    return `<span class="highlight-remove">${this.escapeHtml(part.value)}</span>`;
+                }
+                return this.escapeHtml(part.value);
+            }).join('\n');
+        },
 
-            return html;
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         },
 
         async exportLogs() {
