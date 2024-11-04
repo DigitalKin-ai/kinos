@@ -50,6 +50,7 @@
                      v-for="tab in tabs" 
                      :key="tab.id"
                      :class="{ active: activeTab === tab.id }"
+                     :data-tab="tab.id"
                      @click="setActiveTab(tab.id)">
                     <i :class="tab.icon"></i>
                     <span>${ tab.name }</span>
