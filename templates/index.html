@@ -178,26 +178,46 @@ function checkForChanges() {
     if (!app.running) return;
     
     fetch('/api/changes')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(changes => {
+            if (!Array.isArray(changes)) {
+                console.warn('Expected array of changes, got:', changes);
+                return;
+            }
+            
             changes.forEach(change => {
+                if (!change.status) {
+                    console.warn('Change missing status:', change);
+                    return;
+                }
+                
                 const tabId = tabIds[change.status];
-                if (tabId) {
-                    // Find the tab element by its data attribute
-                    const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
-                    if (tab) {
-                        // Remove existing animation
+                if (!tabId) {
+                    console.warn('No tab ID found for:', change.status);
+                    return;
+                }
+                
+                const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
+                if (tab) {
+                    console.debug('Flashing tab:', tabId);
+                    // Remove existing animation
+                    tab.classList.remove('flash-tab');
+                    // Force reflow
+                    void tab.offsetWidth;
+                    // Add animation class
+                    tab.classList.add('flash-tab');
+                    
+                    // Remove class after animation
+                    setTimeout(() => {
                         tab.classList.remove('flash-tab');
-                        // Force reflow to restart animation
-                        void tab.offsetWidth;
-                        // Add animation class
-                        tab.classList.add('flash-tab');
-                        
-                        // Remove class after animation completes
-                        setTimeout(() => {
-                            tab.classList.remove('flash-tab');
-                        }, 1000); // Match animation duration
-                    }
+                    }, 1000);
+                } else {
+                    console.warn('Tab element not found for:', tabId);
                 }
             });
         })
