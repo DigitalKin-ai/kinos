@@ -354,11 +354,11 @@
 }
 
 /* Logs */
-.logs-panel {
+.suivi-mission-panel {
     @apply col-span-2;
 }
 
-.logs-content {
+.suivi-mission-content {
     @apply h-64 overflow-auto bg-gray-900 rounded p-4;
 }
 
