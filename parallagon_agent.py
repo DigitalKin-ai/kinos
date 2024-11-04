@@ -231,8 +231,39 @@ class ParallagonAgent:
         Must be implemented by specific agent subclasses to define
         their unique decision-making logic.
         """
-        # This method should be implemented by specific agent subclasses
-        pass
+        try:
+            self.logger(f"[{self.__class__.__name__}] Analyse des fichiers...")
+            
+            # Log des fichiers surveillés
+            for file_path in getattr(self, 'watch_files', []):
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        self.logger(f"[{self.__class__.__name__}] Fichier {file_path}: {len(content)} caractères")
+                except Exception as e:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur lecture {file_path}: {str(e)}")
+            
+            # Log de l'état actuel
+            current_state = getattr(self, 'current_status', 'UNKNOWN')
+            self.logger(f"[{self.__class__.__name__}] État actuel: {current_state}")
+            
+            # Log des signaux actifs
+            signals = getattr(self, 'signals', [])
+            if signals:
+                self.logger(f"[{self.__class__.__name__}] Signaux actifs: {signals}")
+            else:
+                self.logger(f"[{self.__class__.__name__}] Aucun signal actif")
+                
+            # Log du contenu actuel
+            if hasattr(self, 'current_content'):
+                self.logger(f"[{self.__class__.__name__}] Taille contenu actuel: {len(self.current_content)} caractères")
+            
+            # Cette méthode doit être implémentée par les sous-classes
+            self.logger(f"[{self.__class__.__name__}] ⚠️ Méthode determine_actions() non implémentée")
+            
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'analyse: {str(e)}")
+            raise
 
     def _build_prompt(self, context: dict) -> str:
         """Construction du prompt pour l'évaluateur"""
