@@ -24,22 +24,6 @@
 
 {% block content %}
 <div id="app" v-cloak>
-    <script>
-        const initialData = {
-            logCounter: 0,
-            running: false,
-            loading: false,
-            error: null,
-            notifications: [],
-            connectionStatus: 'disconnected',
-            activeTab: 'demande',
-            tabIds: {
-                'demande.md': 'demande',
-                'specifications.md': 'specifications',
-                'management.md': 'management',
-                'production.md': 'production',
-                'evaluation.md': 'evaluation'
-            },
     <div class="main-container">
         <!-- Header -->
         <div class="header">
@@ -189,5 +173,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/2.0.6/velocity.min.js"></script>
 <script src="{{ url_for('static', filename='app.js') }}"></script>
 {% endblock %}
