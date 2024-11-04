@@ -304,12 +304,16 @@ textarea.content-area {
     @apply bg-gray-900 rounded;
     flex: 1;
     overflow: auto;
-    padding: 1rem;
+    padding: 0.75rem;  /* Réduit le padding */
+    font-size: 0.75rem;  /* Police plus petite */
+    line-height: 1.2;  /* Interligne réduit */
 }
 
 .suivi-mission-entry {
-    @apply flex items-start space-x-2 text-sm font-mono mb-1 text-gray-300;
+    @apply flex items-start space-x-2 font-mono mb-0.5;  /* Réduit l'espace entre les entrées */
     animation: fadeIn 0.3s ease-in-out;
+    padding: 1px 4px;  /* Padding plus petit */
+    border-radius: 2px;
 }
 
 /* Buttons */
@@ -511,23 +515,36 @@ textarea.content-area {
 }
 
 .log-timestamp {
-    @apply text-gray-500 min-w-[140px];
+    color: #718096;  /* Gris plus clair */
+    font-size: 0.7rem;  /* Encore plus petit */
+    min-width: 120px;  /* Réduit la largeur minimale */
 }
 
-.log-entry.info {
-    @apply text-blue-400;
+/* Amélioration de la lisibilité */
+.log-message {
+    flex: 1;
+    padding-left: 4px;
 }
 
-.log-entry.success {
-    @apply text-green-400;
+/* Hover effect subtil */
+.suivi-mission-entry:hover {
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
-.log-entry.warning {
-    @apply text-yellow-400;
+.suivi-mission-entry.info {
+    color: #63B3ED;  /* Bleu clair */
 }
 
-.log-entry.error {
-    @apply text-red-400;
+.suivi-mission-entry.success {
+    color: #48BB78;  /* Vert */
+}
+
+.suivi-mission-entry.warning {
+    color: #F6AD55;  /* Orange */
+}
+
+.suivi-mission-entry.error {
+    color: #FC8181;  /* Rouge */
 }
 
 /* Notifications */
