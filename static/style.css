@@ -566,27 +566,27 @@ body {
 /* Notifications */
 .notifications-container {
     position: fixed;
-    bottom: 1rem;  /* Changé de top à bottom */
+    bottom: 1rem;
     right: 1rem;
     z-index: 50;
     display: flex;
-    flex-direction: column-reverse; /* Inversé pour que les nouvelles notifs apparaissent en bas */
-    gap: 0.5rem;
-    max-width: 300px; /* Limite la largeur */
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+    max-width: 400px;
 }
 
 .notification {
-    padding: 0.5rem 0.75rem; /* Réduit le padding */
-    border-radius: 0.25rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    color: white;
-    font-size: 0.875rem; /* Plus petite police */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    opacity: 0.9; /* Légèrement transparent */
-    backdrop-filter: blur(4px);
-    transition: all 0.2s ease;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-left: 4px solid;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
 }
 
 .notification:hover {
@@ -594,16 +594,24 @@ body {
     transform: translateX(-2px);
 }
 
-.notification.success {
-    background-color: rgba(16, 185, 129, 0.9); /* Vert semi-transparent */
+.notification-info {
+    border-left-color: #3B82F6;
+    color: #1E40AF;
 }
 
-.notification.error {
-    background-color: rgba(239, 68, 68, 0.9); /* Rouge semi-transparent */
+.notification-success {
+    border-left-color: #10B981;
+    color: #065F46;
 }
 
-.notification.warning {
-    background-color: rgba(245, 158, 11, 0.9); /* Orange semi-transparent */
+.notification-warning {
+    border-left-color: #F59E0B;
+    color: #92400E;
+}
+
+.notification-error {
+    border-left-color: #EF4444;
+    color: #991B1B;
 }
 
 /* Animation des notifications */
