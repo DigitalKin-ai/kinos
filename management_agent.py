@@ -188,10 +188,10 @@ class ManagementAgent(ParallagonAgent):
         matches = list(re.finditer(pattern, content, re.DOTALL))
         
         if len(matches) == 0:
-            print(f"[{self.__class__.__name__}] Section '{section_name}' not found")
+            self.logger(f"[{self.__class__.__name__}] Section '{section_name}' not found")
             return ""
         elif len(matches) > 1:
-            print(f"[{self.__class__.__name__}] Warning: Multiple '{section_name}' sections found, using first one")
+            self.logger(f"[{self.__class__.__name__}] Warning: Multiple '{section_name}' sections found, using first one")
             
         return matches[0].group(1).strip()
 
