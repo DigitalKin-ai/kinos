@@ -281,7 +281,7 @@ IMPORTANT:
         Format: <<<<<<< ANCIEN\n[texte]\n=======\n[texte]\n>>>>>>> NOUVEAU
         """
         import re
-        pattern = r'<<<<<<< ANCIEN\n(.*?)\n=======\n(.*?)\n>>>>>>> NOUVEAU'
+        pattern = r'<<<<<<< ANCIEN\s*(.*?)\s*[~=]{3,}\s*(.*?)\s*>>>>>>> NOUVEAU'
         matches = re.findall(pattern, content, re.DOTALL)
         
         if not matches:
@@ -302,7 +302,7 @@ IMPORTANT:
         Retourne une liste de tuples (ancien_texte, nouveau_texte)
         """
         import re
-        pattern = r'<<<<<<< ANCIEN\n(.*?)\n=======\n(.*?)\n>>>>>>> NOUVEAU'
+        pattern = r'<<<<<<< ANCIEN\s*(.*?)\s*[~=]{3,}\s*(.*?)\s*>>>>>>> NOUVEAU'
         return re.findall(pattern, content, re.DOTALL)
 
     def _apply_diffs(self, current_content: str, diffs: list[tuple[str, str]]) -> str:
