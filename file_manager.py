@@ -1,6 +1,7 @@
 """
 FileManager - Handles file operations for Parallagon GUI
 """
+import os
 from typing import Dict, Optional
 from pathlib import Path
 from datetime import datetime
@@ -11,15 +12,62 @@ class FileManager:
     class FileError(Exception):
         """Exception personnalisée pour les erreurs de fichiers"""
         pass
-    """Manages file operations for the GUI"""
-    
-    class FileError(Exception):
-        """Exception personnalisée pour les erreurs de fichiers"""
-        pass
     
     def __init__(self, file_paths: Dict[str, str]):
         self.file_paths = file_paths
+        self._ensure_files_exist()
         
+    def _ensure_files_exist(self):
+        """Create files if they don't exist"""
+        for name, file_path in self.file_paths.items():
+            try:
+                if not os.path.exists(file_path):
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        initial_content = self._get_initial_content(name)
+                        f.write(initial_content)
+            except Exception as e:
+                raise self.FileError(f"Error creating {file_path}: {str(e)}")
+
+    def _get_initial_content(self, file_name: str) -> str:
+        """Get initial content for a file based on its name"""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        
+        if file_name == 'demande':
+            return f"""# Demande Actuelle
+[timestamp: {timestamp}]
+[status: NEW]
+
+Entrez votre demande ici...
+
+# Historique des Demandes
+- [INIT] Création du fichier"""
+            
+        elif file_name == 'specifications':
+            return f"""# État Actuel
+[status: INIT]
+En attente de demande...
+
+# Signaux
+
+# Contenu Principal
+
+# Historique
+- [{timestamp}] Création du fichier"""
+            
+        elif file_name in ['management', 'production', 'evaluation']:
+            return f"""# État Actuel
+[status: INIT]
+En attente d'initialisation...
+
+# Signaux
+
+# Contenu Principal
+
+# Historique
+- [{timestamp}] Création du fichier"""
+            
+        return ""  # Default empty content
+
     def read_file(self, file_name: str) -> Optional[str]:
         """Read content from a file"""
         try:
