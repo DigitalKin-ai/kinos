@@ -155,16 +155,6 @@
     cursor: not-allowed;
 }
 
-.btn-save {
-    background-color: #228be6;
-    color: white;
-    margin-left: auto;
-}
-
-.btn-save:disabled {
-    background-color: #90c2f0;
-    cursor: not-allowed;
-}
 
 /* Status indicator */
 .status {
