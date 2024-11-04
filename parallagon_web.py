@@ -128,38 +128,32 @@ class ParallagonWeb:
             self.log_message(f"Error initializing agents: {str(e)}", level='error')
             raise
 
-    def handle_content_change(self, file_name: str, content: str, panel_name: str = None, flash: bool = False):
+    def handle_content_change(self, file_path: str, content: str, panel_name: str = None, flash: bool = False):
         """Handle content change notifications"""
         try:
-            # Update cache
-            self.content_cache[file_name] = content
-            self.last_modified[file_name] = time.time()
-            
-            # Notify relevant agents
-            for agent in self.agents.values():
-                if hasattr(agent, 'watch_files') and file_name in agent.watch_files:
-                    agent.handle_file_change(file_name, content)
-
-            # Ensure correct .md extension
-            if not file_name.endswith('.md'):
-                file_name = f"{file_name}.md"
-                
-            # Create detailed notification
+            # Toujours créer une notification, même si le contenu n'a pas changé
             notification = {
                 'operation': 'flash_tab',
-                'status': os.path.basename(file_name),
-                'panel': panel_name or os.path.splitext(file_name)[0].capitalize(),
+                'status': os.path.basename(file_path),
+                'panel': panel_name or os.path.splitext(os.path.basename(file_path))[0].capitalize(),
                 'timestamp': datetime.now().strftime("%H:%M:%S"),
                 'type': 'info',
-                'message': f'Mise à jour dans {panel_name or file_name}'
+                'message': f'Mise à jour dans {panel_name or file_path}'
             }
             
             self.notifications_queue.append(notification)
             self.log_message(f"Added notification for {notification['panel']}", level='debug')
             
-            # Add to logs buffer for history
-            self.logs_buffer.append(notification)
-            self.log_message(f"File updated: {file_name}", operation="flash_tab", status=file_name)
+            # Mettre à jour le cache et last_modified
+            self.content_cache[file_path] = content
+            self.last_modified[file_path] = time.time()
+            
+            # Log plus détaillé
+            self.log_message(
+                f"Content change in {file_path} -> {panel_name}",
+                operation="flash_tab",
+                status=os.path.basename(file_path)
+            )
             
         except Exception as e:
             self.log_message(f"Error handling content change: {str(e)}", level='error')

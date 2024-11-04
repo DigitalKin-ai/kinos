@@ -90,12 +90,7 @@ En attente d'initialisation...
                 print(f"FileManager: No path found for {file_name}")
                 return False
                 
-            # Check if content has changed before writing
-            current_content = self.read_file(file_name)
-            if current_content == content:
-                print(f"FileManager: Content unchanged for {file_name}")
-                return True
-                
+            # Écrire le contenu même s'il n'a pas changé
             with open(file_path, 'w', encoding='utf-8') as f:
                 portalocker.lock(f, portalocker.LOCK_EX)
                 f.write(content)
@@ -110,15 +105,13 @@ En attente d'initialisation...
                 "demande": "Demande"
             }
         
-            # Systematic notification
+            # Toujours envoyer une notification
             if self.on_content_changed:
                 panel_name = panel_mapping.get(file_name)
                 if panel_name:
                     print(f"FileManager: Notifying change for {file_name} -> {panel_name}")
                     self.on_content_changed(file_path, content, panel_name, flash=True)
-                else:
-                    print(f"FileManager: No panel mapping for {file_name}")
-                
+            
             return True
         except Exception as e:
             print(f"Error writing file {file_name}: {e}")
