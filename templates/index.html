@@ -9,6 +9,19 @@
 
 {% block content %}
 <div id="app" class="min-h-screen">
+    <!-- Notifications -->
+    <div class="notifications-container">
+        <transition-group name="notification">
+            <div v-for="notification in notifications"
+                 :key="notification.id"
+                 class="notification"
+                 :class="notification.type">
+                <i :class="notificationIcon(notification.type)"></i>
+                <span class="notification-message">{{ '{{notification.message}}' }}</span>
+            </div>
+        </transition-group>
+    </div>
+
     <!-- Header -->
     <header class="parallagon-header">
         <div class="flex items-center gap-4">

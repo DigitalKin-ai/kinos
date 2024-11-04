@@ -40,6 +40,19 @@ const ParallagonApp = {
         }
     },
     methods: {
+        notificationIcon(type) {
+            switch (type) {
+                case 'success':
+                    return 'mdi mdi-check-circle';
+                case 'error':
+                    return 'mdi mdi-alert-circle';
+                case 'warning':
+                    return 'mdi mdi-alert';
+                default:
+                    return 'mdi mdi-information';
+            }
+        },
+
         async startAgents() {
             try {
                 this.loading = true;
