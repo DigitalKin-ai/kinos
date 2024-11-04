@@ -9,7 +9,6 @@ Key responsibilities:
 """
 from parallagon_agent import ParallagonAgent
 from search_replace import SearchReplace
-from section import Section
 import re
 import time
 from datetime import datetime
@@ -48,62 +47,41 @@ class ManagementAgent(ParallagonAgent):
             response = self._get_llm_response(context)
             
             if response != self.current_content:
-                self.logger(f"[{self.__class__.__name__}] Modifications détectées, tentative de mise à jour...")
-                temp_content = self.current_content
-
-                # Parse and validate TodoList with section-specific tasks
-                section_pattern = r'\[section: (.+?)\]\n\[contraintes: (.+?)\](.*?)(?=\[section:|$)'
+                self.logger(f"[{self.__class__.__name__}] Modifications détectées, mise à jour...")
+                
+                # Parse and validate TodoList
+                todos = ["# TodoList"]
                 task_pattern = r'- \[ \] \[priority: (HIGH|MEDIUM|LOW)\] (.+)$'
                 
-                todos = ["# TodoList"]
-                sections = re.finditer(section_pattern, response, re.MULTILINE | re.DOTALL)
+                # Extract tasks and sort them by priority
+                tasks = []
+                for match in re.finditer(task_pattern, response, re.MULTILINE):
+                    priority = match.group(1)
+                    task_description = match.group(2)
+                    tasks.append({
+                        'priority': priority,
+                        'description': task_description
+                    })
                 
-                # Dictionary to store tasks by section
-                section_todos = {}
+                # Sort tasks
+                sorted_tasks = self._sort_todos(tasks)
                 
-                for section_match in sections:
-                    section_name = section_match.group(1)
-                    section_constraints = section_match.group(2)
-                    section_content = section_match.group(3)
-                    
-                    # Initialize task list for this section
-                    section_todos[section_name] = []
-                    
-                    # Extract tasks for this section
-                    tasks = re.finditer(task_pattern, section_content, re.MULTILINE)
-                    for task_match in tasks:
-                        priority = task_match.group(1)
-                        task_description = task_match.group(2)
-                        section_todos[section_name].append({
-                            'priority': priority,
-                            'description': task_description
-                        })
-                    
-                    # Add section to TodoList content
-                    todos.append(f"\n[section: {section_name}]")
-                    todos.append(f"[contraintes: {section_constraints}]")
-                    
-                    # Add sorted tasks for this section
-                    sorted_tasks = self._sort_todos(section_todos[section_name])
-                    for task in sorted_tasks:
-                        todos.append(f"- [ ] [priority: {task['priority']}] {task['description']}")
-
+                # Add sorted tasks to content
+                for task in sorted_tasks:
+                    todos.append(f"- [ ] [priority: {task['priority']}] {task['description']}")
+                
                 # Update TodoList section
                 result = SearchReplace.section_replace(
-                    temp_content,
+                    response,
                     "TodoList",
                     '\n'.join(todos[1:])  # Exclude the "# TodoList" title
                 )
                 
                 if result.success:
-                    temp_content = result.new_content
-                    self.logger(f"[{self.__class__.__name__}] ✓ TodoList mise à jour")
-
-                    # Update Section objects' todo lists
-                    self._update_section_todos(section_todos)
-
-                self.new_content = temp_content
-                self.logger(f"[{self.__class__.__name__}] ✓ Mise à jour complète effectuée")
+                    self.new_content = result.new_content
+                    self.logger(f"[{self.__class__.__name__}] ✓ Mise à jour complète effectuée")
+                else:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Échec de la mise à jour: {result.message}")
             else:
                 self.logger(f"[{self.__class__.__name__}] Aucune modification nécessaire")
                 
@@ -146,7 +124,7 @@ class ManagementAgent(ParallagonAgent):
         try:
             print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4",
                 messages=[{
                     "role": "user",
                     "content": self._build_prompt(context)
@@ -282,39 +260,3 @@ Règles STRICTES :
 3. Chaque tâche doit commencer par "- [ ] "
 4. Les tâches doivent être spécifiques et actionnables
 5. Respecter les contraintes de chaque section"""
-    def _update_section_todos(self, section_todos: dict) -> None:
-        """
-        Update todo lists for each section.
-        
-        Args:
-            section_todos: Dictionary mapping section names to their tasks
-        """
-        try:
-            # Read specifications file to get sections
-            with open("specifications.md", 'r', encoding='utf-8') as f:
-                specs_content = f.read()
-                
-            # Extract sections and update their todo lists
-            section_pattern = r'^# (.+)$'
-            for match in re.finditer(section_pattern, specs_content, re.MULTILINE):
-                section_name = match.group(1)
-                if section_name in section_todos:
-                    # Convert tasks to simple list format
-                    tasks = [
-                        f"[{task['priority']}] {task['description']}"
-                        for task in section_todos[section_name]
-                    ]
-                    
-                    # Update section's todo list
-                    section = Section(
-                        title=section_name,
-                        constraints="",  # Will be filled by SpecificationsAgent
-                        content=None,    # Will be filled by ProductionAgent
-                        evaluation=None, # Will be filled by EvaluationAgent
-                        todo=tasks
-                    )
-                    
-                    self.logger(f"[{self.__class__.__name__}] ✓ Updated todos for section: {section_name}")
-                    
-        except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Error updating section todos: {str(e)}")
