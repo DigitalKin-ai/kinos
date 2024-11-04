@@ -44,12 +44,6 @@
                     <i :class="tab.icon"></i>
                     <span>${ tab.name }</span>
                 </div>
-                
-                <!-- Logs controls -->
-                <div class="logs-controls" v-if="activeTab === 'logs'">
-                    <button class="btn-export" @click="exportLogs">Export</button>
-                    <button class="btn-clear" @click="clearLogs">Clear</button>
-                </div>
             </div>
 
             <!-- Content area -->
@@ -147,43 +141,6 @@
         </div>
     </div>
 
-    {% raw %}
-    <!-- Header -->
-    <header class="parallagon-header">
-        <div class="flex items-center gap-4">
-            <h1 class="parallagon-title">
-                <span class="status-dot" :class="running ? 'running' : 'stopped'"></span>
-                Parallagon
-            </h1>
-            <div class="connection-status" :class="connectionStatus">
-                {{ connectionStatus }}
-            </div>
-        </div>
-        <div class="control-buttons">
-            <button class="btn btn-start" 
-                    @click="startAgents" 
-                    :disabled="running">
-                <i class="mdi mdi-play"></i>
-                Start
-            </button>
-            <button class="btn btn-stop" 
-                    @click="stopAgents" 
-                    :disabled="!running">
-                <i class="mdi mdi-stop"></i>
-                Stop
-            </button>
-            <button class="btn btn-test" 
-                    @click="loadTestData"
-                    :disabled="running">
-                <i class="mdi mdi-test-tube"></i>
-                Données test
-            </button>
-            <div class="status-indicator">
-                <span>${ running ? "Running" : "Stopped" }</span>
-            </div>
-        </div>
-    </header>
-
     <!-- Notifications -->
     <div class="notifications-container">
         <transition-group name="notification">
@@ -196,72 +153,7 @@
             </div>
         </transition-group>
     </div>
-
-    <!-- Main content -->
-    <div class="container mx-auto p-4">
-        <!-- Demande Panel -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div class="panel col-span-2">
-                <div class="panel-header">
-                    <h2 class="panel-title">
-                        <i class="mdi mdi-file-document-outline mr-2"></i>Demande
-                    </h2>
-                </div>
-                <div class="panel-content">
-                    <textarea v-model="content.demande" 
-                             @input="onDemandeInput"
-                             class="content-area"></textarea>
-                </div>
-            </div>
-
-            <!-- Agent Panels Grid -->
-            <div class="panel" v-for="panel in panels" :key="panel.id" :class="{'updating': panel.updating}">
-                <div class="panel-header">
-                    <h2 class="panel-title">
-                        <i :class="panel.icon" class="mr-2"></i>
-                        ${panel.name}
-                    </h2>
-                    <div class="panel-status">
-                        <span v-if="panel.updating" class="updating-badge">
-                            <i class="mdi mdi-sync spin mr-1"></i> Updating
-                        </span>
-                    </div>
-                </div>
-                <div class="panel-content">
-                    <pre class="content-display" v-html="highlightContent(panel.id)"></pre>
-                </div>
-            </div>
-
-            <!-- Suivi Mission Panel -->
-            <div class="panel col-span-2">
-                <div class="panel-header">
-                    <h2 class="panel-title">
-                        <i class="mdi mdi-console-line mr-2"></i>Suivi Mission
-                    </h2>
-                    <div class="panel-controls">
-                        <button @click="exportLogs" class="btn-export">
-                            <i class="mdi mdi-download mr-1"></i> Export
-                        </button>
-                        <button @click="clearLogs" class="btn-clear">
-                            <i class="mdi mdi-trash-can mr-1"></i> Clear
-                        </button>
-                    </div>
-                </div>
-                <div class="panel-content">
-                    <div class="suivi-mission-content">
-                        <div v-for="log in logs"
-                             :key="log.id" 
-                             class="suivi-mission-entry"
-                             :class="log.level">
-                            <span class="log-timestamp">${ log.timestamp }</span>
-                            <span class="log-message" v-html="log.message"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endraw %}
+</div>
 {% endblock %}
 
 {% block scripts %}
