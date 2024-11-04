@@ -187,9 +187,9 @@
                 </div>
             </div>
             <div class="panel-content suivi-mission-content">
-                <div v-for="log in logs" 
+                <div v-for="log in logs"
                      :key="log.id" 
-                     class="log-entry"
+                     class="suivi-mission-entry"
                      :class="log.level">
                     <span class="log-timestamp">${ log.timestamp }</span>
                     <span class="log-message">${ log.message }</span>
