@@ -83,7 +83,7 @@ class ParallagonWeb:
     def init_agents(self, config):
         """Initialisation des agents avec configuration standard"""
         try:
-            self.log_message("Initializing agents...")
+            self.log_message("Initializing agents...", level='info')
             # Initialize git repo
             try:
                 self.repo = git.Repo(os.getcwd())
@@ -121,10 +121,10 @@ class ParallagonWeb:
                     "watch_files": ["demande.md", "specifications.md", "management.md", "production.md"]
                 })
             }
-            self.log_message("Agents initialized successfully")
+            self.log_message("Agents initialized successfully", level='success')
             
         except Exception as e:
-            self.log_message(f"Error initializing agents: {str(e)}")
+            self.log_message(f"Error initializing agents: {str(e)}", level='error')
             raise
 
     def handle_content_change(self, file_name: str, content: str):
@@ -408,10 +408,10 @@ class ParallagonWeb:
             
             if current_content != self.last_content:
                 self.last_content = current_content.copy()
-                self.log_message("Content updated")
+                self.log_message("Content updated", level='info')
                 
         except Exception as e:
-            self.log_message(f"Error checking content updates: {str(e)}")
+            self.log_message(f"Error checking content updates: {str(e)}", level='error')
 
     def setup_error_handlers(self):
         @self.app.errorhandler(404)
