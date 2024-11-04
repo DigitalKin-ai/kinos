@@ -338,8 +338,6 @@ IMPORTANT:
         """
         Applique les diffs au contenu actuel en utilisant SearchReplace
         """
-        from search_replace import SearchReplace
-        
         modified_content = current_content
         for old_text, new_text in diffs:
             # Nettoyer les textes
@@ -348,8 +346,8 @@ IMPORTANT:
             
             # Utiliser SearchReplace pour faire la modification
             result = SearchReplace.section_replace(modified_content, old_text, new_text)
-            if result.success:
-                modified_content = result.content
+            if result.success and result.new_content:  # Vérifier que new_content existe
+                modified_content = result.new_content  # Utiliser new_content au lieu de content
                 self.logger(f"✓ Remplacement effectué: '{old_text}' -> '{new_text}'")
             else:
                 self.logger(f"❌ Échec du remplacement: {result.message}")
