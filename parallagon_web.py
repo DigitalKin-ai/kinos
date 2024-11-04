@@ -254,16 +254,26 @@ class ParallagonWeb:
                 timestamp = time.strftime("%Y%m%d-%H%M%S")
                 filename = f"parallagon-logs-{timestamp}.txt"
                 
-                # Format logs with timestamps
-                formatted_logs = "\n".join(self.logs_buffer)
+                # Format logs with timestamps and colors
+                formatted_logs = []
+                for log in self.logs_buffer:
+                    timestamp = log.get('timestamp', '')
+                    level = log.get('level', 'info')
+                    message = log.get('message', '')
+                    formatted_logs.append(f"[{timestamp}] [{level.upper()}] {message}")
+                
+                # Join logs with newlines
+                logs_content = "\n".join(formatted_logs)
                 
                 # Create response with file download
-                response = make_response(formatted_logs)
+                response = make_response(logs_content)
                 response.headers["Content-Disposition"] = f"attachment; filename={filename}"
                 response.headers["Content-Type"] = "text/plain"
                 
+                self.log_message("Logs exported successfully", level='success')
                 return response
             except Exception as e:
+                self.log_message(f"Error exporting logs: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/logs/clear', methods=['POST'])
