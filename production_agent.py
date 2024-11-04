@@ -16,6 +16,7 @@ Workflow:
 from parallagon_agent import ParallagonAgent
 from search_replace import SearchReplace
 import anthropic
+import openai
 import re
 from datetime import datetime
 from functools import wraps
