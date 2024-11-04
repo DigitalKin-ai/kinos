@@ -314,7 +314,8 @@ class ParallagonWeb:
     def log_message(self, message, operation: str = None, status: str = None, level: str = 'info'):
         """Log a message with optional operation and status"""
         try:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            # Utiliser un format de date cohérent
+            timestamp = datetime.now().strftime("%H:%M:%S")  # Format court HH:MM:SS
             
             # Format log entry
             if operation and status:
@@ -331,14 +332,14 @@ class ParallagonWeb:
                     'message': message,
                     'level': level
                 }
-                
+            
             # Add to logs buffer
             self.logs_buffer.append(log_entry)
             
             # Keep only last 100 logs
             if len(self.logs_buffer) > 100:
                 self.logs_buffer = self.logs_buffer[-100:]
-                
+            
             # Print to console for debugging
             print(f"[{timestamp}] [{level}] {message}")
                 
