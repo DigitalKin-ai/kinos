@@ -60,11 +60,14 @@ def main():
     try:
         config = get_config()
         
-        # Check if API keys are properly loaded
+        # Validate API keys before proceeding
         if config["anthropic_api_key"] == "your-api-key-here":
-            logger.warning("ANTHROPIC_API_KEY not found in environment variables")
+            logger.error("ANTHROPIC_API_KEY not found in environment variables")
+            raise ValueError("ANTHROPIC_API_KEY not configured")
+            
         if config["openai_api_key"] == "your-api-key-here":
-            logger.warning("OPENAI_API_KEY not found in environment variables")
+            logger.error("OPENAI_API_KEY not found in environment variables")
+            raise ValueError("OPENAI_API_KEY not configured")
     
         # Initialize the ParallagonWeb application
         logger.info("Initializing ParallagonWeb application...")

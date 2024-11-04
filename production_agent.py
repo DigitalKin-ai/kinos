@@ -40,7 +40,12 @@ class ProductionAgent(ParallagonAgent):
     
     def __init__(self, config):
         super().__init__(config)
-        self.client = anthropic.Anthropic(api_key=config["anthropic_api_key"])
+        # Verify OpenAI API key is present and valid
+        if not config.get("openai_api_key") or config["openai_api_key"] == "your-api-key-here":
+            raise ValueError("OpenAI API key invalide dans la configuration")
+        
+        # Initialize OpenAI client with config key
+        self.openai_client = openai.OpenAI(api_key=config["openai_api_key"])
         self.logger = config.get("logger", print)
 
     def _needs_update(self, section_name: str) -> bool:
