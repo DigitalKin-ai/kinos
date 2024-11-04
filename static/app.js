@@ -291,14 +291,18 @@ const ParallagonApp = {
         async loadTestData() {
             try {
                 const response = await fetch('/api/test-data', {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
                 
                 if (response.ok) {
                     this.addNotification('success', 'Données de test chargées');
-                    await this.updateContent();
+                    await this.updateContent(); // Rafraîchit le contenu
                 } else {
-                    throw new Error('Failed to load test data');
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to load test data');
                 }
             } catch (error) {
                 console.error('Failed to load test data:', error);

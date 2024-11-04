@@ -19,6 +19,30 @@ from production_agent import ProductionAgent
 from evaluation_agent import EvaluationAgent
 
 class ParallagonWeb:
+    TEST_DATA = """# Demande de Revue de Connaissances LLM : L'Impact de l'IA Générative sur l'Industrie Musicale
+
+## 1. Contexte de la demande
+
+### Demandeur de la revue
+- Nom, prénom : Dupont, Marie
+- Fonction : Responsable Innovation
+- Département : R&D
+- Mail : m.dupont@entreprise.com
+
+### Destinataire principal
+[x] Équipe/service spécifique : Division Innovation & Stratégie Digitale
+
+### But d'usage
+[x] Support pour prise de décision
+*Précision : Aide à la définition de notre stratégie d'intégration des IA génératives dans notre processus de production musicale*
+
+### Qualité principale attendue
+[x] Rigueur du raisonnement
+*Critère de succès : La revue permet d'identifier clairement les opportunités et risques liés à l'IA générative en musique, avec une argumentation solide pour chaque point.*
+
+### Niveau de profondeur
+[x] Approfondi (10-15 pages)"""
+
     def __init__(self, config):
         self.app = Flask(__name__)
         CORS(self.app)  # Enable CORS
@@ -108,31 +132,7 @@ class ParallagonWeb:
         @self.app.route('/api/test-data', methods=['POST'])
         def load_test_data():
             try:
-                test_data = """# Demande de Revue de Connaissances LLM : L'Impact de l'IA Générative sur l'Industrie Musicale
-
-## 1. Contexte de la demande
-
-### Demandeur de la revue
-- Nom, prénom : Dupont, Marie
-- Fonction : Responsable Innovation
-- Département : R&D
-- Mail : m.dupont@entreprise.com
-
-### Destinataire principal
-[x] Équipe/service spécifique : Division Innovation & Stratégie Digitale
-
-### But d'usage
-[x] Support pour prise de décision
-*Précision : Aide à la définition de notre stratégie d'intégration des IA génératives dans notre processus de production musicale*
-
-### Qualité principale attendue
-[x] Rigueur du raisonnement
-*Critère de succès : La revue permet d'identifier clairement les opportunités et risques liés à l'IA générative en musique, avec une argumentation solide pour chaque point.*
-
-### Niveau de profondeur
-[x] Approfondi (10-15 pages)"""
-
-                success = self.file_manager.write_file('demande', test_data)
+                success = self.file_manager.write_file('demande', self.TEST_DATA)
                 if success:
                     self.log_message("✨ Données de test chargées")
                     return jsonify({'status': 'success'})
