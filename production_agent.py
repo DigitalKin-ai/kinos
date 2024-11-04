@@ -277,34 +277,48 @@ IMPORTANT:
 
     def _validate_diff_format(self, content: str) -> bool:
         """
-        Valide que le contenu suit le format de diff attendu.
-        Format: <<<<<<< ANCIEN\n[texte]\n=======\n[texte]\n>>>>>>> NOUVEAU
+        Valide que le contenu suit le format de diff avec une grande permissivité.
+        Cherche simplement la présence des marqueurs essentiels dans le bon ordre.
         """
-        import re
-        # Plus strict pattern requiring exact newlines around markers
-        pattern = r'<<<<<<< ANCIEN\n(.*?)\n=======\n(.*?)\n>>>>>>> NOUVEAU'
-        matches = re.findall(pattern, content, re.DOTALL)
+        # Vérifier simplement la présence des marqueurs clés dans le bon ordre
+        markers = [
+            "<<<<<<< ANCIEN",
+            "=======",
+            ">>>>>>> NOUVEAU"
+        ]
         
-        if not matches:
-            self.logger(f"[{self.__class__.__name__}] ❌ Format invalide: marqueurs manquants ou format incorrect")
-            return False
-            
-        # Vérifier que chaque bloc est bien formé
-        for old_text, new_text in matches:
-            if not old_text.strip() or not new_text.strip():
-                self.logger(f"[{self.__class__.__name__}] ❌ Format invalide: texte vide")
+        pos = -1
+        for marker in markers:
+            new_pos = content.find(marker, pos + 1)
+            if new_pos == -1:
+                self.logger(f"[{self.__class__.__name__}] ❌ Format invalide: marqueur '{marker}' manquant")
+                # Log la réponse complète pour debug
+                self.logger(f"[{self.__class__.__name__}] Réponse reçue: {content}")
                 return False
-                
+            pos = new_pos
+        
         return True
 
     def _extract_diff_parts(self, content: str) -> list[tuple[str, str]]:
         """
-        Extrait les parties ancien/nouveau du format diff.
-        Retourne une liste de tuples (ancien_texte, nouveau_texte)
+        Extrait les parties ancien/nouveau du format diff avec une grande permissivité.
+        Accepte tout type de séparateur et d'espacement.
         """
         import re
-        pattern = r'<<<<<<< ANCIEN\s*(.*?)\s*[~=]{3,}\s*(.*?)\s*>>>>>>> NOUVEAU'
-        return re.findall(pattern, content, re.DOTALL)
+        # Pattern très permissif
+        pattern = r'<{3,}\s*ANCIEN\s*(.*?)\s*[=~]{3,}\s*(.*?)\s*>{3,}\s*NOUVEAU'
+        matches = re.findall(pattern, content, re.DOTALL | re.IGNORECASE)
+        
+        # Nettoyer les résultats
+        cleaned_matches = []
+        for old_text, new_text in matches:
+            # Enlever les espaces superflus mais garder les retours à la ligne internes
+            old_clean = '\n'.join(line.strip() for line in old_text.splitlines())
+            new_clean = '\n'.join(line.strip() for line in new_text.splitlines())
+            if old_clean and new_clean:  # Garder seulement si les deux parties ont du contenu
+                cleaned_matches.append((old_clean, new_clean))
+                
+        return cleaned_matches
 
     def _apply_diffs(self, current_content: str, diffs: list[tuple[str, str]]) -> str:
         """
