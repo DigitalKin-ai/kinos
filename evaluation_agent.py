@@ -116,25 +116,11 @@ class EvaluationAgent(ParallagonAgent):
             self.logger(traceback.format_exc())
 
     def _get_llm_response(self, context: dict) -> str:
-        """
-        Get LLM response for quality evaluation.
-        
-        Process:
-        1. Analyzes content against quality criteria
-        2. Identifies issues and improvements
-        3. Generates detailed evaluation report
-        4. Validates evaluation format
-        
-        Args:
-            context: Current content and specifications
-            
-        Returns:
-            str: Validated evaluation report
-        """
+        """Get LLM response with standardized error handling"""
         try:
-            print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
+            self.logger(f"[{self.__class__.__name__}] Calling LLM API...")
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o-mini",  # Modèle standardisé pour tous les agents
                 messages=[{
                     "role": "user",
                     "content": self._build_prompt(context)
@@ -142,13 +128,14 @@ class EvaluationAgent(ParallagonAgent):
                 temperature=0,
                 max_tokens=4000
             )
-            print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
+            self.logger(f"[{self.__class__.__name__}] LLM response received")
             return response.choices[0].message.content
+            
         except Exception as e:
-            print(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")  # Error log
+            self.logger(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")
             import traceback
-            print(traceback.format_exc())
-            return context['evaluation']
+            self.logger(traceback.format_exc())
+            return context.get(self.__class__.__name__.lower().replace('agent', ''), '')
 
     def _extract_section(self, content: str, section_name: str) -> str:
         """

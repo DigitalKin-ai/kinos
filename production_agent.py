@@ -177,51 +177,26 @@ class ProductionAgent(ParallagonAgent):
             self.logger(traceback.format_exc())
 
     def _get_llm_response(self, context: dict) -> str:
-        """
-        Get LLM response for content creation and updates.
-        
-        Process:
-        1. Analyzes current content and requirements
-        2. Generates appropriate content updates
-        3. Ensures content quality and consistency
-        4. Validates response format
-        
-        Args:
-            context: Current content state and requirements
-            
-        Returns:
-            str: Validated content updates
-        """
+        """Get LLM response with standardized error handling"""
         try:
             self.logger(f"[{self.__class__.__name__}] Calling LLM API...")
-            
-            prompt = self._build_prompt(context)
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role": "user", "content": prompt}],
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",  # Modèle standardisé pour tous les agents
+                messages=[{
+                    "role": "user",
+                    "content": self._build_prompt(context)
+                }],
                 temperature=0,
                 max_tokens=4000
             )
+            self.logger(f"[{self.__class__.__name__}] LLM response received")
+            return response.choices[0].message.content
             
-            content = response.choices[0].message.content
-            
-            # Modification ici : vérifier si le contenu est substantiel
-            if content.strip() and content.strip() != "NO_CHANGES":
-                # Vérifier que le contenu contient au moins une section
-                if '# ' in content:
-                    return content
-                else:
-                    self.logger(f"[{self.__class__.__name__}] Réponse invalide : pas de sections")
-                    return context['production']
-                    
-            self.logger(f"[{self.__class__.__name__}] No changes needed")
-            return context['production']
-                
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")
             import traceback
             self.logger(traceback.format_exc())
-            return context['production']
+            return context.get(self.__class__.__name__.lower().replace('agent', ''), '')
 
     def _extract_section(self, content: str, section_name: str) -> str:
         """
