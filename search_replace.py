@@ -25,28 +25,24 @@ class SearchReplace:
     @staticmethod
     def _normalize_text(text: str) -> str:
         """
-        Normalize text for permissive comparison.
-        
-        Normalizations:
-        - Remove multiple spaces
-        - Trim line whitespace
-        - Standardize line endings
-        - Remove leading/trailing spaces
-        
-        Args:
-            text: Raw text to normalize
-            
-        Returns:
-            str: Normalized text for comparison
+        Normalise le texte pour une comparaison très permissive:
+        - Supprime tous les espaces et sauts de ligne
+        - Convertit en minuscules
+        - Retire tous les caractères spéciaux et accents
+        - Ne garde que les caractères alphanumériques
         """
-        # Supprime les espaces multiples et les remplace par un seul espace
-        text = re.sub(r'\s+', ' ', text)
-        # Supprime les espaces en début et fin
-        text = text.strip()
-        # Normalise les sauts de ligne
-        text = re.sub(r'\r\n|\r|\n', '\n', text)
-        # Supprime les espaces en début et fin de chaque ligne
-        text = '\n'.join(line.strip() for line in text.split('\n'))
+        import unicodedata
+        import re
+        
+        # Convertir en minuscules
+        text = text.lower()
+        
+        # Retirer les accents
+        text = unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode('ASCII')
+        
+        # Retirer TOUS les caractères non alphanumériques (espaces, ponctuation, etc.)
+        text = re.sub(r'[^a-z0-9]', '', text)
+        
         return text
 
     @staticmethod
