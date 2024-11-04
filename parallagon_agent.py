@@ -97,8 +97,18 @@ class ParallagonAgent:
         - Communication channels (logging)
         - Execution timing
         """
+        # Validation de la configuration
+        if not config.get("anthropic_api_key"):
+            raise ValueError("anthropic_api_key manquante dans la configuration")
+        if not config.get("openai_api_key"):
+            raise ValueError("openai_api_key manquante dans la configuration")
+            
         self.config = config
         self.file_path = config["file_path"]
+        
+        # Initialisation des clients API avec les clés validées
+        self.client = anthropic.Client(api_key=config["anthropic_api_key"])
+        self.openai_client = openai.OpenAI(api_key=config["openai_api_key"])
         
         # Initialize other_files
         self.other_files = {}

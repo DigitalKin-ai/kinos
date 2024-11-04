@@ -11,20 +11,30 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def get_config():
-    # Load environment variables from .env file
+    # Force le chargement depuis le fichier .env
     load_dotenv(override=True)
     
+    # Récupérer les clés
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    openai_key = os.getenv("OPENAI_API_KEY")
+    
+    # Debug log pour vérifier les valeurs
+    logger.info(f"Anthropic key loaded: {'Yes' if anthropic_key else 'No'}")
+    logger.info(f"OpenAI key loaded: {'Yes' if openai_key else 'No'}")
+    
     config = {
-        "anthropic_api_key": os.getenv("ANTHROPIC_API_KEY"),
-        "openai_api_key": os.getenv("OPENAI_API_KEY")
+        "anthropic_api_key": anthropic_key,
+        "openai_api_key": openai_key
     }
     
-    # Validate API keys
-    if not config["openai_api_key"] or config["openai_api_key"] == "your-api-key-here":
-        logger.warning("⚠️ OpenAI API key not properly configured")
+    # Validation plus stricte
+    if not anthropic_key or anthropic_key == "your-api-key-here":
+        logger.error("❌ ANTHROPIC_API_KEY manquante dans le fichier .env")
+        raise ValueError("ANTHROPIC_API_KEY non configurée")
         
-    if not config["anthropic_api_key"] or config["anthropic_api_key"] == "your-api-key-here":
-        logger.warning("⚠️ Anthropic API key not properly configured")
+    if not openai_key or openai_key == "your-api-key-here":
+        logger.error("❌ OPENAI_API_KEY manquante dans le fichier .env")
+        raise ValueError("OPENAI_API_KEY non configurée")
     
     return config
 
