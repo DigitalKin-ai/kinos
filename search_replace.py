@@ -273,3 +273,56 @@ def test_search_replace():
 
 if __name__ == "__main__":
     test_search_replace()
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class SearchReplaceResult:
+    success: bool
+    message: str
+    new_content: Optional[str] = None
+
+class SearchReplace:
+    @staticmethod
+    def section_replace(content: str, section_name: str, new_content: str) -> SearchReplaceResult:
+        """Replace a section's content in the markdown file"""
+        try:
+            # Find section boundaries
+            section_start = content.find(f"# {section_name}")
+            if section_start == -1:
+                return SearchReplaceResult(False, f"Section '{section_name}' not found")
+                
+            next_section = content.find("\n# ", section_start + 1)
+            section_end = next_section if next_section != -1 else len(content)
+            
+            # Replace the section
+            updated_content = (
+                content[:section_start] + 
+                new_content + 
+                content[section_end:]
+            )
+            
+            return SearchReplaceResult(True, "Section updated", updated_content)
+            
+        except Exception as e:
+            return SearchReplaceResult(False, f"Error replacing section: {str(e)}")
+
+    @staticmethod
+    def remove_section(content: str, section_name: str) -> SearchReplaceResult:
+        """Remove a section from the markdown content"""
+        try:
+            # Find section boundaries
+            section_start = content.find(f"# {section_name}")
+            if section_start == -1:
+                return SearchReplaceResult(False, f"Section '{section_name}' not found")
+                
+            next_section = content.find("\n# ", section_start + 1)
+            section_end = next_section if next_section != -1 else len(content)
+            
+            # Remove the section
+            updated_content = content[:section_start] + content[section_end:]
+            
+            return SearchReplaceResult(True, "Section removed", updated_content)
+            
+        except Exception as e:
+            return SearchReplaceResult(False, f"Error removing section: {str(e)}")

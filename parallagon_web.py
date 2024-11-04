@@ -10,6 +10,8 @@ from datetime import datetime
 from typing import Dict, Any
 from file_manager import FileManager
 from llm_service import LLMService
+from search_replace import SearchReplace
+from parallagon_agent import ParallagonAgent
 from specifications_agent import SpecificationsAgent
 from management_agent import ManagementAgent
 from production_agent import ProductionAgent
