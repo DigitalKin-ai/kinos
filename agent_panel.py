@@ -24,6 +24,7 @@ class AgentPanel:
         """Update panel content with smarter diff highlighting"""
         current = self.text.get("1.0", tk.END).strip()
         if content.strip() != current:
+            print(f"[AgentPanel] Content changed for {self.title}")
             # Store scroll position
             current_pos = self.text.yview()
             
@@ -92,6 +93,8 @@ class AgentPanel:
         if self.flash_active:
             self.frame.configure(background='SystemButtonFace')
             self.flash_count = 0
+            
+        print(f"[AgentPanel] Starting flash animation for {self.title}")
             
         # Start new flash
         self.flash_active = True
