@@ -222,15 +222,16 @@ Votre tâche :
 3. Utiliser STRICTEMENT ce format pour chaque modification :
 
 <<<<<<< ANCIEN
-[texte exact à remplacer]
+[texte exact à remplacer - doit être une copie exacte du texte existant]
 ~~~~~~~
 [nouveau texte à ajouter]
 >>>>>>> NOUVEAU
 
-Important:
-- Le texte à remplacer doit correspondre EXACTEMENT au texte existant
+IMPORTANT:
+- Le texte ANCIEN doit être une copie exacte du texte existant
+- Ne pas inclure les crochets []
 - Une seule modification par bloc
-- Chaque bloc doit être complet avec les marqueurs ANCIEN/NOUVEAU"""
+- Si aucune modification n'est nécessaire, répondre 'Aucune modification nécessaire'"""
     def _extract_sections(self, content: str) -> dict:
         """
         Extract sections from content while preserving hierarchy.
@@ -286,7 +287,18 @@ Important:
         import re
         pattern = r'<<<<<<< ANCIEN\n(.*?)\n~~~~~~~\n(.*?)\n>>>>>>> NOUVEAU'
         matches = re.findall(pattern, content, re.DOTALL)
-        return len(matches) > 0
+        
+        if not matches:
+            self.logger(f"[{self.__class__.__name__}] ❌ Format invalide: marqueurs manquants")
+            return False
+            
+        # Vérifier que chaque bloc est bien formé
+        for old_text, new_text in matches:
+            if not old_text.strip() or not new_text.strip():
+                self.logger(f"[{self.__class__.__name__}] ❌ Format invalide: texte vide")
+                return False
+                
+        return True
 
     def _extract_diff_parts(self, content: str) -> list[tuple[str, str]]:
         """
