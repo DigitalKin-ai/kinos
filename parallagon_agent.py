@@ -330,8 +330,8 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
         """Get LLM response with fallback between providers"""
         try:
             # Try OpenAI first
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4o",
                 messages=[{
                     "role": "user", 
                     "content": self._build_prompt(context)
