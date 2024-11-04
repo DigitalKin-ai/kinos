@@ -1,0 +1,56 @@
+/* Main layout */
+.parallagon-header {
+    @apply flex justify-between items-center mb-4;
+}
+
+.parallagon-title {
+    @apply text-2xl font-bold;
+}
+
+.parallagon-controls {
+    @apply space-x-2;
+}
+
+/* Panels */
+.panel {
+    @apply bg-white p-4 rounded shadow;
+}
+
+.panel-title {
+    @apply text-xl font-bold mb-2 capitalize;
+}
+
+.panel-content {
+    @apply h-64 overflow-auto;
+}
+
+/* Status indicators */
+.status-running {
+    @apply text-green-500;
+}
+
+.status-stopped {
+    @apply text-red-500; 
+}
+
+/* Buttons */
+.btn {
+    @apply px-4 py-2 rounded text-white;
+}
+
+.btn-start {
+    @apply bg-green-500 hover:bg-green-600;
+}
+
+.btn-stop {
+    @apply bg-red-500 hover:bg-red-600;
+}
+
+/* Content areas */
+.content-area {
+    @apply w-full p-2 border rounded;
+}
+
+.demande-panel {
+    @apply col-span-2;
+}
