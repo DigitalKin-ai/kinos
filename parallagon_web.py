@@ -138,6 +138,9 @@ class ParallagonWeb:
             if file_name in agent.watch_files:
                 agent.handle_file_change(file_name, content)
 
+        # Add flash notification to logs buffer
+        self.log_message("", operation="flash_tab", status=file_name)
+
     def setup_routes(self):
         @self.app.route('/api/test-data', methods=['POST'])
         def load_test_data():
@@ -191,7 +194,14 @@ class ParallagonWeb:
         def home():
             # Initialize empty notifications list
             notifications = []  # Will be populated with any notifications to show
-            return render_template('index.html', notifications=notifications)
+            return render_template('index.html', notifications=notifications, 
+                tab_ids={
+                    'demande.md': 'tab-demande',
+                    'specifications.md': 'tab-specifications', 
+                    'management.md': 'tab-management',
+                    'production.md': 'tab-production',
+                    'evaluation.md': 'tab-evaluation'
+                })
 
         @self.app.route('/api/status')
         def get_status():
@@ -260,6 +270,20 @@ class ParallagonWeb:
                 return jsonify({'status': 'success'})
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
+
+        @self.app.route('/api/changes')
+        def get_changes():
+            # Filter logs to get only flash_tab operations
+            flash_notifications = [
+                log for log in self.logs_buffer 
+                if log.get('operation') == 'flash_tab'
+            ]
+            # Clear the notifications after sending
+            self.logs_buffer = [
+                log for log in self.logs_buffer 
+                if log.get('operation') != 'flash_tab'
+            ]
+            return jsonify(flash_notifications)
 
         @self.app.route('/api/demande', methods=['POST'])
         def update_demande():
