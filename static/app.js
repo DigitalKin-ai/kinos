@@ -495,21 +495,30 @@ const ParallagonApp = {
                     console.log(`Processing ${notifications.length} notifications`);
                     
                     notifications.forEach(notification => {
-                        this.addNotification(notification.type, notification.message);
+                        // Add notification
+                        this.addNotification(notification.type || 'info', notification.message);
                         
+                        // Handle tab flash
                         if (notification.panel) {
-                            const tabId = this.tabIds[notification.panel.toLowerCase() + '.md'];
+                            // Convert panel name to tab id
+                            const panelName = notification.panel.toLowerCase();
+                            const tabId = this.tabIds[`${panelName}.md`];
+                            
                             if (tabId) {
+                                // Find and flash the tab
                                 const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
-                                
                                 if (tab) {
+                                    // Force reflow to reset animation
                                     tab.classList.remove('flash-tab');
-                                    void tab.offsetWidth; // Force reflow
+                                    void tab.offsetWidth;
                                     tab.classList.add('flash-tab');
                                     
+                                    // Remove class after animation
                                     setTimeout(() => {
                                         tab.classList.remove('flash-tab');
                                     }, 1000);
+                                    
+                                    console.log(`Flashing tab: ${tabId}`);
                                 }
                             }
                         }

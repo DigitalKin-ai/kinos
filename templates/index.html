@@ -7,12 +7,15 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <style>
 @keyframes flash-tab {
-    0% { background-color: inherit; }
-    50% { background-color: #fff3cd; }
-    100% { background-color: inherit; }
+    0% { background-color: transparent; }
+    50% { background-color: #ffd700; }
+    100% { background-color: transparent; }
 }
 .flash-tab {
     animation: flash-tab 1s ease-in-out;
+}
+.tab-item {
+    transition: background-color 0.3s ease;
 }
 </style>
 {% endblock %}
