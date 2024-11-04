@@ -1,6 +1,10 @@
 from flask import Flask, render_template, jsonify, request, url_for, make_response
+from flask_sock import Sock
 import threading
 import time
+import json
+from datetime import datetime
+from typing import Dict, Set, Any
 from file_manager import FileManager
 from llm_service import LLMService
 from specifications_agent import SpecificationsAgent
@@ -11,6 +15,9 @@ from evaluation_agent import EvaluationAgent
 class ParallagonWeb:
     def __init__(self, config):
         self.app = Flask(__name__)
+        self.sock = Sock(self.app)
+        self.clients: Set[Any] = set()  # Store WebSocket clients
+        self.last_content: Dict[str, str] = {}  # Cache last content
         # Add file paths configuration
         self.file_paths = {
             "demande": "demande.md",
@@ -60,6 +67,38 @@ class ParallagonWeb:
         }
 
     def setup_routes(self):
+        @self.sock.route('/ws')
+        def handle_websocket(ws):
+            try:
+                # Add client to set
+                self.clients.add(ws)
+                self.log_message("New WebSocket client connected")
+                
+                # Send initial content
+                initial_content = {
+                    'type': 'content_update',
+                    'content': {
+                        'demande': self.file_manager.read_file('demande.md'),
+                        'specifications': self.file_manager.read_file('specifications.md'),
+                        'management': self.file_manager.read_file('management.md'),
+                        'production': self.file_manager.read_file('production.md'),
+                        'evaluation': self.file_manager.read_file('evaluation.md')
+                    }
+                }
+                ws.send(json.dumps(initial_content))
+                
+                # Keep connection alive and handle incoming messages
+                while True:
+                    message = ws.receive()
+                    if message:
+                        self.handle_ws_message(ws, message)
+                        
+            except Exception as e:
+                self.log_message(f"WebSocket error: {str(e)}")
+            finally:
+                self.clients.remove(ws)
+                self.log_message("WebSocket client disconnected")
+
         @self.app.route('/')
         def home():
             return render_template('index.html')
@@ -144,10 +183,20 @@ class ParallagonWeb:
 
     def start_agents(self):
         self.running = True
-        # Démarrer les agents dans des threads séparés
+        # Start content update loop
+        def update_loop():
+            while self.running:
+                self.broadcast_content_update()
+                time.sleep(1)  # Check for updates every second
+                
+        # Start update loop in separate thread
+        threading.Thread(target=update_loop, daemon=True).start()
+        
+        # Start agents in separate threads
         for name, agent in self.agents.items():
             thread = threading.Thread(target=agent.run, daemon=True)
             thread.start()
+            self.log_message(f"Agent {name} started")
 
     def stop_agents(self):
         self.running = False
@@ -155,13 +204,75 @@ class ParallagonWeb:
             agent.stop()
 
     def log_message(self, message):
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"[{timestamp}] {message}"
         self.logs_buffer.append(log_entry)
+        
+        # Broadcast log to all WebSocket clients
+        self.broadcast_message({
+            'type': 'log',
+            'timestamp': timestamp,
+            'message': message
+        })
+        
         # Keep only last 100 logs
         if len(self.logs_buffer) > 100:
             self.logs_buffer.pop(0)
         print(log_entry)
+
+    def broadcast_message(self, message: dict):
+        """Broadcast message to all connected WebSocket clients"""
+        disconnected = set()
+        
+        for client in self.clients:
+            try:
+                client.send(json.dumps(message))
+            except Exception:
+                disconnected.add(client)
+                
+        # Remove disconnected clients
+        self.clients -= disconnected
+
+    def handle_ws_message(self, ws, message: str):
+        """Handle incoming WebSocket messages"""
+        try:
+            data = json.loads(message)
+            message_type = data.get('type')
+            
+            if message_type == 'save_demande':
+                content = data.get('content')
+                if content:
+                    success = self.file_manager.write_file('demande.md', content)
+                    if success:
+                        self.broadcast_content_update()
+                        self.log_message("Demande updated successfully")
+                    else:
+                        self.log_message("Failed to update demande")
+                        
+        except Exception as e:
+            self.log_message(f"Error handling WebSocket message: {str(e)}")
+
+    def broadcast_content_update(self):
+        """Broadcast content updates to all clients"""
+        try:
+            current_content = {
+                'demande': self.file_manager.read_file('demande.md'),
+                'specifications': self.file_manager.read_file('specifications.md'),
+                'management': self.file_manager.read_file('management.md'),
+                'production': self.file_manager.read_file('production.md'),
+                'evaluation': self.file_manager.read_file('evaluation.md')
+            }
+            
+            # Check for changes
+            if current_content != self.last_content:
+                self.last_content = current_content.copy()
+                self.broadcast_message({
+                    'type': 'content_update',
+                    'content': current_content
+                })
+                
+        except Exception as e:
+            self.log_message(f"Error broadcasting content update: {str(e)}")
 
     def get_app(self):
         """Return the Flask app instance"""
