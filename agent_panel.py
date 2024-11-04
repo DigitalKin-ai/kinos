@@ -3,6 +3,7 @@ AgentPanel - GUI panel for displaying agent content
 """
 import tkinter as tk
 from tkinter import scrolledtext
+import json
 
 class AgentPanel:
     """Panel for displaying and managing agent content"""
@@ -60,7 +61,7 @@ class AgentPanel:
         self.text.tag_remove("highlight", "1.0", tk.END)
 
     def flash_tab(self):
-        """Flash the tab background to indicate changes"""
+        """Flash the tab background and show notification to indicate changes"""
         if self.flash_count >= 6:  # 3 flashes (on/off cycles)
             self.flash_count = 0
             self.flash_active = False
@@ -71,6 +72,17 @@ class AgentPanel:
             # Use a more noticeable color scheme
             color = '#ffd700' if self.flash_count % 2 else 'SystemButtonFace'  # Gold color
             self.frame.configure(background=color)
+            
+            # Add notification on first flash
+            if self.flash_count == 0:
+                notification = {
+                    'type': 'info',
+                    'message': f'Nouveau contenu dans {self.title}'
+                }
+                # Dispatch notification event
+                self.frame.event_generate('<<ShowNotification>>', 
+                                        data=json.dumps(notification))
+            
             self.flash_count += 1
             self.frame.after(400, self.flash_tab)  # Slightly faster flash (400ms)
             
