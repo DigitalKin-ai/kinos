@@ -62,42 +62,56 @@ class LogManager:
         
         # Configure widget to be more discrete
         self.text_widget.configure(
-            height=6,  # Reduced height
-            width=50,  # Reduced width
+            height=4,          # Reduced height
+            width=45,          # Reduced width
             background='#f8f9fa',  # Slightly grayed background
-            fg='#666666',  # Dark gray text
-            font=('TkDefaultFont', 9)  # Smaller font
+            fg='#666666',      # Dark gray text
+            font=('TkDefaultFont', 8),  # Smaller font
+            padx=5,            # Inner horizontal padding
+            pady=3,            # Inner vertical padding
         )
         
         # Position at bottom left
-        self.text_widget.pack(side='left', anchor='sw', padx=5, pady=5)
+        self.text_widget.pack(
+            side='left',       # Left aligned
+            anchor='sw',       # Southwest anchor point
+            padx=5,            # Outer horizontal padding
+            pady=5,            # Outer vertical padding
+            in_=self.text_widget.master  # Ensure proper parent
+        )
         
         self.logs: list[LogEntry] = []
         self.setup_tags()
         
     def setup_tags(self):
         """Configure text tags for different message types"""
-        # Base tag for timestamps - more discrete
-        self.text_widget.tag_config('timestamp', foreground='#999999')
+        # Tag for timestamps - more discrete
+        self.text_widget.tag_config('timestamp', 
+            foreground='#999999',  # Light gray
+            font=('TkDefaultFont', 7)  # Even smaller
+        )
         
         # Animation tag - more subtle
-        self.text_widget.tag_config('fade_in', background='#f8f9fa')
+        self.text_widget.tag_config('fade_in', 
+            background='#f8f9fa'   # Barely visible
+        )
         
         # Tags for each log level - softer colors
         colors = {
-            'SUCCESS': '#4CAF50',
-            'ERROR': '#f44336',
-            'INFO': '#78909C',  # Blueish gray, more discrete
-            'RESET': '#FF9800',
-            'CHANGES': '#9C27B0',
-            'NO_CHANGES': '#90A4AE',  # Lighter gray
-            'WARNING': '#FFA726'  # Softer orange
+            'SUCCESS': '#66bb6a',  # Softer green
+            'ERROR': '#ef5350',    # Softer red
+            'INFO': '#78909c',     # Blueish gray, discrete
+            'RESET': '#ffa726',    # Softer orange
+            'CHANGES': '#ab47bc',  # Softer purple
+            'NO_CHANGES': '#90a4ae',  # Softer gray
+            'WARNING': '#ffd54f'   # Softer yellow
         }
         
         for level in LogLevel:
             self.text_widget.tag_config(
                 level.name.lower(),
-                foreground=colors.get(level.name, '#666666')
+                foreground=colors.get(level.name, '#666666'),
+                font=('TkDefaultFont', 8)  # Uniform font
             )
     
     def _determine_log_level(self, message: str) -> LogLevel:
