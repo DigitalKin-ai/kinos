@@ -348,34 +348,20 @@ class ParallagonWeb:
         def get_notifications():
             """Get pending notifications"""
             try:
-                # Récupérer toutes les notifications récentes (logs avec operation)
-                recent_notifications = []
-                for log in self.logs_buffer:
-                    if log.get('operation') == 'flash_tab':
-                        notification = {
-                            'type': log.get('level', 'info'),  # Utiliser le level comme type
-                            'message': log.get('message', ''),
-                            'timestamp': log.get('timestamp', ''),
-                            'panel': log.get('panel', ''),
-                            'id': log.get('id', 0)  # Ajouter un ID unique
-                        }
-                        recent_notifications.append(notification)
-                        
-                # Debug log
-                if recent_notifications:
-                    print(f"Sending notifications to frontend: {recent_notifications}")
-                    self.log_message(
-                        f"Sending {len(recent_notifications)} notifications to frontend",
-                        level='debug'
-                    )
-                    
-                # Nettoyer les notifications envoyées
-                self.logs_buffer = [
-                    log for log in self.logs_buffer 
-                    if log.get('operation') != 'flash_tab'
-                ]
+                # Récupérer les notifications en attente
+                notifications = []
                 
-                return jsonify(recent_notifications)
+                # Ajouter les notifications de la queue
+                while self.notifications_queue:
+                    notification = self.notifications_queue.pop(0)
+                    notifications.append(notification)
+                    print(f"Sending notification: {notification}")  # Debug log
+                    
+                # Debug log
+                if notifications:
+                    print(f"Sending {len(notifications)} notifications to frontend")
+                    
+                return jsonify(notifications)
                 
             except Exception as e:
                 self.log_message(f"Error getting notifications: {str(e)}", level='error')

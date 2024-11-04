@@ -472,13 +472,17 @@ const ParallagonApp = {
         },
 
         startUpdateLoop() {
-            // Augmenter la fréquence des vérifications
+            // Vérifier les notifications plus fréquemment
+            this.notificationsInterval = setInterval(() => {
+                this.checkNotifications();
+            }, 500);  // Toutes les 500ms
+            
+            // Autres mises à jour moins fréquentes
             this.updateInterval = setInterval(() => {
                 this.updateContent();
                 this.updateLogs();
-                this.checkNotifications();  // Vérifie les notifications plus fréquemment
                 this.checkForChanges();
-            }, 1000);  // Augmenter à 1000ms pour réduire la charge
+            }, 1000);
         },
 
         async checkNotifications() {
@@ -490,34 +494,39 @@ const ParallagonApp = {
                 const notifications = await response.json();
                 
                 if (Array.isArray(notifications) && notifications.length > 0) {
-                    console.log(`Processing ${notifications.length} notifications:`, notifications);
+                    console.log('Received notifications:', notifications);
                     
                     notifications.forEach(notification => {
+                        console.log('Processing notification:', notification);
+                        
                         // Ajouter la notification visuelle
                         this.addNotification(notification.type, notification.message);
                         
-                        // Gérer le flash du tab si c'est une notification de type flash_tab
-                        if (notification.operation === 'flash_tab' && notification.panel) {
+                        // Gérer le flash du tab
+                        if (notification.panel) {
                             const panelName = notification.panel.toLowerCase();
-                            const tabId = this.tabIds[`${panelName}.md`];
+                            const tabFile = `${panelName}.md`;
+                            console.log('Looking for tab:', tabFile, 'in', this.tabIds);
                             
+                            const tabId = this.tabIds[tabFile];
                             if (tabId) {
-                                console.log(`Flashing tab ${tabId} for panel ${panelName}`);
+                                console.log('Found tab ID:', tabId);
                                 const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
                                 
                                 if (tab) {
-                                    // Retirer la classe avant d'ajouter pour réinitialiser l'animation
+                                    console.log('Flashing tab:', tabId);
                                     tab.classList.remove('flash-tab');
-                                    // Force reflow
                                     void tab.offsetWidth;
-                                    // Ajouter la classe pour démarrer l'animation
                                     tab.classList.add('flash-tab');
                                     
-                                    // Retirer la classe après l'animation
                                     setTimeout(() => {
                                         tab.classList.remove('flash-tab');
                                     }, 1000);
+                                } else {
+                                    console.log('Tab element not found for ID:', tabId);
                                 }
+                            } else {
+                                console.log('No tab ID found for:', tabFile);
                             }
                         }
                     });
@@ -531,6 +540,10 @@ const ParallagonApp = {
             if (this.updateInterval) {
                 clearInterval(this.updateInterval);
                 this.updateInterval = null;
+            }
+            if (this.notificationsInterval) {
+                clearInterval(this.notificationsInterval);
+                this.notificationsInterval = null;
             }
         }
     },

@@ -23,7 +23,23 @@
 {% endblock %}
 
 {% block content %}
-<div id="app">
+<div id="app" v-cloak>
+    <script>
+        const initialData = {
+            logCounter: 0,
+            running: false,
+            loading: false,
+            error: null,
+            notifications: [],
+            connectionStatus: 'disconnected',
+            activeTab: 'demande',
+            tabIds: {
+                'demande.md': 'demande',
+                'specifications.md': 'specifications',
+                'management.md': 'management',
+                'production.md': 'production',
+                'evaluation.md': 'evaluation'
+            },
     <div class="main-container">
         <!-- Header -->
         <div class="header">
