@@ -319,11 +319,19 @@ class SpecificationsAgent(ParallagonAgent):
             
             response = self._get_llm_response(context)
             if response and response != self.current_content:
-                # Écrire directement dans le fichier
+                # Log avant la mise à jour
+                self.logger(f"[{self.__class__.__name__}] Modifications détectées, mise à jour du fichier...")
+                
+                # Écrire dans le fichier
                 with open(self.file_path, 'w', encoding='utf-8') as f:
                     f.write(response)
                 self.current_content = response
-                self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
+                
+                # Log après la mise à jour
+                self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour avec succès")
+            else:
+                # Log quand aucune modification n'est nécessaire
+                self.logger(f"[{self.__class__.__name__}] ≡ Aucune modification nécessaire")
                 
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
