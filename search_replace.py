@@ -326,3 +326,77 @@ class SearchReplace:
             
         except Exception as e:
             return SearchReplaceResult(False, f"Error removing section: {str(e)}")
+"""
+SearchReplace - Utility class for handling search and replace operations in markdown files
+"""
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class SearchReplaceResult:
+    """Result of a search/replace operation"""
+    success: bool
+    content: str = ""
+    message: str = ""
+
+class SearchReplace:
+    """Handles search and replace operations in markdown files"""
+    
+    @staticmethod
+    def _normalize_text(text: str) -> str:
+        """
+        Normalise le texte pour une comparaison plus permissive:
+        - Supprime tous les espaces
+        - Convertit en minuscules
+        - Retire les caractères spéciaux
+        - Retire les accents
+        """
+        import unicodedata
+        import re
+        
+        # Convertir en minuscules
+        text = text.lower()
+        
+        # Retirer les accents
+        text = unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode('ASCII')
+        
+        # Retirer tous les caractères spéciaux et espaces
+        text = re.sub(r'[^a-z0-9]', '', text)
+        
+        return text
+
+    @staticmethod
+    def section_replace(content: str, section_name: str, new_content: str) -> SearchReplaceResult:
+        """Replace a section's content in the markdown file"""
+        try:
+            # Normaliser le texte pour la recherche
+            normalized_content = SearchReplace._normalize_text(content)
+            normalized_section = SearchReplace._normalize_text(section_name)
+            
+            # Trouver la section dans le contenu original
+            section_start = -1
+            lines = content.split('\n')
+            for i, line in enumerate(lines):
+                if SearchReplace._normalize_text(line) == normalized_section:
+                    section_start = i
+                    break
+                    
+            if section_start == -1:
+                return SearchReplaceResult(False, message=f"Section '{section_name}' not found")
+                
+            # Trouver la fin de la section
+            section_end = len(lines)
+            for i in range(section_start + 1, len(lines)):
+                if lines[i].startswith('#'):
+                    section_end = i
+                    break
+                    
+            # Remplacer le contenu
+            result = lines[:section_start + 1]  # Inclure le titre de la section
+            result.extend([new_content] if new_content else [''])
+            result.extend(lines[section_end:])
+            
+            return SearchReplaceResult(True, content='\n'.join(result))
+            
+        except Exception as e:
+            return SearchReplaceResult(False, message=f"Error during replacement: {str(e)}")
