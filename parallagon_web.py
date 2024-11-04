@@ -135,7 +135,7 @@ class ParallagonWeb:
         
         # Notify relevant agents
         for agent in self.agents.values():
-            if file_name in agent.watch_files:
+            if hasattr(agent, 'watch_files') and file_name in agent.watch_files:
                 agent.handle_file_change(file_name, content)
 
         # Add flash notification to logs buffer
