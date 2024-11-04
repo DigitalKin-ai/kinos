@@ -484,6 +484,28 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
         # Check if enough time has elapsed
         return (now - self.last_run) >= timedelta(seconds=delay)
 
+    def handle_file_change(self, file_name: str, content: str) -> None:
+        """
+        Handle changes in watched files.
+        
+        Args:
+            file_name: Name of the file that changed
+            content: New content of the file
+        """
+        try:
+            # Update other_files with new content
+            self.other_files[file_name] = content
+            
+            # Log the change
+            self.logger(f"[{self.__class__.__name__}] File change detected: {file_name}")
+            
+            # Reset consecutive no changes counter since we detected a change
+            self.consecutive_no_changes = 0
+            self.last_change = datetime.now()
+            
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] Error handling file change: {str(e)}")
+
     def calculate_dynamic_interval(self) -> float:
         """
         Calculate the optimal interval between agent executions.
