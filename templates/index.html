@@ -17,11 +17,12 @@
                  class="notification"
                  :class="notification.type">
                 <i :class="notificationIcon(notification.type)"></i>
-                <span class="notification-message">{{ '{{notification.message}}' }}</span>
+                <span class="notification-message">${notification.message}</span>
             </div>
         </transition-group>
     </div>
 
+    {% raw %}
     <!-- Header -->
     <header class="parallagon-header">
         <div class="flex items-center gap-4">
@@ -47,7 +48,7 @@
                 Stop
             </button>
             <div class="status-indicator">
-                <span>{{ '{{running ? "Running" : "Stopped"}}' }}</span>
+                <span>${running ? "Running" : "Stopped"}</span>
             </div>
         </div>
     </header>
@@ -95,7 +96,7 @@
                     <div class="panel-header">
                         <h2 class="panel-title">
                             <i :class="panel.icon" class="mr-2"></i>
-                            {{ '{{panel.name}}' }}
+                            ${panel.name}
                         </h2>
                         <div class="panel-status">
                             <span v-if="panel.updating" class="updating-badge">
@@ -130,8 +131,8 @@
                      :key="log.id" 
                      class="log-entry"
                      :class="log.level">
-                    <span class="log-timestamp">{{ '{{log.timestamp}}' }}</span>
-                    <span class="log-message">{{ '{{log.message}}' }}</span>
+                    <span class="log-timestamp">${log.timestamp}</span>
+                    <span class="log-message">${log.message}</span>
                 </div>
             </div>
         </div>
