@@ -97,8 +97,9 @@ class ParallagonWeb:
                 'logs': self.logs_buffer
             })
 
-    def run(self, host='0.0.0.0', port=5000):
-        self.app.run(host=host, port=port)
+    def run(self, host='0.0.0.0', port=5000, **kwargs):
+        """Run the Flask application with optional configuration parameters"""
+        self.app.run(host=host, port=port, **kwargs)
 
     def start_agents(self):
         self.running = True
