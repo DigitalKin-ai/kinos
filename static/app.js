@@ -288,6 +288,24 @@ const ParallagonApp = {
             }
         },
 
+        async loadTestData() {
+            try {
+                const response = await fetch('/api/test-data', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    this.addNotification('success', 'Données de test chargées');
+                    await this.updateContent();
+                } else {
+                    throw new Error('Failed to load test data');
+                }
+            } catch (error) {
+                console.error('Failed to load test data:', error);
+                this.addNotification('error', `Failed to load test data: ${error.message}`);
+            }
+        },
+
         addLog(level, message, operation = null, status = null) {
             const timestamp = new Date().toISOString();
             const logEntry = {

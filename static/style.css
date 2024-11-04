@@ -281,7 +281,21 @@
     @apply bg-gray-500 hover:bg-gray-600;
 }
 
-.btn-start:after, .btn-stop:after, .btn-save:after, .btn-export:after, .btn-clear:after {
+.btn-test {
+    @apply bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300;
+    margin-left: 0.5rem;
+}
+
+.btn-test:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.btn-test i {
+    margin-right: 0.25rem;
+}
+
+.btn-start:after, .btn-stop:after, .btn-save:after, .btn-export:after, .btn-clear:after, .btn-test:after {
     content: '';
     position: absolute;
     top: 50%;
