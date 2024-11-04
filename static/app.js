@@ -483,41 +483,37 @@ const ParallagonApp = {
 
         async checkNotifications() {
             try {
-                console.log("Checking for notifications...");
                 const response = await fetch('/api/notifications');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const notifications = await response.json();
                 
-                console.log("Received notifications:", notifications);
-                
                 if (Array.isArray(notifications) && notifications.length > 0) {
-                    console.log(`Processing ${notifications.length} notifications`);
+                    console.log(`Processing ${notifications.length} notifications:`, notifications);
                     
                     notifications.forEach(notification => {
-                        console.log("Processing notification:", notification);
+                        // Ajouter la notification visuelle
+                        this.addNotification(notification.type, notification.message);
                         
-                        // Add notification
-                        this.addNotification(notification.type || 'info', notification.message);
-                        
-                        // Handle tab flash
-                        if (notification.panel) {
+                        // Gérer le flash du tab si c'est une notification de type flash_tab
+                        if (notification.operation === 'flash_tab' && notification.panel) {
                             const panelName = notification.panel.toLowerCase();
                             const tabId = this.tabIds[`${panelName}.md`];
                             
-                            console.log(`Panel: ${panelName}, TabId: ${tabId}`);
-                            
                             if (tabId) {
+                                console.log(`Flashing tab ${tabId} for panel ${panelName}`);
                                 const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
-                                console.log("Found tab element:", tab);
                                 
                                 if (tab) {
-                                    console.log("Flashing tab:", tabId);
+                                    // Retirer la classe avant d'ajouter pour réinitialiser l'animation
                                     tab.classList.remove('flash-tab');
+                                    // Force reflow
                                     void tab.offsetWidth;
+                                    // Ajouter la classe pour démarrer l'animation
                                     tab.classList.add('flash-tab');
                                     
+                                    // Retirer la classe après l'animation
                                     setTimeout(() => {
                                         tab.classList.remove('flash-tab');
                                     }, 1000);
