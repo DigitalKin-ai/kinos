@@ -9,6 +9,7 @@ Defines the core behavior and lifecycle of a Parallagon agent. Each agent:
 """
 import re
 import time
+import openai
 from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path

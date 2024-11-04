@@ -6,6 +6,10 @@ import sys
 import signal
 from dotenv import load_dotenv
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 def get_config():
     # Load environment variables from .env file
     load_dotenv(override=True)
