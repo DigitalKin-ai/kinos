@@ -221,7 +221,7 @@ Votre tâche :
 2. Proposer des modifications au contenu actuel
 3. Utiliser STRICTEMENT ce format pour chaque modification :
 
-<<<<<<< ANCIEN\n[texte exact à remplacer - doit être une copie exacte du texte existant]\n=======\n[nouveau texte à ajouter]\n>>>>>>> NOUVEAU
+<<<<<<< ANCIEN\n[texte exact à remplacer - doit être une copie exacte du texte existant]=======\n[nouveau texte à ajouter]\n>>>>>>> NOUVEAU
 
 IMPORTANT:
 - Le texte ANCIEN doit être une copie exacte du texte existant
