@@ -58,7 +58,7 @@ class ParallagonWeb:
         self.limiter = Limiter(
             app=self.app,
             key_func=get_remote_address,
-            default_limits=["200 per minute"]
+            default_limits=["1000 per minute"]
         )
         self.content_cache = {}
         self.last_modified = {}
@@ -351,6 +351,7 @@ class ParallagonWeb:
                 return jsonify([])
 
         @self.app.route('/api/notifications', methods=['GET'])
+        @self.limiter.limit("500 per minute")
         def get_notifications():
             """Get pending notifications"""
             try:
