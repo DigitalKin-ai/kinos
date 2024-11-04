@@ -499,6 +499,72 @@ Règles ABSOLUES :
 6. Chaque section et sous-section DOIT avoir ses contraintes entre []
 
 IMPORTANT : Vous devez créer TOUTES les sections nécessaires, pas seulement la première !"""
+    def _parse_hierarchical_content(self, content: str) -> dict:
+        """
+        Parse le contenu en préservant la hiérarchie complète.
+        
+        Args:
+            content: Contenu à parser
+            
+        Returns:
+            dict: Structure hiérarchique avec:
+                - main: contenu principal
+                - subsections: dict de sous-sections
+                - subsubsections: dict de sous-sous-sections
+        """
+        result = {
+            'main': '',
+            'subsections': {},
+            'subsubsections': {}
+        }
+        
+        current_section = None
+        current_subsection = None
+        main_content = []
+        current_lines = []
+        
+        for line in content.split('\n'):
+            if line.startswith('## '):  # Sous-section
+                if current_section:
+                    # Sauvegarder le contenu précédent
+                    if current_subsection:
+                        result['subsections'][current_subsection]['main'] = '\n'.join(current_lines).strip()
+                    else:
+                        main_content.extend(current_lines)
+                        
+                current_subsection = line[3:].strip()
+                result['subsections'][current_subsection] = {
+                    'main': '',
+                    'subsubsections': {}
+                }
+                current_lines = []
+                
+            elif line.startswith('### '):  # Sous-sous-section
+                if current_subsection:
+                    # Sauvegarder le contenu de la sous-section
+                    if current_lines:
+                        result['subsections'][current_subsection]['main'] = '\n'.join(current_lines).strip()
+                    current_lines = []
+                    
+                    subsubsection = line[4:].strip()
+                    result['subsections'][current_subsection]['subsubsections'][subsubsection] = ''
+                    current_section = subsubsection
+                else:
+                    main_content.append(line)
+                    
+            else:
+                current_lines.append(line)
+                
+        # Sauvegarder le dernier contenu
+        if current_subsection and current_lines:
+            result['subsections'][current_subsection]['main'] = '\n'.join(current_lines).strip()
+        elif current_lines:
+            main_content.extend(current_lines)
+            
+        result['main'] = '\n'.join(main_content).strip()
+        
+        return result
+
     def _parse_template_structure(self, content: str) -> dict:
         """Parse le contenu du template en sections distinctes"""
         structure = {}
