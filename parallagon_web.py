@@ -144,6 +144,12 @@ class ParallagonWeb:
             file_name = f"{file_name}.md"
         self.log_message(f"File updated: {file_name}", operation="flash_tab", status=file_name)
 
+        # Add flash notification to logs buffer
+        # Ensure correct .md extension
+        if not file_name.endswith('.md'):
+            file_name = f"{file_name}.md"
+        self.log_message(f"File updated: {file_name}", operation="flash_tab", status=file_name)
+
     def setup_routes(self):
         @self.app.route('/api/test-data', methods=['POST'])
         def load_test_data():
