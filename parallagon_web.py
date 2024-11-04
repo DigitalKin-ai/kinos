@@ -261,34 +261,32 @@ class ParallagonWeb:
             agent.stop()
 
     def log_message(self, message, operation: str = None, status: str = None):
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        # Format log entry
-        if operation and status:
-            log_entry = f"[{timestamp}] {operation}: {status} - {message}"
-        else:
-            log_entry = f"[{timestamp}] {message}"
+        """Log a message with optional operation and status"""
+        try:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-        self.logs_buffer.append(log_entry)
-        
-        # Broadcast log to all WebSocket clients
-        self.broadcast_message({
-            'type': 'log',
-            'timestamp': timestamp,
-            'message': message,
-            'operation': operation,
-            'status': status
-        })
-        
-        # Keep only last 100 logs
-        if len(self.logs_buffer) > 100:
-            self.logs_buffer.pop(0)
+            # Format log entry
+            if operation and status:
+                log_entry = f"[{timestamp}] {operation}: {status} - {message}"
+            else:
+                log_entry = f"[{timestamp}] {message}"
+                
+            # Add to logs buffer
+            self.logs_buffer.append(log_entry)
             
-        # Write to audit log file
-        with open("agent_operations.log", 'a') as f:
-            f.write(f"{log_entry}\n")
+            # Keep only last 100 logs
+            if len(self.logs_buffer) > 100:
+                self.logs_buffer.pop(0)
+                
+            # Write to audit log file
+            with open("agent_operations.log", 'a') as f:
+                f.write(f"{log_entry}\n")
+                
+            # Print to console
+            print(log_entry)
             
-        print(log_entry)
+        except Exception as e:
+            print(f"Error logging message: {str(e)}")
 
     def safe_operation(self, operation_func):
         """Decorator for safe operation execution with recovery"""
