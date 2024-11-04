@@ -9,6 +9,7 @@ const ParallagonApp = {
                 production: '',
                 evaluation: ''
             },
+            logs: [],
             updateInterval: null
         }
     },
@@ -38,8 +39,20 @@ const ParallagonApp = {
                 console.error('Failed to update content:', error);
             }
         },
+        async updateLogs() {
+            try {
+                const response = await fetch('/api/logs');
+                const data = await response.json();
+                this.logs = data.logs;
+            } catch (error) {
+                console.error('Failed to update logs:', error);
+            }
+        },
         startUpdateLoop() {
-            this.updateInterval = setInterval(this.updateContent, 1000);
+            this.updateInterval = setInterval(() => {
+                this.updateContent();
+                this.updateLogs();
+            }, 1000);
         },
         stopUpdateLoop() {
             if (this.updateInterval) {

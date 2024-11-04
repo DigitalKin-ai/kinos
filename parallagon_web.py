@@ -15,6 +15,7 @@ class ParallagonWeb:
         self.llm_service = LLMService(config["openai_api_key"])
         self.running = False
         self.agents = {}
+        self.logs_buffer = []  # Store recent logs
         self.init_agents(config)
         self.setup_routes()
 
@@ -82,6 +83,12 @@ class ParallagonWeb:
             self.stop_agents()
             return jsonify({'status': 'stopped'})
 
+        @self.app.route('/api/logs')
+        def get_logs():
+            return jsonify({
+                'logs': self.logs_buffer
+            })
+
     def run(self, host='0.0.0.0', port=5000):
         self.app.run(host=host, port=port)
 
@@ -98,8 +105,13 @@ class ParallagonWeb:
             agent.stop()
 
     def log_message(self, message):
-        # Implémenter la journalisation
-        print(f"Log: {message}")
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        log_entry = f"[{timestamp}] {message}"
+        self.logs_buffer.append(log_entry)
+        # Keep only last 100 logs
+        if len(self.logs_buffer) > 100:
+            self.logs_buffer.pop(0)
+        print(log_entry)
 
 if __name__ == "__main__":
     config = {

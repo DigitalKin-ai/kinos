@@ -32,6 +32,14 @@
             </div>
         </div>
     </div>
+
+    <!-- Logs Panel -->
+    <div class="panel logs-panel">
+        <h2 class="panel-title">Logs</h2>
+        <div class="panel-content logs-content">
+            <pre v-for="log in logs" :key="log" class="log-entry">{{log}}</pre>
+        </div>
+    </div>
 </div>
 {% endblock %}
 

@@ -54,3 +54,16 @@
 .demande-panel {
     @apply col-span-2;
 }
+
+.logs-panel {
+    @apply col-span-2 mt-4;
+}
+
+.logs-content {
+    @apply bg-gray-100 p-2;
+    max-height: 200px;
+}
+
+.log-entry {
+    @apply text-sm text-gray-700 mb-1;
+}
