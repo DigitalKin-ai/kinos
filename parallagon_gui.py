@@ -36,6 +36,7 @@ class ParallagonGUI:
         "evaluation": "evaluation.md"
     }
     TAB_NAMES = ["Demande", "Specification", "Management", "Evaluation", "Suivi Mission"]
+    TAB_NAMES = ["Demande", "Specification", "Management", "Evaluation", "Suivi Mission"]
 
     TEST_DATA = """# Demande de Revue de Connaissances LLM : L'Impact de l'IA Générative sur l'Industrie Musicale
 
@@ -143,6 +144,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         self.updating = False
         self.config = config
         self.gui_config = GUIConfig()
+        self.tab_flash_tasks = {}  # Pour suivre les tâches de flash des tabs
         
         # Use update interval from gui_config
         self.update_interval = self.gui_config.update_interval
@@ -268,6 +270,14 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             background='green',
             foreground='white'
         )
+        
+        # Créer un style spécifique pour chaque état de tab
+        for tab_name in self.TAB_NAMES:
+            style.configure(
+                f'Flash.{tab_name}.TNotebook.Tab',
+                background="#e8f0fe",  # Couleur de flash (bleu clair)
+                padding=[10, 5]
+            )
         
         # Créer un style spécifique pour chaque état de tab
         for tab_name in self.TAB_NAMES:
@@ -638,6 +648,15 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                 )
             except Exception as e:
                 self.log_message(f"❌ Erreur lors du flash du tab {tab_name}: {str(e)}")
+
+    def _restore_tab_style(self, tab_name, tab_id):
+        """Restaure le style normal du tab"""
+        if tab_name in self.tab_flash_tasks:
+            try:
+                self.tab_flash_tasks.pop(tab_name)
+                self.tab_control.tab(tab_id, style='TNotebook.Tab')
+            except Exception as e:
+                self.log_message(f"❌ Erreur lors de la restauration du style du tab {tab_name}: {str(e)}")
 
     def _restore_tab_style(self, tab_name, tab_id):
         """Restaure le style normal du tab"""
