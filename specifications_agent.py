@@ -311,51 +311,44 @@ class SpecificationsAgent(ParallagonAgent):
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
             
+            # Vérifier si une nouvelle demande nécessite des changements
+            demand_content = self.other_files.get("demande.md")
+            if not demand_content:
+                self.logger(f"[{self.__class__.__name__}] ⚠️ Pas de fichier demande.md trouvé")
+                return
+
+            # Obtenir la réponse du LLM avec le contexte complet
             context = {
                 "specifications": self.current_content,
                 "other_files": self.other_files
             }
             
-            # Obtenir la réponse du LLM
             response = self._get_llm_response(context)
-            
-            # Valider que la réponse contient des sections
-            if not response or not '#' in response:
-                self.logger(f"[{self.__class__.__name__}] ❌ Réponse LLM invalide - pas de sections")
+            if not response:
+                self.logger(f"[{self.__class__.__name__}] ❌ Pas de réponse du LLM")
                 return
 
-            # Extraire et valider les structures
-            try:
-                current_structure = self._parse_template_structure(self.current_content)
-                new_structure = self._parse_template_structure(response)
+            # Vérifier si le contenu est différent avant de mettre à jour
+            if response.strip() != self.current_content.strip():
+                self.logger(f"[{self.__class__.__name__}] ✨ Modifications détectées")
+                self.new_content = response
                 
-                # Valider que la nouvelle structure contient des sections
-                if not new_structure:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Nouvelle structure invalide")
-                    return
+                # Forcer la mise à jour du fichier
+                try:
+                    with open(self.file_path, 'w', encoding='utf-8') as f:
+                        f.write(self.new_content)
+                    self.current_content = self.new_content
+                    self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
                     
-                # Log des différences pour debug
-                self._log_structure_differences(current_structure, new_structure)
-                
-                # Mise à jour si différent
-                if current_structure != new_structure:
-                    self.logger(f"[{self.__class__.__name__}] ✓ Modifications détectées, mise à jour du template...")
-                    
-                    # Utiliser directement la réponse du LLM comme nouveau contenu
-                    self.new_content = response
-                    self.update()  # Appel à la méthode update héritée de ParallagonAgent
-                    
-                    # Forcer la synchronisation
+                    # Forcer la synchronisation avec production
                     self.synchronize_template()
-                    self.logger(f"[{self.__class__.__name__}] ✓ Template et production synchronisés")
-                else:
-                    self.logger(f"[{self.__class__.__name__}] ℹ Aucune modification nécessaire")
-                    
-            except Exception as e:
-                self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors du parsing des structures: {str(e)}")
+                except Exception as e:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur d'écriture: {str(e)}")
+            else:
+                self.logger(f"[{self.__class__.__name__}] ℹ Aucune modification nécessaire")
                 
         except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur globale: {str(e)}")
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'analyse: {str(e)}")
             import traceback
             self.logger(traceback.format_exc())
 
@@ -364,7 +357,7 @@ class SpecificationsAgent(ParallagonAgent):
         try:
             self.logger(f"[{self.__class__.__name__}] Calling LLM API...")
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",  # Modèle standardisé pour tous les agents
+                model="gpt-4o-mini",
                 messages=[{
                     "role": "user",
                     "content": self._build_prompt(context)
@@ -372,14 +365,22 @@ class SpecificationsAgent(ParallagonAgent):
                 temperature=0,
                 max_tokens=4000
             )
-            self.logger(f"[{self.__class__.__name__}] LLM response received")
-            return response.choices[0].message.content
+            
+            content = response.choices[0].message.content
+            
+            # Vérifier que la réponse contient au moins une section
+            if not content or '#' not in content:
+                self.logger(f"[{self.__class__.__name__}] ⚠️ Réponse LLM invalide")
+                return self.current_content  # Retourner le contenu actuel comme fallback
+                
+            self.logger(f"[{self.__class__.__name__}] ✓ Réponse LLM valide reçue")
+            return content
             
         except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur LLM: {str(e)}")
             import traceback
             self.logger(traceback.format_exc())
-            return context.get(self.__class__.__name__.lower().replace('agent', ''), '')
+            return self.current_content  # Retourner le contenu actuel en cas d'erreur
 
     def _log_structure_differences(self, current: dict, new: dict) -> None:
         """Log les différences entre les structures pour debug"""
@@ -430,6 +431,20 @@ class SpecificationsAgent(ParallagonAgent):
         for file_path, content in files.items():
             result.append(f"=== {file_path} ===\n{content}\n")
         return "\n".join(result)
+    def force_update(self, new_content: str) -> bool:
+        """Force update of specifications file"""
+        try:
+            if new_content != self.current_content:
+                with open(self.file_path, 'w', encoding='utf-8') as f:
+                    f.write(new_content)
+                self.current_content = new_content
+                self.logger(f"[{self.__class__.__name__}] ✓ Mise à jour forcée effectuée")
+                return True
+            return False
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de la mise à jour forcée: {str(e)}")
+            return False
+
     def _build_prompt(self, context: dict) -> str:
         """
         Build LLM prompt for template analysis and updates.
