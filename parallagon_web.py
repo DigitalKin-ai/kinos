@@ -23,7 +23,8 @@ class ParallagonWeb:
             key_func=get_remote_address,
             default_limits=["200 per minute"]
         )
-        self.last_content: Dict[str, str] = {}  # Cache last content
+        self.content_cache = {}
+        self.last_modified = {}
         self.setup_error_handlers()
         # Add file paths configuration
         self.file_paths = {
@@ -73,7 +74,32 @@ class ParallagonWeb:
             })
         }
 
+    def handle_content_change(self, file_name: str, content: str):
+        """Handle content change notifications"""
+        # Update cache
+        self.content_cache[file_name] = content
+        self.last_modified[file_name] = time.time()
+        
+        # Notify relevant agents
+        for agent in self.agents.values():
+            if file_name in agent.watch_files:
+                agent.handle_file_change(file_name, content)
+
     def setup_routes(self):
+        @self.app.route('/api/health')
+        def health_check():
+            return jsonify({
+                'status': 'healthy',
+                'running': self.running,
+                'agents': {
+                    name: {
+                        'running': agent.should_run(),
+                        'last_update': agent.last_update
+                    }
+                    for name, agent in self.agents.items()
+                }
+            })
+
         @self.app.route('/')
         def home():
             # Initialize empty notifications list
@@ -89,13 +115,29 @@ class ParallagonWeb:
 
         @self.app.route('/api/content')
         def get_content():
-            return jsonify({
-                'demande': self.file_manager.read_file('demande.md'),
-                'specifications': self.file_manager.read_file('specifications.md'),
-                'management': self.file_manager.read_file('management.md'),
-                'production': self.file_manager.read_file('production.md'),
-                'evaluation': self.file_manager.read_file('evaluation.md')
-            })
+            current_time = time.time()
+            content = {}
+            
+            for file_name in self.file_paths:
+                try:
+                    file_path = self.file_paths[file_name]
+                    mtime = os.path.getmtime(file_path)
+                    
+                    # Check if file has been modified since last read
+                    if (file_name not in self.last_modified or 
+                        mtime > self.last_modified[file_name]):
+                        
+                        content[file_name] = self.file_manager.read_file(file_name)
+                        self.content_cache[file_name] = content[file_name]
+                        self.last_modified[file_name] = mtime
+                    else:
+                        content[file_name] = self.content_cache[file_name]
+                        
+                except Exception as e:
+                    self.log_message(f"Error reading {file_name}: {str(e)}")
+                    content[file_name] = ""
+                    
+            return jsonify(content)
 
         @self.app.route('/api/start', methods=['POST'])
         def start_agents():
@@ -228,6 +270,23 @@ class ParallagonWeb:
         @self.app.errorhandler(Exception)
         def handle_exception(error):
             return jsonify({'error': str(error)}), 500
+
+    def shutdown(self):
+        """Graceful shutdown of the application"""
+        try:
+            # Stop all agents
+            self.stop_agents()
+            
+            # Clear caches
+            self.content_cache.clear()
+            self.last_modified.clear()
+            
+            # Export final logs
+            self.export_logs()
+            
+            self.log_message("Application shutdown complete")
+        except Exception as e:
+            self.log_message(f"Error during shutdown: {str(e)}")
 
     def get_app(self):
         """Return the Flask app instance"""

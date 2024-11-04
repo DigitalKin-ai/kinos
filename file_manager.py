@@ -13,8 +13,9 @@ class FileManager:
         """Exception personnalisée pour les erreurs de fichiers"""
         pass
     
-    def __init__(self, file_paths: Dict[str, str]):
+    def __init__(self, file_paths: Dict[str, str], on_content_changed=None):
         self.file_paths = file_paths
+        self.on_content_changed = on_content_changed
         self._ensure_files_exist()
         
     def _ensure_files_exist(self):
@@ -81,14 +82,20 @@ En attente d'initialisation...
             raise self.FileError(f"Erreur lecture {file_name}: {str(e)}")
             
     def write_file(self, file_name: str, content: str) -> bool:
-        """Write content to a file"""
+        """Write content to a file with locking"""
         try:
             file_path = self.file_paths.get(file_name)
             if not file_path:
                 return False
                 
             with open(file_path, 'w', encoding='utf-8') as f:
+                portalocker.lock(f, portalocker.LOCK_EX)
                 f.write(content)
+                portalocker.unlock(f)
+                
+            if self.on_content_changed:
+                self.on_content_changed(file_name, content)
+                
             return True
         except Exception as e:
             print(f"Error writing file {file_name}: {e}")

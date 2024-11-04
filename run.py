@@ -13,6 +13,11 @@ def get_config():
         "openai_api_key": os.getenv("OPENAI_API_KEY", "your-api-key-here")
     }
 
+def signal_handler(signum, frame):
+    logger.info("Received shutdown signal")
+    app.shutdown()
+    sys.exit(0)
+
 def main():
     # Set up logging
     logging.basicConfig(
@@ -20,6 +25,10 @@ def main():
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
     logger = logging.getLogger(__name__)
+    
+    # Set up signal handlers
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     try:
         config = get_config()
