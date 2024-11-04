@@ -30,8 +30,9 @@ def main():
         logger.info("Starting Parallagon Web with Waitress...")
         logger.info("Server running at http://0.0.0.0:5000")
         
-        # Run with Waitress
-        serve(app, host='0.0.0.0', port=5000, threads=4)  # Add thread count for better performance
+        # Run with Waitress with WebSocket support
+        serve(app, host='0.0.0.0', port=5000, threads=4, 
+              url_scheme='ws', channel_timeout=20)
 
     except Exception as e:
         logger.error(f"Failed to start server: {str(e)}")

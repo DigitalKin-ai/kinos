@@ -1,5 +1,6 @@
 from flask import Flask, render_template, jsonify, request, url_for, make_response
 from flask_sock import Sock
+from flask_sock import Sock
 import threading
 import time
 import json
@@ -15,6 +16,8 @@ from evaluation_agent import EvaluationAgent
 class ParallagonWeb:
     def __init__(self, config):
         self.app = Flask(__name__)
+        self.sock = Sock(self.app)
+        self.clients = set()  # Store WebSocket clients
         self.sock = Sock(self.app)
         self.clients: Set[Any] = set()  # Store WebSocket clients
         self.last_content: Dict[str, str] = {}  # Cache last content
@@ -69,6 +72,39 @@ class ParallagonWeb:
     def setup_routes(self):
         @self.sock.route('/ws')
         def handle_websocket(ws):
+            try:
+                # Add client to set
+                self.clients.add(ws)
+                self.log_message("New WebSocket client connected")
+                
+                # Send initial content
+                initial_content = {
+                    'type': 'content_update',
+                    'content': {
+                        'demande': self.file_manager.read_file('demande.md'),
+                        'specifications': self.file_manager.read_file('specifications.md'),
+                        'management': self.file_manager.read_file('management.md'),
+                        'production': self.file_manager.read_file('production.md'),
+                        'evaluation': self.file_manager.read_file('evaluation.md')
+                    }
+                }
+                ws.send(json.dumps(initial_content))
+                
+                # Keep connection alive and handle incoming messages
+                while True:
+                    message = ws.receive()
+                    if message:
+                        self.handle_ws_message(ws, message)
+                        
+            except Exception as e:
+                self.log_message(f"WebSocket error: {str(e)}")
+            finally:
+                self.clients.remove(ws)
+                self.log_message("WebSocket client disconnected")
+
+        @self.sock.route('/ws')
+        def handle_websocket(ws):
+            """Handle WebSocket connections"""
             try:
                 # Add client to set
                 self.clients.add(ws)

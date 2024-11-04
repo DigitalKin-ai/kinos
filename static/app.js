@@ -98,41 +98,49 @@ const ParallagonApp = {
         },
 
         initWebSocket() {
-            this.ws = new WebSocket(`ws://${window.location.host}/ws`);
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            
+            this.ws = new WebSocket(wsUrl);
             
             this.ws.onopen = () => {
+                console.log('WebSocket connected');
                 this.connectionStatus = 'connected';
                 this.addNotification('success', 'Connected to server');
             };
             
             this.ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                
-                if (data.type === 'content_update') {
-                    // Store previous content for diff highlighting
-                    this.previousContent = { ...this.content };
-                    this.content = data.content;
+                try {
+                    const data = JSON.parse(event.data);
                     
-                    // Update panel status
-                    this.panels.forEach(panel => {
-                        const hasChanged = this.previousContent[panel.id] !== this.content[panel.id];
-                        panel.updating = hasChanged;
-                        if (hasChanged) {
-                            this.addLog('info', `${panel.name} content updated`);
-                        }
-                    });
-                } else if (data.type === 'log') {
-                    this.addLog(data.level, data.message);
+                    if (data.type === 'content_update') {
+                        this.previousContent = { ...this.content };
+                        this.content = data.content;
+                        
+                        this.panels.forEach(panel => {
+                            const hasChanged = this.previousContent[panel.id] !== this.content[panel.id];
+                            panel.updating = hasChanged;
+                            if (hasChanged) {
+                                this.addLog('info', `${panel.name} content updated`);
+                            }
+                        });
+                    } else if (data.type === 'log') {
+                        this.addLog(data.level || 'info', data.message);
+                    }
+                } catch (error) {
+                    console.error('Error processing WebSocket message:', error);
                 }
             };
             
             this.ws.onclose = () => {
+                console.log('WebSocket disconnected');
                 this.connectionStatus = 'disconnected';
                 this.addNotification('warning', 'Connection lost. Reconnecting...');
                 setTimeout(() => this.initWebSocket(), 5000);
             };
 
             this.ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
                 this.error = 'WebSocket error occurred';
                 this.addNotification('error', 'Connection error');
             };
