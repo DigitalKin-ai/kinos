@@ -1,4 +1,3 @@
-from waitress import serve
 from parallagon_web import ParallagonWeb
 import logging
 import os
@@ -52,9 +51,17 @@ if __name__ == '__main__':
         signal.signal(signal.SIGINT, lambda s, f: signal_handler(s, f, app, logger))
         signal.signal(signal.SIGTERM, lambda s, f: signal_handler(s, f, app, logger))
         
-        logger.info("Starting server on http://127.0.0.1:8000")
-        serve(app, host='127.0.0.1', port=8000)
-        
+        # Choose server based on platform
+        if sys.platform == 'win32':
+            # Windows - use waitress
+            from waitress import serve
+            logger.info("Starting waitress server on http://127.0.0.1:8000")
+            serve(app, host='127.0.0.1', port=8000)
+        else:
+            # Linux/Unix - use Flask's built-in server
+            logger.info("Starting Flask server on http://0.0.0.0:8000")
+            app.run(host='0.0.0.0', port=8000)
+            
     except Exception as e:
         logger.error(f"Failed to start server: {str(e)}")
         raise
