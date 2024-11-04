@@ -86,6 +86,21 @@ class ProductionAgent(ParallagonAgent):
             self.logger(f"❌ Error generating content: {str(e)}")
             return "[En attente de contenu]"
             
+    def _validate_response_format(self, response: str) -> bool:
+        """
+        Validate that the response follows the expected diff format.
+        Returns True if the format is correct, False otherwise.
+        """
+        if not response:
+            return False
+            
+        # Check for required markers
+        has_start = "<<<<<<< ANCIEN" in response
+        has_separator = "~~~~~~~" in response
+        has_end = ">>>>>>> NOUVEAU" in response
+        
+        return has_start and has_separator and has_end
+
     def determine_actions(self) -> None:
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
@@ -204,23 +219,18 @@ Contenu actuel :
 Votre tâche :
 1. Analyser les spécifications et la demande
 2. Proposer des modifications au contenu actuel
-3. Utiliser EXACTEMENT ce format pour chaque modification :
+3. Utiliser STRICTEMENT ce format pour chaque modification :
 
 <<<<<<< ANCIEN
 [texte exact à remplacer]
-3. Respecter les contraintes définies
 ~~~~~~~
 [nouveau texte à ajouter]
 >>>>>>> NOUVEAU
 
-Format de réponse :
-# Section 1
-[Contenu détaillé de la section]
-
-# Section 2
-[Contenu détaillé de la section]
-
-etc..."""
+Important:
+- Le texte à remplacer doit correspondre EXACTEMENT au texte existant
+- Une seule modification par bloc
+- Chaque bloc doit être complet avec les marqueurs ANCIEN/NOUVEAU"""
     def _extract_sections(self, content: str) -> dict:
         """
         Extract sections from content while preserving hierarchy.
@@ -323,7 +333,7 @@ etc..."""
             response = self._get_llm_response(context)
             
             # Vérifier si la réponse est dans le bon format
-            if not response or not self._validate_diff_format(response):
+            if not response or not self._validate_response_format(response):
                 self.logger(f"[{self.__class__.__name__}] ❌ Format de réponse LLM invalide")
                 return
                 
