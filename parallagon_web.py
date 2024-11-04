@@ -317,7 +317,7 @@ class ParallagonWeb:
         for agent in self.agents.values():
             agent.stop()
 
-    def log_message(self, message, operation: str = None, status: str = None):
+    def log_message(self, message, operation: str = None, status: str = None, level: str = 'info'):
         """Log a message with optional operation and status"""
         try:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -328,14 +328,14 @@ class ParallagonWeb:
                     'id': len(self.logs_buffer),
                     'timestamp': timestamp,
                     'message': f"{operation}: {status} - {message}",
-                    'level': 'info'
+                    'level': level
                 }
             else:
                 log_entry = {
                     'id': len(self.logs_buffer),
                     'timestamp': timestamp,
                     'message': message,
-                    'level': 'info'
+                    'level': level
                 }
                 
             # Add to logs buffer
@@ -343,10 +343,10 @@ class ParallagonWeb:
             
             # Keep only last 100 logs
             if len(self.logs_buffer) > 100:
-                self.logs_buffer.pop(0)
+                self.logs_buffer = self.logs_buffer[-100:]
                 
             # Print to console for debugging
-            print(f"[{timestamp}] {log_entry['message']}")
+            print(f"[{timestamp}] [{level}] {message}")
                 
         except Exception as e:
             print(f"Error logging message: {str(e)}")

@@ -116,6 +116,11 @@ const ParallagonApp = {
                 await fetch('/api/stop', { method: 'POST' });
                 this.running = false;
                 this.stopUpdateLoop();
+                // Stop logs update
+                if (this.logsInterval) {
+                    clearInterval(this.logsInterval);
+                    this.logsInterval = null;
+                }
             } catch (error) {
                 console.error('Failed to stop agents:', error);
                 this.addLog('error', 'Failed to stop agents: ' + error.message);
