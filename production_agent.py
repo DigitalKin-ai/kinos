@@ -281,11 +281,12 @@ IMPORTANT:
         Format: <<<<<<< ANCIEN\n[texte]\n=======\n[texte]\n>>>>>>> NOUVEAU
         """
         import re
-        pattern = r'<<<<<<< ANCIEN\s*(.*?)\s*[~=]{3,}\s*(.*?)\s*>>>>>>> NOUVEAU'
+        # Plus strict pattern requiring exact newlines around markers
+        pattern = r'<<<<<<< ANCIEN\n(.*?)\n=======\n(.*?)\n>>>>>>> NOUVEAU'
         matches = re.findall(pattern, content, re.DOTALL)
         
         if not matches:
-            self.logger(f"[{self.__class__.__name__}] ❌ Format invalide: marqueurs manquants")
+            self.logger(f"[{self.__class__.__name__}] ❌ Format invalide: marqueurs manquants ou format incorrect")
             return False
             
         # Vérifier que chaque bloc est bien formé
