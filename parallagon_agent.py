@@ -225,51 +225,57 @@ class ParallagonAgent:
             self.logger(traceback.format_exc())
 
     def determine_actions(self) -> None:
-        """
-        Determine what actions need to be taken based on current state.
-        
-        This is the core decision-making method that:
-        - Evaluates the current context
-        - Identifies necessary changes
-        - Plans appropriate responses
-        - Prepares content updates
-        
-        Must be implemented by specific agent subclasses to define
-        their unique decision-making logic.
-        """
         try:
-            self.logger(f"[{self.__class__.__name__}] Analyse des fichiers...")
+            self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
             
-            # Log des fichiers surveillés
-            for file_path in getattr(self, 'watch_files', []):
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                        self.logger(f"[{self.__class__.__name__}] Fichier {file_path}: {len(content)} caractères")
-                except Exception as e:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur lecture {file_path}: {str(e)}")
-            
-            # Log de l'état actuel
-            current_state = getattr(self, 'current_status', 'UNKNOWN')
-            self.logger(f"[{self.__class__.__name__}] État actuel: {current_state}")
-            
-            # Log des signaux actifs
-            signals = getattr(self, 'signals', [])
-            if signals:
-                self.logger(f"[{self.__class__.__name__}] Signaux actifs: {signals}")
-            else:
-                self.logger(f"[{self.__class__.__name__}] Aucun signal actif")
+            # Lire le contenu actuel de la demande
+            demand_content = self.other_files.get("demande.md")
+            if not demand_content:
+                self.logger(f"[{self.__class__.__name__}] ⚠️ Pas de fichier demande.md trouvé")
+                return
+
+            # Comparer avec la dernière demande connue
+            if demand_content != getattr(self, '_last_demand', None):
+                self.logger(f"[{self.__class__.__name__}] 📝 Nouvelle demande détectée")
                 
-            # Log du contenu actuel
-            if hasattr(self, 'current_content'):
-                self.logger(f"[{self.__class__.__name__}] Taille contenu actuel: {len(self.current_content)} caractères")
-            
-            # Cette méthode doit être implémentée par les sous-classes
-            self.logger(f"[{self.__class__.__name__}] ⚠️ Méthode determine_actions() non implémentée")
-            
+                # Extraire la structure actuelle
+                current_structure = self._parse_template_structure(self.current_content)
+                
+                # Construire le contexte pour le LLM
+                context = {
+                    "specifications": self.current_content,
+                    "other_files": {"demande.md": demand_content}
+                }
+                
+                # Obtenir la réponse du LLM
+                llm_response = self._get_llm_response(context)
+                if not llm_response:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Pas de réponse du LLM")
+                    return
+                    
+                # Parser la nouvelle structure proposée
+                new_structure = self._parse_template_structure(llm_response)
+                
+                # Log des différences pour debug
+                self._log_structure_differences(current_structure, new_structure)
+                
+                if current_structure != new_structure:
+                    self.logger(f"[{self.__class__.__name__}] ✨ Modifications de structure détectées")
+                    self.new_content = llm_response
+                    self.synchronize_template()
+                else:
+                    self.logger(f"[{self.__class__.__name__}] ℹ Aucune modification nécessaire")
+                    
+                # Mettre à jour la dernière demande connue
+                self._last_demand = demand_content
+                
+            else:
+                self.logger(f"[{self.__class__.__name__}] ℹ Pas de nouvelle demande")
+                
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'analyse: {str(e)}")
-            raise
+            import traceback
+            self.logger(traceback.format_exc())
 
     def _build_prompt(self, context: dict) -> str:
         """Construction du prompt pour l'évaluateur"""
