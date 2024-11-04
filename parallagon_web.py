@@ -290,19 +290,29 @@ class ParallagonWeb:
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
 
-        @self.app.route('/api/changes')
-        def get_changes():
-            # Filter logs to get only flash_tab operations
-            flash_notifications = [
-                log for log in self.logs_buffer 
-                if log.get('operation') == 'flash_tab'
-            ]
-            # Clear the notifications after sending
-            self.logs_buffer = [
-                log for log in self.logs_buffer 
-                if log.get('operation') != 'flash_tab'
-            ]
-            return jsonify(flash_notifications)
+        @self.app.route('/api/notifications')
+        def get_notifications():
+            """Get pending notifications"""
+            try:
+                # Filter logs to get only flash_tab operations
+                notifications = [
+                    {
+                        'type': 'info',
+                        'message': f"Nouveau contenu dans {log['status']}"
+                    }
+                    for log in self.logs_buffer 
+                    if log.get('operation') == 'flash_tab'
+                ]
+                
+                # Clear the notifications after sending
+                self.logs_buffer = [
+                    log for log in self.logs_buffer 
+                    if log.get('operation') != 'flash_tab'
+                ]
+                
+                return jsonify(notifications)
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/demande', methods=['POST'])
         def update_demande():

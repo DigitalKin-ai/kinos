@@ -127,6 +127,11 @@ const ParallagonApp = {
         addNotification(type, message) {
             const id = Date.now();
             this.notifications.push({ id, type, message });
+            
+            // Log pour debug
+            console.log('Adding notification:', { id, type, message });
+            
+            // Auto-remove after 5 seconds
             setTimeout(() => {
                 this.notifications = this.notifications.filter(n => n.id !== id);
             }, 5000);
@@ -195,25 +200,36 @@ const ParallagonApp = {
         },
 
         async updateContent() {
-            if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-                try {
-                    const response = await fetch('/api/content');
-                    const data = await response.json();
-                    
-                    this.previousContent = { ...this.content };
-                    this.content = data;
-
-                    this.panels.forEach(panel => {
-                        const hasChanged = this.previousContent[panel.id] !== this.content[panel.id];
-                        panel.updating = hasChanged;
-                        if (hasChanged) {
-                            this.addLog('info', `${panel.name} content updated`);
-                        }
+            try {
+                // Get content updates
+                const contentResponse = await fetch('/api/content');
+                const contentData = await contentResponse.json();
+                
+                // Get notifications
+                const notificationsResponse = await fetch('/api/notifications');
+                const notificationsData = await notificationsResponse.json();
+                
+                // Process notifications
+                if (Array.isArray(notificationsData)) {
+                    notificationsData.forEach(notification => {
+                        this.addNotification(notification.type, notification.message);
                     });
-                } catch (error) {
-                    console.error('Failed to update content:', error);
-                    this.addLog('error', 'Failed to update content: ' + error.message);
                 }
+                
+                this.previousContent = { ...this.content };
+                this.content = contentData;
+
+                // Check for changes and update UI
+                this.panels.forEach(panel => {
+                    const hasChanged = this.previousContent[panel.id] !== this.content[panel.id];
+                    panel.updating = hasChanged;
+                    if (hasChanged) {
+                        this.addLog('info', `${panel.name} content updated`);
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to update content:', error);
+                this.addLog('error', 'Failed to update content: ' + error.message);
             }
         },
 
