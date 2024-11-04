@@ -131,29 +131,37 @@ class ParallagonWeb:
     def handle_content_change(self, file_path: str, content: str, panel_name: str = None, flash: bool = False):
         """Handle content change notifications"""
         try:
-            # Toujours créer une notification, même si le contenu n'a pas changé
+            # Format timestamp consistently
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            
+            # Create notification with all required fields
             notification = {
                 'operation': 'flash_tab',
+                'type': 'info',
                 'status': os.path.basename(file_path),
                 'panel': panel_name or os.path.splitext(os.path.basename(file_path))[0].capitalize(),
-                'timestamp': datetime.now().strftime("%H:%M:%S"),
-                'type': 'info',
-                'message': f'Mise à jour dans {panel_name or file_path}'
+                'timestamp': timestamp,
+                'message': f'Content change in {panel_name or file_path}'
             }
             
+            # Add to notifications queue
             self.notifications_queue.append(notification)
-            self.log_message(f"Added notification for {notification['panel']}", level='debug')
             
-            # Mettre à jour le cache et last_modified
+            # Add to logs buffer with operation field
+            self.log_message(
+                f"Content change in {file_path} -> {panel_name}",
+                operation='flash_tab',
+                status=os.path.basename(file_path),
+                level='info'
+            )
+            
+            # Update cache
             self.content_cache[file_path] = content
             self.last_modified[file_path] = time.time()
             
-            # Log plus détaillé
-            self.log_message(
-                f"Content change in {file_path} -> {panel_name}",
-                operation="flash_tab",
-                status=os.path.basename(file_path)
-            )
+            # Debug logs
+            self.log_message(f"Added notification for {notification['panel']}")
+            self.log_message(f"Notifications queue size: {len(self.notifications_queue)}")
             
         except Exception as e:
             self.log_message(f"Error handling content change: {str(e)}", level='error')

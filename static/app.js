@@ -473,12 +473,13 @@ const ParallagonApp = {
         },
 
         startUpdateLoop() {
+            // Augmenter la fréquence des vérifications
             this.updateInterval = setInterval(() => {
                 this.updateContent();
                 this.updateLogs();
-                this.checkNotifications();
+                this.checkNotifications();  // Vérifie les notifications plus fréquemment
                 this.checkForChanges();
-            }, 200);
+            }, 100);  // Réduit à 100ms au lieu de 200ms
         },
 
         async checkNotifications() {
@@ -486,10 +487,13 @@ const ParallagonApp = {
                 const response = await fetch('/api/notifications');
                 const notifications = await response.json();
                 
-                if (Array.isArray(notifications)) {
+                console.log('Checking notifications:', notifications); // Debug log
+                
+                if (Array.isArray(notifications) && notifications.length > 0) {
+                    console.log(`Processing ${notifications.length} notifications`); // Debug log
+                    
                     notifications.forEach(notification => {
-                        // Debug log
-                        console.log('Processing notification:', notification);
+                        console.log('Processing notification:', notification); // Debug log
                         
                         // Ajouter la notification
                         this.addNotification(notification.type, notification.message);
@@ -497,8 +501,12 @@ const ParallagonApp = {
                         // Flash le tab si nécessaire
                         if (notification.panel) {
                             const tabId = this.tabIds[notification.panel.toLowerCase() + '.md'];
+                            console.log('Tab ID for panel:', tabId); // Debug log
+                            
                             if (tabId) {
                                 const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
+                                console.log('Found tab element:', tab); // Debug log
+                                
                                 if (tab) {
                                     tab.classList.remove('flash-tab');
                                     void tab.offsetWidth; // Force reflow
