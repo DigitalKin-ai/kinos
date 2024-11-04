@@ -289,12 +289,12 @@ class ParallagonWeb:
             app.setActiveTab('suivi-mission');
             """
             # Injecter le script dans la page
-            self.log_message("🚀 Démarrage des agents...")
+            self.log_message("🚀 Démarrage des agents...", level='info')
             self.running = True
             
             # Start content update loop
             def update_loop():
-                self.log_message("✓ Boucle de mise à jour démarrée")
+                self.log_message("✓ Boucle de mise à jour démarrée", level='success')
                 while self.running:
                     try:
                         self.check_content_updates()
@@ -311,14 +311,14 @@ class ParallagonWeb:
                 try:
                     thread = threading.Thread(target=agent.run, daemon=True)
                     thread.start()
-                    self.log_message(f"✓ Agent {name} démarré")
+                    self.log_message(f"✓ Agent {name} démarré", level='success')
                 except Exception as e:
                     self.log_message(f"❌ Erreur démarrage agent {name}: {str(e)}", level='error')
                     
-            self.log_message("✨ Tous les agents sont actifs")
+            self.log_message("✨ Tous les agents sont actifs", level='success')
             
         except Exception as e:
-            self.log_message(f"❌ Erreur globale: {str(e)}")
+            self.log_message(f"❌ Erreur globale: {str(e)}", level='error')
             raise
 
     def stop_agents(self):
