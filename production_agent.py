@@ -370,7 +370,7 @@ IMPORTANT:
             response = self._get_llm_response(context)
             
             # Vérifier si la réponse est dans le bon format
-            if not response or not self._validate_response_format(response):
+            if not response or not self._validate_diff_format(response):
                 self.logger(f"[{self.__class__.__name__}] ❌ Format de réponse LLM invalide")
                 self.logger(f"[{self.__class__.__name__}] Réponse reçue:\n{response}")
                 return
