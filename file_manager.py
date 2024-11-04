@@ -103,11 +103,15 @@ En attente d'initialisation...
                 "demande": "Demande"
             }
         
-            # Appel du callback avec le nom du panneau correct
+            # Appel du callback avec le nom du panneau correct et flash
             if self.on_content_changed:
                 panel_name = panel_mapping.get(file_name)
                 if panel_name:
+                    # Always flash when content changes
                     self.on_content_changed(file_path, content, panel_name, flash=True)
+                    # Notify any listeners about the change
+                    if hasattr(self, 'handle_file_change'):
+                        self.handle_file_change(file_path, content)
                 else:
                     self.on_content_changed(file_path, content)
                 

@@ -68,14 +68,23 @@ class AgentPanel:
             return
             
         if self.flash_active:
-            color = '#ffeb99' if self.flash_count % 2 else 'SystemButtonFace'
+            # Use a more noticeable color scheme
+            color = '#ffd700' if self.flash_count % 2 else 'SystemButtonFace'  # Gold color
             self.frame.configure(background=color)
             self.flash_count += 1
-            self.frame.after(500, self.flash_tab)  # Flash every 500ms
+            self.frame.after(400, self.flash_tab)  # Slightly faster flash (400ms)
             
     def start_flash(self):
         """Start the flashing effect"""
-        if not self.flash_active:
-            self.flash_active = True
+        # Reset any ongoing flash
+        if self.flash_active:
+            self.frame.configure(background='SystemButtonFace')
             self.flash_count = 0
-            self.flash_tab()
+            
+        # Start new flash
+        self.flash_active = True
+        self.flash_count = 0
+        self.flash_tab()
+        
+        # Also highlight recent changes
+        self.highlight_changes()
