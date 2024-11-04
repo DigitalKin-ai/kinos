@@ -90,27 +90,16 @@ En attente d'initialisation...
                 print(f"FileManager: No path found for {file_name}")
                 return False
                 
-            # Écrire le contenu même s'il n'a pas changé
+            # Écrire le contenu
             with open(file_path, 'w', encoding='utf-8') as f:
                 portalocker.lock(f, portalocker.LOCK_EX)
                 f.write(content)
                 portalocker.unlock(f)
                 
-            # Notification mapping
-            panel_mapping = {
-                "specifications": "Specification",
-                "management": "Management", 
-                "production": "Production",
-                "evaluation": "Evaluation",
-                "demande": "Demande"
-            }
-        
-            # Toujours envoyer une notification
+            # Notification immédiate
             if self.on_content_changed:
-                panel_name = panel_mapping.get(file_name)
-                if panel_name:
-                    print(f"FileManager: Notifying change for {file_name} -> {panel_name}")
-                    self.on_content_changed(file_path, content, panel_name, flash=True)
+                panel_name = file_name.split('.')[0].capitalize()
+                self.on_content_changed(file_path, content, panel_name, flash=True)
             
             return True
         except Exception as e:

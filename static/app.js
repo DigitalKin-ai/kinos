@@ -433,11 +433,13 @@ const ParallagonApp = {
         },
 
         startUpdateLoop() {
+            // Un seul intervalle pour toutes les vérifications
             this.updateInterval = setInterval(() => {
                 this.updateContent();
-                this.updateLogs();  // Add logs update
-                this.checkNotifications();  // Add notifications check
-            }, 1000);
+                this.updateLogs();
+                this.checkNotifications();
+                this.checkForChanges();  // Intégré dans la même boucle
+            }, 200);  // Vérifie tout toutes les 200ms
         },
 
         async checkNotifications() {

@@ -499,11 +499,16 @@ class ParallagonWeb:
 
             # Check changes for each file
             for file_name, content in current_content.items():
-                if file_name not in self.last_content or content != self.last_content[file_name]:
+                if (file_name not in self.last_content or 
+                    content != self.last_content[file_name]):
                     # Content modified or new file
-                    self.handle_content_change(file_name, content)
+                    self.handle_content_change(
+                        file_name, 
+                        content,
+                        panel_name=file_name.split('.')[0].capitalize()
+                    )
                     self.last_content[file_name] = content
-                    self.log_message(f"Content updated in {file_name}", level='info')
+                    self.log_message(f"Content updated in {file_name}")
 
         except Exception as e:
             self.log_message(f"Error checking content updates: {str(e)}", level='error')
