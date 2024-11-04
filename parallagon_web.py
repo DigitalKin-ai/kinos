@@ -141,6 +141,9 @@ class ParallagonWeb:
         # Add flash notification to logs buffer
         self.log_message("", operation="flash_tab", status=file_name)
 
+        # Add flash notification to logs buffer
+        self.log_message("", operation="flash_tab", status=file_name)
+
     def setup_routes(self):
         @self.app.route('/api/test-data', methods=['POST'])
         def load_test_data():
