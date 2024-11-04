@@ -587,9 +587,9 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         """Boucle de mise à jour des panneaux"""
         while self.running and self.updating:
             try:
-                # Utiliser after() au lieu d'appels directs pour éviter le blocage de l'interface
-                self.root.after(0, self._do_update)
-                time.sleep(self.update_interval / 1000)  # Convert ms to seconds
+                # Réduire l'intervalle pour des mises à jour plus fréquentes
+                self.root.after(500, self._do_update)  # 500ms au lieu de 1000ms
+                time.sleep(0.5)  # 0.5 secondes entre les mises à jour
             except Exception as e:
                 self.log_message(f"❌ Erreur dans la boucle de mise à jour: {e}")
 
@@ -599,8 +599,27 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             self.update_indicator.config(text="●")
             self.update_all_panels()
             self.root.after(100, lambda: self.update_indicator.config(text="○"))
+            self.root.update_idletasks()  # Force GUI refresh
         except Exception as e:
             self.log_message(f"❌ Erreur lors de la mise à jour: {e}")
+            
+    def force_panel_update(self, panel_name: str):
+        """Force la mise à jour d'un panneau spécifique"""
+        try:
+            if panel_name in self.panel_mapping:
+                file_path = self.FILE_PATHS[panel_name]
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    
+                panel = self.agent_panels.get(self.panel_mapping[panel_name])
+                if panel:
+                    panel.text.delete("1.0", tk.END)
+                    panel.text.insert("1.0", content)
+                    panel.highlight_changes()
+                    self.root.update_idletasks()
+                    
+        except Exception as e:
+            self.log_message(f"❌ Erreur lors de la mise à jour forcée du panneau {panel_name}: {str(e)}")
             
     def flash_tab(self, tab_name):
         """Fait flasher un tab en bleu pendant 1 seconde"""
@@ -631,73 +650,47 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
 
     def update_all_panels(self):
         """Mise à jour de tous les panneaux d'agents"""
-        def read_file_content(file_path):
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    return f.read()
-            except Exception:
-                return None
-
         try:
             updated_panels = []
             changes = {}
 
-            # Lecture des fichiers en parallèle
-            file_contents = {}
-            threads = []
-            
+            # Lecture des fichiers
             for name, file_path in self.FILE_PATHS.items():
-                def read_for_file(n=name, p=file_path):
-                    file_contents[n] = read_file_content(p)
-                thread = threading.Thread(target=read_for_file)
-                thread.start()
-                threads.append(thread)
-
-            # Attendre la fin des lectures
-            for thread in threads:
-                thread.join(timeout=0.1)
-
-            # Mise à jour de l'interface
-            for name, content in file_contents.items():
-                if content is None:
-                    continue
-                    
-                # Traitement spécial pour le panneau Demande
-                if name == "demande":
-                    old_content = self.demand_text.get("1.0", tk.END).strip()
-                    if content.strip() != old_content:
-                        self.demand_text.delete("1.0", tk.END)
-                        self.demand_text.insert("1.0", content)
-                        updated_panels.append("Demande")
-                        changes["Demande"] = {"old": old_content, "new": content}
-                        self.flash_tab("Demande")  # Flash l'onglet Demande
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
                         
-                # Traitement pour les autres panneaux
-                elif name in self.panel_mapping:
-                    panel_name = self.panel_mapping[name]
-                    panel = self.agent_panels.get(panel_name)
-                    if panel:
-                        old_content = panel.text.get("1.0", tk.END).strip()
+                    # Traitement spécial pour le panneau Demande
+                    if name == "demande":
+                        old_content = self.demand_text.get("1.0", tk.END).strip()
                         if content.strip() != old_content:
-                            panel.update_content(content)
-                            updated_panels.append(panel_name)
-                            changes[panel_name] = {"old": old_content, "new": content}
-                            if panel_name != "Production":  # Ne pas flasher l'onglet Production qui est toujours visible
-                                self.flash_tab(panel_name)  # Flash l'onglet correspondant
+                            self.demand_text.delete("1.0", tk.END)
+                            self.demand_text.insert("1.0", content)
+                            updated_panels.append("Demande")
+                            changes["Demande"] = {"old": old_content, "new": content}
+                            self.flash_tab("Demande")
+                            
+                    # Traitement pour les autres panneaux
+                    elif name in self.panel_mapping:
+                        panel_name = self.panel_mapping[name]
+                        if panel_name in self.agent_panels:
+                            panel = self.agent_panels[panel_name]
+                            old_content = panel.text.get("1.0", tk.END).strip()
+                            if content.strip() != old_content:
+                                panel.text.delete("1.0", tk.END)
+                                panel.text.insert("1.0", content)
+                                panel.highlight_changes()  # Appel explicite pour mettre en évidence les changements
+                                updated_panels.append(panel_name)
+                                changes[panel_name] = {"old": old_content, "new": content}
+                                if panel_name != "Production":  # Ne pas flasher l'onglet Production
+                                    self.flash_tab(panel_name)
+                                    
+                except Exception as e:
+                    self.log_message(f"❌ Erreur lors de la lecture de {file_path}: {str(e)}")
 
-                        # Si c'est le panneau Specification, mettre à jour les sections
-                        if panel_name == "Specification":
-                            specs_content = content
-                            prod_content = file_contents.get("production", "")
-                            if specs_content and prod_content:
-                                # Extraire les sections et leurs contraintes depuis specifications.md
-                                sections_data = self._parse_sections(specs_content)
-                                # Ajouter le contenu depuis production.md
-                                self._add_production_content(sections_data, prod_content)
-                                # Mettre à jour l'affichage des sections
-                                self._update_sections_display(sections_data)
-
+            # Forcer la mise à jour de l'interface
             if updated_panels:
+                self.root.update_idletasks()
                 self._get_changes_summary(changes)
 
         except Exception as e:
