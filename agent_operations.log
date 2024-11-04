@@ -1,0 +1,69 @@
+[2024-11-04 05:14:37] Initializing agents...
+[2024-11-04 05:14:38] Agents initialized successfully
+[2024-11-04 05:14:39] Initializing agents...
+[2024-11-04 05:14:40] Agents initialized successfully
+[2024-11-04 05:16:14] Initializing agents...
+[2024-11-04 05:16:15] Agents initialized successfully
+[2024-11-04 05:16:23] All files reset to initial state
+[2024-11-04 05:22:44] Starting agents...
+[2024-11-04 05:22:44] Content update loop started
+[2024-11-04 05:22:44] Update loop thread started
+[2024-11-04 05:22:44] Agent Specification started successfully
+[2024-11-04 05:22:44] Error checking content updates: 'ParallagonWeb' object has no attribute 'last_content'
+[2024-11-04 05:22:44] Agent Management started successfully
+[2024-11-04 05:22:44] [SpecificationsAgent] Début de l'analyse...
+[2024-11-04 05:22:44] [ManagementAgent] Début de l'analyse...
+[2024-11-04 05:22:44] Agent Production started successfully
+[2024-11-04 05:22:44] Agent Evaluation started successfully
+[2024-11-04 05:22:44] [ProductionAgent] Début de l'analyse...
+[2024-11-04 05:22:44] All agents started successfully
+[2024-11-04 05:22:44] Début de l'analyse...
+[2024-11-04 05:22:44] [ProductionAgent] Calling LLM API...
+[2024-11-04 05:22:44] [ProductionAgent] Error calling LLM: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}}
+[2024-11-04 05:22:44] Traceback (most recent call last):
+  File "C:\Users\conta\parallagon\production_agent.py", line 193, in _get_llm_response
+    response = self.client.messages.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\site-packages\anthropic\_utils\_utils.py", line 274, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\site-packages\anthropic\resources\messages.py", line 888, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "C:\Python312\Lib\site-packages\anthropic\_base_client.py", line 1277, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\site-packages\anthropic\_base_client.py", line 954, in request
+    return self._request(
+           ^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\site-packages\anthropic\_base_client.py", line 1058, in _request
+    raise self._make_status_error_from_response(err.response) from None
+anthropic.AuthenticationError: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}}
+
+[2024-11-04 05:22:44] [ProductionAgent] Aucune modification nécessaire
+[2024-11-04 05:22:44] [ProductionAgent] Début de l'analyse...
+[2024-11-04 05:22:44] [ProductionAgent] Calling LLM API...
+[2024-11-04 05:22:44] [ProductionAgent] Error calling LLM: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}}
+[2024-11-04 05:22:44] Traceback (most recent call last):
+  File "C:\Users\conta\parallagon\production_agent.py", line 193, in _get_llm_response
+    response = self.client.messages.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\site-packages\anthropic\_utils\_utils.py", line 274, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\site-packages\anthropic\resources\messages.py", line 888, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "C:\Python312\Lib\site-packages\anthropic\_base_client.py", line 1277, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\site-packages\anthropic\_base_client.py", line 954, in request
+    return self._request(
+           ^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\site-packages\anthropic\_base_client.py", line 1058, in _request
+    raise self._make_status_error_from_response(err.response) from None
+anthropic.AuthenticationError: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}}
+
+[2024-11-04 05:22:44] [ProductionAgent] Aucune modification nécessaire
+[2024-11-04 05:22:46] Initializing agents...
+[2024-11-04 05:22:47] Agents initialized successfully

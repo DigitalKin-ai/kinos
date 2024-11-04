@@ -51,7 +51,7 @@ Résumez en une phrase précise ce qui a changé. Soyez factuel et concis."""
         for attempt in range(max_retries):
             try:
                 return self.client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gpt-4",
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0,
                     max_tokens=100

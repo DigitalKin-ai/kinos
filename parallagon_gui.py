@@ -638,16 +638,6 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             except Exception:
                 return None
 
-        def update_sections(specs_content, prod_content):
-            # Extraire les sections et leurs contraintes depuis specifications.md
-            sections_data = self._parse_sections(specs_content)
-            
-            # Ajouter le contenu depuis production.md
-            self._add_production_content(sections_data, prod_content)
-            
-            # Mettre à jour l'affichage des sections
-            self._update_sections_display(sections_data)
-
         try:
             updated_panels = []
             changes = {}
@@ -665,7 +655,7 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
 
             # Attendre la fin des lectures
             for thread in threads:
-                thread.join(timeout=0.1)  # Court timeout pour éviter le blocage
+                thread.join(timeout=0.1)
 
             # Mise à jour de l'interface
             for name, content in file_contents.items():
@@ -680,7 +670,8 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                         self.demand_text.insert("1.0", content)
                         updated_panels.append("Demande")
                         changes["Demande"] = {"old": old_content, "new": content}
-                        self.flash_tab("Demande")
+                        self.flash_tab("Demande")  # Flash l'onglet Demande
+                        
                 # Traitement pour les autres panneaux
                 elif name in self.panel_mapping:
                     panel_name = self.panel_mapping[name]
@@ -691,8 +682,8 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
                             panel.update_content(content)
                             updated_panels.append(panel_name)
                             changes[panel_name] = {"old": old_content, "new": content}
-                            if panel_name != "Production":
-                                self.flash_tab(panel_name)
+                            if panel_name != "Production":  # Ne pas flasher l'onglet Production qui est toujours visible
+                                self.flash_tab(panel_name)  # Flash l'onglet correspondant
 
                         # Si c'est le panneau Specification, mettre à jour les sections
                         if panel_name == "Specification":
