@@ -51,6 +51,24 @@ const ParallagonApp = {
         }
     },
     methods: {
+        async loadInitialContent() {
+            try {
+                this.loading = true;
+                const response = await fetch('/api/content');
+                if (!response.ok) {
+                    throw new Error('Failed to load initial content');
+                }
+                const data = await response.json();
+                this.content = data;
+                this.previousContent = { ...data };
+                this.addNotification('success', 'Content loaded successfully');
+            } catch (error) {
+                console.error('Error loading initial content:', error);
+                this.addNotification('error', `Failed to load content: ${error.message}`);
+            } finally {
+                this.loading = false;
+            }
+        },
         notificationIcon(type) {
             switch (type) {
                 case 'success':
@@ -406,26 +424,6 @@ const ParallagonApp = {
         }
     },
 
-    methods: {
-        async loadInitialContent() {
-            try {
-                this.loading = true;
-                const response = await fetch('/api/content');
-                if (!response.ok) {
-                    throw new Error('Failed to load initial content');
-                }
-                const data = await response.json();
-                this.content = data;
-                this.previousContent = { ...data };
-                this.addNotification('success', 'Content loaded successfully');
-            } catch (error) {
-                console.error('Error loading initial content:', error);
-                this.addNotification('error', `Failed to load content: ${error.message}`);
-            } finally {
-                this.loading = false;
-            }
-        }
-    },
     
     mounted() {
         this.loadInitialContent()
