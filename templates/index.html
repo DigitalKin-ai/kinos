@@ -7,10 +7,10 @@
     <header class="parallagon-header">
         <h1 class="parallagon-title">⚫ Parallagon</h1>
         <div class="parallagon-controls">
-            <button @click="startAgents" class="btn btn-start">Start</button>
-            <button @click="stopAgents" class="btn btn-stop">Stop</button>
-            <span :class="running ? 'status-running' : 'status-stopped'">
-                ● {{running ? 'Running' : 'Stopped'}}
+            <button v-on:click="startAgents" class="btn btn-start">Start</button>
+            <button v-on:click="stopAgents" class="btn btn-stop">Stop</button>
+            <span v-bind:class="running ? 'status-running' : 'status-stopped'">
+                ● {{ '{{running ? "Running" : "Stopped"}}' }}
             </span>
         </div>
     </header>
@@ -26,9 +26,9 @@
         <div v-for="panel in ['specifications', 'management', 'production', 'evaluation']" 
              :key="panel"
              class="panel">
-            <h2 class="panel-title">{{panel}}</h2>
+            <h2 class="panel-title">{{ '{{panel}}' }}</h2>
             <div class="panel-content">
-                <pre class="whitespace-pre-wrap">{{content[panel]}}</pre>
+                <pre class="whitespace-pre-wrap">{{ '{{content[panel]}}' }}</pre>
             </div>
         </div>
     </div>
@@ -37,7 +37,7 @@
     <div class="panel logs-panel">
         <h2 class="panel-title">Logs</h2>
         <div class="panel-content logs-content">
-            <pre v-for="log in logs" :key="log" class="log-entry">{{log}}</pre>
+            <pre v-for="log in logs" :key="log" class="log-entry">{{ '{{log}}' }}</pre>
         </div>
     </div>
 </div>
