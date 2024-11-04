@@ -346,26 +346,35 @@ class ParallagonWeb:
         def get_notifications():
             """Get pending notifications"""
             try:
-                # Return filtered logs buffer directly
-                notifications = [
-                    {
-                        'type': 'info',
-                        'message': log.get('message', ''),
-                        'timestamp': log.get('timestamp', '')
-                    }
-                    for log in self.logs_buffer
-                    if log.get('operation') == 'flash_tab'
-                ]
-                
-                # Clean buffer after sending
+                # Récupérer toutes les notifications récentes (logs avec operation)
+                recent_notifications = []
+                for log in self.logs_buffer:
+                    if log.get('operation') == 'flash_tab':
+                        notification = {
+                            'type': 'info',
+                            'message': log.get('message', ''),
+                            'timestamp': log.get('timestamp', ''),
+                            'panel': log.get('panel', '')
+                        }
+                        recent_notifications.append(notification)
+                        
+                # Debug log
+                if recent_notifications:
+                    self.log_message(
+                        f"Sending {len(recent_notifications)} notifications to frontend",
+                        level='debug'
+                    )
+                    
+                # Nettoyer les notifications envoyées
                 self.logs_buffer = [
                     log for log in self.logs_buffer 
                     if log.get('operation') != 'flash_tab'
                 ]
                 
-                return jsonify(notifications)
+                return jsonify(recent_notifications)
+                
             except Exception as e:
-                self.logger(f"Error getting notifications: {str(e)}")
+                self.log_message(f"Error getting notifications: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/demande', methods=['POST'])

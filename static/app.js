@@ -488,8 +488,28 @@ const ParallagonApp = {
                 
                 if (Array.isArray(notifications)) {
                     notifications.forEach(notification => {
-                        console.log('Received notification:', notification); // Debug log
+                        // Debug log
+                        console.log('Processing notification:', notification);
+                        
+                        // Ajouter la notification
                         this.addNotification(notification.type, notification.message);
+                        
+                        // Flash le tab si nécessaire
+                        if (notification.panel) {
+                            const tabId = this.tabIds[notification.panel.toLowerCase() + '.md'];
+                            if (tabId) {
+                                const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
+                                if (tab) {
+                                    tab.classList.remove('flash-tab');
+                                    void tab.offsetWidth; // Force reflow
+                                    tab.classList.add('flash-tab');
+                                    
+                                    setTimeout(() => {
+                                        tab.classList.remove('flash-tab');
+                                    }, 1000);
+                                }
+                            }
+                        }
                     });
                 }
             } catch (error) {
