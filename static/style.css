@@ -1,74 +1,180 @@
-/* Base styles */
-:root {
-    /* Add tab-specific colors */
-    --tab-active-bg: #2d3748;
-    --tab-hover-bg: rgba(255, 255, 255, 0.1);
-    --primary-color: #1a202c;
-    --secondary-color: #2d3748;
-    --accent-color: #4299e1;
-    --text-color: #e2e8f0;
-    --error-color: #f56565;
-    --success-color: #48bb78;
-    --warning-color: #ed8936;
-}
-
-/* Tab Navigation */
-.tab-nav {
+/* Main container */
+.main-container {
     display: flex;
-    background-color: var(--primary-color);
-    padding: 0.5rem 1rem 0;
-    gap: 0.25rem;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #f8f9fa;
 }
 
-.tab-btn {
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #1a202c;
+    color: white;
+}
+
+.logo {
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* Content container */
+.content-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 200px;
+    background-color: #f1f3f5;
+    border-right: 1px solid #e9ecef;
+    display: flex;
+    flex-direction: column;
+}
+
+.tab-item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
-    color: var(--text-color);
-    background: transparent;
-    border: none;
-    border-radius: 0.375rem 0.375rem 0 0;
+    padding: 0.75rem 1rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    border-bottom: 1px solid #e9ecef;
+    color: #495057;
+    transition: background-color 0.2s;
 }
 
-.tab-btn:hover {
-    background-color: var(--tab-hover-bg);
+.tab-item:hover {
+    background-color: #e9ecef;
 }
 
-.tab-btn.active {
-    background-color: var(--tab-active-bg);
-    color: var(--accent-color);
+.tab-item.active {
+    background-color: #e9ecef;
+    color: #228be6;
 }
 
-.tab-btn i {
-    font-size: 1.25rem;
+.tab-item i {
+    width: 20px;
 }
 
-/* Tab Content */
-.tab-content {
-    background-color: var(--secondary-color);
+/* Content area */
+.content-area {
     flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.tab-pane {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+    overflow: auto;
     padding: 1rem;
+    background-color: white;
 }
 
-/* Main Content Layout */
-.main-content {
+/* Demande input */
+.demande-input {
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    font-family: monospace;
+    resize: none;
+}
+
+/* Agent content */
+.agent-content {
+    white-space: pre-wrap;
+    font-family: monospace;
+    padding: 1rem;
+    margin: 0;
+    height: 100%;
+    overflow: auto;
+}
+
+/* Logs */
+.logs-content {
+    height: 100%;
+    overflow: auto;
+    font-family: monospace;
+    font-size: 0.875rem;
+}
+
+.log-entry {
+    padding: 0.25rem 0;
     display: flex;
-    flex-direction: column;
-    height: calc(100vh - 4rem);
-    margin: -1rem;
-    overflow: hidden;
+    gap: 1rem;
+}
+
+.log-timestamp {
+    color: #868e96;
+    flex-shrink: 0;
+}
+
+/* Buttons */
+.btn-start, .btn-stop, .btn-save, .btn-export, .btn-clear {
+    padding: 0.375rem 0.75rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background-color 0.2s;
+}
+
+.btn-start {
+    background-color: #40c057;
+    color: white;
+}
+
+.btn-start:disabled {
+    background-color: #8cd99b;
+    cursor: not-allowed;
+}
+
+.btn-stop {
+    background-color: #fa5252;
+    color: white;
+}
+
+.btn-stop:disabled {
+    background-color: #fca5a5;
+    cursor: not-allowed;
+}
+
+.btn-save {
+    background-color: #228be6;
+    color: white;
+    margin-left: auto;
+}
+
+.btn-save:disabled {
+    background-color: #90c2f0;
+    cursor: not-allowed;
+}
+
+/* Status indicator */
+.status {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #fa5252;
+}
+
+.status.status-running {
+    color: #40c057;
+}
+
+/* Logs controls */
+.logs-controls {
+    padding: 0.75rem 1rem;
+    display: flex;
+    gap: 0.5rem;
+    border-top: 1px solid #e9ecef;
+    margin-top: auto;
 }
 
 /* Header */

@@ -8,77 +8,67 @@
 {% endblock %}
 
 {% block content %}
-<div id="app" class="min-h-screen">
-    <!-- Main content area -->
-    <div class="main-content">
-        <!-- Tab navigation -->
-        <div class="tab-nav">
-            <button class="tab-btn" 
-                    v-for="tab in tabs" 
-                    :key="tab.id"
-                    :class="{ active: activeTab === tab.id }"
-                    @click="setActiveTab(tab.id)">
-                <i :class="tab.icon"></i>
-                ${tab.name}
-            </button>
+<div id="app">
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">⚫ Parallagon</div>
+            <div class="controls">
+                <button class="btn-start" @click="startAgents" :disabled="running">
+                    ▶ Start
+                </button>
+                <button class="btn-stop" @click="stopAgents" :disabled="!running">
+                    ■ Stop
+                </button>
+                <span class="status" :class="{ 'status-running': running }">
+                    ● {{ running ? 'Running' : 'Stopped' }}
+                </span>
+            </div>
         </div>
 
-        <!-- Tab content -->
-        <div class="tab-content">
-            <!-- Demande tab -->
-            <div v-show="activeTab === 'demande'" class="tab-pane">
-                <div class="panel-header">
-                    <h2 class="panel-title">
-                        <i class="mdi mdi-file-document-outline"></i>
-                        Demande
-                    </h2>
-                    <button @click="saveDemande" 
+        <!-- Main content with sidebar tabs -->
+        <div class="content-container">
+            <!-- Left sidebar tabs -->
+            <div class="sidebar">
+                <div class="tab-item" 
+                     v-for="tab in tabs" 
+                     :key="tab.id"
+                     :class="{ active: activeTab === tab.id }"
+                     @click="setActiveTab(tab.id)">
+                    <i :class="tab.icon"></i>
+                    <span>${tab.name}</span>
+                    <button v-if="tab.id === 'demande'" 
                             class="btn-save"
+                            @click.stop="saveDemande"
                             :disabled="!demandeChanged">
-                        <i class="mdi mdi-content-save"></i> Save
+                        Save
                     </button>
                 </div>
-                <div class="panel-content">
-                    <textarea v-model="content.demande" 
-                             @input="onDemandeInput"
-                             class="content-area"></textarea>
+                
+                <!-- Logs controls -->
+                <div class="logs-controls" v-if="activeTab === 'logs'">
+                    <button class="btn-export" @click="exportLogs">Export</button>
+                    <button class="btn-clear" @click="clearLogs">Clear</button>
                 </div>
             </div>
 
-            <!-- Agent tabs -->
-            <template v-for="panel in panels" :key="panel.id">
-                <div v-show="activeTab === panel.id" class="tab-pane">
-                    <div class="panel-header">
-                        <h2 class="panel-title">
-                            <i :class="panel.icon"></i>
-                            ${panel.name}
-                        </h2>
-                    </div>
-                    <div class="panel-content">
-                        <pre class="content-display" v-html="highlightContent(panel.id)"></pre>
-                    </div>
-                </div>
-            </template>
+            <!-- Content area -->
+            <div class="content-area">
+                <!-- Demande content -->
+                <textarea v-if="activeTab === 'demande'"
+                         v-model="content.demande"
+                         @input="onDemandeInput"
+                         class="demande-input"></textarea>
 
-            <!-- Logs tab -->
-            <div v-show="activeTab === 'logs'" class="tab-pane">
-                <div class="panel-header">
-                    <h2 class="panel-title">
-                        <i class="mdi mdi-console-line"></i>
-                        Logs
-                    </h2>
-                    <div class="panel-controls">
-                        <button @click="exportLogs" class="btn-export">
-                            <i class="mdi mdi-download"></i> Export
-                        </button>
-                        <button @click="clearLogs" class="btn-clear">
-                            <i class="mdi mdi-trash-can"></i> Clear
-                        </button>
-                    </div>
-                </div>
-                <div class="panel-content logs-content">
-                    <div v-for="log in logs" 
-                         :key="log.id" 
+                <!-- Agent panels content -->
+                <pre v-else-if="activeTab !== 'logs'"
+                     class="agent-content"
+                     v-html="highlightContent(activeTab)"></pre>
+
+                <!-- Logs content -->
+                <div v-else class="logs-content">
+                    <div v-for="log in logs"
+                         :key="log.id"
                          class="log-entry"
                          :class="log.level">
                         <span class="log-timestamp">${log.timestamp}</span>
@@ -87,18 +77,6 @@
                 </div>
             </div>
         </div>
-    </div>
-    <!-- Notifications -->
-    <div class="notifications-container">
-        <transition-group name="notification">
-            <div v-for="notification in notifications"
-                 :key="notification.id"
-                 class="notification"
-                 :class="notification.type">
-                <i :class="notificationIcon(notification.type)"></i>
-                <span class="notification-message">${notification.message}</span>
-            </div>
-        </transition-group>
     </div>
 
     {% raw %}
