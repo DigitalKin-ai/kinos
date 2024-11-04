@@ -225,6 +225,9 @@
 /* Panels */
 .panel {
     @apply bg-white rounded-lg shadow-md overflow-hidden;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
     transition: all 0.3s ease;
     position: relative;
 }
@@ -257,6 +260,10 @@
 
 .panel-content {
     @apply p-4;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Content areas */
