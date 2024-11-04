@@ -55,24 +55,92 @@
             <!-- Content area -->
             <div class="content-area">
                 <!-- Demande content -->
-                <textarea v-if="activeTab === 'demande'"
-                         v-model="content.demande"
-                         @input="onDemandeInput"
-                         class="demande-input"></textarea>
+                <div v-if="activeTab === 'demande'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-file-document-outline mr-2"></i>Demande
+                        </h2>
+                    </div>
+                    <div class="panel-content">
+                        <textarea v-model="content.demande"
+                                 @input="onDemandeInput"
+                                 class="content-area"></textarea>
+                    </div>
+                </div>
 
-                <!-- Agent panels content -->
-                <pre v-else-if="activeTab !== 'logs'"
-                     class="agent-content"
-                     v-html="highlightContent(activeTab)"></pre>
+                <!-- Specifications content -->
+                <div v-if="activeTab === 'specifications'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-file-tree mr-2"></i>Specifications
+                        </h2>
+                    </div>
+                    <div class="panel-content">
+                        <pre class="content-display" v-html="highlightContent('specifications')"></pre>
+                    </div>
+                </div>
 
-                <!-- Logs content -->
-                <div v-else class="logs-content">
-                    <div v-for="log in logs"
-                         :key="log.id"
-                         class="log-entry"
-                         :class="log.level">
-                        <span class="log-timestamp">${log.timestamp}</span>
-                        <span class="log-message">${log.message}</span>
+                <!-- Management content -->
+                <div v-if="activeTab === 'management'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-account-supervisor mr-2"></i>Management
+                        </h2>
+                    </div>
+                    <div class="panel-content">
+                        <pre class="content-display" v-html="highlightContent('management')"></pre>
+                    </div>
+                </div>
+
+                <!-- Production content -->
+                <div v-if="activeTab === 'production'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-code-braces mr-2"></i>Production
+                        </h2>
+                    </div>
+                    <div class="panel-content">
+                        <pre class="content-display" v-html="highlightContent('production')"></pre>
+                    </div>
+                </div>
+
+                <!-- Evaluation content -->
+                <div v-if="activeTab === 'evaluation'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-check-circle mr-2"></i>Evaluation
+                        </h2>
+                    </div>
+                    <div class="panel-content">
+                        <pre class="content-display" v-html="highlightContent('evaluation')"></pre>
+                    </div>
+                </div>
+
+                <!-- Suivi Mission content -->
+                <div v-if="activeTab === 'suivi-mission'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-console-line mr-2"></i>Suivi Mission
+                        </h2>
+                        <div class="panel-controls">
+                            <button @click="exportLogs" class="btn-export">
+                                <i class="mdi mdi-download mr-1"></i> Export
+                            </button>
+                            <button @click="clearLogs" class="btn-clear">
+                                <i class="mdi mdi-trash-can mr-1"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div class="suivi-mission-content">
+                            <div v-for="log in logs"
+                                 :key="log.id" 
+                                 class="suivi-mission-entry"
+                                 :class="log.level">
+                                <span class="log-timestamp">${ log.timestamp }</span>
+                                <span class="log-message" v-html="log.message"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
