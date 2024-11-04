@@ -399,10 +399,7 @@ const ParallagonApp = {
                 const response = await fetch('/api/logs');
                 const data = await response.json();
                 if (data.logs && Array.isArray(data.logs)) {
-                    this.logs = data.logs.map(log => ({
-                        ...log,
-                        timestamp: new Date(log.timestamp).toLocaleString()
-                    }));
+                    this.logs = data.logs;
                 }
             } catch (error) {
                 console.error('Failed to fetch logs:', error);
