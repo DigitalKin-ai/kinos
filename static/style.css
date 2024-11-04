@@ -4,6 +4,7 @@
     flex-direction: column;
     height: 100vh;
     background-color: #f8f9fa;
+    overflow: hidden;
 }
 
 /* Header */
@@ -32,6 +33,14 @@
     display: flex;
     flex: 1;
     overflow: hidden;
+}
+
+/* Content area */
+.content-area {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Sidebar */
@@ -269,15 +278,16 @@
 /* Panel in tabs */
 .panel {
     @apply bg-white rounded-lg shadow-md overflow-hidden;
-    height: calc(100vh - 200px);
     display: flex;
     flex-direction: column;
+    height: 100%;
+    overflow: hidden;
 }
 
 .panel-content {
     @apply p-4;
     flex: 1;
-    overflow: hidden;
+    overflow: auto;
     display: flex;
     flex-direction: column;
 }
@@ -288,6 +298,7 @@ textarea.content-area {
     flex: 1;
     resize: none;
     font-family: monospace;
+    overflow: auto;
 }
 
 .content-display {
@@ -498,10 +509,17 @@ textarea.content-area {
     .lg-grid-cols-2 {
         grid-template-columns: 1fr;
     }
-    
-    .panel {
-        min-height: 250px;
-    }
+}
+
+/* Base body and container styles */
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+.container {
+    height: 100vh;
+    overflow: hidden;
 }
 
 .log-entry {
