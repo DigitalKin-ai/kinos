@@ -347,8 +347,8 @@ IMPORTANT:
             
             # Utiliser SearchReplace pour faire la modification
             result = SearchReplace.section_replace(modified_content, old_text, new_text)
-            if result.success and result.new_content:  # Vérifier que new_content existe
-                modified_content = result.new_content  # Utiliser new_content au lieu de content
+            if result.success and result.content:  # Vérifier que content existe
+                modified_content = result.content  # Utiliser content au lieu de new_content
                 self.logger(f"✓ Remplacement effectué: '{old_text}' -> '{new_text}'")
             else:
                 self.logger(f"❌ Échec du remplacement: {result.message}")
