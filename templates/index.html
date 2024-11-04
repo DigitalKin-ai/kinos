@@ -4,34 +4,33 @@
 
 {% block head %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 {% endblock %}
 
 {% block content %}
 <div id="app" class="min-h-screen">
-    <!-- Header with controls -->
-    <header class="parallagon-header bg-gray-800 text-white p-4 shadow-lg">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="parallagon-title text-2xl font-bold flex items-center">
-                <span class="text-blue-400 mr-2">⚫</span> Parallagon
-            </h1>
-            <div class="parallagon-controls flex items-center space-x-4">
-                <button v-on:click="startAgents" 
-                        :disabled="running"
-                        class="btn-start flex items-center">
-                    <i class="mdi mdi-play mr-2"></i> Start
-                </button>
-                <button v-on:click="stopAgents" 
-                        :disabled="!running"
-                        class="btn-stop flex items-center">
-                    <i class="mdi mdi-stop mr-2"></i> Stop
-                </button>
-                <div class="status-indicator flex items-center">
-                    <span v-bind:class="running ? 'status-running' : 'status-stopped'"
-                          class="flex items-center">
-                        <i class="mdi" :class="running ? 'mdi-circle text-green-500' : 'mdi-circle text-red-500'"></i>
-                        <span class="ml-2">{{ '{{running ? "Running" : "Stopped"}}' }}</span>
-                    </span>
-                </div>
+    <!-- Header -->
+    <header class="parallagon-header">
+        <h1 class="parallagon-title">
+            <span class="status-dot" :class="running ? 'running' : 'stopped'"></span>
+            Parallagon
+        </h1>
+        <div class="control-buttons">
+            <button class="btn btn-start" 
+                    @click="startAgents" 
+                    :disabled="running">
+                <i class="mdi mdi-play"></i>
+                Start
+            </button>
+            <button class="btn btn-stop" 
+                    @click="stopAgents" 
+                    :disabled="!running">
+                <i class="mdi mdi-stop"></i>
+                Stop
+            </button>
+            <div class="status-indicator">
+                <span>{{ '{{running ? "Running" : "Stopped"}}' }}</span>
+            </div>
             </div>
         </div>
     </header>
