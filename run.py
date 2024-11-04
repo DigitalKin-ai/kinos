@@ -1,9 +1,12 @@
-from gevent import pywsgi
+from gevent import pywsgi, monkey
 from geventwebsocket.handler import WebSocketHandler
 from parallagon_web import ParallagonWeb
 import logging
 import os
 from dotenv import load_dotenv
+
+# Apply gevent monkey patching at the start
+monkey.patch_all()
 
 def get_config():
     # Load environment variables from .env file

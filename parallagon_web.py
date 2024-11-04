@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, request, url_for, make_response
 from flask_sock import Sock
-from flask_sock import Sock
+from geventwebsocket.websocket import WebSocket
 import threading
 import time
 import json
@@ -71,31 +71,31 @@ class ParallagonWeb:
 
     def setup_routes(self):
         @self.sock.route('/ws')
-        def handle_websocket(ws):
+        def handle_websocket(ws: WebSocket):
             """Handle WebSocket connections"""
             self.clients.add(ws)
             self.log_message("New WebSocket client connected")
             
-            # Send initial content
-            initial_content = {
-                'type': 'content_update',
-                'content': {
-                    'demande': self.file_manager.read_file('demande.md'),
-                    'specifications': self.file_manager.read_file('specifications.md'),
-                    'management': self.file_manager.read_file('management.md'),
-                    'production': self.file_manager.read_file('production.md'),
-                    'evaluation': self.file_manager.read_file('evaluation.md')
-                }
-            }
-            ws.send(json.dumps(initial_content))
-            
             try:
-                while True:
+                # Send initial content
+                initial_content = {
+                    'type': 'content_update',
+                    'content': {
+                        'demande': self.file_manager.read_file('demande.md'),
+                        'specifications': self.file_manager.read_file('specifications.md'),
+                        'management': self.file_manager.read_file('management.md'),
+                        'production': self.file_manager.read_file('production.md'),
+                        'evaluation': self.file_manager.read_file('evaluation.md')
+                    }
+                }
+                ws.send(json.dumps(initial_content))
+                
+                while not ws.closed:
                     message = ws.receive()
-                    if message is not None:
-                        self.process_websocket_message(message, ws)
-                    else:
+                    if message is None:
                         break
+                    self.process_websocket_message(message, ws)
+                    
             except Exception as e:
                 self.log_message(f"WebSocket error: {str(e)}")
             finally:
