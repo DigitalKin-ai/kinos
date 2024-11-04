@@ -1,4 +1,5 @@
-from waitress import serve
+from gevent import pywsgi
+from geventwebsocket.handler import WebSocketHandler
 from parallagon_web import ParallagonWeb
 import logging
 import os
@@ -32,17 +33,21 @@ def main():
     
         # Initialize the ParallagonWeb application
         logger.info("Initializing ParallagonWeb application...")
-        parallagon = ParallagonWeb(config)
+        app = ParallagonWeb(config)
         
         # Get the Flask app instance
-        app = parallagon.get_app()
+        flask_app = app.get_app()
         
-        logger.info("Starting Parallagon Web with Waitress...")
+        logger.info("Starting Parallagon Web with gevent-websocket...")
         logger.info("Server running at http://0.0.0.0:5000")
         
-        # Run with Waitress with WebSocket support
-        serve(app, host='0.0.0.0', port=5000, threads=4, 
-              url_scheme='ws', channel_timeout=20)
+        # Run with gevent-websocket
+        server = pywsgi.WSGIServer(
+            ('0.0.0.0', 5000), 
+            flask_app,
+            handler_class=WebSocketHandler
+        )
+        server.serve_forever()
 
     except Exception as e:
         logger.error(f"Failed to start server: {str(e)}")
