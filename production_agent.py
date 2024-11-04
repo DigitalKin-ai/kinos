@@ -378,11 +378,3 @@ class ProductionAgent(ParallagonAgent):
                 
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
-
-[nouveau texte]
->>>>>>> NOUVEAU
-
-Exemple :
-<<<<<<< ANCIEN
-# Section obsolète
-Ancien contenu à remplacer
