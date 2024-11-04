@@ -794,3 +794,56 @@ body {
         margin-top: 0.5rem;
     }
 }
+.notifications-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.notification {
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    margin-bottom: 10px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    min-width: 300px;
+}
+
+.notification i {
+    margin-right: 10px;
+}
+
+.notification.success {
+    background-color: #4caf50;
+    color: white;
+}
+
+.notification.error {
+    background-color: #f44336;
+    color: white;
+}
+
+.notification.info {
+    background-color: #2196f3;
+    color: white;
+}
+
+.notification.warning {
+    background-color: #ff9800;
+    color: white;
+}
+
+/* Animation des notifications */
+.notification-enter-active,
+.notification-leave-active {
+    transition: all 0.3s ease;
+}
+
+.notification-enter-from,
+.notification-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
+}

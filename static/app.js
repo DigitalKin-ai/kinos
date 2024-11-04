@@ -133,19 +133,17 @@ const ParallagonApp = {
         },
 
         addNotification(type, message) {
+            console.log("Adding notification:", type, message);
             const id = Date.now();
-            // Ajout de classes CSS pour le style
             const notification = {
                 id,
                 type,
                 message,
-                class: `notification-${type}` // Ajout d'une classe pour le style
+                class: `notification-${type}`
             };
             
             this.notifications.push(notification);
-            
-            // Log pour debug
-            console.log('Adding notification:', notification);
+            console.log("Current notifications:", this.notifications);
             
             // Auto-remove after 5 seconds
             setTimeout(() => {
@@ -485,40 +483,44 @@ const ParallagonApp = {
 
         async checkNotifications() {
             try {
+                console.log("Checking for notifications...");
                 const response = await fetch('/api/notifications');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const notifications = await response.json();
                 
+                console.log("Received notifications:", notifications);
+                
                 if (Array.isArray(notifications) && notifications.length > 0) {
                     console.log(`Processing ${notifications.length} notifications`);
                     
                     notifications.forEach(notification => {
+                        console.log("Processing notification:", notification);
+                        
                         // Add notification
                         this.addNotification(notification.type || 'info', notification.message);
                         
                         // Handle tab flash
                         if (notification.panel) {
-                            // Convert panel name to tab id
                             const panelName = notification.panel.toLowerCase();
                             const tabId = this.tabIds[`${panelName}.md`];
                             
+                            console.log(`Panel: ${panelName}, TabId: ${tabId}`);
+                            
                             if (tabId) {
-                                // Find and flash the tab
                                 const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
+                                console.log("Found tab element:", tab);
+                                
                                 if (tab) {
-                                    // Force reflow to reset animation
+                                    console.log("Flashing tab:", tabId);
                                     tab.classList.remove('flash-tab');
                                     void tab.offsetWidth;
                                     tab.classList.add('flash-tab');
                                     
-                                    // Remove class after animation
                                     setTimeout(() => {
                                         tab.classList.remove('flash-tab');
                                     }, 1000);
-                                    
-                                    console.log(`Flashing tab: ${tabId}`);
                                 }
                             }
                         }

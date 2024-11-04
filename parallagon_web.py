@@ -370,6 +370,7 @@ class ParallagonWeb:
                         
                 # Debug log
                 if recent_notifications:
+                    print(f"Sending notifications to frontend: {recent_notifications}")
                     self.log_message(
                         f"Sending {len(recent_notifications)} notifications to frontend",
                         level='debug'
