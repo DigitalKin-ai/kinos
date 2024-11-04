@@ -8,12 +8,20 @@ from dotenv import load_dotenv
 
 def get_config():
     # Load environment variables from .env file
-    load_dotenv()
+    load_dotenv(override=True)
     
-    return {
-        "anthropic_api_key": os.getenv("ANTHROPIC_API_KEY", "your-api-key-here"),
-        "openai_api_key": os.getenv("OPENAI_API_KEY", "your-api-key-here")
+    config = {
+        "anthropic_api_key": os.getenv("ANTHROPIC_API_KEY"),
+        "openai_api_key": os.getenv("OPENAI_API_KEY")
     }
+    
+    # Vérification des clés
+    if not config["anthropic_api_key"]:
+        raise ValueError("ANTHROPIC_API_KEY not found in environment variables")
+    if not config["openai_api_key"]:
+        raise ValueError("OPENAI_API_KEY not found in environment variables")
+        
+    return config
 
 def signal_handler(signum, frame, app, logger):
     logger.info("Received shutdown signal")
