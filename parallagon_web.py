@@ -101,7 +101,9 @@ class ParallagonWeb:
 
         @self.app.route('/')
         def home():
-            return render_template('index.html')
+            # Initialize empty notifications list
+            notifications = []  # Will be populated with any notifications to show
+            return render_template('index.html', notifications=notifications)
 
         @self.app.route('/api/status')
         def get_status():

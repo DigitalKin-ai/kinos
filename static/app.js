@@ -12,6 +12,7 @@ function debounce(func, wait) {
 }
 
 const ParallagonApp = {
+    delimiters: ['${', '}'],  // Add this to avoid conflicts with Jinja2
     data() {
         return {
             running: false,
