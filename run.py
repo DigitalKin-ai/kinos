@@ -2,8 +2,12 @@ from waitress import serve
 from parallagon_web import ParallagonWeb
 import logging
 import os
+from dotenv import load_dotenv
 
 def get_config():
+    # Load environment variables from .env file
+    load_dotenv()
+    
     return {
         "anthropic_api_key": os.getenv("ANTHROPIC_API_KEY", "your-api-key-here"),
         "openai_api_key": os.getenv("OPENAI_API_KEY", "your-api-key-here")
@@ -19,6 +23,12 @@ def main():
 
     try:
         config = get_config()
+        
+        # Check if API keys are properly loaded
+        if config["anthropic_api_key"] == "your-api-key-here":
+            logger.warning("ANTHROPIC_API_KEY not found in environment variables")
+        if config["openai_api_key"] == "your-api-key-here":
+            logger.warning("OPENAI_API_KEY not found in environment variables")
     
         # Initialize the ParallagonWeb application
         logger.info("Initializing ParallagonWeb application...")
