@@ -2,6 +2,8 @@ from flask import Flask
 from parallagon_web import ParallagonWeb
 import logging
 import os
+import sys
+import signal
 from dotenv import load_dotenv
 
 def get_config():
@@ -13,7 +15,7 @@ def get_config():
         "openai_api_key": os.getenv("OPENAI_API_KEY", "your-api-key-here")
     }
 
-def signal_handler(signum, frame):
+def signal_handler(signum, frame, app, logger):
     logger.info("Received shutdown signal")
     app.shutdown()
     sys.exit(0)
@@ -27,8 +29,8 @@ def main():
     logger = logging.getLogger(__name__)
     
     # Set up signal handlers
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, lambda s, f: signal_handler(s, f, app, logger))
+    signal.signal(signal.SIGTERM, lambda s, f: signal_handler(s, f, app, logger))
 
     try:
         config = get_config()

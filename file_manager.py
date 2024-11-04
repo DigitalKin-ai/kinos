@@ -2,6 +2,7 @@
 FileManager - Handles file operations for Parallagon GUI
 """
 import os
+import portalocker
 from typing import Dict, Optional
 from pathlib import Path
 from datetime import datetime
