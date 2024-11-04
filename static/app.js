@@ -322,9 +322,25 @@ const ParallagonApp = {
             });
         },
 
+        async updateLogs() {
+            try {
+                const response = await fetch('/api/logs');
+                const data = await response.json();
+                if (data.logs && Array.isArray(data.logs)) {
+                    this.logs = data.logs.map(log => ({
+                        ...log,
+                        timestamp: new Date(log.timestamp).toLocaleString()
+                    }));
+                }
+            } catch (error) {
+                console.error('Failed to fetch logs:', error);
+            }
+        },
+
         startUpdateLoop() {
             this.updateInterval = setInterval(() => {
                 this.updateContent();
+                this.updateLogs();  // Add logs update
             }, 1000);
         },
 

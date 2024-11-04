@@ -192,7 +192,7 @@
                      class="suivi-mission-entry"
                      :class="log.level">
                     <span class="log-timestamp">${ log.timestamp }</span>
-                    <span class="log-message">${ log.message }</span>
+                    <span class="log-message" v-html="log.message"></span>
                 </div>
             </div>
         </div>

@@ -234,37 +234,36 @@ class ParallagonWeb:
     def start_agents(self):
         """Start all agents"""
         try:
-            self.log_message("Starting agents...")
+            self.log_message("🚀 Démarrage des agents...")
             self.running = True
             
             # Start content update loop
             def update_loop():
-                self.log_message("Content update loop started")
+                self.log_message("✓ Boucle de mise à jour démarrée")
                 while self.running:
                     try:
                         self.check_content_updates()
                     except Exception as e:
-                        self.log_message(f"Error in update loop: {str(e)}")
+                        self.log_message(f"❌ Erreur dans la boucle de mise à jour: {str(e)}")
                     time.sleep(1)
             
             # Start update loop in separate thread
             update_thread = threading.Thread(target=update_loop, daemon=True)
             update_thread.start()
-            self.log_message("Update loop thread started")
             
             # Start agents in separate threads
             for name, agent in self.agents.items():
                 try:
                     thread = threading.Thread(target=agent.run, daemon=True)
                     thread.start()
-                    self.log_message(f"Agent {name} started successfully")
+                    self.log_message(f"✓ Agent {name} démarré")
                 except Exception as e:
-                    self.log_message(f"Error starting agent {name}: {str(e)}")
+                    self.log_message(f"❌ Erreur démarrage agent {name}: {str(e)}")
                     
-            self.log_message("All agents started successfully")
+            self.log_message("✨ Tous les agents sont actifs")
             
         except Exception as e:
-            self.log_message(f"Error in start_agents: {str(e)}")
+            self.log_message(f"❌ Erreur globale: {str(e)}")
             raise
 
     def stop_agents(self):
@@ -279,9 +278,19 @@ class ParallagonWeb:
             
             # Format log entry
             if operation and status:
-                log_entry = f"[{timestamp}] {operation}: {status} - {message}"
+                log_entry = {
+                    'id': len(self.logs_buffer),
+                    'timestamp': timestamp,
+                    'message': f"{operation}: {status} - {message}",
+                    'level': 'info'
+                }
             else:
-                log_entry = f"[{timestamp}] {message}"
+                log_entry = {
+                    'id': len(self.logs_buffer),
+                    'timestamp': timestamp,
+                    'message': message,
+                    'level': 'info'
+                }
                 
             # Add to logs buffer
             self.logs_buffer.append(log_entry)
@@ -290,13 +299,9 @@ class ParallagonWeb:
             if len(self.logs_buffer) > 100:
                 self.logs_buffer.pop(0)
                 
-            # Write to audit log file
-            with open("agent_operations.log", 'a') as f:
-                f.write(f"{log_entry}\n")
+            # Print to console for debugging
+            print(f"[{timestamp}] {log_entry['message']}")
                 
-            # Print to console
-            print(log_entry)
-            
         except Exception as e:
             print(f"Error logging message: {str(e)}")
 
