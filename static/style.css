@@ -14,7 +14,9 @@
 
 /* Panels */
 .panel {
-    @apply bg-white rounded-lg shadow-md overflow-hidden transition-all duration-200;
+    @apply bg-white rounded-lg shadow-md overflow-hidden;
+    transition: all 0.3s ease;
+    position: relative;
 }
 
 .panel:hover {
@@ -22,7 +24,13 @@
 }
 
 .panel.updating {
-    @apply ring-2 ring-blue-400;
+    animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
+    70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
 }
 
 .panel-header {
@@ -55,6 +63,8 @@
 /* Buttons */
 .btn-start, .btn-stop, .btn-save, .btn-export, .btn-clear {
     @apply px-4 py-2 rounded-md text-white transition-colors duration-200 flex items-center;
+    position: relative;
+    overflow: hidden;
 }
 
 .btn-start {
@@ -77,17 +87,76 @@
     @apply bg-gray-500 hover:bg-gray-600;
 }
 
+.btn-start:after, .btn-stop:after, .btn-save:after, .btn-export:after, .btn-clear:after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, .5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+}
+
+.btn-start:focus:not(:active):after,
+.btn-stop:focus:not(:active):after,
+.btn-save:focus:not(:active):after,
+.btn-export:focus:not(:active):after,
+.btn-clear:focus:not(:active):after {
+    animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0, 0);
+        opacity: 1;
+    }
+    20% {
+        transform: scale(25, 25);
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(40, 40);
+    }
+}
+
 /* Status indicators */
 .status-indicator {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
     @apply px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.status-indicator::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
 }
 
 .status-running {
     @apply text-green-500;
 }
 
+.status-running::before {
+    background-color: var(--success-color);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+}
+
 .status-stopped {
     @apply text-red-500;
+}
+
+.status-stopped::before {
+    background-color: var(--danger-color);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
 }
 
 /* Logs */
@@ -101,6 +170,12 @@
 
 .log-entry {
     @apply flex items-start space-x-2 text-sm font-mono mb-1 text-gray-300;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .log-timestamp {
@@ -147,5 +222,76 @@
 }
 
 .highlight-change {
-    @apply bg-yellow-100;
+    display: block;
+    position: relative;
+    padding: 0.25rem 0.5rem;
+    margin: 0 -0.5rem;
+    background-color: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid var(--primary-color);
+    transition: background-color 0.3s ease;
+}
+
+.highlight-change:hover {
+    background-color: rgba(59, 130, 246, 0.2);
+}
+
+/* Scrollbar styling */
+.content-display::-webkit-scrollbar,
+.logs-content::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.content-display::-webkit-scrollbar-track,
+.logs-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.content-display::-webkit-scrollbar-thumb,
+.logs-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.content-display::-webkit-scrollbar-thumb:hover,
+.logs-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Loading states */
+.panel.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--primary-color), transparent);
+    animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .panel {
+        margin-bottom: 1rem;
+    }
+    
+    .panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .panel-controls {
+        margin-top: 0.5rem;
+    }
 }
