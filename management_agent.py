@@ -91,40 +91,11 @@ class ManagementAgent(ParallagonAgent):
             self.logger(traceback.format_exc())
 
     def _get_llm_response(self, context: dict) -> str:
-        """
-        Get LLM response for management decisions.
-        
-        Process:
-        1. Analyzes project context and agent status
-        2. Determines optimal task distribution
-        3. Generates coordinated action plans
-        4. Validates response format
-        
-        Args:
-            context: Current project state and agent status
-            
-        Returns:
-            str: Validated management directives
-        """
-        """
-        Get LLM response for management decisions.
-        
-        Process:
-        1. Analyzes project context and agent status
-        2. Determines optimal task distribution
-        3. Generates coordinated action plans
-        4. Validates response format
-        
-        Args:
-            context: Current project state and agent status
-            
-        Returns:
-            str: Validated management directives
-        """
+        """Get LLM response with standardized error handling"""
         try:
-            print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
+            self.logger(f"[{self.__class__.__name__}] Calling LLM API...")
             response = self.client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",  # Modèle standardisé pour tous les agents
                 messages=[{
                     "role": "user",
                     "content": self._build_prompt(context)
@@ -132,13 +103,14 @@ class ManagementAgent(ParallagonAgent):
                 temperature=0,
                 max_tokens=4000
             )
-            print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
+            self.logger(f"[{self.__class__.__name__}] LLM response received")
             return response.choices[0].message.content
+            
         except Exception as e:
-            print(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")  # Error log
+            self.logger(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")
             import traceback
-            print(traceback.format_exc())
-            return context['management']
+            self.logger(traceback.format_exc())
+            return context.get(self.__class__.__name__.lower().replace('agent', ''), '')
 
     def _extract_section(self, content: str, section_name: str) -> str:
         """

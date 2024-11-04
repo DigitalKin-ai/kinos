@@ -360,40 +360,11 @@ class SpecificationsAgent(ParallagonAgent):
             self.logger(traceback.format_exc())
 
     def _get_llm_response(self, context: dict) -> str:
-        """
-        Get LLM response for template decisions.
-        
-        Process:
-        1. Sends formatted prompt to LLM
-        2. Validates response format and structure
-        3. Handles retries on validation failure
-        4. Returns validated template updates
-        
-        Args:
-            context: Current state and file contents
-            
-        Returns:
-            str: Validated template updates from LLM
-        """
-        """
-        Get LLM response for template decisions.
-        
-        Process:
-        1. Sends formatted prompt to LLM
-        2. Validates response format and structure
-        3. Handles retries on validation failure
-        4. Returns validated template updates
-        
-        Args:
-            context: Current state and file contents
-            
-        Returns:
-            str: Validated template updates from LLM
-        """
+        """Get LLM response with standardized error handling"""
         try:
-            print(f"[{self.__class__.__name__}] Calling LLM API...")  # Debug log
+            self.logger(f"[{self.__class__.__name__}] Calling LLM API...")
             response = self.client.chat.completions.create(
-                model="gpt-4",  # Using standard gpt-4 model
+                model="gpt-4o-mini",  # Modèle standardisé pour tous les agents
                 messages=[{
                     "role": "user",
                     "content": self._build_prompt(context)
@@ -401,13 +372,14 @@ class SpecificationsAgent(ParallagonAgent):
                 temperature=0,
                 max_tokens=4000
             )
-            print(f"[{self.__class__.__name__}] LLM response received")  # Debug log
+            self.logger(f"[{self.__class__.__name__}] LLM response received")
             return response.choices[0].message.content
+            
         except Exception as e:
-            print(f"[{self.__class__.__name__}] Error in LLM response processing: {str(e)}")
+            self.logger(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")
             import traceback
-            print(traceback.format_exc())
-            return context['specifications']
+            self.logger(traceback.format_exc())
+            return context.get(self.__class__.__name__.lower().replace('agent', ''), '')
 
     def _log_structure_differences(self, current: dict, new: dict) -> None:
         """Log les différences entre les structures pour debug"""
