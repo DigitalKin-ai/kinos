@@ -105,6 +105,31 @@ class SpecificationsAgent(ParallagonAgent):
         except Exception:
             return True  # When in doubt, allow execution
 
+    def _create_section(self, section_name: str, constraints: str = "") -> bool:
+        """Create a new section in production.md"""
+        content = f"# {section_name}\n[contraintes: {constraints}]\n[En attente de contenu]"
+        return self.update_production_file(section_name, content)
+        
+    def _delete_section(self, section_name: str) -> bool:
+        """Delete a section from production.md"""
+        try:
+            with open("production.md", 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            result = SearchReplace.section_replace(content, section_name, "(to delete)")
+            if result.success:
+                with open("production.md", 'w', encoding='utf-8') as f:
+                    f.write(result.new_content)
+                self.logger(f"✓ Deleted section '{section_name}' from production.md")
+                return True
+                
+            self.logger(f"❌ Failed to delete section: {result.message}")
+            return False
+            
+        except Exception as e:
+            self.logger(f"❌ Error deleting section: {str(e)}")
+            return False
+            
     def synchronize_template(self) -> None:
         """
         Synchronize production document structure with template.

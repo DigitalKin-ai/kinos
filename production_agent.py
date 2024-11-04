@@ -43,6 +43,43 @@ class ProductionAgent(ParallagonAgent):
         self.client = anthropic.Anthropic(api_key=config["anthropic_api_key"])
         self.logger = config.get("logger", print)
 
+    def _needs_update(self, section_name: str) -> bool:
+        """Check if a section needs updating"""
+        try:
+            with open("production.md", 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            pattern = f"# {section_name}\n(.*?)(?=\n#|$)"
+            match = re.search(pattern, content, re.DOTALL)
+            
+            if not match:
+                return True
+                
+            section_content = match.group(1).strip()
+            return section_content == "" or section_content == "[En attente de contenu]"
+            
+        except Exception:
+            return True
+            
+    def _generate_content(self, section_name: str, constraints: str) -> str:
+        """Generate new content for a section"""
+        try:
+            context = {
+                "section_name": section_name,
+                "constraints": constraints,
+                "other_files": self.other_files
+            }
+            
+            response = self._get_llm_response(context)
+            if response and response.strip():
+                return response.strip()
+                
+            return "[En attente de contenu]"
+            
+        except Exception as e:
+            self.logger(f"❌ Error generating content: {str(e)}")
+            return "[En attente de contenu]"
+            
     def determine_actions(self) -> None:
         """
         Analyze requirements and implement needed content changes.

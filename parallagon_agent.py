@@ -314,6 +314,35 @@ Ne laissez passer aucun détail. Votre évaluation doit être méticuleuse, obje
             self.current_content = self.new_content
             self.logger(f"[{self.__class__.__name__}] ✓ File updated successfully")
 
+    def update_production_file(self, section_name: str, new_content: str) -> bool:
+        """
+        Update a section in the production.md file.
+        
+        Args:
+            section_name: Name of the section to update
+            new_content: New content for the section
+            
+        Returns:
+            bool: True if update successful, False otherwise
+        """
+        try:
+            with open("production.md", 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            result = SearchReplace.section_replace(content, section_name, new_content)
+            if result.success:
+                with open("production.md", 'w', encoding='utf-8') as f:
+                    f.write(result.new_content)
+                self.logger(f"✓ Updated section '{section_name}' in production.md")
+                return True
+                
+            self.logger(f"❌ Failed to update section: {result.message}")
+            return False
+            
+        except Exception as e:
+            self.logger(f"❌ Error updating production file: {str(e)}")
+            return False
+
     def update_section(self, section_name: str, new_content: str) -> bool:
         """
         Update a specific section in the markdown file.
