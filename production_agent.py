@@ -379,19 +379,10 @@ class ProductionAgent(ParallagonAgent):
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
 
-    def _build_prompt(self, context: dict) -> str:
-        return f"""Vous êtes l'agent de production. Votre rôle est de produire le contenu selon les spécifications.
+[nouveau texte]
+>>>>>>> NOUVEAU
 
-Contexte actuel :
-{self._format_other_files(context['other_files'])}
-
-Contenu actuel :
-{context['production']}
-
-Votre tâche :
-1. Analyser les spécifications et la demande
-2. Proposer des modifications au contenu actuel
-3. Utiliser EXACTEMENT ce format pour chaque modification :
-
+Exemple :
 <<<<<<< ANCIEN
-[texte exact à remplacer]
+# Section obsolète
+Ancien contenu à remplacer
