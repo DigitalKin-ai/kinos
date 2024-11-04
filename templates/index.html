@@ -2,42 +2,109 @@
 
 {% block title %}Parallagon Web{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css">
+{% endblock %}
+
 {% block content %}
-<div id="app">
-    <header class="parallagon-header">
-        <h1 class="parallagon-title">⚫ Parallagon</h1>
-        <div class="parallagon-controls">
-            <button v-on:click="startAgents" class="btn btn-start">Start</button>
-            <button v-on:click="stopAgents" class="btn btn-stop">Stop</button>
-            <span v-bind:class="running ? 'status-running' : 'status-stopped'">
-                ● {{ '{{running ? "Running" : "Stopped"}}' }}
-            </span>
+<div id="app" class="min-h-screen">
+    <!-- Header with controls -->
+    <header class="parallagon-header bg-gray-800 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="parallagon-title text-2xl font-bold flex items-center">
+                <span class="text-blue-400 mr-2">⚫</span> Parallagon
+            </h1>
+            <div class="parallagon-controls flex items-center space-x-4">
+                <button v-on:click="startAgents" 
+                        :disabled="running"
+                        class="btn-start flex items-center">
+                    <i class="mdi mdi-play mr-2"></i> Start
+                </button>
+                <button v-on:click="stopAgents" 
+                        :disabled="!running"
+                        class="btn-stop flex items-center">
+                    <i class="mdi mdi-stop mr-2"></i> Stop
+                </button>
+                <div class="status-indicator flex items-center">
+                    <span v-bind:class="running ? 'status-running' : 'status-stopped'"
+                          class="flex items-center">
+                        <i class="mdi" :class="running ? 'mdi-circle text-green-500' : 'mdi-circle text-red-500'"></i>
+                        <span class="ml-2">{{ '{{running ? "Running" : "Stopped"}}' }}</span>
+                    </span>
+                </div>
+            </div>
         </div>
     </header>
 
-    <div class="grid grid-cols-2 gap-4">
-        <!-- Panneau Demande -->
-        <div class="panel demande-panel">
-            <h2 class="panel-title">Demande</h2>
-            <textarea v-model="content.demande" class="content-area h-64"></textarea>
-        </div>
-
-        <!-- Panneaux Agents -->
-        <div v-for="panel in ['specifications', 'management', 'production', 'evaluation']" 
-             :key="panel"
-             class="panel">
-            <h2 class="panel-title">{{ '{{panel}}' }}</h2>
-            <div class="panel-content">
-                <pre class="whitespace-pre-wrap">{{ '{{content[panel]}}' }}</pre>
+    <!-- Main content -->
+    <div class="container mx-auto p-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Demande Panel -->
+            <div class="panel col-span-2">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <i class="mdi mdi-file-document-outline mr-2"></i>Demande
+                    </h2>
+                    <div class="panel-controls">
+                        <button @click="saveDemande" 
+                                class="btn-save"
+                                :disabled="!demandeChanged">
+                            <i class="mdi mdi-content-save mr-1"></i> Save
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <textarea v-model="content.demande" 
+                             @input="onDemandeInput"
+                             class="content-area"></textarea>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Logs Panel -->
-    <div class="panel logs-panel">
-        <h2 class="panel-title">Logs</h2>
-        <div class="panel-content logs-content">
-            <pre v-for="log in logs" :key="log" class="log-entry">{{ '{{log}}' }}</pre>
+            <!-- Agent Panels -->
+            <template v-for="panel in panels" :key="panel.id">
+                <div class="panel" :class="{'updating': panel.updating}">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i :class="panel.icon" class="mr-2"></i>
+                            {{ '{{panel.name}}' }}
+                        </h2>
+                        <div class="panel-status">
+                            <span v-if="panel.updating" class="updating-badge">
+                                <i class="mdi mdi-sync spin mr-1"></i> Updating
+                            </span>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <pre class="content-display" v-html="highlightContent(panel.id)"></pre>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Logs Panel -->
+        <div class="panel logs-panel mt-4">
+            <div class="panel-header">
+                <h2 class="panel-title">
+                    <i class="mdi mdi-console-line mr-2"></i>Logs
+                </h2>
+                <div class="panel-controls">
+                    <button @click="exportLogs" class="btn-export">
+                        <i class="mdi mdi-download mr-1"></i> Export
+                    </button>
+                    <button @click="clearLogs" class="btn-clear">
+                        <i class="mdi mdi-trash-can mr-1"></i> Clear
+                    </button>
+                </div>
+            </div>
+            <div class="panel-content logs-content">
+                <div v-for="log in logs" 
+                     :key="log.id" 
+                     class="log-entry"
+                     :class="log.level">
+                    <span class="log-timestamp">{{ '{{log.timestamp}}' }}</span>
+                    <span class="log-message">{{ '{{log.message}}' }}</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
