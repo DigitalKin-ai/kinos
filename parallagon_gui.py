@@ -333,128 +333,6 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
             fg=self.gui_config.colors['text']
         )
 
-    def _parse_sections(self, specs_content: str) -> dict:
-        """Extrait les sections et leurs contraintes depuis specifications.md"""
-        sections = {}
-        current_section = None
-        current_content = []
-        constraints = ""
-        
-        for line in specs_content.split('\n'):
-            # Gestion des titres de niveau 1
-            if line.startswith('# '):
-                current_section = line[2:].strip()
-                current_subsection = None
-            # Gestion des contraintes
-            elif line.startswith('[contraintes:'):
-                constraints = line[12:-1].strip()
-            else:
-                current_content.append(line)
-    
-        # Sauvegarder la dernière section
-        if current_section:
-            sections[current_section] = {
-                "constraints": constraints.strip(),
-                "content": "\n".join(current_content).strip(),
-                "subsections": {}
-            }
-        
-        return sections
-
-    def _add_production_content(self, sections_data: dict, prod_content: str):
-        """Ajoute le contenu de production aux sections"""
-        current_section = None
-        current_subsection = None
-        current_content = []
-        
-        for line in prod_content.split('\n'):
-            # Gestion des titres de niveau 1
-            if line.startswith('# '):
-                if current_section:
-                    if current_subsection:
-                        if current_section in sections_data and current_subsection in sections_data[current_section]["subsections"]:
-                            sections_data[current_section]["subsections"][current_subsection]["content"] = '\n'.join(current_content).strip()
-                    else:
-                        if current_section in sections_data:
-                            sections_data[current_section]["content"] = '\n'.join(current_content).strip()
-                current_section = line[2:].strip()
-                current_subsection = None
-                current_content = []
-            
-            # Gestion des titres de niveau 2
-            elif line.startswith('## '):
-                if current_section:
-                    if current_subsection:
-                        if current_section in sections_data and current_subsection in sections_data[current_section]["subsections"]:
-                            sections_data[current_section]["subsections"][current_subsection]["content"] = '\n'.join(current_content).strip()
-                    else:
-                        if current_section in sections_data:
-                            sections_data[current_section]["content"] = '\n'.join(current_content).strip()
-                current_subsection = line[3:].strip()
-                current_content = []
-            
-            # Ajout du contenu
-            else:
-                current_content.append(line)
-        
-        # Ajouter le dernier contenu
-        if current_section:
-            if current_subsection:
-                if current_section in sections_data and current_subsection in sections_data[current_section]["subsections"]:
-                    sections_data[current_section]["subsections"][current_subsection]["content"] = '\n'.join(current_content).strip()
-            elif current_section in sections_data:
-                sections_data[current_section]["content"] = '\n'.join(current_content).strip()
-        
-        # Ajout du contenu
-        else:
-            current_content.append(line)
-        
-        # Ajouter le dernier contenu
-        if current_section:
-            if current_subsection:
-                if current_section in sections_data and current_subsection in sections_data[current_section]["subsections"]:
-                    sections_data[current_section]["subsections"][current_subsection]["content"] = '\n'.join(current_content).strip()
-            elif current_section in sections_data:
-                sections_data[current_section]["content"] = '\n'.join(current_content).strip()
-
-    def _update_sections_display(self, sections_data: dict):
-        """Met à jour l'affichage des sections"""
-        # Supprimer les sections qui n'existent plus
-        for title in list(self.sections.keys()):
-            if title not in sections_data:
-                self.sections[title].destroy()
-                del self.sections[title]
-        
-        # Mettre à jour ou créer les sections
-        for title, data in sections_data.items():
-            # Ignorer les sections vides
-            if not data.get("constraints") and not data.get("content"):
-                continue
-                
-            section = Section(
-                title=title,
-                constraints=data.get("constraints", ""),
-                content=data.get("content", ""),
-                todo=data.get("todo", [])
-            )
-            
-            if title in self.sections:
-                # Mettre à jour la section existante
-                self.sections[title].update_content(data.get("content", ""))
-                if hasattr(self.sections[title], 'update_todos'):
-                    self.sections[title].update_todos(data.get("todo", []))
-            else:
-                # Créer une nouvelle section
-                collapsible = CollapsibleSection(
-                    self.sections_scrollable_frame,
-                    section,
-                    callbacks={
-                        'on_edit': lambda s=section: self._edit_section(s),
-                        'on_update': lambda s=section: self._update_section(s)
-                    }
-                )
-                collapsible.pack(fill=tk.X, padx=5, pady=2)
-                self.sections[title] = collapsible
 
     def _create_agent_panel(self, parent, title: str) -> AgentPanel:
         """Create a standardized agent panel"""
@@ -650,83 +528,21 @@ Je comprends que cette synthèse sera basée uniquement sur les connaissances in
         
         # Panneau droit (Production)
         self.right_frame = ttk.LabelFrame(self.main_container, text="Production")
-
-        # Créer un PanedWindow vertical pour diviser le panneau droit
-        self.right_paned = ttk.PanedWindow(self.right_frame, orient=tk.VERTICAL)
-        self.right_paned.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-
-        # Panneau supérieur (Sections)
-        self.sections_frame = ttk.LabelFrame(self.right_paned, text="Sections")
-        self.sections = {}  # Dictionnaire des sections {titre: CollapsibleSection}
-        self.sections = {}  # Dictionnaire des sections {titre: CollapsibleSection}
-        
-        # Conteneur scrollable pour les sections
-        self.sections_canvas = tk.Canvas(self.sections_frame)
-        self.sections_scrollbar = ttk.Scrollbar(
-            self.sections_frame, 
-            orient="vertical", 
-            command=self.sections_canvas.yview
-        )
-        self.sections_scrollable_frame = ttk.Frame(self.sections_canvas)
-        
-        self.sections_scrollable_frame.bind(
-            "<Configure>",
-            lambda e: self.sections_canvas.configure(
-                scrollregion=self.sections_canvas.bbox("all")
-            )
-        )
-        
-        self.sections_canvas.create_window((0, 0), window=self.sections_scrollable_frame, anchor="nw")
-        self.sections_canvas.configure(yscrollcommand=self.sections_scrollbar.set)
-        
-        # Packing
-        self.sections_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.sections_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        # Initialiser les sections avec le contenu de production.md
-        try:
-            with open("production.md", 'r', encoding='utf-8') as f:
-                prod_content = f.read()
-            with open("specifications.md", 'r', encoding='utf-8') as f:
-                specs_content = f.read()
-                
-            # Extraire les sections et leurs contraintes depuis specifications.md
-            sections_data = self._parse_sections(specs_content)
-            
-            # Ajouter le contenu depuis production.md
-            self._add_production_content(sections_data, prod_content)
-            
-            # Créer les sections dans l'interface
-            self._update_sections_display(sections_data)
-            
-            self.log_message("✓ Sections initialisées avec succès")
-            
-        except FileNotFoundError:
-            self.log_message("⚠️ Fichiers de sections non trouvés, initialisation par défaut")
-        except Exception as e:
-            self.log_message(f"❌ Erreur lors de l'initialisation des sections: {str(e)}")
-
-        # Panneau inférieur (Production)
-        self.production_frame = ttk.LabelFrame(self.right_paned, text="Production")
         self.production_text = scrolledtext.ScrolledText(
-            self.production_frame, 
-            wrap=tk.WORD, 
+            self.right_frame,
+            wrap=tk.WORD,
             font=('Segoe UI', 10),
-            bg=self.gui_config.colors['panel_bg'], 
+            bg=self.gui_config.colors['panel_bg'],
             fg=self.gui_config.colors['text']
         )
         self.production_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        # Ajouter les deux panneaux au PanedWindow
-        self.right_paned.add(self.sections_frame, weight=1)
-        self.right_paned.add(self.production_frame, weight=1)
-
-        # Ajouter le panneau droit au conteneur principal
+        # Ajouter les panneaux au conteneur principal
         self.main_container.add(self.left_frame, weight=1)
         self.main_container.add(self.right_frame, weight=1)
 
         # Mettre à jour la référence pour l'AgentPanel
-        self.agent_panels["Production"] = AgentPanel(self.production_frame, "Production", self.production_text)
+        self.agent_panels["Production"] = AgentPanel(self.right_frame, "Production", self.production_text)
             
     def start_agents(self):
         """Démarrage de tous les agents"""
