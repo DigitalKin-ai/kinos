@@ -192,29 +192,22 @@ class ParallagonWeb:
 
         @self.app.route('/api/content')
         def get_content():
-            current_time = time.time()
-            content = {}
-            
-            for file_name in self.file_paths:
-                try:
-                    file_path = self.file_paths[file_name]
-                    mtime = os.path.getmtime(file_path)
-                    
-                    # Check if file has been modified since last read
-                    if (file_name not in self.last_modified or 
-                        mtime > self.last_modified[file_name]):
-                        
+            try:
+                content = {}
+                for file_name in self.file_paths:
+                    try:
                         content[file_name] = self.file_manager.read_file(file_name)
+                        # Mettre en cache le contenu
                         self.content_cache[file_name] = content[file_name]
-                        self.last_modified[file_name] = mtime
-                    else:
-                        content[file_name] = self.content_cache[file_name]
+                        self.last_modified[file_name] = time.time()
+                    except Exception as e:
+                        self.log_message(f"Error reading {file_name}: {str(e)}")
+                        content[file_name] = ""
                         
-                except Exception as e:
-                    self.log_message(f"Error reading {file_name}: {str(e)}")
-                    content[file_name] = ""
-                    
-            return jsonify(content)
+                return jsonify(content)
+            except Exception as e:
+                self.log_message(f"Error getting content: {str(e)}")
+                return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/start', methods=['POST'])
         def start_agents():
