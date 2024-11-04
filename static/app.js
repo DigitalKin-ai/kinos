@@ -101,17 +101,27 @@ const ParallagonApp = {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${protocol}//${window.location.host}/ws`;
             
+            console.log('Connecting to WebSocket:', wsUrl);
+            
             this.ws = new WebSocket(wsUrl);
             
             this.ws.onopen = () => {
                 console.log('WebSocket connected');
                 this.connectionStatus = 'connected';
                 this.addNotification('success', 'Connected to server');
+                
+                // Start ping interval
+                this.pingInterval = setInterval(() => {
+                    if (this.ws.readyState === WebSocket.OPEN) {
+                        this.ws.send(JSON.stringify({ type: 'ping' }));
+                    }
+                }, 30000); // Send ping every 30 seconds
             };
             
             this.ws.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
+                    console.log('Received WebSocket message:', data);
                     
                     if (data.type === 'content_update') {
                         this.previousContent = { ...this.content };
@@ -132,11 +142,22 @@ const ParallagonApp = {
                 }
             };
             
-            this.ws.onclose = () => {
-                console.log('WebSocket disconnected');
+            this.ws.onclose = (event) => {
+                console.log('WebSocket disconnected:', event);
                 this.connectionStatus = 'disconnected';
                 this.addNotification('warning', 'Connection lost. Reconnecting...');
-                setTimeout(() => this.initWebSocket(), 5000);
+                
+                // Clear ping interval
+                if (this.pingInterval) {
+                    clearInterval(this.pingInterval);
+                }
+                
+                // Wait 5 seconds before attempting to reconnect
+                setTimeout(() => {
+                    if (this.ws.readyState === WebSocket.CLOSED) {
+                        this.initWebSocket();
+                    }
+                }, 5000);
             };
 
             this.ws.onerror = (error) => {

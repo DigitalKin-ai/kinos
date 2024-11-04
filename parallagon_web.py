@@ -73,30 +73,29 @@ class ParallagonWeb:
         @self.sock.route('/ws')
         def handle_websocket(ws):
             """Handle WebSocket connections"""
-            try:
-                # Add client to set
-                self.clients.add(ws)
-                self.log_message("New WebSocket client connected")
-                
-                # Send initial content
-                initial_content = {
-                    'type': 'content_update',
-                    'content': {
-                        'demande': self.file_manager.read_file('demande.md'),
-                        'specifications': self.file_manager.read_file('specifications.md'),
-                        'management': self.file_manager.read_file('management.md'),
-                        'production': self.file_manager.read_file('production.md'),
-                        'evaluation': self.file_manager.read_file('evaluation.md')
-                    }
+            self.clients.add(ws)
+            self.log_message("New WebSocket client connected")
+            
+            # Send initial content
+            initial_content = {
+                'type': 'content_update',
+                'content': {
+                    'demande': self.file_manager.read_file('demande.md'),
+                    'specifications': self.file_manager.read_file('specifications.md'),
+                    'management': self.file_manager.read_file('management.md'),
+                    'production': self.file_manager.read_file('production.md'),
+                    'evaluation': self.file_manager.read_file('evaluation.md')
                 }
-                ws.send(json.dumps(initial_content))
-                
-                # Keep connection alive and handle incoming messages
+            }
+            ws.send(json.dumps(initial_content))
+            
+            try:
                 while True:
                     message = ws.receive()
-                    if message:
-                        self.handle_ws_message(ws, message)
-                        
+                    if message is not None:
+                        self.process_websocket_message(message, ws)
+                    else:
+                        break
             except Exception as e:
                 self.log_message(f"WebSocket error: {str(e)}")
             finally:
@@ -239,8 +238,8 @@ class ParallagonWeb:
         # Remove disconnected clients
         self.clients -= disconnected
 
-    def handle_ws_message(self, ws, message: str):
-        """Handle incoming WebSocket messages"""
+    def process_websocket_message(self, message: str, ws):
+        """Process incoming WebSocket messages"""
         try:
             data = json.loads(message)
             message_type = data.get('type')
@@ -254,9 +253,11 @@ class ParallagonWeb:
                         self.log_message("Demande updated successfully")
                     else:
                         self.log_message("Failed to update demande")
+            elif message_type == 'ping':
+                ws.send(json.dumps({'type': 'pong'}))
                         
         except Exception as e:
-            self.log_message(f"Error handling WebSocket message: {str(e)}")
+            self.log_message(f"Error processing WebSocket message: {str(e)}")
 
     def broadcast_content_update(self):
         """Broadcast content updates to all clients"""
