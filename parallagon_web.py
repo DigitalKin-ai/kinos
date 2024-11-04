@@ -105,6 +105,18 @@ class ParallagonWeb:
                 agent.handle_file_change(file_name, content)
 
     def setup_routes(self):
+        @self.app.route('/api/reset', methods=['POST'])
+        def reset_files():
+            try:
+                success = self.file_manager.reset_files()
+                if success:
+                    self.log_message("All files reset to initial state")
+                    return jsonify({'status': 'success'})
+                else:
+                    return jsonify({'error': 'Failed to reset files'}), 500
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+
         @self.app.route('/api/health')
         def health_check():
             return jsonify({

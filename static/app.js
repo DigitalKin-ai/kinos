@@ -97,6 +97,26 @@ const ParallagonApp = {
             }
         },
 
+        async resetFiles() {
+            try {
+                if (confirm('Are you sure you want to reset all files to their initial state?')) {
+                    const response = await fetch('/api/reset', {
+                        method: 'POST'
+                    });
+                    
+                    if (response.ok) {
+                        this.addNotification('success', 'Files reset successfully');
+                        await this.updateContent();
+                    } else {
+                        throw new Error('Failed to reset files');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to reset files:', error);
+                this.addNotification('error', `Failed to reset files: ${error.message}`);
+            }
+        },
+
         startPolling() {
             setInterval(async () => {
                 if (this.running) {

@@ -20,6 +20,9 @@
                 <button class="btn-stop" @click="stopAgents" :disabled="!running">
                     ■ Stop
                 </button>
+                <button class="btn-reset" @click="resetFiles" :disabled="running">
+                    ↺ Reset
+                </button>
                 <span class="status" :class="{ 'status-running': running }">
                     ● ${ running ? 'Running' : 'Stopped' }
                 </span>
