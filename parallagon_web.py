@@ -359,10 +359,11 @@ class ParallagonWeb:
                 for log in self.logs_buffer:
                     if log.get('operation') == 'flash_tab':
                         notification = {
-                            'type': 'info',
+                            'type': log.get('level', 'info'),  # Utiliser le level comme type
                             'message': log.get('message', ''),
                             'timestamp': log.get('timestamp', ''),
-                            'panel': log.get('panel', '')
+                            'panel': log.get('panel', ''),
+                            'id': log.get('id', 0)  # Ajouter un ID unique
                         }
                         recent_notifications.append(notification)
                         
@@ -383,7 +384,8 @@ class ParallagonWeb:
                 
             except Exception as e:
                 self.log_message(f"Error getting notifications: {str(e)}", level='error')
-                return jsonify({'error': str(e)}), 500
+                # Retourner une liste vide au lieu d'une erreur 500
+                return jsonify([])
 
         @self.app.route('/api/demande', methods=['POST'])
         def update_demande():
