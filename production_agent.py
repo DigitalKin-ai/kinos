@@ -221,11 +221,7 @@ Votre tâche :
 2. Proposer des modifications au contenu actuel
 3. Utiliser STRICTEMENT ce format pour chaque modification :
 
-<<<<<<< ANCIEN
-[texte exact à remplacer - doit être une copie exacte du texte existant]
-~~~~~~~
-[nouveau texte à ajouter]
->>>>>>> NOUVEAU
+<<<<<<< ANCIEN\n[texte exact à remplacer - doit être une copie exacte du texte existant]\n=======\n[nouveau texte à ajouter]\n>>>>>>> NOUVEAU
 
 IMPORTANT:
 - Le texte ANCIEN doit être une copie exacte du texte existant
@@ -282,10 +278,10 @@ IMPORTANT:
     def _validate_diff_format(self, content: str) -> bool:
         """
         Valide que le contenu suit le format de diff attendu.
-        Format: <<<<<<< ANCIEN\n[texte]\n~~~~~~~\n[texte]\n>>>>>>> NOUVEAU
+        Format: <<<<<<< ANCIEN\n[texte]\n=======\n[texte]\n>>>>>>> NOUVEAU
         """
         import re
-        pattern = r'<<<<<<< ANCIEN\n(.*?)\n~~~~~~~\n(.*?)\n>>>>>>> NOUVEAU'
+        pattern = r'<<<<<<< ANCIEN\n(.*?)\n=======\n(.*?)\n>>>>>>> NOUVEAU'
         matches = re.findall(pattern, content, re.DOTALL)
         
         if not matches:
@@ -306,7 +302,7 @@ IMPORTANT:
         Retourne une liste de tuples (ancien_texte, nouveau_texte)
         """
         import re
-        pattern = r'<<<<<<< ANCIEN\n(.*?)\n~~~~~~~\n(.*?)\n>>>>>>> NOUVEAU'
+        pattern = r'<<<<<<< ANCIEN\n(.*?)\n=======\n(.*?)\n>>>>>>> NOUVEAU'
         return re.findall(pattern, content, re.DOTALL)
 
     def _apply_diffs(self, current_content: str, diffs: list[tuple[str, str]]) -> str:
