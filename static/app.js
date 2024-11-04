@@ -15,7 +15,7 @@ const ParallagonApp = {
     delimiters: ['${', '}'],  // Use different delimiters to avoid Jinja2 conflicts
     data() {
         return {
-            logCounter: 0,
+            logCounter: 0,  // Counter for unique log IDs
             running: false,
             loading: false,
             error: null,
@@ -397,7 +397,7 @@ const ParallagonApp = {
         addLog(level, message, operation = null, status = null) {
             const timestamp = new Date().toISOString();
             const logEntry = {
-                id: this.logCounter++,
+                id: `${this.logCounter}_${Date.now()}`,  // Unique ID combining counter and timestamp
                 timestamp,
                 level,
                 message,
@@ -413,10 +413,11 @@ const ParallagonApp = {
             }
             
             this.logs.push(logEntry);
+            this.logCounter++;  // Increment counter after use
 
-            // Keep only last 100 logs
+            // Keep only last 100 logs using slice
             if (this.logs.length > 100) {
-                this.logs.shift();
+                this.logs = this.logs.slice(-100);
             }
 
             // Auto-scroll logs
