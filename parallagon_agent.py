@@ -194,29 +194,35 @@ class ParallagonAgent:
     def analyze(self) -> None:
         """
         Analyze changes and signals in the monitored files.
-        
-        Key operations:
-        - Extracts current status from file content
-        - Identifies active signals and messages
-        - Triggers appropriate response actions
-        - Updates internal state based on analysis
         """
-        # Extract current status
-        status_match = re.search(r'\[status: (\w+)\]', self.current_content)
-        self.current_status = status_match.group(1) if status_match else "UNKNOWN"
+        try:
+            self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
+            
+            # Extract current status
+            status_match = re.search(r'\[status: (\w+)\]', self.current_content)
+            self.current_status = status_match.group(1) if status_match else "UNKNOWN"
+            self.logger(f"[{self.__class__.__name__}] Status actuel: {self.current_status}")
 
-        # Extract signals section
-        signals_match = re.search(r'# Signaux\n(.*?)(?=\n#|$)', 
-                                self.current_content, 
-                                re.DOTALL)
-        if signals_match:
-            signals_text = signals_match.group(1).strip()
-            self.signals = [s.strip() for s in signals_text.split('\n') if s.strip()]
-        else:
-            self.signals = []
+            # Extract signals section
+            signals_match = re.search(r'# Signaux\n(.*?)(?=\n#|$)', 
+                                    self.current_content, 
+                                    re.DOTALL)
+            if signals_match:
+                signals_text = signals_match.group(1).strip()
+                self.signals = [s.strip() for s in signals_text.split('\n') if s.strip()]
+                if self.signals:
+                    self.logger(f"[{self.__class__.__name__}] Signaux détectés: {self.signals}")
+            else:
+                self.signals = []
+                self.logger(f"[{self.__class__.__name__}] Aucun signal détecté")
 
-        # Analyze current content and other files to determine needed actions
-        self.determine_actions()
+            # Analyze current content and other files to determine needed actions
+            self.determine_actions()
+
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur dans analyze: {str(e)}")
+            import traceback
+            self.logger(traceback.format_exc())
 
     def determine_actions(self) -> None:
         """
