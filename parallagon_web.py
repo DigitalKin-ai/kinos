@@ -243,7 +243,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             "management": "management.md", 
             "production": "production.md",
             "evaluation": "evaluation.md",
-            "suivi": "suivi.md"
+            "suivi": "suivi.md"  # Add suivi.md to managed files
         }
         self.file_manager = FileManager(self.file_paths)
         self.llm_service = LLMService(config["openai_api_key"])
