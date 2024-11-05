@@ -387,21 +387,31 @@ IMPORTANT:
                 self.logger(f"[{self.__class__.__name__}] Réponse reçue:\n{response}")
                 return
                 
-            # Log le message qui sera envoyé à aider
+            # Log le message qui sera envoyé à aider, ligne par ligne
             message = aider_cmd.group(1)
-            self.logger(f"[{self.__class__.__name__}] 📝 Message pour aider:\n{message}")
-                
+            self.logger(f"[{self.__class__.__name__}] 📝 Message pour aider:")
+            for line in message.split('\n'):
+                if line.strip():  # Ne logger que les lignes non vides
+                    self.logger(f"[{self.__class__.__name__}] → {line.strip()}")
+            
             # Exécuter la commande aider
             import subprocess
             try:
                 cmd = ['aider', '--yes-always', '--message', message, '--file', 'production.md']
                 result = subprocess.run(cmd, capture_output=True, text=True)
                 
-                # Log la sortie de aider
+                # Log la sortie de aider ligne par ligne
                 if result.stdout:
-                    self.logger(f"[{self.__class__.__name__}] 📄 Sortie de aider:\n{result.stdout}")
+                    self.logger(f"[{self.__class__.__name__}] 📄 Sortie de aider:")
+                    for line in result.stdout.split('\n'):
+                        if line.strip():
+                            self.logger(f"[{self.__class__.__name__}] ↳ {line.strip()}")
+                            
                 if result.stderr:
-                    self.logger(f"[{self.__class__.__name__}] ⚠️ Erreurs de aider:\n{result.stderr}")
+                    self.logger(f"[{self.__class__.__name__}] ⚠️ Erreurs de aider:")
+                    for line in result.stderr.split('\n'):
+                        if line.strip():
+                            self.logger(f"[{self.__class__.__name__}] ⚠ {line.strip()}")
                 
                 if result.returncode == 0:
                     self.logger(f"[{self.__class__.__name__}] ✓ Modifications appliquées avec succès")
