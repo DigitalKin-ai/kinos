@@ -60,36 +60,31 @@ class LogManager:
         """Initialize the log manager with a text widget"""
         self.text_widget = text_widget
         
-        # Configure widget to be more compact and contained
+        # Configure widget to display more content
         self.text_widget.configure(
-            height=4,          # Reduced height
-            width=45,          # Reduced width
-            background='#f8f9fa',  # Slightly grayed background
-            fg='#666666',      # Dark gray text
-            font=('TkDefaultFont', 8),  # Smaller font
-            padx=5,            # Inner horizontal padding
-            pady=3,            # Inner vertical padding
+            height=10,         # Increased height
+            width=80,         # Increased width
+            background='#f8f9fa',
+            fg='#666666',
+            font=('TkDefaultFont', 9),  # Slightly larger font
+            padx=5,
+            pady=3,
+            wrap='word'       # Add word wrap to prevent word breaks
         )
         
-        # Position at bottom left with strict size constraints
+        # Position with more space
         self.text_widget.pack(
-            side='left',       # Left aligned
-            anchor='sw',       # Southwest anchor point
-            padx=5,            # Outer horizontal padding
-            pady=5,            # Outer vertical padding
-            expand=False,      # Prevent expansion
-            fill='none',       # Prevent filling
-            in_=self.text_widget.master  # Ensure proper parent
+            side='left',
+            anchor='sw',
+            padx=5,
+            pady=5,
+            expand=True,      # Allow expansion
+            fill='both',      # Fill in both directions
+            in_=self.text_widget.master
         )
         
-        # Force exact dimensions
-        self.text_widget.pack_propagate(False)
-        
-        # Set maximum size explicitly
-        self.text_widget.configure(
-            width=45,  # Maximum width in characters
-            height=4   # Maximum height in lines
-        )
+        # Allow resizing
+        self.text_widget.pack_propagate(True)
         
         self.logs: list[LogEntry] = []
         self.setup_tags()
