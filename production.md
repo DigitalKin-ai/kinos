@@ -1,3 +1,15 @@
+# Contexte du projet
+
+Ce projet de R&D s'inscrit dans un contexte d'évolution rapide des technologies IoT et de demande croissante pour des solutions de traçabilité universelle. Le développement de traceurs IoT capables de communiquer via différents réseaux répond à un besoin crucial dans de nombreux secteurs : logistique, transport maritime, surveillance d'actifs mobiles, etc. La complexité technique réside dans l'intégration harmonieuse de multiples protocoles de communication tout en maintenant une efficacité énergétique optimale.
+
+Les enjeux sont multiples :
+- Assurer une connectivité continue quelle que soit la localisation
+- Optimiser la consommation d'énergie pour une autonomie maximale
+- Gérer intelligemment les transitions entre réseaux
+- Minimiser les coûts de communication
+
+La réussite de ce projet permettrait une avancée significative dans le domaine des objets connectés, ouvrant la voie à une nouvelle génération de solutions IoT véritablement universelles.
+
 # Introduction générale
 
 Imaginez un petit boîtier électronique capable de communiquer depuis n'importe quel endroit sur Terre. Ce concept de "traceur universel" représente aujourd'hui un défi technologique majeur dans le monde des objets connectés (IoT). Pour comprendre l'enjeu, prenons l'exemple concret d'un conteneur maritime : pendant son voyage, il doit pouvoir transmettre sa position et son état en utilisant différents réseaux de communication. En ville, il utilise le réseau urbain SigFox, économique et efficace entre les bâtiments. Dans les zones portuaires, il bascule automatiquement sur le réseau LoRa, plus adapté aux grands espaces. En pleine mer, où aucun réseau terrestre n'est disponible, il communique via le satellite Kineis. Le défi est de rendre ces transitions entre réseaux totalement transparentes, tout en assurant une autonomie de plusieurs mois sur batterie.
