@@ -37,7 +37,8 @@ const ParallagonApp = {
                 { id: 'production', name: 'Production', icon: 'mdi mdi-code-braces' },
                 { id: 'evaluation', name: 'Evaluation', icon: 'mdi mdi-check-circle' },
                 { id: 'suivi', name: 'Suivi', icon: 'mdi mdi-history' },
-                { id: 'suivi-mission', name: 'Logs', icon: 'mdi mdi-console-line' }
+                { id: 'suivi-mission', name: 'Logs', icon: 'mdi mdi-console-line' },
+                { id: 'export-logs', name: 'Export', icon: 'mdi mdi-download' }
             ],
             content: {
                 demande: '',
@@ -603,3 +604,137 @@ const ParallagonApp = {
 };
 
 Vue.createApp(ParallagonApp).mount('#app');
+"""
+SuiviAgent - Agent responsible for monitoring and logging system activity.
+
+Key responsibilities:
+- Tracks agent activities and interactions
+- Maintains system-wide logging
+- Provides activity summaries and reports
+- Monitors system health and performance
+"""
+from parallagon_agent import ParallagonAgent
+from search_replace import SearchReplace
+import re
+import time
+from datetime import datetime
+import openai
+
+class SuiviAgent(ParallagonAgent):
+    """Agent handling system monitoring and logging"""
+    
+    def __init__(self, config):
+        super().__init__(config)
+        self.client = openai.OpenAI(api_key=config["openai_api_key"])
+        self.logger = config.get("logger", print)
+        self.logs_buffer = config.get("logs_buffer", [])
+
+    def determine_actions(self) -> None:
+        try:
+            self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
+            
+            context = {
+                "suivi": self.current_content,
+                "other_files": self.other_files,
+                "logs": self.logs_buffer
+            }
+            
+            response = self._get_llm_response(context)
+            if response and response != self.current_content:
+                with open(self.file_path, 'w', encoding='utf-8') as f:
+                    f.write(response)
+                self.current_content = response
+                self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
+                
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
+
+    def _get_llm_response(self, context: dict) -> str:
+        """Get LLM response with standardized error handling"""
+        try:
+            self.logger(f"[{self.__class__.__name__}] Calling LLM API...")
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{
+                    "role": "user",
+                    "content": self._build_prompt(context)
+                }],
+                temperature=0,
+                max_tokens=4000
+            )
+            self.logger(f"[{self.__class__.__name__}] LLM response received")
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] Error calling LLM: {str(e)}")
+            import traceback
+            self.logger(traceback.format_exc())
+            return context.get('suivi', '')
+
+    def _format_logs(self, logs: list) -> str:
+        """Format logs for inclusion in the prompt"""
+        formatted = []
+        for log in logs:
+            timestamp = log.get('timestamp', '')
+            level = log.get('level', 'info')
+            message = log.get('message', '')
+            formatted.append(f"[{timestamp}] [{level.upper()}] {message}")
+        return "\n".join(formatted)
+
+    def _build_prompt(self, context: dict) -> str:
+        return f"""Vous êtes l'agent de suivi. Votre rôle est de suivre et documenter l'activité du système.
+
+Contexte actuel :
+{self._format_other_files(context['other_files'])}
+
+Logs récents :
+{self._format_logs(context['logs'])}
+
+Votre tâche :
+1. Analyser les logs et l'activité système
+2. Identifier les patterns et tendances
+3. Générer un rapport de suivi
+
+Format de réponse :
+# État du Système
+[status: RUNNING|STOPPED]
+[agents_actifs: X/Y]
+[santé: GOOD|WARNING|ERROR]
+
+# Activité Récente
+- [HH:MM:SS] Description activité 1
+- [HH:MM:SS] Description activité 2
+
+# Points d'Attention
+- Point important 1
+- Point important 2
+
+# Métriques
+- Agents actifs: X/Y
+- Taux de changement: X/minute
+- Temps de réponse moyen: Xs
+
+IMPORTANT:
+- Être concis et factuel
+- Mettre en évidence les anomalies
+- Inclure les timestamps
+- Maintenir l'historique"""
+
+    def _extract_section(self, content: str, section_name: str) -> str:
+        """Extract content of a specific section"""
+        pattern = f"# {section_name}\n(.*?)(?=\n#|$)"
+        matches = list(re.finditer(pattern, content, re.DOTALL))
+        
+        if len(matches) == 0:
+            return ""
+        elif len(matches) > 1:
+            self.logger(f"Warning: Multiple '{section_name}' sections found")
+            
+        return matches[0].group(1).strip()
+
+    def _format_other_files(self, files: dict) -> str:
+        """Format other files content for context"""
+        result = []
+        for file_path, content in files.items():
+            result.append(f"=== {file_path} ===\n{content}\n")
+        return "\n".join(result)
