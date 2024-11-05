@@ -228,16 +228,24 @@ Contenu actuel :
 Votre tâche :
 1. Analyser les spécifications et la demande
 2. Proposer des modifications au contenu actuel
-3. Utiliser STRICTEMENT ce format pour chaque modification :
+3. Formuler des instructions claires pour l'outil 'aider'
 
-<<<<<<< ANCIEN\n[texte exact à remplacer - doit être une copie exacte du texte existant]=======\n[nouveau texte à ajouter]\n>>>>>>> NOUVEAU
+Format de réponse ATTENDU :
+```bash
+aider --yes-always --message 'Instructions détaillées de modification. Par exemple:
+- Ajouter une nouvelle section X avec le contenu Y
+- Modifier la section A pour inclure B
+- Supprimer la partie C
+- Remplacer D par E
+etc.'
+```
 
 IMPORTANT:
-- Le texte ANCIEN doit être une copie exacte du texte existant
-- Ne pas inclure les crochets []
-- Une seule modification par bloc
-- Attention à toujours renvoyer les 3 marqueurs <<<<<<< ANCIEN, ======= et >>>>>>> NOUVEAU
-- Vous devez TOUJOURS proposer au moins une modification, même mineure"""
+- Les instructions doivent être claires et précises
+- Une instruction par ligne
+- Utiliser des verbes d'action (Ajouter, Modifier, Supprimer, Remplacer)
+- Décrire exactement ce qui doit être changé et comment
+- Toujours inclure au moins une modification"""
     def _extract_sections(self, content: str) -> dict:
         """
         Extract sections from content while preserving hierarchy.
@@ -360,35 +368,40 @@ IMPORTANT:
         try:
             self.logger(f"[{self.__class__.__name__}] Analyse du contenu...")
             
-            # Obtenir la réponse du LLM
             context = {
                 "production": self.current_content,
                 "other_files": self.other_files
             }
             
             response = self._get_llm_response(context)
-                
-            # Vérifier si la réponse est dans le bon format
-            if not response or not self._validate_diff_format(response):
-                self.logger(f"[{self.__class__.__name__}] ❌ Format de réponse LLM invalide")
-                # Log plus détaillé de la réponse invalide
-                self.logger(f"[{self.__class__.__name__}] Réponse complète reçue:\n{response}")
+            if not response:
+                self.logger(f"[{self.__class__.__name__}] ❌ Pas de réponse du LLM")
                 return
                 
-            # Extraire les diffs
-            diffs = self._extract_diff_parts(response)
-            if not diffs:
-                self.logger(f"[{self.__class__.__name__}] ❌ Aucune modification proposée - réponse invalide")
+            # Extraire la commande aider
+            import re
+            aider_cmd = re.search(r'aider --yes-always --message \'(.*?)\'', response, re.DOTALL)
+            if not aider_cmd:
+                self.logger(f"[{self.__class__.__name__}] ❌ Format de réponse invalide")
+                self.logger(f"[{self.__class__.__name__}] Réponse reçue:\n{response}")
                 return
                 
-            # Appliquer les modifications
-            new_content = self._apply_diffs(self.current_content, diffs)
-            
-            # Écrire dans le fichier même si le contenu est identique
-            with open(self.file_path, 'w', encoding='utf-8') as f:
-                f.write(new_content)
-            self.current_content = new_content
-            self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
+            # Exécuter la commande aider
+            import subprocess
+            try:
+                cmd = ['aider', '--yes-always', '--message', aider_cmd.group(1)]
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                
+                if result.returncode == 0:
+                    self.logger(f"[{self.__class__.__name__}] ✓ Modifications appliquées avec succès")
+                    # Relire le fichier pour mettre à jour current_content
+                    with open(self.file_path, 'r', encoding='utf-8') as f:
+                        self.current_content = f.read()
+                else:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'exécution de aider:\n{result.stderr}")
+                    
+            except Exception as e:
+                self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'exécution de aider: {str(e)}")
                 
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
