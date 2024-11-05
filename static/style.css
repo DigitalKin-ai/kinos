@@ -5,6 +5,8 @@
     height: 100vh;
     background-color: #f8f9fa;
     overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Header */
@@ -30,6 +32,10 @@
 
 /* Content container */
 .content-container {
+    margin-top: 60px;
+    height: calc(100vh - 60px);
+    width: 100%;
+    box-sizing: border-box;
     display: flex;
     flex: 1;
     overflow: hidden;
@@ -220,6 +226,13 @@
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--secondary-color);
+    width: 100%;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
 }
 
 .parallagon-title {
