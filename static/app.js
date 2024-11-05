@@ -277,8 +277,8 @@ const ParallagonApp = {
         },
 
 
-        debouncedSaveDemande: debounce(async function() {
-            await this.saveDemande();
+        debouncedSaveDemande: debounce(function() {
+            this.saveDemande();  // Use this.saveDemande instead of saveDemande
         }, 1000),
 
         onDemandeInput() {
