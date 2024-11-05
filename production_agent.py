@@ -394,10 +394,18 @@ IMPORTANT:
                 if line.strip():  # Ne logger que les lignes non vides
                     self.logger(f"[{self.__class__.__name__}] → {line.strip()}")
             
-            # Exécuter la commande aider
+            # Exécuter la commande aider avec les fichiers de contexte
             import subprocess
             try:
-                cmd = ['aider', '--yes-always', '--message', message, '--file', 'production.md']
+                cmd = ['aider', '--yes-always', 
+                       '--message', message,
+                       '--file', 'production.md',
+                       '--read', 'specifications.md',
+                       '--read', 'evaluation.md', 
+                       '--read', 'management.md',
+                       '--read', 'demande.md']
+                
+                self.logger(f"[{self.__class__.__name__}] 🔧 Exécution de aider avec contexte")
                 result = subprocess.run(cmd, capture_output=True, text=True)
                 
                 # Log la sortie de aider ligne par ligne
