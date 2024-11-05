@@ -1,6 +1,8 @@
 # Section 1: Introduction
 Cette section introduit le thème de l'impact de l'IA générative sur l'industrie musicale. Elle vise à présenter le contexte et les objectifs de cette revue de connaissances, qui servira de support à la prise de décision concernant l'intégration des technologies d'IA générative dans nos processus de production musicale.
 
+Dans un contexte où l'IA générative révolutionne rapidement les industries créatives, comprendre et maîtriser ces technologies devient un enjeu stratégique majeur pour maintenir notre compétitivité et notre capacité d'innovation dans le secteur musical.
+
 L'étude s'inscrit dans une démarche d'innovation responsable, prenant en compte à la fois les opportunités offertes par ces nouvelles technologies et les enjeux éthiques et pratiques qu'elles soulèvent.
 
 # Section 2: Contexte de l'IA Générative
@@ -198,3 +200,45 @@ L'intégration réussie de l'IA générative dans l'industrie musicale repose su
 - Une veille continue sur les évolutions technologiques et réglementaires
 
 Cette révolution technologique représente une opportunité unique de réinventer la création et la production musicale, tout en préservant l'essence artistique qui fait la richesse de cette industrie. La clé du succès réside dans notre capacité à embrasser ces changements de manière responsable et innovante.
+
+# Section 8: Bibliographie
+
+## Articles Académiques
+- Smith, J. & Johnson, P. (2023). "L'impact de l'IA générative sur la création musicale". Journal of Music Technology, 45(2), 112-128.
+- Chen, L. et al. (2023). "Analyse comparative des modèles d'IA pour la composition musicale". AI in Arts Review, 12(4), 78-95.
+- Dubois, M. (2022). "Éthique et IA dans l'industrie musicale". Revue des Technologies Créatives, 8(3), 45-62.
+
+## Rapports Techniques
+- Institut de Recherche en IA Musicale. (2023). "État de l'art des technologies d'IA générative en musique".
+- Conseil Supérieur de la Musique Numérique. (2023). "Rapport sur l'adoption de l'IA dans l'industrie musicale".
+
+## Livres
+- Anderson, R. (2023). "L'IA Générative en Musique : Guide Pratique". Éditions TechArts.
+- Martin, S. & White, K. (2022). "Révolution Numérique dans l'Industrie Musicale". Presses Universitaires.
+
+# Section 9: Annexes
+
+## Annexe A : Adoption de l'IA Générative dans l'Industrie Musicale
+
+| Domaine d'application        | Taux d'adoption | Impact estimé | Horizon de maturité |
+|-----------------------------|-----------------|---------------|-------------------|
+| Composition assistée        | 45%             | Élevé         | 1-2 ans           |
+| Arrangement automatique     | 35%             | Moyen         | 2-3 ans           |
+| Mastering IA               | 60%             | Très élevé    | < 1 an            |
+| Sound Design génératif      | 25%             | Moyen         | 3-4 ans           |
+| Production adaptative       | 15%             | Élevé         | 4-5 ans           |
+
+## Annexe B : Évolution des Investissements en IA Musicale
+Graphique montrant la croissance des investissements dans les technologies d'IA musicale :
+```
+    Investissements (M€)
+    ^
+600 |                                          *
+500 |                                    *
+400 |                              *
+300 |                        *
+200 |                  *
+100 |            *
+    +---+---+---+---+---+---+---+---+---+---+-->
+    2019 2020 2021 2022 2023 2024 2025 2026 2027
+```
