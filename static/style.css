@@ -649,29 +649,51 @@ body {
 
 /* Suivi panel specific styles */
 .suivi-content {
-    font-family: monospace;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     white-space: pre-wrap;
-    padding: 1rem;
+    padding: 2rem;
     height: 100%;
     overflow: auto;
-    background-color: #f8f9fa;
-    border-radius: 4px;
+    background-color: #ffffff;
+    border-radius: 8px;
     border: 1px solid #e9ecef;
+    line-height: 1.8;
+    font-size: 0.95rem;
+    color: #2d3748;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .suivi-entry {
-    margin-bottom: 0.5rem;
-    padding: 0.25rem;
-    border-radius: 2px;
+    margin-bottom: 1.2rem;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    background-color: #f8fafc;
+    border-left: 3px solid #e2e8f0;
+    transition: all 0.2s ease;
 }
 
 .suivi-entry:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: #f1f5f9;
+    border-left-color: #64748b;
+    transform: translateX(2px);
 }
 
 .suivi-timestamp {
-    color: #666;
-    font-size: 0.8em;
+    color: #64748b;
+    font-size: 0.85em;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    margin-right: 0.75rem;
+}
+
+/* Style pour les timestamps entre crochets */
+.suivi-content [*] {
+    color: #64748b;
+    font-weight: 500;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    background-color: #f1f5f9;
+    margin-right: 0.5rem;
 }
 
 .suivi-mission-entry.success {
