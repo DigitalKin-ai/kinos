@@ -18,7 +18,6 @@ from management_agent import ManagementAgent
 from production_agent import ProductionAgent
 from evaluation_agent import EvaluationAgent
 from suivi_agent import SuiviAgent
-from suivi_agent import SuiviAgent
 
 class ParallagonWeb:
     # Log level colors
