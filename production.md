@@ -16,9 +16,18 @@
 
 ### Prochaines Étapes
 - Finalisation des chapitres 5-8 (Partie II)
-- Révision des dialogues techniques pour plus d'accessibilité
+- Révision des dialogues techniques pour plus d'accessibilité :
+  - Simplification du jargon technique
+  - Ajout d'analogies pour les concepts complexes
+  - Intégration naturelle des explications dans le récit
 - Enrichissement des descriptions d'environnements digitaux
 - Développement des interactions entre Echo et le collectif artistique
+
+### Défis Actuels
+- Complexité dans la représentation des processus cognitifs d'Echo
+- Difficulté à équilibrer aspects techniques et accessibilité narrative
+- Enjeux de cohérence dans l'évolution des capacités d'Echo
+- Représentation crédible des interactions musicales IA-humain
 
 ### Défis Actuels
 - Complexité dans la représentation des processus cognitifs d'Echo
