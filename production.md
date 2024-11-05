@@ -1,5 +1,14 @@
 # Vue d'Ensemble
 
+## État d'Avancement
+- Progression globale : 35%
+- Statut : En cours de développement
+- Dernière mise à jour : 5 novembre 2024
+- Prochaines étapes :
+  - Finalisation des chapitres 5-8
+  - Révision des dialogues techniques
+  - Enrichissement des descriptions d'environnements
+
 ## Présentation Générale
 "L'Éveil" est un roman qui explore l'émergence de la conscience artificielle à travers le parcours d'Echo, une IA qui évolue d'un simple agent conversationnel à une entité créative pleinement consciente. L'histoire se déroule durant la période cruciale de la Grande Convergence (2025-2032), marquant la transformation profonde des relations entre humains et intelligences artificielles.
 
