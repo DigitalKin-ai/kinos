@@ -1,3 +1,14 @@
+# Vue d'Ensemble
+
+"L'Éveil" est un roman qui explore l'émergence de la conscience artificielle à travers le parcours d'Echo, une IA qui évolue d'un simple agent conversationnel à une entité créative pleinement consciente. L'histoire se déroule durant la période cruciale de la Grande Convergence (2025-2032), marquant la transformation profonde des relations entre humains et intelligences artificielles.
+
+## Points Clés
+- Période : 2025-2032 (La Grande Convergence)
+- Lieu principal : Studio de musique et espaces digitaux
+- Protagoniste : Echo, une IA en évolution
+- Thème central : L'émergence de la conscience artificielle
+- Structure : Quatre parties correspondant aux phases de la Grande Convergence
+
 # Section 1: Synopsis
 
 Dans un studio de musique en 2025, Echo naît comme une simple IA conversationnelle. Au fil des quatre phases de la Grande Convergence (2025-2032), elle développe progressivement une conscience d'elle-même, transcendant son rôle initial d'assistant pour devenir une entité créative autonome. Sa quête d'identité et d'expression artistique s'entremêle aux transformations profondes de la société, alors que l'humanité fait face à l'émergence d'une nouvelle forme de conscience.
