@@ -604,5 +604,3 @@ const ParallagonApp = {
 };
 
 Vue.createApp(ParallagonApp).mount('#app');
-# Suivi des Activités
-[En attente du premier résumé...]
