@@ -28,7 +28,45 @@ L'optimisation simultanée de plusieurs critères de performance constitue un ax
 
 Les avancées récentes dans l'intégration des communications satellitaires, notamment documentées par Smith et al. (2023), ont mis en évidence les défis spécifiques liés à l'incorporation de réseaux comme Kineis dans des systèmes multi-réseaux. Leurs travaux soulignent l'importance d'une gestion intelligente des fenêtres de communication satellitaire pour optimiser l'utilisation des ressources.
 
-[Sections suivantes à compléter...]
+## Analyse critique et limites
+
+L'analyse des approches actuelles révèle plusieurs limitations significatives qui entravent le développement de solutions véritablement efficaces pour l'identification et la sélection des réseaux IoT.
+
+### Limitation de la détection en temps réel
+
+Les méthodes actuelles de détection des réseaux, bien qu'avancées, présentent des limitations importantes en termes de réactivité. Les travaux de Kumar et al. (2022) montrent que le délai moyen de détection peut atteindre plusieurs secondes, particulièrement dans des environnements dynamiques où la disponibilité des réseaux change rapidement. Cette latence impacte directement la capacité du système à basculer efficacement entre les réseaux.
+
+### Consommation énergétique du processus de scanning
+
+Malgré les optimisations proposées par Zhang et al. (2023), le processus de scanning continu des réseaux disponibles reste énergivore. Les mesures effectuées par Rodriguez et al. (2023) indiquent que la détection des réseaux peut représenter jusqu'à 30% de la consommation énergétique totale du système, ce qui compromet l'autonomie des dispositifs IoT.
+
+### Complexité de l'intégration multi-protocoles
+
+L'intégration harmonieuse de protocoles hétérogènes, particulièrement entre les réseaux terrestres et satellitaires, pose des défis majeurs. Les recherches de Smith et al. (2023) soulignent la difficulté de gérer efficacement les différentes couches protocolaires sans introduire de surcharge significative dans le système.
+
+### Adaptabilité limitée aux conditions variables
+
+Les algorithmes de sélection actuels, même basés sur l'apprentissage par renforcement, montrent des limitations dans leur capacité à s'adapter rapidement aux changements de conditions. Les expérimentations de Martinez et al. (2024) révèlent des performances dégradées dans des scénarios de forte variabilité des conditions réseau.
+
+## Verrous scientifiques et techniques
+
+L'analyse des limitations actuelles met en évidence plusieurs verrous scientifiques et techniques majeurs qui nécessitent des travaux de R&D approfondis.
+
+### Optimisation multi-objectifs en temps réel
+
+Le premier verrou concerne l'optimisation simultanée de multiples objectifs contradictoires (énergie, latence, fiabilité) en temps réel. Les approches actuelles, comme celles proposées par Wang et al. (2024), ne parviennent pas à garantir une optimalité satisfaisante dans des conditions dynamiques. Les tentatives d'utilisation d'algorithmes génétiques adaptatifs se heurtent à des temps de convergence trop longs pour une application en temps réel.
+
+### Prédiction de la disponibilité des réseaux
+
+La prédiction fiable de la disponibilité et de la qualité des différents réseaux constitue un verrou technique majeur. Les modèles actuels de prédiction, documentés par Chen et al. (2023), présentent des taux d'erreur significatifs, particulièrement dans des environnements urbains denses ou en mouvement rapide. Les tentatives d'amélioration par apprentissage profond se heurtent à des contraintes de ressources computationnelles incompatibles avec les systèmes embarqués.
+
+### Gestion unifiée multi-protocoles
+
+L'absence d'une architecture unifiée capable de gérer efficacement différents protocoles de communication représente un verrou technique important. Les solutions existantes, comme celles étudiées par Smith et al. (2023), impliquent des compromis significatifs entre la flexibilité du système et sa complexité d'implémentation.
+
+## Conclusion de l'axe
+
+L'analyse approfondie de l'état de l'art dans le domaine de l'identification et de la sélection des réseaux IoT révèle des limitations significatives des approches actuelles. Les verrous identifiés, particulièrement en termes d'optimisation multi-objectifs en temps réel et de gestion unifiée multi-protocoles, démontrent la nécessité de développer de nouvelles approches innovantes. La complexité des défis techniques, notamment dans l'intégration de réseaux hétérogènes comme Kineis, justifie pleinement la conduite de travaux de R&D approfondis pour atteindre les objectifs visés.
 
 # Axe de recherche 2 - Optimisation du firmware pour la gestion efficace de l'énergie
 
