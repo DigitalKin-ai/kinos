@@ -237,7 +237,7 @@ aider --yes-always --message 'Instructions détaillées de modification. Par exe
 - Modifier la section A pour inclure B
 - Supprimer la partie C
 - Remplacer D par E
-etc.'
+etc.' --file production.md
 ```
 
 IMPORTANT:
@@ -245,7 +245,8 @@ IMPORTANT:
 - Une instruction par ligne
 - Utiliser des verbes d'action (Ajouter, Modifier, Supprimer, Remplacer)
 - Décrire exactement ce qui doit être changé et comment
-- Toujours inclure au moins une modification"""
+- Toujours inclure au moins une modification
+- La commande doit toujours inclure --file production.md"""
     def _extract_sections(self, content: str) -> dict:
         """
         Extract sections from content while preserving hierarchy.
@@ -378,9 +379,9 @@ IMPORTANT:
                 self.logger(f"[{self.__class__.__name__}] ❌ Pas de réponse du LLM")
                 return
                 
-            # Extraire la commande aider
+            # Extraire la commande aider avec le fichier
             import re
-            aider_cmd = re.search(r'aider --yes-always --message \'(.*?)\'', response, re.DOTALL)
+            aider_cmd = re.search(r'aider --yes-always --message \'(.*?)\'.*?--file production\.md', response, re.DOTALL)
             if not aider_cmd:
                 self.logger(f"[{self.__class__.__name__}] ❌ Format de réponse invalide")
                 self.logger(f"[{self.__class__.__name__}] Réponse reçue:\n{response}")
@@ -389,7 +390,7 @@ IMPORTANT:
             # Exécuter la commande aider
             import subprocess
             try:
-                cmd = ['aider', '--yes-always', '--message', aider_cmd.group(1)]
+                cmd = ['aider', '--yes-always', '--message', aider_cmd.group(1), '--file', 'production.md']
                 result = subprocess.run(cmd, capture_output=True, text=True)
                 
                 if result.returncode == 0:
