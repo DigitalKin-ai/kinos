@@ -53,13 +53,14 @@ html, body {
 
 /* Content container */
 .content-container {
-    margin-top: 60px;
-    height: calc(100vh - 60px);
+    margin-top: 60px;  /* Pour l'espace sous le header */
+    height: calc(100vh - 60px);  /* Hauteur totale moins header */
     width: 100%;
     box-sizing: border-box;
+    padding: 0;  /* Enlever le padding par défaut */
+    overflow: hidden;
     display: flex;
     flex: 1;
-    overflow: hidden;
 }
 
 /* Content area */
@@ -589,12 +590,16 @@ body {
 .suivi-content {
     font-family: monospace;
     white-space: pre-wrap;
+    word-wrap: break-word;
     padding: 1rem;
     height: 100%;
+    width: 100%;
     overflow: auto;
     background-color: #f8f9fa;
     border-radius: 4px;
     border: 1px solid #e9ecef;
+    margin: 0;  /* Enlever les marges */
+    box-sizing: border-box;
 }
 
 .suivi-entry {
