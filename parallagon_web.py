@@ -410,6 +410,8 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                         self.log_message(f"Error reading {file_name}: {str(e)}")
                         content[file_name] = ""
                         
+                # Debug log pour vérifier le contenu
+                self.log_message(f"Content loaded: {list(content.keys())}")
                 return jsonify(content)
             except Exception as e:
                 self.log_message(f"Error getting content: {str(e)}")
