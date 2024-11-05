@@ -63,12 +63,12 @@ class LogManager:
         # Configure widget to display more content
         self.text_widget.configure(
             height=10,         # Increased height
-            width=80,         # Increased width
+            width=120,        # Increased width
             background='#f8f9fa',
             fg='#666666',
             font=('TkDefaultFont', 9),  # Slightly larger font
-            padx=5,
-            pady=3,
+            padx=10,          # More horizontal padding
+            pady=5,
             wrap='word'       # Add word wrap to prevent word breaks
         )
         
@@ -203,9 +203,16 @@ class LogManager:
             self.text_widget.insert(tk.END, f"[{log.agent}] ", log.level.name.lower())
         
         # Add message with proper tag and animation
+        # Utiliser le message complet sans le couper
         message_start = self.text_widget.index(tk.END)
         self.text_widget.insert(tk.END, f"{log.message}\n", (log.level.name.lower(), 'fade_in'))
         message_end = self.text_widget.index(tk.END)
+        
+        # Configurer le widget pour permettre un affichage complet
+        self.text_widget.configure(
+            wrap='word',       # Activer le word wrap
+            width=120,         # Augmenter la largeur pour plus de contenu
+        )
         
         # Schedule animation removal with specific range
         def remove_fade():
