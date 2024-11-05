@@ -387,11 +387,21 @@ IMPORTANT:
                 self.logger(f"[{self.__class__.__name__}] Réponse reçue:\n{response}")
                 return
                 
+            # Log le message qui sera envoyé à aider
+            message = aider_cmd.group(1)
+            self.logger(f"[{self.__class__.__name__}] 📝 Message pour aider:\n{message}")
+                
             # Exécuter la commande aider
             import subprocess
             try:
-                cmd = ['aider', '--yes-always', '--message', aider_cmd.group(1), '--file', 'production.md']
+                cmd = ['aider', '--yes-always', '--message', message, '--file', 'production.md']
                 result = subprocess.run(cmd, capture_output=True, text=True)
+                
+                # Log la sortie de aider
+                if result.stdout:
+                    self.logger(f"[{self.__class__.__name__}] 📄 Sortie de aider:\n{result.stdout}")
+                if result.stderr:
+                    self.logger(f"[{self.__class__.__name__}] ⚠️ Erreurs de aider:\n{result.stderr}")
                 
                 if result.returncode == 0:
                     self.logger(f"[{self.__class__.__name__}] ✓ Modifications appliquées avec succès")
@@ -399,7 +409,7 @@ IMPORTANT:
                     with open(self.file_path, 'r', encoding='utf-8') as f:
                         self.current_content = f.read()
                 else:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'exécution de aider:\n{result.stderr}")
+                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'exécution de aider (code {result.returncode})")
                     
             except Exception as e:
                 self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'exécution de aider: {str(e)}")
