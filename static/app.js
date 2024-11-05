@@ -154,8 +154,8 @@ const ParallagonApp = {
                 await fetch('/api/start', { method: 'POST' });
                 this.running = true;
                 this.startUpdateLoop();
-                // Activer l'onglet Suivi Mission
-                this.activeTab = 'suivi-mission';
+                // Changer cette ligne pour activer l'onglet suivi au lieu de suivi-mission
+                this.activeTab = 'suivi';
                 this.addNotification('success', 'Agents started successfully');
                 // Start logs update
                 this.startLogsUpdate();
