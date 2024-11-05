@@ -18,11 +18,31 @@ class SuiviAgent(ParallagonAgent):
         self.logs_buffer = config.get("logs_buffer", [])
         self.last_summary_time = None
 
+    def _clean_old_entries(self, content: str, max_entries: int = 100) -> str:
+        """Keep only the most recent entries"""
+        lines = content.split('\n')
+        entries = []
+        current_entry = []
+        
+        for line in lines:
+            if line.startswith('[') and ']' in line:
+                if current_entry:
+                    entries.append('\n'.join(current_entry))
+                current_entry = [line]
+            elif current_entry:
+                current_entry.append(line)
+                
+        if current_entry:
+            entries.append('\n'.join(current_entry))
+            
+        # Keep only the most recent entries
+        recent_entries = entries[-max_entries:] if entries else []
+        return '\n'.join(recent_entries)
+
     def determine_actions(self) -> None:
         try:
             self.logger(f"[{self.__class__.__name__}] Analyse des activités...")
             
-            # Ne générer un résumé que si assez de temps s'est écoulé
             current_time = datetime.now()
             if (self.last_summary_time is None or 
                 (current_time - self.last_summary_time).total_seconds() >= 30):
@@ -30,19 +50,22 @@ class SuiviAgent(ParallagonAgent):
                 context = {
                     "suivi": self.current_content,
                     "other_files": self.other_files,
-                    "logs": self.logs_buffer[-50:]  # Derniers 50 logs
+                    "logs": self.logs_buffer[-50:]
                 }
                 
                 response = self._get_llm_response(context)
                 if response and response != self.current_content:
-                    # Ajouter le nouveau résumé au contenu existant
                     timestamp = current_time.strftime("%H:%M:%S")
-                    new_content = f"{self.current_content}\n[{timestamp}] {response}"
+                    new_entry = f"[{timestamp}] {response}"
                     
-                    # Écrire dans le fichier
+                    # Combine and clean entries
+                    new_content = f"{self.current_content}\n{new_entry}" if self.current_content else new_entry
+                    cleaned_content = self._clean_old_entries(new_content)
+                    
+                    # Write to file
                     with open(self.file_path, 'w', encoding='utf-8') as f:
-                        f.write(new_content)
-                    self.current_content = new_content
+                        f.write(cleaned_content)
+                    self.current_content = cleaned_content
                     self.last_summary_time = current_time
                     self.logger(f"[{self.__class__.__name__}] ✓ Nouveau résumé ajouté")
                 

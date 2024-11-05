@@ -551,6 +551,33 @@ body {
     color: #63B3ED;  /* Bleu clair */
 }
 
+/* Suivi panel specific styles */
+.suivi-content {
+    font-family: monospace;
+    white-space: pre-wrap;
+    padding: 1rem;
+    height: 100%;
+    overflow: auto;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+}
+
+.suivi-entry {
+    margin-bottom: 0.5rem;
+    padding: 0.25rem;
+    border-radius: 2px;
+}
+
+.suivi-entry:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.suivi-timestamp {
+    color: #666;
+    font-size: 0.8em;
+}
+
 .suivi-mission-entry.success {
     color: #48BB78;  /* Vert */
 }
