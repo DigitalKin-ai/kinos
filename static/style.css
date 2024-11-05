@@ -687,7 +687,7 @@ body {
 }
 
 /* Style pour les timestamps entre crochets */
-.suivi-content [*] {
+.suivi-content span[class^="timestamp"] {
     color: #64748b;
     font-weight: 500;
     padding: 0.2rem 0.4rem;
