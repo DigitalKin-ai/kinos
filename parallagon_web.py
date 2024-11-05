@@ -539,18 +539,22 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 return jsonify([])
 
         @self.app.route('/api/demande', methods=['POST'])
-        def update_demande():
+        def save_demande():
             try:
-                content = request.json.get('content')
-                if not content:
+                data = request.get_json()
+                if not data or 'content' not in data:
                     return jsonify({'error': 'No content provided'}), 400
                     
-                success = self.file_manager.write_file('demande.md', content)
+                success = self.file_manager.write_file('demande', data['content'])
                 if success:
+                    self.log_message("✓ Demande sauvegardée", level='success')
                     return jsonify({'status': 'success'})
                 else:
-                    return jsonify({'error': 'Failed to write file'}), 500
+                    self.log_message("❌ Échec de sauvegarde de la demande", level='error')
+                    return jsonify({'error': 'Failed to write demand file'}), 500
+                    
             except Exception as e:
+                self.log_message(f"❌ Erreur lors de la sauvegarde de la demande: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
     def run(self, host='0.0.0.0', port=5000, **kwargs):
