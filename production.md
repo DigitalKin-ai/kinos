@@ -1,8 +1,8 @@
 # Introduction générale
 
-Les objets connectés (IoT) sont aujourd'hui partout autour de nous, des montres connectées aux capteurs agricoles. Un défi majeur est de créer des traceurs "universels" capables de communiquer partout et à tout moment. Imaginons par exemple un colis qui voyage à travers le monde : en ville, il utilise le réseau SigFox, peu coûteux en énergie. Dans le port, il bascule sur le réseau LoRa qui offre une meilleure portée. En plein océan, il communique via le satellite Kineis pour maintenir le contact. Le défi est de rendre ces changements de réseau automatiques et efficaces, tout en préservant la batterie du traceur pour qu'elle dure plusieurs mois.
+Imaginez un petit boîtier électronique capable de communiquer depuis n'importe quel endroit sur Terre. Ce concept de "traceur universel" représente aujourd'hui un défi technologique majeur dans le monde des objets connectés (IoT). Pour comprendre l'enjeu, prenons l'exemple concret d'un conteneur maritime : pendant son voyage, il doit pouvoir transmettre sa position et son état en utilisant différents réseaux de communication. En ville, il utilise le réseau urbain SigFox, économique et efficace entre les bâtiments. Dans les zones portuaires, il bascule automatiquement sur le réseau LoRa, plus adapté aux grands espaces. En pleine mer, où aucun réseau terrestre n'est disponible, il communique via le satellite Kineis. Le défi est de rendre ces transitions entre réseaux totalement transparentes, tout en assurant une autonomie de plusieurs mois sur batterie.
 
-Pour relever ce défi, notre projet de recherche se concentre sur deux aspects complémentaires. Le premier concerne le "cerveau" du traceur : comment lui permettre de choisir intelligemment le meilleur réseau disponible ? Par exemple, en ville, le traceur doit pouvoir détecter qu'il est entouré de bâtiments et privilégier SigFox qui traverse mieux les obstacles. Le second aspect concerne l'optimisation de la consommation d'énergie : comment adapter la puissance d'émission selon le réseau choisi ? Par exemple, réduire la puissance en ville où les antennes sont nombreuses, et l'augmenter en mer pour atteindre le satellite. Cette approche en deux volets nous permet d'aborder méthodiquement tous les aspects techniques nécessaires pour créer un traceur IoT vraiment universel et efficace.
+Notre projet de recherche aborde ce défi selon deux angles complémentaires. Le premier axe se concentre sur l'intelligence du système : comment permettre au traceur de choisir automatiquement le meilleur réseau disponible ? Prenons un exemple simple : en environnement urbain dense, le système doit reconnaître la présence de nombreux obstacles et privilégier SigFox, dont les ondes traversent mieux les bâtiments. Le second axe traite de l'efficacité énergétique : comment optimiser la consommation selon le contexte ? Par exemple, en réduisant la puissance d'émission en ville où les antennes sont proches, et en l'augmentant uniquement lorsque nécessaire pour atteindre les satellites. Cette approche structurée nous permet d'explorer méthodiquement toutes les facettes de ce défi technologique.
 
 # Axe de recherche 1 - Développement software pour l'identification et la sélection des réseaux
 
@@ -171,3 +171,41 @@ Wang, R., & Li, Y. (2024). Fuzzy Logic Decision Making for IoT Network Selection
 Yamamoto, K., & Tanaka, T. (2024). Predictive Transmission Planning for Energy-Efficient IoT. IEEE Access, 12, 23456-23471.
 
 Zhang, W., & Liu, H. (2023). Adaptive Network Detection for IoT Devices. IEEE Internet of Things Journal, 10(7), 6789-6804.
+
+# Directives générales
+
+## Format et style
+- Longueur totale : 2000-2500 mots + 1100-1450 mots par axe
+- Style scientifique et objectif
+- Éviter le conditionnel sauf pour les perspectives
+- Paragraphes courts et structurés (3-5 phrases)
+- Transitions logiques entre sections
+- Vocabulaire technique précis mais accessible
+
+## Structure des paragraphes
+- Introduction claire du sujet
+- Développement logique des idées
+- Conclusion ou transition vers le paragraphe suivant
+- Utilisation de connecteurs logiques
+- Équilibre entre information technique et clarté
+
+## Transitions entre sections
+- Rappel succinct de la section précédente
+- Introduction du nouveau thème
+- Lien logique entre les sections
+- Progression naturelle des idées
+- Maintien du fil conducteur
+
+## Citations et références
+- Format IEEE cohérent
+- Citations pertinentes et récentes
+- Intégration fluide dans le texte
+- Support des affirmations clés
+- Équilibre entre différentes sources
+
+## Critères CIR à satisfaire
+- Démonstration claire de l'état de l'art
+- Identification précise des limites actuelles
+- Justification des besoins en R&D
+- Mise en évidence des verrous technologiques
+- Caractère innovant des approches proposées
