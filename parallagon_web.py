@@ -491,6 +491,28 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
 
+        @self.app.route('/api/suivi', methods=['GET', 'POST'])
+        def suivi():
+            if request.method == "GET":
+                try:
+                    content = self.file_manager.read_file("suivi")
+                    if content is None:
+                        content = ""
+                    return jsonify({"content": content})
+                except Exception as e:
+                    self.log_message(f"Error reading suivi.md: {str(e)}", level='error')
+                    return jsonify({"content": "", "error": str(e)}), 500
+            elif request.method == "POST":
+                try:
+                    content = request.get_json()["content"]
+                    success = self.file_manager.write_file("suivi", content)
+                    if not success:
+                        raise Exception("Failed to write suivi.md")
+                    return jsonify({"status": "success"})
+                except Exception as e:
+                    self.log_message(f"Error writing suivi.md: {str(e)}", level='error')
+                    return jsonify({"error": str(e)}), 500
+
         @self.app.route('/api/changes')
         def get_changes():
             """Return and clear pending changes"""

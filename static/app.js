@@ -49,6 +49,7 @@ const ParallagonApp = {
                 suivi: ''
             },
             previousContent: {},
+            suiviUpdateInterval: null,
             panels: [
                 { id: 'specifications', name: 'Specifications', icon: 'mdi mdi-file-tree', updating: false },
                 { id: 'management', name: 'Management', icon: 'mdi mdi-account-supervisor', updating: false },
@@ -73,12 +74,36 @@ const ParallagonApp = {
                 const data = await response.json();
                 this.content = data;
                 this.previousContent = { ...data };
+                
+                // Load suivi content separately
+                const suiviResponse = await fetch('/api/suivi');
+                if (suiviResponse.ok) {
+                    const suiviData = await suiviResponse.json();
+                    if (suiviData.content !== undefined) {
+                        this.content.suivi = suiviData.content;
+                    }
+                }
+                
                 this.addNotification('success', 'Content loaded successfully');
             } catch (error) {
                 console.error('Error loading initial content:', error);
                 this.addNotification('error', `Failed to load content: ${error.message}`);
             } finally {
                 this.loading = false;
+            }
+        },
+
+        async updateSuiviContent() {
+            try {
+                const response = await fetch('/api/suivi');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.content !== undefined) {
+                        this.content.suivi = data.content;
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating suivi content:', error);
             }
         },
 
@@ -591,6 +616,10 @@ const ParallagonApp = {
         this.loadInitialContent()
             .then(() => {
                 this.startPolling();
+                // Start suivi content updates
+                this.suiviUpdateInterval = setInterval(() => {
+                    this.updateSuiviContent();
+                }, 5000); // Update every 5 seconds
                 this.addLog('info', 'Application initialized');
             })
             .catch(error => {
@@ -601,6 +630,9 @@ const ParallagonApp = {
     
     beforeUnmount() {
         this.stopUpdateLoop();
+        if (this.suiviUpdateInterval) {
+            clearInterval(this.suiviUpdateInterval);
+        }
     }
 };
 
