@@ -7,6 +7,13 @@
 - Phase actuelle : Développement de la Partie II
 - Objectif mensuel : 40% d'ici fin novembre
 
+## Prochaines Étapes
+- Finalisation des chapitres 5-6 (novembre 2024)
+- Révision technique de la Partie I (mi-novembre 2024)
+- Développement initial des chapitres 7-8 (fin novembre 2024)
+- Enrichissement des interactions Echo-musiciens (décembre 2024)
+- Approfondissement des aspects techniques de l'IA (janvier 2025)
+
 ## Progrès Actuel
 ### Réalisations Récentes
 - Finalisation des quatre premiers chapitres de la Partie I
