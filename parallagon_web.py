@@ -280,6 +280,12 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 }),
                 "Suivi": SuiviAgent({
                     **base_config,
+                    "file_path": "suivi.md", 
+                    "watch_files": ["demande.md", "specifications.md", "management.md", "production.md", "evaluation.md"],
+                    "logs_buffer": self.logs_buffer
+                }),
+                "Suivi": SuiviAgent({
+                    **base_config,
                     "file_path": "suivi.md",
                     "watch_files": ["demande.md", "specifications.md", "management.md", "production.md", "evaluation.md"],
                     "logs_buffer": self.logs_buffer
