@@ -161,5 +161,7 @@ En attente de nouvelles directives...
 - Progression: 0%
 - Points forts: À déterminer
 - Points à améliorer: À déterminer
-- Statut global: EN_ATTENTE"""
+- Statut global: EN_ATTENTE""",
+
+            "suivi": f"""[{datetime.now().strftime("%H:%M:%S")}] Initialisation du système de suivi."""
         }
