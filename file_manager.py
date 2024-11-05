@@ -163,5 +163,6 @@ En attente de nouvelles directives...
 - Points à améliorer: À déterminer
 - Statut global: EN_ATTENTE""",
 
-            "suivi": f"""[{datetime.now().strftime("%H:%M:%S")}] Initialisation du système de suivi."""
+            "suivi": f"""[{datetime.now().strftime("%H:%M:%S")}] Système réinitialisé.
+[{datetime.now().strftime("%H:%M:%S")}] En attente de nouvelles actions..."""
         }
