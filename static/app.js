@@ -604,5 +604,3 @@ const ParallagonApp = {
 };
 
 Vue.createApp(ParallagonApp).mount('#app');
-            result.append(f"=== {file_path} ===\n{content}\n")
-        return "\n".join(result)
