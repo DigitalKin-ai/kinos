@@ -723,7 +723,7 @@ body {
 }
 
 /* Style pour les timestamps */
-.suivi-content [*] {
+.suivi-content [class^="timestamp"] {
     font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
     color: #6B7280;
     font-size: 0.9em;
