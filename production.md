@@ -7,6 +7,13 @@
 - Phase actuelle : Développement de la Partie II
 - Objectif mensuel : 40% d'ici fin novembre
 
+## Prochaines Étapes
+- Finalisation des chapitres 5-6 d'ici fin novembre
+- Révision approfondie de la Partie I
+- Développement des interactions musicales dans la Partie II
+- Enrichissement des aspects techniques de l'évolution d'Echo
+- Préparation du plan détaillé des chapitres 7-8
+
 ## Progrès Actuel
 ### Réalisations Récentes
 - Finalisation des quatre premiers chapitres de la Partie I
