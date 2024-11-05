@@ -29,11 +29,12 @@
         <div class="header">
             <div class="logo">⚫ Parallagon</div>
             <div class="controls">
-                <button class="btn-start" @click="startAgents" :disabled="running">
-                    ▶ Start
-                </button>
-                <button class="btn-stop" @click="stopAgents" :disabled="!running">
-                    ■ Stop
+                <button 
+                    :class="['control-button', running ? 'stop' : 'start']"
+                    @click="running ? stopAgents() : startAgents()"
+                    :disabled="loading">
+                    <i :class="running ? '■' : '▶'"></i>
+                    ${ running ? 'Stop' : 'Start' }
                 </button>
                 <button class="btn-reset" @click="resetFiles" :disabled="running">
                     ↺ Reset
