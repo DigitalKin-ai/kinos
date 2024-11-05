@@ -35,7 +35,7 @@ const ParallagonApp = {
                 { id: 'management', name: 'Management', icon: 'mdi mdi-account-supervisor' },
                 { id: 'production', name: 'Production', icon: 'mdi mdi-code-braces' },
                 { id: 'evaluation', name: 'Evaluation', icon: 'mdi mdi-check-circle' },
-                { id: 'suivi-mission', name: 'Suivi Mission', icon: 'mdi mdi-console-line' }
+                { id: 'suivi-mission', name: 'Logs', icon: 'mdi mdi-console-line' }
             ],
             content: {
                 demande: '',
