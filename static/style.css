@@ -389,19 +389,53 @@ textarea.content-area {
     border-radius: 2px;
 }
 
-/* Buttons */
-.btn-start, .btn-stop, .btn-save, .btn-export, .btn-clear {
-    @apply px-4 py-2 rounded-md text-white transition-colors duration-200 flex items-center;
-    position: relative;
-    overflow: hidden;
+/* Style unifié pour le bouton toggle */
+.control-button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
 }
 
-.btn-start {
-    @apply bg-green-500 hover:bg-green-600 disabled:bg-green-300;
+/* Style pour l'état Start */
+.control-button.start {
+    background-color: #40c057;
+    color: white;
 }
 
-.btn-stop {
-    @apply bg-red-500 hover:bg-red-600 disabled:bg-red-300;
+.control-button.start:hover:not(:disabled) {
+    background-color: #37b24d;
+}
+
+/* Style pour l'état Stop */
+.control-button.stop {
+    background-color: #fa5252;
+    color: white;
+}
+
+.control-button.stop:hover:not(:disabled) {
+    background-color: #f03e3e;
+}
+
+/* État désactivé */
+.control-button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Animation de transition */
+.control-button {
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.control-button:active:not(:disabled) {
+    transform: scale(0.98);
 }
 
 .btn-save {
