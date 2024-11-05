@@ -300,9 +300,15 @@ class ParallagonAgent:
 Contexte actuel :
 {self._format_other_files(context)}
 
+IMPORTANT - PHASES DE DÉMARRAGE:
+- Au démarrage initial, il est normal qu'il n'y ait pas encore de contenu à évaluer
+- Les spécifications et le contenu se construisent progressivement
+- Ne pas signaler d'erreur si les fichiers sont vides ou contiennent des placeholders
+- Attendre que du contenu réel soit présent avant de commencer l'évaluation
+
 Votre tâche :
-1. Vérifier le respect des spécifications
-2. Évaluer la qualité du contenu
+1. Vérifier le respect des spécifications (si présentes)
+2. Évaluer la qualité du contenu (si présent)
 3. Identifier les points à améliorer
 
 Format de réponse :
@@ -313,7 +319,13 @@ Format de réponse :
 
 # Vue d'Ensemble
 [progression: X%]
-[status: VALIDATED|NEEDS_WORK|REJECTED]"""
+[status: VALIDATED|NEEDS_WORK|REJECTED]
+
+Notes:
+- Utiliser ✓ pour valider
+- Utiliser ⚠️ pour les améliorations mineures
+- Utiliser ❌ pour les problèmes majeurs
+- Si pas de contenu à évaluer, indiquer "En attente de contenu à évaluer" """
 
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response with fallback between providers"""
