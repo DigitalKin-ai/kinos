@@ -127,6 +127,18 @@
                     </div>
                 </div>
 
+                <!-- Suivi content -->
+                <div v-if="activeTab === 'suivi'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-history mr-2"></i>Suivi
+                        </h2>
+                    </div>
+                    <div class="panel-content">
+                        <pre class="suivi-content" v-html="highlightContent('suivi')"></pre>
+                    </div>
+                </div>
+
                 <!-- Suivi Mission content -->
                 <div v-if="activeTab === 'suivi-mission'" class="panel">
                     <div class="panel-header">
