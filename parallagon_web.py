@@ -341,16 +341,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     return jsonify({'error': 'Failed to write test data'}), 500
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
-        def load_test_data():
-            try:
-                success = self.file_manager.write_file('demande', self.TEST_DATA)
-                if success:
-                    self.log_message("✨ Données de test chargées")
-                    return jsonify({'status': 'success'})
-                else:
-                    return jsonify({'error': 'Failed to write test data'}), 500
-            except Exception as e:
-                return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/reset', methods=['POST'])
         def reset_files():
@@ -543,15 +533,33 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             try:
                 data = request.get_json()
                 if not data or 'content' not in data:
+                    self.log_message("❌ Pas de contenu fourni pour la demande", level='error')
                     return jsonify({'error': 'No content provided'}), 400
                     
-                success = self.file_manager.write_file('demande', data['content'])
-                if success:
-                    self.log_message("✓ Demande sauvegardée", level='success')
-                    return jsonify({'status': 'success'})
-                else:
-                    self.log_message("❌ Échec de sauvegarde de la demande", level='error')
-                    return jsonify({'error': 'Failed to write demand file'}), 500
+                # Vérifier que le contenu est une chaîne de caractères
+                if not isinstance(data['content'], str):
+                    self.log_message("❌ Le contenu de la demande doit être une chaîne de caractères", level='error')
+                    return jsonify({'error': 'Content must be a string'}), 400
+
+                # Essayer d'écrire le fichier
+                try:
+                    success = self.file_manager.write_file('demande', data['content'])
+                    if success:
+                        self.log_message("✓ Demande sauvegardée", level='success')
+                        # Notifier du changement
+                        self.handle_content_change(
+                            'demande.md',
+                            data['content'],
+                            panel_name='Demande'
+                        )
+                        return jsonify({'status': 'success'})
+                    else:
+                        self.log_message("❌ Échec de sauvegarde de la demande", level='error')
+                        return jsonify({'error': 'Failed to write demand file'}), 500
+                        
+                except Exception as write_error:
+                    self.log_message(f"❌ Erreur d'écriture du fichier: {str(write_error)}", level='error')
+                    return jsonify({'error': f'File write error: {str(write_error)}'}), 500
                     
             except Exception as e:
                 self.log_message(f"❌ Erreur lors de la sauvegarde de la demande: {str(e)}", level='error')
