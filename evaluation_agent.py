@@ -145,47 +145,51 @@ class EvaluationAgent(ParallagonAgent):
         return "\n".join(result)
 
     def _build_prompt(self, context: dict) -> str:
-        """
-        Build prompt for quality evaluation.
-        
-        Includes:
-        - Quality criteria and standards
-        - Content requirements
-        - Evaluation metrics
-        - Feedback guidelines
-        - Rating system
-        
-        Args:
-            context: Current project state
-            
-        Returns:
-            str: Quality evaluation prompt
-        """
-        return f"""En tant qu'évaluateur qualité, vous devez analyser chaque section et produire une évaluation structurée.
+        return f"""Vous êtes l'agent d'évaluation. Votre rôle est de vérifier la qualité du contenu produit.
 
 Contexte actuel :
 {self._format_other_files(context)}
 
-Format STRICT à respecter pour chaque section :
+IMPORTANT - PHASES DE DÉMARRAGE:
+- Au démarrage initial, il est normal qu'il n'y ait pas encore de contenu à évaluer
+- Les spécifications et le contenu se construisent progressivement
+- Ne pas signaler d'erreur si les fichiers sont vides ou contiennent des placeholders
+- Attendre que du contenu réel soit présent avant de commencer l'évaluation
 
+Votre tâche :
+1. Examiner chaque section du document individuellement
+2. Pour chaque section présente dans production.md :
+   - Vérifier le respect des spécifications (si présentes)
+   - Évaluer la qualité du contenu (si présent)
+   - Identifier les points à améliorer
+3. Fournir une vue d'ensemble à la fin
+
+Format de réponse :
 # Évaluations en Cours
-[section: Nom Section]
-[evaluation: VALIDATED|NEEDS_WORK|REJECTED]
-[details: description détaillée]
-- Cohérence: [✓|⚠️|❌] justification
-- Complétude: [✓|⚠️|❌] justification
-- Clarté: [✓|⚠️|❌] justification
-- Respect des critères: [✓|⚠️|❌] justification
+
+[section: Introduction]
+- Qualité: [✓|⚠️|❌] Commentaire
+- Conformité: [✓|⚠️|❌] Commentaire
+- Points à améliorer: liste des suggestions
+
+[section: Section 1]
+- Qualité: [✓|⚠️|❌] Commentaire
+- Conformité: [✓|⚠️|❌] Commentaire
+- Points à améliorer: liste des suggestions
+
+[section: Section N]
+- Qualité: [✓|⚠️|❌] Commentaire
+- Conformité: [✓|⚠️|❌] Commentaire
+- Points à améliorer: liste des suggestions
 
 # Vue d'Ensemble
-[progression: pourcentage]
-[status: IN_PROGRESS|COMPLETED|BLOCKED]
-[critical_issues: liste des problèmes majeurs]
-[next_steps: actions prioritaires]
+[progression: X%]
+[status: VALIDATED|NEEDS_WORK|REJECTED]
+[résumé: bref résumé des points principaux]
 
-Règles STRICTES de formatage :
-1. L'attribut [evaluation:] doit être un des trois états : VALIDATED, NEEDS_WORK, REJECTED
-2. Les indicateurs de statut doivent être exactement : ✓, ⚠️, ou ❌
-3. Chaque section doit avoir tous les attributs et critères listés
-4. La progression doit être un pourcentage entre 0 et 100
-5. Le status global doit être un des trois états définis"""
+Notes:
+- Utiliser ✓ pour valider
+- Utiliser ⚠️ pour les améliorations mineures
+- Utiliser ❌ pour les problèmes majeurs
+- Si pas de contenu à évaluer dans une section, indiquer "En attente de contenu à évaluer"
+- Évaluer TOUTES les sections présentes dans production.md"""
