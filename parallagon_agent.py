@@ -320,7 +320,7 @@ Format de réponse :
         try:
             # Try OpenAI first
             response = self.openai_client.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-4o-mini",  # Modèle standard de openai (ne pas remplacer)
                 messages=[{
                     "role": "user", 
                     "content": self._build_prompt(context)
