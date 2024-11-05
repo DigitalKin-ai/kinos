@@ -3,9 +3,9 @@
 [evaluation: NEEDS_WORK]
 [details: Les évaluations en cours sont actuellement en attente, ce qui indique qu'aucune progression n'a été réalisée. Il est essentiel de clarifier les critères d'évaluation et d'initier le processus d'évaluation pour avancer.]
 - Cohérence: ⚠️ Les critères d'évaluation sont en attente, ce qui nuit à la cohérence du processus.
-- Complétude: ⚠️ Les informations nécessaires pour procéder à l'évaluation sont incomplètes.
-- Clarté: ⚠️ Le manque de détails sur les critères d'évaluation rend la section peu claire.
-- Respect des critères: ⚠️ Aucun critère n'est respecté en raison de l'état d'attente.
+- Complétude: ⚠️ Les sections critiques sont incomplètes, car aucune évaluation n'a été effectuée.
+- Clarté: ⚠️ Le manque d'informations sur les critères d'évaluation rend la section peu claire.
+- Respect des critères: ⚠️ Aucun critère n'est respecté, car aucune évaluation n'a été réalisée.
 
 # Vue d'Ensemble
 [progression: 0%]
