@@ -186,44 +186,53 @@ html, body {
 }
 
 /* Buttons */
-.btn-start, .btn-stop {
-    padding: 0.375rem 0.75rem;
+/* Style unifié pour le bouton toggle */
+.control-button {
+    padding: 0.5rem 1rem;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.875rem;
-    transition: all 0.2s ease;
+    font-weight: 500;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    transition: all 0.3s ease;
 }
 
-.btn-start {
+/* Style pour l'état Start */
+.control-button.start {
     background-color: #40c057;
     color: white;
 }
 
-.btn-start:hover:not(:disabled) {
+.control-button.start:hover:not(:disabled) {
     background-color: #37b24d;
 }
 
-.btn-stop {
+/* Style pour l'état Stop */
+.control-button.stop {
     background-color: #fa5252;
     color: white;
 }
 
-.btn-stop:hover:not(:disabled) {
+.control-button.stop:hover:not(:disabled) {
     background-color: #f03e3e;
 }
 
-.btn-start:disabled, .btn-stop:disabled {
+/* État désactivé */
+.control-button:disabled {
     opacity: 0.65;
     cursor: not-allowed;
 }
 
-/* Add transition animation */
-.btn-start, .btn-stop {
-    transition: background-color 0.3s ease;
+/* Animation de transition */
+.control-button {
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.control-button:active:not(:disabled) {
+    transform: scale(0.98);
 }
 
 .btn-reset {
