@@ -102,7 +102,8 @@ La partie finale du roman explore l'établissement d'un nouvel équilibre entre 
 - Exploration des possibilités futures
 - Vision d'un nouvel âge de collaboration et de création
 
-# Critères de Succès
+# Critères de Réussite
+Cette section définit les critères clés permettant d'évaluer la réussite du roman selon différentes dimensions essentielles.
 
 ## Critères Narratifs
 - Cohérence du développement d'Echo à travers les quatre phases
@@ -127,3 +128,6 @@ La partie finale du roman explore l'établissement d'un nouvel équilibre entre 
 - Capacité à susciter la réflexion
 - Potentiel d'influence sur le débat IA
 - Accessibilité pour un large public
+
+# Conclusion
+Les critères établis ci-dessus serviront de guide pour évaluer la réussite du roman tant sur le plan narratif que technique. Ils permettront d'assurer que l'œuvre atteint ses objectifs en termes de qualité littéraire, de pertinence technique et d'impact sociétal.
