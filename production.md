@@ -1,5 +1,7 @@
-# Introduction
-Ce document présente une vue d'ensemble du projet et de ses objectifs principaux. L'introduction fournit le contexte nécessaire pour comprendre la portée et l'importance des sections qui suivent.
+# Section 1: Introduction
+Cette section introduit le thème de l'impact de l'IA générative sur l'industrie musicale. Elle vise à présenter le contexte et les objectifs de cette revue de connaissances, qui servira de support à la prise de décision concernant l'intégration des technologies d'IA générative dans nos processus de production musicale.
+
+L'étude s'inscrit dans une démarche d'innovation responsable, prenant en compte à la fois les opportunités offertes par ces nouvelles technologies et les enjeux éthiques et pratiques qu'elles soulèvent.
 
 # Contexte de l'étude
 Cette section détaille le contexte dans lequel s'inscrit notre étude, incluant :
