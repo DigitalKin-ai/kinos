@@ -45,7 +45,8 @@ const ParallagonApp = {
                 specifications: '',
                 management: '',
                 production: '',
-                evaluation: ''
+                evaluation: '',
+                suivi: ''
             },
             previousContent: {},
             panels: [
