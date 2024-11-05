@@ -1,35 +1,27 @@
-# Section 1: Introduction
-[contraintes: 1 page maximum, doit présenter le sujet et l'objectif de la revue]
-Cette section doit introduire le thème de l'impact de l'IA générative sur l'industrie musicale. Elle doit clairement définir l'objectif de la revue, qui est d'aider à la prise de décision concernant l'intégration des IA génératives dans le processus de production musicale. Il est essentiel d'établir le contexte et les enjeux liés à cette technologie.
+# Section 1: Introduction générale
+[contraintes: 200-250 mots, sans références, accessible aux non-spécialistes]
+Cette section doit présenter le contexte global du projet de R&D, en contextualisant la problématique générale liée aux traceurs IoT universels. Il est essentiel d'introduire les différents axes de recherche, en justifiant leur décomposition en axes distincts. Le style doit être accessible tout en restant précis.
 
-# Section 2: Contexte de l'IA Générative
-[contraintes: 2-3 pages, inclure des définitions et des exemples]
-Cette section doit fournir un aperçu de ce qu'est l'IA générative, ses applications dans divers domaines, et plus spécifiquement dans l'industrie musicale. Des exemples concrets d'utilisation de l'IA générative dans la musique doivent être inclus pour illustrer les concepts. Il est important d'aborder les technologies sous-jacentes et les tendances actuelles.
+# Section 2: Axe de recherche 1 - Développement software pour l'identification et la sélection des réseaux
+[contraintes: 1100-1450 mots, 6-8 références, 3-4 limites, 1-2 références par verrou]
+Cette section doit commencer par une introduction de l'axe, contextualisant son objectif spécifique et sa contribution à l'objectif global. Ensuite, une synthèse des connaissances actuelles doit être présentée, structurée par thèmes ou approches principales. Une analyse critique des limites des approches existantes doit suivre, identifiant 3-4 limites majeures avec des références. Les verrous scientifiques et techniques doivent être identifiés, avec une description de chaque verrou, son impact sur l'objectif, et les tentatives actuelles de résolution. Enfin, une conclusion de l'axe doit résumer la nécessité de nouvelles recherches.
 
-# Section 3: Opportunités offertes par l'IA Générative en Musique
-[contraintes: 3-4 pages, structurer par types d'opportunités]
-Cette section doit explorer les différentes opportunités que l'IA générative peut offrir à l'industrie musicale, telles que la création de nouveaux contenus, l'amélioration des processus de production, et l'innovation dans la distribution musicale. Chaque opportunité doit être argumentée avec des exemples et des données pertinentes, en structurant les informations par types d'opportunités.
+# Section 3: Axe de recherche 2 - Optimisation du firmware pour la gestion efficace de l'énergie
+[contraintes: 1100-1450 mots, 6-8 références, 3-4 limites, 1-2 références par verrou]
+Cette section doit suivre la même structure que l'axe précédent, en introduisant l'axe et son objectif spécifique, puis en présentant l'état des connaissances actuelles, les limites des approches existantes, les verrous scientifiques et techniques, et enfin une conclusion de l'axe.
 
-# Section 4: Risques et Défis de l'IA Générative en Musique
-[contraintes: 3-4 pages, structurer par types de risques]
-Cette section doit aborder les risques et défis associés à l'utilisation de l'IA générative dans la musique, y compris les questions éthiques, les impacts sur l'emploi, et les problèmes de droits d'auteur. Chaque risque doit être clairement identifié et discuté avec des arguments solides, en structurant les informations par types de risques.
+# Section 4: Synthèse multi-axes
+[contraintes: 250-300 mots, sans références]
+Cette section doit démontrer la cohérence globale des axes et leur complémentarité. Il est important de rappeler brièvement les verrous majeurs de chaque axe et de montrer les interactions entre les axes, justifiant la nécessité d'aborder tous les axes pour atteindre l'objectif global.
 
-# Section 5: Analyse Comparative
-[contraintes: 2-3 pages, inclure des études de cas]
-Cette section doit comparer l'impact de l'IA générative sur l'industrie musicale avec d'autres industries (par exemple, le cinéma, l'art visuel). Des études de cas doivent être présentées pour illustrer les différences et similitudes dans l'adoption et l'impact de l'IA générative. Il est essentiel d'analyser les leçons tirées d'autres secteurs.
+# Section 5: Conclusion générale
+[contraintes: 150-200 mots, sans références]
+Cette section doit synthétiser la nécessité globale du projet de R&D, en rappelant l'objectif global, en résumant les principaux verrous identifiés, et en justifiant la nécessité d'une approche R&D.
 
-# Section 6: Recommandations Stratégiques
-[contraintes: 1-2 pages, basées sur les sections précédentes]
-Cette section doit fournir des recommandations concrètes pour l'intégration de l'IA générative dans le processus de production musicale. Les recommandations doivent être basées sur les opportunités et risques identifiés dans les sections précédentes, en justifiant chaque recommandation avec des arguments solides.
+# Section 6: Références bibliographiques
+[contraintes: 10-15 références par axe, format APA ou IEEE, organisation par ordre alphabétique ou d'apparition]
+Cette section doit contenir toutes les références citées dans le document, organisées selon le format choisi. Les références doivent être pertinentes, de qualité académique, et récentes (moins de 5 ans).
 
-# Section 7: Conclusion
-[contraintes: 1 page maximum, résumer les points clés]
-Cette section doit résumer les principaux points abordés dans la revue et réitérer l'importance de l'IA générative pour l'avenir de l'industrie musicale. Elle doit également souligner la nécessité d'une approche réfléchie et stratégique pour son intégration, en mettant en avant les conclusions tirées des analyses précédentes.
-
-# Section 8: Bibliographie
-[contraintes: inclure toutes les sources citées, format standard]
-Cette section doit lister toutes les références et sources utilisées pour la rédaction de la revue, en respectant un format de citation standard (par exemple, APA, MLA). Il est crucial d'assurer la crédibilité et la traçabilité des informations présentées.
-
-# Section 9: Annexes
-[contraintes: optionnel, inclure des données supplémentaires ou des graphiques]
-Cette section peut inclure des informations supplémentaires, des graphiques, des tableaux ou des données qui soutiennent les analyses présentées dans le document. Bien que cette section soit optionnelle, elle peut enrichir la compréhension des enjeux abordés.
+# Section 7: Directives générales
+[contraintes: longueur totale de 2000-2500 mots + 1100-1450 mots par axe, style scientifique et objectif]
+Cette section doit résumer les directives générales à suivre pour la rédaction du document, y compris le style, la structure des paragraphes, et les transitions logiques entre les sections. Elle doit également rappeler les critères CIR à satisfaire et les relations clés à maintenir entre les différentes sections.

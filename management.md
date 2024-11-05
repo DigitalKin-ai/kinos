@@ -1,43 +1,37 @@
 # TodoList
 
 [section: Introduction]
-- [ ] [priority: HIGH] Rédiger une introduction sur l'impact de l'IA générative dans l'industrie musicale, en précisant le contexte et les enjeux.
-- [ ] [priority: MEDIUM] Identifier les principales parties prenantes dans l'industrie musicale concernées par l'IA générative.
+- [ ] [priority: HIGH] Rédiger l'introduction générale (200-250 mots) en contextualisant la problématique et en présentant les axes de recherche.
+- [ ] [priority: MEDIUM] Vérifier la clarté et l'accessibilité du texte pour les non-spécialistes.
 
-[section: Section 1]
-- [ ] [priority: HIGH] Rédiger la section d'introduction (1 page maximum) qui présente le sujet et l'objectif de la revue.
+[section: Axe de recherche 1 - Développement software pour l'identification et la sélection des réseaux]
+- [ ] [priority: HIGH] Rédiger l'introduction de l'axe (100-150 mots) en présentant l'objectif spécifique et sa contribution à l'objectif global.
+- [ ] [priority: HIGH] Rédiger la synthèse des connaissances actuelles (400-500 mots) en structurant par thèmes et en présentant les avancées majeures.
+- [ ] [priority: MEDIUM] Identifier et rédiger l'analyse critique et les limites (300-400 mots) en mettant en évidence 3-4 limites majeures.
+- [ ] [priority: MEDIUM] Identifier les verrous scientifiques et techniques (200-250 mots) et décrire leur impact sur l'objectif.
+- [ ] [priority: LOW] Rédiger la conclusion de l'axe (100-150 mots) en synthétisant les limites et la nécessité de nouvelles recherches.
 
-[section: Section 2: Contexte de l'IA Générative]
-- [ ] [priority: HIGH] Rassembler des études de cas sur des entreprises ayant intégré l'IA générative dans leur processus musical.
-- [ ] [priority: HIGH] Analyser les technologies d'IA générative actuellement utilisées dans l'industrie musicale, en incluant des exemples concrets.
-- [ ] [priority: MEDIUM] Identifier les tendances actuelles et futures de l'IA générative dans l'industrie musicale.
+[section: Axe de recherche 2 - Optimisation du firmware pour la gestion efficace de l'énergie]
+- [ ] [priority: HIGH] Rédiger l'introduction de l'axe (100-150 mots) en présentant l'objectif spécifique et sa contribution à l'objectif global.
+- [ ] [priority: HIGH] Rédiger la synthèse des connaissances actuelles (400-500 mots) en structurant par thèmes et en présentant les avancées majeures.
+- [ ] [priority: MEDIUM] Identifier et rédiger l'analyse critique et les limites (300-400 mots) en mettant en évidence 3-4 limites majeures.
+- [ ] [priority: MEDIUM] Identifier les verrous scientifiques et techniques (200-250 mots) et décrire leur impact sur l'objectif.
+- [ ] [priority: LOW] Rédiger la conclusion de l'axe (100-150 mots) en synthétisant les limites et la nécessité de nouvelles recherches.
 
-[section: Section 3: Opportunités offertes par l'IA Générative en Musique]
-- [ ] [priority: HIGH] Analyser les opportunités offertes par l'IA générative dans la production musicale, en incluant des exemples concrets.
-- [ ] [priority: MEDIUM] Évaluer les bénéfices potentiels de chaque opportunité identifiée.
+[section: Synthèse multi-axes]
+- [ ] [priority: HIGH] Rédiger la synthèse multi-axes (250-300 mots) en démontrant la cohérence et la complémentarité des axes.
 
-[section: Section 4: Risques et Défis de l'IA Générative en Musique]
-- [ ] [priority: HIGH] Identifier les risques associés à l'intégration de l'IA générative dans le processus de production musicale.
-- [ ] [priority: MEDIUM] Analyser les impacts potentiels de chaque risque sur l'industrie musicale.
+[section: Conclusion générale]
+- [ ] [priority: HIGH] Rédiger la conclusion générale (150-200 mots) en synthétisant la nécessité globale du projet de R&D.
 
-[section: Section 5: Analyse Comparative]
-- [ ] [priority: HIGH] Proposer des recommandations concrètes pour l'intégration de l'IA générative dans le processus de production musicale, basées sur les analyses précédentes.
-- [ ] [priority: MEDIUM] Justifier chaque recommandation avec des arguments solides.
-
-[section: Section 6: Recommandations Stratégiques]
-- [ ] [priority: HIGH] Rédiger une conclusion synthétisant les opportunités et les risques identifiés, avec des recommandations pour la stratégie d'intégration.
-- [ ] [priority: MEDIUM] Proposer des pistes de réflexion pour des recherches futures sur l'impact de l'IA générative dans d'autres secteurs.
-
-[section: Section 7: Conclusion]
-- [ ] [priority: HIGH] Rédiger la section de conclusion (1 page maximum) qui résume les points clés abordés dans la revue.
-
-[section: Section 8: Bibliographie]
-- [ ] [priority: HIGH] Rassembler des sources et références récentes et pertinentes pour le sujet traité.
-- [ ] [priority: MEDIUM] Formater la bibliographie selon un format standard.
-
-[section: Section 9: Annexes]
-- [ ] [priority: LOW] Rassembler des données supplémentaires ou des graphiques qui soutiennent les analyses présentées dans le document.
+[section: Références bibliographiques]
+- [ ] [priority: MEDIUM] Compiler les références bibliographiques (10-15 par axe) en suivant le format APA ou IEEE.
 
 # Vue d'Ensemble
-[progression: 0%]
-[status: BLOQUE]
+[progression: 30%]
+[status: EN_COURS] 
+
+### Remarques :
+- L'introduction générale et l'axe de recherche 1 sont en cours de rédaction, mais nécessitent des compléments pour atteindre les exigences de contenu.
+- L'axe de recherche 2 est encore à compléter, avec une attention particulière à la synthèse des connaissances actuelles et aux verrous techniques.
+- La synthèse multi-axes et la conclusion générale doivent également être rédigées pour assurer la cohérence du projet.
