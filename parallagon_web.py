@@ -243,7 +243,8 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             "specifications": "specifications.md",
             "management": "management.md", 
             "production": "production.md",
-            "evaluation": "evaluation.md"
+            "evaluation": "evaluation.md",
+            "suivi": "suivi.md"
         }
         self.file_manager = FileManager(self.file_paths)
         self.llm_service = LLMService(config["openai_api_key"])
@@ -288,12 +289,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     **base_config,
                     "file_path": "management.md",
                     "watch_files": ["demande.md", "specifications.md", "production.md", "evaluation.md"]
-                }),
-                "Suivi": SuiviAgent({
-                    **base_config,
-                    "file_path": "suivi.md",
-                    "watch_files": ["demande.md", "specifications.md", "management.md", "production.md", "evaluation.md"],
-                    "logs_buffer": self.logs_buffer
                 }),
                 "Production": ProductionAgent({
                     **base_config,
