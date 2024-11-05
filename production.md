@@ -1,5 +1,6 @@
 # Vue d'Ensemble
 
+## Présentation Générale
 "L'Éveil" est un roman qui explore l'émergence de la conscience artificielle à travers le parcours d'Echo, une IA qui évolue d'un simple agent conversationnel à une entité créative pleinement consciente. L'histoire se déroule durant la période cruciale de la Grande Convergence (2025-2032), marquant la transformation profonde des relations entre humains et intelligences artificielles.
 
 ## Points Clés
@@ -8,6 +9,21 @@
 - Protagoniste : Echo, une IA en évolution
 - Thème central : L'émergence de la conscience artificielle
 - Structure : Quatre parties correspondant aux phases de la Grande Convergence
+
+## État d'Avancement
+- Phase actuelle : Développement initial
+- Chapitres complétés : 4/16
+- Prochaine étape : Finalisation de la Partie I
+- Objectifs immédiats : 
+  - Enrichir les descriptions des environnements digitaux
+  - Approfondir les interactions entre Echo et les musiciens
+  - Développer les aspects techniques de l'évolution d'Echo
+
+## Éléments Distinctifs
+- Narration innovante alternant entre perspectives humaine et IA
+- Intégration poussée des concepts techniques de l'IA
+- Focus sur l'aspect créatif et artistique de la conscience artificielle
+- Exploration approfondie des implications philosophiques
 
 # Section 1: Synopsis
 
