@@ -10,11 +10,23 @@ Les enjeux sont multiples :
 
 La réussite de ce projet permettrait une avancée significative dans le domaine des objets connectés, ouvrant la voie à une nouvelle génération de solutions IoT véritablement universelles.
 
+# Contexte du projet
+
+Ce projet de R&D s'inscrit dans un contexte d'évolution rapide des technologies IoT et de demande croissante pour des solutions de traçabilité universelle. Le développement de traceurs IoT capables de communiquer via différents réseaux répond à un besoin crucial dans de nombreux secteurs : logistique, transport maritime, surveillance d'actifs mobiles, etc. La complexité technique réside dans l'intégration harmonieuse de multiples protocoles de communication tout en maintenant une efficacité énergétique optimale.
+
+Les enjeux sont multiples :
+- Assurer une connectivité continue quelle que soit la localisation
+- Optimiser la consommation d'énergie pour une autonomie maximale
+- Gérer intelligemment les transitions entre réseaux
+- Minimiser les coûts de communication
+
+La réussite de ce projet permettrait une avancée significative dans le domaine des objets connectés, ouvrant la voie à une nouvelle génération de solutions IoT véritablement universelles.
+
 # Introduction générale
 
-Imaginez un petit boîtier électronique capable de communiquer depuis n'importe quel endroit sur Terre. Ce concept de "traceur universel" représente aujourd'hui un défi technologique majeur dans le monde des objets connectés (IoT). Pour comprendre l'enjeu, prenons l'exemple concret d'un conteneur maritime : pendant son voyage, il doit pouvoir transmettre sa position et son état en utilisant différents réseaux de communication. En ville, il utilise le réseau urbain SigFox, économique et efficace entre les bâtiments. Dans les zones portuaires, il bascule automatiquement sur le réseau LoRa, plus adapté aux grands espaces. En pleine mer, où aucun réseau terrestre n'est disponible, il communique via le satellite Kineis. Le défi est de rendre ces transitions entre réseaux totalement transparentes, tout en assurant une autonomie de plusieurs mois sur batterie.
+Imaginez un petit boîtier électronique, pas plus grand qu'un smartphone, capable de communiquer depuis n'importe quel endroit sur Terre. Ce "traceur universel" représente une avancée majeure pour suivre et surveiller des objets en mouvement partout dans le monde. Pour mieux comprendre, prenons l'exemple d'un conteneur maritime transportant des produits sensibles : pendant son voyage de Shanghai à Marseille, il doit constamment informer de sa position et de l'état de son chargement. En ville, il utilise le réseau SigFox, parfait pour traverser les murs des entrepôts. Dans le port, il passe automatiquement sur LoRa qui couvre mieux les grands espaces. Une fois en mer Méditerranée, il bascule sur le satellite Kineis pour maintenir le contact. Tout cela doit fonctionner pendant plusieurs mois avec une seule batterie !
 
-Notre projet de recherche aborde ce défi selon deux angles complémentaires. Le premier axe se concentre sur l'intelligence du système : comment permettre au traceur de choisir automatiquement le meilleur réseau disponible ? Prenons un exemple simple : en environnement urbain dense, le système doit reconnaître la présence de nombreux obstacles et privilégier SigFox, dont les ondes traversent mieux les bâtiments. Le second axe traite de l'efficacité énergétique : comment optimiser la consommation selon le contexte ? Par exemple, en réduisant la puissance d'émission en ville où les antennes sont proches, et en l'augmentant uniquement lorsque nécessaire pour atteindre les satellites. Cette approche structurée nous permet d'explorer méthodiquement toutes les facettes de ce défi technologique.
+Notre projet de recherche relève ce défi de deux façons. D'abord, nous devons rendre le traceur "intelligent" : comme un téléphone qui choisit automatiquement entre 4G et Wi-Fi, notre système doit sélectionner le meilleur réseau disponible. Par exemple, dans une zone industrielle avec beaucoup de bâtiments métalliques, il privilégiera SigFox qui traverse mieux les obstacles. Ensuite, nous travaillons sur l'économie d'énergie : comme une voiture qui adapte sa consommation selon le terrain, notre traceur doit ajuster sa puissance d'émission. En ville, avec des antennes proches, il émet doucement pour économiser la batterie. En mer, il augmente sa puissance juste assez pour atteindre le satellite. Cette double approche nous permet d'avancer pas à pas vers une solution complète et efficace.
 
 # Axe de recherche 1 - Développement software pour l'identification et la sélection des réseaux
 
