@@ -11,6 +11,10 @@ html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
 }
 
 #app {
@@ -53,14 +57,17 @@ html, body {
 
 /* Content container */
 .content-container {
-    margin-top: 60px;  /* Pour l'espace sous le header */
-    height: calc(100vh - 60px);  /* Hauteur totale moins header */
+    margin-top: 60px;
+    height: calc(100vh - 60px);
     width: 100%;
     box-sizing: border-box;
-    padding: 0;  /* Enlever le padding par défaut */
+    padding: 0;
     overflow: hidden;
     display: flex;
     flex: 1;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
 /* Content area */
@@ -588,7 +595,7 @@ body {
 
 /* Suivi panel specific styles */
 .suivi-content {
-    font-family: monospace;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     white-space: pre-wrap;
     word-wrap: break-word;
     padding: 1rem;
@@ -598,8 +605,11 @@ body {
     background-color: #f8f9fa;
     border-radius: 4px;
     border: 1px solid #e9ecef;
-    margin: 0;  /* Enlever les marges */
+    margin: 0;
     box-sizing: border-box;
+    font-size: 14px;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
 }
 
 .suivi-entry {
@@ -866,6 +876,15 @@ body {
 @keyframes loading {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
+}
+
+/* Heading styles */
+h1, h2, h3, h4, h5, h6 {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #2d3748;
+    margin-bottom: 1rem;
 }
 
 /* Responsive improvements */
