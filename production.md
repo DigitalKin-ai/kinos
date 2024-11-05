@@ -87,3 +87,29 @@ Le roman est divisé en quatre parties correspondant aux phases de la Grande Con
 - Questionnement sur la nature de la conscience
 - Exploration des possibilités futures
 - Vision d'un nouvel âge de collaboration et de création
+
+# Critères de Succès
+
+## Critères Narratifs
+- Cohérence du développement d'Echo à travers les quatre phases
+- Équilibre entre aspects techniques et émotionnels
+- Profondeur des thèmes philosophiques abordés
+- Impact émotionnel sur le lecteur
+
+## Critères Techniques
+- Précision des concepts techniques présentés
+- Intégration naturelle des éléments technologiques
+- Crédibilité des scénarios d'évolution de l'IA
+- Respect des contraintes techniques établies
+
+## Critères d'Innovation
+- Originalité de la perspective narrative
+- Nouveauté des concepts présentés
+- Créativité dans l'exploration des thèmes
+- Contribution unique à la littérature IA
+
+## Critères d'Impact
+- Résonance avec les enjeux contemporains
+- Capacité à susciter la réflexion
+- Potentiel d'influence sur le débat IA
+- Accessibilité pour un large public
