@@ -77,6 +77,35 @@ const ParallagonApp = {
                 this.loading = false;
             }
         },
+
+        async saveDemande() {
+            try {
+                if (!this.content.demande) {
+                    this.addNotification('error', 'No demand content to save');
+                    return;
+                }
+
+                const response = await fetch('/api/demande', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: this.content.demande
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save demand');
+                }
+
+                this.demandeChanged = false;
+                this.addNotification('success', 'Demand saved successfully');
+            } catch (error) {
+                console.error('Error saving demand:', error);
+                this.addNotification('error', `Failed to save demand: ${error.message}`);
+            }
+        },
         notificationIcon(type) {
             switch (type) {
                 case 'success':
