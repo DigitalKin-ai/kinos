@@ -129,3 +129,13 @@ L'absence de solutions efficaces pour l'optimisation énergétique distribuée r
 ## Conclusion de l'axe
 
 L'analyse approfondie de l'état de l'art dans le domaine de l'optimisation énergétique du firmware pour les systèmes IoT multi-réseaux révèle des limitations significatives des approches actuelles. Les verrous identifiés, particulièrement en termes de gestion énergétique temps réel multi-protocoles et d'optimisation distribuée, démontrent la nécessité de développer de nouvelles approches innovantes. La complexité des défis techniques, notamment dans la coordination efficace de multiples protocoles de communication, justifie pleinement la conduite de travaux de R&D approfondis.
+
+# Synthèse multi-axes
+
+L'analyse approfondie des deux axes de recherche met en évidence leur forte complémentarité et leur contribution essentielle à l'objectif global de développement d'un traceur IoT universel performant. Les verrous identifiés dans chaque axe sont intrinsèquement liés et nécessitent une approche intégrée pour être surmontés efficacement.
+
+L'axe 1, centré sur le développement software pour l'identification et la sélection des réseaux, révèle des défis majeurs en termes d'optimisation multi-objectifs en temps réel et de gestion unifiée multi-protocoles. Ces verrous sont directement connectés aux problématiques d'optimisation énergétique abordées dans l'axe 2, où la gestion efficace de multiples protocoles de communication au niveau firmware constitue un défi central.
+
+La synergie entre les deux axes est particulièrement visible dans la nécessité de développer des solutions qui intègrent harmonieusement les décisions prises au niveau software avec leur implémentation efficace au niveau firmware. Par exemple, les stratégies de sélection de réseaux développées dans l'axe 1 doivent être étroitement coordonnées avec les mécanismes d'optimisation énergétique de l'axe 2 pour garantir une performance globale optimale.
+
+Les verrous technologiques identifiés dans chaque axe se renforcent mutuellement, démontrant qu'une approche isolée serait insuffisante. La résolution des défis liés à la prédiction de la disponibilité des réseaux (axe 1) est indissociable de l'optimisation de la gestion énergétique temps réel (axe 2), les deux aspects devant être traités de manière cohérente pour atteindre les objectifs de performance et d'efficacité énergétique.
