@@ -604,19 +604,6 @@ const ParallagonApp = {
 };
 
 Vue.createApp(ParallagonApp).mount('#app');
-"""
-SuiviAgent - Agent responsible for monitoring and logging system activity.
-
-Key responsibilities:
-- Tracks agent activities and interactions
-- Maintains system-wide logging
-- Provides activity summaries and reports
-- Monitors system health and performance
-"""
-from parallagon_agent import ParallagonAgent
-from search_replace import SearchReplace
-import re
-import time
 from datetime import datetime
 import openai
 
@@ -654,7 +641,7 @@ class SuiviAgent(ParallagonAgent):
         try:
             self.logger(f"[{self.__class__.__name__}] Calling LLM API...")
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4",
                 messages=[{
                     "role": "user",
                     "content": self._build_prompt(context)
