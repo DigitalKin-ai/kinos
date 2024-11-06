@@ -227,26 +227,20 @@ Contenu actuel :
 
 Votre tâche :
 1. Analyser les spécifications et la demande
-2. Proposer des modifications au contenu actuel
-3. Formuler des instructions claires pour l'outil 'aider'
+2. Produire ou mettre à jour le contenu
+3. Respecter le format markdown
 
-Format de réponse ATTENDU :
-```bash
-aider --yes-always --message 'Instructions détaillées de modification. Par exemple:
-- Ajouter une nouvelle section X avec le contenu Y
-- Modifier la section A pour inclure B
-- Supprimer la partie C
-- Remplacer D par E
-etc.' --file production.md
-```
+Format de réponse attendu :
+- Contenu markdown direct (pas de commande aider)
+- Sections avec titres de niveau 1 (#)
+- Contenu structuré et formaté
+- Pas de métadonnées ou commandes
 
 IMPORTANT:
-- Les instructions doivent être claires et précises
-- Une instruction par ligne
-- Utiliser des verbes d'action (Ajouter, Modifier, Supprimer, Remplacer)
-- Décrire exactement ce qui doit être changé et comment
-- Toujours inclure au moins une modification
-- La commande doit toujours inclure --file production.md"""
+- Retourner uniquement le contenu markdown
+- Conserver la structure existante si pertinente
+- Mettre à jour ou ajouter du contenu selon les besoins
+- Ne pas inclure de commandes ou instructions"""
     def _extract_sections(self, content: str) -> dict:
         """
         Extract sections from content while preserving hierarchy.
