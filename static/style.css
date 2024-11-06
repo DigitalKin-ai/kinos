@@ -366,9 +366,45 @@ html, body {
     color: #f56565;
 }
 
+/* Animation d'apparition */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Style pour la barre de défilement */
+.suivi-mission-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.suivi-mission-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.suivi-mission-content::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 3px;
+}
+
+.suivi-mission-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0,0,0,0.3);
+}
+
+/* Ajout d'un effet de survol subtil */
+.suivi-mission-entry:hover {
+    transform: translateY(-1px);
+    transition: transform 0.2s ease;
+}
+
+/* Style pour le message */
+.log-message {
+    word-break: break-word;
 }
 
 /* Buttons */
@@ -1072,9 +1108,25 @@ body {
     z-index: 1;
 }
 
-.log-entry {
-    @apply flex items-start space-x-2 text-sm font-mono mb-1 text-gray-300;
-    animation: fadeIn 0.3s ease-in-out;
+.suivi-mission-entry {
+    max-width: 85%;
+    padding: 0.75rem 1rem;
+    border-radius: 18px;
+    position: relative;
+    animation: fadeIn 0.3s ease;
+    margin: 0.25rem 0;
+    line-height: 1.4;
+    font-size: 0.9rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Style par défaut (messages système) */
+.suivi-mission-entry {
+    background-color: #e4e6eb;
+    align-self: center;
+    color: #050505;
 }
 
 @keyframes fadeIn {
@@ -1082,10 +1134,12 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Style pour le timestamp */
 .log-timestamp {
-    color: #718096;  /* Gris plus clair */
-    font-size: 0.7rem;  /* Encore plus petit */
-    min-width: 120px;  /* Réduit la largeur minimale */
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin-bottom: 0.2rem;
+    font-weight: 500;
 }
 
 /* Amélioration de la lisibilité */
