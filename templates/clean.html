@@ -270,17 +270,44 @@
         height: 100vh;
         overflow-y: auto;
         padding: 40px;
-        word-wrap: break-word;
-        overflow-x: hidden;
+        box-sizing: border-box;
     }
 
+    /* Styles spécifiques pour tout le contenu */
     .markdown-content * {
         max-width: 100%;
+        box-sizing: border-box;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        -ms-word-break: break-all;
+        word-break: break-word;
+        -ms-hyphens: auto;
+        -moz-hyphens: auto;
+        -webkit-hyphens: auto;
+        hyphens: auto;
+    }
+
+    /* Styles pour les éléments spécifiques */
+    .markdown-content p,
+    .markdown-content h1,
+    .markdown-content h2,
+    .markdown-content h3,
+    .markdown-content h4,
+    .markdown-content h5,
+    .markdown-content h6,
+    .markdown-content ul,
+    .markdown-content ol,
+    .markdown-content pre,
+    .markdown-content blockquote {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
     }
 
     .markdown-content pre {
         white-space: pre-wrap;
-        word-break: break-word;
+        overflow-x: hidden;
     }
 
     /* Scrollbar styles for webkit browsers */
