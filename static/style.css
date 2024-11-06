@@ -254,11 +254,6 @@ html, body {
     transform: scale(0.98);
 }
 
-.btn-reset {
-    background-color: #f59e0b; /* Orange plus doux */
-    color: white;
-    padding: 0.5rem 1rem;
-    border: none;
     font-size: 0.875rem;
 >>>>>>> d693b78b2cfab0b5fc38fc24906599a4bb473279
     font-weight: 500;
