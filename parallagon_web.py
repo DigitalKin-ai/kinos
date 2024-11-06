@@ -299,8 +299,11 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 }),
                 "Production": ProductionAgent({
                     **base_config,
-                    "file_path": "production.md",
-                    "watch_files": ["demande.md", "specifications.md", "management.md", "evaluation.md", "contexte.md"],
+                    "file_path": os.path.abspath("production.md"),
+                    "watch_files": [
+                        os.path.abspath(f) for f in 
+                        ["demande.md", "specifications.md", "management.md", "evaluation.md", "contexte.md"]
+                    ],
                     "on_content_changed": self.handle_content_change
                 }),
                 "Evaluation": EvaluationAgent({
