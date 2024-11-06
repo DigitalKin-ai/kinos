@@ -12,11 +12,37 @@
 
     .clean-container {
         display: flex;
-        gap: 30px;  /* Increased for better spacing */
+        flex-direction: column;  /* Make container vertical */
+        gap: 30px;
         max-width: 1400px;
         margin: 0 auto;
-        padding: 40px;  /* Increased padding */
-        height: calc(100vh - 80px);  /* Full height minus padding */
+        padding: 40px;
+        height: calc(100vh - 80px);
+    }
+
+    .page-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background-color: #fafafa;
+        padding: 20px 40px;
+        z-index: 100;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .page-header h1 {
+        font-size: 1.2rem;
+        font-weight: 400;
+        color: #333;
+        margin: 0;
+    }
+
+    .content-area {
+        display: flex;
+        gap: 30px;
+        margin-top: 60px;  /* Add space for fixed header */
+        flex-grow: 1;
     }
 
     .suivi-sidebar {
@@ -28,21 +54,11 @@
         flex-grow: 1;
     }
 
-    .clean-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .clean-header h1 {
-        font-size: 1.5rem;
-        font-weight: 400;
-        color: #333;
-        margin: 0;
-    }
 
     .btn-back {
+        position: fixed;
+        top: 20px;
+        right: 40px;
         text-decoration: none;
         padding: 8px 16px;
         color: #666;
@@ -110,16 +126,16 @@
 {% endblock %}
 
 {% block content %}
+<div class="page-header">
+    <h1>⚫ Parallagon</h1>
+    <a href="/" class="btn-back">Back to Main UI</a>
+</div>
 <div class="clean-container">
-    <div class="suivi-sidebar">
-        <textarea id="suivi-display" readonly>{{ suivi_content }}</textarea>
-    </div>
-    <div class="main-content">
-        <div class="clean-header">
-            <h1>⚫ Parallagon</h1>
-            <a href="/" class="btn-back">Back to Main UI</a>
+    <div class="content-area">
+        <div class="suivi-sidebar">
+            <textarea id="suivi-display" readonly>{{ suivi_content }}</textarea>
         </div>
-        <div class="clean-content">
+        <div class="main-content">
             <textarea id="clean-editor">{{ content }}</textarea>
         </div>
     </div>
