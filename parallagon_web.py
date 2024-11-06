@@ -453,6 +453,41 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 self.log_message(f"Error getting missions: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
+        @self.app.route('/api/missions/validate-directory', methods=['POST'])
+        def validate_mission_directory():
+            """Validate that a directory contains required mission files"""
+            try:
+                data = request.get_json()
+                if not data or 'path' not in data:
+                    return jsonify({'error': 'Path is required'}), 400
+                    
+                path = data['path']
+                
+                # Verify only required files at root level
+                required_files = [
+                    "demande.md",
+                    "specifications.md", 
+                    "management.md",
+                    "production.md",
+                    "evaluation.md",
+                    "suivi.md"
+                ]
+                
+                missing_files = []
+                for file in required_files:
+                    if not os.path.isfile(os.path.join(path, file)):
+                        missing_files.append(file)
+                        
+                if missing_files:
+                    return jsonify({
+                        'error': f'Dossier invalide. Fichiers manquants : {", ".join(missing_files)}'
+                    }), 400
+                    
+                return jsonify({'status': 'valid'})
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+
         @self.app.route('/api/missions/link', methods=['POST'])
         def create_mission_link():
             """Create a mission from an external directory"""
