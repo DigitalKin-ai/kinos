@@ -1334,6 +1334,10 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         try:
             mission_dir = os.path.join("missions", mission_name)
             
+            # Debug log
+            self.log_message(f"Updating agent paths for mission: {mission_name}", level='debug')
+            self.log_message(f"Mission directory: {mission_dir}", level='debug')
+            
             # Update file paths for each agent
             new_paths = {
                 "Specification": os.path.join(mission_dir, "specifications.md"),
@@ -1345,19 +1349,25 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             
             # Update each agent's file path
             for name, agent in self.agents.items():
+                old_path = agent.file_path
                 agent.file_path = new_paths[name]
+                # Debug log
+                self.log_message(
+                    f"Updated {name} agent path: {old_path} -> {agent.file_path}", 
+                    level='debug'
+                )
+                
                 # Update watch_files to include new paths
                 agent.watch_files = [
                     new_paths[other_name] 
                     for other_name in self.agents.keys()
                     if other_name != name
                 ]
-                agent.watch_files.append(new_paths[name])
                 
-            self.log_message(f"Updated agent paths for mission: {mission_name}", level='info')
+            self.log_message(f"✓ Agent paths updated for mission: {mission_name}", level='success')
             
         except Exception as e:
-            self.log_message(f"Error updating agent paths: {str(e)}", level='error')
+            self.log_message(f"❌ Error updating agent paths: {str(e)}", level='error')
 
     def get_app(self):
         """Return the Flask app instance"""

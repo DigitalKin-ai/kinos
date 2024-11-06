@@ -311,24 +311,38 @@ class SpecificationsAgent(ParallagonAgent):
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
             
+            # Vérifier que le chemin du fichier est correct
+            if not os.path.exists(self.file_path):
+                self.logger(f"[{self.__class__.__name__}] ❌ Chemin de fichier invalide: {self.file_path}")
+                return
+
             # Obtenir la réponse du LLM
             context = {
                 "specifications": self.current_content,
-                "other_files": self.other_files
+                "other_files": self.other_files,
+                "file_path": self.file_path  # Ajouter le chemin pour debug
             }
+            
+            # Log du contexte pour debug
+            self.logger(f"[{self.__class__.__name__}] Utilisation du fichier: {self.file_path}")
             
             response = self._get_llm_response(context)
             if response and response != self.current_content:
                 # Log avant la mise à jour
                 self.logger(f"[{self.__class__.__name__}] Modifications détectées, mise à jour du fichier...")
                 
-                # Écrire dans le fichier
-                with open(self.file_path, 'w', encoding='utf-8') as f:
-                    f.write(response)
-                self.current_content = response
-                
-                # Log après la mise à jour
-                self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour avec succès")
+                # Écrire dans le fichier en utilisant le chemin complet
+                try:
+                    with open(self.file_path, 'w', encoding='utf-8') as f:
+                        f.write(response)
+                    self.current_content = response
+                    
+                    # Log après la mise à jour
+                    self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour avec succès: {self.file_path}")
+                except Exception as write_error:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur d'écriture: {str(write_error)}")
+                    raise
+                    
             else:
                 # Log quand aucune modification n'est nécessaire
                 self.logger(f"[{self.__class__.__name__}] ≡ Aucune modification nécessaire")
