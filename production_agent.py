@@ -115,10 +115,19 @@ class ProductionAgent(ParallagonAgent):
         try:
             self.logger(f"[{self.__class__.__name__}] Analyse du contenu...")
             
+            # Vérifier que le chemin du fichier est correct
+            if not os.path.exists(self.file_path):
+                self.logger(f"[{self.__class__.__name__}] ❌ Chemin de fichier invalide: {self.file_path}")
+                return
+
             context = {
                 "production": self.current_content,
-                "other_files": self.other_files
+                "other_files": self.other_files,
+                "file_path": self.file_path  # Ajouter le chemin pour debug
             }
+            
+            # Log du contexte pour debug
+            self.logger(f"[{self.__class__.__name__}] Utilisation du fichier: {self.file_path}")
             
             response = self._get_llm_response(context)
             if not response:
@@ -127,11 +136,15 @@ class ProductionAgent(ParallagonAgent):
                 
             # Vérifier et écrire le nouveau contenu
             if response.strip():
-                with open(self.file_path, 'w', encoding='utf-8') as f:
-                    f.write(response)
-                self.current_content = response
-                self.logger(f"[{self.__class__.__name__}] ✓ Fichier production.md mis à jour")
-                
+                try:
+                    with open(self.file_path, 'w', encoding='utf-8') as f:
+                        f.write(response)
+                    self.current_content = response
+                    self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour: {self.file_path}")
+                except Exception as write_error:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur d'écriture: {str(write_error)}")
+                    raise
+                    
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
 
