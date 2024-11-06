@@ -1,7 +1,7 @@
 # TodoList
 
 [section: Introduction]
-- [x] [priority: HIGH] Rédiger l'introduction générale (200-250 mots) en contextualisant la problématique et en présentant les axes de recherche.
+- [ ] [priority: HIGH] Rédiger l'introduction générale (200-250 mots) en contextualisant la problématique et en présentant les axes de recherche.
 - [ ] [priority: MEDIUM] Vérifier la clarté et l'accessibilité du texte pour les non-spécialistes.
 
 [section: Axe de recherche 1 - Développement software pour l'identification et la sélection des réseaux]
@@ -25,8 +25,8 @@
 - [ ] [priority: HIGH] Rédiger la conclusion générale (150-200 mots) en synthétisant la nécessité globale du projet de R&D.
 
 [section: Références bibliographiques]
-- [ ] [priority: MEDIUM] Compiler les références bibliographiques pour chaque axe (10-15 références par axe) en respectant le format APA ou IEEE.
+- [ ] [priority: MEDIUM] Compiler les références bibliographiques (10-15 par axe) en suivant le format APA ou IEEE.
 
 # Vue d'Ensemble
-[progression: 20%]
+[progression: 0%]
 [status: EN_COURS]
