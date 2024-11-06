@@ -393,6 +393,38 @@ ManagementAgent ←→ Tous
 - Gestion de documentation
 - Projets créatifs
 
+## 9. Interface Clean
+
+### 9.1 Concept
+- Version épurée et minimaliste de l'interface
+- Focus sur la simplicité et l'efficacité
+- Design moderne et élégant
+
+### 9.2 Layout Initial
+```plaintext
+┌────────────────────────────────────────────────┐
+│ Parallagon Clean                         - □ x │
+├────────────────────────────────────────────────┤
+│                                                │
+│ [Zone de texte principale]                     │
+│ (Contenu initial = production.md)              │
+│                                                │
+│                                                │
+└────────────────────────────────────────────────┘
+```
+
+### 9.3 Caractéristiques
+- Interface minimaliste sans distractions
+- Zone de texte unique occupant la majorité de l'espace
+- Initialisation avec le contenu de production.md
+- Pas d'éléments d'interface supplémentaires dans la v1
+
+### 9.4 Objectifs
+- Maximiser la concentration sur le contenu
+- Réduire la charge cognitive
+- Faciliter la lecture et l'édition
+- Préparer le terrain pour des fonctionnalités futures
+
 # Interface Graphique Parallagon
 
 ## 1. Structure des Fichiers
