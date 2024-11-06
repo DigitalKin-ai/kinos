@@ -21,10 +21,7 @@ const ParallagonApp = {
             error: null,
             missionSidebarCollapsed: false,
             currentMission: null,
-            missions: [
-                { id: 1, name: 'Mission IoT Kineis' },
-                { id: 2, name: 'Mission CIR 2024' }
-            ],
+            missions: [], // Will be loaded from API
             isCreatingMission: false,
             newMissionName: '',
             missionIdCounter: 3, // Start after existing missions
@@ -100,13 +97,25 @@ const ParallagonApp = {
             this.newMissionName = '';
         },
 
+        async loadMissions() {
+            try {
+                const response = await fetch('/api/missions');
+                if (!response.ok) {
+                    throw new Error('Failed to load missions');
+                }
+                this.missions = await response.json();
+            } catch (error) {
+                console.error('Error loading missions:', error);
+                this.addNotification('error', `Failed to load missions: ${error.message}`);
+            }
+        },
+
         async createMission() {
             if (!this.newMissionName.trim()) {
                 return;
             }
 
             try {
-                // Appel API pour créer la mission
                 const response = await fetch('/api/missions', {
                     method: 'POST',
                     headers: {
@@ -122,23 +131,15 @@ const ParallagonApp = {
                 }
 
                 const mission = await response.json();
-
-                // Ajouter la mission au début de la liste
                 this.missions.unshift(mission);
-
-                // Sélectionner la nouvelle mission
                 this.selectMission(mission);
-
-                // Réinitialiser le formulaire
                 this.isCreatingMission = false;
                 this.newMissionName = '';
-
-                // Notification de succès
-                this.addNotification('success', `Mission "${mission.name}" créée`);
+                this.addNotification('success', `Mission "${mission.name}" created`);
 
             } catch (error) {
                 console.error('Error creating mission:', error);
-                this.addNotification('error', `Erreur lors de la création de la mission: ${error.message}`);
+                this.addNotification('error', `Failed to create mission: ${error.message}`);
             }
         },
 
@@ -820,7 +821,9 @@ const ParallagonApp = {
         notificationsContainer.className = 'notifications-container';
         document.body.appendChild(notificationsContainer);
         
-        this.loadInitialContent()
+        // Load missions first
+        this.loadMissions()
+            .then(() => this.loadInitialContent())
             .then(() => {
                 this.startPolling();
                 // Start suivi content updates

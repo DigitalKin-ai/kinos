@@ -228,6 +228,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         CORS(self.app)  # Enable CORS
         self.monitor_thread = None  # Add monitor thread tracking
         self.mission_service = MissionService()
+        self.mission_service = MissionService()
         self.limiter = Limiter(
             app=self.app,
             key_func=get_remote_address,
