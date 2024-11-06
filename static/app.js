@@ -368,14 +368,19 @@ const ParallagonApp = {
 
         async resetFiles() {
             try {
+                if (!this.currentMission) {
+                    this.addNotification('error', 'Veuillez sélectionner une mission');
+                    return;
+                }
+
                 if (confirm('Are you sure you want to reset all files to their initial state?')) {
-                    const response = await fetch('/api/reset', {
+                    const response = await fetch(`/api/missions/${this.currentMission.id}/reset`, {
                         method: 'POST'
                     });
                     
                     if (response.ok) {
                         this.addNotification('success', 'Files reset successfully');
-                        await this.updateContent();
+                        await this.loadMissionContent(this.currentMission.id);
                     } else {
                         throw new Error('Failed to reset files');
                     }
@@ -574,7 +579,12 @@ const ParallagonApp = {
 
         async loadTestData() {
             try {
-                const response = await fetch('/api/test-data', {
+                if (!this.currentMission) {
+                    this.addNotification('error', 'Veuillez sélectionner une mission');
+                    return;
+                }
+
+                const response = await fetch(`/api/missions/${this.currentMission.id}/test-data`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -583,7 +593,7 @@ const ParallagonApp = {
                 
                 if (response.ok) {
                     this.addNotification('success', 'Données de test chargées');
-                    await this.updateContent(); // Refresh the content
+                    await this.loadMissionContent(this.currentMission.id); // Recharger le contenu
                 } else {
                     const error = await response.json();
                     throw new Error(error.error || 'Failed to load test data');

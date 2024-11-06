@@ -147,6 +147,10 @@ class MissionService:
                 return False
                 
             file_path = mission['files'][file_type]
+            
+            # Créer le répertoire de la mission s'il n'existe pas
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(content)
                 

@@ -617,28 +617,52 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             except Exception as e:
                 return f"Error loading content: {str(e)}", 500
 
-        @self.app.route('/api/test-data', methods=['POST'])
-        def load_test_data():
+        @self.app.route('/api/missions/<int:mission_id>/test-data', methods=['POST'])
+        def load_test_data(mission_id):
             try:
-                success = self.file_manager.write_file('demande', self.TEST_DATA)
+                mission = self.mission_service.get_mission(mission_id)
+                if not mission:
+                    return jsonify({'error': 'Mission not found'}), 404
+
+                # Écrire les données de test dans le fichier demande.md de la mission
+                success = self.mission_service.save_mission_file(
+                    mission_id,
+                    'demande',
+                    self.TEST_DATA
+                )
+                
                 if success:
-                    self.log_message("✨ Données de test chargées", level='success')
+                    self.log_message(f"✨ Données de test chargées pour mission {mission['name']}", level='success')
                     return jsonify({'status': 'success'})
                 else:
                     return jsonify({'error': 'Failed to write test data'}), 500
+                    
             except Exception as e:
+                self.log_message(f"Error loading test data: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
-        @self.app.route('/api/reset', methods=['POST'])
-        def reset_files():
+        @self.app.route('/api/missions/<int:mission_id>/reset', methods=['POST'])
+        def reset_mission_files(mission_id):
             try:
-                success = self.file_manager.reset_files()
-                if success:
-                    self.log_message("All files reset to initial state")
-                    return jsonify({'status': 'success'})
-                else:
-                    return jsonify({'error': 'Failed to reset files'}), 500
+                mission = self.mission_service.get_mission(mission_id)
+                if not mission:
+                    return jsonify({'error': 'Mission not found'}), 404
+
+                # Réinitialiser chaque fichier de la mission
+                for file_type, initial_content in self.file_manager._get_initial_contents().items():
+                    success = self.mission_service.save_mission_file(
+                        mission_id,
+                        file_type,
+                        initial_content
+                    )
+                    if not success:
+                        return jsonify({'error': f'Failed to reset {file_type}'}), 500
+
+                self.log_message(f"Files reset for mission {mission['name']}", level='success')
+                return jsonify({'status': 'success'})
+                
             except Exception as e:
+                self.log_message(f"Error resetting files: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/health')
