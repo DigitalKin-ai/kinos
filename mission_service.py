@@ -119,18 +119,3 @@ class MissionService:
                 (mission_id,)
             )
             return cursor.fetchone() is not None
-            
-        values.append(mission_id)
-        
-        with self.db.get_cursor() as cursor:
-            cursor.execute(
-                f"""
-                UPDATE missions 
-                SET {", ".join(updates)}
-                WHERE id = %s
-                RETURNING id, name, description, status, 
-                          created_at, updated_at
-                """,
-                tuple(values)
-            )
-            return cursor.fetchone()
