@@ -226,6 +226,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
     def __init__(self, config):
         self.app = Flask(__name__)
         CORS(self.app)  # Enable CORS
+        self.monitor_thread = None  # Add monitor thread tracking
         self.limiter = Limiter(
             app=self.app,
             key_func=get_remote_address,
@@ -780,11 +781,45 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         """Run the Flask application with optional configuration parameters"""
         self.app.run(host=host, port=port, **kwargs)
 
+    def monitor_agents(self):
+        """Monitor agents and restart them if they crash"""
+        while self.running:
+            try:
+                for name, agent in self.agents.items():
+                    if agent.running:
+                        # Check if agent is active but stuck
+                        if (agent.last_run and 
+                            (datetime.now() - agent.last_run).seconds > 30):  # 30s timeout
+                            self.log_message(
+                                f"Agent {name} seems stuck, restarting...", 
+                                level='warning'
+                            )
+                            # Restart agent
+                            agent.stop()
+                            agent.start()
+                            thread = threading.Thread(
+                                target=agent.run,
+                                daemon=True,
+                                name=f"Agent-{name}"
+                            )
+                            thread.start()
+                time.sleep(5)  # Check every 5 seconds
+            except Exception as e:
+                self.log_message(f"Error in monitor_agents: {str(e)}", level='error')
+
     def start_agents(self):
         """Start all agents"""
         try:
             self.log_message("🚀 Démarrage des agents...", level='info')
             self.running = True
+            
+            # Start monitor thread
+            self.monitor_thread = threading.Thread(
+                target=self.monitor_agents,
+                daemon=True,
+                name="AgentMonitor"
+            )
+            self.monitor_thread.start()
             
             # Start content update loop
             def update_loop():

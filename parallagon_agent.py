@@ -445,6 +445,27 @@ Notes:
         self.last_change = None
         self.consecutive_no_changes = 0
 
+    def recover_from_error(self):
+        """Try to recover from error state"""
+        try:
+            self.logger(f"[{self.__class__.__name__}] Attempting recovery...")
+            
+            # Reset internal state
+            self.last_run = None
+            self.last_change = None
+            self.consecutive_no_changes = 0
+            
+            # Re-read files
+            self.read_files()
+            
+            # Log recovery attempt
+            self.logger(f"[{self.__class__.__name__}] Recovery complete")
+            return True
+            
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] Recovery failed: {str(e)}")
+            return False
+
     def stop(self) -> None:
         """
         Stop the agent's execution gracefully.
