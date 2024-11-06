@@ -1022,12 +1022,29 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
 
     def stop_agents(self):
         """Stop all agents and update loop"""
-        self.running = False
-        if hasattr(self, 'update_thread'):
-            self.update_thread.join(timeout=2)  # Wait for update thread to finish
-        for agent in self.agents.values():
-            agent.stop()
-        self.log_message("Agents stopped", level='info')
+        try:
+            self.running = False
+            if hasattr(self, 'update_thread'):
+                self.update_thread.join(timeout=2)  # Wait for update thread to finish
+                
+            # Arrêter chaque agent individuellement
+            for name, agent in self.agents.items():
+                agent.stop()
+                # Envoyer une notification pour mettre à jour l'UI
+                self.notifications_queue.append({
+                    'type': 'info',
+                    'message': f'Agent {name} stopped',
+                    'timestamp': datetime.now().strftime("%H:%M:%S"),
+                    'panel': name,
+                    'status': 'stopped',
+                    'operation': 'agent_status',
+                    'id': len(self.notifications_queue)
+                })
+                
+            self.log_message("Agents stopped", level='info')
+            
+        except Exception as e:
+            self.log_message(f"Error stopping agents: {str(e)}", level='error')
 
     def log_message(self, message, operation: str = None, status: str = None, level: str = 'info'):
         """Log a message with optional operation, status and color"""
