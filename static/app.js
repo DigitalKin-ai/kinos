@@ -459,6 +459,16 @@ const ParallagonApp = {
             return this.runningAgents.has(tabId);
         },
 
+        updateAgentsStatus(status) {
+            // Mettre à jour runningAgents basé sur le statut
+            this.runningAgents.clear();
+            for (const [agentId, agentStatus] of Object.entries(status)) {
+                if (agentStatus.running) {
+                    this.runningAgents.add(agentId);
+                }
+            }
+        },
+
         isAgentTab(tabId) {
             return ['specifications', 'management', 'production', 'evaluation', 'suivi'].includes(tabId);
         },
