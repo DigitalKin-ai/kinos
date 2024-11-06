@@ -227,6 +227,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         self.app = Flask(__name__)
         CORS(self.app)  # Enable CORS
         self.monitor_thread = None  # Add monitor thread tracking
+        self.mission_service = MissionService()
         self.limiter = Limiter(
             app=self.app,
             key_func=get_remote_address,
@@ -390,6 +391,65 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             return False
 
     def setup_routes(self):
+        @self.app.route('/api/missions', methods=['GET'])
+        def get_missions():
+            try:
+                missions = self.mission_service.get_all_missions()
+                return jsonify(missions)
+            except Exception as e:
+                self.log_message(f"Error getting missions: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
+        @self.app.route('/api/missions', methods=['POST'])
+        def create_mission():
+            try:
+                data = request.get_json()
+                if not data or 'name' not in data:
+                    return jsonify({'error': 'Name is required'}), 400
+                    
+                mission = self.mission_service.create_mission(
+                    name=data['name'],
+                    description=data.get('description')
+                )
+                
+                self.log_message(f"Mission '{mission['name']}' created", level='success')
+                return jsonify(mission), 201
+                
+            except Exception as e:
+                self.log_message(f"Error creating mission: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
+        @self.app.route('/api/missions/<int:mission_id>', methods=['GET'])
+        def get_mission(mission_id):
+            try:
+                mission = self.mission_service.get_mission(mission_id)
+                if not mission:
+                    return jsonify({'error': 'Mission not found'}), 404
+                return jsonify(mission)
+            except Exception as e:
+                self.log_message(f"Error getting mission: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
+        @self.app.route('/api/missions/<int:mission_id>', methods=['PUT'])
+        def update_mission(mission_id):
+            try:
+                data = request.get_json()
+                mission = self.mission_service.update_mission(
+                    mission_id,
+                    name=data.get('name'),
+                    description=data.get('description'),
+                    status=data.get('status')
+                )
+                if not mission:
+                    return jsonify({'error': 'Mission not found'}), 404
+                    
+                self.log_message(f"Mission {mission_id} updated", level='success')
+                return jsonify(mission)
+                
+            except Exception as e:
+                self.log_message(f"Error updating mission: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
         @self.app.route('/api/agent/<agent_id>/start', methods=['POST'])
         def start_single_agent(agent_id):
             """Start a specific agent"""
