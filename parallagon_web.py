@@ -488,6 +488,34 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
 
+        @self.app.route('/api/missions/get-directory-path', methods=['POST'])
+        def get_directory_path():
+            """Get full path for a directory selected in the frontend"""
+            try:
+                data = request.get_json()
+                if not data or 'name' not in data:
+                    return jsonify({'error': 'Directory name is required'}), 400
+                    
+                directory_name = data['name']
+                
+                # Chercher le dossier dans les emplacements possibles
+                possible_paths = [
+                    os.path.abspath(directory_name),  # Chemin absolu
+                    os.path.join(os.getcwd(), directory_name),  # Relatif au dossier courant
+                    os.path.expanduser(f"~/{directory_name}")  # Dans le home
+                ]
+                
+                # Trouver le premier chemin valide
+                for path in possible_paths:
+                    if os.path.isdir(path):
+                        return jsonify({'path': path})
+                        
+                return jsonify({'error': 'Directory not found'}), 404
+                
+            except Exception as e:
+                self.log_message(f"Error getting directory path: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
         @self.app.route('/api/missions/link', methods=['POST'])
         def create_mission_link():
             """Create a mission from an external directory"""
