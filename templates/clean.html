@@ -6,29 +6,36 @@
 <style>
     /* Style pour le conteneur de l'indicateur de chargement */
     .loading-indicator {
-        position: sticky;
-        bottom: 20px;
-        left: 20px;
-        display: none;
-        padding: 8px 12px;
-        margin: 8px 0;
-        background-color: white;
+        max-width: 85%;
+        padding: 10px 15px;
         border-radius: 15px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        z-index: 100;
+        background-color: white;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        position: relative;
+        margin: 4px 0;
+        word-wrap: break-word;
+        align-self: flex-start;
+        display: none;
+    }
+
+    .loading-indicator.visible {
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
     /* Style pour les points de chargement */
     .loading-dots {
         display: inline-flex;
-        gap: 3px;
-        align-items: center;
-        justify-content: center;
+        gap: 4px;
     }
 
     .dot {
-        width: 4px;
-        height: 4px;
+        width: 6px;
+        height: 6px;
         background-color: #666;
         border-radius: 50%;
         opacity: 0.3;
@@ -43,12 +50,6 @@
     .dot:nth-child(1) { animation: pulse 1.5s ease-in-out infinite; }
     .dot:nth-child(2) { animation: pulse 1.5s ease-in-out infinite 0.2s; }
     .dot:nth-child(3) { animation: pulse 1.5s ease-in-out infinite 0.4s; }
-
-    /* Classe pour afficher l'indicateur */
-    .loading-indicator.visible {
-        display: inline-flex;
-        align-items: center;
-    }
 
     #suivi-display {
         position: relative;
@@ -263,6 +264,7 @@
         <!-- Les bulles de chat seront ajoutées ici -->
     </div>
     <div class="loading-indicator" id="loadingIndicator">
+        <div class="timestamp">...</div>
         <div class="loading-dots">
             <div class="dot"></div>
             <div class="dot"></div>
@@ -362,6 +364,19 @@ function formatSuiviLine(line) {
     `;
 }
 
+function updateLoadingTimestamp() {
+    const now = new Date();
+    const timestamp = now.toLocaleTimeString('fr-FR', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+    });
+    const timestampDiv = document.querySelector('#loadingIndicator .timestamp');
+    if (timestampDiv) {
+        timestampDiv.textContent = timestamp;
+    }
+}
+
 async function updateSuiviContent() {
     try {
         const response = await fetch('/api/suivi');
@@ -383,6 +398,7 @@ async function updateSuiviContent() {
                 
                 // Réinsérer l'indicateur de chargement après les bulles
                 if (isRunning) {
+                    updateLoadingTimestamp();
                     loadingIndicator.classList.add('visible');
                 } else {
                     loadingIndicator.classList.remove('visible');
@@ -395,6 +411,13 @@ async function updateSuiviContent() {
         console.error('Erreur lors de la mise à jour du suivi:', error);
     }
 }
+
+// Mettre à jour le timestamp toutes les secondes quand le loader est visible
+setInterval(() => {
+    if (isRunning) {
+        updateLoadingTimestamp();
+    }
+}, 1000);
 
 // Mettre à jour le suivi périodiquement
 setInterval(updateSuiviContent, 1000);
