@@ -73,35 +73,23 @@ class MissionService:
 
     def update_mission(self, mission_id: int, name: str = None, 
                       description: str = None, status: str = None) -> Optional[Dict]:
-        updates = []
-        values = []
-        if name is not None:
-            updates.append("name = %s")
-            values.append(name)
-        if description is not None:
-            updates.append("description = %s")
-            values.append(description)
-        if status is not None:
-            updates.append("status = %s")
-            values.append(status)
+        """Update mission metadata by updating directory timestamp"""
+        try:
+            mission = self.get_mission(mission_id)
+            if not mission:
+                return None
+                
+            mission_dir = os.path.join(self.missions_dir, mission['name'])
             
-        if not updates:
+            # Update directory timestamp to reflect changes
+            os.utime(mission_dir, None)
+            
+            # Return updated mission info
+            return self.get_mission(mission_id)
+            
+        except Exception as e:
+            print(f"Error updating mission: {e}")
             return None
-            
-        values.append(mission_id)
-        
-        with self.db.get_cursor() as cursor:
-            cursor.execute(
-                f"""
-                UPDATE missions 
-                SET {", ".join(updates)}
-                WHERE id = %s
-                RETURNING id, name, description, status, 
-                          created_at, updated_at
-                """,
-                tuple(values)
-            )
-            return cursor.fetchone()
 
     def save_mission_file(self, mission_id: int, file_type: str, content: str) -> bool:
         """Save content to a mission file"""
@@ -129,14 +117,20 @@ class MissionService:
         return os.path.exists(os.path.join(self.missions_dir, mission_name))
 
     def delete_mission(self, mission_id: int) -> bool:
-        """Delete a mission from the database"""
-        with self.db.get_cursor() as cursor:
-            cursor.execute(
-                """
-                DELETE FROM missions 
-                WHERE id = %s
-                RETURNING id
-                """,
-                (mission_id,)
-            )
-            return cursor.fetchone() is not None
+        """Delete a mission directory and all its files"""
+        try:
+            mission = self.get_mission(mission_id)
+            if not mission:
+                return False
+                
+            mission_dir = os.path.join(self.missions_dir, mission['name'])
+            if os.path.exists(mission_dir):
+                import shutil
+                shutil.rmtree(mission_dir)
+                return True
+                
+            return False
+            
+        except Exception as e:
+            print(f"Error deleting mission: {e}")
+            return False
