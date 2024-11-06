@@ -25,7 +25,8 @@ class MissionService:
             "management.md",
             "production.md",
             "evaluation.md",
-            "suivi.md"
+            "suivi.md",
+            "contexte.md"
         ]
         
         try:

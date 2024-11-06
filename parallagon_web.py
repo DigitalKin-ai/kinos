@@ -19,6 +19,7 @@ from management_agent import ManagementAgent
 from production_agent import ProductionAgent
 from evaluation_agent import EvaluationAgent
 from suivi_agent import SuiviAgent
+from contexte_agent import ContexteAgent
 
 class ParallagonWeb:
     # Log level colors
@@ -283,29 +284,34 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 "Specification": SpecificationsAgent({
                     **base_config,
                     "file_path": "specifications.md",
-                    "watch_files": ["demande.md", "management.md", "production.md", "evaluation.md"]
+                    "watch_files": ["demande.md", "management.md", "production.md", "evaluation.md", "contexte.md"]
                 }),
                 "Management": ManagementAgent({
                     **base_config,
                     "file_path": "management.md",
-                    "watch_files": ["demande.md", "specifications.md", "production.md", "evaluation.md"]
+                    "watch_files": ["demande.md", "specifications.md", "production.md", "evaluation.md", "contexte.md"]
                 }),
-                "Production": ProductionAgent({  # Ajout de la configuration complète
+                "Production": ProductionAgent({
                     **base_config,
                     "file_path": "production.md",
-                    "watch_files": ["demande.md", "specifications.md", "management.md", "evaluation.md"],
-                    "on_content_changed": self.handle_content_change  # Ajout du callback
+                    "watch_files": ["demande.md", "specifications.md", "management.md", "evaluation.md", "contexte.md"],
+                    "on_content_changed": self.handle_content_change
                 }),
                 "Evaluation": EvaluationAgent({
                     **base_config,
                     "file_path": "evaluation.md",
-                    "watch_files": ["demande.md", "specifications.md", "management.md", "production.md"]
+                    "watch_files": ["demande.md", "specifications.md", "management.md", "production.md", "contexte.md"]
                 }),
                 "Suivi": SuiviAgent({
                     **base_config,
                     "file_path": "suivi.md",
-                    "watch_files": ["demande.md", "specifications.md", "management.md", "production.md", "evaluation.md"],
+                    "watch_files": ["demande.md", "specifications.md", "management.md", "production.md", "evaluation.md", "contexte.md"],
                     "logs_buffer": self.logs_buffer
+                }),
+                "Contexte": ContexteAgent({
+                    **base_config,
+                    "file_path": "contexte.md",
+                    "watch_files": ["demande.md", "specifications.md", "management.md", "production.md", "evaluation.md", "suivi.md"]
                 })
             }
 
