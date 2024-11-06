@@ -60,6 +60,34 @@
     .dot:nth-child(2) { animation: pulse 1.5s ease-in-out infinite 0.2s; }
     .dot:nth-child(3) { animation: pulse 1.5s ease-in-out infinite 0.4s; }
 
+    .header-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .reset-button {
+        background: none;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .reset-button:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        color: #333;
+    }
+
+    .reset-button i {
+        font-size: 20px;
+    }
+
     #suivi-display {
         position: relative;
     }
@@ -269,12 +297,17 @@
     <div class="sidebar-header">
         <div class="header-content">
             <h1>⚫ Parallagon</h1>
-            <div class="loading-indicator" id="loadingIndicator">
-                <div class="loading-dots">
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
+            <div class="header-controls">
+                <div class="loading-indicator" id="loadingIndicator">
+                    <div class="loading-dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
                 </div>
+                <button class="reset-button" onclick="resetDocuments()" title="Reset documents">
+                    <i class="mdi mdi-file-refresh-outline"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -297,6 +330,43 @@
 </button>
 
 <script>
+async function resetDocuments() {
+    if (confirm('Êtes-vous sûr de vouloir réinitialiser tous les documents ?')) {
+        try {
+            const response = await fetch('/api/reset', {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                // Recharger le contenu
+                const editor = document.getElementById('clean-editor');
+                const demandeDisplay = document.getElementById('demande-display');
+                
+                const contentResponse = await fetch('/api/content');
+                if (contentResponse.ok) {
+                    const data = await contentResponse.json();
+                    if (data.production) editor.value = data.production;
+                    if (data.demande) demandeDisplay.value = data.demande;
+                }
+                
+                // Notification de succès
+                const suiviDisplay = document.getElementById('suivi-display');
+                const timestamp = new Date().toLocaleTimeString();
+                const newEntry = document.createElement('div');
+                newEntry.className = 'chat-bubble';
+                newEntry.innerHTML = `
+                    <div class="timestamp">${timestamp}</div>
+                    <div class="message">Documents réinitialisés avec succès</div>
+                `;
+                suiviDisplay.appendChild(newEntry);
+                scrollToBottom('suivi-display');
+            }
+        } catch (error) {
+            console.error('Erreur lors de la réinitialisation:', error);
+        }
+    }
+}
+
 let isRunning = false;
 
 // Fonction pour scroll automatiquement vers le bas
