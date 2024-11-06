@@ -1,168 +1,195 @@
 {% extends "base.html" %}
 
-{% block title %}Parallagon Editor{% endblock %}
+{% block title %}Parallagon Web{% endblock %}
 
 {% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <style>
-    .container {
-        max-width: 100%;
-        padding: 0;
-    }
-
-    .panel-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        grid-gap: 1rem;
-        padding: 1rem;
-    }
-
-    .panel {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.5rem;
-        padding: 1rem;
-    }
-
-    .panel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-
-    .panel-title {
-        font-size: 1.1rem;
-        font-weight: 500;
-        color: #374151;
-    }
-
-    .panel-content {
-        width: 100%;
-        min-height: 300px;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.25rem;
-        padding: 0.5rem;
-        font-family: monospace;
-        resize: vertical;
-    }
-
-    .control-panel {
-        display: flex;
-        gap: 1rem;
-        padding: 1rem;
-        background: white;
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    .btn {
-        padding: 0.5rem 1rem;
-        border-radius: 0.25rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-primary {
-        background: #000;
-        color: white;
-        border: none;
-    }
-
-    .btn-primary:hover {
-        background: #333;
-    }
-
-    .status-indicator {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-left: auto;
-    }
-
-    .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-    }
-
-    .status-dot.running {
-        background: #10B981;
-    }
-
-    .status-dot.stopped {
-        background: #EF4444;
-    }
+@keyframes flash-tab {
+    0% { background-color: transparent; }
+    25% { background-color: #ffd700; }
+    75% { background-color: #ffd700; }
+    100% { background-color: transparent; }
+}
+.flash-tab {
+    animation: flash-tab 1s ease-in-out;
+}
+.tab-item {
+    transition: background-color 0.3s ease;
+    position: relative;
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="control-panel">
-    <button class="btn btn-primary" onclick="startAgents()">Start</button>
-    <button class="btn btn-primary" onclick="stopAgents()">Stop</button>
-    <div class="status-indicator">
-        Status: <div id="statusDot" class="status-dot stopped"></div>
+<div id="app" v-cloak>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">⚫ Parallagon</div>
+            <div class="controls">
+                <button 
+                    :class="['control-button', running ? 'stop' : 'start']"
+                    @click="running ? stopAgents() : startAgents()"
+                    :disabled="loading">
+                    <i :class="running ? '■' : '▶'"></i>
+                    ${ running ? 'Stop' : 'Start' }
+                </button>
+                <button class="btn-reset" @click="resetFiles" :disabled="running">
+                    ↺ Reset
+                </button>
+                <button class="btn-test" @click="loadTestData" :disabled="running">
+                    🧪 Test
+                </button>
+                <a href="/clean" class="btn-clean">
+                    ✨ Clean UI
+                </a>
+                <span class="status" :class="{ 'status-running': running }">
+                    ● ${ running ? 'Running' : 'Stopped' }
+                </span>
+            </div>
+        </div>
+
+        <!-- Main content with sidebar tabs -->
+        <div class="content-container">
+            <!-- Left sidebar tabs -->
+            <div class="sidebar">
+                <div class="tab-item" 
+                     v-for="tab in tabs" 
+                     :key="tab.id"
+                     :class="{ active: activeTab === tab.id, 'flash-tab': false }"
+                     :data-tab="tab.id"
+                     @click="setActiveTab(tab.id)">
+                    <i :class="tab.icon"></i>
+                    <span>${ tab.name }</span>
+                </div>
+            </div>
+
+            <!-- Content area -->
+            <div class="content-area">
+                <!-- Demande content -->
+                <div v-if="activeTab === 'demande'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-file-document-outline mr-2"></i>Demande
+                        </h2>
+                    </div>
+                    <div class="panel-content">
+                        <textarea v-model="content.demande"
+                                 @input="onDemandeInput"
+                                 class="content-area"></textarea>
+                    </div>
+                </div>
+
+                <!-- Specifications content -->
+                <div v-if="activeTab === 'specifications'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-file-tree mr-2"></i>Specifications
+                        </h2>
+                    </div>
+                    <div class="panel-content">
+                        <pre class="content-display" v-html="highlightContent('specifications')"></pre>
+                    </div>
+                </div>
+
+                <!-- Management content -->
+                <div v-if="activeTab === 'management'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-account-supervisor mr-2"></i>Management
+                        </h2>
+                    </div>
+                    <div class="panel-content">
+                        <pre class="content-display" v-html="highlightContent('management')"></pre>
+                    </div>
+                </div>
+
+                <!-- Production content -->
+                <div v-if="activeTab === 'production'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-code-braces mr-2"></i>Production
+                        </h2>
+                    </div>
+                    <div class="panel-content">
+                        <pre class="content-display" v-html="highlightContent('production')"></pre>
+                    </div>
+                </div>
+
+                <!-- Evaluation content -->
+                <div v-if="activeTab === 'evaluation'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-check-circle mr-2"></i>Evaluation
+                        </h2>
+                    </div>
+                    <div class="panel-content">
+                        <pre class="content-display" v-html="highlightContent('evaluation')"></pre>
+                    </div>
+                </div>
+
+                <!-- Suivi content -->
+                <div v-if="activeTab === 'suivi'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-history mr-2"></i>Suivi
+                        </h2>
+                    </div>
+                    <div class="panel-content">
+                        <pre class="suivi-content" v-html="highlightContent('suivi')"></pre>
+                    </div>
+                </div>
+
+                <!-- Suivi Mission content -->
+                <div v-if="activeTab === 'suivi-mission'" class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="mdi mdi-console-line mr-2"></i>Suivi Mission
+                        </h2>
+                        <div class="panel-controls">
+                            <button @click="exportLogs" class="btn-export">
+                                <i class="mdi mdi-download mr-1"></i> Export
+                            </button>
+                            <button @click="clearLogs" class="btn-clear">
+                                <i class="mdi mdi-trash-can mr-1"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div class="suivi-mission-content">
+                            <div v-for="log in logs"
+                                 :key="log.id" 
+                                 class="suivi-mission-entry"
+                                 :class="log.level">
+                                <span class="log-timestamp">${ log.timestamp }</span>
+                                <span class="log-message" v-html="log.message"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="notifications-container">
+        <transition-group name="notification">
+            <div v-for="notification in notifications"
+                 :key="notification.id"
+                 class="notification"
+                 :class="notification.type">
+                <i :class="notificationIcon(notification.type)"></i>
+                <span class="notification-message">${notification.message}</span>
+            </div>
+        </transition-group>
     </div>
 </div>
+{% endblock %}
 
-<div class="panel-grid">
-    <div class="panel">
-        <div class="panel-header">
-            <div class="panel-title">Production</div>
-        </div>
-        <textarea class="panel-content" id="productionPanel" readonly>{{ content }}</textarea>
-    </div>
-    
-    <div class="panel">
-        <div class="panel-header">
-            <div class="panel-title">Suivi</div>
-        </div>
-        <textarea class="panel-content" id="suiviPanel" readonly>{{ suivi_content }}</textarea>
-    </div>
-</div>
-
-<script>
-let isRunning = false;
-
-async function startAgents() {
-    try {
-        const response = await fetch('/api/start', { method: 'POST' });
-        if (response.ok) {
-            isRunning = true;
-            updateStatus();
-        }
-    } catch (error) {
-        console.error('Error starting agents:', error);
-    }
-}
-
-async function stopAgents() {
-    try {
-        const response = await fetch('/api/stop', { method: 'POST' });
-        if (response.ok) {
-            isRunning = false;
-            updateStatus();
-        }
-    } catch (error) {
-        console.error('Error stopping agents:', error);
-    }
-}
-
-function updateStatus() {
-    const statusDot = document.getElementById('statusDot');
-    statusDot.className = `status-dot ${isRunning ? 'running' : 'stopped'}`;
-}
-
-// Poll for content updates
-setInterval(async () => {
-    try {
-        const response = await fetch('/api/content');
-        const data = await response.json();
-        
-        document.getElementById('productionPanel').value = data.production || '';
-        document.getElementById('suiviPanel').value = data.suivi || '';
-    } catch (error) {
-        console.error('Error updating content:', error);
-    }
-}, 1000);
-</script>
+{% block scripts %}
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/2.0.6/velocity.min.js"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
 {% endblock %}
