@@ -1,4 +1,4 @@
-# Parallagon
+# Parallagon | [Clean UI](clean-ui)
 *Framework d'Agents Autonomes Parallèles*
 
 ## 1. Vue d'Ensemble
