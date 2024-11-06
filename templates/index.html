@@ -230,26 +230,5 @@
 {% block scripts %}
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/2.0.6/velocity.min.js"></script>
-<script>
-// Add markdown formatting method to Vue app
-const { createApp } = Vue;
-createApp({
-    delimiters: ['${', '}'],
-    data() {
-        return {
-            // ... existing data
-        }
-    },
-    methods: {
-        formatMarkdown(content) {
-            if (!content) return '';
-            // First process with marked for markdown conversion
-            const htmlContent = marked.parse(content);
-            // Then apply any existing highlight logic
-            return htmlContent;
-        },
-        // ... existing methods
-    }
-}).mount('#app');
-</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
 {% endblock %}
