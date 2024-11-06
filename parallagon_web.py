@@ -338,6 +338,15 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             self.log_message(f"Error handling content change: {str(e)}", level='error')
 
     def setup_routes(self):
+        @self.app.route('/clean')
+        def clean_interface():
+            try:
+                with open('production.md', 'r', encoding='utf-8') as f:
+                    content = f.read()
+                return render_template('clean.html', content=content)
+            except Exception as e:
+                return f"Error loading content: {str(e)}", 500
+
         @self.app.route('/api/test-data', methods=['POST'])
         def load_test_data():
             try:
