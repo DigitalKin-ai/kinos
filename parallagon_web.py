@@ -1010,22 +1010,31 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     self.log_message("❌ Le contenu de la demande doit être une chaîne de caractères", level='error')
                     return jsonify({'error': 'Content must be a string'}), 400
 
+                # Vérifier qu'une mission est sélectionnée
+                if not self.file_manager.current_mission:
+                    self.log_message("❌ Aucune mission sélectionnée", level='error')
+                    return jsonify({'error': 'No mission selected'}), 400
+
+                # Construire le chemin complet du fichier demande.md dans le dossier de la mission
+                mission_path = os.path.join("missions", self.file_manager.current_mission)
+                demande_path = os.path.join(mission_path, "demande.md")
+
                 # Essayer d'écrire le fichier
                 try:
-                    success = self.file_manager.write_file('demande', data['content'])
-                    if success:
-                        self.log_message("✓ Demande sauvegardée", level='success')
-                        # Notifier du changement
-                        self.handle_content_change(
-                            'demande.md',
-                            data['content'],
-                            panel_name='Demande'
-                        )
-                        return jsonify({'status': 'success', 'success': True})
-                    else:
-                        self.log_message("❌ Échec de sauvegarde de la demande", level='error')
-                        return jsonify({'error': 'Failed to write demand file'}), 500
+                    os.makedirs(mission_path, exist_ok=True)  # S'assurer que le dossier existe
+                    with open(demande_path, 'w', encoding='utf-8') as f:
+                        f.write(data['content'])
                         
+                    self.log_message("✓ Demande sauvegardée", level='success')
+                    
+                    # Notifier du changement
+                    self.handle_content_change(
+                        'demande.md',
+                        data['content'],
+                        panel_name='Demande'
+                    )
+                    return jsonify({'status': 'success', 'success': True})
+                    
                 except Exception as write_error:
                     self.log_message(f"❌ Erreur d'écriture du fichier: {str(write_error)}", level='error')
                     return jsonify({'error': f'File write error: {str(write_error)}'}), 500
