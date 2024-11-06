@@ -110,8 +110,8 @@ const ParallagonApp = {
                 name: this.newMissionName.trim()
             };
 
-            // Add new mission to list
-            this.missions.push(newMission);
+            // Add new mission to beginning of list
+            this.missions.unshift(newMission);
 
             // Select the new mission
             this.selectMission(newMission);
