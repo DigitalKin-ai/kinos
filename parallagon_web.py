@@ -396,13 +396,22 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         @self.app.route('/editor')
         def editor_interface():
             try:
-                with open('production.md', 'r', encoding='utf-8') as f:
-                    content = f.read()
-                with open('suivi.md', 'r', encoding='utf-8') as f:
-                    suivi_content = f.read()
-                return render_template('editor.html', content=content, suivi_content=suivi_content)
+                content = self.file_manager.read_file("production")
+                if content is None:
+                    content = ""
+                    
+                suivi_content = self.file_manager.read_file("suivi")
+                if suivi_content is None:
+                    suivi_content = ""
+                    
+                return render_template('editor.html', 
+                                     content=content, 
+                                     suivi_content=suivi_content)
             except Exception as e:
-                return f"Error loading content: {str(e)}", 500
+                self.log_message(f"Error loading editor: {str(e)}", level='error')
+                return render_template('editor.html',
+                                     content="Error loading content",
+                                     suivi_content="Error loading suivi content")
 
         @self.app.route('/')
         def home():
