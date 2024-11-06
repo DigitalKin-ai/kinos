@@ -6,6 +6,25 @@ class MissionService:
     def __init__(self):
         self.missions_dir = "missions"
         os.makedirs(self.missions_dir, exist_ok=True)
+        
+    def _is_valid_mission_dir(self, mission_dir: str) -> bool:
+        """Check if a directory contains all required mission files"""
+        required_files = [
+            "demande.md",
+            "specifications.md", 
+            "management.md",
+            "production.md",
+            "evaluation.md",
+            "suivi.md"
+        ]
+        
+        try:
+            return all(
+                os.path.isfile(os.path.join(mission_dir, file))
+                for file in required_files
+            )
+        except Exception:
+            return False
 
     def create_mission(self, name: str, description: str = None) -> Dict:
         """Create a new mission directory"""
@@ -38,7 +57,7 @@ class MissionService:
             if os.path.exists(self.missions_dir):
                 for mission_name in os.listdir(self.missions_dir):
                     mission_path = os.path.join(self.missions_dir, mission_name)
-                    if os.path.isdir(mission_path):
+                    if os.path.isdir(mission_path) and self._is_valid_mission_dir(mission_path):
                         mission = {
                             'id': len(missions) + 1,  # Simple incremental ID
                             'name': mission_name,
