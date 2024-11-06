@@ -111,8 +111,9 @@ class ProductionAgent(ParallagonAgent):
         return True
 
     def determine_actions(self) -> None:
+        """Logique principale de l'agent"""
         try:
-            self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
+            self.logger(f"[{self.__class__.__name__}] Analyse du contenu...")
             
             context = {
                 "production": self.current_content,
@@ -120,12 +121,16 @@ class ProductionAgent(ParallagonAgent):
             }
             
             response = self._get_llm_response(context)
-            if response and response != self.current_content:
-                # Écrire directement dans le fichier
+            if not response:
+                self.logger(f"[{self.__class__.__name__}] ❌ Pas de réponse du LLM")
+                return
+                
+            # Vérifier et écrire le nouveau contenu
+            if response.strip():
                 with open(self.file_path, 'w', encoding='utf-8') as f:
                     f.write(response)
                 self.current_content = response
-                self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
+                self.logger(f"[{self.__class__.__name__}] ✓ Fichier production.md mis à jour")
                 
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
