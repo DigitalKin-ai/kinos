@@ -65,16 +65,23 @@ class MissionService:
         try:
             missions = []
             if os.path.exists(self.missions_dir):
+                print(f"\nScanning missions directory: {self.missions_dir}")  # Debug
                 for mission_name in os.listdir(self.missions_dir):
                     mission_path = os.path.join(self.missions_dir, mission_name)
                     real_path = self._resolve_mission_path(mission_path)
                     
-                    # Debug logs
-                    print(f"Checking mission: {mission_name}")
-                    print(f"Path: {mission_path}")
-                    print(f"Real path: {real_path}")
-                    print(f"Is symlink: {os.path.islink(mission_path)}")
-                    print(f"Is dir: {os.path.isdir(real_path)}")
+                    # Debug logs détaillés
+                    print(f"\nMission trouvée: {mission_name}")
+                    print(f"Chemin: {mission_path}")
+                    print(f"Chemin réel: {real_path}")
+                    print(f"Est un symlink: {os.path.islink(mission_path)}")
+                    print(f"Est un dossier: {os.path.isdir(real_path)}")
+                    if os.path.isdir(real_path):
+                        print("Contenu du dossier:")
+                        try:
+                            print(os.listdir(real_path))
+                        except Exception as e:
+                            print(f"Erreur lecture dossier: {e}")
                     
                     if (os.path.isdir(real_path) and 
                         self._is_valid_mission_dir(real_path)):
@@ -88,6 +95,10 @@ class MissionService:
                             'external_path': real_path if os.path.islink(mission_path) else None
                         }
                         missions.append(mission)
+                        print(f"Mission ajoutée: {mission}")
+                    else:
+                        print(f"Mission ignorée: n'est pas un dossier valide")
+
             return missions
         except Exception as e:
             print(f"Error getting missions: {e}")
