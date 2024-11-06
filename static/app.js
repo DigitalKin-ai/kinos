@@ -310,6 +310,11 @@ const ParallagonApp = {
 
         async saveDemande() {
             try {
+                if (!this.currentMission) {
+                    this.addNotification('error', 'Please select a mission first');
+                    throw new Error('No mission selected');
+                }
+
                 if (!this.content.demande) {
                     this.addNotification('error', 'No demand content to save');
                     return;
@@ -321,7 +326,8 @@ const ParallagonApp = {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        content: this.content.demande
+                        content: this.content.demande,
+                        missionId: this.currentMission.id
                     })
                 });
 
@@ -958,27 +964,37 @@ const ParallagonApp = {
         
         // Load missions first, then content
         this.loadMissions()
-            .then(() => {
+            .then(async () => {
                 // Select first mission if available
                 if (this.missions.length > 0) {
-                    return this.selectMission(this.missions[0]);
+                    // Attendre que la sélection de mission soit terminée
+                    await this.selectMission(this.missions[0]);
+                    // Vérifier que la mission a bien été sélectionnée
+                    if (!this.currentMission) {
+                        throw new Error('Failed to select mission');
+                    }
+                } else {
+                    this.addNotification('warning', 'No missions available. Please create a new mission.');
                 }
             })
             .then(() => {
-                this.startPolling();
-                // Start suivi content updates
-                this.suiviUpdateInterval = setInterval(() => {
-                    this.updateSuiviContent();
-                }, 5000);
-                
-                // Refresh agents status every 5 seconds
-                setInterval(() => {
-                    if (this.running) {
-                        this.refreshAgentsStatus();
-                    }
-                }, 5000);
-                
-                this.addLog('info', 'Application initialized');
+                // Ne démarrer le polling que si une mission est sélectionnée
+                if (this.currentMission) {
+                    this.startPolling();
+                    // Start suivi content updates
+                    this.suiviUpdateInterval = setInterval(() => {
+                        this.updateSuiviContent();
+                    }, 5000);
+                    
+                    // Refresh agents status every 5 seconds
+                    setInterval(() => {
+                        if (this.running) {
+                            this.refreshAgentsStatus();
+                        }
+                    }, 5000);
+                    
+                    this.addLog('info', 'Application initialized with mission: ' + this.currentMission.name);
+                }
             })
             .catch(error => {
                 console.error('Error in mounted:', error);
