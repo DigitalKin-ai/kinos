@@ -3,7 +3,7 @@
 {% block title %}⚫ Parallagon{% endblock %}
 
 {% block head %}
-<script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
     /* Style pour le conteneur de l'indicateur de chargement */
     .sidebar-header {
@@ -258,28 +258,29 @@
         bottom: 0;
     }
 
-    .ck-editor__editable {
-        min-height: calc(100vh - 40px) !important;
-        max-height: none !important;
-    }
-
-    .ck.ck-editor {
+    .markdown-content {
         margin-left: 400px;
-        width: calc(100% - 400px) !important;
-        position: fixed;
-        right: 0;
-        top: 0;
-        bottom: 0;
+        padding: 40px;
+        max-width: 800px;
+        line-height: 1.6;
     }
 
-    .ck.ck-editor__main {
-        height: calc(100vh - 40px);
+    .markdown-content h1 { font-size: 2em; margin: 1em 0 0.5em; }
+    .markdown-content h2 { font-size: 1.5em; margin: 1em 0 0.5em; }
+    .markdown-content h3 { font-size: 1.3em; margin: 1em 0 0.5em; }
+    .markdown-content p { margin-bottom: 1em; }
+    .markdown-content ul, .markdown-content ol { margin-bottom: 1em; padding-left: 2em; }
+    .markdown-content code { 
+        background: #f5f5f5; 
+        padding: 0.2em 0.4em; 
+        border-radius: 3px;
+        font-family: monospace;
     }
-
-    .ck.ck-toolbar {
-        border: none !important;
-        border-bottom: 1px solid #e0e0e0 !important;
-        background: #f8f9fa !important;
+    .markdown-content pre { 
+        background: #f5f5f5; 
+        padding: 1em; 
+        margin-bottom: 1em; 
+        overflow-x: auto;
     }
 
     *:focus {
@@ -367,41 +368,39 @@
     </div>
     <textarea id="demande-display">{{ demande_content }}</textarea>
 </div>
-<div id="clean-editor">{{ content|safe }}</div>
+<div id="clean-editor" class="markdown-content">{{ content|safe }}</div>
 
 <button class="control-button stopped" id="controlButton" onclick="toggleControl()">
     <div class="play-icon"></div>
 </button>
 
 <script>
-let editor;
-
-ClassicEditor
-    .create(document.querySelector('#clean-editor'), {
-        toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo'],
-        placeholder: 'Commencez à écrire...',
-    })
-    .then(newEditor => {
-        editor = newEditor;
-        
-        // Sauvegarder lors des modifications
-        editor.model.document.on('change:data', () => {
-            clearTimeout(editor.saveTimeout);
-            editor.saveTimeout = setTimeout(() => {
-                const content = editor.getData();
-                fetch('/api/production', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ content: content })
-                });
-            }, 1000);
-        });
-    })
-    .catch(error => {
-        console.error(error);
+document.addEventListener('DOMContentLoaded', function() {
+    // Configure marked
+    marked.setOptions({
+        breaks: true,
+        gfm: true
     });
+
+    // Fonction de mise à jour du contenu
+    async function updateContent() {
+        try {
+            const response = await fetch('/api/content');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.production) {
+                    document.getElementById('clean-editor').innerHTML = marked.parse(data.production);
+                }
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+        }
+    }
+
+    // Mise à jour initiale et périodique
+    updateContent();
+    setInterval(updateContent, 1000);
+});
 
 async function resetDocuments() {
     if (confirm('Êtes-vous sûr de vouloir réinitialiser tous les documents ?')) {
