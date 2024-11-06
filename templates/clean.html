@@ -271,6 +271,28 @@
         overflow-y: auto;
         padding: 40px;
         box-sizing: border-box;
+        white-space: pre-wrap; /* Force line breaks */
+    }
+
+    /* Styles for parsed markdown content */
+    .markdown-content > * {
+        white-space: normal !important; /* Force normal line wrapping */
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+        word-break: break-word !important; /* Allow word breaks if needed */
+        width: 100% !important;
+    }
+
+    /* Style for long text lines */
+    .markdown-content p {
+        white-space: pre-line; /* Respect line breaks while wrapping text */
+    }
+
+    /* Style for code blocks and pre */
+    .markdown-content pre {
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        overflow-x: hidden;
     }
 
     /* Styles spécifiques pour tout le contenu */
