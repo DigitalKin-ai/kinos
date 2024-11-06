@@ -263,6 +263,33 @@
         padding: 40px;
         max-width: 800px;
         line-height: 1.6;
+        background-color: white;
+        height: 100vh;
+        overflow-y: auto;
+    }
+
+    /* Scrollbar styles for webkit browsers */
+    .markdown-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .markdown-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .markdown-content::-webkit-scrollbar-thumb {
+        background: #ddd;
+        border-radius: 4px;
+    }
+
+    .markdown-content::-webkit-scrollbar-thumb:hover {
+        background: #ccc;
+    }
+
+    /* Scrollbar styles for Firefox */
+    .markdown-content {
+        scrollbar-width: thin;
+        scrollbar-color: #ddd transparent;
     }
 
     .markdown-content h1 { font-size: 2em; margin: 1em 0 0.5em; }
