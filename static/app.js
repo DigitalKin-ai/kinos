@@ -638,8 +638,7 @@ const ParallagonApp = {
         },
 
         isAgentTab(tabId) {
-            // Check if this tab represents an agent
-            return ['specifications', 'management', 'production', 'evaluation'].includes(tabId);
+            return ['specifications', 'management', 'production', 'evaluation', 'suivi'].includes(tabId);
         },
 
         isAgentRunning(tabId) {
