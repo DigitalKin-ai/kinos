@@ -882,6 +882,37 @@ textarea.content-area {
     overflow-y: auto;
 }
 
+.mission-loading,
+.mission-empty {
+    padding: 1rem;
+    text-align: center;
+    color: #e2e8f0;
+    font-size: 0.875rem;
+}
+
+.mission-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.mission-loading::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e2e8f0;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.mission-empty {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    padding: 2rem 1rem;
+}
+
 .mission-item {
     display: flex;
     align-items: center;

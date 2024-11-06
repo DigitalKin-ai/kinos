@@ -82,8 +82,14 @@
                                class="mission-create-input">
                     </div>
                 </div>
-                <div class="mission-list">
-                    <div v-for="mission in missions" 
+                <div class="mission-list" :class="{ 'loading': loading }">
+                    <div v-if="loading" class="mission-loading">
+                        Chargement des missions...
+                    </div>
+                    <div v-else-if="missions.length === 0" class="mission-empty">
+                        Aucune mission disponible
+                    </div>
+                    <div v-else v-for="mission in missions" 
                          :key="mission.id"
                          class="mission-item"
                          :class="{ active: currentMission?.id === mission.id }"

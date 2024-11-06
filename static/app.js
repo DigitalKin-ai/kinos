@@ -140,25 +140,29 @@ const ParallagonApp = {
             try {
                 this.loading = true;  // Add loading state
                 const response = await fetch('/api/missions');
-                
+            
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
+            
                 const missions = await response.json();
-                
+            
                 if (Array.isArray(missions)) {
                     this.missions = missions;
-                    this.addNotification('success', 'Missions loaded successfully');
+                    if (missions.length > 0) {
+                        this.addNotification('success', 'Missions loaded successfully');
+                    } else {
+                        this.addNotification('info', 'No missions available. Please create a new mission.');
+                    }
                 } else {
                     throw new Error('Invalid missions data received');
                 }
-                
+            
             } catch (error) {
                 console.error('Error loading missions:', error);
                 this.addNotification('error', `Failed to load missions: ${error.message}`);
                 this.missions = [];  // Reset missions on error
-                
+            
             } finally {
                 this.loading = false;  // Clear loading state
             }
@@ -904,9 +908,15 @@ const ParallagonApp = {
         notificationsContainer.className = 'notifications-container';
         document.body.appendChild(notificationsContainer);
         
-        // Load missions first
+        // Load missions and select first one
         this.loadMissions()
-            .then(() => this.loadInitialContent())
+            .then(() => {
+                // Select first mission if available
+                if (this.missions.length > 0) {
+                    this.selectMission(this.missions[0]);
+                }
+                return this.loadInitialContent();
+            })
             .then(() => {
                 this.startPolling();
                 // Start suivi content updates
