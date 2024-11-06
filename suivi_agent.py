@@ -48,8 +48,8 @@ class SuiviAgent(ParallagonAgent):
                 (current_time - self.last_summary_time).total_seconds() >= 30):
                 
                 context = {
-                    "suivi": self.current_content,
-                    "other_files": self.other_files,
+                    "suivi": {"suivi.md": self.current_content},  # Wrap in dict
+                    "other_files": self.other_files,  # This is already a dict
                     "logs": self.logs_buffer[-50:]
                 }
                 
