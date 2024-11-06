@@ -451,6 +451,34 @@ const ParallagonApp = {
             }
         },
 
+        isAgentTab(tabId) {
+            // Check if this tab represents an agent
+            return ['specifications', 'management', 'production', 'evaluation'].includes(tabId);
+        },
+
+        isAgentRunning(tabId) {
+            return this.runningAgents.has(tabId);
+        },
+
+        async toggleAgent(tabId) {
+            try {
+                if (this.isAgentRunning(tabId)) {
+                    // Stop the agent
+                    await fetch(`/api/agent/${tabId}/stop`, { method: 'POST' });
+                    this.runningAgents.delete(tabId);
+                    this.addNotification('info', `Agent ${tabId} stopped`);
+                } else {
+                    // Start the agent
+                    await fetch(`/api/agent/${tabId}/start`, { method: 'POST' });
+                    this.runningAgents.add(tabId);
+                    this.addNotification('success', `Agent ${tabId} started`);
+                }
+            } catch (error) {
+                console.error(`Failed to toggle agent ${tabId}:`, error);
+                this.addNotification('error', `Failed to control agent ${tabId}: ${error.message}`);
+            }
+        },
+
         addLog(level, message, operation = null, status = null) {
             const timestamp = new Date().toISOString();
             const logEntry = {
