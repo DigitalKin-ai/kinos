@@ -87,23 +87,22 @@ En attente d'initialisation...
         try:
             file_path = self.file_paths.get(file_name)
             if not file_path:
-                print(f"FileManager: No path found for {file_name}")
+                print(f"FileManager: Chemin non trouvé pour {file_name}")
                 return False
                 
-            # Écrire le contenu
+            # Écrire directement le contenu
             with open(file_path, 'w', encoding='utf-8') as f:
-                portalocker.lock(f, portalocker.LOCK_EX)
                 f.write(content)
-                portalocker.unlock(f)
                 
-            # Notification immédiate
+            # Notification
             if self.on_content_changed:
                 panel_name = file_name.split('.')[0].capitalize()
                 self.on_content_changed(file_path, content, panel_name, flash=True)
             
             return True
+            
         except Exception as e:
-            print(f"Error writing file {file_name}: {e}")
+            print(f"Erreur écriture fichier {file_name}: {e}")
             return False
             
     def reset_files(self) -> bool:

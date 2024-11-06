@@ -378,34 +378,16 @@ Notes:
         """Make necessary updates to files based on determined actions."""
         try:
             if hasattr(self, 'new_content') and self.new_content != self.current_content:
-                self.logger(f"[{self.__class__.__name__}] Updating file {self.file_path}")
+                self.logger(f"[{self.__class__.__name__}] Mise à jour du fichier {self.file_path}")
                 
-                # Ensure the file exists
-                if not os.path.exists(self.file_path):
-                    with open(self.file_path, 'w', encoding='utf-8') as f:
-                        f.write("")
+                # Écrire directement le contenu
+                with open(self.file_path, 'w', encoding='utf-8') as f:
+                    f.write(self.new_content)
+                self.current_content = self.new_content
+                self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
                 
-                # Read current content to verify it hasn't changed
-                with open(self.file_path, 'r', encoding='utf-8') as f:
-                    current = f.read()
-                    
-                # Only update if content actually differs
-                if current != self.new_content:
-                    with open(self.file_path, 'w', encoding='utf-8') as f:
-                        f.write(self.new_content)
-                    self.current_content = self.new_content
-                    self.logger(f"[{self.__class__.__name__}] ✓ File updated successfully")
-                    
-                    # Notify about the change
-                    if hasattr(self, 'handle_file_change'):
-                        self.handle_file_change(self.file_path, self.new_content)
-                else:
-                    self.logger(f"[{self.__class__.__name__}] ℹ File content unchanged")
-                    
         except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Error updating file: {str(e)}")
-            import traceback
-            self.logger(traceback.format_exc())
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur mise à jour: {str(e)}")
             import traceback
             self.logger(traceback.format_exc())
 
