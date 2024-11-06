@@ -26,8 +26,19 @@ class SpecificationsAgent(ParallagonAgent):
         self.client = openai.OpenAI(api_key=config["openai_api_key"])
         self.logger = config.get("logger", print)
         self._last_demand = None
-        # S'assurer que le chemin est absolu
-        self.file_path = os.path.abspath(config["file_path"])
+        
+        # Validate and convert paths to absolute
+        if not os.path.isabs(config["file_path"]):
+            config["file_path"] = os.path.abspath(config["file_path"])
+        self.file_path = config["file_path"]
+        
+        # Validate watch_files paths
+        if "watch_files" in config:
+            config["watch_files"] = [
+                os.path.abspath(f) if not os.path.isabs(f) else f
+                for f in config["watch_files"]
+            ]
+            
         self.logger(f"[{self.__class__.__name__}] Initialisé avec fichier: {self.file_path}")
 
     def should_run(self) -> bool:
