@@ -28,6 +28,7 @@ html, body {
     overflow: hidden;
     width: 100%;
     box-sizing: border-box;
+    padding: 0;
 }
 
 /* Header */
@@ -64,6 +65,29 @@ html, body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-size: 14px;
     line-height: 1.6;
+}
+
+/* Content area */
+.content-area {
+    flex: 1;
+    overflow: auto;
+    padding: 1rem;
+    background-color: white;
+    width: 100%;
+}
+
+/* Panel sizing */
+.panel {
+    width: 100%;
+    height: 100%;
+}
+
+/* Panel content sizing */
+.panel-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Content area */
