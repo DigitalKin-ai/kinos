@@ -2,6 +2,49 @@
 
 {% block title %}Parallagon Clean UI{% endblock %}
 
+{% block head %}
+<style>
+    .clean-container {
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 20px;
+    }
+
+    .clean-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .btn-back {
+        text-decoration: none;
+        padding: 8px 16px;
+        background-color: #f0f0f0;
+        color: #333;
+        border-radius: 4px;
+    }
+
+    .clean-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    #clean-editor {
+        width: 100%;
+        min-height: 600px;
+        border: none;
+        padding: 15px;
+        font-family: monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        resize: vertical;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="clean-container">
     <div class="clean-header">
@@ -9,8 +52,7 @@
         <a href="/" class="btn-back">Back to Main UI</a>
     </div>
     <div class="clean-content">
-        <!-- Add clean UI content here -->
-        <p>Clean interface coming soon...</p>
+        <textarea id="clean-editor">{{ content }}</textarea>
     </div>
 </div>
 {% endblock %}
