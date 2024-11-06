@@ -101,21 +101,24 @@ html, body {
 
 /* Sidebar */
 .sidebar {
-    width: 200px;
+    width: 240px;
     background-color: #f1f3f5;
     border-right: 1px solid #e9ecef;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .tab-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 0.75rem;
     border-bottom: 1px solid #e9ecef;
     color: #495057;
     transition: background-color 0.2s;
+    min-height: 48px;
 }
 
 .tab-content {
@@ -124,6 +127,14 @@ html, body {
     gap: 0.5rem;
     flex: 1;
     cursor: pointer;
+    min-width: 0;
+}
+
+.tab-content span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
 }
 
 /* Agent status indicators */
@@ -169,8 +180,9 @@ html, body {
 /* Agent toggle button */
 .agent-toggle {
     position: relative;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
     border: none;
     border-radius: 50%;
     background-color: #f1f3f5;
@@ -179,8 +191,13 @@ html, body {
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    margin-left: 8px;
+    margin-left: 4px;
+    padding: 0;
     color: #495057;
+}
+
+.agent-toggle i {
+    font-size: 16px;
 }
 
 .agent-toggle:hover {
@@ -201,11 +218,12 @@ html, body {
 .agent-status {
     display: inline-flex;
     align-items: center;
-    padding: 4px 8px;
+    font-size: 0.7rem;
+    padding: 2px 6px;
     border-radius: 12px;
-    font-size: 0.75rem;
     font-weight: 500;
-    margin-left: 8px;
+    margin-left: 4px;
+    white-space: nowrap;
 }
 
 .agent-status.running {

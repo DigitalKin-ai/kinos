@@ -67,7 +67,7 @@
                         <span v-if="isAgentTab(tab.id)"
                               class="agent-status"
                               :class="{ 'running': isAgentRunning(tab.id) }">
-                            ${ isAgentRunning(tab.id) ? 'Running' : 'Stopped' }
+                            ${ isAgentRunning(tab.id) ? '●' : '○' }
                         </span>
                     </div>
                     <!-- Toggle button for agent tabs -->
