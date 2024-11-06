@@ -330,36 +330,48 @@ Notes:
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response with fallback between providers"""
         try:
-            # Try OpenAI first
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",  # Modèle standard de openai (ne pas remplacer)
-                messages=[{
-                    "role": "user", 
-                    "content": self._build_prompt(context)
-                }],
-                temperature=0,
-                max_tokens=4000
-            )
-            return response.choices[0].message.content
+            # Build prompt with proper context formatting
+            prompt = self._build_prompt({
+                "other_files": context["other_files"],
+                "suivi": context["suivi"],
+                "logs": context.get("logs", [])
+            })
             
-        except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur OpenAI: {str(e)}")
+            # Try OpenAI first
             try:
-                # Fallback to Anthropic
-                response = self.client.messages.create(
-                    model="claude-3-sonnet-20240229",
-                    max_tokens=4000,
+                response = self.openai_client.chat.completions.create(
+                    model="gpt-4",
                     messages=[{
-                        "role": "user",
-                        "content": self._build_prompt(context)
-                    }]
+                        "role": "user", 
+                        "content": prompt
+                    }],
+                    temperature=0,
+                    max_tokens=4000
                 )
-                return response.content
+                return response.choices[0].message.content
                 
             except Exception as e:
-                self.logger(f"[{self.__class__.__name__}] ❌ Erreur Anthropic: {str(e)}")
-                # Return current content as fallback
-                return context.get('specifications', '')
+                self.logger(f"[{self.__class__.__name__}] ❌ Erreur OpenAI: {str(e)}")
+                
+                # Fallback to Anthropic
+                try:
+                    response = self.client.messages.create(
+                        model="claude-3-sonnet-20240229",
+                        max_tokens=4000,
+                        messages=[{
+                            "role": "user",
+                            "content": prompt
+                        }]
+                    )
+                    return response.content[0].text
+                    
+                except Exception as e:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur Anthropic: {str(e)}")
+                    return None
+                    
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur dans _get_llm_response: {str(e)}")
+            return None
 
     @agent_error_handler("update")
     def update(self) -> None:
