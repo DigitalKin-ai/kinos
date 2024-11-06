@@ -275,7 +275,14 @@
         height: 100vh;
         background-color: white;
         position: relative;
-        overflow-y: auto; /* Permet le scroll dans le conteneur */
+        overflow-y: auto;
+        scrollbar-width: none; /* Pour Firefox */
+        -ms-overflow-style: none; /* Pour Internet Explorer et Edge */
+    }
+
+    /* Pour Chrome, Safari et Opera */
+    .editor-container::-webkit-scrollbar {
+        display: none;
     }
 
     #clean-editor {
