@@ -651,6 +651,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 # Convertir l'ID d'agent en nom d'agent avec première lettre majuscule
                 agent_name = agent_id.capitalize()
                 if agent_name not in self.agents:
+                    self.log_message(f"Agent {agent_id} not found", level='error')
                     return jsonify({'error': f'Agent {agent_id} not found'}), 404
                     
                 # Démarrer l'agent spécifique
@@ -665,31 +666,30 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 )
                 thread.start()
                 
-                self.log_message(f"Agent {agent_name} started individually", level='success')
+                self.log_message(f"✓ Agent {agent_name} started", level='success')
                 return jsonify({'status': 'success', 'message': f'Agent {agent_name} started'})
                 
             except Exception as e:
-                self.log_message(f"Failed to start agent {agent_id}: {str(e)}", level='error')
+                self.log_message(f"❌ Failed to start agent {agent_id}: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/agent/<agent_id>/stop', methods=['POST'])
         def stop_single_agent(agent_id):
             """Stop a specific agent"""
             try:
-                # Convertir l'ID d'agent en nom d'agent avec première lettre majuscule
                 agent_name = agent_id.capitalize()
                 if agent_name not in self.agents:
+                    self.log_message(f"Agent {agent_id} not found", level='error')
                     return jsonify({'error': f'Agent {agent_id} not found'}), 404
                     
-                # Arrêter l'agent spécifique
                 agent = self.agents[agent_name]
                 agent.stop()
                 
-                self.log_message(f"Agent {agent_name} stopped individually", level='info')
+                self.log_message(f"✓ Agent {agent_name} stopped", level='success')
                 return jsonify({'status': 'success', 'message': f'Agent {agent_name} stopped'})
                 
             except Exception as e:
-                self.log_message(f"Failed to stop agent {agent_id}: {str(e)}", level='error')
+                self.log_message(f"❌ Failed to stop agent {agent_id}: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/agents/status', methods=['GET'])
@@ -1381,5 +1381,5 @@ if __name__ == "__main__":
         raise ValueError("ANTHROPIC_API_KEY not configured in .env file")
     
     app = ParallagonWeb(config)
-    # Use Flask's development server when running directly 
-    app.run(debug=True)
+    # Change port to 8000 to match frontend
+    app.run(host='0.0.0.0', port=8000, debug=True)
