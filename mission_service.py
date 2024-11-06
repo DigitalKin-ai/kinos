@@ -183,31 +183,27 @@ class MissionService:
                 "evaluation.md",
                 "suivi.md"
             ]
+
+            # Create any missing required files in the external directory first
+            for file_name in required_files:
+                file_path = os.path.join(external_path, file_name)
+                if not os.path.exists(file_path):
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write(f"# {file_name[:-3].capitalize()}\n[Initial content]")
                 
             # Sur Windows, au lieu d'un symlink, créer une copie des fichiers
             if os.name == 'nt':  # Windows
                 os.makedirs(link_path)
                 
-                # Copier ou créer les fichiers requis
+                # Copier les fichiers
                 for file_name in required_files:
                     src_file = os.path.join(external_path, file_name)
                     dst_file = os.path.join(link_path, file_name)
-                    if os.path.exists(src_file):
-                        import shutil
-                        shutil.copy2(src_file, dst_file)
-                    else:
-                        with open(dst_file, 'w', encoding='utf-8') as f:
-                            f.write(f"# {file_name[:-3].capitalize()}\n[Initial content]")
+                    import shutil
+                    shutil.copy2(src_file, dst_file)
             else:
                 # Sur les autres systèmes, utiliser un symlink
                 os.symlink(external_path, link_path, target_is_directory=True)
-                
-                # Create any missing required files in the external directory
-                for file_name in required_files:
-                    file_path = os.path.join(external_path, file_name)
-                    if not os.path.exists(file_path):
-                        with open(file_path, 'w', encoding='utf-8') as f:
-                            f.write(f"# {file_name[:-3].capitalize()}\n[Initial content]")
             
             # Return mission info
             return {
