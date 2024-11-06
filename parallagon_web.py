@@ -313,7 +313,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     "file_path": "contexte.md",
                     "watch_files": ["demande.md", "specifications.md", "management.md", "production.md", "evaluation.md", "suivi.md"]
                 })
-                "Contexte": ContexteAgent({
                     **base_config,
                     "file_path": "contexte.md",
                     "watch_files": ["demande.md", "specifications.md", "management.md", "production.md", "evaluation.md", "suivi.md"]
