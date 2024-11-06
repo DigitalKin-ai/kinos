@@ -321,14 +321,21 @@ const ParallagonApp = {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to save demand');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to save demand');
                 }
 
-                this.demandeChanged = false;
-                this.addNotification('success', 'Demand saved successfully');
+                const result = await response.json();
+                if (result.success) {
+                    this.demandeChanged = false;
+                    this.addNotification('success', 'Demand saved successfully');
+                } else {
+                    throw new Error('Server indicated save failure');
+                }
             } catch (error) {
                 console.error('Error saving demand:', error);
                 this.addNotification('error', `Failed to save demand: ${error.message}`);
+                throw error; // Re-throw to handle in the caller if needed
             }
         },
         notificationIcon(type) {
@@ -474,6 +481,12 @@ const ParallagonApp = {
 
         async updateContent() {
             try {
+                // Ne pas mettre à jour le contenu de la demande si une modification est en cours
+                if (this.demandeChanged) {
+                    console.debug('Skipping demande update due to pending changes');
+                    return;
+                }
+
                 // Get content updates
                 const contentResponse = await fetch('/api/content');
                 const contentData = await contentResponse.json();
@@ -489,8 +502,13 @@ const ParallagonApp = {
                     });
                 }
                 
+                // Mise à jour sélective du contenu
                 this.previousContent = { ...this.content };
-                this.content = contentData;
+                Object.keys(contentData).forEach(key => {
+                    if (key !== 'demande' || !this.demandeChanged) {
+                        this.content[key] = contentData[key];
+                    }
+                });
 
                 // Check for changes and update UI
                 this.panels.forEach(panel => {
@@ -507,8 +525,13 @@ const ParallagonApp = {
         },
 
 
-        debouncedSaveDemande: debounce(function() {
-            this.saveDemande();  // Use this.saveDemande instead of saveDemande
+        debouncedSaveDemande: debounce(async function() {
+            try {
+                await this.saveDemande();
+            } catch (error) {
+                // Error already handled in saveDemande
+                console.debug('Debounced save failed:', error);
+            }
         }, 1000),
 
         onDemandeInput() {
