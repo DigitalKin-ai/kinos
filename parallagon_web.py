@@ -1147,6 +1147,9 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
 
             # Check changes for each file
             for file_name, content in current_content.items():
+                if content is None:
+                    continue
+                    
                 if (file_name not in self.last_content or 
                     content != self.last_content[file_name]):
                     # Content modified or new file
