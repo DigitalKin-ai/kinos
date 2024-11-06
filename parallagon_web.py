@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import threading
+from mission_service import MissionService
 import time
 import os
 import json
@@ -227,7 +228,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         self.app = Flask(__name__)
         CORS(self.app)  # Enable CORS
         self.monitor_thread = None  # Add monitor thread tracking
-        self.mission_service = MissionService()
         self.mission_service = MissionService()
         self.limiter = Limiter(
             app=self.app,
