@@ -119,20 +119,6 @@ class MissionService:
                 (mission_id,)
             )
             return cursor.fetchone() is not None
-        updates = []
-        values = []
-        if name is not None:
-            updates.append("name = %s")
-            values.append(name)
-        if description is not None:
-            updates.append("description = %s")
-            values.append(description)
-        if status is not None:
-            updates.append("status = %s")
-            values.append(status)
-            
-        if not updates:
-            return None
             
         values.append(mission_id)
         
