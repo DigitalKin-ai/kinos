@@ -115,7 +115,7 @@
                         <span>${ tab.name }</span>
                     </div>
                     <!-- Toggle button for agent tabs -->
-                    <button v-if="isAgentTab(tab.id)"
+                    <button v-if="isAgentTab(tab.id) || tab.id === 'contexte'"
                             class="agent-toggle"
                             :class="{ 'running': isAgentRunning(tab.id) }"
                             @click.stop="toggleAgent(tab.id)"
