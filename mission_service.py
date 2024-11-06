@@ -107,6 +107,20 @@ class MissionService:
             print(f"Error saving mission file: {e}")
             return False
 
+    def mission_exists(self, mission_name: str) -> bool:
+        """Check if a mission with the given name already exists"""
+        with self.db.get_cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT COUNT(*) as count
+                FROM missions
+                WHERE name = %s
+                """,
+                (mission_name,)
+            )
+            result = cursor.fetchone()
+            return result['count'] > 0
+
     def delete_mission(self, mission_id: int) -> bool:
         """Delete a mission from the database"""
         with self.db.get_cursor() as cursor:

@@ -456,19 +456,28 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 if not data or 'name' not in data:
                     return jsonify({'error': 'Name is required'}), 400
                     
+                # Validate mission name
+                mission_name = data['name'].strip()
+                if not mission_name:
+                    return jsonify({'error': 'Mission name cannot be empty'}), 400
+                    
+                # Check if mission already exists
+                if self.mission_service.mission_exists(mission_name):
+                    return jsonify({'error': 'Mission with this name already exists'}), 409
+                    
                 # Create mission in database
                 mission = self.mission_service.create_mission(
-                    name=data['name'],
+                    name=mission_name,
                     description=data.get('description')
                 )
                 
                 # Create mission files
-                if not self.file_manager.create_mission_files(mission['name']):
-                    # Si la création des fichiers échoue, on supprime la mission de la base
+                if not self.file_manager.create_mission_files(mission_name):
+                    # Rollback database creation if file creation fails
                     self.mission_service.delete_mission(mission['id'])
                     return jsonify({'error': 'Failed to create mission files'}), 500
                 
-                self.log_message(f"Mission '{mission['name']}' created with files", level='success')
+                self.log_message(f"Mission '{mission_name}' created successfully", level='success')
                 return jsonify(mission), 201
                 
             except Exception as e:

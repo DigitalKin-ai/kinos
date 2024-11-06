@@ -871,6 +871,20 @@ textarea.content-area {
     border-left: 3px solid #3182ce;
 }
 
+.mission-create-error {
+    color: #e53e3e;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: #fff5f5;
+    border-radius: 4px;
+    border: 1px solid #feb2b2;
+}
+
+.mission-item.error {
+    border-left: 3px solid #e53e3e;
+}
+
 /* Mission creation styles */
 .mission-create {
     padding: 0.75rem 1rem;

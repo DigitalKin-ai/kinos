@@ -26,13 +26,25 @@ class FileManager:
             mission_dir = os.path.join("missions", mission_name)
             os.makedirs(mission_dir, exist_ok=True)
             
-            # Create default files
+            # Create default files with error handling
+            files_created = True
             for file_name in ["demande", "specifications", "management", "production", "evaluation", "suivi"]:
-                file_path = os.path.join(mission_dir, f"{file_name}.md")
-                with open(file_path, 'w', encoding='utf-8') as f:
-                    initial_content = self._get_initial_content(file_name)
-                    f.write(initial_content)
+                try:
+                    file_path = os.path.join(mission_dir, f"{file_name}.md")
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        initial_content = self._get_initial_content(file_name)
+                        f.write(initial_content)
+                except Exception as e:
+                    print(f"Error creating {file_name}.md: {e}")
+                    files_created = False
+                    break
                     
+            if not files_created:
+                # Cleanup on failure
+                import shutil
+                shutil.rmtree(mission_dir, ignore_errors=True)
+                return False
+                
             return True
             
         except Exception as e:

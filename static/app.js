@@ -134,6 +134,7 @@ const ParallagonApp = {
 
         async createMission() {
             if (!this.newMissionName.trim()) {
+                this.addNotification('error', 'Mission name cannot be empty');
                 return;
             }
 
@@ -149,19 +150,22 @@ const ParallagonApp = {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to create mission');
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to create mission');
                 }
 
                 const mission = await response.json();
                 this.missions.unshift(mission);
-                this.selectMission(mission);
+                await this.selectMission(mission);
                 this.isCreatingMission = false;
                 this.newMissionName = '';
                 this.addNotification('success', `Mission "${mission.name}" created`);
 
             } catch (error) {
                 console.error('Error creating mission:', error);
-                this.addNotification('error', `Failed to create mission: ${error.message}`);
+                this.addNotification('error', error.message);
+                this.isCreatingMission = false;
+                this.newMissionName = '';
             }
         },
 
