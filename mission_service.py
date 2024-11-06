@@ -69,6 +69,13 @@ class MissionService:
                     mission_path = os.path.join(self.missions_dir, mission_name)
                     real_path = self._resolve_mission_path(mission_path)
                     
+                    # Debug logs
+                    print(f"Checking mission: {mission_name}")
+                    print(f"Path: {mission_path}")
+                    print(f"Real path: {real_path}")
+                    print(f"Is symlink: {os.path.islink(mission_path)}")
+                    print(f"Is dir: {os.path.isdir(real_path)}")
+                    
                     if (os.path.isdir(real_path) and 
                         self._is_valid_mission_dir(real_path)):
                         mission = {
