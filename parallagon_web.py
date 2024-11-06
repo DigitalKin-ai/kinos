@@ -1014,7 +1014,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                             data['content'],
                             panel_name='Demande'
                         )
-                        return jsonify({'status': 'success'})
+                        return jsonify({'status': 'success', 'success': True})
                     else:
                         self.log_message("❌ Échec de sauvegarde de la demande", level='error')
                         return jsonify({'error': 'Failed to write demand file'}), 500
