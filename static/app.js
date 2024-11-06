@@ -606,7 +606,12 @@ const ParallagonApp = {
 
         async loadTestData() {
             try {
-                const response = await fetch('/api/test-data', {
+                if (!this.currentMission) {
+                    this.addNotification('error', 'Veuillez sélectionner une mission');
+                    return;
+                }
+
+                const response = await fetch(`/api/missions/${this.currentMission.id}/test-data`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -615,7 +620,7 @@ const ParallagonApp = {
                 
                 if (response.ok) {
                     this.addNotification('success', 'Données de test chargées');
-                    await this.updateContent(); // Rafraîchit le contenu
+                    await this.loadMissionContent(this.currentMission.id); // Recharger le contenu
                 } else {
                     const error = await response.json();
                     throw new Error(error.error || 'Failed to load test data');
