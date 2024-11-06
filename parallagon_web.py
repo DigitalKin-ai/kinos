@@ -721,30 +721,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             except Exception as e:
                 return f"Error loading content: {str(e)}", 500
 
-        @self.app.route('/api/missions/<int:mission_id>/test-data', methods=['POST'])
-        def load_test_data(mission_id):
-            try:
-                mission = self.mission_service.get_mission(mission_id)
-                if not mission:
-                    return jsonify({'error': 'Mission not found'}), 404
-
-                # Écrire les données de test dans le fichier demande.md de la mission
-                success = self.mission_service.save_mission_file(
-                    mission_id,
-                    'demande',
-                    self.TEST_DATA
-                )
-                
-                if success:
-                    self.log_message(f"✨ Données de test chargées pour mission {mission['name']}", level='success')
-                    return jsonify({'status': 'success'})
-                else:
-                    return jsonify({'error': 'Failed to write test data'}), 500
-                    
-            except Exception as e:
-                self.log_message(f"Error loading test data: {str(e)}", level='error')
-                return jsonify({'error': str(e)}), 500
-
         @self.app.route('/api/missions/<int:mission_id>/reset', methods=['POST'])
         def reset_mission_files(mission_id):
             try:
