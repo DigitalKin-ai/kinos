@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Parallagon Editor{% endblock %}
+
+{% block head %}
+<style>
+    .container {
+        max-width: 100%;
+        padding: 0;
+    }
+
+    .panel-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-gap: 1rem;
+        padding: 1rem;
+    }
+
+    .panel {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+
+    .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .panel-title {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .panel-content {
+        width: 100%;
+        min-height: 300px;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.25rem;
+        padding: 0.5rem;
+        font-family: monospace;
+        resize: vertical;
+    }
+
+    .control-panel {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: #000;
+        color: white;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: #333;
+    }
+
+    .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: auto;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .status-dot.running {
+        background: #10B981;
+    }
+
+    .status-dot.stopped {
+        background: #EF4444;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="control-panel">
+    <button class="btn btn-primary" onclick="startAgents()">Start</button>
+    <button class="btn btn-primary" onclick="stopAgents()">Stop</button>
+    <div class="status-indicator">
+        Status: <div id="statusDot" class="status-dot stopped"></div>
+    </div>
+</div>
+
+<div class="panel-grid">
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-title">Production</div>
+        </div>
+        <textarea class="panel-content" id="productionPanel" readonly>{{ content }}</textarea>
+    </div>
+    
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-title">Suivi</div>
+        </div>
+        <textarea class="panel-content" id="suiviPanel" readonly>{{ suivi_content }}</textarea>
+    </div>
+</div>
+
+<script>
+let isRunning = false;
+
+async function startAgents() {
+    try {
+        const response = await fetch('/api/start', { method: 'POST' });
+        if (response.ok) {
+            isRunning = true;
+            updateStatus();
+        }
+    } catch (error) {
+        console.error('Error starting agents:', error);
+    }
+}
+
+async function stopAgents() {
+    try {
+        const response = await fetch('/api/stop', { method: 'POST' });
+        if (response.ok) {
+            isRunning = false;
+            updateStatus();
+        }
+    } catch (error) {
+        console.error('Error stopping agents:', error);
+    }
+}
+
+function updateStatus() {
+    const statusDot = document.getElementById('statusDot');
+    statusDot.className = `status-dot ${isRunning ? 'running' : 'stopped'}`;
+}
+
+// Poll for content updates
+setInterval(async () => {
+    try {
+        const response = await fetch('/api/content');
+        const data = await response.json();
+        
+        document.getElementById('productionPanel').value = data.production || '';
+        document.getElementById('suiviPanel').value = data.suivi || '';
+    } catch (error) {
+        console.error('Error updating content:', error);
+    }
+}, 1000);
+</script>
+{% endblock %}
