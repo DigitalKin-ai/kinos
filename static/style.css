@@ -137,45 +137,6 @@ html, body {
     flex: 1;
 }
 
-/* Agent status indicators */
-.agent-status {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 6px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-
-/* Agent error state */
-.agent-status.error {
-    background-color: rgba(250, 82, 82, 0.1);
-    color: #fa5252;
-    border: 1px solid #fa5252;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(250, 82, 82, 0.4);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(250, 82, 82, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(250, 82, 82, 0);
-    }
-}
-
-.agent-status.running {
-    background-color: rgba(64, 192, 87, 0.1);
-    color: #40c057;
-}
-
-.agent-status.stopped {
-    background-color: rgba(250, 82, 82, 0.1);
-    color: #fa5252;
-}
 
 /* Agent toggle button */
 .agent-toggle {
