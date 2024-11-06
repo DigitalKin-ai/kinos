@@ -72,41 +72,33 @@ const ParallagonApp = {
     methods: {
         async linkExternalMission() {
             try {
-                // Créer un élément input invisible
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.setAttribute('directory', '');
-                input.setAttribute('webkitdirectory', '');
+                // Utiliser l'API moderne de sélection de dossier
+                const directoryHandle = await window.showDirectoryPicker();
+                const missionPath = directoryHandle.name;  // Obtenir juste le nom du dossier
                 
-                input.onchange = async (e) => {
-                    if (e.target.files.length > 0) {
-                        // Prendre uniquement le dossier parent du premier fichier
-                        const firstFile = e.target.files[0];
-                        const missionPath = firstFile.path.split(firstFile.name)[0];
-                        
-                        // Créer le lien directement
-                        const response = await fetch('/api/missions/link', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ path: missionPath })
-                        });
-                        
-                        if (response.ok) {
-                            const mission = await response.json();
-                            this.missions.unshift(mission);
-                            this.addNotification('success', `Dossier externe lié avec succès`);
-                        } else {
-                            const error = await response.json();
-                            throw new Error(error.error);
-                        }
-                    }
-                };
+                // Créer le lien
+                const response = await fetch('/api/missions/link', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ path: missionPath })
+                });
                 
-                input.click();
+                if (response.ok) {
+                    const mission = await response.json();
+                    this.missions.unshift(mission);
+                    this.addNotification('success', `Dossier externe lié avec succès`);
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error);
+                }
                 
             } catch (error) {
+                // Ignorer l'erreur si l'utilisateur annule la sélection
+                if (error.name === 'AbortError') {
+                    return;
+                }
                 console.error('Error linking external mission:', error);
                 this.addNotification('error', `Erreur lors de la liaison: ${error.message}`);
             }
