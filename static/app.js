@@ -589,28 +589,6 @@ const ParallagonApp = {
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
                 
-                this.addLog('success', 'Logs exported successfully');
-            } catch (error) {
-                console.error('Failed to export logs:', error);
-                this.addLog('error', 'Failed to export logs: ' + error.message);
-            }
-        },
-
-        async exportLogs() {
-            try {
-                const response = await fetch('/api/logs/export');
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                
-                a.href = url;
-                a.download = `parallagon-logs-${timestamp}.txt`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                
                 this.addNotification('success', 'Logs exported successfully');
             } catch (error) {
                 console.error('Failed to export logs:', error);
@@ -629,33 +607,6 @@ const ParallagonApp = {
             } catch (error) {
                 console.error('Failed to clear logs:', error);
                 this.addNotification('error', `Failed to clear logs: ${error.message}`);
-            }
-        },
-
-        async loadTestData() {
-            try {
-                if (!this.currentMission) {
-                    this.addNotification('error', 'Veuillez sélectionner une mission');
-                    return;
-                }
-
-                const response = await fetch(`/api/missions/${this.currentMission.id}/test-data`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    this.addNotification('success', 'Données de test chargées');
-                    await this.loadMissionContent(this.currentMission.id); // Recharger le contenu
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to load test data');
-                }
-            } catch (error) {
-                console.error('Failed to load test data:', error);
-                this.addNotification('error', `Failed to load test data: ${error.message}`);
             }
         },
 

@@ -259,20 +259,6 @@ IMPORTANT:
         Returns:
             dict: Mapping of section names to content
         """
-        """
-        Extract sections from content while preserving hierarchy.
-        
-        Used for:
-        - Maintaining document structure
-        - Processing section-specific updates
-        - Preserving content organization
-        
-        Args:
-            content: Full document content
-            
-        Returns:
-            dict: Mapping of section names to content
-        """
         sections = {}
         current_section = None
         current_content = []
