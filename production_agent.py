@@ -176,6 +176,9 @@ class ProductionAgent(ParallagonAgent):
         - Isolating current directives
         - Accessing task lists
         - Retrieving action history
+        - Maintaining document structure
+        - Processing section-specific updates
+        - Preserving content organization
         
         Args:
             content: Full management content
@@ -287,30 +290,6 @@ IMPORTANT:
             sections[current_section] = '\n'.join(current_content).strip()
             
         return sections
-
-    def _validate_diff_format(self, content: str) -> bool:
-        """
-        Valide que le contenu suit le format de diff avec une grande permissivité.
-        Cherche simplement la présence des marqueurs essentiels dans le bon ordre.
-        """
-        # Vérifier simplement la présence des marqueurs clés dans le bon ordre
-        markers = [
-            "<<<<<<< ANCIEN",
-            "=======",
-            ">>>>>>> NOUVEAU"
-        ]
-        
-        pos = -1
-        for marker in markers:
-            new_pos = content.find(marker, pos + 1)
-            if new_pos == -1:
-                self.logger(f"[{self.__class__.__name__}] ❌ Format invalide: marqueur '{marker}' manquant")
-                # Log la réponse complète pour debug
-                self.logger(f"[{self.__class__.__name__}] Réponse reçue: {content}")
-                return False
-            pos = new_pos
-        
-        return True
 
     def _extract_diff_parts(self, content: str) -> list[tuple[str, str]]:
         """

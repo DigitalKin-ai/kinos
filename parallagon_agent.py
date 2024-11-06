@@ -35,22 +35,6 @@ def agent_error_handler(method_name: str):
         return wrapper
     return decorator
 
-def agent_error_handler(method_name: str):
-    """Décorateur générique pour la gestion des erreurs des agents"""
-    def decorator(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            try:
-                return func(self, *args, **kwargs)
-            except Exception as e:
-                error_msg = f"[{self.__class__.__name__}] ❌ Erreur dans {method_name}: {str(e)}"
-                self.logger(error_msg)
-                import traceback
-                self.logger(traceback.format_exc())
-                return None
-        return wrapper
-    return decorator
-
 class ParallagonAgent:
     """
     Foundation for autonomous file-focused agents.
@@ -170,15 +154,6 @@ class ParallagonAgent:
                 print(f"[{agent_type}] Missing required section: {section}")
                 return False
                 
-        return True
-            
-        # Pour les autres agents (cas par défaut)
-        required_sections = ["État Actuel", "Signaux", "Contenu Principal", "Historique"]
-        for section in required_sections:
-            if f"# {section}" not in response:
-                print(f"[{self.__class__.__name__}] Missing required section: {section}")
-                return False
-            
         return True
 
 
