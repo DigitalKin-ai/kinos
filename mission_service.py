@@ -202,7 +202,7 @@ class MissionService:
                 "production.md",
                 "evaluation.md",
                 "suivi.md",
-                "contexte.md"
+                "contexte.md"  # Required for context handling
             ]
 
             # Create any missing required files in the external directory first
