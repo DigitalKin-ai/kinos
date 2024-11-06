@@ -4,6 +4,31 @@
 
 {% block head %}
 <style>
+    /* Styles pour les scrollbars discrètes */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #ddd;
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #ccc;
+    }
+
+    /* Cacher les scrollbars par défaut sur Firefox */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: #ddd transparent;
+    }
+
     html, body {
         margin: 0;
         padding: 0;
@@ -53,6 +78,8 @@
         resize: none;
         outline: none;
         border-bottom: 1px solid #e0e0e0;
+        overflow-y: auto;
+        scroll-behavior: smooth;
     }
 
     #demande-display {
@@ -158,6 +185,55 @@
 
 <script>
 let isRunning = false;
+
+// Fonction pour scroll automatiquement vers le bas
+function scrollToBottom(elementId) {
+    const element = document.getElementById(elementId);
+    element.scrollTop = element.scrollHeight;
+}
+
+// Fonction pour observer les changements de contenu
+function observeContentChanges(elementId) {
+    const element = document.getElementById(elementId);
+    const observer = new MutationObserver(() => {
+        scrollToBottom(elementId);
+    });
+    
+    observer.observe(element, {
+        childList: true,
+        characterData: true,
+        subtree: true
+    });
+}
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    // Scroll initial vers le bas
+    scrollToBottom('suivi-display');
+    
+    // Observer les changements de contenu
+    observeContentChanges('suivi-display');
+});
+
+// Fonction pour mettre à jour le contenu du suivi
+async function updateSuiviContent() {
+    try {
+        const response = await fetch('/api/suivi');
+        if (response.ok) {
+            const data = await response.json();
+            const suiviDisplay = document.getElementById('suivi-display');
+            if (suiviDisplay.value !== data.content) {
+                suiviDisplay.value = data.content;
+                scrollToBottom('suivi-display');
+            }
+        }
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du suivi:', error);
+    }
+}
+
+// Mettre à jour le suivi périodiquement
+setInterval(updateSuiviContent, 1000);
 
 async function toggleControl() {
     const button = document.getElementById('controlButton');
