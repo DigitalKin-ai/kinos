@@ -652,6 +652,23 @@ const ParallagonApp = {
     },
 
     
+    async refreshAgentsStatus() {
+        try {
+            const response = await fetch('/api/agents/status');
+            const status = await response.json();
+            
+            // Update runningAgents Set based on status
+            this.runningAgents.clear();
+            for (const [agentId, agentStatus] of Object.entries(status)) {
+                if (agentStatus.running) {
+                    this.runningAgents.add(agentId);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to refresh agents status:', error);
+        }
+    },
+
     mounted() {
         // Add notifications container to body
         const notificationsContainer = document.createElement('div');
@@ -665,6 +682,14 @@ const ParallagonApp = {
                 this.suiviUpdateInterval = setInterval(() => {
                     this.updateSuiviContent();
                 }, 5000); // Update every 5 seconds
+                
+                // Refresh agents status every 5 seconds
+                setInterval(() => {
+                    if (this.running) {
+                        this.refreshAgentsStatus();
+                    }
+                }, 5000);
+                
                 this.addLog('info', 'Application initialized');
             })
             .catch(error => {

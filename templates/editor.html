@@ -63,8 +63,14 @@
                     <div class="tab-content" @click="setActiveTab(tab.id)">
                         <i :class="tab.icon"></i>
                         <span>${ tab.name }</span>
+                        <!-- Add status indicator for agents -->
+                        <span v-if="isAgentTab(tab.id)"
+                              class="agent-status"
+                              :class="{ 'running': isAgentRunning(tab.id) }">
+                            ${ isAgentRunning(tab.id) ? 'Running' : 'Stopped' }
+                        </span>
                     </div>
-                    <!-- Add toggle button for agent tabs only -->
+                    <!-- Toggle button for agent tabs -->
                     <button v-if="isAgentTab(tab.id)"
                             class="agent-toggle"
                             :class="{ 'running': isAgentRunning(tab.id) }"

@@ -524,19 +524,12 @@ Notes:
         return base_interval
 
     def run(self) -> None:
-        """
-        Main agent lifecycle:
-        - Reads current state from files
-        - Analyzes changes and makes decisions
-        - Updates files when needed
-        - Self-adjusts timing
-        - Handles errors and recovery
-        """
+        """Main agent lifecycle with improved stop handling"""
         self.running = True
         while self.running:
             try:
                 if not self.should_run():
-                    time.sleep(1)  # Short pause before next check
+                    time.sleep(1)
                     continue
                     
                 # Save state before modifications
@@ -544,8 +537,17 @@ Notes:
                 
                 # Execute normal cycle
                 self.read_files()
+                if not self.running:  # Check if stopped during read
+                    break
+                    
                 self.analyze()
+                if not self.running:  # Check if stopped during analysis
+                    break
+                    
                 self.determine_actions()
+                if not self.running:  # Check if stopped during action determination
+                    break
+                    
                 self.update()
                 
                 # Update metrics
