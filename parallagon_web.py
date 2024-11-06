@@ -728,6 +728,37 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             except Exception as e:
                 return f"Error loading content: {str(e)}", 500
 
+        @self.app.route('/api/missions/<int:mission_id>/test-data', methods=['POST'])
+        def load_test_data(mission_id):
+            """Load test data into the current mission"""
+            try:
+                # Vérifier que la mission existe
+                mission = self.mission_service.get_mission(mission_id)
+                if not mission:
+                    return jsonify({'error': 'Mission not found'}), 404
+
+                # Charger les données de test depuis la constante TEST_DATA
+                test_data = self.TEST_DATA  # Déjà défini dans la classe
+
+                # Sauvegarder dans le fichier demande.md de la mission
+                mission_path = os.path.join("missions", mission['name'])
+                demande_path = os.path.join(mission_path, "demande.md")
+
+                try:
+                    with open(demande_path, 'w', encoding='utf-8') as f:
+                        f.write(test_data)
+
+                    self.log_message(f"✓ Données de test chargées pour la mission {mission['name']}", level='success')
+                    return jsonify({'status': 'success'})
+
+                except Exception as write_error:
+                    self.log_message(f"❌ Erreur d'écriture des données de test: {str(write_error)}", level='error')
+                    return jsonify({'error': f'File write error: {str(write_error)}'}), 500
+
+            except Exception as e:
+                self.log_message(f"❌ Erreur chargement données test: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
         @self.app.route('/api/missions/<int:mission_id>/reset', methods=['POST'])
         def reset_mission_files(mission_id):
             try:
