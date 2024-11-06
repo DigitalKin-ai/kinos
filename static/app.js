@@ -310,7 +310,9 @@ const ParallagonApp = {
 
         async saveDemande() {
             try {
-                if (!this.currentMission) {
+                // Vérification explicite de la mission
+                if (!this.currentMission || !this.currentMission.id) {
+                    console.error('No mission selected or invalid mission');
                     this.addNotification('error', 'Please select a mission first');
                     throw new Error('No mission selected');
                 }
@@ -320,6 +322,9 @@ const ParallagonApp = {
                     return;
                 }
 
+                // Log pour debug
+                console.log('Saving demand for mission:', this.currentMission);
+
                 const response = await fetch('/api/demande', {
                     method: 'POST',
                     headers: {
@@ -327,12 +332,14 @@ const ParallagonApp = {
                     },
                     body: JSON.stringify({
                         content: this.content.demande,
-                        missionId: this.currentMission.id
+                        missionId: this.currentMission.id,
+                        missionName: this.currentMission.name // Ajout du nom de la mission
                     })
                 });
 
                 if (!response.ok) {
                     const errorData = await response.json();
+                    console.error('Server error:', errorData);
                     throw new Error(errorData.error || 'Failed to save demand');
                 }
 
@@ -346,7 +353,7 @@ const ParallagonApp = {
             } catch (error) {
                 console.error('Error saving demand:', error);
                 this.addNotification('error', `Failed to save demand: ${error.message}`);
-                throw error; // Re-throw to handle in the caller if needed
+                throw error;
             }
         },
         notificationIcon(type) {
