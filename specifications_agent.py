@@ -2,6 +2,7 @@
 SpecificationsAgent - Agent responsible for requirements analysis and specifications
 """
 import re
+import os
 import time
 from parallagon_agent import ParallagonAgent
 import openai
