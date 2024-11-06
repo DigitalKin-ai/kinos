@@ -49,6 +49,10 @@ class ProductionAgent(ParallagonAgent):
         self.openai_client = openai.OpenAI(api_key=config["openai_api_key"])
         self.logger = config.get("logger", print)
 
+        # S'assurer que le chemin est absolu
+        self.file_path = os.path.abspath(config["file_path"])
+        self.logger(f"[{self.__class__.__name__}] Initialisé avec fichier: {self.file_path}")
+
     def _needs_update(self, section_name: str) -> bool:
         """Check if a section needs updating"""
         try:
