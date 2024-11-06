@@ -59,7 +59,7 @@ class SuiviAgent(ParallagonAgent):
                     new_entry = f"[{timestamp}] {response}"
                     
                     # Combine and clean entries
-                    new_content = f"{self.current_content}\n{new_entry}" if self.current_content else new_entry
+                    new_content = f"{self.current_content}\n\n{new_entry}" if self.current_content else new_entry
                     cleaned_content = self._clean_old_entries(new_content)
                     
                     # Write to file
@@ -78,6 +78,9 @@ class SuiviAgent(ParallagonAgent):
 Contexte actuel :
 {self._format_other_files(context['other_files'])}
 
+Derniers Suivis :
+{self._format_other_files(context['suivi'])}
+
 Logs récents :
 {self._format_logs(context['logs'])}
 
@@ -88,7 +91,7 @@ IMPORTANT:
 - Une seule phrase
 - Style factuel et concis
 - Se concentrer sur les changements significatifs
-- Ne pas répéter les informations déjà mentionnées
+- Ne pas répéter les informations déjà mentionnées dans les derniers suivis
 - Si rien de significatif ne s'est passé, ne rien retourner"""
 
     def _format_logs(self, logs: list) -> str:
