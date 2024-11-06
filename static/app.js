@@ -603,6 +603,22 @@ const ParallagonApp = {
                 clearInterval(this.notificationsInterval);
                 this.notificationsInterval = null;
             }
+        },
+
+        formatMarkdown(content) {
+            if (!content) return '';
+            try {
+                // First process with marked for markdown conversion
+                const htmlContent = marked.parse(content, {
+                    gfm: true,  // GitHub Flavored Markdown
+                    breaks: true,  // Convert line breaks to <br>
+                    sanitize: true // Sanitize HTML input
+                });
+                return htmlContent;
+            } catch (error) {
+                console.error('Error formatting markdown:', error);
+                return content; // Return original content if parsing fails
+            }
         }
     },
 
