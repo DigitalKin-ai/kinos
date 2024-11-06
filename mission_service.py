@@ -17,29 +17,25 @@ class MissionService:
             print(f"Error resolving path: {e}")
             return mission_path
 
+    REQUIRED_FILES = [
+        "demande.md",
+        "specifications.md", 
+        "management.md",
+        "production.md",
+        "evaluation.md",
+        "suivi.md",
+        "contexte.md"
+    ]
+
     def _is_valid_mission_dir(self, mission_dir: str) -> bool:
-        """Ensure directory contains all required mission files by creating them if missing"""
-        required_files = [
-            "demande.md",
-            "specifications.md", 
-            "management.md",
-            "production.md",
-            "evaluation.md",
-            "suivi.md",
-            "contexte.md"
-        ]
-        
+        """Ensure directory contains all required mission files"""
         try:
-            # Create any missing required files
-            for file_name in required_files:
+            for file_name in self.REQUIRED_FILES:
                 file_path = os.path.join(mission_dir, file_name)
                 if not os.path.isfile(file_path):
-                    print(f"Creating missing file: {file_path}")
                     with open(file_path, 'w', encoding='utf-8') as f:
                         f.write(f"# {file_name[:-3].capitalize()}\n[Initial content]")
-            
             return True
-            
         except Exception as e:
             print(f"Error creating mission files: {e}")
             return False

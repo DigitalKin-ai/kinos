@@ -13,10 +13,8 @@ import time
 import openai
 import anthropic
 import os
-from datetime import datetime
-from typing import Dict, Any, Optional
-from pathlib import Path
 from datetime import datetime, timedelta
+from pathlib import Path
 from search_replace import SearchReplace, SearchReplaceResult
 from functools import wraps
 
