@@ -437,6 +437,14 @@ Notes:
             formatted.append(f"=== {filename} ===\n{content}\n")
         return "\n".join(formatted)
 
+    def start(self) -> None:
+        """Start this individual agent"""
+        self.running = True
+        # Reset metrics
+        self.last_run = None
+        self.last_change = None
+        self.consecutive_no_changes = 0
+
     def stop(self) -> None:
         """
         Stop the agent's execution gracefully.
@@ -447,6 +455,9 @@ Notes:
         - State is properly saved
         """
         self.running = False
+        # Clean up any pending operations
+        if hasattr(self, 'current_content'):
+            self.write_file(self.current_content)
 
     def should_run(self) -> bool:
         """
