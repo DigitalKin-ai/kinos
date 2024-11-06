@@ -3,6 +3,7 @@
 {% block title %}⚫ Parallagon{% endblock %}
 
 {% block head %}
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 <style>
     /* Style pour le conteneur de l'indicateur de chargement */
     .sidebar-header {
@@ -251,19 +252,24 @@
         margin-left: 400px;
         width: calc(100% - 400px);
         min-height: 100vh;
-        border: none;
-        padding: 40px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: 1rem;
-        line-height: 1.6;
-        resize: none;
-        background-color: white;
-        color: #333;
-        outline: none;
         position: fixed;
         right: 0;
         top: 0;
         bottom: 0;
+    }
+
+    .tox.tox-tinymce {
+        border: none !important;
+        border-radius: 0 !important;
+    }
+
+    .tox .tox-toolbar {
+        background: none !important;
+        border-bottom: 1px solid #e0e0e0 !important;
+    }
+
+    .tox .tox-edit-area {
+        background: white !important;
     }
 
     *:focus {
@@ -351,13 +357,48 @@
     </div>
     <textarea id="demande-display">{{ demande_content }}</textarea>
 </div>
-<textarea id="clean-editor">{{ content }}</textarea>
+<div id="clean-editor">{{ content|safe }}</div>
 
 <button class="control-button stopped" id="controlButton" onclick="toggleControl()">
     <div class="play-icon"></div>
 </button>
 
 <script>
+// Configuration TinyMCE
+tinymce.init({
+    selector: '#clean-editor',
+    height: '100%',
+    menubar: false,
+    plugins: 'lists link code table markdown',
+    toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | link | code',
+    content_style: `
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+    `,
+    setup: function(editor) {
+        // Sauvegarder automatiquement lors des modifications
+        editor.on('Change', function() {
+            clearTimeout(editor.saveTimeout);
+            editor.saveTimeout = setTimeout(function() {
+                const content = editor.getContent();
+                fetch('/api/production', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: content })
+                });
+            }, 1000);
+        });
+    }
+});
+
 async function resetDocuments() {
     if (confirm('Êtes-vous sûr de vouloir réinitialiser tous les documents ?')) {
         try {
@@ -511,21 +552,10 @@ async function updateProductionContent() {
         const response = await fetch('/api/content');
         if (response.ok) {
             const data = await response.json();
-            const editor = document.getElementById('clean-editor');
+            const editor = tinymce.get('clean-editor');
             
-            // Sauvegarder la position du curseur
-            const selectionStart = editor.selectionStart;
-            const selectionEnd = editor.selectionEnd;
-            const scrollTop = editor.scrollTop;
-            
-            // Mettre à jour le contenu seulement s'il a changé
-            if (editor.value !== data.production) {
-                editor.value = data.production;
-                
-                // Restaurer la position du curseur et le scroll
-                editor.selectionStart = selectionStart;
-                editor.selectionEnd = selectionEnd;
-                editor.scrollTop = scrollTop;
+            if (editor && data.production !== editor.getContent()) {
+                editor.setContent(data.production);
             }
         }
     } catch (error) {
