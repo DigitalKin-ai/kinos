@@ -37,7 +37,7 @@
                     ${ running ? 'Stop' : 'Start' }
                 </button>
                 <button class="btn-reset" @click="resetFiles" :disabled="running">
-                    ↺ Reset
+                    <i class="mdi mdi-refresh"></i>Reset
                 </button>
                 <button class="btn-test" @click="loadTestData" :disabled="running">
                     🧪 Test
@@ -90,7 +90,7 @@
                         </h2>
                     </div>
                     <div class="panel-content">
-                        <pre class="content-display" v-html="highlightContent('specifications')"></pre>
+                        <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('specifications'))"></div>
                     </div>
                 </div>
 
@@ -102,7 +102,7 @@
                         </h2>
                     </div>
                     <div class="panel-content">
-                        <pre class="content-display" v-html="highlightContent('management')"></pre>
+                        <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('management'))"></div>
                     </div>
                 </div>
 
@@ -114,7 +114,7 @@
                         </h2>
                     </div>
                     <div class="panel-content">
-                        <pre class="content-display" v-html="highlightContent('production')"></pre>
+                        <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('production'))"></div>
                     </div>
                 </div>
 
@@ -126,7 +126,7 @@
                         </h2>
                     </div>
                     <div class="panel-content">
-                        <pre class="content-display" v-html="highlightContent('evaluation')"></pre>
+                        <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('evaluation'))"></div>
                     </div>
                 </div>
 
@@ -138,7 +138,7 @@
                         </h2>
                     </div>
                     <div class="panel-content">
-                        <pre class="suivi-content" v-html="highlightContent('suivi')"></pre>
+                        <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('suivi'))"></div>
                     </div>
                 </div>
 
