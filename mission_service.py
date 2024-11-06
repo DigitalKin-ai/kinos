@@ -60,6 +60,35 @@ class MissionService:
 
     def update_mission(self, mission_id: int, name: str = None, 
                       description: str = None, status: str = None) -> Optional[Dict]:
+        updates = []
+        values = []
+        if name is not None:
+            updates.append("name = %s")
+            values.append(name)
+        if description is not None:
+            updates.append("description = %s")
+            values.append(description)
+        if status is not None:
+            updates.append("status = %s")
+            values.append(status)
+            
+        if not updates:
+            return None
+            
+        values.append(mission_id)
+        
+        with self.db.get_cursor() as cursor:
+            cursor.execute(
+                f"""
+                UPDATE missions 
+                SET {", ".join(updates)}
+                WHERE id = %s
+                RETURNING id, name, description, status, 
+                          created_at, updated_at
+                """,
+                tuple(values)
+            )
+            return cursor.fetchone()
 
     def delete_mission(self, mission_id: int) -> bool:
         """Delete a mission from the database"""
