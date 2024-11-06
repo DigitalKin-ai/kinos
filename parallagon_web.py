@@ -1025,26 +1025,42 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         try:
             self.running = False
             if hasattr(self, 'update_thread'):
-                self.update_thread.join(timeout=2)  # Wait for update thread to finish
+                self.update_thread.join(timeout=2)
                 
-            # Arrêter chaque agent individuellement
+            # Arrêter chaque agent individuellement et réinitialiser leur état
             for name, agent in self.agents.items():
-                agent.stop()
-                # Envoyer une notification pour mettre à jour l'UI
-                self.notifications_queue.append({
-                    'type': 'info',
-                    'message': f'Agent {name} stopped',
-                    'timestamp': datetime.now().strftime("%H:%M:%S"),
-                    'panel': name,
-                    'status': 'stopped',
-                    'operation': 'agent_status',
-                    'id': len(self.notifications_queue)
-                })
-                
-            self.log_message("Agents stopped", level='info')
+                try:
+                    # Arrêter l'agent
+                    agent.stop()
+                    agent.running = False  # S'assurer que l'état est bien mis à False
+                    
+                    # Réinitialiser les métriques de l'agent
+                    agent.last_run = None
+                    agent.last_change = None
+                    agent.consecutive_no_changes = 0
+                    
+                    # Notifier le frontend
+                    self.handle_content_change(
+                        agent.file_path,
+                        "",  # contenu vide car on s'intéresse juste au changement d'état
+                        panel_name=name,
+                        flash=True
+                    )
+                    
+                    self.log_message(f"Agent {name} stopped successfully", level='info')
+                    
+                except Exception as e:
+                    self.log_message(f"Error stopping agent {name}: {str(e)}", level='error')
+                    continue
+                    
+            # Vider la queue des agents en cours
+            self.runningAgents = set()
+            
+            self.log_message("All agents stopped", level='success')
             
         except Exception as e:
-            self.log_message(f"Error stopping agents: {str(e)}", level='error')
+            self.log_message(f"Error in stop_agents: {str(e)}", level='error')
+            raise
 
     def log_message(self, message, operation: str = None, status: str = None, level: str = 'info'):
         """Log a message with optional operation, status and color"""
