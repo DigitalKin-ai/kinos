@@ -148,7 +148,7 @@
         <h1>⚫ Parallagon</h1>
     </div>
     <textarea id="suivi-display" readonly>{{ suivi_content }}</textarea>
-    <textarea id="demande-display" readonly>{{ demande_content }}</textarea>
+    <textarea id="demande-display">{{ demande_content }}</textarea>
 </div>
 <textarea id="clean-editor">{{ content }}</textarea>
 
@@ -177,5 +177,26 @@ async function toggleControl() {
         await fetch('/api/stop', { method: 'POST' });
     }
 }
+
+// Handle saving demand content when focus is lost
+document.getElementById('demande-display').addEventListener('blur', async function() {
+    const content = this.value;
+    try {
+        const response = await fetch('/api/demande', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content: content })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erreur lors de la sauvegarde');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        // Optionnel : afficher un message d'erreur à l'utilisateur
+    }
+});
 </script>
 {% endblock %}
