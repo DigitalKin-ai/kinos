@@ -41,20 +41,20 @@ html, body {
     flex: 1;
     width: 100%;
     height: calc(100vh - 60px);
+    overflow: hidden;
+    position: relative;
     margin: 0;
     padding: 0;
-    overflow: hidden;
     box-sizing: border-box;
 }
 
 .content-area {
     flex: 1;
-    width: 100%;
+    min-width: 0;
     height: 100%;
     margin: 0;
     padding: 1rem;
     overflow: auto;
-    max-width: 100%;
     position: relative;
     box-sizing: border-box;
 }
@@ -157,13 +157,27 @@ html, body {
 
 /* Sidebar */
 .sidebar {
-    width: 240px;
+    flex: 0 0 240px;
+    min-width: 240px;
+    height: 100%;
     background-color: #f1f3f5;
     border-right: 1px solid #e9ecef;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
+}
+
+/* Mission sidebar */
+.mission-sidebar {
+    flex: 0 0 280px;
+    min-width: 48px;
+    max-width: 280px;
+    transition: width 0.3s ease;
+}
+
+.mission-sidebar.collapsed {
+    flex: 0 0 48px;
 }
 
 .tab-item {
