@@ -474,14 +474,39 @@ const ParallagonApp = {
             }
         },
 
+        async exportLogs() {
+            try {
+                const response = await fetch('/api/logs/export');
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                
+                a.href = url;
+                a.download = `parallagon-logs-${timestamp}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                this.addNotification('success', 'Logs exported successfully');
+            } catch (error) {
+                console.error('Failed to export logs:', error);
+                this.addNotification('error', `Failed to export logs: ${error.message}`);
+            }
+        },
+
         async clearLogs() {
             try {
-                await fetch('/api/logs/clear', { method: 'POST' });
+                const response = await fetch('/api/logs/clear', { method: 'POST' });
+                if (!response.ok) {
+                    throw new Error('Failed to clear logs');
+                }
                 this.logs = [];
-                this.addLog('info', 'Logs cleared');
+                this.addNotification('success', 'Logs cleared successfully');
             } catch (error) {
                 console.error('Failed to clear logs:', error);
-                this.addLog('error', 'Failed to clear logs: ' + error.message);
+                this.addNotification('error', `Failed to clear logs: ${error.message}`);
             }
         },
 
