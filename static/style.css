@@ -27,11 +27,13 @@ html, body {
     flex-direction: column;
     height: 100vh;
     width: 100vw;
+    max-width: 100%;
     background-color: #f8f9fa;
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    overflow-x: hidden;
     box-sizing: border-box;
+    position: relative;
 }
 
 .content-container {
@@ -52,6 +54,8 @@ html, body {
     margin: 0;
     padding: 1rem;
     overflow: auto;
+    max-width: 100%;
+    position: relative;
     box-sizing: border-box;
 }
 
@@ -60,6 +64,8 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 /* Header */
@@ -1041,6 +1047,9 @@ body {
     height: 100%;
     margin: 0;
     padding: 0;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
 }
 
 .log-entry {
@@ -1238,6 +1247,7 @@ body {
     flex-direction: column-reverse;
     gap: 0.75rem;
     max-width: 400px;
+    pointer-events: none; /* Let clicks pass through */
 }
 
 .notification {
