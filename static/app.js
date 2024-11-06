@@ -715,17 +715,14 @@ const ParallagonApp = {
     async refreshAgentsStatus() {
         try {
             const response = await fetch('/api/agents/status');
-            const status = await response.json();
-            
-            // Update runningAgents Set based on status
-            this.runningAgents.clear();
-            for (const [agentId, agentStatus] of Object.entries(status)) {
-                if (agentStatus.running) {
-                    this.runningAgents.add(agentId);
-                }
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            const status = await response.json();
+            this.updateAgentsStatus(status);
         } catch (error) {
             console.error('Failed to refresh agents status:', error);
+            // Ne pas propager l'erreur, juste logger
         }
     },
 
