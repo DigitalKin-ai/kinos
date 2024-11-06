@@ -68,18 +68,53 @@
     #suivi-display {
         flex: 4;
         width: 100%;
-        border: none;
         padding: 20px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: 0.9rem;
-        line-height: 1.6;
         background-color: #f0f0f0;
         color: #333;
-        resize: none;
-        outline: none;
-        border-bottom: 1px solid #e0e0e0;
         overflow-y: auto;
         scroll-behavior: smooth;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    /* Style des bulles de chat */
+    .chat-bubble {
+        max-width: 85%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        background-color: white;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        position: relative;
+        margin: 4px 0;
+        word-wrap: break-word;
+        align-self: flex-start;
+    }
+
+    /* Style pour le timestamp */
+    .chat-bubble .timestamp {
+        color: #666;
+        font-size: 0.75rem;
+        margin-bottom: 2px;
+    }
+
+    /* Style pour le message */
+    .chat-bubble .message {
+        color: #333;
+    }
+
+    /* Animation d'apparition */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-bubble {
+        animation: fadeIn 0.3s ease-out;
     }
 
     #demande-display {
@@ -174,7 +209,7 @@
     <div class="sidebar-header">
         <h1>⚫ Parallagon</h1>
     </div>
-    <textarea id="suivi-display" readonly>{{ suivi_content }}</textarea>
+    <div id="suivi-display"></div>
     <textarea id="demande-display">{{ demande_content }}</textarea>
 </div>
 <textarea id="clean-editor">{{ content }}</textarea>
@@ -195,8 +230,14 @@ function scrollToBottom(elementId) {
 // Fonction pour observer les changements de contenu
 function observeContentChanges(elementId) {
     const element = document.getElementById(elementId);
-    const observer = new MutationObserver(() => {
-        scrollToBottom(elementId);
+    const observer = new MutationObserver((mutations) => {
+        // Vérifier si les mutations concernent le contenu
+        if (mutations.some(mutation => 
+            mutation.type === 'childList' || 
+            mutation.type === 'characterData'
+        )) {
+            scrollToBottom(elementId);
+        }
     });
     
     observer.observe(element, {
@@ -216,14 +257,38 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Fonction pour mettre à jour le contenu du suivi
+// Fonction pour formater une ligne de suivi en bulle de chat
+function formatSuiviLine(line) {
+    // Extraire le timestamp et le message
+    const match = line.match(/\[([\d:]+)\]\s*(.*)/);
+    if (!match) return null;
+    
+    const [_, timestamp, message] = match;
+    return `
+        <div class="chat-bubble">
+            <div class="timestamp">${timestamp}</div>
+            <div class="message">${message}</div>
+        </div>
+    `;
+}
+
 async function updateSuiviContent() {
     try {
         const response = await fetch('/api/suivi');
         if (response.ok) {
             const data = await response.json();
             const suiviDisplay = document.getElementById('suivi-display');
-            if (suiviDisplay.value !== data.content) {
-                suiviDisplay.value = data.content;
+            const lines = data.content.split('\n').filter(line => line.trim());
+            
+            // Créer le nouveau contenu HTML
+            const newContent = lines
+                .map(formatSuiviLine)
+                .filter(bubble => bubble !== null)
+                .join('');
+            
+            // Mettre à jour seulement si le contenu a changé
+            if (suiviDisplay.innerHTML !== newContent) {
+                suiviDisplay.innerHTML = newContent;
                 scrollToBottom('suivi-display');
             }
         }
