@@ -49,6 +49,26 @@ class ProductionAgent(ParallagonAgent):
         self.openai_client = openai.OpenAI(api_key=config["openai_api_key"])
         self.logger = config.get("logger", print)
 
+        # S'assurer que le chemin est absolu et que le dossier existe
+        if not os.path.isabs(config["file_path"]):
+            config["file_path"] = os.path.abspath(config["file_path"])
+        self.file_path = config["file_path"]
+        
+        # Créer le dossier parent si nécessaire
+        os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+        
+        # Convertir tous les watch_files en chemins absolus
+        if "watch_files" in config:
+            self.watch_files = [
+                os.path.abspath(f) if not os.path.isabs(f) else f
+                for f in config["watch_files"]
+            ]
+            
+        # Log initial pour debug
+        self.logger(f"[{self.__class__.__name__}] Initialisé avec:")
+        self.logger(f"- Fichier principal: {self.file_path}")
+        self.logger(f"- Fichiers surveillés: {self.watch_files}")
+
         # S'assurer que le chemin est absolu
         self.file_path = os.path.abspath(config["file_path"])
         self.logger(f"[{self.__class__.__name__}] Initialisé avec fichier: {self.file_path}")
