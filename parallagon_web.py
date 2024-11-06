@@ -494,7 +494,21 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 mission = self.mission_service.get_mission(mission_id)
                 if not mission:
                     return jsonify({'error': 'Mission not found'}), 404
+                    
+                # Update agent paths when mission changes
+                self.update_agent_paths(mission['name'])
+                
+                # Stop agents if they're running
+                was_running = self.running
+                if was_running:
+                    self.stop_agents()
+                    
+                # Start agents again if they were running
+                if was_running:
+                    self.start_agents()
+                    
                 return jsonify(mission)
+                
             except Exception as e:
                 self.log_message(f"Error getting mission: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
@@ -1119,6 +1133,36 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             self.log_message("Application shutdown complete")
         except Exception as e:
             self.log_message(f"Error during shutdown: {str(e)}")
+
+    def update_agent_paths(self, mission_name: str) -> None:
+        """Update file paths for all agents when mission changes"""
+        try:
+            mission_dir = os.path.join("missions", mission_name)
+            
+            # Update file paths for each agent
+            new_paths = {
+                "Specification": os.path.join(mission_dir, "specifications.md"),
+                "Management": os.path.join(mission_dir, "management.md"),
+                "Production": os.path.join(mission_dir, "production.md"),
+                "Evaluation": os.path.join(mission_dir, "evaluation.md"),
+                "Suivi": os.path.join(mission_dir, "suivi.md")
+            }
+            
+            # Update each agent's file path
+            for name, agent in self.agents.items():
+                agent.file_path = new_paths[name]
+                # Update watch_files to include new paths
+                agent.watch_files = [
+                    new_paths[other_name] 
+                    for other_name in self.agents.keys()
+                    if other_name != name
+                ]
+                agent.watch_files.append(new_paths[name])
+                
+            self.log_message(f"Updated agent paths for mission: {mission_name}", level='info')
+            
+        except Exception as e:
+            self.log_message(f"Error updating agent paths: {str(e)}", level='error')
 
     def get_app(self):
         """Return the Flask app instance"""

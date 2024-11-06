@@ -466,6 +466,18 @@ Notes:
             self.logger(f"[{self.__class__.__name__}] Recovery failed: {str(e)}")
             return False
 
+    def update_paths(self, file_path: str, watch_files: List[str]) -> None:
+        """Update file paths when mission changes"""
+        try:
+            self.file_path = file_path
+            self.watch_files = watch_files
+            
+            # Re-read files with new paths
+            self.read_files()
+            
+        except Exception as e:
+            print(f"Error updating paths for {self.__class__.__name__}: {e}")
+
     def stop(self) -> None:
         """
         Stop the agent's execution gracefully.

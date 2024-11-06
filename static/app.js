@@ -98,9 +98,26 @@ const ParallagonApp = {
 
         async selectMission(mission) {
             try {
+                // Store previous mission state
+                const wasRunning = this.running;
+                
+                // Stop agents if running
+                if (wasRunning) {
+                    await fetch('/api/stop', { method: 'POST' });
+                    this.running = false;
+                }
+                
                 this.currentMission = mission;
                 await this.loadMissionContent(mission.id);
+                
+                // Restart agents if they were running
+                if (wasRunning) {
+                    await fetch('/api/start', { method: 'POST' });
+                    this.running = true;
+                }
+                
                 this.addNotification('success', `Mission "${mission.name}" selected`);
+                
             } catch (error) {
                 console.error('Error selecting mission:', error);
                 this.addNotification('error', `Error selecting mission: ${error.message}`);
