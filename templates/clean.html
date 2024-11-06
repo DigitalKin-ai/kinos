@@ -151,6 +151,7 @@
         padding: 0;
         background-color: white !important;
         height: 100%;
+        overflow: hidden; /* Empêche le double scroll */
     }
 
     #content, .container, .wrapper {
@@ -268,17 +269,22 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     }
 
-    .markdown-content {
-        margin-left: 400px; /* Pour laisser la place à la sidebar */
-        width: calc(100% - 400px); /* Prend toute la largeur restante */
-        min-height: 100vh;
-        position: relative; /* Changé de fixed à relative */
+    .editor-container {
+        margin-left: 400px;
+        width: calc(100% - 400px);
+        height: 100vh;
+        background-color: white;
+        position: relative;
+        overflow-y: auto; /* Permet le scroll dans le conteneur */
+    }
+
+    #clean-editor {
+        max-width: 1200px;
         padding: 40px;
         box-sizing: border-box;
-        overflow-y: auto;
         background-color: white;
         white-space: pre-wrap;
-        font-family: monospace;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     }
 
     /* Forcer le wrapping sur tous les éléments enfants */
@@ -508,7 +514,9 @@
     </div>
     <textarea id="demande-display">{{ demande_content }}</textarea>
 </div>
-<div id="clean-editor" class="markdown-content">{{ content|safe }}</div>
+<div class="editor-container">
+    <div id="clean-editor">{{ content|safe }}</div>
+</div>
 
 <button class="control-button stopped" id="controlButton" onclick="toggleControl()">
     <div class="play-icon"></div>
