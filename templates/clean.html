@@ -394,8 +394,41 @@ async function updateSuiviContent() {
     }
 }
 
-// Mettre à jour le suivi périodiquement
-setInterval(updateSuiviContent, 1000);
+// Fonction pour mettre à jour le contenu de production
+async function updateProductionContent() {
+    try {
+        const response = await fetch('/api/content');
+        if (response.ok) {
+            const data = await response.json();
+            const editor = document.getElementById('clean-editor');
+            
+            // Sauvegarder la position du curseur
+            const selectionStart = editor.selectionStart;
+            const selectionEnd = editor.selectionEnd;
+            const scrollTop = editor.scrollTop;
+            
+            // Mettre à jour le contenu seulement s'il a changé
+            if (editor.value !== data.production) {
+                editor.value = data.production;
+                
+                // Restaurer la position du curseur et le scroll
+                editor.selectionStart = selectionStart;
+                editor.selectionEnd = selectionEnd;
+                editor.scrollTop = scrollTop;
+            }
+        }
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du contenu:', error);
+    }
+}
+
+// Mettre à jour le suivi et le contenu périodiquement
+setInterval(() => {
+    updateSuiviContent();
+    if (isRunning) {
+        updateProductionContent();
+    }
+}, 1000);
 
 async function toggleControl() {
     const button = document.getElementById('controlButton');
