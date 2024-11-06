@@ -263,24 +263,29 @@ const ParallagonApp = {
         async loadInitialContent() {
             try {
                 this.loading = true;
-                const response = await fetch('/api/content');
-                if (!response.ok) {
-                    throw new Error('Failed to load initial content');
-                }
-                const data = await response.json();
-                this.content = data;
-                this.previousContent = { ...data };
                 
-                // Load suivi content separately
-                const suiviResponse = await fetch('/api/suivi');
-                if (suiviResponse.ok) {
-                    const suiviData = await suiviResponse.json();
-                    if (suiviData.content !== undefined) {
-                        this.content.suivi = suiviData.content;
+                // Si une mission est sélectionnée, charger son contenu
+                if (this.currentMission) {
+                    const response = await fetch(`/api/missions/${this.currentMission.id}/content`);
+                    if (!response.ok) {
+                        throw new Error('Failed to load mission content');
+                    }
+                    const data = await response.json();
+                    this.content = data;
+                    this.previousContent = { ...data };
+                    
+                    this.addNotification('success', `Mission "${this.currentMission.name}" content loaded`);
+                } else {
+                    // Si aucune mission n'est sélectionnée, charger la première mission disponible
+                    const missionsResponse = await fetch('/api/missions');
+                    if (missionsResponse.ok) {
+                        const missions = await missionsResponse.json();
+                        if (missions.length > 0) {
+                            this.currentMission = missions[0];
+                            await this.loadMissionContent(missions[0].id);
+                        }
                     }
                 }
-                
-                this.addNotification('success', 'Content loaded successfully');
             } catch (error) {
                 console.error('Error loading initial content:', error);
                 this.addNotification('error', `Failed to load content: ${error.message}`);
@@ -951,21 +956,20 @@ const ParallagonApp = {
         notificationsContainer.className = 'notifications-container';
         document.body.appendChild(notificationsContainer);
         
-        // Load missions and select first one
+        // Load missions first, then content
         this.loadMissions()
             .then(() => {
                 // Select first mission if available
                 if (this.missions.length > 0) {
-                    this.selectMission(this.missions[0]);
+                    return this.selectMission(this.missions[0]);
                 }
-                return this.loadInitialContent();
             })
             .then(() => {
                 this.startPolling();
                 // Start suivi content updates
                 this.suiviUpdateInterval = setInterval(() => {
                     this.updateSuiviContent();
-                }, 5000); // Update every 5 seconds
+                }, 5000);
                 
                 // Refresh agents status every 5 seconds
                 setInterval(() => {
