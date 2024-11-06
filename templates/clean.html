@@ -259,15 +259,17 @@
     }
 
     .markdown-content {
-        width: calc(100% - 400px);
-        max-width: 800px;
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-left: 200px;
+        width: 800px;
+        max-width: calc(100% - 440px);
         line-height: 1.6;
         background-color: white;
         height: 100vh;
         overflow-y: auto;
-        margin: 0 auto;
         padding: 40px;
-        margin-left: 400px;
     }
 
     /* Scrollbar styles for webkit browsers */
