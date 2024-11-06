@@ -259,23 +259,16 @@
     }
 
     .markdown-content {
-        position: fixed;
-        left: 50%;
-        transform: translateX(-50%);
-        margin-left: 200px;
-        width: 800px;
-        max-width: calc(100% - 440px);
-        height: 100vh;
-        overflow-y: auto;
+        margin-left: 400px; /* Pour laisser la place à la sidebar */
+        width: calc(100% - 400px); /* Prend toute la largeur restante */
+        min-height: 100vh;
+        position: relative; /* Changé de fixed à relative */
         padding: 40px;
         box-sizing: border-box;
+        overflow-y: auto;
         background-color: white;
-
-        /* Nouvelles propriétés pour forcer le wrapping */
-        word-break: break-word;
-        overflow-wrap: break-word;
-        white-space: pre-line !important;
-        text-align: justify;
+        white-space: pre-wrap;
+        font-family: monospace;
     }
 
     /* Forcer le wrapping sur tous les éléments enfants */
