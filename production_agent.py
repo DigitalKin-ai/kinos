@@ -379,58 +379,23 @@ IMPORTANT:
                 self.logger(f"[{self.__class__.__name__}] ❌ Pas de réponse du LLM")
                 return
                 
-            # Extraire la commande aider avec le fichier
+            # Extraire la commande aider
             import re
-            aider_cmd = re.search(r'aider --yes-always --message \'(.*?)\'.*?--file production\.md', response, re.DOTALL)
+            aider_cmd = re.search(r'```bash\naider --yes-always --message \'(.*?)\'.*?--file production\.md\n```', response, re.DOTALL)
             if not aider_cmd:
                 self.logger(f"[{self.__class__.__name__}] ❌ Format de réponse invalide")
                 self.logger(f"[{self.__class__.__name__}] Réponse reçue:\n{response}")
                 return
                 
-            # Log le message qui sera envoyé à aider, ligne par ligne
-            message = aider_cmd.group(1)
-            self.logger(f"[{self.__class__.__name__}] 📝 Message pour aider:")
-            for line in message.split('\n'):
-                if line.strip():  # Ne logger que les lignes non vides
-                    self.logger(f"[{self.__class__.__name__}] → {line.strip()}")
+            # Exécuter la commande aider
+            message = aider_cmd.group(1).strip()
+            self.logger(f"[{self.__class__.__name__}] 📝 Message pour aider:\n{message}")
             
-            # Exécuter la commande aider avec les fichiers de contexte
-            import subprocess
-            try:
-                cmd = ['aider', '--yes-always', 
-                       '--message', message,
-                       '--file', 'production.md',
-                       '--read', 'specifications.md',
-                       '--read', 'evaluation.md', 
-                       '--read', 'management.md',
-                       '--read', 'demande.md']
-                
-                self.logger(f"[{self.__class__.__name__}] 🔧 Exécution de aider avec contexte")
-                result = subprocess.run(cmd, capture_output=True, text=True)
-                
-                # Log la sortie de aider ligne par ligne
-                if result.stdout:
-                    self.logger(f"[{self.__class__.__name__}] 📄 Sortie de aider:")
-                    for line in result.stdout.split('\n'):
-                        if line.strip():
-                            self.logger(f"[{self.__class__.__name__}] ↳ {line.strip()}")
-                            
-                if result.stderr:
-                    self.logger(f"[{self.__class__.__name__}] ⚠️ Erreurs de aider:")
-                    for line in result.stderr.split('\n'):
-                        if line.strip():
-                            self.logger(f"[{self.__class__.__name__}] ⚠ {line.strip()}")
-                
-                if result.returncode == 0:
-                    self.logger(f"[{self.__class__.__name__}] ✓ Modifications appliquées avec succès")
-                    # Relire le fichier pour mettre à jour current_content
-                    with open(self.file_path, 'r', encoding='utf-8') as f:
-                        self.current_content = f.read()
-                else:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'exécution de aider (code {result.returncode})")
-                    
-            except Exception as e:
-                self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'exécution de aider: {str(e)}")
+            # Écrire directement dans le fichier
+            with open(self.file_path, 'w', encoding='utf-8') as f:
+                f.write(message)
+            self.current_content = message
+            self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
                 
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
