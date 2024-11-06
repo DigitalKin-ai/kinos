@@ -1350,11 +1350,12 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             
             # Créer les chemins absolus pour chaque fichier
             new_paths = {
+                "Production": os.path.join(mission_dir, "production.md"),
                 "Specification": os.path.join(mission_dir, "specifications.md"),
                 "Management": os.path.join(mission_dir, "management.md"),
-                "Production": os.path.join(mission_dir, "production.md"),
                 "Evaluation": os.path.join(mission_dir, "evaluation.md"),
-                "Suivi": os.path.join(mission_dir, "suivi.md")
+                "Suivi": os.path.join(mission_dir, "suivi.md"),
+                "Contexte": os.path.join(mission_dir, "contexte.md")
             }
             
             # Mettre à jour les chemins des agents
@@ -1373,7 +1374,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     # Vérifier que le dossier existe
                     os.makedirs(os.path.dirname(agent.file_path), exist_ok=True)
                     
-                    # Mettre à jour watch_files avec les nouveaux chemins
+                    # Mettre à jour watch_files avec les nouveaux chemins absolus
                     agent.watch_files = [
                         os.path.abspath(new_paths[other_name])
                         for other_name in new_paths.keys()

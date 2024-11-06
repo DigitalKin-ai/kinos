@@ -152,6 +152,22 @@ class ProductionAgent(ParallagonAgent):
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
 
+    def write_file(self, content: str) -> bool:
+        """Write content to file with path validation"""
+        try:
+            if not self.validate_file_path():
+                return False
+                
+            with open(self.file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            self.current_content = content
+            self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour: {self.file_path}")
+            return True
+            
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur écriture: {str(e)}")
+            return False
+
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response with standardized error handling"""
         try:
