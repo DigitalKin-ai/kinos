@@ -1001,33 +1001,41 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         def save_demande():
             try:
                 data = request.get_json()
+                
+                # Debug logs
+                self.log_message(f"Received save request with data: {data}", level='debug')
+                
                 if not data or 'content' not in data:
                     self.log_message("❌ Pas de contenu fourni pour la demande", level='error')
                     return jsonify({'error': 'No content provided'}), 400
-                    
-                # Vérifier que le contenu est une chaîne de caractères
-                if not isinstance(data['content'], str):
-                    self.log_message("❌ Le contenu de la demande doit être une chaîne de caractères", level='error')
-                    return jsonify({'error': 'Content must be a string'}), 400
 
-                # Vérifier qu'une mission est sélectionnée
-                if not self.file_manager.current_mission:
-                    self.log_message("❌ Aucune mission sélectionnée", level='error')
-                    return jsonify({'error': 'No mission selected'}), 400
+                # Vérification explicite de la mission
+                if 'missionId' not in data or 'missionName' not in data:
+                    self.log_message("❌ Informations de mission manquantes", level='error')
+                    return jsonify({'error': 'Mission information missing'}), 400
 
-                # Construire le chemin complet du fichier demande.md dans le dossier de la mission
-                mission_path = os.path.join("missions", self.file_manager.current_mission)
+                # Mise à jour du FileManager avec le nom de la mission
+                self.file_manager.current_mission = data['missionName']
+
+                # Construction du chemin avec vérification
+                mission_path = os.path.join("missions", data['missionName'])
+                if not os.path.exists(mission_path):
+                    os.makedirs(mission_path, exist_ok=True)
+                    self.log_message(f"✓ Dossier mission créé: {mission_path}", level='info')
+
                 demande_path = os.path.join(mission_path, "demande.md")
+                
+                # Log du chemin pour debug
+                self.log_message(f"Saving to path: {demande_path}", level='debug')
 
-                # Essayer d'écrire le fichier
+                # Écriture du fichier
                 try:
-                    os.makedirs(mission_path, exist_ok=True)  # S'assurer que le dossier existe
                     with open(demande_path, 'w', encoding='utf-8') as f:
                         f.write(data['content'])
-                        
+                    
                     self.log_message("✓ Demande sauvegardée", level='success')
                     
-                    # Notifier du changement
+                    # Notification du changement
                     self.handle_content_change(
                         'demande.md',
                         data['content'],
@@ -1036,11 +1044,11 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     return jsonify({'status': 'success', 'success': True})
                     
                 except Exception as write_error:
-                    self.log_message(f"❌ Erreur d'écriture du fichier: {str(write_error)}", level='error')
+                    self.log_message(f"❌ Erreur d'écriture: {str(write_error)}", level='error')
                     return jsonify({'error': f'File write error: {str(write_error)}'}), 500
                     
             except Exception as e:
-                self.log_message(f"❌ Erreur lors de la sauvegarde de la demande: {str(e)}", level='error')
+                self.log_message(f"❌ Erreur générale: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
     def run(self, host='0.0.0.0', port=5000, **kwargs):
