@@ -460,25 +460,33 @@ const ParallagonApp = {
             return this.runningAgents.has(tabId);
         },
 
+        isAgentTab(tabId) {
+            return ['specifications', 'management', 'production', 'evaluation'].includes(tabId);
+        },
+
+        isAgentRunning(tabId) {
+            return this.runningAgents.has(tabId);
+        },
+
         async toggleAgent(agentId) {
             try {
                 const isRunning = this.isAgentRunning(agentId);
                 const action = isRunning ? 'stop' : 'start';
-                
+            
                 // Optimistic UI update
                 if (action === 'start') {
                     this.runningAgents.add(agentId);
                 } else {
                     this.runningAgents.delete(agentId);
                 }
-                
+            
                 const response = await fetch(`/api/agent/${agentId}/${action}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 });
-                
+            
                 if (!response.ok) {
                     // Revert optimistic update on error
                     if (action === 'start') {
@@ -488,21 +496,18 @@ const ParallagonApp = {
                     }
                     throw new Error(`Failed to ${action} agent`);
                 }
-                
-                // Add notification
+            
                 this.addNotification(
                     'success',
                     `Agent ${agentId} ${action}ed successfully`
                 );
-                
+            
             } catch (error) {
                 console.error(`Error toggling agent ${agentId}:`, error);
                 this.addNotification(
                     'error',
                     `Failed to control agent ${agentId}: ${error.message}`
                 );
-                
-                // Force refresh agent status
                 await this.refreshAgentsStatus();
             }
         },

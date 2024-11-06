@@ -76,7 +76,7 @@
                             :class="{ 'running': isAgentRunning(tab.id) }"
                             @click.stop="toggleAgent(tab.id)"
                             :title="isAgentRunning(tab.id) ? 'Stop Agent' : 'Start Agent'">
-                        <i :class="isAgentRunning(tab.id) ? '■' : '▶'"></i>
+                        <i class="mdi" :class="isAgentRunning(tab.id) ? 'mdi-stop' : 'mdi-play'"></i>
                     </button>
                 </div>
             </div>

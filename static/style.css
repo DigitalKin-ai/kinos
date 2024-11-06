@@ -166,29 +166,54 @@ html, body {
     color: #fa5252;
 }
 
-/* Agent toggle button improvements */
+/* Agent toggle button */
 .agent-toggle {
     position: relative;
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
+    border: none;
     border-radius: 50%;
-    border: 2px solid currentColor;
+    background-color: #f1f3f5;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.2s ease;
+    margin-left: 8px;
     color: #495057;
 }
 
 .agent-toggle:hover {
+    background-color: #e9ecef;
     transform: scale(1.1);
 }
 
 .agent-toggle.running {
-    border-color: #40c057;
+    background-color: #40c057;
+    color: white;
+}
+
+.agent-toggle.running:hover {
+    background-color: #37b24d;
+}
+
+/* Agent status text */
+.agent-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+.agent-status.running {
     background-color: rgba(64, 192, 87, 0.1);
     color: #40c057;
 }
 
-.agent-toggle.running:hover {
-    border-color: #fa5252;
+.agent-status.stopped {
     background-color: rgba(250, 82, 82, 0.1);
     color: #fa5252;
 }
