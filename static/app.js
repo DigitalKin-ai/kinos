@@ -638,7 +638,7 @@ const ParallagonApp = {
         },
 
         isAgentTab(tabId) {
-            return ['specifications', 'management', 'production', 'evaluation', 'suivi'].includes(tabId);
+            return ['specifications', 'management', 'production', 'evaluation', 'suivi', 'contexte'].includes(tabId);
         },
 
         isAgentRunning(tabId) {
