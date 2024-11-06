@@ -502,7 +502,9 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 possible_paths = [
                     os.path.abspath(directory_name),  # Chemin absolu
                     os.path.join(os.getcwd(), directory_name),  # Relatif au dossier courant
-                    os.path.expanduser(f"~/{directory_name}")  # Dans le home
+                    os.path.expanduser(f"~/{directory_name}"),  # Dans le home
+                    os.path.join(os.path.expanduser("~/Documents"), directory_name),  # Dans Documents
+                    os.path.join(os.path.expanduser("~"), "Documents", directory_name)  # Autre syntaxe pour Documents
                 ]
                 
                 # Debug log
