@@ -12,29 +12,42 @@
 
     .clean-container {
         display: flex;
-        flex-direction: column;
-        gap: 30px;
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 40px;
-        height: 100vh; /* Prend toute la hauteur */
-    }
-
-    .page-header {
-        display: none; /* On supprime l'ancien header */
+        height: 100vh;
+        padding: 0;
+        margin: 0;
+        max-width: none;
     }
 
     .content-area {
         display: flex;
-        gap: 30px;
-        margin-top: 60px;  /* Espace pour le header fixe */
-        flex-grow: 1;
-        height: calc(100vh - 100px); /* Hauteur totale moins header et padding */
+        margin-top: 0;
+        height: 100vh;
+        width: 100%;
+        gap: 0;
     }
 
     .suivi-sidebar {
         width: 300px;
         flex-shrink: 0;
+        background-color: #fafafa;
+        border-right: 1px solid #f0f0f0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sidebar-header h1 {
+        font-size: 1.2rem;
+        font-weight: 400;
+        color: #333;
+        margin: 0;
     }
 
     .main-content {
