@@ -12,12 +12,12 @@
 
     .clean-container {
         display: flex;
-        flex-direction: column;  /* Make container vertical */
+        flex-direction: column;
         gap: 30px;
         max-width: 1400px;
         margin: 0 auto;
         padding: 40px;
-        height: calc(100vh - 80px);
+        height: 100vh; /* Prend toute la hauteur */
     }
 
     .page-header {
@@ -41,8 +41,9 @@
     .content-area {
         display: flex;
         gap: 30px;
-        margin-top: 60px;  /* Add space for fixed header */
+        margin-top: 60px;  /* Espace pour le header fixe */
         flex-grow: 1;
+        height: calc(100vh - 100px); /* Hauteur totale moins header et padding */
     }
 
     .suivi-sidebar {
