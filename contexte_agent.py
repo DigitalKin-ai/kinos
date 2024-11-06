@@ -45,33 +45,25 @@ class ContexteAgent(ParallagonAgent):
         return relevant_files
 
     def _analyze_relevance(self, file_path: str, current_task: str) -> float:
-        """Analyse la pertinence d'un fichier pour la tâche en cours"""
+        """Analyse optimisée de la pertinence d'un fichier"""
         try:
-            # Lire le contenu du fichier
+            # Limiter la taille du fichier lu
+            MAX_SIZE = 100_000  # 100KB
+            
             with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
+                content = f.read(MAX_SIZE)
                 
-            # Construire le prompt pour l'analyse
-            prompt = f"""Évaluez la pertinence de ce fichier pour la tâche en cours.
+            # Construire un prompt plus concis
+            prompt = f"""Évaluez la pertinence (0-1):
+Tâche: {current_task[:500]}
+Fichier: {content[:1000]}
+Répondre uniquement avec le score."""
 
-Tâche actuelle:
-{current_task}
-
-Contenu du fichier:
-{content[:1000]}  # Limiter pour l'API
-
-Retournez un score de pertinence entre 0 et 1, où:
-0 = Non pertinent
-1 = Très pertinent
-
-Répondez uniquement avec le score numérique."""
-
-            # Obtenir le score via LLM
             response = self._get_llm_response({"prompt": prompt})
             return float(response.strip())
             
         except Exception as e:
-            self.logger(f"Erreur d'analyse pour {file_path}: {e}")
+            self.logger(f"❌ Erreur d'analyse pour {file_path}: {e}")
             return 0.0
 
     def _get_current_task(self) -> str:
@@ -115,29 +107,46 @@ Répondez uniquement avec le score numérique."""
     def determine_actions(self) -> None:
         """Logique principale de l'agent"""
         try:
-            # 1. Obtenir la tâche actuelle
+            self.logger(f"[{self.__class__.__name__}] Analyse du contexte...")
+            
+            # 1. Scanner uniquement les fichiers pertinents
+            available_files = [f for f in self._scan_directory(os.getcwd()) 
+                             if any(f.endswith(ext) for ext in ['.py', '.md', '.txt', '.html', '.css', '.js'])]
+
+            # 2. Obtenir la tâche actuelle de manière plus efficace
             current_task = self._get_current_task()
-            if not current_task:
+            if not current_task.strip():
+                self.logger(f"[{self.__class__.__name__}] Pas de tâche active")
                 return
 
-            # 2. Scanner les fichiers disponibles
-            available_files = self._scan_directory(os.getcwd())
-
-            # 3. Évaluer la pertinence de chaque fichier
+            # 3. Évaluer la pertinence avec un cache
             scored_files = []
             for file_path in available_files:
-                score = self._analyze_relevance(file_path, current_task)
+                cache_key = f"{file_path}_{hash(current_task)}"
+                if hasattr(self, '_relevance_cache') and cache_key in self._relevance_cache:
+                    score = self._relevance_cache[cache_key]
+                else:
+                    score = self._analyze_relevance(file_path, current_task)
+                    if not hasattr(self, '_relevance_cache'):
+                        self._relevance_cache = {}
+                    self._relevance_cache[cache_key] = score
                 scored_files.append((file_path, score))
 
-            # 4. Sélectionner les 5-10 fichiers les plus pertinents
-            scored_files.sort(key=lambda x: x[1], reverse=True)
-            selected_files = [f[0] for f in scored_files[:10] if f[1] > 0.5]
+            # 4. Filtrer et sélectionner les fichiers
+            selected_files = [f[0] for f in self._filter_relevance(scored_files)]
 
-            # 5. Mettre à jour le contexte si changement
+            # 5. Mettre à jour uniquement si changement
             if set(selected_files) != self.current_context:
                 self.current_context = set(selected_files)
                 self._update_context_file(selected_files)
-                self.logger("Contexte mis à jour avec nouveaux fichiers pertinents")
+                self.logger(f"[{self.__class__.__name__}] ✓ Contexte mis à jour avec {len(selected_files)} fichiers")
 
         except Exception as e:
-            self.logger(f"Erreur dans determine_actions: {e}")
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
+    def _clean_relevance_cache(self):
+        """Nettoie périodiquement le cache de pertinence"""
+        if hasattr(self, '_relevance_cache'):
+            # Garder seulement les 1000 entrées les plus récentes
+            cache_items = sorted(self._relevance_cache.items(), 
+                               key=lambda x: x[1]['timestamp'])
+            self._relevance_cache = dict(cache_items[-1000:])

@@ -3,13 +3,11 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import threading
-from mission_service import MissionService
 import time
 import os
-import json
-import git
 from datetime import datetime
 from typing import Dict, Any
+from mission_service import MissionService
 from file_manager import FileManager
 from llm_service import LLMService
 from search_replace import SearchReplace
