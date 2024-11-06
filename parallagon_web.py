@@ -395,6 +395,51 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             return False
 
     def setup_routes(self):
+        @self.app.route('/api/missions/<int:mission_id>/content', methods=['GET'])
+        def get_mission_content(mission_id):
+            try:
+                mission = self.mission_service.get_mission(mission_id)
+                if not mission:
+                    return jsonify({'error': 'Mission not found'}), 404
+                    
+                content = {}
+                for file_type, file_path in mission['files'].items():
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            content[file_type] = f.read()
+                    except Exception as e:
+                        self.log_message(f"Error reading {file_type} file: {str(e)}", level='error')
+                        content[file_type] = ""
+                        
+                return jsonify(content)
+                
+            except Exception as e:
+                self.log_message(f"Error getting mission content: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
+        @self.app.route('/api/missions/<int:mission_id>/content/<file_type>', methods=['POST'])
+        def save_mission_content(mission_id, file_type):
+            try:
+                data = request.get_json()
+                if not data or 'content' not in data:
+                    return jsonify({'error': 'Content is required'}), 400
+                    
+                success = self.mission_service.save_mission_file(
+                    mission_id,
+                    file_type,
+                    data['content']
+                )
+                
+                if not success:
+                    return jsonify({'error': 'Failed to save content'}), 500
+                    
+                self.log_message(f"Saved {file_type} content for mission {mission_id}", level='success')
+                return jsonify({'status': 'success'})
+                
+            except Exception as e:
+                self.log_message(f"Error saving mission content: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
         @self.app.route('/api/missions', methods=['GET'])
         def get_missions():
             try:

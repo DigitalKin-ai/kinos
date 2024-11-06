@@ -28,6 +28,10 @@
         <!-- Header -->
         <div class="header">
             <div class="logo">⚫ Parallagon</div>
+            <div class="current-mission" v-if="currentMission">
+                <span class="mission-label">Mission:</span>
+                <span class="mission-name">${ currentMission.name }</span>
+            </div>
             <div class="controls">
                 <button 
                     :class="['control-button', running ? 'stop' : 'start']"

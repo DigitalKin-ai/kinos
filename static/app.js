@@ -74,14 +74,36 @@ const ParallagonApp = {
             this.missionSidebarCollapsed = !this.missionSidebarCollapsed;
         },
         
+        async loadMissionContent(missionId) {
+            try {
+                const response = await fetch(`/api/missions/${missionId}/content`);
+                if (!response.ok) {
+                    throw new Error('Failed to load mission content');
+                }
+                const content = await response.json();
+                
+                // Update content in all panels
+                this.content = content;
+                
+                // Update UI to show we're viewing this mission
+                this.currentMission = this.missions.find(m => m.id === missionId);
+                
+                this.addNotification('success', `Loaded content for mission "${this.currentMission.name}"`);
+                
+            } catch (error) {
+                console.error('Error loading mission content:', error);
+                this.addNotification('error', `Failed to load mission content: ${error.message}`);
+            }
+        },
+
         async selectMission(mission) {
             try {
                 this.currentMission = mission;
-                // Here we'll later add logic to load mission-specific content
-                this.addNotification('success', `Mission "${mission.name}" sélectionnée`);
+                await this.loadMissionContent(mission.id);
+                this.addNotification('success', `Mission "${mission.name}" selected`);
             } catch (error) {
                 console.error('Error selecting mission:', error);
-                this.addNotification('error', `Erreur lors de la sélection de la mission: ${error.message}`);
+                this.addNotification('error', `Error selecting mission: ${error.message}`);
             }
         },
 

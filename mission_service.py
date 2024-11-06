@@ -90,6 +90,23 @@ class MissionService:
             )
             return cursor.fetchone()
 
+    def save_mission_file(self, mission_id: int, file_type: str, content: str) -> bool:
+        """Save content to a mission file"""
+        try:
+            mission = self.get_mission(mission_id)
+            if not mission or file_type not in mission['files']:
+                return False
+                
+            file_path = mission['files'][file_type]
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+                
+            return True
+            
+        except Exception as e:
+            print(f"Error saving mission file: {e}")
+            return False
+
     def delete_mission(self, mission_id: int) -> bool:
         """Delete a mission from the database"""
         with self.db.get_cursor() as cursor:
