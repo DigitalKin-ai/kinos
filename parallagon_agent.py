@@ -241,58 +241,47 @@ class ParallagonAgent:
             import traceback
             self.logger(traceback.format_exc())
 
+    def write_file(self, content: str) -> bool:
+        """Write content to file with proper error handling"""
+        try:
+            # Créer le répertoire parent si nécessaire
+            os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+            
+            # Écrire avec gestion explicite du fichier
+            with open(self.file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+                
+            return True
+            
+        except PermissionError:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur de permission sur {self.file_path}")
+            return False
+        except IOError as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur d'écriture: {str(e)}")
+            return False
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur inattendue: {str(e)}")
+            return False
+
     def determine_actions(self) -> None:
         try:
-            self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
+            self.logger(f"[{self.__class__.__name__}] Analyse du contenu...")
             
-            # Lire le contenu actuel de la demande
-            demand_content = self.other_files.get("demande.md")
-            if not demand_content:
-                self.logger(f"[{self.__class__.__name__}] ⚠️ Pas de fichier demande.md trouvé")
-                return
-
-            # Comparer avec la dernière demande connue
-            if demand_content != getattr(self, '_last_demand', None):
-                self.logger(f"[{self.__class__.__name__}] 📝 Nouvelle demande détectée")
-                
-                # Extraire la structure actuelle
-                current_structure = self._parse_template_structure(self.current_content)
-                
-                # Construire le contexte pour le LLM
-                context = {
-                    "specifications": self.current_content,
-                    "other_files": {"demande.md": demand_content}
-                }
-                
-                # Obtenir la réponse du LLM
-                llm_response = self._get_llm_response(context)
-                if not llm_response:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Pas de réponse du LLM")
-                    return
-                    
-                # Parser la nouvelle structure proposée
-                new_structure = self._parse_template_structure(llm_response)
-                
-                # Log des différences pour debug
-                self._log_structure_differences(current_structure, new_structure)
-                
-                if current_structure != new_structure:
-                    self.logger(f"[{self.__class__.__name__}] ✨ Modifications de structure détectées")
-                    self.new_content = llm_response
-                    self.synchronize_template()
+            context = {
+                "current": self.current_content,
+                "other_files": self.other_files
+            }
+            
+            response = self._get_llm_response(context)
+            if response and response != self.current_content:
+                if self.write_file(response):
+                    self.current_content = response
+                    self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
                 else:
-                    self.logger(f"[{self.__class__.__name__}] ℹ Aucune modification nécessaire")
+                    self.logger(f"[{self.__class__.__name__}] ❌ Échec de la mise à jour")
                     
-                # Mettre à jour la dernière demande connue
-                self._last_demand = demand_content
-                
-            else:
-                self.logger(f"[{self.__class__.__name__}] ℹ Pas de nouvelle demande")
-                
         except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur lors de l'analyse: {str(e)}")
-            import traceback
-            self.logger(traceback.format_exc())
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
 
     def _build_prompt(self, context: dict) -> str:
         return f"""Vous êtes l'agent d'évaluation. Votre rôle est de vérifier la qualité du contenu produit.
@@ -380,12 +369,22 @@ Notes:
             if hasattr(self, 'new_content') and self.new_content != self.current_content:
                 self.logger(f"[{self.__class__.__name__}] Mise à jour du fichier {self.file_path}")
                 
-                # Écrire directement le contenu
-                with open(self.file_path, 'w', encoding='utf-8') as f:
-                    f.write(self.new_content)
-                self.current_content = self.new_content
-                self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
-                
+                # Utiliser with pour garantir la fermeture du fichier
+                try:
+                    with open(self.file_path, 'w', encoding='utf-8') as f:
+                        f.write(self.new_content)
+                    self.current_content = self.new_content
+                    self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
+                    
+                    # Notifier du changement si un callback est défini
+                    if hasattr(self, 'on_content_changed') and callable(self.on_content_changed):
+                        self.on_content_changed(self.file_path, self.new_content)
+                        
+                except PermissionError:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur de permission sur {self.file_path}")
+                except IOError as e:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur d'écriture: {str(e)}")
+                    
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur mise à jour: {str(e)}")
             import traceback
