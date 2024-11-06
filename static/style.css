@@ -294,12 +294,10 @@ html, body {
 
 .btn-reset:focus:not(:active):after {
     animation: ripple 1s ease-out;
-=
 }
 
 .btn-reset i {
     font-size: 1.1em;
-> d693b78b2cfab0b5fc38fc24906599a4bb473279
 }
 
 
