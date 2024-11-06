@@ -644,52 +644,52 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 self.log_message(f"Error updating mission: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
-        @self.app.route('/api/agent/<agent_id>/start', methods=['POST'])
-        def start_single_agent(agent_id):
-            """Start a specific agent"""
+        @self.app.route('/api/agent/<agent_id>/<action>', methods=['POST'])
+        def control_agent(agent_id, action):
+            """Control (start/stop) a specific agent"""
             try:
-                # Convertir l'ID d'agent en nom d'agent avec première lettre majuscule
-                agent_name = agent_id.capitalize()
-                if agent_name not in self.agents:
-                    self.log_message(f"Agent {agent_id} not found", level='error')
-                    return jsonify({'error': f'Agent {agent_id} not found'}), 404
+                # Debug logs
+                self.log_message(f"Agent control request: {agent_id} - {action}", level='debug')
+                
+                # Validate action
+                if action not in ['start', 'stop']:
+                    return jsonify({'error': 'Invalid action'}), 400
                     
-                # Démarrer l'agent spécifique
-                agent = self.agents[agent_name]
-                agent.start()
-                
-                # Créer un thread dédié pour cet agent
-                thread = threading.Thread(
-                    target=agent.run,
-                    daemon=True,
-                    name=f"Agent-{agent_name}"
-                )
-                thread.start()
-                
-                self.log_message(f"✓ Agent {agent_name} started", level='success')
-                return jsonify({'status': 'success', 'message': f'Agent {agent_name} started'})
-                
-            except Exception as e:
-                self.log_message(f"❌ Failed to start agent {agent_id}: {str(e)}", level='error')
-                return jsonify({'error': str(e)}), 500
-
-        @self.app.route('/api/agent/<agent_id>/stop', methods=['POST'])
-        def stop_single_agent(agent_id):
-            """Stop a specific agent"""
-            try:
+                # Convert agent_id to proper case
                 agent_name = agent_id.capitalize()
+                
+                # Debug log
+                self.log_message(f"Looking for agent: {agent_name}", level='debug')
+                self.log_message(f"Available agents: {list(self.agents.keys())}", level='debug')
+                
                 if agent_name not in self.agents:
-                    self.log_message(f"Agent {agent_id} not found", level='error')
                     return jsonify({'error': f'Agent {agent_id} not found'}), 404
                     
                 agent = self.agents[agent_name]
-                agent.stop()
                 
-                self.log_message(f"✓ Agent {agent_name} stopped", level='success')
-                return jsonify({'status': 'success', 'message': f'Agent {agent_name} stopped'})
+                if action == 'start':
+                    if not agent.running:
+                        agent.start()
+                        thread = threading.Thread(
+                            target=agent.run,
+                            daemon=True,
+                            name=f"Agent-{agent_name}"
+                        )
+                        thread.start()
+                        self.log_message(f"Agent {agent_name} started", level='success')
+                else:  # stop
+                    if agent.running:
+                        agent.stop()
+                        self.log_message(f"Agent {agent_name} stopped", level='success')
+                        
+                return jsonify({
+                    'status': 'success',
+                    'message': f'Agent {agent_name} {action}ed successfully',
+                    'running': agent.running
+                })
                 
             except Exception as e:
-                self.log_message(f"❌ Failed to stop agent {agent_id}: {str(e)}", level='error')
+                self.log_message(f"Error controlling agent {agent_id}: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/agents/status', methods=['GET'])

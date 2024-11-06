@@ -708,43 +708,35 @@ const ParallagonApp = {
             try {
                 const isRunning = this.isAgentRunning(agentId);
                 const action = isRunning ? 'stop' : 'start';
-            
-                // Optimistic UI update
-                if (action === 'start') {
-                    this.runningAgents.add(agentId);
-                } else {
-                    this.runningAgents.delete(agentId);
-                }
-            
-                const response = await fetch(`/api/agent/${agentId}/${action}`, {
+                
+                console.log(`Toggling agent ${agentId} to ${action}`); // Debug log
+                
+                const response = await fetch(`http://localhost:8000/api/agent/${agentId}/${action}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 });
-            
+
                 if (!response.ok) {
-                    // Revert optimistic update on error
-                    if (action === 'start') {
-                        this.runningAgents.delete(agentId);
-                    } else {
-                        this.runningAgents.add(agentId);
-                    }
-                    throw new Error(`Failed to ${action} agent`);
+                    const errorData = await response.json();
+                    console.error('Server error:', errorData); // Debug log
+                    throw new Error(`Failed to ${action} agent: ${errorData.error || 'Unknown error'}`);
                 }
-            
-                this.addNotification(
-                    'success',
-                    `Agent ${agentId} ${action}ed successfully`
-                );
-            
+
+                // Mise à jour optimiste de l'état
+                if (action === 'start') {
+                    this.runningAgents.add(agentId);
+                } else {
+                    this.runningAgents.delete(agentId);
+                }
+
+                this.addNotification('success', `Agent ${agentId} ${action}ed successfully`);
+                
             } catch (error) {
                 console.error(`Error toggling agent ${agentId}:`, error);
-                this.addNotification(
-                    'error',
-                    `Failed to control agent ${agentId}: ${error.message}`
-                );
-                await this.refreshAgentsStatus();
+                this.addNotification('error', `Error toggling agent ${agentId}: ${error.message}`);
+                throw error;
             }
         },
 
