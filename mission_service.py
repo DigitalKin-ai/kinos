@@ -125,7 +125,8 @@ class MissionService:
                     'management': os.path.join(mission_dir, "management.md"),
                     'production': os.path.join(mission_dir, "production.md"),
                     'evaluation': os.path.join(mission_dir, "evaluation.md"),
-                    'suivi': os.path.join(mission_dir, "suivi.md")
+                    'suivi': os.path.join(mission_dir, "suivi.md"),
+                    'contexte': os.path.join(mission_dir, "contexte.md")
                 }
                 return mission
         return None
@@ -200,7 +201,8 @@ class MissionService:
                 "management.md",
                 "production.md",
                 "evaluation.md",
-                "suivi.md"
+                "suivi.md",
+                "contexte.md"
             ]
 
             # Create any missing required files in the external directory first
