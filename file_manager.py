@@ -100,6 +100,16 @@ En attente d'initialisation...
 # Historique
 - [{timestamp}] Création du fichier"""
             
+        elif file_name == 'contexte':
+            return f"""# Contexte
+[timestamp: {timestamp}]
+
+## Fichiers Pertinents Sélectionnés
+[En attente d'analyse...]
+
+# Historique
+- [{timestamp}] Création du fichier"""
+            
         return ""  # Default empty content
 
     def read_file(self, file_name: str) -> Optional[str]:
