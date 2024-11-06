@@ -58,12 +58,12 @@
 
     #suivi-display, #clean-editor {
         width: 100%;
-        height: calc(100vh - 140px);  /* Full height minus header and padding */
+        height: 100%; /* Prend toute la hauteur disponible */
         border: none;
         padding: 25px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
         line-height: 1.6;
-        resize: none;  /* Disable resize */
+        resize: none;
         border-radius: 8px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         transition: box-shadow 0.2s ease;
@@ -163,11 +163,11 @@
 </div>
 <div class="clean-container">
     <div class="content-area">
-        <div class="suivi-sidebar">
-            <textarea id="suivi-display" readonly>{{ suivi_content }}</textarea>
-        </div>
         <div class="main-content">
             <textarea id="clean-editor">{{ content }}</textarea>
+        </div>
+        <div class="suivi-sidebar">
+            <textarea id="suivi-display" readonly>{{ suivi_content }}</textarea>
         </div>
     </div>
 </div>
