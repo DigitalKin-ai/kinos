@@ -265,12 +265,45 @@
         margin-left: 200px;
         width: 800px;
         max-width: calc(100% - 440px);
-        line-height: 1.6;
-        background-color: white;
         height: 100vh;
         overflow-y: auto;
         padding: 40px;
         box-sizing: border-box;
+        background-color: white;
+
+        /* Nouvelles propriétés pour forcer le wrapping */
+        word-break: break-word;
+        overflow-wrap: break-word;
+        white-space: pre-line !important;
+        text-align: justify;
+    }
+
+    /* Forcer le wrapping sur tous les éléments enfants */
+    .markdown-content > * {
+        width: 100% !important;
+        max-width: 100% !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        white-space: pre-line !important;
+    }
+
+    /* Style spécifique pour les paragraphes */
+    .markdown-content p {
+        margin-bottom: 1em;
+        display: block;
+        width: 100%;
+    }
+
+    /* Style pour les titres */
+    .markdown-content h1,
+    .markdown-content h2,
+    .markdown-content h3,
+    .markdown-content h4,
+    .markdown-content h5,
+    .markdown-content h6 {
+        width: 100%;
+        display: block;
+        margin: 1em 0;
     }
 
     /* Styles spécifiques pour le contenu markdown */
