@@ -4,12 +4,19 @@
 
 {% block head %}
 <style>
+    body {
+        background-color: #fafafa;
+        margin: 0;
+        padding: 0;
+    }
+
     .clean-container {
         display: flex;
-        gap: 20px;
-        max-width: 1200px;  /* Increased to accommodate sidebar */
-        margin: 20px auto;
-        padding: 20px;
+        gap: 30px;  /* Increased for better spacing */
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 40px;  /* Increased padding */
+        height: calc(100vh - 80px);  /* Full height minus padding */
     }
 
     .suivi-sidebar {
@@ -21,53 +28,83 @@
         flex-grow: 1;
     }
 
-    .clean-content {
-        height: 100%;
-    }
-
-    #suivi-display {
-        width: 100%;
-        min-height: 600px;
-        border: none;
-        padding: 15px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-        font-size: 12px;  /* Slightly smaller than main editor */
-        line-height: 1.6;
-        resize: vertical;
-        background-color: #f8f8f8;  /* Lighter background to differentiate */
-    }
-
     .clean-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
+    }
+
+    .clean-header h1 {
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: #333;
+        margin: 0;
     }
 
     .btn-back {
         text-decoration: none;
         padding: 8px 16px;
-        background-color: #f0f0f0;
-        color: #333;
+        color: #666;
         border-radius: 4px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
     }
 
-    .clean-content {
-        background-color: white;
-        padding: 20px;
-        border-radius: 4px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    .btn-back:hover {
+        background-color: #f0f0f0;
+    }
+
+    #suivi-display, #clean-editor {
+        width: 100%;
+        height: calc(100vh - 140px);  /* Full height minus header and padding */
+        border: none;
+        padding: 25px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        line-height: 1.6;
+        resize: none;  /* Disable resize */
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: box-shadow 0.2s ease;
+    }
+
+    #suivi-display {
+        font-size: 0.9rem;
+        background-color: #f8f8f8;
+        color: #666;
     }
 
     #clean-editor {
-        width: 100%;
-        min-height: 600px;
-        border: none;
-        padding: 15px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-        font-size: 14px;
-        line-height: 1.6;
-        resize: vertical;
+        font-size: 1rem;
+        background-color: white;
+        color: #333;
+    }
+
+    #suivi-display:focus, #clean-editor:focus {
+        outline: none;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    /* Custom scrollbar */
+    #suivi-display::-webkit-scrollbar,
+    #clean-editor::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #suivi-display::-webkit-scrollbar-track,
+    #clean-editor::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    #suivi-display::-webkit-scrollbar-thumb,
+    #clean-editor::-webkit-scrollbar-thumb {
+        background-color: #ddd;
+        border-radius: 4px;
+    }
+
+    #suivi-display::-webkit-scrollbar-thumb:hover,
+    #clean-editor::-webkit-scrollbar-thumb:hover {
+        background-color: #ccc;
     }
 </style>
 {% endblock %}
