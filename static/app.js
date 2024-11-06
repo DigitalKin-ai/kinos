@@ -19,6 +19,7 @@ const ParallagonApp = {
             running: false,
             loading: false,
             error: null,
+            runningAgents: new Set(), // Track which agents are running
             notifications: [],
             connectionStatus: 'disconnected',
             activeTab: 'demande',
