@@ -149,12 +149,12 @@
     html, body {
         margin: 0;
         padding: 0;
-        background-color: white;
+        background-color: white !important;
         height: 100%;
     }
 
     #content, .container, .wrapper {
-        background-color: white;
+        background-color: white !important;
     }
 
     .suivi-sidebar {
@@ -248,9 +248,15 @@
         outline: none;
     }
 
-    #clean-editor {
+    .editor-container {
         margin-left: 400px;
         width: calc(100% - 400px);
+        min-height: 100vh;
+        background-color: white;
+        position: relative;
+    }
+
+    #clean-editor {
         max-width: 1200px;
         min-height: 100vh;
         position: relative;
