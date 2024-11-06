@@ -259,47 +259,19 @@ html, body {
 }
 
     font-size: 0.875rem;
-> d693b78b2cfab0b5fc38fc24906599a4bb473279
     font-weight: 500;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     transition: all 0.2s ease;
     cursor: pointer;
-< HEAD
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.btn-reset:hover:not(:disabled) {
-    background-color: #d97706; /* Orange plus foncé au hover */
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-=
-    font-size: 0.875rem;
-> d693b78b2cfab0b5fc38fc24906599a4bb473279
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s ease;
-    cursor: pointer;
-< HEAD
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.btn-reset:hover:not(:disabled) {
-    background-color: #d97706; /* Orange plus foncé au hover */
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-=
 }
 
 .btn-reset:hover:not(:disabled) {
     background-color: #ca8a04;
     transform: translateY(-1px);
-> d693b78b2cfab0b5fc38fc24906599a4bb473279
-}
-> d693b78b2cfab0b5fc38fc24906599a4bb473279
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 .btn-reset:disabled {
