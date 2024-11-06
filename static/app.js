@@ -460,22 +460,78 @@ const ParallagonApp = {
             return this.runningAgents.has(tabId);
         },
 
-        async toggleAgent(tabId) {
+        async toggleAgent(agentId) {
             try {
-                if (this.isAgentRunning(tabId)) {
-                    // Stop the agent
-                    await fetch(`/api/agent/${tabId}/stop`, { method: 'POST' });
-                    this.runningAgents.delete(tabId);
-                    this.addNotification('info', `Agent ${tabId} stopped`);
+                const isRunning = this.isAgentRunning(agentId);
+                const action = isRunning ? 'stop' : 'start';
+                
+                // Optimistic UI update
+                if (action === 'start') {
+                    this.runningAgents.add(agentId);
                 } else {
-                    // Start the agent
-                    await fetch(`/api/agent/${tabId}/start`, { method: 'POST' });
-                    this.runningAgents.add(tabId);
-                    this.addNotification('success', `Agent ${tabId} started`);
+                    this.runningAgents.delete(agentId);
                 }
+                
+                const response = await fetch(`/api/agent/${agentId}/${action}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    // Revert optimistic update on error
+                    if (action === 'start') {
+                        this.runningAgents.delete(agentId);
+                    } else {
+                        this.runningAgents.add(agentId);
+                    }
+                    throw new Error(`Failed to ${action} agent`);
+                }
+                
+                // Add notification
+                this.addNotification(
+                    'success',
+                    `Agent ${agentId} ${action}ed successfully`
+                );
+                
             } catch (error) {
-                console.error(`Failed to toggle agent ${tabId}:`, error);
-                this.addNotification('error', `Failed to control agent ${tabId}: ${error.message}`);
+                console.error(`Error toggling agent ${agentId}:`, error);
+                this.addNotification(
+                    'error',
+                    `Failed to control agent ${agentId}: ${error.message}`
+                );
+                
+                // Force refresh agent status
+                await this.refreshAgentsStatus();
+            }
+        },
+
+        async refreshAgentsStatus() {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);  // 5s timeout
+                
+                const response = await fetch('/api/agents/status', {
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const status = await response.json();
+                this.updateAgentsStatus(status);
+                
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.warn('Agents status request timed out');
+                } else {
+                    console.error('Failed to refresh agents status:', error);
+                }
+                // Don't update status on error
             }
         },
 
