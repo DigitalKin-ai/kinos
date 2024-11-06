@@ -229,6 +229,9 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         CORS(self.app)  # Enable CORS
         self.monitor_thread = None  # Add monitor thread tracking
         self.mission_service = MissionService()
+        
+        # Ensure missions directory exists
+        os.makedirs("missions", exist_ok=True)
         self.limiter = Limiter(
             app=self.app,
             key_func=get_remote_address,
@@ -408,12 +411,19 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 if not data or 'name' not in data:
                     return jsonify({'error': 'Name is required'}), 400
                     
+                # Create mission in database
                 mission = self.mission_service.create_mission(
                     name=data['name'],
                     description=data.get('description')
                 )
                 
-                self.log_message(f"Mission '{mission['name']}' created", level='success')
+                # Create mission files
+                if not self.file_manager.create_mission_files(mission['name']):
+                    # Si la création des fichiers échoue, on supprime la mission de la base
+                    self.mission_service.delete_mission(mission['id'])
+                    return jsonify({'error': 'Failed to create mission files'}), 500
+                
+                self.log_message(f"Mission '{mission['name']}' created with files", level='success')
                 return jsonify(mission), 201
                 
             except Exception as e:

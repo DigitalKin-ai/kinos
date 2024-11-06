@@ -19,6 +19,26 @@ class FileManager:
         self.on_content_changed = on_content_changed
         self._ensure_files_exist()
         
+    def create_mission_files(self, mission_name: str) -> bool:
+        """Create a new mission directory with default files"""
+        try:
+            # Create mission directory
+            mission_dir = os.path.join("missions", mission_name)
+            os.makedirs(mission_dir, exist_ok=True)
+            
+            # Create default files
+            for file_name in ["demande", "specifications", "management", "production", "evaluation", "suivi"]:
+                file_path = os.path.join(mission_dir, f"{file_name}.md")
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    initial_content = self._get_initial_content(file_name)
+                    f.write(initial_content)
+                    
+            return True
+            
+        except Exception as e:
+            print(f"Error creating mission files: {e}")
+            return False
+        
     def _ensure_files_exist(self):
         """Create files if they don't exist"""
         for name, file_path in self.file_paths.items():

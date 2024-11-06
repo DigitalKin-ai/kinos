@@ -32,6 +32,7 @@ class MissionService:
             return cursor.fetchall()
 
     def get_mission(self, mission_id: int) -> Optional[Dict]:
+        """Get a mission by ID with file paths"""
         with self.db.get_cursor() as cursor:
             cursor.execute(
                 """
@@ -42,10 +43,35 @@ class MissionService:
                 """,
                 (mission_id,)
             )
-            return cursor.fetchone()
+            mission = cursor.fetchone()
+            if mission:
+                # Add file paths
+                mission_dir = os.path.join("missions", mission['name'])
+                mission['files'] = {
+                    'demande': os.path.join(mission_dir, "demande.md"),
+                    'specifications': os.path.join(mission_dir, "specifications.md"),
+                    'management': os.path.join(mission_dir, "management.md"),
+                    'production': os.path.join(mission_dir, "production.md"),
+                    'evaluation': os.path.join(mission_dir, "evaluation.md"),
+                    'suivi': os.path.join(mission_dir, "suivi.md")
+                }
+            return mission
 
     def update_mission(self, mission_id: int, name: str = None, 
                       description: str = None, status: str = None) -> Optional[Dict]:
+                      
+    def delete_mission(self, mission_id: int) -> bool:
+        """Delete a mission from the database"""
+        with self.db.get_cursor() as cursor:
+            cursor.execute(
+                """
+                DELETE FROM missions 
+                WHERE id = %s
+                RETURNING id
+                """,
+                (mission_id,)
+            )
+            return cursor.fetchone() is not None
         updates = []
         values = []
         if name is not None:
