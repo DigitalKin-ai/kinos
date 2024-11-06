@@ -7,6 +7,16 @@ class MissionService:
         self.missions_dir = "missions"
         os.makedirs(self.missions_dir, exist_ok=True)
         
+    def _resolve_mission_path(self, mission_path: str) -> str:
+        """Resolve real path if it's a symlink"""
+        try:
+            if os.path.islink(mission_path):
+                return os.path.realpath(mission_path)
+            return mission_path
+        except Exception as e:
+            print(f"Error resolving path: {e}")
+            return mission_path
+
     def _is_valid_mission_dir(self, mission_dir: str) -> bool:
         """Check if a directory contains all required mission files"""
         required_files = [
@@ -51,20 +61,24 @@ class MissionService:
         }
 
     def get_all_missions(self) -> List[Dict]:
-        """Get all missions by reading directories"""
+        """Get all missions by reading directories and symlinks"""
         try:
             missions = []
             if os.path.exists(self.missions_dir):
                 for mission_name in os.listdir(self.missions_dir):
                     mission_path = os.path.join(self.missions_dir, mission_name)
-                    if os.path.isdir(mission_path) and self._is_valid_mission_dir(mission_path):
+                    real_path = self._resolve_mission_path(mission_path)
+                    
+                    if (os.path.isdir(real_path) and 
+                        self._is_valid_mission_dir(real_path)):
                         mission = {
-                            'id': len(missions) + 1,  # Simple incremental ID
+                            'id': len(missions) + 1,
                             'name': mission_name,
                             'description': '',
                             'status': 'active',
-                            'created_at': datetime.fromtimestamp(os.path.getctime(mission_path)).isoformat(),
-                            'updated_at': datetime.fromtimestamp(os.path.getmtime(mission_path)).isoformat()
+                            'created_at': datetime.fromtimestamp(os.path.getctime(real_path)).isoformat(),
+                            'updated_at': datetime.fromtimestamp(os.path.getmtime(real_path)).isoformat(),
+                            'external_path': real_path if os.path.islink(mission_path) else None
                         }
                         missions.append(mission)
             return missions
@@ -134,6 +148,42 @@ class MissionService:
     def mission_exists(self, mission_name: str) -> bool:
         """Check if a mission directory exists"""
         return os.path.exists(os.path.join(self.missions_dir, mission_name))
+
+    def create_mission_link(self, external_path: str, mission_name: str = None) -> Dict:
+        """Create a symbolic link to an external mission folder"""
+        try:
+            # Validate external path exists and is a directory
+            if not os.path.isdir(external_path):
+                raise ValueError(f"Path does not exist or is not a directory: {external_path}")
+                
+            # Use provided name or extract from path
+            if not mission_name:
+                mission_name = os.path.basename(external_path.rstrip('/\\'))
+                
+            # Create link path in missions directory
+            link_path = os.path.join(self.missions_dir, mission_name)
+            
+            # Check if mission already exists
+            if os.path.exists(link_path):
+                raise ValueError(f"Mission '{mission_name}' already exists")
+                
+            # Create symbolic link
+            os.symlink(external_path, link_path, target_is_directory=True)
+            
+            # Return mission info
+            return {
+                'id': len(self.get_all_missions()),
+                'name': mission_name,
+                'description': f"External mission at {external_path}",
+                'status': 'active',
+                'created_at': datetime.now().isoformat(),
+                'updated_at': datetime.now().isoformat(),
+                'external_path': external_path
+            }
+            
+        except Exception as e:
+            print(f"Error creating mission link: {e}")
+            raise
 
     def delete_mission(self, mission_id: int) -> bool:
         """Delete a mission directory and all its files"""

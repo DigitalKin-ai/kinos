@@ -70,6 +70,44 @@ const ParallagonApp = {
         }
     },
     methods: {
+        async linkExternalMission() {
+            try {
+                // Utiliser l'API du système de fichiers via un input
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.webkitdirectory = true;
+                input.directory = true;
+                
+                input.onchange = async (e) => {
+                    if (e.target.files.length > 0) {
+                        const path = e.target.files[0].path;
+                        const response = await fetch('/api/missions/link', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ path })
+                        });
+                        
+                        if (response.ok) {
+                            const mission = await response.json();
+                            this.missions.unshift(mission);
+                            this.addNotification('success', `Dossier externe lié avec succès`);
+                        } else {
+                            const error = await response.json();
+                            throw new Error(error.error);
+                        }
+                    }
+                };
+                
+                input.click();
+                
+            } catch (error) {
+                console.error('Error linking external mission:', error);
+                this.addNotification('error', `Erreur lors de la liaison: ${error.message}`);
+            }
+        },
+
         toggleMissionSidebar() {
             this.missionSidebarCollapsed = !this.missionSidebarCollapsed;
         },

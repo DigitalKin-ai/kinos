@@ -453,6 +453,33 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 self.log_message(f"Error getting missions: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
+        @self.app.route('/api/missions/link', methods=['POST'])
+        def create_mission_link():
+            """Create a mission from an external directory"""
+            try:
+                data = request.get_json()
+                if not data or 'path' not in data:
+                    return jsonify({'error': 'External path is required'}), 400
+                    
+                external_path = data['path']
+                mission_name = data.get('name')  # Optional
+                
+                # Create mission link
+                mission = self.mission_service.create_mission_link(
+                    external_path=external_path,
+                    mission_name=mission_name
+                )
+                
+                self.log_message(
+                    f"Created link to external mission at {external_path}", 
+                    level='success'
+                )
+                return jsonify(mission), 201
+                
+            except Exception as e:
+                self.log_message(f"Error creating mission link: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
         @self.app.route('/api/missions', methods=['POST'])
         def create_mission():
             try:

@@ -1046,6 +1046,12 @@ textarea.content-area {
     border-bottom: 1px solid #2d3748;
 }
 
+.mission-create-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
 .mission-create-btn {
     display: flex;
     align-items: center;

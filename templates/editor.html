@@ -66,11 +66,15 @@
                     </button>
                 </div>
                 <div class="mission-create" v-if="!missionSidebarCollapsed">
-                    <div v-if="!isCreatingMission" 
-                         @click="startCreatingMission" 
-                         class="mission-create-btn">
-                        <i class="mdi mdi-plus"></i>
-                        <span>Créer une mission</span>
+                    <div v-if="!isCreatingMission" class="mission-create-actions">
+                        <div @click="startCreatingMission" class="mission-create-btn">
+                            <i class="mdi mdi-plus"></i>
+                            <span>Créer une mission</span>
+                        </div>
+                        <div @click="linkExternalMission" class="mission-create-btn">
+                            <i class="mdi mdi-link"></i>
+                            <span>Lier un dossier externe</span>
+                        </div>
                     </div>
                     <div v-else class="mission-create-input-container">
                         <input v-model="newMissionName" 
