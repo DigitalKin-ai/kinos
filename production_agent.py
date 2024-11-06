@@ -359,7 +359,6 @@ IMPORTANT:
         return modified_content
 
     def determine_actions(self) -> None:
-        """Détermine et exécute les actions de production"""
         try:
             self.logger(f"[{self.__class__.__name__}] Analyse du contenu...")
             
@@ -373,23 +372,16 @@ IMPORTANT:
                 self.logger(f"[{self.__class__.__name__}] ❌ Pas de réponse du LLM")
                 return
                 
-            # Extraire la commande aider
-            import re
-            aider_cmd = re.search(r'```bash\naider --yes-always --message \'(.*?)\'.*?--file production\.md\n```', response, re.DOTALL)
-            if not aider_cmd:
-                self.logger(f"[{self.__class__.__name__}] ❌ Format de réponse invalide")
-                self.logger(f"[{self.__class__.__name__}] Réponse reçue:\n{response}")
+            # Vérifier que la réponse contient bien du contenu de production
+            if not response.strip():
+                self.logger(f"[{self.__class__.__name__}] ❌ Réponse vide")
                 return
                 
-            # Exécuter la commande aider
-            message = aider_cmd.group(1).strip()
-            self.logger(f"[{self.__class__.__name__}] 📝 Message pour aider:\n{message}")
-            
-            # Écrire directement dans le fichier
+            # Écrire le nouveau contenu de production
             with open(self.file_path, 'w', encoding='utf-8') as f:
-                f.write(message)
-            self.current_content = message
-            self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
+                f.write(response)
+            self.current_content = response
+            self.logger(f"[{self.__class__.__name__}] ✓ Fichier production.md mis à jour")
                 
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
