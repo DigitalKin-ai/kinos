@@ -100,28 +100,46 @@ const ParallagonApp = {
             this.newMissionName = '';
         },
 
-        createMission() {
+        async createMission() {
             if (!this.newMissionName.trim()) {
                 return;
             }
 
-            const newMission = {
-                id: this.missionIdCounter++,
-                name: this.newMissionName.trim()
-            };
+            try {
+                // Appel API pour créer la mission
+                const response = await fetch('/api/missions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: this.newMissionName.trim()
+                    })
+                });
 
-            // Add new mission to beginning of list
-            this.missions.unshift(newMission);
+                if (!response.ok) {
+                    throw new Error('Failed to create mission');
+                }
 
-            // Select the new mission
-            this.selectMission(newMission);
+                const mission = await response.json();
 
-            // Reset form
-            this.isCreatingMission = false;
-            this.newMissionName = '';
+                // Ajouter la mission au début de la liste
+                this.missions.unshift(mission);
 
-            // Success notification
-            this.addNotification('success', `Mission "${newMission.name}" créée`);
+                // Sélectionner la nouvelle mission
+                this.selectMission(mission);
+
+                // Réinitialiser le formulaire
+                this.isCreatingMission = false;
+                this.newMissionName = '';
+
+                // Notification de succès
+                this.addNotification('success', `Mission "${mission.name}" créée`);
+
+            } catch (error) {
+                console.error('Error creating mission:', error);
+                this.addNotification('error', `Erreur lors de la création de la mission: ${error.message}`);
+            }
         },
 
         async loadInitialContent() {
