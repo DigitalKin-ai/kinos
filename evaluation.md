@@ -1,6 +1,6 @@
 # Évaluations en Cours
 
-[section: Introduction]
+[section: Introduction générale]
 - Qualité: ✓ Commentaire: L'introduction est bien rédigée, elle contextualise le projet et présente clairement les axes de recherche.
 - Conformité: ✓ Commentaire: L'introduction respecte les spécifications en termes de longueur et de style.
 - Points à améliorer: Aucun point à améliorer.
@@ -9,15 +9,15 @@
 - Qualité: ⚠️ Commentaire: Le contenu est globalement bon, mais certaines parties pourraient être plus détaillées, notamment sur les algorithmes d'apprentissage automatique.
 - Conformité: ✓ Commentaire: La section respecte les spécifications en termes de structure et de longueur.
 - Points à améliorer: 
-  - Ajouter des exemples concrets d'algorithmes d'apprentissage automatique utilisés.
-  - Élargir la discussion sur les défis d'intégration avec Kineis.
+  - Ajouter des exemples concrets d'algorithmes d'apprentissage automatique utilisés dans le développement software.
+  - Élargir la discussion sur les défis d'intégration avec Kineis, en incluant des cas d'utilisation spécifiques.
 
 [section: Axe 2 - Optimisation du firmware pour la gestion efficace de l'énergie]
 - Qualité: ⚠️ Commentaire: La section est bien structurée, mais elle manque de profondeur dans l'analyse des techniques d'optimisation.
 - Conformité: ✓ Commentaire: La section respecte les spécifications en termes de structure et de longueur.
 - Points à améliorer: 
-  - Inclure des études de cas ou des exemples d'applications pratiques des techniques d'optimisation.
-  - Discuter davantage des défis spécifiques liés aux protocoles satellitaires.
+  - Inclure des études de cas ou des exemples d'applications pratiques des techniques d'optimisation du firmware.
+  - Discuter davantage des défis spécifiques liés aux protocoles satellitaires, en mettant l'accent sur les solutions potentielles.
 
 [section: Synthèse multi-axes]
 - Qualité: ✓ Commentaire: La synthèse est claire et démontre bien la complémentarité des deux axes de recherche.
@@ -28,7 +28,7 @@
 - Qualité: ⚠️ Commentaire: La conclusion résume bien les objectifs, mais pourrait être renforcée par une mention des implications futures du projet.
 - Conformité: ✓ Commentaire: La section respecte les spécifications en termes de longueur et de style.
 - Points à améliorer: 
-  - Ajouter une réflexion sur les impacts potentiels du projet sur le domaine de l'IoT.
+  - Ajouter une réflexion sur les impacts potentiels du projet sur le domaine de l'IoT, en soulignant les implications futures.
 
 # Vue d'Ensemble
 [progression: 60%]
