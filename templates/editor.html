@@ -53,6 +53,25 @@
 
         <!-- Main content with sidebar tabs -->
         <div class="content-container">
+            <!-- Mission selector sidebar -->
+            <div class="mission-sidebar" :class="{ 'collapsed': missionSidebarCollapsed }">
+                <div class="mission-sidebar-header">
+                    <h2>Missions</h2>
+                    <button @click="toggleMissionSidebar" class="mission-collapse-btn">
+                        <i class="mdi" :class="missionSidebarCollapsed ? 'mdi-chevron-right' : 'mdi-chevron-left'"></i>
+                    </button>
+                </div>
+                <div class="mission-list">
+                    <div v-for="mission in missions" 
+                         :key="mission.id"
+                         class="mission-item"
+                         :class="{ active: currentMission?.id === mission.id }"
+                         @click="selectMission(mission)">
+                        <i class="mdi mdi-folder-outline"></i>
+                        <span class="mission-name">${ mission.name }</span>
+                    </div>
+                </div>
+            </div>
             <!-- Left sidebar tabs -->
             <div class="sidebar">
                 <div class="tab-item" 

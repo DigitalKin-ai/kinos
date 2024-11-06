@@ -19,6 +19,12 @@ const ParallagonApp = {
             running: false,
             loading: false,
             error: null,
+            missionSidebarCollapsed: false,
+            currentMission: null,
+            missions: [
+                { id: 1, name: 'Mission IoT Kineis' },
+                { id: 2, name: 'Mission CIR 2024' }
+            ],
             runningAgents: new Set(), // Track which agents are running
             notifications: [],
             connectionStatus: 'disconnected',
@@ -64,6 +70,21 @@ const ParallagonApp = {
         }
     },
     methods: {
+        toggleMissionSidebar() {
+            this.missionSidebarCollapsed = !this.missionSidebarCollapsed;
+        },
+        
+        async selectMission(mission) {
+            try {
+                this.currentMission = mission;
+                // Here we'll later add logic to load mission-specific content
+                this.addNotification('success', `Mission "${mission.name}" sélectionnée`);
+            } catch (error) {
+                console.error('Error selecting mission:', error);
+                this.addNotification('error', `Erreur lors de la sélection de la mission: ${error.message}`);
+            }
+        },
+
         async loadInitialContent() {
             try {
                 this.loading = true;
