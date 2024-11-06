@@ -263,6 +263,10 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         """Initialisation des agents avec configuration standard"""
         try:
             self.log_message("Initializing agents...", level='info')
+            
+            # S'assurer que le dossier missions existe
+            os.makedirs("missions", exist_ok=True)
+            
             # Initialize git repo
             try:
                 self.repo = git.Repo(os.getcwd())
@@ -278,12 +282,15 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 "repo": self.repo
             }
             
-            # Créer les agents avec une configuration complète
+            # Créer les agents avec des chemins absolus
             self.agents = {
                 "Specification": SpecificationsAgent({
                     **base_config,
-                    "file_path": "specifications.md",
-                    "watch_files": ["demande.md", "management.md", "production.md", "evaluation.md", "contexte.md"]
+                    "file_path": os.path.abspath("specifications.md"),
+                    "watch_files": [
+                        os.path.abspath(f) for f in 
+                        ["demande.md", "management.md", "production.md", "evaluation.md", "contexte.md"]
+                    ]
                 }),
                 "Management": ManagementAgent({
                     **base_config,
@@ -1332,13 +1339,13 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
     def update_agent_paths(self, mission_name: str) -> None:
         """Update file paths for all agents when mission changes"""
         try:
-            mission_dir = os.path.join("missions", mission_name)
+            # Utiliser un chemin absolu pour le dossier mission
+            mission_dir = os.path.abspath(os.path.join("missions", mission_name))
             
-            # Debug log
             self.log_message(f"Updating agent paths for mission: {mission_name}", level='debug')
-            self.log_message(f"Mission directory: {mission_dir}", level='debug')
+            self.log_message(f"Mission directory (absolute): {mission_dir}", level='debug')
             
-            # Update file paths for each agent
+            # Créer les chemins absolus pour chaque fichier
             new_paths = {
                 "Specification": os.path.join(mission_dir, "specifications.md"),
                 "Management": os.path.join(mission_dir, "management.md"),
@@ -1347,27 +1354,35 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 "Suivi": os.path.join(mission_dir, "suivi.md")
             }
             
-            # Update each agent's file path
+            # Mettre à jour les chemins des agents
             for name, agent in self.agents.items():
-                old_path = agent.file_path
-                agent.file_path = new_paths[name]
-                # Debug log
-                self.log_message(
-                    f"Updated {name} agent path: {old_path} -> {agent.file_path}", 
-                    level='debug'
-                )
-                
-                # Update watch_files to include new paths
-                agent.watch_files = [
-                    new_paths[other_name] 
-                    for other_name in self.agents.keys()
-                    if other_name != name
-                ]
-                
+                if name in new_paths:
+                    old_path = agent.file_path
+                    # Mettre à jour avec le nouveau chemin absolu
+                    agent.file_path = os.path.abspath(new_paths[name])
+                    
+                    # Debug log pour vérifier le changement
+                    self.log_message(
+                        f"Agent {name} path updated:\nOLD: {old_path}\nNEW: {agent.file_path}", 
+                        level='debug'
+                    )
+                    
+                    # Vérifier que le dossier existe
+                    os.makedirs(os.path.dirname(agent.file_path), exist_ok=True)
+                    
+                    # Mettre à jour watch_files avec les nouveaux chemins
+                    agent.watch_files = [
+                        os.path.abspath(new_paths[other_name])
+                        for other_name in new_paths.keys()
+                        if other_name != name
+                    ]
+            
             self.log_message(f"✓ Agent paths updated for mission: {mission_name}", level='success')
             
         except Exception as e:
             self.log_message(f"❌ Error updating agent paths: {str(e)}", level='error')
+            import traceback
+            self.log_message(traceback.format_exc(), level='error')
 
     def get_app(self):
         """Return the Flask app instance"""
