@@ -214,6 +214,15 @@ html, body {
     background-color: #37b24d;
 }
 
+/* Style spécifique pour le toggle de Suivi */
+.tab-item[data-tab="suivi"] .agent-toggle {
+    background-color: #f1f3f5;
+}
+
+.tab-item[data-tab="suivi"] .agent-toggle.running {
+    background-color: #40c057;
+}
+
 /* Agent status text */
 .agent-status {
     display: inline-flex;

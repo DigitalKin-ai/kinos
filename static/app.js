@@ -38,8 +38,7 @@ const ParallagonApp = {
                 { id: 'production', name: 'Production', icon: 'mdi mdi-code-braces' },
                 { id: 'evaluation', name: 'Evaluation', icon: 'mdi mdi-check-circle' },
                 { id: 'suivi', name: 'Suivi', icon: 'mdi mdi-history' },
-                { id: 'suivi-mission', name: 'Logs', icon: 'mdi mdi-console-line' },
-                { id: 'export-logs', name: 'Export', icon: 'mdi mdi-download' }
+                { id: 'suivi-mission', name: 'Logs', icon: 'mdi mdi-console-line' }
             ],
             content: {
                 demande: '',
@@ -461,7 +460,7 @@ const ParallagonApp = {
         },
 
         isAgentTab(tabId) {
-            return ['specifications', 'management', 'production', 'evaluation'].includes(tabId);
+            return ['specifications', 'management', 'production', 'evaluation', 'suivi'].includes(tabId);
         },
 
         isAgentRunning(tabId) {

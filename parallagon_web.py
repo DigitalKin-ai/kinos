@@ -396,6 +396,8 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             try:
                 # Convertir l'ID d'agent en nom d'agent
                 agent_name = agent_id.capitalize()
+                if agent_name == 'Suivi':  # Ajout du cas spécial pour Suivi
+                    agent_name = 'Suivi'  # Garder la casse originale
                 if agent_name not in self.agents:
                     return jsonify({'error': f'Agent {agent_id} not found'}), 404
                     
