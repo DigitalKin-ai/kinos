@@ -546,6 +546,31 @@ html, body {
     gap: 0.5rem;
 }
 
+/* Styles pour le panneau de contexte */
+.panel[data-tab="contexte"] .panel-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.contexte-file {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #228be6;
+}
+
+.contexte-file-header {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #228be6;
+}
+
+.contexte-file-content {
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
 /* Panels */
 .panel {
     width: 100%;

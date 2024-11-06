@@ -106,6 +106,12 @@ Répondez uniquement avec le score numérique."""
         except Exception as e:
             self.logger(f"Erreur mise à jour contexte.md: {e}")
 
+    def _filter_relevance(self, scored_files: list, threshold: float = 0.5, max_files: int = 10) -> list:
+        """Filtre les fichiers selon leur pertinence"""
+        filtered = [(path, score) for path, score in scored_files if score >= threshold]
+        filtered.sort(key=lambda x: x[1], reverse=True)
+        return filtered[:max_files]
+
     def determine_actions(self) -> None:
         """Logique principale de l'agent"""
         try:

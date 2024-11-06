@@ -295,19 +295,19 @@ Notes:
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response with fallback between providers"""
         try:
-            # Read contexte.md content
+            # Lire le contenu du contexte
             contexte_path = os.path.join(os.path.dirname(self.file_path), "contexte.md")
             selected_files = {}
             if os.path.exists(contexte_path):
                 with open(contexte_path, 'r', encoding='utf-8') as f:
                     contexte_content = f.read()
-                    # Extract selected files section
+                    # Extraire la section des fichiers pertinents
                     import re
                     files_section = re.search(r'## Fichiers Pertinents Sélectionnés\n(.*?)(?=\n#|$)', 
                                             contexte_content, 
                                             re.DOTALL)
                     if files_section:
-                        # Parse files and their content
+                        # Parser les fichiers et leur contenu
                         current_file = None
                         current_content = []
                         for line in files_section.group(1).split('\n'):
@@ -321,13 +321,14 @@ Notes:
                         if current_file:
                             selected_files[current_file] = '\n'.join(current_content)
 
-            # Build prompt with enriched context
-            prompt = self._build_prompt({
-                "other_files": context["other_files"],
-                "suivi": context.get("suivi", ""),
-                "logs": context.get("logs", []),
+            # Enrichir le contexte avec les fichiers sélectionnés
+            enriched_context = {
+                **context,
                 "contexte_files": selected_files
-            })
+            }
+
+            # Utiliser le contexte enrichi dans le prompt
+            prompt = self._build_prompt(enriched_context)
             
             # Try OpenAI first
             try:
