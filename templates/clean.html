@@ -4,6 +4,45 @@
 
 {% block head %}
 <style>
+    /* Style pour le conteneur de l'indicateur de chargement */
+    .loading-indicator {
+        display: none;  /* Caché par défaut */
+        padding: 10px;
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    /* Style pour les points de chargement */
+    .loading-dots {
+        display: inline-flex;
+        gap: 4px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        background-color: #000;
+        border-radius: 50%;
+        opacity: 0.3;
+    }
+
+    /* Animation des points */
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.3; }
+        50% { transform: scale(1.2); opacity: 0.7; }
+    }
+
+    .dot:nth-child(1) { animation: pulse 1.5s ease-in-out infinite; }
+    .dot:nth-child(2) { animation: pulse 1.5s ease-in-out infinite 0.2s; }
+    .dot:nth-child(3) { animation: pulse 1.5s ease-in-out infinite 0.4s; }
+
+    /* Classe pour afficher l'indicateur */
+    .loading-indicator.visible {
+        display: block;
+    }
+
     /* Styles pour les scrollbars discrètes */
     ::-webkit-scrollbar {
         width: 8px;
@@ -210,6 +249,14 @@
         <h1>⚫ Parallagon</h1>
     </div>
     <div id="suivi-display"></div>
+    <!-- Ajouter l'indicateur de chargement -->
+    <div class="loading-indicator" id="loadingIndicator">
+        <div class="loading-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
     <textarea id="demande-display">{{ demande_content }}</textarea>
 </div>
 <textarea id="clean-editor">{{ content }}</textarea>
@@ -289,6 +336,13 @@ async function updateSuiviContent() {
             // Mettre à jour seulement si le contenu a changé
             if (suiviDisplay.innerHTML !== newContent) {
                 suiviDisplay.innerHTML = newContent;
+                
+                // Ajouter l'indicateur après les bulles si running
+                if (isRunning) {
+                    const loadingIndicator = document.getElementById('loadingIndicator');
+                    loadingIndicator.classList.add('visible');
+                }
+                
                 scrollToBottom('suivi-display');
             }
         }
@@ -303,17 +357,22 @@ setInterval(updateSuiviContent, 1000);
 async function toggleControl() {
     const button = document.getElementById('controlButton');
     const icon = button.firstElementChild;
+    const loadingIndicator = document.getElementById('loadingIndicator');
     
     isRunning = !isRunning;
     
     if (isRunning) {
         // Switch to stop icon
         icon.className = 'stop-icon';
+        // Show loading indicator
+        loadingIndicator.classList.add('visible');
         // Call start API
         await fetch('/api/start', { method: 'POST' });
     } else {
         // Switch to play icon
         icon.className = 'play-icon';
+        // Hide loading indicator
+        loadingIndicator.classList.remove('visible');
         // Call stop API
         await fetch('/api/stop', { method: 'POST' });
     }
