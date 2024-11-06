@@ -13,6 +13,7 @@ Workflow:
 3. Validates content against requirements
 4. Maintains document structure integrity
 """
+import os
 from parallagon_agent import ParallagonAgent
 from search_replace import SearchReplace
 import anthropic
