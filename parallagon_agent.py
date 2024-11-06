@@ -295,17 +295,44 @@ Notes:
     def _get_llm_response(self, context: dict) -> str:
         """Get LLM response with fallback between providers"""
         try:
-            # Build prompt with proper context formatting
+            # Read contexte.md content
+            contexte_path = os.path.join(os.path.dirname(self.file_path), "contexte.md")
+            selected_files = {}
+            if os.path.exists(contexte_path):
+                with open(contexte_path, 'r', encoding='utf-8') as f:
+                    contexte_content = f.read()
+                    # Extract selected files section
+                    import re
+                    files_section = re.search(r'## Fichiers Pertinents Sélectionnés\n(.*?)(?=\n#|$)', 
+                                            contexte_content, 
+                                            re.DOTALL)
+                    if files_section:
+                        # Parse files and their content
+                        current_file = None
+                        current_content = []
+                        for line in files_section.group(1).split('\n'):
+                            if line.startswith('### '):
+                                if current_file:
+                                    selected_files[current_file] = '\n'.join(current_content)
+                                current_file = line[4:].strip()
+                                current_content = []
+                            elif line.strip() and current_file:
+                                current_content.append(line)
+                        if current_file:
+                            selected_files[current_file] = '\n'.join(current_content)
+
+            # Build prompt with enriched context
             prompt = self._build_prompt({
                 "other_files": context["other_files"],
-                "suivi": context["suivi"],
-                "logs": context.get("logs", [])
+                "suivi": context.get("suivi", ""),
+                "logs": context.get("logs", []),
+                "contexte_files": selected_files
             })
             
             # Try OpenAI first
             try:
                 response = self.openai_client.chat.completions.create(
-                    model="gpt-4o-mini",  # Modèle standardisé pour tous les agents (ne pas changer)
+                    model="gpt-4-turbo-preview",
                     messages=[{
                         "role": "user", 
                         "content": prompt
@@ -434,8 +461,19 @@ Notes:
             str: Formatted context string for LLM prompt
         """
         formatted = []
+        
+        # Format context files first if present
+        if "contexte_files" in context:
+            formatted.append("\n=== Fichiers Pertinents ===")
+            for filename, content in context["contexte_files"].items():
+                formatted.append(f"=== {filename} ===\n{content}\n")
+        
+        # Format other files
+        formatted.append("\n=== Autres Fichiers ===")
         for filename, content in context.items():
-            formatted.append(f"=== {filename} ===\n{content}\n")
+            if filename != "contexte_files":
+                formatted.append(f"=== {filename} ===\n{content}\n")
+                
         return "\n".join(formatted)
 
     def start(self) -> None:
