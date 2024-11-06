@@ -476,7 +476,8 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     "management.md",
                     "production.md",
                     "evaluation.md",
-                    "suivi.md"
+                    "suivi.md",
+                    "contexte.md"
                 ]
                 
                 missing_files = []
