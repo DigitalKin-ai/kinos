@@ -1,102 +1,65 @@
 import os
 from datetime import datetime
 from typing import List, Dict, Optional
-from database import Database
 
 class MissionService:
-    def init_database(self):
-        """Initialize database tables if they don't exist"""
-        with self.db.get_cursor() as cursor:
-            # Create missions table
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS missions (
-                    id SERIAL PRIMARY KEY,
-                    name VARCHAR(255) NOT NULL,
-                    description TEXT,
-                    status VARCHAR(50) DEFAULT 'active',
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-                );
-                
-                -- Create or replace the update trigger
-                CREATE OR REPLACE FUNCTION update_updated_at_column()
-                RETURNS TRIGGER AS $$
-                BEGIN
-                    NEW.updated_at = CURRENT_TIMESTAMP;
-                    RETURN NEW;
-                END;
-                $$ language 'plpgsql';
-                
-                -- Drop trigger if exists
-                DROP TRIGGER IF EXISTS update_missions_updated_at ON missions;
-                
-                -- Create trigger
-                CREATE TRIGGER update_missions_updated_at
-                    BEFORE UPDATE ON missions
-                    FOR EACH ROW
-                    EXECUTE FUNCTION update_updated_at_column();
-            """)
-
     def __init__(self):
-        self.db = Database()
-        self.init_database()  # Initialize database on service creation
+        self.missions_dir = "missions"
+        os.makedirs(self.missions_dir, exist_ok=True)
 
     def create_mission(self, name: str, description: str = None) -> Dict:
-        with self.db.get_cursor() as cursor:
-            cursor.execute(
-                """
-                INSERT INTO missions (name, description)
-                VALUES (%s, %s)
-                RETURNING id, name, description, status, 
-                         created_at, updated_at
-                """,
-                (name, description)
-            )
-            return cursor.fetchone()
+        """Create a new mission directory"""
+        mission_dir = os.path.join(self.missions_dir, name)
+        if os.path.exists(mission_dir):
+            raise ValueError(f"Mission '{name}' already exists")
+            
+        os.makedirs(mission_dir)
+        
+        # Create default files
+        for file_name in ["demande.md", "specifications.md", "management.md", 
+                         "production.md", "evaluation.md", "suivi.md"]:
+            with open(os.path.join(mission_dir, file_name), 'w', encoding='utf-8') as f:
+                f.write(f"# {file_name[:-3].capitalize()}\n[Initial content]")
+                
+        # Return mission info
+        return {
+            'id': len(self.get_all_missions()),
+            'name': name,
+            'description': description,
+            'status': 'active',
+            'created_at': datetime.now().isoformat(),
+            'updated_at': datetime.now().isoformat()
+        }
 
     def get_all_missions(self) -> List[Dict]:
-        """Get all missions with error handling"""
+        """Get all missions by reading directories"""
         try:
-            with self.db.get_cursor() as cursor:
-                cursor.execute(
-                    """
-                    SELECT id, name, description, status, 
-                           created_at, updated_at
-                    FROM missions
-                    ORDER BY created_at DESC
-                    """
-                )
-                missions = cursor.fetchall()
-                
-                # Convert datetime objects to strings for JSON serialization
-                for mission in missions:
-                    if mission['created_at']:
-                        mission['created_at'] = mission['created_at'].isoformat()
-                    if mission['updated_at']:
-                        mission['updated_at'] = mission['updated_at'].isoformat()
-                        
-                return missions
-                
+            missions = []
+            if os.path.exists(self.missions_dir):
+                for mission_name in os.listdir(self.missions_dir):
+                    mission_path = os.path.join(self.missions_dir, mission_name)
+                    if os.path.isdir(mission_path):
+                        mission = {
+                            'id': len(missions) + 1,  # Simple incremental ID
+                            'name': mission_name,
+                            'description': '',
+                            'status': 'active',
+                            'created_at': datetime.fromtimestamp(os.path.getctime(mission_path)).isoformat(),
+                            'updated_at': datetime.fromtimestamp(os.path.getmtime(mission_path)).isoformat()
+                        }
+                        missions.append(mission)
+            return missions
         except Exception as e:
             print(f"Error getting missions: {e}")
             return []
 
     def get_mission(self, mission_id: int) -> Optional[Dict]:
-        """Get a mission by ID with file paths"""
-        with self.db.get_cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT id, name, description, status, 
-                       created_at, updated_at
-                FROM missions
-                WHERE id = %s
-                """,
-                (mission_id,)
-            )
-            mission = cursor.fetchone()
-            if mission:
+        """Get a mission by ID"""
+        missions = self.get_all_missions()
+        for mission in missions:
+            if mission['id'] == mission_id:
                 # Add file paths
-                mission_dir = os.path.join("missions", mission['name'])
+                mission_dir = os.path.join(self.missions_dir, mission['name'])
                 mission['files'] = {
                     'demande': os.path.join(mission_dir, "demande.md"),
                     'specifications': os.path.join(mission_dir, "specifications.md"),
@@ -105,7 +68,8 @@ class MissionService:
                     'evaluation': os.path.join(mission_dir, "evaluation.md"),
                     'suivi': os.path.join(mission_dir, "suivi.md")
                 }
-            return mission
+                return mission
+        return None
 
     def update_mission(self, mission_id: int, name: str = None, 
                       description: str = None, status: str = None) -> Optional[Dict]:
@@ -161,18 +125,8 @@ class MissionService:
             return False
 
     def mission_exists(self, mission_name: str) -> bool:
-        """Check if a mission with the given name already exists"""
-        with self.db.get_cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT COUNT(*) as count
-                FROM missions
-                WHERE name = %s
-                """,
-                (mission_name,)
-            )
-            result = cursor.fetchone()
-            return result['count'] > 0
+        """Check if a mission directory exists"""
+        return os.path.exists(os.path.join(self.missions_dir, mission_name))
 
     def delete_mission(self, mission_id: int) -> bool:
         """Delete a mission from the database"""
