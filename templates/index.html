@@ -42,6 +42,9 @@
                 <button class="btn-test" @click="loadTestData" :disabled="running">
                     🧪 Test
                 </button>
+                <a href="/clean" class="btn-clean">
+                    🧹 Clean UI
+                </a>
                 <span class="status" :class="{ 'status-running': running }">
                     ● ${ running ? 'Running' : 'Stopped' }
                 </span>
