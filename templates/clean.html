@@ -270,7 +270,17 @@
         height: 100vh;
         overflow-y: auto;
         padding: 40px;
-        padding-right: 80px;
+        word-wrap: break-word;
+        overflow-x: hidden;
+    }
+
+    .markdown-content * {
+        max-width: 100%;
+    }
+
+    .markdown-content pre {
+        white-space: pre-wrap;
+        word-break: break-word;
     }
 
     /* Scrollbar styles for webkit browsers */
