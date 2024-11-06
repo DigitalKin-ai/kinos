@@ -72,7 +72,6 @@ const ParallagonApp = {
     methods: {
         async linkExternalMission() {
             try {
-                // Utiliser l'API du système de fichiers via un input
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.webkitdirectory = true;
@@ -80,13 +79,17 @@ const ParallagonApp = {
                 
                 input.onchange = async (e) => {
                     if (e.target.files.length > 0) {
-                        const path = e.target.files[0].path;
+                        // Get just the parent directory path of the first file
+                        const firstFile = e.target.files[0];
+                        const missionPath = firstFile.path.slice(0, -firstFile.name.length);
+                        
+                        // Create the link with this path
                         const response = await fetch('/api/missions/link', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify({ path })
+                            body: JSON.stringify({ path: missionPath })
                         });
                         
                         if (response.ok) {
