@@ -272,38 +272,49 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 "repo": self.repo
             }
             
+            # Créer les agents avec une configuration complète
             self.agents = {
                 "Specification": SpecificationsAgent({
                     **base_config,
                     "file_path": "specifications.md",
                     "watch_files": ["demande.md", "management.md", "production.md", "evaluation.md"]
                 }),
-                "Suivi": SuiviAgent({
-                    **base_config,
-                    "file_path": "suivi.md",
-                    "watch_files": ["demande.md", "specifications.md", "management.md", "production.md", "evaluation.md"],
-                    "logs_buffer": self.logs_buffer
-                }),
                 "Management": ManagementAgent({
                     **base_config,
                     "file_path": "management.md",
                     "watch_files": ["demande.md", "specifications.md", "production.md", "evaluation.md"]
                 }),
-                "Production": ProductionAgent({
+                "Production": ProductionAgent({  # Ajout de la configuration complète
                     **base_config,
                     "file_path": "production.md",
-                    "watch_files": ["demande.md", "specifications.md", "management.md", "evaluation.md"]
+                    "watch_files": ["demande.md", "specifications.md", "management.md", "evaluation.md"],
+                    "on_content_changed": self.handle_content_change  # Ajout du callback
                 }),
                 "Evaluation": EvaluationAgent({
                     **base_config,
                     "file_path": "evaluation.md",
                     "watch_files": ["demande.md", "specifications.md", "management.md", "production.md"]
+                }),
+                "Suivi": SuiviAgent({
+                    **base_config,
+                    "file_path": "suivi.md",
+                    "watch_files": ["demande.md", "specifications.md", "management.md", "production.md", "evaluation.md"],
+                    "logs_buffer": self.logs_buffer
                 })
             }
+
+            # Vérifier que tous les agents sont correctement initialisés
+            for name, agent in self.agents.items():
+                if not agent:
+                    raise ValueError(f"Agent {name} non initialisé correctement")
+                self.log_message(f"✓ Agent {name} initialisé", level='success')
+
             self.log_message("Agents initialized successfully", level='success')
             
         except Exception as e:
             self.log_message(f"Error initializing agents: {str(e)}", level='error')
+            import traceback
+            self.log_message(traceback.format_exc(), level='error')
             raise
 
     def handle_content_change(self, file_path: str, content: str, panel_name: str = None, flash: bool = False):
