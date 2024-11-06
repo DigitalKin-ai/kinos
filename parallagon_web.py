@@ -579,10 +579,14 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     description=data.get('description')
                 )
                 
+                # Update FileManager's current mission
+                self.file_manager.current_mission = mission_name
+                
                 # Create mission files
                 if not self.file_manager.create_mission_files(mission_name):
                     # Rollback database creation if file creation fails
                     self.mission_service.delete_mission(mission['id'])
+                    self.file_manager.current_mission = None
                     return jsonify({'error': 'Failed to create mission files'}), 500
                 
                 self.log_message(f"Mission '{mission_name}' created successfully", level='success')
@@ -599,6 +603,9 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 if not mission:
                     return jsonify({'error': 'Mission not found'}), 404
                     
+                # Update FileManager's current mission
+                self.file_manager.current_mission = mission['name']
+                
                 # Update agent paths when mission changes
                 self.update_agent_paths(mission['name'])
                 

@@ -17,6 +17,7 @@ class FileManager:
     def __init__(self, file_paths: Dict[str, str], on_content_changed=None):
         self.file_paths = file_paths
         self.on_content_changed = on_content_changed
+        self.current_mission = None
         self._ensure_files_exist()
         
     def create_mission_files(self, mission_name: str) -> bool:
@@ -127,12 +128,20 @@ En attente d'initialisation...
     def write_file(self, file_name: str, content: str) -> bool:
         """Write content to a file with locking"""
         try:
-            file_path = self.file_paths.get(file_name)
+            # Get full path based on current mission
+            if self.current_mission:
+                file_path = os.path.join("missions", self.current_mission, f"{file_name}.md")
+            else:
+                file_path = self.file_paths.get(file_name)
+                
             if not file_path:
                 print(f"FileManager: Chemin non trouvé pour {file_name}")
                 return False
                 
-            # Écrire directement le contenu
+            # Create parent directory if needed
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                
+            # Write content directly
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(content)
                 
