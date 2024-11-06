@@ -90,7 +90,7 @@
                         </h2>
                     </div>
                     <div class="panel-content">
-                        <pre class="content-display" v-html="highlightContent('specifications')"></pre>
+                        <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('specifications'))"></div>
                     </div>
                 </div>
 
@@ -102,7 +102,7 @@
                         </h2>
                     </div>
                     <div class="panel-content">
-                        <pre class="content-display" v-html="highlightContent('management')"></pre>
+                        <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('management'))"></div>
                     </div>
                 </div>
 
@@ -114,7 +114,7 @@
                         </h2>
                     </div>
                     <div class="panel-content">
-                        <pre class="content-display" v-html="highlightContent('production')"></pre>
+                        <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('production'))"></div>
                     </div>
                 </div>
 
@@ -126,7 +126,7 @@
                         </h2>
                     </div>
                     <div class="panel-content">
-                        <pre class="content-display" v-html="highlightContent('evaluation')"></pre>
+                        <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('evaluation'))"></div>
                     </div>
                 </div>
 
