@@ -299,7 +299,38 @@ function observeContentChanges(elementId) {
 }
 
 // Initialisation
+// Fonction pour vérifier l'état initial
+async function checkInitialState() {
+    try {
+        const response = await fetch('/api/status');
+        if (response.ok) {
+            const data = await response.json();
+            isRunning = data.running;
+            const button = document.getElementById('controlButton');
+            const icon = button.firstElementChild;
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            if (isRunning) {
+                icon.className = 'stop-icon';
+                loadingIndicator.classList.add('visible');
+                button.classList.remove('stopped');
+                button.classList.add('running');
+            } else {
+                icon.className = 'play-icon';
+                loadingIndicator.classList.remove('visible');
+                button.classList.remove('running');
+                button.classList.add('stopped');
+            }
+        }
+    } catch (error) {
+        console.error('Error checking initial state:', error);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Vérifier l'état initial
+    checkInitialState();
+    
     // Scroll initial vers le bas
     scrollToBottom('suivi-display');
     
@@ -363,22 +394,32 @@ async function toggleControl() {
     const icon = button.firstElementChild;
     const loadingIndicator = document.getElementById('loadingIndicator');
     
-    isRunning = !isRunning;
-    
-    if (isRunning) {
-        // Switch to stop icon
-        icon.className = 'stop-icon';
-        // Show loading indicator
-        loadingIndicator.classList.add('visible');
-        // Call start API
-        await fetch('/api/start', { method: 'POST' });
-    } else {
-        // Switch to play icon
-        icon.className = 'play-icon';
-        // Hide loading indicator
-        loadingIndicator.classList.remove('visible');
-        // Call stop API
-        await fetch('/api/stop', { method: 'POST' });
+    try {
+        if (!isRunning) {
+            // Démarrage
+            const response = await fetch('/api/start', { method: 'POST' });
+            if (response.ok) {
+                isRunning = true;
+                icon.className = 'stop-icon';
+                loadingIndicator.classList.add('visible');
+                button.classList.remove('stopped');
+                button.classList.add('running');
+                console.log('Started successfully');
+            }
+        } else {
+            // Arrêt
+            const response = await fetch('/api/stop', { method: 'POST' });
+            if (response.ok) {
+                isRunning = false;
+                icon.className = 'play-icon';
+                loadingIndicator.classList.remove('visible');
+                button.classList.remove('running');
+                button.classList.add('stopped');
+                console.log('Stopped successfully');
+            }
+        }
+    } catch (error) {
+        console.error('Error toggling control:', error);
     }
 }
 
