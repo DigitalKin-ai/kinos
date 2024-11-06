@@ -2,6 +2,8 @@
 ParallagonAgent - Base class for autonomous parallel agents
 
 Defines the core behavior and lifecycle of a Parallagon agent. Each agent:
+"""
+from typing import Dict, Any, Optional, List
 - Operates independently on its assigned file
 - Maintains its own rhythm of execution
 - Communicates through file content changes
