@@ -706,12 +706,17 @@ const ParallagonApp = {
 
         async toggleAgent(agentId) {
             try {
+                // Convertir la première lettre en majuscule
+                const formattedAgentId = agentId.charAt(0).toUpperCase() + agentId.slice(1);
+                // Enlever le 's' final si présent (pour matcher "Specification")
+                const normalizedAgentId = formattedAgentId.replace(/s$/, '');
+                
                 const isRunning = this.isAgentRunning(agentId);
                 const action = isRunning ? 'stop' : 'start';
                 
-                console.log(`Toggling agent ${agentId} to ${action}`); // Debug log
+                console.log(`Toggling agent ${normalizedAgentId} to ${action}`); // Debug log
                 
-                const response = await fetch(`http://localhost:8000/api/agent/${agentId}/${action}`, {
+                const response = await fetch(`http://localhost:8000/api/agent/${normalizedAgentId}/${action}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

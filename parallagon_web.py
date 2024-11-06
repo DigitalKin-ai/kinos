@@ -655,15 +655,17 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 if action not in ['start', 'stop']:
                     return jsonify({'error': 'Invalid action'}), 400
                     
-                # Convert agent_id to proper case
+                # Convert agent_id to proper case and normalize
                 agent_name = agent_id.capitalize()
+                if agent_name.endswith('s'):
+                    agent_name = agent_name[:-1]
                 
                 # Debug log
                 self.log_message(f"Looking for agent: {agent_name}", level='debug')
                 self.log_message(f"Available agents: {list(self.agents.keys())}", level='debug')
                 
                 if agent_name not in self.agents:
-                    return jsonify({'error': f'Agent {agent_id} not found'}), 404
+                    return jsonify({'error': f'Agent {agent_id} not found (normalized: {agent_name})'}), 404
                     
                 agent = self.agents[agent_name]
                 
