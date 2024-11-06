@@ -654,55 +654,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 'logs': self.logs_buffer
             })
             
-        @self.app.route('/api/logs/export')
-        def export_logs():
-            try:
-                timestamp = time.strftime("%Y%m%d-%H%M%S")
-                filename = f"parallagon-logs-{timestamp}.txt"
-                
-                # Format logs with timestamps, levels, and metadata
-                formatted_logs = []
-                for log in self.logs_buffer:
-                    timestamp = log.get('timestamp', '')
-                    level = log.get('level', 'info')
-                    message = log.get('message', '')
-                    agent = log.get('agent', '')
-                    operation = log.get('operation', '')
-                    status = log.get('status', '')
-                    
-                    # Build log line with all available information
-                    log_parts = [f"[{timestamp}]", f"[{level.upper()}]"]
-                    if agent:
-                        log_parts.append(f"[{agent}]")
-                    if operation:
-                        log_parts.append(f"[{operation}]")
-                    if status:
-                        log_parts.append(f"[{status}]")
-                    log_parts.append(message)
-                    
-                    formatted_logs.append(" ".join(log_parts))
-                
-                # Add header with export information
-                header = [
-                    "Parallagon Log Export",
-                    f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                    f"Total Entries: {len(self.logs_buffer)}",
-                    "-" * 80
-                ]
-                
-                # Combine header and logs
-                full_content = "\n".join(header + [""] + formatted_logs)
-                
-                # Create response with file download
-                response = make_response(full_content)
-                response.headers["Content-Disposition"] = f"attachment; filename={filename}"
-                response.headers["Content-Type"] = "text/plain"
-                
-                self.log_message("Logs exported successfully", level='success')
-                return response
-            except Exception as e:
-                self.log_message(f"Error exporting logs: {str(e)}", level='error')
-                return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/logs/export')
         def export_logs():
