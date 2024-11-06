@@ -343,7 +343,9 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             try:
                 with open('production.md', 'r', encoding='utf-8') as f:
                     content = f.read()
-                return render_template('clean.html', content=content)
+                with open('suivi.md', 'r', encoding='utf-8') as f:
+                    suivi_content = f.read()
+                return render_template('clean.html', content=content, suivi_content=suivi_content)
             except Exception as e:
                 return f"Error loading content: {str(e)}", 500
 

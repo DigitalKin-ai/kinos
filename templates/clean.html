@@ -5,9 +5,36 @@
 {% block head %}
 <style>
     .clean-container {
-        max-width: 1000px;
+        display: flex;
+        gap: 20px;
+        max-width: 1200px;  /* Increased to accommodate sidebar */
         margin: 20px auto;
         padding: 20px;
+    }
+
+    .suivi-sidebar {
+        width: 300px;
+        flex-shrink: 0;
+    }
+
+    .main-content {
+        flex-grow: 1;
+    }
+
+    .clean-content {
+        height: 100%;
+    }
+
+    #suivi-display {
+        width: 100%;
+        min-height: 600px;
+        border: none;
+        padding: 15px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        font-size: 12px;  /* Slightly smaller than main editor */
+        line-height: 1.6;
+        resize: vertical;
+        background-color: #f8f8f8;  /* Lighter background to differentiate */
     }
 
     .clean-header {
@@ -47,12 +74,17 @@
 
 {% block content %}
 <div class="clean-container">
-    <div class="clean-header">
-        <h1>⚫ Parallagon</h1>
-        <a href="/" class="btn-back">Back to Main UI</a>
+    <div class="suivi-sidebar">
+        <textarea id="suivi-display" readonly>{{ suivi_content }}</textarea>
     </div>
-    <div class="clean-content">
-        <textarea id="clean-editor">{{ content }}</textarea>
+    <div class="main-content">
+        <div class="clean-header">
+            <h1>⚫ Parallagon</h1>
+            <a href="/" class="btn-back">Back to Main UI</a>
+        </div>
+        <div class="clean-content">
+            <textarea id="clean-editor">{{ content }}</textarea>
+        </div>
     </div>
 </div>
 {% endblock %}
