@@ -871,10 +871,13 @@ textarea.content-area {
 
 /* Suivi Mission specific styles */
 .suivi-mission-content {
-    @apply bg-gray-900 rounded;
-    flex: 1;
-    overflow: auto;
+    background-color: #f0f2f5;  /* Fond gris clair type Messenger */
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Grid layout */
@@ -1206,16 +1209,33 @@ body {
     margin-right: 0.5rem;
 }
 
+/* Messages de succès */
 .suivi-mission-entry.success {
-    color: #48BB78;  /* Vert */
+    background-color: #0084ff;
+    color: white;
+    align-self: flex-end;
 }
 
-.suivi-mission-entry.warning {
-    color: #F6AD55;  /* Orange */
-}
-
+/* Messages d'erreur */
 .suivi-mission-entry.error {
-    color: #FC8181;  /* Rouge */
+    background-color: #ff4444;
+    color: white;
+    align-self: flex-start;
+}
+
+/* Messages d'info */
+.suivi-mission-entry.info {
+    background-color: #ffffff;
+    color: #050505;
+    align-self: flex-start;
+    border: 1px solid #e4e6eb;
+}
+
+/* Messages d'avertissement */
+.suivi-mission-entry.warning {
+    background-color: #ffa726;
+    color: white;
+    align-self: flex-start;
 }
 
 /* Suivi panel specific styles */
