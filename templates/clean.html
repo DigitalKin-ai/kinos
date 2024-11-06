@@ -6,10 +6,16 @@
 <style>
     /* Style pour le conteneur de l'indicateur de chargement */
     .loading-indicator {
-        display: none;  /* Caché par défaut */
-        padding: 5px 10px;
-        margin: 4px 0;
-        align-self: flex-start;
+        position: sticky;
+        bottom: 20px;
+        left: 20px;
+        display: none;
+        padding: 8px 12px;
+        margin: 8px 0;
+        background-color: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 100;
     }
 
     /* Style pour les points de chargement */
@@ -41,9 +47,11 @@
     /* Classe pour afficher l'indicateur */
     .loading-indicator.visible {
         display: inline-flex;
-        background-color: white;
-        border-radius: 15px;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        align-items: center;
+    }
+
+    #suivi-display {
+        position: relative;
     }
 
     /* Styles pour les scrollbars discrètes */
@@ -252,13 +260,13 @@
         <h1>⚫ Parallagon</h1>
     </div>
     <div id="suivi-display">
-        <!-- Les bulles de chat seront ici -->
-        <div class="loading-indicator" id="loadingIndicator">
-            <div class="loading-dots">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-            </div>
+        <!-- Les bulles de chat seront ajoutées ici -->
+    </div>
+    <div class="loading-indicator" id="loadingIndicator">
+        <div class="loading-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
         </div>
     </div>
     <textarea id="demande-display">{{ demande_content }}</textarea>
@@ -360,6 +368,7 @@ async function updateSuiviContent() {
         if (response.ok) {
             const data = await response.json();
             const suiviDisplay = document.getElementById('suivi-display');
+            const loadingIndicator = document.getElementById('loadingIndicator');
             const lines = data.content.split('\n').filter(line => line.trim());
             
             // Créer le nouveau contenu HTML
@@ -372,10 +381,11 @@ async function updateSuiviContent() {
             if (suiviDisplay.innerHTML !== newContent) {
                 suiviDisplay.innerHTML = newContent;
                 
-                // Ajouter l'indicateur après les bulles si running
+                // Réinsérer l'indicateur de chargement après les bulles
                 if (isRunning) {
-                    const loadingIndicator = document.getElementById('loadingIndicator');
                     loadingIndicator.classList.add('visible');
+                } else {
+                    loadingIndicator.classList.remove('visible');
                 }
                 
                 scrollToBottom('suivi-display');
