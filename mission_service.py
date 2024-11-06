@@ -4,8 +4,42 @@ from typing import List, Dict, Optional
 from database import Database
 
 class MissionService:
+    def init_database(self):
+        """Initialize database tables if they don't exist"""
+        with self.db.get_cursor() as cursor:
+            # Create missions table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS missions (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(255) NOT NULL,
+                    description TEXT,
+                    status VARCHAR(50) DEFAULT 'active',
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                -- Create or replace the update trigger
+                CREATE OR REPLACE FUNCTION update_updated_at_column()
+                RETURNS TRIGGER AS $$
+                BEGIN
+                    NEW.updated_at = CURRENT_TIMESTAMP;
+                    RETURN NEW;
+                END;
+                $$ language 'plpgsql';
+                
+                -- Drop trigger if exists
+                DROP TRIGGER IF EXISTS update_missions_updated_at ON missions;
+                
+                -- Create trigger
+                CREATE TRIGGER update_missions_updated_at
+                    BEFORE UPDATE ON missions
+                    FOR EACH ROW
+                    EXECUTE FUNCTION update_updated_at_column();
+            """)
+
     def __init__(self):
         self.db = Database()
+        self.init_database()  # Initialize database on service creation
 
     def create_mission(self, name: str, description: str = None) -> Dict:
         with self.db.get_cursor() as cursor:
@@ -21,16 +55,31 @@ class MissionService:
             return cursor.fetchone()
 
     def get_all_missions(self) -> List[Dict]:
-        with self.db.get_cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT id, name, description, status, 
-                       created_at, updated_at
-                FROM missions
-                ORDER BY created_at DESC
-                """
-            )
-            return cursor.fetchall()
+        """Get all missions with error handling"""
+        try:
+            with self.db.get_cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT id, name, description, status, 
+                           created_at, updated_at
+                    FROM missions
+                    ORDER BY created_at DESC
+                    """
+                )
+                missions = cursor.fetchall()
+                
+                # Convert datetime objects to strings for JSON serialization
+                for mission in missions:
+                    if mission['created_at']:
+                        mission['created_at'] = mission['created_at'].isoformat()
+                    if mission['updated_at']:
+                        mission['updated_at'] = mission['updated_at'].isoformat()
+                        
+                return missions
+                
+        except Exception as e:
+            print(f"Error getting missions: {e}")
+            return []
 
     def get_mission(self, mission_id: int) -> Optional[Dict]:
         """Get a mission by ID with file paths"""

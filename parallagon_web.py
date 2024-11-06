@@ -444,7 +444,11 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         def get_missions():
             try:
                 missions = self.mission_service.get_all_missions()
+                if missions is None:
+                    return jsonify({'error': 'Failed to fetch missions'}), 500
+                    
                 return jsonify(missions)
+                
             except Exception as e:
                 self.log_message(f"Error getting missions: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500

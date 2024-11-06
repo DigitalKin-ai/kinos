@@ -810,6 +810,35 @@ textarea.content-area {
 .mission-sidebar {
     width: 280px;
     background-color: #1a202c;
+}
+
+/* Loading states */
+.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mission-list.loading::before {
+    content: 'Loading missions...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #4a5568;
+    font-size: 0.875rem;
     border-right: 1px solid #2d3748;
     transition: width 0.3s ease;
     display: flex;

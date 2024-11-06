@@ -121,14 +121,29 @@ const ParallagonApp = {
 
         async loadMissions() {
             try {
+                this.loading = true;  // Add loading state
                 const response = await fetch('/api/missions');
+                
                 if (!response.ok) {
-                    throw new Error('Failed to load missions');
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                this.missions = await response.json();
+                
+                const missions = await response.json();
+                
+                if (Array.isArray(missions)) {
+                    this.missions = missions;
+                    this.addNotification('success', 'Missions loaded successfully');
+                } else {
+                    throw new Error('Invalid missions data received');
+                }
+                
             } catch (error) {
                 console.error('Error loading missions:', error);
                 this.addNotification('error', `Failed to load missions: ${error.message}`);
+                this.missions = [];  // Reset missions on error
+                
+            } finally {
+                this.loading = false;  // Clear loading state
             }
         },
 
