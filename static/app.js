@@ -25,6 +25,9 @@ const ParallagonApp = {
                 { id: 1, name: 'Mission IoT Kineis' },
                 { id: 2, name: 'Mission CIR 2024' }
             ],
+            isCreatingMission: false,
+            newMissionName: '',
+            missionIdCounter: 3, // Start after existing missions
             runningAgents: new Set(), // Track which agents are running
             notifications: [],
             connectionStatus: 'disconnected',
@@ -83,6 +86,42 @@ const ParallagonApp = {
                 console.error('Error selecting mission:', error);
                 this.addNotification('error', `Erreur lors de la sélection de la mission: ${error.message}`);
             }
+        },
+
+        startCreatingMission() {
+            this.isCreatingMission = true;
+            this.$nextTick(() => {
+                this.$refs.newMissionInput.focus();
+            });
+        },
+
+        cancelCreatingMission() {
+            this.isCreatingMission = false;
+            this.newMissionName = '';
+        },
+
+        createMission() {
+            if (!this.newMissionName.trim()) {
+                return;
+            }
+
+            const newMission = {
+                id: this.missionIdCounter++,
+                name: this.newMissionName.trim()
+            };
+
+            // Add new mission to list
+            this.missions.push(newMission);
+
+            // Select the new mission
+            this.selectMission(newMission);
+
+            // Reset form
+            this.isCreatingMission = false;
+            this.newMissionName = '';
+
+            // Success notification
+            this.addNotification('success', `Mission "${newMission.name}" créée`);
         },
 
         async loadInitialContent() {

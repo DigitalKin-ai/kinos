@@ -61,6 +61,23 @@
                         <i class="mdi" :class="missionSidebarCollapsed ? 'mdi-chevron-right' : 'mdi-chevron-left'"></i>
                     </button>
                 </div>
+                <div class="mission-create" v-if="!missionSidebarCollapsed">
+                    <div v-if="!isCreatingMission" 
+                         @click="startCreatingMission" 
+                         class="mission-create-btn">
+                        <i class="mdi mdi-plus"></i>
+                        <span>Créer une mission</span>
+                    </div>
+                    <div v-else class="mission-create-input-container">
+                        <input v-model="newMissionName" 
+                               ref="newMissionInput"
+                               @keyup.enter="createMission"
+                               @blur="cancelCreatingMission"
+                               @keyup.esc="cancelCreatingMission"
+                               placeholder="Nom de la mission"
+                               class="mission-create-input">
+                    </div>
+                </div>
                 <div class="mission-list">
                     <div v-for="mission in missions" 
                          :key="mission.id"

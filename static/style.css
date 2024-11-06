@@ -817,6 +817,55 @@ textarea.content-area {
     border-left: 3px solid #3182ce;
 }
 
+/* Mission creation styles */
+.mission-create {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #2d3748;
+}
+
+.mission-create-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #e2e8f0;
+    transition: background-color 0.2s;
+}
+
+.mission-create-btn:hover {
+    background-color: #2d3748;
+}
+
+.mission-create-btn i {
+    font-size: 1.2rem;
+}
+
+.mission-create-input-container {
+    padding: 0.25rem 0;
+}
+
+.mission-create-input {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #4a5568;
+    background-color: #2d3748;
+    color: #e2e8f0;
+    font-size: 0.875rem;
+}
+
+.mission-create-input:focus {
+    outline: none;
+    border-color: #3182ce;
+    box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.3);
+}
+
+.mission-create-input::placeholder {
+    color: #a0aec0;
+}
+
 .mission-name {
     white-space: nowrap;
     overflow: hidden;
