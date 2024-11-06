@@ -74,6 +74,7 @@ const ParallagonApp = {
             try {
                 // Utiliser l'API moderne de sélection de dossier
                 const directoryHandle = await window.showDirectoryPicker();
+                console.log('Selected directory:', directoryHandle.name);
                 
                 // Obtenir le chemin complet via une requête spéciale
                 const response = await fetch('/api/missions/get-directory-path', {
@@ -88,10 +89,12 @@ const ParallagonApp = {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to get directory path');
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to get directory path');
                 }
 
                 const { path } = await response.json();
+                console.log('Resolved path:', path);
                 
                 // Créer le lien avec le chemin complet
                 const linkResponse = await fetch('/api/missions/link', {
@@ -102,12 +105,12 @@ const ParallagonApp = {
                     body: JSON.stringify({ path })
                 });
                 
-                if (response.ok) {
-                    const mission = await response.json();
+                if (linkResponse.ok) {
+                    const mission = await linkResponse.json();
                     this.missions.unshift(mission);
                     this.addNotification('success', `Dossier externe lié avec succès`);
                 } else {
-                    const error = await response.json();
+                    const error = await linkResponse.json();
                     throw new Error(error.error);
                 }
                 

@@ -505,11 +505,17 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     os.path.expanduser(f"~/{directory_name}")  # Dans le home
                 ]
                 
+                # Debug log
+                self.log_message(f"Searching for directory: {directory_name}")
+                self.log_message(f"Possible paths: {possible_paths}")
+                
                 # Trouver le premier chemin valide
                 for path in possible_paths:
                     if os.path.isdir(path):
+                        self.log_message(f"Found valid path: {path}")
                         return jsonify({'path': path})
-                        
+                
+                self.log_message(f"No valid path found for: {directory_name}", level='error')        
                 return jsonify({'error': 'Directory not found'}), 404
                 
             except Exception as e:
