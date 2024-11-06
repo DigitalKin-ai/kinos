@@ -170,6 +170,22 @@ class MissionService:
             # Create symbolic link
             os.symlink(external_path, link_path, target_is_directory=True)
             
+            # Create any missing required files in the external directory
+            required_files = [
+                "demande.md",
+                "specifications.md", 
+                "management.md",
+                "production.md",
+                "evaluation.md",
+                "suivi.md"
+            ]
+            
+            for file_name in required_files:
+                file_path = os.path.join(external_path, file_name)
+                if not os.path.exists(file_path):
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write(f"# {file_name[:-3].capitalize()}\n[Initial content]")
+            
             # Return mission info
             return {
                 'id': len(self.get_all_missions()),

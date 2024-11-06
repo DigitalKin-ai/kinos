@@ -72,6 +72,7 @@ const ParallagonApp = {
     methods: {
         async linkExternalMission() {
             try {
+                // Créer un élément input invisible
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.setAttribute('directory', '');
@@ -79,26 +80,11 @@ const ParallagonApp = {
                 
                 input.onchange = async (e) => {
                     if (e.target.files.length > 0) {
-                        // Get just the parent directory path of the first file
+                        // Prendre uniquement le dossier parent du premier fichier
                         const firstFile = e.target.files[0];
                         const missionPath = firstFile.path.split(firstFile.name)[0];
                         
-                        // Validate directory first
-                        const validateResponse = await fetch('/api/missions/validate-directory', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ path: missionPath })
-                        });
-                        
-                        if (!validateResponse.ok) {
-                            const error = await validateResponse.json();
-                            this.addNotification('error', error.error || 'Dossier invalide');
-                            return;
-                        }
-                        
-                        // If valid, create the link
+                        // Créer le lien directement
                         const response = await fetch('/api/missions/link', {
                             method: 'POST',
                             headers: {
