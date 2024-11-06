@@ -110,13 +110,43 @@ html, body {
 
 .tab-item {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 0.5rem;
     padding: 0.75rem 1rem;
-    cursor: pointer;
     border-bottom: 1px solid #e9ecef;
     color: #495057;
     transition: background-color 0.2s;
+}
+
+.tab-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    cursor: pointer;
+}
+
+.agent-toggle {
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+    color: #495057;
+}
+
+.agent-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.agent-toggle.running {
+    color: #40c057;
+}
+
+.agent-toggle.running:hover {
+    color: #fa5252;
 }
 
 .tab-item:hover {
