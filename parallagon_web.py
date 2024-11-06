@@ -348,7 +348,113 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         except Exception as e:
             self.log_message(f"Error handling content change: {str(e)}", level='error')
 
+    def toggle_agent(self, agent_id: str, action: str) -> bool:
+        """
+        Toggle an individual agent's state
+        
+        Args:
+            agent_id: ID of the agent to toggle
+            action: 'start' or 'stop'
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            agent_name = agent_id.capitalize()
+            if agent_name not in self.agents:
+                self.log_message(f"Agent {agent_id} not found", level='error')
+                return False
+                
+            agent = self.agents[agent_name]
+            
+            if action == 'start':
+                if not agent.running:
+                    agent.start()
+                    thread = threading.Thread(
+                        target=agent.run,
+                        daemon=True,
+                        name=f"Agent-{agent_name}"
+                    )
+                    thread.start()
+                    self.log_message(f"Agent {agent_name} started", level='success')
+            elif action == 'stop':
+                if agent.running:
+                    agent.stop()
+                    self.log_message(f"Agent {agent_name} stopped", level='info')
+            
+            return True
+            
+        except Exception as e:
+            self.log_message(f"Failed to toggle agent {agent_id}: {str(e)}", level='error')
+            return False
+
     def setup_routes(self):
+        @self.app.route('/api/agent/<agent_id>/start', methods=['POST'])
+        def start_single_agent(agent_id):
+            """Start a specific agent"""
+            try:
+                # Convertir l'ID d'agent en nom d'agent
+                agent_name = agent_id.capitalize()
+                if agent_name not in self.agents:
+                    return jsonify({'error': f'Agent {agent_id} not found'}), 404
+                    
+                # Démarrer l'agent spécifique
+                agent = self.agents[agent_name]
+                agent.start()
+                
+                # Créer un thread dédié pour cet agent
+                thread = threading.Thread(
+                    target=agent.run,
+                    daemon=True,
+                    name=f"Agent-{agent_name}"
+                )
+                thread.start()
+                
+                self.log_message(f"Agent {agent_name} started individually", level='success')
+                return jsonify({'status': 'success', 'message': f'Agent {agent_name} started'})
+                
+            except Exception as e:
+                self.log_message(f"Failed to start agent {agent_id}: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
+        @self.app.route('/api/agent/<agent_id>/stop', methods=['POST'])
+        def stop_single_agent(agent_id):
+            """Stop a specific agent"""
+            try:
+                # Convertir l'ID d'agent en nom d'agent
+                agent_name = agent_id.capitalize()
+                if agent_name not in self.agents:
+                    return jsonify({'error': f'Agent {agent_id} not found'}), 404
+                    
+                # Arrêter l'agent spécifique
+                agent = self.agents[agent_name]
+                agent.stop()
+                
+                self.log_message(f"Agent {agent_name} stopped individually", level='info')
+                return jsonify({'status': 'success', 'message': f'Agent {agent_name} stopped'})
+                
+            except Exception as e:
+                self.log_message(f"Failed to stop agent {agent_id}: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
+        @self.app.route('/api/agents/status', methods=['GET'])
+        def get_agents_status():
+            """Get status of all agents"""
+            try:
+                status = {
+                    name.lower(): {
+                        'running': agent.running,
+                        'last_run': agent.last_run.isoformat() if agent.last_run else None,
+                        'last_change': agent.last_change.isoformat() if agent.last_change else None
+                    }
+                    for name, agent in self.agents.items()
+                }
+                return jsonify(status)
+                
+            except Exception as e:
+                self.log_message(f"Failed to get agents status: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
         @self.app.route('/clean')
         def clean_interface():
             try:
