@@ -4,10 +4,15 @@
 
 {% block head %}
 <style>
-    body {
+    html, body {
         margin: 0;
         padding: 0;
-        background-color: white; /* Fond blanc pour tout */
+        background-color: white;
+        height: 100%;
+    }
+
+    #content, .container, .wrapper {
+        background-color: white;
     }
 
     .suivi-sidebar {
@@ -20,6 +25,7 @@
         display: flex;
         flex-direction: column;
         border-right: none;
+        z-index: 1;
     }
 
     .sidebar-header {
@@ -53,14 +59,16 @@
         width: calc(100% - 300px);
         min-height: 100vh;
         border: none;
-        padding: 40px 40px 40px 40px; /* Padding uniforme */
+        padding: 40px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         font-size: 1rem;
         line-height: 1.6;
         resize: none;
-        background-color: white; /* Fond blanc */
+        background-color: white;
         color: #333;
         outline: none;
+        position: relative;
+        z-index: 0;
     }
 
     *:focus {
