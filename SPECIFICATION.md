@@ -93,6 +93,58 @@ Description de l'état...
   * Identification des améliorations
   * Sign-off final
 
+### 3.5 AiderAgent
+- **Fichier**: aider_agent.py
+- **Rôle**: Base générique pour les agents utilisant Aider
+- **Responsabilités**:
+  * Gestion des interactions avec l'outil Aider
+  * Standardisation des modifications de fichiers
+  * Configuration des prompts spécifiques aux rôles
+  * Gestion des chemins de fichiers
+
+#### 3.5.1 Configuration
+```python
+AIDER_CONFIG = {
+    "role": "NomDuRole",           # Rôle spécifique de l'agent
+    "aider_prompt": "...",         # Prompt adapté au rôle
+    "file_path": "path/to/file",   # Fichier principal
+    "watch_files": ["..."],        # Fichiers à surveiller
+}
+```
+
+#### 3.5.2 Instanciation des Agents
+```python
+agents = {
+    "Specification": AiderAgent(config_spec),
+    "Production": AiderAgent(config_prod),
+    "Management": AiderAgent(config_mgmt),
+    "Evaluation": AiderAgent(config_eval)
+}
+```
+
+#### 3.5.3 Flux de Travail
+1. **Initialisation**
+   - Validation de la configuration
+   - Conversion des chemins en absolus
+   - Création des dossiers nécessaires
+
+2. **Exécution**
+   - Lecture du contexte actuel
+   - Construction du prompt spécifique au rôle
+   - Exécution d'Aider avec les paramètres appropriés
+   - Gestion des modifications de fichiers
+
+3. **Communication**
+   - Utilisation des prompts standardisés
+   - Surveillance des fichiers pertinents
+   - Logging des opérations et erreurs
+
+#### 3.5.4 Avantages
+- Réutilisation du code entre agents
+- Standardisation des interactions avec Aider
+- Gestion cohérente des fichiers
+- Facilité d'ajout de nouveaux agents
+
 ## 4. Pattern de Modification
 
 ### 4.1 Principe SEARCH/REPLACE
