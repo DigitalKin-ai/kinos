@@ -885,10 +885,15 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         @self.app.route('/')
         def home():
             try:
+                # Initialize content variables
+                content = self.file_manager.read_file("production")
+                suivi_content = self.file_manager.read_file("suivi")
+                demande_content = self.file_manager.read_file("demande")
+                
                 return render_template('editor.html', 
-                             content=content, 
-                             suivi_content=suivi_content,
-                             demande_content=demande_content)
+                             content=content if content else "",
+                             suivi_content=suivi_content if suivi_content else "",
+                             demande_content=demande_content if demande_content else "")
             except Exception as e:
                 return f"Error loading content: {str(e)}", 500
 
