@@ -14,8 +14,6 @@ import openai
 import anthropic
 import os
 from datetime import datetime, timedelta
-from pathlib import Path
-from search_replace import SearchReplace, SearchReplaceResult
 from functools import wraps
 
 def agent_error_handler(method_name: str):
@@ -33,6 +31,7 @@ def agent_error_handler(method_name: str):
                 return None
         return wrapper
     return decorator
+
 """
 Foundation for autonomous file-focused agents.
 
@@ -55,8 +54,6 @@ import openai
 import anthropic
 import os
 from datetime import datetime, timedelta
-from pathlib import Path
-from search_replace import SearchReplace, SearchReplaceResult
 from functools import wraps
 
 def agent_error_handler(method_name: str):
@@ -142,8 +139,6 @@ class ParallagonAgent:
         'SpecificationsAgent': {'require_level1_heading': True},
         'EvaluationAgent': {'required_sections': ["Évaluations en Cours", "Vue d'Ensemble"]}
     }
-
-
 
     @agent_error_handler("read_files")
     def read_files(self) -> None:
@@ -274,133 +269,6 @@ class ParallagonAgent:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur inattendue: {str(e)}")
             return False
 
-    def determine_actions(self) -> None:
-        try:
-            self.logger(f"[{self.__class__.__name__}] Analyse du contenu...")
-            
-            context = {
-                "current": self.current_content,
-                "other_files": self.other_files
-            }
-            
-            response = self._get_llm_response(context)
-            if response and response != self.current_content:
-                if self.write_file(response):
-                    self.current_content = response
-                    self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
-                else:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Échec de la mise à jour")
-                    
-        except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
-
-    def _build_prompt(self, context: dict) -> str:
-        return f"""Vous êtes l'agent d'évaluation. Votre rôle est de vérifier la qualité du contenu produit.
-
-Contexte actuel :
-{self._format_other_files(context)}
-
-IMPORTANT - PHASES DE DÉMARRAGE:
-- Au démarrage initial, il est normal qu'il n'y ait pas encore de contenu à évaluer
-- Les spécifications et le contenu se construisent progressivement
-- Ne pas signaler d'erreur si les fichiers sont vides ou contiennent des placeholders
-- Attendre que du contenu réel soit présent avant de commencer l'évaluation
-
-Votre tâche :
-1. Vérifier le respect des spécifications (si présentes)
-2. Évaluer la qualité du contenu (si présent)
-3. Identifier les points à améliorer
-
-Format de réponse :
-# Évaluations en Cours
-[section: Nom Section]
-- Qualité: [✓|⚠️|❌] Commentaire
-- Conformité: [✓|⚠️|❌] Commentaire
-
-# Vue d'Ensemble
-[progression: X%]
-[status: VALIDATED|NEEDS_WORK|REJECTED]
-
-Notes:
-- Utiliser ✓ pour valider
-- Utiliser ⚠️ pour les améliorations mineures
-- Utiliser ❌ pour les problèmes majeurs
-- Si pas de contenu à évaluer, indiquer "En attente de contenu à évaluer" """
-
-    def _get_llm_response(self, context: dict) -> str:
-        """Get LLM response with fallback between providers"""
-        try:
-            # Lire le contenu du contexte
-            contexte_path = os.path.join(os.path.dirname(self.file_path), "contexte.md")
-            selected_files = {}
-            if os.path.exists(contexte_path):
-                with open(contexte_path, 'r', encoding='utf-8') as f:
-                    contexte_content = f.read()
-                    # Extraire la section des fichiers pertinents
-                    import re
-                    files_section = re.search(r'## Fichiers Pertinents Sélectionnés\n(.*?)(?=\n#|$)', 
-                                            contexte_content, 
-                                            re.DOTALL)
-                    if files_section:
-                        # Parser les fichiers et leur contenu
-                        current_file = None
-                        current_content = []
-                        for line in files_section.group(1).split('\n'):
-                            if line.startswith('### '):
-                                if current_file:
-                                    selected_files[current_file] = '\n'.join(current_content)
-                                current_file = line[4:].strip()
-                                current_content = []
-                            elif line.strip() and current_file:
-                                current_content.append(line)
-                        if current_file:
-                            selected_files[current_file] = '\n'.join(current_content)
-
-            # Enrichir le contexte avec les fichiers sélectionnés
-            enriched_context = {
-                **context,
-                "contexte_files": selected_files
-            }
-
-            # Utiliser le contexte enrichi dans le prompt
-            prompt = self._build_prompt(enriched_context)
-            
-            # Try OpenAI first
-            try:
-                response = self.openai_client.chat.completions.create(
-                    model="gpt-4o-mini",  # Modèle standard de openai (ne pas remplacer)
-                    messages=[{
-                        "role": "user", 
-                        "content": prompt
-                    }],
-                    temperature=0,
-                    max_tokens=4000
-                )
-                return response.choices[0].message.content
-                
-            except Exception as e:
-                self.logger(f"[{self.__class__.__name__}] ❌ Erreur OpenAI: {str(e)}")
-                
-                # Fallback to Anthropic
-                try:
-                    response = self.client.messages.create(
-                        model="claude-3-sonnet-20240229",
-                        max_tokens=4000,
-                        messages=[{
-                            "role": "user",
-                            "content": prompt
-                        }]
-                    )
-                    return response.content[0].text
-                    
-                except Exception as e:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur Anthropic: {str(e)}")
-                    return None
-                    
-        except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur dans _get_llm_response: {str(e)}")
-            return None
-
     @agent_error_handler("update")
     def update(self) -> None:
         """Make necessary updates to files based on determined actions."""
@@ -428,35 +296,6 @@ Notes:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur mise à jour: {str(e)}")
             import traceback
             self.logger(traceback.format_exc())
-
-
-
-    def _format_other_files(self, context: dict) -> str:
-        """
-        Format the context files for the prompt.
-        
-        Transforms the raw file contents into a structured format
-        suitable for LLM processing, maintaining clear separation
-        between different files and their contents.
-        
-        Returns:
-            str: Formatted context string for LLM prompt
-        """
-        formatted = []
-        
-        # Format context files first if present
-        if "contexte_files" in context:
-            formatted.append("\n=== Fichiers Pertinents ===")
-            for filename, content in context["contexte_files"].items():
-                formatted.append(f"=== {filename} ===\n{content}\n")
-        
-        # Format other files
-        formatted.append("\n=== Autres Fichiers ===")
-        for filename, content in context.items():
-            if filename != "contexte_files":
-                formatted.append(f"=== {filename} ===\n{content}\n")
-                
-        return "\n".join(formatted)
 
     def start(self) -> None:
         """Start this individual agent"""

@@ -68,10 +68,6 @@
                             <i class="mdi mdi-plus"></i>
                             <span>Créer une mission</span>
                         </div>
-                        <div @click="linkExternalMission" class="mission-create-btn">
-                            <i class="mdi mdi-link"></i>
-                            <span>Lier un dossier externe</span>
-                        </div>
                     </div>
                     <div v-else class="mission-create-input-container">
                         <input v-model="newMissionName" 
@@ -112,7 +108,7 @@
                         <span>${ tab.name }</span>
                     </div>
                     <!-- Toggle button for agent tabs -->
-                    <button v-if="isAgentTab(tab.id) || tab.id === 'contexte'"
+                    <button v-if="isAgentTab(tab.id)"
                             class="agent-toggle"
                             :class="{ 'running': isAgentRunning(tab.id) }"
                             @click.stop="toggleAgent(tab.id)"

@@ -14,31 +14,11 @@ __all__ = [
     'SuiviAgent'
 ]
 
-def validate_prompt(prompt_file: str) -> bool:
-    """Vérifie qu'un fichier prompt est valide"""
-    try:
-        with open(prompt_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        # Vérifier les éléments requis
-        required_elements = [
-            "{context}",  # Placeholder pour le contexte
-            "Votre tâche",
-            "Format de réponse"
-        ]
-        
-        return all(element in content for element in required_elements)
-        
-    except Exception:
-        return False
-
 class SpecificationsAgent(AiderAgent):
     """Agent gérant les spécifications"""
     def __init__(self, config):
         super().__init__(config)
         self.prompt_file = "prompts/specifications.md"
-        if not validate_prompt(self.prompt_file):
-            raise ValueError(f"Invalid prompt file: {self.prompt_file}")
 
 class ProductionAgent(AiderAgent):
     """Agent gérant la production"""
@@ -51,20 +31,16 @@ class ManagementAgent(AiderAgent):
     def __init__(self, config):
         super().__init__(config)
         self.prompt_file = "prompts/management.md"
-        
-    def analyze(self):
-        """Analyse spécifique pour le management"""
-        super().analyze()
-        # Ajouter logique spécifique au management
 
 class EvaluationAgent(AiderAgent):
     """Agent gérant l'évaluation"""
     def __init__(self, config):
         super().__init__(config)
         self.prompt_file = "prompts/evaluation.md"
-        
-    def analyze(self):
-        """Analyse spécifique pour l'évaluation"""
-        super().analyze()
-        # Ajouter logique spécifique à l'évaluation
+
+class SuiviAgent(AiderAgent):
+    """Agent gérant le Suivi"""
+    def __init__(self, config):
+        super().__init__(config)
+        self.prompt_file = "prompts/suivi.md"
 

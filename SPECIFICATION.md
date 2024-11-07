@@ -105,8 +105,8 @@ Description de l'état...
 #### 3.5.1 Configuration
 ```python
 AIDER_CONFIG = {
-    "role": "NomDuRole",           # Rôle spécifique de l'agent
-    "aider_prompt": "...",         # Prompt adapté au rôle
+    "name": "NomDuname",           # Rôle spécifique de l'agent
+    "prompt": "...",         # Prompt adapté au rôle
     "file_path": "path/to/file",   # Fichier principal
     "watch_files": ["..."],        # Fichiers à surveiller
 }

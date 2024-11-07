@@ -17,15 +17,15 @@ class AiderAgent(ParallagonAgent):
         super().__init__(config)
         
         # Validation de la configuration
-        if "role" not in config:
-            raise ValueError("Le rôle de l'agent doit être spécifié")
-        if "aider_prompt" not in config:
-            raise ValueError("Le prompt Aider doit être spécifié")
+        if "name" not in config:
+            raise ValueError("Le nom de l'agent doit être spécifié")
+        if "prompt" not in config:
+            raise ValueError("Le prompt de l'agent doit être spécifié")
         if "mission_name" not in config:
             raise ValueError("Le nom de la mission doit être spécifié")
             
-        self.role = config["role"]
-        self.aider_prompt = config["aider_prompt"]
+        self.name = config["name"]
+        self.prompt = config["prompt"]
         self.prompt_file = config.get("prompt_file")
         self._prompt_cache = {}
         
@@ -48,44 +48,14 @@ class AiderAgent(ParallagonAgent):
                 for f in config["watch_files"]
             ]
             
-        self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.role}")
+        self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
         self.logger(f"[{self.__class__.__name__}] Dossier mission: {mission_dir}")
         self.logger(f"[{self.__class__.__name__}] Fichier principal: {self.file_path}")
         self.logger(f"[{self.__class__.__name__}] Fichiers surveillés: {self.watch_files}")
 
-    def _get_aider_instructions(self, prompt: str) -> Optional[str]:
-        """Obtient les instructions pour Aider via GPT"""
-        try:
-            system_prompt = f"""Vous êtes {self.role}. 
-Générez des instructions claires pour l'outil Aider qui modifiera le fichier {os.path.basename(self.file_path)}.
-Les instructions doivent être précises et spécifier exactement quels changements effectuer.
-
-Format attendu:
-1. Listez les modifications à faire
-2. Utilisez des références exactes au contenu existant
-3. Décrivez le nouveau contenu à insérer
-4. Restez factuel et direct"""
-
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            self.logger(f"Erreur génération instructions Aider: {str(e)}")
-            return None
-
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Exécute Aider avec le prompt donné"""
         try:
-            # Obtenir les instructions pour Aider
-            aider_instructions = self._get_aider_instructions(prompt)
-            if not aider_instructions:
-                return None
 
             # S'assurer que nous sommes dans le bon dossier de mission
             mission_dir = os.path.dirname(self.file_path)
@@ -110,12 +80,12 @@ Format attendu:
                     cmd.extend(["--read", os.path.relpath(file, mission_dir)])
                     
                 # Ajouter le message
-                cmd.extend(["--message", aider_instructions])
+                cmd.extend(["--message", self.prompt])
                 
                 # Logger la commande
                 self.logger(f"[{self.__class__.__name__}] 🤖 Commande Aider:")
                 self.logger(f"  Command: {' '.join(cmd)}")
-                self.logger(f"  Instructions: {aider_instructions}")
+                self.logger(f"  Instructions: {self.prompt}")
                 
                 # Exécuter Aider
                 process = subprocess.Popen(

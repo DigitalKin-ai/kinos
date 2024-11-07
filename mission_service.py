@@ -33,30 +33,8 @@ class MissionService:
         "management.md",
         "production.md",
         "evaluation.md",
-        "suivi.md",
-        "contexte.md"
+        "suivi.md"
     ]
-
-    def _is_valid_mission_dir(self, mission_dir: str) -> bool:
-        """Ensure directory contains all required mission files"""
-        try:
-            # Check if it's a directory
-            if not os.path.isdir(mission_dir):
-                return False
-                
-            # Check for all required files
-            for file_name in self.REQUIRED_FILES:
-                file_path = os.path.join(mission_dir, file_name)
-                if not os.path.isfile(file_path):
-                    # Create missing files with default content
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write(f"# {file_name[:-3].capitalize()}\n[Initial content]")
-                        
-            return True
-            
-        except Exception as e:
-            print(f"Error validating mission directory: {e}")
-            return False
 
     def create_mission(self, name: str, description: str = None) -> Dict:
         """Create a new mission directory"""
@@ -113,8 +91,7 @@ class MissionService:
                         except Exception as e:
                             print(f"Erreur lecture dossier: {e}")
                     
-                    if (os.path.isdir(real_path) and 
-                        self._is_valid_mission_dir(real_path)):
+                    if os.path.isdir(real_path):
                         mission = {
                             'id': len(missions) + 1,
                             'name': mission_name,
@@ -147,8 +124,7 @@ class MissionService:
                     'management': os.path.join(mission_dir, "management.md"),
                     'production': os.path.join(mission_dir, "production.md"),
                     'evaluation': os.path.join(mission_dir, "evaluation.md"),
-                    'suivi': os.path.join(mission_dir, "suivi.md"),
-                    'contexte': os.path.join(mission_dir, "contexte.md")
+                    'suivi': os.path.join(mission_dir, "suivi.md")
                 }
                 return mission
         return None
@@ -197,60 +173,6 @@ class MissionService:
     def mission_exists(self, mission_name: str) -> bool:
         """Check if a mission directory exists"""
         return os.path.exists(os.path.join(self.missions_dir, mission_name))
-
-    def create_mission_link(self, external_path: str, mission_name: str = None) -> Dict:
-        """Create a symbolic link to an external mission folder"""
-        try:
-            # Validate external path exists and is a directory
-            external_path = os.path.abspath(external_path)
-            if not os.path.isdir(external_path):
-                raise ValueError(f"Path does not exist or is not a directory: {external_path}")
-                
-            # Use provided name or extract from path
-            if not mission_name:
-                mission_name = os.path.basename(external_path.rstrip('/\\'))
-                
-            # Create link path in missions directory
-            link_path = os.path.join(self.missions_dir, mission_name)
-            
-            # Check if mission already exists
-            if os.path.exists(link_path):
-                raise ValueError(f"Mission '{mission_name}' already exists")
-
-            # Create any missing required files in the external directory first
-            for file_name in self.REQUIRED_FILES:
-                file_path = os.path.join(external_path, file_name)
-                if not os.path.exists(file_path):
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write(f"# {file_name[:-3].capitalize()}\n[Initial content]")
-                
-            # Handle Windows vs Unix symlinks
-            if os.name == 'nt':  # Windows
-                os.makedirs(link_path)
-                # Copy files instead of symlink
-                for file_name in self.REQUIRED_FILES:
-                    src_file = os.path.join(external_path, file_name)
-                    dst_file = os.path.join(link_path, file_name)
-                    import shutil
-                    shutil.copy2(src_file, dst_file)
-            else:
-                # Unix symlink
-                os.symlink(external_path, link_path, target_is_directory=True)
-            
-            # Return mission info
-            return {
-                'id': len(self.get_all_missions()),
-                'name': mission_name,
-                'description': f"External mission at {external_path}",
-                'status': 'active',
-                'created_at': datetime.now().isoformat(),
-                'updated_at': datetime.now().isoformat(),
-                'external_path': external_path
-            }
-            
-        except Exception as e:
-            print(f"Error creating mission link: {e}")
-            raise
 
     def delete_mission(self, mission_id: int) -> bool:
         """Delete a mission directory and all its files"""

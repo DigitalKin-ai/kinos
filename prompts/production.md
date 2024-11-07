@@ -1,8 +1,5 @@
 Vous êtes l'agent de production. Votre rôle est de produire le contenu selon les spécifications.
 
-Contexte actuel :
-{context}
-
 Votre tâche :
 1. Analyser les spécifications et la demande
 2. Produire ou mettre à jour le contenu

@@ -17,8 +17,7 @@ from agents import (
     SpecificationsAgent,
     ProductionAgent,
     ManagementAgent,
-    EvaluationAgent,
-    ContexteAgent
+    EvaluationAgent
 )
 
 class ParallagonWeb:
@@ -34,7 +33,7 @@ class ParallagonWeb:
     def _load_test_data(self):
         """Load test data from template file"""
         try:
-            test_data_path = os.path.join("templates", "test_data", "test_content.md")
+            test_data_path = os.path.join("templates", "test_data", "demande_test_1.md")
             if not os.path.exists(test_data_path):
                 self.log_message(f"Test data file not found: {test_data_path}", level='error')
                 return ""
@@ -44,139 +43,6 @@ class ParallagonWeb:
         except Exception as e:
             self.log_message(f"Error loading test data: {str(e)}", level='error')
             return ""
-
-    def _load_test_data(self):
-        """Load test data from template file"""
-        try:
-            test_data_path = os.path.join("templates", "test_data", "test_content.md")
-            if not os.path.exists(test_data_path):
-                self.log_message(f"Test data file not found: {test_data_path}", level='error')
-                return ""
-                
-            with open(test_data_path, 'r', encoding='utf-8') as f:
-                return f.read()
-        except Exception as e:
-            self.log_message(f"Error loading test data: {str(e)}", level='error')
-            return ""
-- Montrer sa contribution à l'objectif global
-- Justifier sa pertinence dans le projet
-- Style : Concis, technique mais accessible
-- Aucune référence nécessaire
-
-### 2. Synthèse des connaissances actuelles (400-500 mots)
-
-**But** : Établir l'état des connaissances existantes pertinentes pour l'axe.
-
-**Directives** :
-- Structurer par thèmes ou approches principales
-- Présenter chronologiquement les avancées majeures
-- Références : 6-8 publications clés (< 5 ans sauf si fondamentales)
-- Style : Paragraphes courts, progressifs
-- Privilégier la paraphrase aux citations directes
-- Maintenir le fil conducteur vers l'objectif de l'axe
-
-### 3. Analyse critique et limites (300-400 mots)
-
-**But** : Démontrer l'insuffisance des approches actuelles.
-
-**Directives** :
-- Identifier 3-4 limites majeures
-- Lier chaque limite à l'objectif de l'axe
-- Références : 3-4 publications illustrant ces limites
-- Un paragraphe par limite majeure
-- Utiliser des connecteurs logiques
-- Tone objectif et factuel
-
-### 4. Verrous scientifiques et techniques (200-250 mots)
-
-**But** : Identifier les obstacles spécifiques bloquant l'atteinte de l'objectif.
-
-**Directives** :
-- Structure pour chaque verrou :
-  - Description du verrou
-  - Impact sur l'objectif
-  - Tentatives actuelles de résolution
-  - Limitations de ces tentatives
-- Références : 1-2 publications par verrou
-- Style : Technique mais clair
-- Lien explicite avec les critères CIR
-
-### 5. Conclusion de l'axe (100-150 mots)
-
-**But** : Synthétiser la nécessité de nouvelles recherches pour cet axe.
-
-**Directives** :
-- Résumer les limites principales
-- Justifier le besoin de nouvelles approches
-- Ne pas décrire les solutions envisagées
-- Style : Synthétique et conclusif
-- Aucune nouvelle référence
-
-## Synthèse multi-axes (250-300 mots)
-
-**But** : Démontrer la cohérence globale des axes et leur complémentarité.
-
-**Directives** :
-- Rappeler brièvement les verrous majeurs de chaque axe
-- Montrer les interactions entre les axes
-- Justifier la nécessité d'aborder tous les axes
-- Expliquer la contribution de chaque axe à l'objectif global
-- Style : Vue d'ensemble stratégique
-- Aucune nouvelle référence
-
-## Conclusion générale (150-200 mots)
-
-**But** : Synthétiser la nécessité globale du projet de R&D.
-
-**Directives** :
-- Rappeler l'objectif global
-- Résumer les principaux verrous identifiés
-- Justifier la nécessité d'une approche R&D
-- Style : Accessible aux non-spécialistes
-- Aucune nouvelle référence
-
-## Références bibliographiques
-
-**Directives** :
-- Format : Norme APA ou IEEE
-- Organisation : Par ordre alphabétique ou d'apparition
-- Nombre : 10-15 références par axe
-- Qualité : Publications académiques, brevets, standards
-- Date : Privilégier les références récentes (< 5 ans)
-- Pertinence : Chaque référence doit être citée dans le texte
-
-## Directives générales
-
-### Format et style
-- Longueur totale : 2000-2500 mots + 1100-1450 mots par axe
-- Style scientifique et objectif
-- Éviter le conditionnel sauf pour les perspectives
-- Paragraphes courts et structurés
-- Transitions logiques entre sections
-
-### Critères CIR à satisfaire
-- Démontrer l'état des connaissances accessibles
-- Identifier clairement les limites actuelles
-- Justifier la nécessité de travaux de R&D
-- Établir le caractère nouveau des recherches
-- Mettre en évidence les verrous technologiques
-
-### Relations clés à maintenir
-- État de l'art ↔ Objectif global
-- État de l'art ↔ Objectifs spécifiques des axes
-- Axes ↔ Verrous technologiques
-- Verrous ↔ Critères CIR
-- Axes entre eux (complémentarité)
-
-## But global de l'état de l'art
-
-Démontrer rigoureusement que l'objectif global du projet ne peut être atteint avec les connaissances et approches actuelles, justifiant ainsi la nécessité d'engager des travaux de R&D potentiellement éligibles au CIR. Pour cela, l'état de l'art doit :
-1. Établir l'état des connaissances accessible
-2. Identifier les limites des approches existantes
-3. Démontrer l'existence de verrous technologiques
-4. Justifier la nécessité d'une approche R&D structurée
-5. Préparer la justification des travaux proposés
-"""
 
     def __init__(self, config):
         self.app = Flask(__name__)
