@@ -1,5 +1,5 @@
 from agents import (SpecificationsAgent, ProductionAgent, 
-    ManagementAgent, EvaluationAgent, ContexteAgent)
+    ManagementAgent, EvaluationAgent, ContexteAgent, SuiviAgent)
 from parallagon_agent import ParallagonAgent
 from flask import Flask, render_template, jsonify, request, make_response
 from flask_cors import CORS

@@ -82,3 +82,20 @@ class ContexteAgent(ParallagonAgent):
         except Exception as e:
             self.logger(f"Erreur chargement prompt: {e}")
             return super()._build_prompt(context)  # Fallback au prompt par défaut
+class SuiviAgent(ParallagonAgent):
+    """Agent gérant le suivi des opérations"""
+    def __init__(self, config):
+        super().__init__(config)
+        self.prompt_file = config.get("prompt_file")
+        
+    def _build_prompt(self, context: dict) -> str:
+        """Charge et formate le prompt depuis le fichier"""
+        try:
+            with open(self.prompt_file, 'r', encoding='utf-8') as f:
+                prompt_template = f.read()
+            return prompt_template.format(
+                context=self._format_other_files(context)
+            )
+        except Exception as e:
+            self.logger(f"Erreur chargement prompt: {e}")
+            return super()._build_prompt(context)
