@@ -1412,8 +1412,9 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
     def update_agent_paths(self, mission_name: str) -> None:
         """Update file paths for all agents when mission changes"""
         try:
-            # Utiliser un chemin absolu pour le dossier mission
+            # Ensure mission directory exists
             mission_dir = os.path.abspath(os.path.join("missions", mission_name))
+            os.makedirs(mission_dir, exist_ok=True)
             
             self.log_message(f"Updating agent paths for mission: {mission_name}", level='debug')
             
@@ -1425,24 +1426,41 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             # Update paths for each agent with correct file mappings
             agent_files = {
                 "Specification": {
-                    "main": "specifications.md",
-                    "watch": ["demande.md", "production.md"]
+                    "main": os.path.join(mission_dir, "specifications.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "demande.md"),
+                        os.path.join(mission_dir, "production.md")
+                    ]
                 },
                 "Production": {
-                    "main": "production.md",
-                    "watch": ["specifications.md", "evaluation.md"]
+                    "main": os.path.join(mission_dir, "production.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ]
                 },
                 "Management": {
-                    "main": "management.md",
-                    "watch": ["specifications.md", "production.md", "evaluation.md"]
+                    "main": os.path.join(mission_dir, "management.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ]
                 },
                 "Evaluation": {
-                    "main": "evaluation.md",
-                    "watch": ["specifications.md", "production.md"]
+                    "main": os.path.join(mission_dir, "evaluation.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md")
+                    ]
                 },
                 "Contexte": {
-                    "main": "contexte.md",
-                    "watch": ["demande.md", "specifications.md", "production.md"]
+                    "main": os.path.join(mission_dir, "contexte.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "demande.md"),
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md")
+                    ]
                 }
             }
             
@@ -1450,10 +1468,10 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 try:
                     if name in agent_files:
                         config = agent_files[name]
+                        # Pass pre-built absolute paths
                         agent.update_paths(
-                            os.path.join(mission_dir, config["main"]),
-                            [os.path.join(mission_dir, watch_file) 
-                             for watch_file in config["watch"]]
+                            config["main"],
+                            config["watch"]
                         )
                 except Exception as e:
                     self.log_message(f"Error updating paths for {name}: {str(e)}", level='error')
