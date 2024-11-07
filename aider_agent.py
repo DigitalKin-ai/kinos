@@ -94,6 +94,11 @@ Format attendu:
                 "--message", aider_instructions
             ]
             
+            # Logger la commande complète
+            self.logger(f"[{self.__class__.__name__}] 🤖 Commande Aider:")
+            self.logger(f"  Command: {' '.join(cmd)}")
+            self.logger(f"  Instructions: {aider_instructions}")
+            
             # Exécuter Aider
             process = subprocess.Popen(
                 cmd,
@@ -104,8 +109,14 @@ Format attendu:
             
             stdout, stderr = process.communicate()
             
+            # Logger la sortie
+            if stdout:
+                self.logger(f"[{self.__class__.__name__}] ✓ Sortie Aider:\n{stdout}")
+            if stderr:
+                self.logger(f"[{self.__class__.__name__}] ⚠️ Erreurs Aider:\n{stderr}")
+            
             if process.returncode != 0:
-                self.logger(f"[{self.__class__.__name__}] ❌ Erreur Aider: {stderr}")
+                self.logger(f"[{self.__class__.__name__}] ❌ Échec (code {process.returncode})")
                 return None
                 
             return stdout
