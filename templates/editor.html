@@ -194,6 +194,9 @@
                         </h2>
                     </div>
                     <div class="panel-content">
+                        <!-- Debug output -->
+                        <pre>${ JSON.stringify(suiviEntries, null, 2) }</pre>
+                    
                         <div class="suivi-content">
                             <div v-for="entry in suiviEntries"
                                  :key="entry.id"
