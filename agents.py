@@ -22,12 +22,22 @@ class ManagementAgent(AiderAgent):
     def __init__(self, config):
         super().__init__(config)
         self.prompt_file = "prompts/management.md"
+        
+    def analyze(self):
+        """Analyse spécifique pour le management"""
+        super().analyze()
+        # Ajouter logique spécifique au management
 
 class EvaluationAgent(AiderAgent):
     """Agent gérant l'évaluation"""
     def __init__(self, config):
         super().__init__(config)
         self.prompt_file = "prompts/evaluation.md"
+        
+    def analyze(self):
+        """Analyse spécifique pour l'évaluation"""
+        super().analyze()
+        # Ajouter logique spécifique à l'évaluation
 
 class ContexteAgent(ParallagonAgent):
     """Agent gérant le contexte"""
@@ -35,6 +45,11 @@ class ContexteAgent(ParallagonAgent):
         super().__init__(config)
         self.prompt_file = "prompts/contexte.md"
         self.current_context = set()
+        
+    def analyze(self):
+        """Analyse spécifique pour le contexte"""
+        super().analyze()
+        # Ajouter logique spécifique au contexte
 
     def _build_prompt(self, context: dict) -> str:
         """Charge et formate le prompt depuis le fichier"""
