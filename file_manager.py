@@ -22,8 +22,7 @@ class FileManager:
             'management': 'management.md',
             'production': 'production.md',
             'evaluation': 'evaluation.md',
-            'suivi': 'suivi.md'  # Ajout explicite de suivi.md
-            # Removed contexte.md from managed files
+            'suivi': 'suivi.md'
         }
         # Override with provided paths
         if file_paths:
