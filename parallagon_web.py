@@ -1,3 +1,11 @@
+from agents import (
+    SpecificationsAgent,
+    ProductionAgent, 
+    ManagementAgent,
+    EvaluationAgent,
+    ContexteAgent
+)
+from parallagon_agent import ParallagonAgent
 from flask import Flask, render_template, jsonify, request, make_response
 from flask_cors import CORS
 from flask_limiter import Limiter
