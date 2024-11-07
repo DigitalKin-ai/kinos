@@ -709,7 +709,13 @@ const ParallagonApp = {
                 // Convertir la première lettre en majuscule
                 const formattedAgentId = agentId.charAt(0).toUpperCase() + agentId.slice(1);
                 
-                // Pas besoin d'enlever le 's' final ici, le backend s'en charge
+                // Ne pas convertir en SuiviMission
+                const agentName = formattedAgentId;
+                
+                if (!this.agents.hasOwnProperty(agentName)) {
+                    throw new Error(`Agent ${agentId} not found (normalized: ${agentName})`);
+                }
+                
                 const isRunning = this.isAgentRunning(agentId);
                 const action = isRunning ? 'stop' : 'start';
                 

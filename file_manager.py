@@ -65,23 +65,31 @@ class FileManager:
             
         mission_dir = os.path.join("missions", self.current_mission)
         
-        for name, base_path in self.file_paths.items():
+        # Liste explicite des fichiers à créer
+        required_files = [
+            "demande.md",
+            "specifications.md",
+            "management.md",
+            "production.md",
+            "evaluation.md",
+            "suivi.md",
+            "contexte.md"
+        ]
+        
+        for file_name in required_files:
             try:
-                # Construire le chemin dans le dossier de mission
-                file_path = os.path.join(mission_dir, os.path.basename(base_path))
-                
-                # Créer uniquement si le fichier n'existe pas
+                file_path = os.path.join(mission_dir, file_name)
                 if not os.path.exists(file_path):
                     os.makedirs(os.path.dirname(file_path), exist_ok=True)
                     with open(file_path, 'w', encoding='utf-8') as f:
-                        initial_content = self._get_initial_content(name)
+                        initial_content = self._get_initial_content(file_name.replace('.md', ''))
                         f.write(initial_content)
-                    print(f"Created new file with default content: {file_path}")
+                    print(f"Created {file_name} with initial content")
                 else:
                     print(f"Using existing file: {file_path}")
                     
             except Exception as e:
-                raise self.FileError(f"Error with {file_path}: {str(e)}")
+                raise self.FileError(f"Error with {file_name}: {str(e)}")
 
     def _get_initial_content(self, file_name: str) -> str:
         """Get initial content for a file based on its name"""

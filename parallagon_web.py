@@ -361,6 +361,18 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     ],
                     "prompt_file": "prompts/contexte.md",
                     "aider_prompt": load_prompt("prompts/contexte.md")
+                }),
+                "Suivi": SuiviAgent({
+                    **base_config,
+                    "role": "Suivi",
+                    "file_path": os.path.join(mission_dir, "suivi.md"),
+                    "watch_files": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ],
+                    "prompt_file": "prompts/suivi.md",
+                    "aider_prompt": load_prompt("prompts/suivi.md")
                 })
             }
 
