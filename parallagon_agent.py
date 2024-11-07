@@ -92,27 +92,6 @@ class ParallagonAgent:
     - Activity-based timing adjustments
     """
     
-    # Validation rules for different agent types
-    VALIDATION_CONFIGS = {
-        'ProductionAgent': {'validate_raw': True},  # Allows raw content updates
-        'ManagementAgent': {                        # Requires specific sections
-            'required_sections': ["Consignes Actuelles", "TodoList", "Actions Réalisées"]
-        },
-        'SpecificationsAgent': {                    # Enforces structural rules
-            'require_level1_heading': True
-        },
-        'EvaluationAgent': {                        # Maintains evaluation structure
-            'required_sections': ["Évaluations en Cours", "Vue d'Ensemble"]
-        }
-    }
-
-    # Base execution rhythms for each agent type
-    DEFAULT_INTERVALS = {
-        'SpecificationsAgent': 30,  # Template changes - slower pace
-        'ManagementAgent': 10,      # Coordination updates - medium pace
-        'ProductionAgent': 5,       # Content creation - rapid pace
-        'EvaluationAgent': 15       # Quality control - moderate pace
-    }
 
     def __init__(self, config: Dict[str, Any]):
         """
@@ -164,37 +143,6 @@ class ParallagonAgent:
         'EvaluationAgent': {'required_sections': ["Évaluations en Cours", "Vue d'Ensemble"]}
     }
 
-    def _validate_markdown_response(self, response: str) -> bool:
-        """
-        Validate that LLM response follows required markdown format.
-        
-        Validation rules:
-        - Checks for required sections based on agent type
-        - Validates heading structure
-        - Ensures content format compliance
-        - Applies agent-specific validation rules
-        
-        Returns:
-            bool: True if response is valid, False otherwise
-        """
-        agent_type = self.__class__.__name__
-        config = self.VALIDATION_CONFIGS.get(agent_type, {})
-        
-        if config.get('validate_raw'):
-            return True
-            
-        if config.get('require_level1_heading'):
-            if not re.search(r'^# .+$', response, re.MULTILINE):
-                print(f"[{agent_type}] No level 1 headings found")
-                return False
-                
-        required_sections = config.get('required_sections', [])
-        for section in required_sections:
-            if f"# {section}" not in response:
-                print(f"[{agent_type}] Missing required section: {section}")
-                return False
-                
-        return True
 
 
     @agent_error_handler("read_files")
@@ -572,38 +520,6 @@ Notes:
         self.last_change = None
         self.consecutive_no_changes = 0
 
-    def recover_from_error(self):
-        """Try to recover from error state"""
-        try:
-            self.logger(f"[{self.__class__.__name__}] Attempting recovery...")
-            
-            # Reset internal state
-            self.last_run = None
-            self.last_change = None
-            self.consecutive_no_changes = 0
-            
-            # Re-read files
-            self.read_files()
-            
-            # Log recovery attempt
-            self.logger(f"[{self.__class__.__name__}] Recovery complete")
-            return True
-            
-        except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] Recovery failed: {str(e)}")
-            return False
-
-    def update_paths(self, file_path: str, watch_files: List[str]) -> None:
-        """Update file paths when mission changes"""
-        try:
-            self.file_path = file_path
-            self.watch_files = watch_files
-            
-            # Re-read files with new paths
-            self.read_files()
-            
-        except Exception as e:
-            print(f"Error updating paths for {self.__class__.__name__}: {e}")
 
     def stop(self) -> None:
         """
