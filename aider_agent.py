@@ -133,11 +133,41 @@ Format attendu:
                 if stderr:
                     self.logger(f"[{self.__class__.__name__}] ⚠️ Erreurs Aider:\n{stderr}")
                 
-                if process.returncode != 0:
+                if process.returncode == 0:
+                    # Si Aider a réussi, lire le nouveau contenu du fichier
+                    with open(self.file_path, 'r', encoding='utf-8') as f:
+                        new_content = f.read()
+                    
+                    # Notifier du changement via une requête à l'API
+                    try:
+                        # Construire l'URL relative au fichier modifié
+                        file_name = os.path.basename(self.file_path)
+                        panel_name = os.path.splitext(file_name)[0].capitalize()
+                        
+                        # Faire la requête POST pour notifier du changement
+                        import requests
+                        response = requests.post(
+                            'http://localhost:8000/api/content/change',
+                            json={
+                                'file_path': self.file_path,
+                                'content': new_content,
+                                'panel_name': panel_name,
+                                'flash': True
+                            }
+                        )
+                        
+                        if response.status_code == 200:
+                            self.logger(f"✓ Notification de changement envoyée pour {panel_name}")
+                        else:
+                            self.logger(f"❌ Erreur notification changement: {response.status_code}")
+                            
+                    except Exception as e:
+                        self.logger(f"❌ Erreur envoi notification: {str(e)}")
+                    
+                    return stdout
+                else:
                     self.logger(f"[{self.__class__.__name__}] ❌ Échec (code {process.returncode})")
                     return None
-                    
-                return stdout
                 
             finally:
                 # Toujours revenir au dossier original

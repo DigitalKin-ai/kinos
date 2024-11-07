@@ -915,6 +915,25 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 self.log_message(f"Error getting content: {str(e)}")
                 return jsonify({'error': str(e)}), 500
 
+        @self.app.route('/api/content/change', methods=['POST'])
+        def handle_content_change():
+            try:
+                data = request.get_json()
+                
+                # Appeler la méthode de notification existante
+                self.handle_content_change(
+                    file_path=data['file_path'],
+                    content=data['content'],
+                    panel_name=data['panel_name'],
+                    flash=data.get('flash', True)
+                )
+                
+                return jsonify({'status': 'success'})
+                
+            except Exception as e:
+                self.log_message(f"Error handling content change: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
         @self.app.route('/api/start', methods=['POST'])
         def start_agents():
             self.start_agents()
