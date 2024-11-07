@@ -53,10 +53,19 @@ class FileManager:
             return False
         
     def _ensure_files_exist(self):
-        """Create files if they don't exist"""
-        for name, file_path in self.file_paths.items():
+        """Create files if they don't exist in current mission folder"""
+        # Skip if no mission is selected
+        if not self.current_mission:
+            return
+            
+        mission_dir = os.path.join("missions", self.current_mission)
+        
+        for name, base_path in self.file_paths.items():
             try:
+                # Construire le chemin dans le dossier de mission
+                file_path = os.path.join(mission_dir, os.path.basename(base_path))
                 if not os.path.exists(file_path):
+                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
                     with open(file_path, 'w', encoding='utf-8') as f:
                         initial_content = self._get_initial_content(name)
                         f.write(initial_content)
