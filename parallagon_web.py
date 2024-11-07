@@ -710,7 +710,11 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     
                 # Convert agent_id to proper case and normalize
                 agent_name = agent_id.capitalize()
-                if agent_name.endswith('s'):
+                
+                # Special case for "Suivi" -> map to "SuiviMission"
+                if agent_name == "Suivi":
+                    agent_name = "SuiviMission"
+                elif agent_name.endswith('s'):  # Remove trailing 's' for other agents
                     agent_name = agent_name[:-1]
                 
                 # Debug log
