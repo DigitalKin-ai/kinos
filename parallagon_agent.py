@@ -272,15 +272,30 @@ class ParallagonAgent:
     def write_file(self, content: str) -> bool:
         """Write content to file with proper error handling"""
         try:
+            # Debug log pour voir le chemin exact
+            self.logger(f"[{self.__class__.__name__}] Tentative d'écriture dans {self.file_path}")
+            
             # Créer le répertoire parent si nécessaire
             os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
             
-            # Écrire avec gestion explicite du fichier
+            # Écriture avec gestion explicite du fichier et vérification
             with open(self.file_path, 'w', encoding='utf-8') as f:
                 f.write(content)
                 
-            return True
-            
+            # Vérifier que l'écriture a bien eu lieu
+            if os.path.exists(self.file_path):
+                with open(self.file_path, 'r', encoding='utf-8') as f:
+                    written_content = f.read()
+                if written_content.strip() == content.strip():
+                    self.logger(f"[{self.__class__.__name__}] ✓ Contenu écrit et vérifié")
+                    return True
+                else:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Contenu écrit différent du contenu voulu")
+                    return False
+                    
+            self.logger(f"[{self.__class__.__name__}] ❌ Fichier non trouvé après écriture")
+            return False
+                
         except PermissionError:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur de permission sur {self.file_path}")
             return False
