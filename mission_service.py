@@ -10,9 +10,19 @@ class MissionService:
     def _resolve_mission_path(self, mission_path: str) -> str:
         """Resolve real path if it's a symlink"""
         try:
-            if os.path.islink(mission_path):
-                return os.path.realpath(mission_path)
-            return mission_path
+            # Convert to absolute path
+            abs_path = os.path.abspath(mission_path)
+            
+            # Resolve symlink if present
+            if os.path.islink(abs_path):
+                real_path = os.path.realpath(abs_path)
+                # Verify the real path exists
+                if not os.path.exists(real_path):
+                    raise ValueError(f"Broken symlink: {mission_path} -> {real_path}")
+                return real_path
+                
+            return abs_path
+            
         except Exception as e:
             print(f"Error resolving path: {e}")
             return mission_path
@@ -30,39 +40,55 @@ class MissionService:
     def _is_valid_mission_dir(self, mission_dir: str) -> bool:
         """Ensure directory contains all required mission files"""
         try:
+            # Check if it's a directory
+            if not os.path.isdir(mission_dir):
+                return False
+                
+            # Check for all required files
             for file_name in self.REQUIRED_FILES:
                 file_path = os.path.join(mission_dir, file_name)
                 if not os.path.isfile(file_path):
+                    # Create missing files with default content
                     with open(file_path, 'w', encoding='utf-8') as f:
                         f.write(f"# {file_name[:-3].capitalize()}\n[Initial content]")
+                        
             return True
+            
         except Exception as e:
-            print(f"Error creating mission files: {e}")
+            print(f"Error validating mission directory: {e}")
             return False
 
     def create_mission(self, name: str, description: str = None) -> Dict:
         """Create a new mission directory"""
-        mission_dir = os.path.join(self.missions_dir, name)
-        if os.path.exists(mission_dir):
-            raise ValueError(f"Mission '{name}' already exists")
-            
-        os.makedirs(mission_dir)
-        
-        # Create default files
-        for file_name in ["demande.md", "specifications.md", "management.md", 
-                         "production.md", "evaluation.md", "suivi.md"]:
-            with open(os.path.join(mission_dir, file_name), 'w', encoding='utf-8') as f:
-                f.write(f"# {file_name[:-3].capitalize()}\n[Initial content]")
+        try:
+            mission_dir = os.path.join(self.missions_dir, name)
+            if os.path.exists(mission_dir):
+                raise ValueError(f"Mission '{name}' already exists")
                 
-        # Return mission info
-        return {
-            'id': len(self.get_all_missions()),
-            'name': name,
-            'description': description,
-            'status': 'active',
-            'created_at': datetime.now().isoformat(),
-            'updated_at': datetime.now().isoformat()
-        }
+            os.makedirs(mission_dir)
+            
+            # Create default files with error handling
+            for file_name in self.REQUIRED_FILES:
+                try:
+                    file_path = os.path.join(mission_dir, file_name)
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write(f"# {file_name[:-3].capitalize()}\n[Initial content]")
+                except Exception as e:
+                    # Cleanup on failure
+                    import shutil
+                    shutil.rmtree(mission_dir, ignore_errors=True)
+                    raise Exception(f"Failed to create {file_name}: {str(e)}")
+                    
+            return {
+                'id': len(self.get_all_missions()),
+                'name': name,
+                'description': description,
+                'status': 'active',
+                'created_at': datetime.now().isoformat(),
+                'updated_at': datetime.now().isoformat()
+            }
+        except Exception as e:
+            raise Exception(f"Failed to create mission: {str(e)}")
 
     def get_all_missions(self) -> List[Dict]:
         """Get all missions by reading directories and symlinks"""
@@ -176,6 +202,7 @@ class MissionService:
         """Create a symbolic link to an external mission folder"""
         try:
             # Validate external path exists and is a directory
+            external_path = os.path.abspath(external_path)
             if not os.path.isdir(external_path):
                 raise ValueError(f"Path does not exist or is not a directory: {external_path}")
                 
@@ -190,36 +217,24 @@ class MissionService:
             if os.path.exists(link_path):
                 raise ValueError(f"Mission '{mission_name}' already exists")
 
-            # Define required files
-            required_files = [
-                "demande.md",
-                "specifications.md", 
-                "management.md",
-                "production.md",
-                "evaluation.md",
-                "suivi.md",
-                "contexte.md"  # Required for context handling
-            ]
-
             # Create any missing required files in the external directory first
-            for file_name in required_files:
+            for file_name in self.REQUIRED_FILES:
                 file_path = os.path.join(external_path, file_name)
                 if not os.path.exists(file_path):
                     with open(file_path, 'w', encoding='utf-8') as f:
                         f.write(f"# {file_name[:-3].capitalize()}\n[Initial content]")
                 
-            # Sur Windows, au lieu d'un symlink, créer une copie des fichiers
+            # Handle Windows vs Unix symlinks
             if os.name == 'nt':  # Windows
                 os.makedirs(link_path)
-                
-                # Copier les fichiers
-                for file_name in required_files:
+                # Copy files instead of symlink
+                for file_name in self.REQUIRED_FILES:
                     src_file = os.path.join(external_path, file_name)
                     dst_file = os.path.join(link_path, file_name)
                     import shutil
                     shutil.copy2(src_file, dst_file)
             else:
-                # Sur les autres systèmes, utiliser un symlink
+                # Unix symlink
                 os.symlink(external_path, link_path, target_is_directory=True)
             
             # Return mission info
