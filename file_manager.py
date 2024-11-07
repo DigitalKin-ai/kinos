@@ -15,13 +15,22 @@ class FileManager:
         pass
     
     def __init__(self, file_paths: Dict[str, str], on_content_changed=None):
+        # Ensure all file paths are defined
         self.file_paths = {
-            **file_paths,
-            "suivi": "suivi.md"  # Ajouter explicitement suivi.md
+            'demande': 'demande.md',
+            'specifications': 'specifications.md',
+            'management': 'management.md',
+            'production': 'production.md',
+            'evaluation': 'evaluation.md',
+            'suivi': 'suivi.md',  # Ajout explicite de suivi.md
+            'contexte': 'contexte.md'
         }
+        # Override with provided paths
+        if file_paths:
+            self.file_paths.update(file_paths)
+            
         self.on_content_changed = on_content_changed
         self.current_mission = None
-        # Ajouter un logger par défaut
         self.logger = print  # Par défaut, utiliser print
         self._ensure_files_exist()
         
@@ -154,36 +163,38 @@ En attente d'initialisation...
     def read_file(self, file_name: str) -> Optional[str]:
         """Read content from a file"""
         try:
-            # Ensure file_name has .md extension
+            # Normalize file name
             if not file_name.endswith('.md'):
                 file_name = f"{file_name}.md"
-                
-            # Get full path based on current mission
+
+            # Debug log
+            self.logger(f"Attempting to read: {file_name}")
+            self.logger(f"Current mission: {self.current_mission}")
+
+            # Construct file path
             if self.current_mission:
                 file_path = os.path.join("missions", self.current_mission, file_name)
             else:
-                file_path = self.file_paths.get(file_name)
-                
-            if not file_path:
-                self.logger(f"Chemin non trouvé pour {file_name}")
-                return None
-                
-            # Debug log
-            self.logger(f"Reading file: {file_path}")
-                
-            # Ensure parent directory exists
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                
-            # Create file with initial content if it doesn't exist
+                file_path = file_name  # Default to current directory
+
+            self.logger(f"Full path: {file_path}")
+
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(file_path) if os.path.dirname(file_path) else '.', exist_ok=True)
+
+            # Create if doesn't exist
             if not os.path.exists(file_path):
+                self.logger(f"Creating new file: {file_path}")
                 initial_content = self._get_initial_content(file_name.replace('.md', ''))
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(initial_content)
                 return initial_content
-                
-            # Read existing content
+
+            # Read existing file
             with open(file_path, 'r', encoding='utf-8') as f:
-                return f.read()
+                content = f.read()
+                self.logger(f"Successfully read: {file_path}")
+                return content
                 
         except Exception as e:
             self.logger(f"Erreur lecture {file_name}: {str(e)}")

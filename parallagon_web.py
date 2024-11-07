@@ -254,7 +254,16 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             "evaluation": "evaluation.md",
             "suivi": "suivi.md"  # Add suivi.md to managed files
         }
-        self.file_manager = FileManager(self.file_paths)
+        # Initialize FileManager with current mission
+        first_mission = self.mission_service.get_all_missions()
+        current_mission = first_mission[0]['name'] if first_mission else None
+        
+        self.file_manager = FileManager(
+            self.file_paths,
+            on_content_changed=self.handle_content_change
+        )
+        if current_mission:
+            self.file_manager.current_mission = current_mission
         self.llm_service = LLMService(config["openai_api_key"])
         self.running = False
         self.agents = {}
