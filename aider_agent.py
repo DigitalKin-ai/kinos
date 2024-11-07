@@ -78,21 +78,21 @@ Format attendu:
             if not aider_instructions:
                 return None
 
-            # Construire la commande avec les fichiers à surveiller
-            read_files = []
-            for file in self.watch_files:
-                read_files.extend(["--read", file])
-
-            # Construire la commande Aider
+            # Construire la commande de base
             cmd = [
                 "aider",
                 "--model", "haiku",
-                "--no-git",
+                "--no-git", 
                 "--yes-always",
                 "--file", self.file_path,
-                *read_files,
-                "--message", aider_instructions
             ]
+            
+            # Ajouter chaque fichier à surveiller avec son propre --read
+            for file in self.watch_files:
+                cmd.extend(["--read", file])
+                
+            # Ajouter le message à la fin
+            cmd.extend(["--message", aider_instructions])
             
             # Logger la commande complète
             self.logger(f"[{self.__class__.__name__}] 🤖 Commande Aider:")
