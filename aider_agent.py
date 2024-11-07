@@ -79,28 +79,14 @@ class AiderAgent(ParallagonAgent):
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur exécution Aider: {str(e)}")
             return None
 
-    def determine_actions(self) -> None:
-        """
-        Détermine et exécute les actions nécessaires via Aider
-        """
+    def _build_prompt(self, context: dict) -> str:
+        """Charge et formate le prompt depuis le fichier"""
         try:
-            self.logger(f"[{self.__class__.__name__}] Analyse du contenu...")
-            
-            # Construire le contexte
-            context = {
-                "role": self.role,
-                "current": self.current_content,
-                "other_files": self.other_files
-            }
-            
-            # Construire le prompt complet
-            full_prompt = f"{self.aider_prompt}\n\nContexte actuel:\n{self._format_other_files(context)}"
-            
-            # Exécuter Aider
-            result = self._run_aider(full_prompt)
-            
-            if result:
-                self.logger(f"[{self.__class__.__name__}] ✓ Modifications effectuées")
-            
+            with open(self.prompt_file, 'r', encoding='utf-8') as f:
+                prompt_template = f.read()
+            return prompt_template.format(
+                context=self._format_other_files(context)
+            )
         except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur: {str(e)}")
+            self.logger(f"Erreur chargement prompt: {e}")
+            return super()._build_prompt(context)  # Fallback au prompt par défaut
