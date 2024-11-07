@@ -342,8 +342,9 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     "role": "Evaluation",
                     "file_path": os.path.join(mission_dir, "evaluation.md"),
                     "watch_files": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md")
+                        os.path.join(mission_dir, "specifications.md"), 
+                        os.path.join(mission_dir, "production.md"),
+                        os.path.join(mission_dir, "suivi.md")
                     ],
                     "prompt_file": "prompts/evaluation.md",
                     "aider_prompt": load_prompt("prompts/evaluation.md")
