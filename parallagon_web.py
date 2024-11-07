@@ -280,6 +280,9 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             mission_name = getattr(self, 'current_mission', missions[0]['name']) if missions else None
             if not mission_name:
                 raise ValueError("No mission available for initialization")
+                
+            # Create mission directory path
+            mission_dir = os.path.join("missions", mission_name)
             
             base_config = {
                 "check_interval": 5,
