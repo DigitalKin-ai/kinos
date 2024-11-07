@@ -21,28 +21,37 @@ class AiderAgent(ParallagonAgent):
             raise ValueError("Le rôle de l'agent doit être spécifié")
         if "aider_prompt" not in config:
             raise ValueError("Le prompt Aider doit être spécifié")
+        if "mission_name" not in config:
+            raise ValueError("Le nom de la mission doit être spécifié")
             
         self.role = config["role"]
         self.aider_prompt = config["aider_prompt"]
         self.prompt_file = config.get("prompt_file")
         self._prompt_cache = {}
         
-        # Configuration des chemins
-        if not os.path.isabs(config["file_path"]):
-            config["file_path"] = os.path.abspath(config["file_path"])
-        self.file_path = config["file_path"]
+        # Construire les chemins dans le dossier de la mission
+        mission_dir = os.path.join("missions", config["mission_name"])
         
-        # Créer le dossier parent si nécessaire
-        os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+        # S'assurer que le chemin de fichier est dans le dossier de mission
+        self.file_path = os.path.join(
+            mission_dir, 
+            os.path.basename(config["file_path"])
+        )
         
-        # Convertir les watch_files en chemins absolus
+        # Créer le dossier de mission si nécessaire
+        os.makedirs(mission_dir, exist_ok=True)
+        
+        # Convertir les watch_files pour qu'ils soient dans le dossier de mission
         if "watch_files" in config:
             self.watch_files = [
-                os.path.abspath(f) if not os.path.isabs(f) else f
+                os.path.join(mission_dir, os.path.basename(f))
                 for f in config["watch_files"]
             ]
             
         self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.role}")
+        self.logger(f"[{self.__class__.__name__}] Dossier mission: {mission_dir}")
+        self.logger(f"[{self.__class__.__name__}] Fichier principal: {self.file_path}")
+        self.logger(f"[{self.__class__.__name__}] Fichiers surveillés: {self.watch_files}")
 
     def _get_aider_instructions(self, prompt: str) -> Optional[str]:
         """Obtient les instructions pour Aider via GPT"""
