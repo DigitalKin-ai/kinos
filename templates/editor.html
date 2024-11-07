@@ -215,16 +215,13 @@
                     </div>
                 </div>
 
-                <!-- Suivi Mission content -->
-                <div v-if="activeTab === 'suivi-mission'" class="panel">
+                <!-- Logs content -->
+                <div v-if="activeTab === 'logs'" class="panel">
                     <div class="panel-header">
                         <h2 class="panel-title">
-                            <i class="mdi mdi-console-line mr-2"></i>Suivi Mission
+                            <i class="mdi mdi-console-line mr-2"></i>Logs
                         </h2>
                         <div class="panel-controls">
-                            <button @click="exportLogs" class="btn-export">
-                                <i class="mdi mdi-download mr-1"></i> Export
-                            </button>
                             <button @click="clearLogs" class="btn-clear">
                                 <i class="mdi mdi-trash-can mr-1"></i> Clear
                             </button>
