@@ -81,85 +81,64 @@ const ParallagonApp = {
                 }
                 const data = await response.json();
                 
-                // Debug logs détaillés
-                console.log('API Response:', data);
-                console.log('Raw content type:', typeof data.content);
-                console.log('Raw content length:', data.content ? data.content.length : 0);
-                console.log('Raw content:', data.content);
-                
                 if (!data.content) {
                     console.warn('No content in suivi data');
+                    this.suiviEntries = [];
                     return;
                 }
 
-                // Split content et log intermédiaire
-                const lines = data.content.split('\n');
-                console.log('Split lines:', lines);
-                
-                // Filtrage et log intermédiaire
-                const filteredLines = lines
-                    .filter(line => line.trim())
-                    .filter(line => line.match(/^\[\d{2}:\d{2}:\d{2}\]/));
-                console.log('Filtered lines:', filteredLines);
+                // Split content into lines and filter empty lines
+                const lines = data.content.split('\n').filter(line => line.trim());
+                console.log('Raw lines:', lines);
 
-                // Parsing avec plus de logs
-                const entries = filteredLines
-                    .map((line, index) => {
-                        console.log('Processing line:', line);
-                        const timestampMatch = line.match(/^\[(\d{2}:\d{2}:\d{2})\](.*)/);
-                        if (!timestampMatch) {
-                            console.log('No timestamp match for line:', line);
-                            return null;
-                        }
+                // Parse entries with more flexible timestamp matching
+                const entries = [];
+                let currentEntry = null;
 
-                        const [, timestamp, rawMessage] = timestampMatch;
-                        const message = rawMessage.trim();
-                        console.log('Parsed timestamp:', timestamp);
-                        console.log('Parsed message:', message);
-
-                        // Détermination du type avec log
-                        let type = 'info';
-                        if (message.includes('réinitialisé')) {
-                            type = 'warning';
-                            console.log('Detected reset message');
+                for (const line of lines) {
+                    const timestampMatch = line.match(/^\[(\d{2}:\d{2}:\d{2})\](.*)/);
+                    
+                    if (timestampMatch) {
+                        // If we have a previous entry, save it
+                        if (currentEntry) {
+                            entries.push(currentEntry);
                         }
-                        if (message.includes('✓')) {
-                            type = 'success';
-                            console.log('Detected success message');
-                        }
-                        if (message.includes('❌')) {
-                            type = 'error';
-                            console.log('Detected error message');
-                        }
-                        if (message.includes('⚠️')) {
-                            type = 'warning';
-                            console.log('Detected warning message');
-                        }
-
-                        return {
-                            id: `suivi-${index}`,
+                        
+                        // Start new entry
+                        const [, timestamp, message] = timestampMatch;
+                        currentEntry = {
+                            id: `suivi-${entries.length}`,
                             timestamp,
-                            message,
-                            type
+                            message: message.trim(),
+                            type: 'info'  // Default type
                         };
-                    })
-                    .filter(entry => entry !== null);
 
-                // Log final
-                console.log('Final parsed entries:', entries);
-                console.log('Number of entries:', entries.length);
-
-                // Mise à jour des entrées avec vérification
-                if (entries.length > 0) {
-                    this.suiviEntries = entries;
-                    console.log('Updated suiviEntries:', this.suiviEntries);
-                } else {
-                    console.warn('No valid entries found after parsing');
+                        // Determine type based on content
+                        if (message.includes('réinitialisé')) {
+                            currentEntry.type = 'warning';
+                        } else if (message.includes('✓')) {
+                            currentEntry.type = 'success';
+                        } else if (message.includes('❌')) {
+                            currentEntry.type = 'error';
+                        } else if (message.includes('⚠️')) {
+                            currentEntry.type = 'warning';
+                        }
+                    } else if (currentEntry) {
+                        // Add line to current entry's message
+                        currentEntry.message += '\n' + line.trim();
+                    }
                 }
-                
+
+                // Don't forget to add the last entry
+                if (currentEntry) {
+                    entries.push(currentEntry);
+                }
+
+                console.log('Parsed entries:', entries);
+                this.suiviEntries = entries;
+
             } catch (error) {
                 console.error('Error updating suivi entries:', error);
-                console.error('Error details:', error.message);
                 this.addNotification('error', 'Failed to update suivi entries');
             }
         },
