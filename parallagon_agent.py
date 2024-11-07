@@ -288,6 +288,26 @@ class ParallagonAgent:
                     written_content = f.read()
                 if written_content.strip() == content.strip():
                     self.logger(f"[{self.__class__.__name__}] ✓ Contenu écrit et vérifié")
+                    
+                    # Notifier du changement via une requête à l'API
+                    try:
+                        import requests
+                        response = requests.post(
+                            'http://localhost:8000/api/content/change',
+                            json={
+                                'file_path': self.file_path,
+                                'content': content,
+                                'panel_name': self.__class__.__name__.replace('Agent', ''),
+                                'flash': True
+                            }
+                        )
+                        if response.status_code == 200:
+                            self.logger(f"✓ Notification de changement envoyée")
+                        else:
+                            self.logger(f"❌ Erreur notification changement: {response.status_code}")
+                    except Exception as e:
+                        self.logger(f"❌ Erreur envoi notification: {str(e)}")
+                    
                     return True
                 else:
                     self.logger(f"[{self.__class__.__name__}] ❌ Contenu écrit différent du contenu voulu")
