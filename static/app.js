@@ -46,7 +46,6 @@ const ParallagonApp = {
                 { id: 'production', name: 'Production', icon: 'mdi mdi-code-braces' },
                 { id: 'evaluation', name: 'Evaluation', icon: 'mdi mdi-check-circle' },
                 { id: 'suivi', name: 'Suivi', icon: 'mdi mdi-history' },
-                { id: 'contexte', name: 'Contexte', icon: 'mdi mdi-file-tree-outline' },
                 { id: 'logs', name: 'Logs', icon: 'mdi mdi-console-line' }
             ],
             content: {
@@ -696,7 +695,7 @@ const ParallagonApp = {
         },
 
         isAgentTab(tabId) {
-            return ['specifications', 'management', 'production', 'evaluation', 'suivi', 'contexte'].includes(tabId);
+            return ['specifications', 'management', 'production', 'evaluation', 'suivi'].includes(tabId);
         },
 
         isAgentRunning(tabId) {
