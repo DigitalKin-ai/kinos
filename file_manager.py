@@ -23,6 +23,7 @@ class FileManager:
             'production': 'production.md',
             'evaluation': 'evaluation.md',
             'suivi': 'suivi.md'  # Ajout explicite de suivi.md
+            # Removed contexte.md from managed files
         }
         # Override with provided paths
         if file_paths:
@@ -132,16 +133,6 @@ En attente d'initialisation...
 # Signaux
 
 # Contenu Principal
-
-# Historique
-- [{timestamp}] Création du fichier"""
-            
-        elif file_name == 'contexte':
-            return f"""# Contexte
-[timestamp: {timestamp}]
-
-## Fichiers Pertinents Sélectionnés
-[En attente d'analyse...]
 
 # Historique
 - [{timestamp}] Création du fichier"""
