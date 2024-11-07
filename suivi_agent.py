@@ -7,6 +7,7 @@ Responsabilités principales:
 - Maintient un historique chronologique des événements
 """
 from parallagon_agent import ParallagonAgent
+import os
 import time
 from datetime import datetime
 
