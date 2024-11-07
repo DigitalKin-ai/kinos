@@ -269,15 +269,24 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             
             # S'assurer que le dossier missions existe
             os.makedirs("missions", exist_ok=True)
-            
-            # Obtenir le dossier de mission actif
-            mission_dir = os.path.join("missions", self.current_mission) if hasattr(self, 'current_mission') else "missions"
+
+            # Obtenir la liste des missions
+            missions = self.mission_service.get_all_missions()
+            if not missions:
+                self.log_message("No missions available. Please create a mission first.", level='warning')
+                return
+
+            # Utiliser la première mission par défaut ou la mission courante si définie
+            mission_name = getattr(self, 'current_mission', missions[0]['name']) if missions else None
+            if not mission_name:
+                raise ValueError("No mission available for initialization")
             
             base_config = {
                 "check_interval": 5,
                 "anthropic_api_key": config["anthropic_api_key"],
                 "openai_api_key": config["openai_api_key"],
-                "logger": self.log_message
+                "logger": self.log_message,
+                "mission_name": mission_name
             }
 
             # Load prompts from files
@@ -294,10 +303,10 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 "Specification": SpecificationsAgent({
                     **base_config,
                     "role": "Specification",
-                    "file_path": os.path.join(mission_dir, "specifications.md"),
+                    "file_path": "specifications.md",
                     "watch_files": [
-                        os.path.join(mission_dir, "demande.md"),
-                        os.path.join(mission_dir, "production.md")
+                        "demande.md",
+                        "production.md"
                     ],
                     "prompt_file": "prompts/specifications.md",
                     "aider_prompt": load_prompt("prompts/specifications.md")
