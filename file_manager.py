@@ -15,7 +15,10 @@ class FileManager:
         pass
     
     def __init__(self, file_paths: Dict[str, str], on_content_changed=None):
-        self.file_paths = file_paths
+        self.file_paths = {
+            **file_paths,
+            "suivi": "suivi.md"  # Ajouter explicitement suivi.md
+        }
         self.on_content_changed = on_content_changed
         self.current_mission = None
         self._ensure_files_exist()
@@ -133,12 +136,17 @@ En attente d'initialisation...
         try:
             # Get full path based on current mission
             if self.current_mission:
-                file_path = os.path.join("missions", self.current_mission, f"{file_name}.md")
+                # Ensure we add .md extension if not present
+                if not file_name.endswith('.md'):
+                    file_name = f"{file_name}.md"
+                    
+                file_path = os.path.join("missions", self.current_mission, file_name)
             else:
                 file_path = self.file_paths.get(file_name)
                 
             if not file_path:
-                raise self.FileError(f"Chemin non trouvé pour {file_name}")
+                self.logger(f"Chemin non trouvé pour {file_name}")
+                return None
                 
             # Debug log
             print(f"Reading file: {file_path}")
@@ -148,7 +156,7 @@ En attente d'initialisation...
                 
             # Create file with initial content if it doesn't exist
             if not os.path.exists(file_path):
-                initial_content = self._get_initial_content(file_name)
+                initial_content = self._get_initial_content(file_name.replace('.md', ''))
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(initial_content)
                 return initial_content
@@ -158,7 +166,8 @@ En attente d'initialisation...
                 return f.read()
                 
         except Exception as e:
-            raise self.FileError(f"Erreur lecture {file_name}: {str(e)}")
+            self.logger(f"Erreur lecture {file_name}: {str(e)}")
+            return None
             
     def write_file(self, file_name: str, content: str) -> bool:
         """Write content to a file with locking"""
