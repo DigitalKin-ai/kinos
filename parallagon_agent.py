@@ -89,6 +89,14 @@ class ParallagonAgent:
     - Activity-based timing adjustments
     """
     
+    # Default intervals for each agent type (in seconds)
+    DEFAULT_INTERVALS = {
+        'SpecificationsAgent': 20,  # Specifications change less frequently
+        'ProductionAgent': 8,       # Medium reactivity
+        'ManagementAgent': 15,      # Coordination needs less frequency
+        'EvaluationAgent': 18,      # Allow changes to accumulate
+        'SuiviAgent': 10            # More reactive monitoring
+    }
 
     def __init__(self, config: Dict[str, Any]):
         """
@@ -123,7 +131,7 @@ class ParallagonAgent:
         agent_type = self.__class__.__name__
         self.check_interval = config.get(
             "check_interval", 
-            self.DEFAULT_INTERVALS.get(agent_type, 5)
+            self.DEFAULT_INTERVALS.get(agent_type, 10)
         )
         
         self.running = False
