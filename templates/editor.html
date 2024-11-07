@@ -194,7 +194,15 @@
                         </h2>
                     </div>
                     <div class="panel-content">
-                        <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('suivi'))"></div>
+                        <div class="suivi-content">
+                            <div v-for="entry in suiviEntries"
+                                 :key="entry.id"
+                                 class="suivi-entry"
+                                 :class="entry.type">
+                                <span class="suivi-timestamp">${ entry.timestamp }</span>
+                                <div class="suivi-message" v-html="entry.message"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
