@@ -357,19 +357,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     "prompt_file": "prompts/evaluation.md",
                     "aider_prompt": load_prompt("prompts/evaluation.md")
                 }),
-                "Contexte": ContexteAgent({
-                    **base_config,
-                    "role": "Contexte",
-                    "file_path": os.path.join(mission_dir, "contexte.md"),
-                    "watch_files": [
-                        os.path.join(mission_dir, "demande.md"),
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "suivi.md")
-                    ],
-                    "prompt_file": "prompts/contexte.md",
-                    "aider_prompt": load_prompt("prompts/contexte.md")
-                }),
                 "Suivi": SuiviAgent({
                     **base_config,
                     "role": "Suivi", 
@@ -1414,14 +1401,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                         os.path.join(mission_dir, "production.md")
                     ]
                 },
-                "Contexte": {
-                    "main": os.path.join(mission_dir, "contexte.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "demande.md"),
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md")
-                    ]
-                }
             }
             
             for name, agent in self.agents.items():
