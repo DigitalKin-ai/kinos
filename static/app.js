@@ -74,13 +74,18 @@ const ParallagonApp = {
     methods: {
         async updateSuiviEntries() {
             try {
+                console.log('[Suivi] Début de la mise à jour...');
                 const response = await fetch('/api/suivi');
                 if (!response.ok) {
+                    console.error('[Suivi] Erreur de réponse:', response.status);
                     throw new Error('Failed to fetch suivi entries');
                 }
                 const data = await response.json();
                 
+                console.log('[Suivi] Données reçues:', data);
+                
                 if (!data.content) {
+                    console.warn('[Suivi] Pas de contenu dans les données');
                     this.suiviEntries = [];
                     return;
                 }
@@ -88,10 +93,12 @@ const ParallagonApp = {
                 // Créer une seule entrée avec le contenu brut
                 this.suiviEntries = [{
                     id: 'suivi-content',
-                    timestamp: '',  // Pas de timestamp séparé
+                    timestamp: '',
                     message: data.content,
                     type: 'info'
                 }];
+
+                console.log('[Suivi] Entrées mises à jour:', this.suiviEntries);
 
             } catch (error) {
                 console.error('[Suivi] Erreur:', error);
