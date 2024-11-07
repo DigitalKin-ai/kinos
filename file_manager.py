@@ -140,11 +140,16 @@ En attente d'initialisation...
             if not file_path:
                 raise self.FileError(f"Chemin non trouvé pour {file_name}")
                 
-            # Ensure file exists but don't overwrite if it does
+            # Debug log
+            print(f"Reading file: {file_path}")
+                
+            # Ensure parent directory exists
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                
+            # Create file with initial content if it doesn't exist
             if not os.path.exists(file_path):
-                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                initial_content = self._get_initial_content(file_name)
                 with open(file_path, 'w', encoding='utf-8') as f:
-                    initial_content = self._get_initial_content(file_name)
                     f.write(initial_content)
                 return initial_content
                 
