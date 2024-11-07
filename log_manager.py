@@ -228,6 +228,22 @@ class LogManager:
         """Clear all log messages"""
         self.logs.clear()
         self.text_widget.delete("1.0", tk.END)
+        
+    def export_logs(self, filepath: str = None) -> bool:
+        """Export logs to a file"""
+        try:
+            if not filepath:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filepath = f"logs_{timestamp}.txt"
+                
+            with open(filepath, 'w', encoding='utf-8') as f:
+                for log in self.logs:
+                    f.write(self._format_log_entry(log))
+            return True
+            
+        except Exception as e:
+            print(f"Error exporting logs: {e}")
+            return False
     
     def get_logs_by_level(self, level: LogLevel) -> list[LogEntry]:
         """Get all logs of a specific level"""
