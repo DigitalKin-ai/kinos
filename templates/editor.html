@@ -194,10 +194,12 @@
                         </h2>
                     </div>
                     <div class="panel-content">
-                        <!-- Debug output -->
-                        <pre>${ JSON.stringify(suiviEntries, null, 2) }</pre>
-                    
                         <div class="suivi-content">
+                            <!-- Message if no entries -->
+                            <div v-if="!suiviEntries.length" class="text-gray-500">
+                                Aucune entrée de suivi disponible
+                            </div>
+                            
                             <div v-for="entry in suiviEntries"
                                  :key="entry.id"
                                  class="suivi-entry"

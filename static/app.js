@@ -19,6 +19,7 @@ const ParallagonApp = {
             running: false,
             loading: false,
             error: null,
+            suiviEntries: [], // Store suivi entries
             missionSidebarCollapsed: false,
             currentMission: null,
             missions: [], // Will be loaded from API
@@ -71,6 +72,44 @@ const ParallagonApp = {
         }
     },
     methods: {
+        async updateSuiviEntries() {
+            try {
+                const response = await fetch('/api/suivi');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch suivi entries');
+                }
+                const data = await response.json();
+                
+                // Convert content to structured entries
+                const entries = data.content.split('\n')
+                    .filter(line => line.trim())
+                    .map((line, index) => {
+                        const timestampMatch = line.match(/\[([\d:]+)\]/);
+                        const timestamp = timestampMatch ? timestampMatch[1] : '';
+                        const message = line.replace(/\[[\d:]+\]/, '').trim();
+                        
+                        // Determine type based on content
+                        let type = 'info';
+                        if (message.includes('✓')) type = 'success';
+                        if (message.includes('❌')) type = 'error';
+                        if (message.includes('⚠️')) type = 'warning';
+                        
+                        return {
+                            id: index,
+                            timestamp,
+                            message,
+                            type
+                        };
+                    });
+                
+                this.suiviEntries = entries;
+                
+            } catch (error) {
+                console.error('Error updating suivi entries:', error);
+                this.addNotification('error', 'Failed to update suivi entries');
+            }
+        },
+
         async linkExternalMission() {
             try {
                 // Utiliser l'API moderne de sélection de dossier
@@ -974,6 +1013,13 @@ const ParallagonApp = {
         const notificationsContainer = document.createElement('div');
         notificationsContainer.className = 'notifications-container';
         document.body.appendChild(notificationsContainer);
+
+        // Add suivi updates
+        setInterval(() => {
+            if (this.running) {
+                this.updateSuiviEntries();
+            }
+        }, 1000);
         
         // Load missions first, then content
         this.loadMissions()

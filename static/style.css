@@ -413,6 +413,17 @@ html, body {
     align-self: flex-start;
 }
 
+.suivi-timestamp {
+    font-size: 0.85em;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.suivi-entry.info .suivi-timestamp {
+    color: #65676b;
+}
+
 /* Animation d'apparition pour les bulles */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
