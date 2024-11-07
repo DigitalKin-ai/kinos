@@ -231,10 +231,10 @@
                         </div>
                     </div>
                     <div class="panel-content">
-                        <div class="suivi-mission-content">
+                        <div class="logs-content">
                             <div v-for="log in logs"
                                  :key="log.id" 
-                                 class="suivi-mission-entry"
+                                 class="log-entry"
                                  :class="log.level">
                                 <span class="log-timestamp">${ log.timestamp }</span>
                                 <span class="log-message" v-html="log.message"></span>
