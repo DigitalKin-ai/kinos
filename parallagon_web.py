@@ -13,8 +13,6 @@ from datetime import datetime
 from typing import Dict, Any
 from mission_service import MissionService
 from file_manager import FileManager
-from llm_service import LLMService
-from search_replace import SearchReplace
 from agents import (
     SpecificationsAgent,
     ProductionAgent,
@@ -252,7 +250,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             "management": "management.md", 
             "production": "production.md",
             "evaluation": "evaluation.md",
-            "suivi": "suivi.md"  # Add suivi.md to managed files
+            "suivi": "suivi.md"
         }
         # Initialize FileManager with current mission
         first_mission = self.mission_service.get_all_missions()
@@ -264,7 +262,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         )
         if current_mission:
             self.file_manager.current_mission = current_mission
-        self.llm_service = LLMService(config["openai_api_key"])
         self.running = False
         self.agents = {}
         self.init_agents(config)
@@ -293,7 +290,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             mission_dir = os.path.join("missions", mission_name)
             
             base_config = {
-                "check_interval": 5,
+                "check_interval": 10,
                 "anthropic_api_key": config["anthropic_api_key"],
                 "openai_api_key": config["openai_api_key"],
                 "logger": self.log_message,
@@ -313,61 +310,38 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             self.agents = {
                 "Specification": SpecificationsAgent({
                     **base_config,
-                    "role": "Specification",
+                    "name": "Specification",
                     "file_path": "specifications.md",
-                    "watch_files": [
-                        "demande.md",
-                        "production.md"
-                    ],
                     "prompt_file": "prompts/specifications.md",
-                    "aider_prompt": load_prompt("prompts/specifications.md")
+                    "prompt": load_prompt("prompts/specifications.md")
                 }),
                 "Production": ProductionAgent({
                     **base_config,
-                    "role": "Production", 
+                    "name": "Production", 
                     "file_path": os.path.join(mission_dir, "production.md"),
-                    "watch_files": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ],
                     "prompt_file": "prompts/production.md",
-                    "aider_prompt": load_prompt("prompts/production.md")
+                    "prompt": load_prompt("prompts/production.md")
                 }),
                 "Management": ManagementAgent({
                     **base_config,
-                    "role": "Management",
+                    "name": "Management",
                     "file_path": os.path.join(mission_dir, "management.md"),
-                    "watch_files": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ],
                     "prompt_file": "prompts/management.md",
-                    "aider_prompt": load_prompt("prompts/management.md")
+                    "prompt": load_prompt("prompts/management.md")
                 }),
                 "Evaluation": EvaluationAgent({
                     **base_config,
-                    "role": "Evaluation",
+                    "name": "Evaluation",
                     "file_path": os.path.join(mission_dir, "evaluation.md"),
-                    "watch_files": [
-                        os.path.join(mission_dir, "specifications.md"), 
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "suivi.md")
-                    ],
                     "prompt_file": "prompts/evaluation.md",
-                    "aider_prompt": load_prompt("prompts/evaluation.md")
+                    "prompt": load_prompt("prompts/evaluation.md")
                 }),
                 "Suivi": SuiviAgent({
                     **base_config,
-                    "role": "Suivi", 
+                    "name": "Suivi", 
                     "file_path": os.path.join(mission_dir, "suivi.md"),
-                    "watch_files": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ],
                     "prompt_file": "prompts/suivi.md",
-                    "aider_prompt": load_prompt("prompts/suivi.md")
+                    "prompt": load_prompt("prompts/suivi.md")
                 })
             }
 
