@@ -277,34 +277,39 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 "logger": self.log_message
             }
 
-            # Créer les agents avec leurs prompts dédiés
+            # Créer les agents avec leurs prompts dédiés ET leurs rôles
             self.agents = {
                 "Specification": SpecificationsAgent({
                     **base_config,
+                    "role": "Specification",
                     "file_path": "specifications.md",
                     "watch_files": ["demande.md", "production.md"],
                     "prompt_file": "prompts/specifications.md"
                 }),
                 "Production": ProductionAgent({
                     **base_config,
+                    "role": "Production",
                     "file_path": "production.md",
                     "watch_files": ["specifications.md", "evaluation.md"],
                     "prompt_file": "prompts/production.md"
                 }),
                 "Management": ManagementAgent({
                     **base_config,
+                    "role": "Management",
                     "file_path": "management.md",
                     "watch_files": ["specifications.md", "production.md", "evaluation.md"],
                     "prompt_file": "prompts/management.md"
                 }),
                 "Evaluation": EvaluationAgent({
                     **base_config,
+                    "role": "Evaluation",
                     "file_path": "evaluation.md",
                     "watch_files": ["specifications.md", "production.md"],
                     "prompt_file": "prompts/evaluation.md"
                 }),
                 "Contexte": ContexteAgent({
                     **base_config,
+                    "role": "Contexte",
                     "file_path": "contexte.md",
                     "watch_files": ["demande.md", "specifications.md", "production.md"],
                     "prompt_file": "prompts/contexte.md"
