@@ -201,26 +201,39 @@ class ParallagonAgent:
     def read_files(self) -> None:
         """
         Read all relevant files for the agent.
-        
-        Responsibilities:
-        - Reads the agent's primary file into current_content
-        - Reads all watched files into other_files dictionary
-        - Maintains file state for change detection
         """
-        # Ensure file exists
-        if not Path(self.file_path).exists():
-            with open(self.file_path, 'w', encoding='utf-8') as f:
-                initial_content = "# Contenu Initial\n[En attente de contenu à produire...]"
-                f.write(initial_content)
-                self.current_content = initial_content
-        else:
-            with open(self.file_path, 'r', encoding='utf-8') as f:
-                self.current_content = f.read()
-        
-        self.other_files = {}
-        for file_path in self.config.get("watch_files", []):
-            with open(file_path, 'r', encoding='utf-8') as f:
-                self.other_files[file_path] = f.read()
+        try:
+            # Ensure file exists with proper directory structure
+            os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+            
+            if not os.path.exists(self.file_path):
+                with open(self.file_path, 'w', encoding='utf-8') as f:
+                    initial_content = "# Contenu Initial\n[En attente de contenu à produire...]"
+                    f.write(initial_content)
+                    self.current_content = initial_content
+            else:
+                with open(self.file_path, 'r', encoding='utf-8') as f:
+                    self.current_content = f.read()
+            
+            self.other_files = {}
+            for file_path in self.watch_files:
+                try:
+                    # Ensure parent directory exists for watched files too
+                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                    
+                    if not os.path.exists(file_path):
+                        with open(file_path, 'w', encoding='utf-8') as f:
+                            f.write("# Contenu Initial\n[En attente de contenu...]")
+                    
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        self.other_files[file_path] = f.read()
+                except Exception as e:
+                    self.logger(f"Warning: Could not read watched file {file_path}: {e}")
+                    self.other_files[file_path] = ""
+
+        except Exception as e:
+            self.logger(f"❌ Erreur dans read_files: {str(e)}")
+            raise
 
     @agent_error_handler("analyze")
     def analyze(self) -> None:
