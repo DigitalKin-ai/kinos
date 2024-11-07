@@ -194,12 +194,7 @@
                         </h2>
                     </div>
                     <div class="panel-content">
-                        <div class="suivi-content">
-                            <pre v-if="suiviContent" class="suivi-message">{{ suiviContent }}</pre>
-                            <div v-else class="text-gray-500">
-                                Aucune entrée de suivi disponible
-                            </div>
-                        </div>
+                        <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('suivi'))"></div>
                     </div>
                 </div>
 
