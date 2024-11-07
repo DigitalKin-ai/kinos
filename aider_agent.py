@@ -44,32 +44,65 @@ class AiderAgent(ParallagonAgent):
             
         self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.role}")
 
-    def _run_aider(self, prompt: str) -> Optional[str]:
-        """
-        Exécute Aider avec le prompt donné
-        """
+    def _get_aider_instructions(self, prompt: str) -> Optional[str]:
+        """Obtient les instructions pour Aider via GPT"""
         try:
+            system_prompt = f"""Vous êtes {self.role}. 
+Générez des instructions claires pour l'outil Aider qui modifiera le fichier {os.path.basename(self.file_path)}.
+Les instructions doivent être précises et spécifier exactement quels changements effectuer.
+
+Format attendu:
+1. Listez les modifications à faire
+2. Utilisez des références exactes au contenu existant
+3. Décrivez le nouveau contenu à insérer
+4. Restez factuel et direct"""
+
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            self.logger(f"Erreur génération instructions Aider: {str(e)}")
+            return None
+
+    def _run_aider(self, prompt: str) -> Optional[str]:
+        """Exécute Aider avec le prompt donné"""
+        try:
+            # Obtenir les instructions pour Aider
+            aider_instructions = self._get_aider_instructions(prompt)
+            if not aider_instructions:
+                return None
+
+            # Construire la commande avec les fichiers à surveiller
+            read_files = []
+            for file in self.watch_files:
+                read_files.extend(["--read", file])
+
             # Construire la commande Aider
             cmd = [
                 "aider",
                 "--model", "haiku",
                 "--no-git",
-                "--yes-always",  # Auto-accept changes
+                "--yes-always",
                 "--file", self.file_path,
-                *self.watch_files
+                *read_files,
+                "--message", aider_instructions
             ]
             
             # Exécuter Aider
             process = subprocess.Popen(
                 cmd,
-                stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True
             )
             
-            # Envoyer le prompt
-            stdout, stderr = process.communicate(input=prompt)
+            stdout, stderr = process.communicate()
             
             if process.returncode != 0:
                 self.logger(f"[{self.__class__.__name__}] ❌ Erreur Aider: {stderr}")
