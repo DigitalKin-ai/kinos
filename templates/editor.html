@@ -198,22 +198,6 @@
                     </div>
                 </div>
 
-                <!-- Contexte content -->
-                <div v-if="activeTab === 'contexte'" class="panel">
-                    <div class="panel-header">
-                        <h2 class="panel-title">
-                            <i class="mdi mdi-file-tree-outline mr-2"></i>Contexte
-                        </h2>
-                        <div class="panel-controls">
-                            <button @click="refreshContext" class="btn-refresh">
-                                <i class="mdi mdi-refresh"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="panel-content">
-                        <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('contexte'))"></div>
-                    </div>
-                </div>
 
             </div>
         </div>

@@ -22,8 +22,7 @@ class FileManager:
             'management': 'management.md',
             'production': 'production.md',
             'evaluation': 'evaluation.md',
-            'suivi': 'suivi.md',  # Ajout explicite de suivi.md
-            'contexte': 'contexte.md'
+            'suivi': 'suivi.md'  # Ajout explicite de suivi.md
         }
         # Override with provided paths
         if file_paths:
@@ -82,7 +81,6 @@ class FileManager:
             "production.md",
             "evaluation.md",
             "suivi.md",
-            "contexte.md"
         ]
         
         for file_name in required_files:
