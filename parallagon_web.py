@@ -58,9 +58,6 @@ class ParallagonWeb:
         except Exception as e:
             self.log_message(f"Error loading test data: {str(e)}", level='error')
             return ""
-
-**Directives** :
-- Présenter l'axe et son objectif de recherche spécifique
 - Montrer sa contribution à l'objectif global
 - Justifier sa pertinence dans le projet
 - Style : Concis, technique mais accessible
