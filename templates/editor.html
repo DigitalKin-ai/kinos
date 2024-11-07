@@ -215,33 +215,6 @@
                     </div>
                 </div>
 
-                <!-- Logs content -->
-                <div v-if="activeTab === 'logs'" class="panel">
-                    <div class="panel-header">
-                        <h2 class="panel-title">
-                            <i class="mdi mdi-console-line mr-2"></i>Logs
-                        </h2>
-                        <div class="panel-controls">
-                            <button @click="exportLogs" class="btn-export mr-2">
-                                <i class="mdi mdi-download mr-1"></i> Export
-                            </button>
-                            <button @click="clearLogs" class="btn-clear">
-                                <i class="mdi mdi-trash-can mr-1"></i> Clear
-                            </button>
-                        </div>
-                    </div>
-                    <div class="panel-content">
-                        <div class="logs-content">
-                            <div v-for="log in logs"
-                                 :key="log.id" 
-                                 class="log-entry"
-                                 :class="log.level">
-                                <span class="log-timestamp">${ log.timestamp }</span>
-                                <span class="log-message" v-html="log.message"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
