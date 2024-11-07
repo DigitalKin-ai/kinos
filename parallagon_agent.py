@@ -529,6 +529,15 @@ Notes:
         # Clean up any pending operations
         if hasattr(self, 'current_content'):
             self.write_file(self.current_content)
+            
+    def update_paths(self, mission_name: str) -> None:
+        """Met à jour les chemins quand la mission change"""
+        mission_dir = os.path.join("missions", mission_name)
+        self.file_path = os.path.join(mission_dir, os.path.basename(self.file_path))
+        self.watch_files = [
+            os.path.join(mission_dir, os.path.basename(f))
+            for f in self.watch_files
+        ]
 
     def should_run(self) -> bool:
         """

@@ -270,68 +270,39 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             # S'assurer que le dossier missions existe
             os.makedirs("missions", exist_ok=True)
             
-            # Initialize git repo
-            try:
-                self.repo = git.Repo(os.getcwd())
-            except git.InvalidGitRepositoryError:
-                self.repo = git.Repo.init(os.getcwd())
-                self.log_message("Initialized new git repository")
-
-            AIDER_PROMPTS = {
-                "Specification": """En tant qu'agent des spécifications, analysez la demande et 
-                mettez à jour specifications.md pour définir la structure du document...""",
-                
-                "Production": """En tant qu'agent de production, créez et mettez à jour le contenu 
-                dans production.md en suivant les spécifications...""",
-                
-                "Management": """En tant qu'agent de management, coordonnez le travail en mettant 
-                à jour management.md selon les besoins...""",
-                
-                "Evaluation": """En tant qu'agent d'évaluation, vérifiez la qualité du contenu 
-                et mettez à jour evaluation.md avec vos conclusions..."""
-            }
-
             base_config = {
                 "check_interval": 5,
                 "anthropic_api_key": config["anthropic_api_key"],
                 "openai_api_key": config["openai_api_key"],
-                "logger": self.log_message,
-                "repo": self.repo
+                "logger": self.log_message
             }
-            
-            # Créer les agents avec des chemins absolus
-            # Create base agents using AiderAgent
-            base_agents = {
-                name: AiderAgent({
-                    **base_config,
-                    "role": name,
-                    "aider_prompt": AIDER_PROMPTS[name],
-                    "file_path": os.path.abspath(f"{name.lower()}.md"),
-                    "watch_files": [
-                        os.path.abspath(f) for f in 
-                        ["demande.md", "specifications.md", "management.md", 
-                         "production.md", "evaluation.md", "contexte.md"]
-                        if f != f"{name.lower()}.md"
-                    ],
-                    "on_content_changed": self.handle_content_change if name == "Production" else None
-                }) for name in AIDER_PROMPTS.keys()
-            }
-            
-            # Add specialized agents
+
+            # Créer les agents avec leurs prompts dédiés
             self.agents = {
-                **base_agents,
-                "Suivi": SuiviAgent({
+                "Specification": SpecificationsAgent({
                     **base_config,
-                    "file_path": "suivi.md",
-                    "watch_files": ["demande.md", "specifications.md", "management.md",
-                                  "production.md", "evaluation.md", "contexte.md"],
-                    "logs_buffer": self.logs_buffer
+                    "file_path": "specifications.md",
+                    "watch_files": ["demande.md", "production.md"]
+                }),
+                "Production": ProductionAgent({
+                    **base_config,
+                    "file_path": "production.md",
+                    "watch_files": ["specifications.md", "evaluation.md"]
+                }),
+                "Management": ManagementAgent({
+                    **base_config,
+                    "file_path": "management.md",
+                    "watch_files": ["specifications.md", "production.md", "evaluation.md"]
+                }),
+                "Evaluation": EvaluationAgent({
+                    **base_config,
+                    "file_path": "evaluation.md",
+                    "watch_files": ["specifications.md", "production.md"]
                 }),
                 "Contexte": ContexteAgent({
                     **base_config,
                     "file_path": "contexte.md",
-                    "watch_files": ["demande.md", "specifications.md", "management.md",
-                                  "production.md", "evaluation.md", "suivi.md"]
+                    "watch_files": ["demande.md", "specifications.md", "production.md"]
                 })
             }
 
