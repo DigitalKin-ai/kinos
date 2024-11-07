@@ -370,23 +370,26 @@ html, body {
 
 .log-entry {
     display: flex;
-    padding: 2px 4px;
-    margin: 1px 0;
+    flex-direction: column;  /* Stack timestamp above message */
+    padding: 4px 8px;       /* Increased padding */
+    margin: 4px 0;          /* Increased margin */
     font-family: inherit;
     border-left: 3px solid transparent;
+    width: 100%;            /* Use full width */
 }
 
 .log-timestamp {
     color: #666;
-    margin-right: 8px;
-    font-size: 0.85em;
+    font-size: 0.75em;     /* Slightly smaller */
     font-weight: normal;
+    margin-bottom: 2px;    /* Space between timestamp and message */
 }
 
 .log-message {
     flex: 1;
     white-space: pre-wrap;
     word-break: break-word;
+    padding-left: 2px;     /* Slight left padding */
 }
 
 /* Différents types de logs */
