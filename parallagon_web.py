@@ -267,7 +267,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         self.llm_service = LLMService(config["openai_api_key"])
         self.running = False
         self.agents = {}
-        self.logs_buffer = []  # Store recent logs
         self.init_agents(config)
         self.setup_routes()
 
@@ -381,8 +380,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                         os.path.join(mission_dir, "evaluation.md")
                     ],
                     "prompt_file": "prompts/suivi.md",
-                    "aider_prompt": load_prompt("prompts/suivi.md"),
-                    "logs_buffer": self.logs_buffer
+                    "aider_prompt": load_prompt("prompts/suivi.md")
                 })
             }
 
@@ -901,13 +899,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         @self.app.route('/')
         def home():
             try:
-                with open('production.md', 'r', encoding='utf-8') as f:
-                    content = f.read()
-                with open('suivi.md', 'r', encoding='utf-8') as f:
-                    suivi_content = f.read()
-                with open('demande.md', 'r', encoding='utf-8') as f:
-                    demande_content = f.read()
-                return render_template('clean.html', 
+                return render_template('editor.html', 
                              content=content, 
                              suivi_content=suivi_content,
                              demande_content=demande_content)
@@ -970,71 +962,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         def stop_agents():
             self.stop_agents()
             return jsonify({'status': 'stopped'})
-
-        @self.app.route('/api/logs')
-        def get_logs():
-            return jsonify({
-                'logs': self.logs_buffer
-            })
-            
-
-        @self.app.route('/api/logs/export')
-        def export_logs():
-            try:
-                timestamp = time.strftime("%Y%m%d-%H%M%S")
-                filename = f"parallagon-logs-{timestamp}.txt"
-                
-                # Format logs with timestamps, levels, and metadata
-                formatted_logs = []
-                for log in self.logs_buffer:
-                    timestamp = log.get('timestamp', '')
-                    level = log.get('level', 'info')
-                    message = log.get('message', '')
-                    agent = log.get('agent', '')
-                    operation = log.get('operation', '')
-                    status = log.get('status', '')
-                    
-                    # Build log line with all available information
-                    log_parts = [f"[{timestamp}]", f"[{level.upper()}]"]
-                    if agent:
-                        log_parts.append(f"[{agent}]")
-                    if operation:
-                        log_parts.append(f"[{operation}]")
-                    if status:
-                        log_parts.append(f"[{status}]")
-                    log_parts.append(message)
-                    
-                    formatted_logs.append(" ".join(log_parts))
-                
-                # Add header with export information
-                header = [
-                    "Parallagon Log Export",
-                    f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                    f"Total Entries: {len(self.logs_buffer)}",
-                    "-" * 80
-                ]
-                
-                # Combine header and logs
-                full_content = "\n".join(header + [""] + formatted_logs)
-                
-                # Create response with file download
-                response = make_response(full_content)
-                response.headers["Content-Disposition"] = f"attachment; filename={filename}"
-                response.headers["Content-Type"] = "text/plain"
-                
-                self.log_message("Logs exported successfully", level='success')
-                return response
-            except Exception as e:
-                self.log_message(f"Error exporting logs: {str(e)}", level='error')
-                return jsonify({'error': str(e)}), 500
-
-        @self.app.route('/api/logs/clear', methods=['POST'])
-        def clear_logs():
-            try:
-                self.logs_buffer.clear()
-                return jsonify({'status': 'success'})
-            except Exception as e:
-                return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/suivi', methods=['GET'])
         def suivi():
@@ -1318,46 +1245,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             self.log_message(f"Error in stop_agents: {str(e)}", level='error')
             raise
 
-    def log_message(self, message, operation: str = None, status: str = None, level: str = 'info'):
-        """Log a message with optional operation, status and color"""
-        try:
-            # Utiliser un format de date cohérent
-            timestamp = datetime.now().strftime("%H:%M:%S")  # Format court HH:MM:SS
-            
-            # Determine color based on level
-            color = self.LOG_COLORS.get(level, 'black')
-            
-            # Format log entry
-            if operation and status:
-                log_entry = {
-                    'id': len(self.logs_buffer),
-                    'timestamp': timestamp,
-                    'message': f"{operation}: {status} - {message}",
-                    'level': level,
-                    'color': color
-                }
-            else:
-                log_entry = {
-                    'id': len(self.logs_buffer),
-                    'timestamp': timestamp,
-                    'message': message,
-                    'level': level,
-                    'color': color
-                }
-            
-            # Add to logs buffer
-            self.logs_buffer.append(log_entry)
-            
-            # Keep only last 100 logs
-            if len(self.logs_buffer) > 100:
-                self.logs_buffer = self.logs_buffer[-100:]
-            
-            # Print to console for debugging
-            print(f"[{timestamp}] [{level}] {message}")
-                
-        except Exception as e:
-            print(f"Error logging message: {str(e)}")
-
     def safe_operation(self, operation_func):
         """Decorator for safe operation execution with recovery"""
         def wrapper(*args, **kwargs):
@@ -1478,9 +1365,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             # Clear caches
             self.content_cache.clear()
             self.last_modified.clear()
-            
-            # Export final logs
-            self.export_logs()
             
             self.log_message("Application shutdown complete")
         except Exception as e:

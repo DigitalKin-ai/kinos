@@ -45,8 +45,7 @@ const ParallagonApp = {
                 { id: 'management', name: 'Management', icon: 'mdi mdi-account-supervisor' },
                 { id: 'production', name: 'Production', icon: 'mdi mdi-code-braces' },
                 { id: 'evaluation', name: 'Evaluation', icon: 'mdi mdi-check-circle' },
-                { id: 'suivi', name: 'Suivi', icon: 'mdi mdi-history' },
-                { id: 'logs', name: 'Logs', icon: 'mdi mdi-console-line' }
+                { id: 'suivi', name: 'Suivi', icon: 'mdi mdi-history' }
             ],
             content: {
                 demande: '',
@@ -64,7 +63,6 @@ const ParallagonApp = {
                 { id: 'production', name: 'Production', icon: 'mdi mdi-code-braces', updating: false },
                 { id: 'evaluation', name: 'Evaluation', icon: 'mdi mdi-check-circle', updating: false }
             ],
-            logs: [],
             demandeChanged: false,
             updateInterval: null,
             previousContent: {},
@@ -394,36 +392,11 @@ const ParallagonApp = {
                 this.startUpdateLoop();
                 this.activeTab = 'suivi';
                 this.addNotification('success', 'Agents started successfully');
-                // Start logs update
-                this.startLogsUpdate();
             } catch (error) {
                 this.error = error.message;
                 this.addNotification('error', `Failed to start agents: ${error.message}`);
             } finally {
                 this.loading = false;
-            }
-        },
-
-        startLogsUpdate() {
-            if (!this.logsInterval) {
-                this.logsInterval = setInterval(async () => {
-                    try {
-                        const response = await fetch('/api/logs');
-                        const data = await response.json();
-                        if (data.logs && Array.isArray(data.logs)) {
-                            this.logs = data.logs;
-                            // Auto-scroll to bottom
-                            this.$nextTick(() => {
-                                const logsContent = document.querySelector('.logs-content');
-                                if (logsContent) {
-                                    logsContent.scrollTop = logsContent.scrollHeight;
-                                }
-                            });
-                        }
-                    } catch (error) {
-                        console.error('Failed to fetch logs:', error);
-                    }
-                }, 1000);
             }
         },
 
@@ -451,11 +424,6 @@ const ParallagonApp = {
                 await fetch('/api/stop', { method: 'POST' });
                 this.running = false;
                 this.stopUpdateLoop();
-                // Stop logs update
-                if (this.logsInterval) {
-                    clearInterval(this.logsInterval);
-                    this.logsInterval = null;
-                }
             } catch (error) {
                 console.error('Failed to stop agents:', error);
                 this.addLog('error', 'Failed to stop agents: ' + error.message);
@@ -631,42 +599,6 @@ const ParallagonApp = {
             return div.innerHTML;
         },
 
-        async exportLogs() {
-            try {
-                const response = await fetch('/api/logs/export');
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                
-                a.href = url;
-                a.download = `parallagon-logs-${timestamp}.txt`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                
-                this.addNotification('success', 'Logs exported successfully');
-            } catch (error) {
-                console.error('Failed to export logs:', error);
-                this.addNotification('error', `Failed to export logs: ${error.message}`);
-            }
-        },
-
-        async clearLogs() {
-            try {
-                const response = await fetch('/api/logs/clear', { method: 'POST' });
-                if (!response.ok) {
-                    throw new Error('Failed to clear logs');
-                }
-                this.logs = [];
-                this.addNotification('success', 'Logs cleared successfully');
-            } catch (error) {
-                console.error('Failed to clear logs:', error);
-                this.addNotification('error', `Failed to clear logs: ${error.message}`);
-            }
-        },
-
         async loadTestData() {
             try {
                 if (!this.currentMission) {
@@ -789,53 +721,6 @@ const ParallagonApp = {
             }
         },
 
-        addLog(level, message, operation = null, status = null) {
-            const timestamp = new Date().toISOString();
-            const logEntry = {
-                id: `${this.logCounter}_${Date.now()}`,  // Unique ID combining counter and timestamp
-                timestamp,
-                level,
-                message,
-                operation,
-                status
-            };
-            
-            // Format message with operation and status if present
-            if (operation && status) {
-                logEntry.formattedMessage = `${operation}: ${status} - ${message}`;
-            } else {
-                logEntry.formattedMessage = message;
-            }
-            
-            this.logs.push(logEntry);
-            this.logCounter++;  // Increment counter after use
-
-            // Keep only last 100 logs using slice
-            if (this.logs.length > 100) {
-                this.logs = this.logs.slice(-100);
-            }
-
-            // Auto-scroll logs
-            this.$nextTick(() => {
-                const logsContent = document.querySelector('.logs-content');
-                if (logsContent) {
-                    logsContent.scrollTop = logsContent.scrollHeight;
-                }
-            });
-        },
-
-        async updateLogs() {
-            try {
-                const response = await fetch('/api/logs');
-                const data = await response.json();
-                if (data.logs && Array.isArray(data.logs)) {
-                    this.logs = data.logs;
-                }
-            } catch (error) {
-                console.error('Failed to fetch logs:', error);
-            }
-        },
-
         async checkForChanges() {
             if (!this.running) {
                 console.debug('App not running, skipping change check');
@@ -877,7 +762,6 @@ const ParallagonApp = {
             // Autres mises à jour moins fréquentes
             this.updateInterval = setInterval(() => {
                 this.updateContent();
-                this.updateLogs();
                 this.checkForChanges();
             }, 1000);
         },
