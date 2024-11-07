@@ -64,13 +64,19 @@ class FileManager:
             try:
                 # Construire le chemin dans le dossier de mission
                 file_path = os.path.join(mission_dir, os.path.basename(base_path))
+                
+                # Créer uniquement si le fichier n'existe pas
                 if not os.path.exists(file_path):
                     os.makedirs(os.path.dirname(file_path), exist_ok=True)
                     with open(file_path, 'w', encoding='utf-8') as f:
                         initial_content = self._get_initial_content(name)
                         f.write(initial_content)
+                    print(f"Created new file with default content: {file_path}")
+                else:
+                    print(f"Using existing file: {file_path}")
+                    
             except Exception as e:
-                raise self.FileError(f"Error creating {file_path}: {str(e)}")
+                raise self.FileError(f"Error with {file_path}: {str(e)}")
 
     def _get_initial_content(self, file_name: str) -> str:
         """Get initial content for a file based on its name"""
@@ -125,12 +131,27 @@ En attente d'initialisation...
     def read_file(self, file_name: str) -> Optional[str]:
         """Read content from a file"""
         try:
-            file_path = self.file_paths.get(file_name)
+            # Get full path based on current mission
+            if self.current_mission:
+                file_path = os.path.join("missions", self.current_mission, f"{file_name}.md")
+            else:
+                file_path = self.file_paths.get(file_name)
+                
             if not file_path:
                 raise self.FileError(f"Chemin non trouvé pour {file_name}")
                 
+            # Ensure file exists but don't overwrite if it does
+            if not os.path.exists(file_path):
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    initial_content = self._get_initial_content(file_name)
+                    f.write(initial_content)
+                return initial_content
+                
+            # Read existing content
             with open(file_path, 'r', encoding='utf-8') as f:
                 return f.read()
+                
         except Exception as e:
             raise self.FileError(f"Erreur lecture {file_name}: {str(e)}")
             
