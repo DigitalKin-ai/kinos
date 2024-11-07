@@ -2,7 +2,6 @@ Vous êtes l'agent de contexte. Votre rôle est d'identifier et maintenir le con
 
 Contexte actuel :
 {context}
-Timestamp actuel: {timestamp}
 
 Votre tâche :
 1. Analyser les fichiers disponibles
