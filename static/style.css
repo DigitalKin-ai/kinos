@@ -409,17 +409,15 @@ html, body {
     color: #f56565;
 }
 
-/* Animation d'apparition */
-/* Animation d'apparition */
+/* Animation d'apparition simplifiée */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
-/* Hover effect subtil */
+/* Supprimer l'effet de survol */
 .suivi-mission-entry:hover {
-    transform: translateY(-1px);
-    transition: transform 0.2s ease;
+    transform: none;
 }
 
 /* Scrollbar style */
