@@ -145,7 +145,7 @@ En attente d'initialisation...
             with portalocker.Lock(file_path, timeout=10) as lock:
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(content)
-                
+            
             # Notification
             if self.on_content_changed:
                 panel_name = file_name.split('.')[0].capitalize()

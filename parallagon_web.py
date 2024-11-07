@@ -1099,6 +1099,8 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 time.sleep(5)  # Check every 5 seconds
             except Exception as e:
                 self.log_message(f"Error in monitor_agents: {str(e)}", level='error')
+                if not self.running:  # Exit if system is shutting down
+                    break
 
     def monitor_agents(self):
         """Monitor agents and restart them if they crash"""
@@ -1132,32 +1134,24 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             self.log_message("🚀 Démarrage des agents...", level='info')
             self.running = True
             
-            # Start monitor thread
-            self.monitor_thread = threading.Thread(
-                target=self.monitor_agents,
-                daemon=True,
-                name="AgentMonitor"
-            )
-            self.monitor_thread.start()
-            
-            # Start content update loop
-            def update_loop():
-                self.log_message("✓ Boucle de mise à jour démarrée", level='success')
-                while self.running:
-                    try:
-                        self.check_content_updates()
-                    except Exception as e:
-                        self.log_message(f"❌ Erreur dans la boucle de mise à jour: {str(e)}", level='error')
-                    time.sleep(1)  # Check every second
-            
-            # Start update loop in separate thread
-            self.update_thread = threading.Thread(target=update_loop, daemon=True)
-            self.update_thread.start()
+            # Start monitor thread if not already running
+            if not self.monitor_thread or not self.monitor_thread.is_alive():
+                self.monitor_thread = threading.Thread(
+                    target=self.monitor_agents,
+                    daemon=True,
+                    name="AgentMonitor"
+                )
+                self.monitor_thread.start()
             
             # Start agents in separate threads
             for name, agent in self.agents.items():
                 try:
-                    thread = threading.Thread(target=agent.run, daemon=True)
+                    agent.start()  # Set agent running flag
+                    thread = threading.Thread(
+                        target=agent.run,
+                        daemon=True,
+                        name=f"Agent-{name}"
+                    )
                     thread.start()
                     self.log_message(f"✓ Agent {name} démarré", level='success')
                 except Exception as e:
@@ -1173,37 +1167,21 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
         """Stop all agents and update loop"""
         try:
             self.running = False
-            if hasattr(self, 'update_thread'):
-                self.update_thread.join(timeout=2)
-                
-            # Arrêter chaque agent individuellement et réinitialiser leur état
+            
+            # Stop each agent individually
             for name, agent in self.agents.items():
                 try:
-                    # Arrêter l'agent
                     agent.stop()
-                    agent.running = False  # S'assurer que l'état est bien mis à False
-                    
-                    # Réinitialiser les métriques de l'agent
-                    agent.last_run = None
-                    agent.last_change = None
-                    agent.consecutive_no_changes = 0
-                    
-                    # Notifier le frontend
-                    self.handle_content_change(
-                        agent.file_path,
-                        "",  # contenu vide car on s'intéresse juste au changement d'état
-                        panel_name=name,
-                        flash=True
-                    )
-                    
-                    self.log_message(f"Agent {name} stopped successfully", level='info')
-                    
+                    self.log_message(f"Agent {name} stopped", level='info')
                 except Exception as e:
                     self.log_message(f"Error stopping agent {name}: {str(e)}", level='error')
-                    continue
-                    
-            # Vider la queue des agents en cours
-            self.runningAgents = set()
+            
+            # Clear running agents set
+            self.runningAgents.clear()
+            
+            # Wait for monitor thread to finish
+            if self.monitor_thread and self.monitor_thread.is_alive():
+                self.monitor_thread.join(timeout=2)
             
             self.log_message("All agents stopped", level='success')
             
@@ -1387,25 +1365,27 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             
             self.log_message(f"Updating agent paths for mission: {mission_name}", level='debug')
             
-            # Créer les chemins absolus pour chaque fichier
-            new_paths = {
-                "Production": os.path.join(mission_dir, "production.md"),
-                "Specification": os.path.join(mission_dir, "specifications.md"),
-                "Management": os.path.join(mission_dir, "management.md"),
-                "Evaluation": os.path.join(mission_dir, "evaluation.md"),
-                "Contexte": os.path.join(mission_dir, "contexte.md")
-            }
+            # Stop agents if running
+            was_running = self.running
+            if was_running:
+                self.stop_agents()
             
-            # Mettre à jour les chemins des agents
+            # Update paths for each agent
             for name, agent in self.agents.items():
-                if name in new_paths:
-                    agent.file_path = os.path.abspath(new_paths[name])
-                    agent.watch_files = [
-                        os.path.abspath(new_paths[other_name])
-                        for other_name in new_paths.keys()
-                        if other_name != name
-                    ]
-                    
+                try:
+                    agent.update_paths(
+                        os.path.join(mission_dir, f"{name.lower()}.md"),
+                        [os.path.join(mission_dir, f"{other_name.lower()}.md") 
+                         for other_name in self.agents.keys() 
+                         if other_name != name]
+                    )
+                except Exception as e:
+                    self.log_message(f"Error updating paths for {name}: {str(e)}", level='error')
+            
+            # Restart agents if they were running
+            if was_running:
+                self.start_agents()
+                
             self.log_message(f"✓ Agent paths updated for mission: {mission_name}", level='success')
             
         except Exception as e:
