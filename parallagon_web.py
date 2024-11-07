@@ -373,14 +373,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     ],
                     "prompt_file": "prompts/suivi.md",
                     "logs_buffer": self.logs_buffer
-                }),
-                    "watch_files": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ],
-                    "prompt_file": "prompts/suivi.md",
-                    "logs_buffer": self.logs_buffer
                 })
             }
 
