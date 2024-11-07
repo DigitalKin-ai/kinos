@@ -163,8 +163,8 @@ html, body {
 
 /* Sidebar */
 .sidebar {
-    flex: 0 0 240px;
-    min-width: 240px;
+    flex: 0 0 200px;
+    min-width: 200px;
     height: 100%;
     background-color: #f1f3f5;
     border-right: 1px solid #e9ecef;
@@ -176,9 +176,9 @@ html, body {
 
 /* Mission sidebar */
 .mission-sidebar {
-    flex: 0 0 280px;
+    flex: 0 0 270px;
     min-width: 48px;
-    max-width: 280px;
+    max-width: 270px;
     transition: width 0.3s ease;
 }
 
