@@ -49,9 +49,9 @@ class AiderAgent(ParallagonAgent):
             ]
             
         self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.role}")
-        self.logger(f"[{self.__class__.__name__}] Dossier mission: {mission_dir}")
-        self.logger(f"[{self.__class__.__name__}] Fichier principal: {self.file_path}")
-        self.logger(f"[{self.__class__.__name__}] Fichiers surveillés: {self.watch_files}")
+        self._log_message(f"[{self.__class__.__name__}] Dossier mission: {mission_dir}")
+        self._log_message(f"[{self.__class__.__name__}] Fichier principal: {self.file_path}")
+        self._log_message(f"[{self.__class__.__name__}] Fichiers surveillés: {self.watch_files}")
 
     def _get_aider_instructions(self, prompt: str) -> Optional[str]:
         """Obtient les instructions pour Aider via GPT"""

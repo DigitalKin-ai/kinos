@@ -21,6 +21,8 @@ class FileManager:
         }
         self.on_content_changed = on_content_changed
         self.current_mission = None
+        # Ajouter un logger par défaut
+        self.logger = print  # Par défaut, utiliser print
         self._ensure_files_exist()
         
     def create_mission_files(self, mission_name: str) -> bool:
@@ -131,6 +133,16 @@ En attente d'initialisation...
             
         return ""  # Default empty content
 
+    def _log_message(self, message: str):
+        """Méthode sécurisée pour le logging"""
+        try:
+            if hasattr(self, 'logger'):
+                self.logger(message)
+            else:
+                print(message)
+        except:
+            print(message)  # Fallback ultime
+
     def read_file(self, file_name: str) -> Optional[str]:
         """Read content from a file"""
         try:
@@ -145,11 +157,11 @@ En attente d'initialisation...
                 file_path = self.file_paths.get(file_name)
                 
             if not file_path:
-                self.logger(f"Chemin non trouvé pour {file_name}")
+                self._log_message(f"Chemin non trouvé pour {file_name}")
                 return None
                 
             # Debug log
-            print(f"Reading file: {file_path}")
+            self._log_message(f"Reading file: {file_path}")
                 
             # Ensure parent directory exists
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
