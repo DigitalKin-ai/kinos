@@ -45,27 +45,19 @@ class ParallagonWeb:
             self.log_message(f"Error loading test data: {str(e)}", level='error')
             return ""
 
-### Niveau de profondeur
-[x] Approfondi (10-15 pages)
-
-# TEMPLATE ÉTAT DE L'ART CIR
-
-## Introduction générale (200-250 mots)
-
-**But** : Présenter le contexte global du projet de R&D et introduire les différents axes de recherche.
-
-**Directives** :
-- Contextualiser la problématique générale
-- Présenter succinctement les axes de recherche (2-3 axes maximum)
-- Justifier la décomposition en axes distincts
-- Style : Accessible aux non-spécialistes tout en restant précis
-- Aucune référence nécessaire dans cette section
-
-## Pour chaque axe de recherche (1100-1450 mots par axe)
-
-### 1. Introduction de l'axe (100-150 mots)
-
-**But** : Contextualiser l'axe et établir son objectif de recherche spécifique.
+    def _load_test_data(self):
+        """Load test data from template file"""
+        try:
+            test_data_path = os.path.join("templates", "test_data", "test_content.md")
+            if not os.path.exists(test_data_path):
+                self.log_message(f"Test data file not found: {test_data_path}", level='error')
+                return ""
+                
+            with open(test_data_path, 'r', encoding='utf-8') as f:
+                return f.read()
+        except Exception as e:
+            self.log_message(f"Error loading test data: {str(e)}", level='error')
+            return ""
 
 **Directives** :
 - Présenter l'axe et son objectif de recherche spécifique
