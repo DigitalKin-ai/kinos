@@ -344,10 +344,12 @@ html, body {
     animation: fadeIn 0.3s ease-in-out;
 }
 
+/* Style pour le timestamp */
 .log-timestamp {
-    color: #868e96;
-    flex-shrink: 0;
-    min-width: 140px;
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin-bottom: 0.2rem;
+    font-weight: 500;
 }
 
 .log-entry.info {
@@ -367,15 +369,34 @@ html, body {
 }
 
 /* Animation d'apparition */
+/* Animation d'apparition */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hover effect subtil */
+.suivi-mission-entry:hover {
+    transform: translateY(-1px);
+    transition: transform 0.2s ease;
+}
+
+/* Style pour la scrollbar */
+.suivi-mission-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.suivi-mission-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.suivi-mission-content::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 3px;
+}
+
+.suivi-mission-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0,0,0,0.3);
 }
 
 /* Style pour la barre de défilement */
@@ -1164,20 +1185,18 @@ body {
     color: #63B3ED;  /* Bleu clair */
 }
 
-/* Suivi panel specific styles */
+/* Style pour le conteneur de suivi */
 .suivi-content {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Helvetica Neue', Arial, -apple-system, sans-serif;
     white-space: pre-wrap;
-    padding: 2rem;
+    padding: 2.5rem;
     height: 100%;
     overflow: auto;
-    background-color: #ffffff;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-    line-height: 1.8;
-    font-size: 0.95rem;
-    color: #2d3748;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+    background-color: #f0f2f5;  /* Fond gris clair type Messenger */
+    line-height: 2;
+    font-size: 1rem;
+    color: #374151;
+    letter-spacing: 0.01em;
 }
 
 .suivi-entry {
