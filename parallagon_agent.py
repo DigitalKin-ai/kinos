@@ -33,10 +33,20 @@ def agent_error_handler(method_name: str):
                 return None
         return wrapper
     return decorator
-- Operates independently on its assigned file
-- Maintains its own rhythm of execution  
-- Communicates through file content changes
-- Self-adjusts its activity based on changes detected
+"""
+Foundation for autonomous file-focused agents.
+
+Each agent is responsible for:
+- Monitoring and updating its dedicated file
+- Analyzing changes in related files
+- Making independent decisions
+- Adapting its execution rhythm
+
+Key behaviors:
+- File-based state persistence
+- Self-regulated execution cycles
+- Automatic error recovery
+- Activity-based timing adjustments
 """
 from typing import Dict, Any, Optional, List
 import re
@@ -581,15 +591,18 @@ Notes:
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] Recovery failed: {str(e)}")
             return False
+
+    def update_paths(self, file_path: str, watch_files: List[str]) -> None:
+        """Update file paths when mission changes"""
+        try:
+            self.file_path = file_path
+            self.watch_files = watch_files
             
-    def update_paths(self, mission_name: str) -> None:
-        """Met à jour les chemins quand la mission change"""
-        mission_dir = os.path.join("missions", mission_name)
-        self.file_path = os.path.join(mission_dir, os.path.basename(self.file_path))
-        self.watch_files = [
-            os.path.join(mission_dir, os.path.basename(f))
-            for f in self.watch_files
-        ]
+            # Re-read files with new paths
+            self.read_files()
+            
+        except Exception as e:
+            print(f"Error updating paths for {self.__class__.__name__}: {e}")
 
     def should_run(self) -> bool:
         """
