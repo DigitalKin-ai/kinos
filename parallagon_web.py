@@ -12,10 +12,13 @@ from mission_service import MissionService
 from file_manager import FileManager
 from llm_service import LLMService
 from search_replace import SearchReplace
-from parallagon_agent import ParallagonAgent
-from aider_agent import AiderAgent
-from suivi_agent import SuiviAgent
-from contexte_agent import ContexteAgent
+from agents import (
+    SpecificationsAgent,
+    ProductionAgent,
+    ManagementAgent,
+    EvaluationAgent,
+    ContexteAgent
+)
 
 class ParallagonWeb:
     # Log level colors
