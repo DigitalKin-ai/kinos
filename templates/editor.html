@@ -194,8 +194,12 @@
                         </h2>
                     </div>
                     <div class="panel-content">
+                        <!-- Debug info -->
+                        <pre v-if="!suiviEntries.length" style="color: #666; font-size: 12px;">
+                            Nombre d'entrées: ${ suiviEntries.length }
+                        </pre>
+                        
                         <div class="suivi-content">
-                            <!-- Message if no entries -->
                             <div v-if="!suiviEntries.length" class="text-gray-500">
                                 Aucune entrée de suivi disponible
                             </div>

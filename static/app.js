@@ -80,29 +80,51 @@ const ParallagonApp = {
                 }
                 const data = await response.json();
                 
-                // Convert content to structured entries
-                const entries = data.content.split('\n')
-                    .filter(line => line.trim())
+                // Debug log pour voir les données reçues
+                console.log('Suivi data received:', data);
+                
+                if (!data.content) {
+                    console.warn('No content in suivi data');
+                    return;
+                }
+
+                // Amélioration du parsing des entrées
+                const entries = data.content
+                    .split('\n')
+                    .filter(line => {
+                        // Ne garder que les lignes qui commencent par un timestamp
+                        return line.trim().match(/^\[\d{2}:\d{2}:\d{2}\]/);
+                    })
                     .map((line, index) => {
-                        const timestampMatch = line.match(/\[([\d:]+)\]/);
-                        const timestamp = timestampMatch ? timestampMatch[1] : '';
-                        const message = line.replace(/\[[\d:]+\]/, '').trim();
-                        
-                        // Determine type based on content
+                        // Extraction plus robuste du timestamp et du message
+                        const timestampMatch = line.match(/^\[(\d{2}:\d{2}:\d{2})\](.*)/);
+                        if (!timestampMatch) return null;
+
+                        const [, timestamp, rawMessage] = timestampMatch;
+                        const message = rawMessage.trim();
+
+                        // Détermination plus précise du type
                         let type = 'info';
                         if (message.includes('✓')) type = 'success';
                         if (message.includes('❌')) type = 'error';
                         if (message.includes('⚠️')) type = 'warning';
-                        
+
                         return {
-                            id: index,
+                            id: `suivi-${index}`,
                             timestamp,
                             message,
                             type
                         };
-                    });
-                
-                this.suiviEntries = entries;
+                    })
+                    .filter(entry => entry !== null); // Éliminer les entrées invalides
+
+                // Debug log pour voir les entrées parsées
+                console.log('Parsed suivi entries:', entries);
+
+                // Mettre à jour seulement si nous avons des entrées valides
+                if (entries.length > 0) {
+                    this.suiviEntries = entries;
+                }
                 
             } catch (error) {
                 console.error('Error updating suivi entries:', error);
