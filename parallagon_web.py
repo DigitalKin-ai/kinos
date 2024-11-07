@@ -372,7 +372,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                         os.path.join(mission_dir, "evaluation.md")
                     ],
                     "prompt_file": "prompts/suivi.md",
-                    "aider_prompt": load_prompt("prompts/suivi.md")
+                    "logs_buffer": self.logs_buffer  # Add logs buffer
                 })
             }
 
@@ -725,10 +725,8 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 # Convert agent_id to proper case and normalize
                 agent_name = agent_id.capitalize()
                 
-                # Special case for "Suivi" -> map to "SuiviMission"
-                if agent_name == "Suivi":
-                    agent_name = "SuiviMission"
-                elif agent_name.endswith('s'):  # Remove trailing 's' for other agents
+                # Handle plural forms for agent names
+                if agent_name.endswith('s'):  # Remove trailing 's' for agents
                     agent_name = agent_name[:-1]
                 
                 # Debug log
