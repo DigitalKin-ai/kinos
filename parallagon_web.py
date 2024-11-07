@@ -294,7 +294,8 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             }
             
             # Créer les agents avec des chemins absolus
-            self.agents = {
+            # Create base agents using AiderAgent
+            base_agents = {
                 name: AiderAgent({
                     **base_config,
                     "role": name,
@@ -308,6 +309,10 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     "on_content_changed": self.handle_content_change if name == "Production" else None
                 }) for name in AIDER_PROMPTS.keys()
             }
+            
+            # Add specialized agents
+            self.agents = {
+                **base_agents,
                 "Suivi": SuiviAgent({
                     **base_config,
                     "file_path": "suivi.md",
