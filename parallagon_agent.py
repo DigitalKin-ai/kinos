@@ -331,7 +331,7 @@ Notes:
             # Try OpenAI first
             try:
                 response = self.openai_client.chat.completions.create(
-                    model="gpt-4-turbo-preview",
+                    model="gpt-4o-mini",  # Modèle standard de openai (ne pas remplacer)
                     messages=[{
                         "role": "user", 
                         "content": prompt
