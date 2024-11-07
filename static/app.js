@@ -714,27 +714,9 @@ const ParallagonApp = {
                 
                 console.log(`Toggling agent ${agentName}`); // Debug log
                 
-                const response = await fetch(`/api/agent/${agentName}/${this.isAgentRunning(agentId) ? 'stop' : 'start'}`, {
-                    method: 'POST'
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to toggle agent: ${response.statusText}`);
-                }
-
-                // Mettre à jour l'état de l'agent
-                if (this.isAgentRunning(agentId)) {
-                    this.runningAgents.delete(agentId);
-                } else {
-                    this.runningAgents.add(agentId);
-                }
+                const action = this.isAgentRunning(agentId) ? 'stop' : 'start';
                 
-                const isRunning = this.isAgentRunning(agentId);
-                const action = isRunning ? 'stop' : 'start';
-                
-                console.log(`Toggling agent ${formattedAgentId} to ${action}`); // Debug log
-                
-                const response = await fetch(`http://localhost:8000/api/agent/${formattedAgentId}/${action}`, {
+                const response = await fetch(`/api/agent/${agentName}/${action}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
