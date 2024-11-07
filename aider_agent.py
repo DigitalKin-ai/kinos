@@ -117,3 +117,31 @@ class AiderAgent(ParallagonAgent):
         except Exception as e:
             self.logger(f"Erreur chargement prompt: {e}")
             return super()._build_prompt(context)  # Fallback au prompt par défaut
+            
+    def _validate_content(self, content: str) -> bool:
+        """Validate content before writing"""
+        try:
+            # Basic structure validation
+            if not content.strip():
+                return False
+                
+            # Check for required sections based on agent type
+            required_sections = {
+                'SpecificationsAgent': ['État Actuel', 'Signaux'],
+                'ProductionAgent': ['État Actuel', 'Contenu Principal'],
+                'ManagementAgent': ['État Actuel', 'TodoList', 'Actions Réalisées'],
+                'EvaluationAgent': ['Évaluations en Cours', 'Vue d\'Ensemble']
+            }
+            
+            agent_type = self.__class__.__name__
+            if agent_type in required_sections:
+                for section in required_sections[agent_type]:
+                    if f"# {section}" not in content:
+                        self.logger(f"Missing required section: {section}")
+                        return False
+                        
+            return True
+            
+        except Exception as e:
+            self.logger(f"Error validating content: {str(e)}")
+            return False

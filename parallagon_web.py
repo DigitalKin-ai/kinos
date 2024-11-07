@@ -282,27 +282,32 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 "Specification": SpecificationsAgent({
                     **base_config,
                     "file_path": "specifications.md",
-                    "watch_files": ["demande.md", "production.md"]
+                    "watch_files": ["demande.md", "production.md"],
+                    "prompt_file": "prompts/specifications.md"
                 }),
                 "Production": ProductionAgent({
                     **base_config,
                     "file_path": "production.md",
-                    "watch_files": ["specifications.md", "evaluation.md"]
+                    "watch_files": ["specifications.md", "evaluation.md"],
+                    "prompt_file": "prompts/production.md"
                 }),
                 "Management": ManagementAgent({
                     **base_config,
                     "file_path": "management.md",
-                    "watch_files": ["specifications.md", "production.md", "evaluation.md"]
+                    "watch_files": ["specifications.md", "production.md", "evaluation.md"],
+                    "prompt_file": "prompts/management.md"
                 }),
                 "Evaluation": EvaluationAgent({
                     **base_config,
                     "file_path": "evaluation.md",
-                    "watch_files": ["specifications.md", "production.md"]
+                    "watch_files": ["specifications.md", "production.md"],
+                    "prompt_file": "prompts/evaluation.md"
                 }),
                 "Contexte": ContexteAgent({
                     **base_config,
                     "file_path": "contexte.md",
-                    "watch_files": ["demande.md", "specifications.md", "production.md"]
+                    "watch_files": ["demande.md", "specifications.md", "production.md"],
+                    "prompt_file": "prompts/contexte.md"
                 })
             }
 
@@ -326,26 +331,34 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             # Format timestamp consistently
             timestamp = datetime.now().strftime("%H:%M:%S")
             
+            # Get panel name from file path if not provided
+            if not panel_name:
+                panel_name = os.path.splitext(os.path.basename(file_path))[0].capitalize()
+            
             # Create notification with all required fields
             notification = {
                 'type': 'info',
-                'message': f'Content updated in {panel_name or os.path.basename(file_path)}',
+                'message': f'Content updated in {panel_name}',
                 'timestamp': timestamp,
-                'panel': panel_name or os.path.splitext(os.path.basename(file_path))[0],
+                'panel': panel_name,
                 'status': os.path.basename(file_path),
-                'operation': 'flash_tab',
+                'operation': 'flash_tab' if flash else 'update',
                 'id': len(self.notifications_queue)
             }
             
             # Add to notifications queue
             self.notifications_queue.append(notification)
             
-            # Update cache
-            self.content_cache[file_path] = content
-            self.last_modified[file_path] = time.time()
+            # Update cache with validation
+            if content and content.strip():
+                self.content_cache[file_path] = content
+                self.last_modified[file_path] = time.time()
+                self.log_message(f"Content cache updated for {panel_name}", level='debug')
             
         except Exception as e:
             self.log_message(f"Error handling content change: {str(e)}", level='error')
+            import traceback
+            self.log_message(traceback.format_exc(), level='error')
 
     def toggle_agent(self, agent_id: str, action: str) -> bool:
         """
