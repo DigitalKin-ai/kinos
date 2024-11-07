@@ -11,7 +11,6 @@ __all__ = [
     'ProductionAgent',
     'ManagementAgent',
     'EvaluationAgent',
-    'ContexteAgent',
     'SuiviAgent'
 ]
 
@@ -69,35 +68,3 @@ class EvaluationAgent(AiderAgent):
         super().analyze()
         # Ajouter logique spécifique à l'évaluation
 
-class ContexteAgent(ParallagonAgent):
-    """Agent gérant le contexte"""
-    def __init__(self, config):
-        super().__init__(config)
-        self.prompt_file = "prompts/contexte.md"
-        self.current_context = set()
-        
-    def analyze(self):
-        """Analyse spécifique pour le contexte"""
-        super().analyze()
-        # Ajouter logique spécifique au contexte
-
-    def _build_prompt(self, context: dict) -> str:
-        """Charge et formate le prompt depuis le fichier"""
-        try:
-            with open(self.prompt_file, 'r', encoding='utf-8') as f:
-                prompt_template = f.read()
-                
-            # Ajouter le timestamp au contexte
-            from datetime import datetime
-            context_with_timestamp = {
-                **context,
-                'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            }
-                
-            return prompt_template.format(
-                context=self._format_other_files(context),
-                timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Ajouter le timestamp ici
-            )
-        except Exception as e:
-            self.logger(f"Erreur chargement prompt: {e}")
-            return super()._build_prompt(context)  # Fallback au prompt par défaut
