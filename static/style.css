@@ -337,19 +337,41 @@ html, body {
     border-radius: 0.375rem;
 }
 
-/* Style pour le conteneur de logs */
+/* Style pour le suivi */
+.suivi-content {
+    font-family: 'Helvetica Neue', Arial, -apple-system, sans-serif;
+    white-space: pre-wrap;
+    padding: 2.5rem;
+    height: 100%;
+    overflow: auto;
+    background-color: #f0f2f5;  /* Fond gris clair type Messenger */
+    line-height: 2;
+    font-size: 1rem;
+    color: #374151;
+    letter-spacing: 0.01em;
+}
+
+.suivi-entry {
+    margin-bottom: 1.2rem;
+    padding: 0.75rem 1rem;
+    border-radius: 18px;
+    background-color: white;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+/* Style console pour les logs */
 .suivi-mission-content {
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     background-color: #1e1e1e;
     color: #d4d4d4;
-    padding: 0.75rem;
+    padding: 0.5rem;
     height: 100%;
     overflow-y: auto;
     line-height: 1.4;
     font-size: 0.9rem;
 }
 
-/* Style pour chaque entrée de log */
 .suivi-mission-entry {
     display: flex;
     padding: 2px 4px;
@@ -361,7 +383,6 @@ html, body {
     box-shadow: none;
 }
 
-/* Timestamp */
 .log-timestamp {
     color: #666;
     margin-right: 8px;
@@ -369,7 +390,6 @@ html, body {
     font-weight: normal;
 }
 
-/* Message */
 .log-message {
     flex: 1;
     white-space: pre-wrap;
@@ -391,6 +411,24 @@ html, body {
 
 .suivi-mission-entry.warning {
     color: #ecc94b;
+}
+
+/* Scrollbar pour les logs */
+.suivi-mission-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.suivi-mission-content::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+.suivi-mission-content::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+.suivi-mission-content::-webkit-scrollbar-thumb:hover {
+    background: #666;
 }
 
 
