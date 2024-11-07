@@ -381,6 +381,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                         os.path.join(mission_dir, "evaluation.md")
                     ],
                     "prompt_file": "prompts/suivi.md",
+                    "aider_prompt": load_prompt("prompts/suivi.md"),
                     "logs_buffer": self.logs_buffer
                 })
             }
