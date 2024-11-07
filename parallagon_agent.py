@@ -2,6 +2,33 @@
 ParallagonAgent - Base class for autonomous parallel agents
 
 Defines the core behavior and lifecycle of a Parallagon agent. Each agent:
+"""
+from typing import Dict, Any, Optional, List
+import re
+import time
+import openai
+import anthropic
+import os
+from datetime import datetime, timedelta
+from pathlib import Path
+from search_replace import SearchReplace, SearchReplaceResult
+from functools import wraps
+
+def agent_error_handler(method_name: str):
+    """Décorateur générique pour la gestion des erreurs des agents"""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            try:
+                return func(self, *args, **kwargs)
+            except Exception as e:
+                error_msg = f"[{self.__class__.__name__}] ❌ Erreur dans {method_name}: {str(e)}"
+                self.logger(error_msg)
+                import traceback
+                self.logger(traceback.format_exc())
+                return None
+        return wrapper
+    return decorator
 - Operates independently on its assigned file
 - Maintains its own rhythm of execution  
 - Communicates through file content changes
@@ -529,6 +556,27 @@ Notes:
         # Clean up any pending operations
         if hasattr(self, 'current_content'):
             self.write_file(self.current_content)
+            
+    def recover_from_error(self):
+        """Try to recover from error state"""
+        try:
+            self.logger(f"[{self.__class__.__name__}] Attempting recovery...")
+            
+            # Reset internal state
+            self.last_run = None
+            self.last_change = None
+            self.consecutive_no_changes = 0
+            
+            # Re-read files
+            self.read_files()
+            
+            # Log recovery attempt
+            self.logger(f"[{self.__class__.__name__}] Recovery complete")
+            return True
+            
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] Recovery failed: {str(e)}")
+            return False
             
     def update_paths(self, mission_name: str) -> None:
         """Met à jour les chemins quand la mission change"""

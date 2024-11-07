@@ -340,10 +340,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             # Add to notifications queue
             self.notifications_queue.append(notification)
             
-            # Debug logs
-            print(f"Added notification: {notification}")
-            print(f"Current notifications queue: {self.notifications_queue}")
-            
             # Update cache
             self.content_cache[file_path] = content
             self.last_modified[file_path] = time.time()
@@ -1104,6 +1100,32 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             except Exception as e:
                 self.log_message(f"Error in monitor_agents: {str(e)}", level='error')
 
+    def monitor_agents(self):
+        """Monitor agents and restart them if they crash"""
+        while self.running:
+            try:
+                for name, agent in self.agents.items():
+                    if agent.running:
+                        # Check if agent is active but stuck
+                        if (agent.last_run and 
+                            (datetime.now() - agent.last_run).seconds > 30):  # 30s timeout
+                            self.log_message(
+                                f"Agent {name} seems stuck, restarting...", 
+                                level='warning'
+                            )
+                            # Restart agent
+                            agent.stop()
+                            agent.start()
+                            thread = threading.Thread(
+                                target=agent.run,
+                                daemon=True,
+                                name=f"Agent-{name}"
+                            )
+                            thread.start()
+                time.sleep(5)  # Check every 5 seconds
+            except Exception as e:
+                self.log_message(f"Error in monitor_agents: {str(e)}", level='error')
+
     def start_agents(self):
         """Start all agents"""
         try:
@@ -1328,7 +1350,6 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             mission_dir = os.path.abspath(os.path.join("missions", mission_name))
             
             self.log_message(f"Updating agent paths for mission: {mission_name}", level='debug')
-            self.log_message(f"Mission directory (absolute): {mission_dir}", level='debug')
             
             # Créer les chemins absolus pour chaque fichier
             new_paths = {
@@ -1336,39 +1357,23 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 "Specification": os.path.join(mission_dir, "specifications.md"),
                 "Management": os.path.join(mission_dir, "management.md"),
                 "Evaluation": os.path.join(mission_dir, "evaluation.md"),
-                "Suivi": os.path.join(mission_dir, "suivi.md"),
                 "Contexte": os.path.join(mission_dir, "contexte.md")
             }
             
             # Mettre à jour les chemins des agents
             for name, agent in self.agents.items():
                 if name in new_paths:
-                    old_path = agent.file_path
-                    # Mettre à jour avec le nouveau chemin absolu
                     agent.file_path = os.path.abspath(new_paths[name])
-                    
-                    # Debug log pour vérifier le changement
-                    self.log_message(
-                        f"Agent {name} path updated:\nOLD: {old_path}\nNEW: {agent.file_path}", 
-                        level='debug'
-                    )
-                    
-                    # Vérifier que le dossier existe
-                    os.makedirs(os.path.dirname(agent.file_path), exist_ok=True)
-                    
-                    # Mettre à jour watch_files avec les nouveaux chemins absolus
                     agent.watch_files = [
                         os.path.abspath(new_paths[other_name])
                         for other_name in new_paths.keys()
                         if other_name != name
                     ]
-            
+                    
             self.log_message(f"✓ Agent paths updated for mission: {mission_name}", level='success')
             
         except Exception as e:
             self.log_message(f"❌ Error updating agent paths: {str(e)}", level='error')
-            import traceback
-            self.log_message(traceback.format_exc(), level='error')
 
     def get_app(self):
         """Return the Flask app instance"""
