@@ -303,7 +303,8 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     "file_path": os.path.abspath(f"{name.lower()}.md"),
                     "watch_files": [
                         os.path.abspath(f) for f in 
-                        ["demande.md", "specifications.md", "management.md", "production.md", "evaluation.md", "contexte.md"]
+                        ["demande.md", "specifications.md", "management.md", 
+                         "production.md", "evaluation.md", "contexte.md"]
                         if f != f"{name.lower()}.md"
                     ],
                     "on_content_changed": self.handle_content_change if name == "Production" else None
@@ -316,13 +317,15 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 "Suivi": SuiviAgent({
                     **base_config,
                     "file_path": "suivi.md",
-                    "watch_files": ["demande.md", "specifications.md", "management.md", "production.md", "evaluation.md", "contexte.md"],
+                    "watch_files": ["demande.md", "specifications.md", "management.md",
+                                  "production.md", "evaluation.md", "contexte.md"],
                     "logs_buffer": self.logs_buffer
                 }),
                 "Contexte": ContexteAgent({
                     **base_config,
                     "file_path": "contexte.md",
-                    "watch_files": ["demande.md", "specifications.md", "management.md", "production.md", "evaluation.md", "suivi.md"]
+                    "watch_files": ["demande.md", "specifications.md", "management.md",
+                                  "production.md", "evaluation.md", "suivi.md"]
                 })
             }
 
