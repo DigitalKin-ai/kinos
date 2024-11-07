@@ -337,8 +337,27 @@ html, body {
     border-radius: 0.375rem;
 }
 
-/* Style pour le suivi */
+/* Style console pour le suivi */
 .suivi-content {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    padding: 0.5rem;
+    height: 100%;
+    overflow-y: auto;
+    line-height: 1.4;
+    font-size: 0.9rem;
+}
+
+.suivi-entry {
+    display: flex;
+    padding: 2px 4px;
+    margin: 1px 0;
+    font-family: inherit;
+}
+
+/* Style bulle pour les logs */
+.suivi-mission-content {
     font-family: 'Helvetica Neue', Arial, -apple-system, sans-serif;
     white-space: pre-wrap;
     padding: 2.5rem;
@@ -351,36 +370,14 @@ html, body {
     letter-spacing: 0.01em;
 }
 
-.suivi-entry {
+.suivi-mission-entry {
     margin-bottom: 1.2rem;
     padding: 0.75rem 1rem;
     border-radius: 18px;
     background-color: white;
     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     transition: all 0.2s ease;
-}
-
-/* Style console pour les logs */
-.suivi-mission-content {
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    background-color: #1e1e1e;
-    color: #d4d4d4;
-    padding: 0.5rem;
-    height: 100%;
-    overflow-y: auto;
-    line-height: 1.4;
-    font-size: 0.9rem;
-}
-
-.suivi-mission-entry {
-    display: flex;
-    padding: 2px 4px;
-    margin: 1px 0;
-    font-family: inherit;
-    border-radius: 0;
-    max-width: 100%;
-    background: transparent;
-    box-shadow: none;
+    max-width: 85%;
 }
 
 .log-timestamp {
@@ -396,21 +393,54 @@ html, body {
     word-break: break-word;
 }
 
-/* Niveaux de log */
+/* Différents types de messages en style bulle */
 .suivi-mission-entry.info {
-    color: #63b3ed;
+    background-color: #ffffff;
+    color: #050505;
+    align-self: flex-start;
+    border: 1px solid #e4e6eb;
 }
 
 .suivi-mission-entry.success {
-    color: #48bb78;
+    background-color: #0084ff;
+    color: white;
+    align-self: flex-end;
 }
 
 .suivi-mission-entry.error {
-    color: #f56565;
+    background-color: #ff4444;
+    color: white;
+    align-self: flex-start;
 }
 
 .suivi-mission-entry.warning {
-    color: #ecc94b;
+    background-color: #ffa726;
+    color: white;
+    align-self: flex-start;
+}
+
+/* Timestamp dans les bulles */
+.log-timestamp {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin-bottom: 0.2rem;
+    font-weight: 500;
+}
+
+/* Message dans les bulles */
+.log-message {
+    flex: 1;
+    padding-left: 4px;
+}
+
+/* Animation d'apparition pour les bulles */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.suivi-mission-entry {
+    animation: fadeIn 0.3s ease;
 }
 
 /* Scrollbar pour les logs */
