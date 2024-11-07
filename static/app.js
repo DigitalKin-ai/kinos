@@ -74,46 +74,57 @@ const ParallagonApp = {
     methods: {
         async updateSuiviEntries() {
             try {
-                console.log('Fetching suivi entries...');
+                console.log('[Suivi] Début de la mise à jour...');
                 const response = await fetch('/api/suivi');
                 if (!response.ok) {
+                    console.error('[Suivi] Erreur de réponse:', response.status);
                     throw new Error('Failed to fetch suivi entries');
                 }
                 const data = await response.json();
                 
+                console.log('[Suivi] Données reçues:', data);
+                
                 if (!data.content) {
-                    console.warn('No content in suivi data');
+                    console.warn('[Suivi] Pas de contenu dans les données');
                     this.suiviEntries = [];
                     return;
                 }
 
-                // Split content into lines and filter empty lines
-                const lines = data.content.split('\n').filter(line => line.trim());
-                console.log('Raw lines:', lines);
+                // Split content into lines
+                const lines = data.content.split('\n');
+                console.log('[Suivi] Lignes brutes:', lines);
+                
+                // Filter empty lines
+                const nonEmptyLines = lines.filter(line => line.trim());
+                console.log('[Suivi] Lignes non vides:', nonEmptyLines);
 
-                // Parse entries with more flexible timestamp matching
+                // Parse entries
                 const entries = [];
                 let currentEntry = null;
 
-                for (const line of lines) {
+                for (const line of nonEmptyLines) {
+                    console.log('[Suivi] Traitement ligne:', line);
                     const timestampMatch = line.match(/^\[(\d{2}:\d{2}:\d{2})\](.*)/);
                     
                     if (timestampMatch) {
-                        // If we have a previous entry, save it
+                        console.log('[Suivi] Timestamp trouvé:', timestampMatch[1]);
+                        
+                        // Save previous entry if exists
                         if (currentEntry) {
+                            console.log('[Suivi] Sauvegarde entrée précédente:', currentEntry);
                             entries.push(currentEntry);
                         }
                         
-                        // Start new entry
+                        // Create new entry
                         const [, timestamp, message] = timestampMatch;
                         currentEntry = {
                             id: `suivi-${entries.length}`,
                             timestamp,
                             message: message.trim(),
-                            type: 'info'  // Default type
+                            type: 'info'
                         };
 
-                        // Determine type based on content
+                        // Determine type
                         if (message.includes('réinitialisé')) {
                             currentEntry.type = 'warning';
                         } else if (message.includes('✓')) {
@@ -123,22 +134,27 @@ const ParallagonApp = {
                         } else if (message.includes('⚠️')) {
                             currentEntry.type = 'warning';
                         }
+                        
+                        console.log('[Suivi] Nouvelle entrée créée:', currentEntry);
                     } else if (currentEntry) {
-                        // Add line to current entry's message
+                        console.log('[Suivi] Ajout à l\'entrée courante:', line);
                         currentEntry.message += '\n' + line.trim();
+                    } else {
+                        console.log('[Suivi] Ligne ignorée (pas de timestamp):', line);
                     }
                 }
 
-                // Don't forget to add the last entry
+                // Add last entry if exists
                 if (currentEntry) {
+                    console.log('[Suivi] Ajout dernière entrée:', currentEntry);
                     entries.push(currentEntry);
                 }
 
-                console.log('Parsed entries:', entries);
+                console.log('[Suivi] Entrées finales:', entries);
                 this.suiviEntries = entries;
 
             } catch (error) {
-                console.error('Error updating suivi entries:', error);
+                console.error('[Suivi] Erreur:', error);
                 this.addNotification('error', 'Failed to update suivi entries');
             }
         },
