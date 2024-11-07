@@ -80,31 +80,29 @@ const ParallagonApp = {
                 }
                 const data = await response.json();
                 
-                // Debug log pour voir les données reçues
-                console.log('Suivi data received:', data);
+                // Debug log
+                console.log('Raw suivi content:', data.content);
                 
                 if (!data.content) {
                     console.warn('No content in suivi data');
                     return;
                 }
 
-                // Amélioration du parsing des entrées
+                // Amélioration du parsing pour gérer les lignes vides
                 const entries = data.content
                     .split('\n')
-                    .filter(line => {
-                        // Ne garder que les lignes qui commencent par un timestamp
-                        return line.trim().match(/^\[\d{2}:\d{2}:\d{2}\]/);
-                    })
+                    .filter(line => line.trim()) // Supprimer les lignes vides
+                    .filter(line => line.match(/^\[\d{2}:\d{2}:\d{2}\]/)) // Garder seulement les lignes avec timestamp
                     .map((line, index) => {
-                        // Extraction plus robuste du timestamp et du message
                         const timestampMatch = line.match(/^\[(\d{2}:\d{2}:\d{2})\](.*)/);
                         if (!timestampMatch) return null;
 
                         const [, timestamp, rawMessage] = timestampMatch;
                         const message = rawMessage.trim();
 
-                        // Détermination plus précise du type
+                        // Détermination du type basée sur le contenu
                         let type = 'info';
+                        if (message.includes('réinitialisé')) type = 'warning';
                         if (message.includes('✓')) type = 'success';
                         if (message.includes('❌')) type = 'error';
                         if (message.includes('⚠️')) type = 'warning';
@@ -116,15 +114,13 @@ const ParallagonApp = {
                             type
                         };
                     })
-                    .filter(entry => entry !== null); // Éliminer les entrées invalides
+                    .filter(entry => entry !== null);
 
-                // Debug log pour voir les entrées parsées
-                console.log('Parsed suivi entries:', entries);
+                // Debug log
+                console.log('Parsed entries:', entries);
 
-                // Mettre à jour seulement si nous avons des entrées valides
-                if (entries.length > 0) {
-                    this.suiviEntries = entries;
-                }
+                // Mise à jour des entrées
+                this.suiviEntries = entries;
                 
             } catch (error) {
                 console.error('Error updating suivi entries:', error);

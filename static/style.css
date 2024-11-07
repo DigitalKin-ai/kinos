@@ -400,13 +400,24 @@ html, body {
     border: 1px solid #e4e6eb;
 }
 
-/* Messages d'avertissement */
+/* Style pour les messages de réinitialisation */
 .suivi-entry.warning {
     background-color: #ffa726;
     color: white;
     align-self: flex-start;
 }
 
+/* Amélioration de l'espacement entre les entrées */
+.suivi-entry {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 18px;
+    background-color: white;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+/* Style pour le timestamp */
 .suivi-timestamp {
     font-size: 0.85em;
     color: rgba(255,255,255,0.7);
@@ -414,6 +425,7 @@ html, body {
     display: block;
 }
 
+/* Style spécifique pour les timestamps des messages info */
 .suivi-entry.info .suivi-timestamp {
     color: #65676b;
 }
