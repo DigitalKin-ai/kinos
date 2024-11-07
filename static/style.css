@@ -356,28 +356,24 @@ html, body {
     font-family: inherit;
 }
 
-/* Style bulle pour les logs */
-.suivi-mission-content {
-    font-family: 'Helvetica Neue', Arial, -apple-system, sans-serif;
-    white-space: pre-wrap;
-    padding: 2.5rem;
+/* Style console pour les logs */
+.logs-content {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    background-color: #1a1a1a;
+    color: #d4d4d4;
+    padding: 1rem;
     height: 100%;
-    overflow: auto;
-    background-color: #f0f2f5;  /* Fond gris clair type Messenger */
-    line-height: 2;
-    font-size: 1rem;
-    color: #374151;
-    letter-spacing: 0.01em;
+    overflow-y: auto;
+    line-height: 1.4;
+    font-size: 0.9rem;
 }
 
-.suivi-mission-entry {
-    margin-bottom: 1.2rem;
-    padding: 0.75rem 1rem;
-    border-radius: 18px;
-    background-color: white;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    transition: all 0.2s ease;
-    max-width: 85%;
+.log-entry {
+    display: flex;
+    padding: 2px 4px;
+    margin: 1px 0;
+    font-family: inherit;
+    border-left: 3px solid transparent;
 }
 
 .log-timestamp {
@@ -393,44 +389,40 @@ html, body {
     word-break: break-word;
 }
 
-/* Différents types de messages en style bulle */
-.suivi-mission-entry.info {
-    background-color: #ffffff;
-    color: #050505;
-    align-self: flex-start;
-    border: 1px solid #e4e6eb;
+/* Différents types de logs */
+.log-entry.info {
+    color: #63b3ed;
+    border-left-color: #63b3ed;
 }
 
-.suivi-mission-entry.success {
-    background-color: #0084ff;
-    color: white;
-    align-self: flex-end;
+.log-entry.success {
+    color: #48bb78;
+    border-left-color: #48bb78;
 }
 
-.suivi-mission-entry.error {
-    background-color: #ff4444;
-    color: white;
-    align-self: flex-start;
+.log-entry.error {
+    color: #f56565;
+    border-left-color: #f56565;
 }
 
-.suivi-mission-entry.warning {
-    background-color: #ffa726;
-    color: white;
-    align-self: flex-start;
+.log-entry.warning {
+    color: #ecc94b;
+    border-left-color: #ecc94b;
 }
 
-/* Timestamp dans les bulles */
+/* Timestamp dans les logs */
 .log-timestamp {
-    font-size: 0.7rem;
-    opacity: 0.7;
-    margin-bottom: 0.2rem;
-    font-weight: 500;
+    color: #666;
+    margin-right: 8px;
+    font-size: 0.85em;
+    font-family: inherit;
 }
 
-/* Message dans les bulles */
+/* Message dans les logs */
 .log-message {
     flex: 1;
-    padding-left: 4px;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 /* Animation d'apparition pour les bulles */
@@ -443,21 +435,21 @@ html, body {
     animation: fadeIn 0.3s ease;
 }
 
-/* Scrollbar pour les logs */
-.suivi-mission-content::-webkit-scrollbar {
+/* Scrollbar personnalisée pour les logs */
+.logs-content::-webkit-scrollbar {
     width: 8px;
 }
 
-.suivi-mission-content::-webkit-scrollbar-track {
+.logs-content::-webkit-scrollbar-track {
     background: #2d2d2d;
 }
 
-.suivi-mission-content::-webkit-scrollbar-thumb {
+.logs-content::-webkit-scrollbar-thumb {
     background: #555;
     border-radius: 4px;
 }
 
-.suivi-mission-content::-webkit-scrollbar-thumb:hover {
+.logs-content::-webkit-scrollbar-thumb:hover {
     background: #666;
 }
 
