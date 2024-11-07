@@ -69,7 +69,7 @@ class SuiviAgent(ParallagonAgent):
                     new_entry = f"[{timestamp}] {response}"
                     
                     # Combine and clean entries
-                    new_content = f"{self.current_content}\n\n{new_entry}" if self.current_content else new_entry
+                    new_content = f"{self.current_content}\n{new_entry}" if self.current_content else new_entry
                     cleaned_content = self._clean_old_entries(new_content)
                     
                     # Write to file
