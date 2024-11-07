@@ -74,84 +74,24 @@ const ParallagonApp = {
     methods: {
         async updateSuiviEntries() {
             try {
-                console.log('[Suivi] Début de la mise à jour...');
                 const response = await fetch('/api/suivi');
                 if (!response.ok) {
-                    console.error('[Suivi] Erreur de réponse:', response.status);
                     throw new Error('Failed to fetch suivi entries');
                 }
                 const data = await response.json();
                 
-                console.log('[Suivi] Données reçues:', data);
-                
                 if (!data.content) {
-                    console.warn('[Suivi] Pas de contenu dans les données');
                     this.suiviEntries = [];
                     return;
                 }
 
-                // Split content into lines
-                const lines = data.content.split('\n');
-                console.log('[Suivi] Lignes brutes:', lines);
-                
-                // Filter empty lines
-                const nonEmptyLines = lines.filter(line => line.trim());
-                console.log('[Suivi] Lignes non vides:', nonEmptyLines);
-
-                // Parse entries
-                const entries = [];
-                let currentEntry = null;
-
-                for (const line of nonEmptyLines) {
-                    console.log('[Suivi] Traitement ligne:', line);
-                    const timestampMatch = line.match(/^\[(\d{2}:\d{2}:\d{2})\](.*)/);
-                    
-                    if (timestampMatch) {
-                        console.log('[Suivi] Timestamp trouvé:', timestampMatch[1]);
-                        
-                        // Save previous entry if exists
-                        if (currentEntry) {
-                            console.log('[Suivi] Sauvegarde entrée précédente:', currentEntry);
-                            entries.push(currentEntry);
-                        }
-                        
-                        // Create new entry
-                        const [, timestamp, message] = timestampMatch;
-                        currentEntry = {
-                            id: `suivi-${entries.length}`,
-                            timestamp,
-                            message: message.trim(),
-                            type: 'info'
-                        };
-
-                        // Determine type
-                        if (message.includes('réinitialisé')) {
-                            currentEntry.type = 'warning';
-                        } else if (message.includes('✓')) {
-                            currentEntry.type = 'success';
-                        } else if (message.includes('❌')) {
-                            currentEntry.type = 'error';
-                        } else if (message.includes('⚠️')) {
-                            currentEntry.type = 'warning';
-                        }
-                        
-                        console.log('[Suivi] Nouvelle entrée créée:', currentEntry);
-                    } else if (currentEntry) {
-                        console.log('[Suivi] Ajout à l\'entrée courante:', line);
-                        currentEntry.message += '\n' + line.trim();
-                    } else {
-                        console.log('[Suivi] Ligne ignorée (pas de timestamp):', line);
-                    }
-                }
-
-                // Add last entry if exists
-                if (currentEntry) {
-                    console.log('[Suivi] Ajout dernière entrée:', currentEntry);
-                    entries.push(currentEntry);
-                }
-
-                console.log('[Suivi] Entrées finales:', entries);
-                this.suiviEntries = entries;
+                // Créer une seule entrée avec le contenu brut
+                this.suiviEntries = [{
+                    id: 'suivi-content',
+                    timestamp: '',  // Pas de timestamp séparé
+                    message: data.content,
+                    type: 'info'
+                }];
 
             } catch (error) {
                 console.error('[Suivi] Erreur:', error);
