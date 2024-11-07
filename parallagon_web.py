@@ -1,5 +1,5 @@
 from agents import (SpecificationsAgent, ProductionAgent, 
-    ManagementAgent, EvaluationAgent, ContexteAgent, SuiviAgent)
+    ManagementAgent, EvaluationAgent, SuiviAgent)
 from parallagon_agent import ParallagonAgent
 from flask import Flask, render_template, jsonify, request, make_response
 from flask_cors import CORS
@@ -550,8 +550,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     "management.md",
                     "production.md",
                     "evaluation.md",
-                    "suivi.md",
-                    "contexte.md"
+                    "suivi.md"
                 ]
                 
                 missing_files = []
