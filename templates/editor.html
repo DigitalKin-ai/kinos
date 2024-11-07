@@ -195,12 +195,9 @@
                     </div>
                     <div class="panel-content">
                         <div class="suivi-content">
-                            <div v-if="!suiviEntries.length" class="text-gray-500">
+                            <pre v-if="suiviContent" class="suivi-message">{{ suiviContent }}</pre>
+                            <div v-else class="text-gray-500">
                                 Aucune entrée de suivi disponible
-                            </div>
-                            
-                            <div v-else class="suivi-entry info">
-                                <pre class="suivi-message" v-text="suiviEntries[0].message"></pre>
                             </div>
                         </div>
                     </div>
