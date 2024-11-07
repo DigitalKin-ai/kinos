@@ -78,49 +78,62 @@ Format attendu:
             if not aider_instructions:
                 return None
 
-            # Construire la commande de base
-            cmd = [
-                "aider",
-                "--model", "haiku",
-                "--no-git", 
-                "--yes-always",
-                "--file", self.file_path,
-            ]
+            # S'assurer que nous sommes dans le bon dossier de mission
+            mission_dir = os.path.dirname(self.file_path)
+            current_dir = os.getcwd()
             
-            # Ajouter chaque fichier à surveiller avec son propre --read
-            for file in self.watch_files:
-                cmd.extend(["--read", file])
+            try:
+                # Changer vers le dossier de la mission
+                os.chdir(mission_dir)
+                self.logger(f"[{self.__class__.__name__}] 📂 Changement vers le dossier: {mission_dir}")
+
+                # Construire la commande avec des chemins relatifs au dossier de mission
+                cmd = [
+                    "aider",
+                    "--model", "haiku",
+                    "--no-git",
+                    "--yes-always",
+                    "--file", os.path.basename(self.file_path),  # Utiliser le nom de fichier relatif
+                ]
                 
-            # Ajouter le message à la fin
-            cmd.extend(["--message", aider_instructions])
-            
-            # Logger la commande complète
-            self.logger(f"[{self.__class__.__name__}] 🤖 Commande Aider:")
-            self.logger(f"  Command: {' '.join(cmd)}")
-            self.logger(f"  Instructions: {aider_instructions}")
-            
-            # Exécuter Aider
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-            
-            stdout, stderr = process.communicate()
-            
-            # Logger la sortie
-            if stdout:
-                self.logger(f"[{self.__class__.__name__}] ✓ Sortie Aider:\n{stdout}")
-            if stderr:
-                self.logger(f"[{self.__class__.__name__}] ⚠️ Erreurs Aider:\n{stderr}")
-            
-            if process.returncode != 0:
-                self.logger(f"[{self.__class__.__name__}] ❌ Échec (code {process.returncode})")
-                return None
+                # Ajouter les fichiers à surveiller en chemins relatifs
+                for file in self.watch_files:
+                    cmd.extend(["--read", os.path.relpath(file, mission_dir)])
+                    
+                # Ajouter le message
+                cmd.extend(["--message", aider_instructions])
                 
-            return stdout
-            
+                # Logger la commande
+                self.logger(f"[{self.__class__.__name__}] 🤖 Commande Aider:")
+                self.logger(f"  Command: {' '.join(cmd)}")
+                self.logger(f"  Instructions: {aider_instructions}")
+                
+                # Exécuter Aider
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                
+                stdout, stderr = process.communicate()
+                
+                # Logger la sortie
+                if stdout:
+                    self.logger(f"[{self.__class__.__name__}] ✓ Sortie Aider:\n{stdout}")
+                if stderr:
+                    self.logger(f"[{self.__class__.__name__}] ⚠️ Erreurs Aider:\n{stderr}")
+                
+                if process.returncode != 0:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Échec (code {process.returncode})")
+                    return None
+                    
+                return stdout
+                
+            finally:
+                # Toujours revenir au dossier original
+                os.chdir(current_dir)
+                
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur exécution Aider: {str(e)}")
             return None
