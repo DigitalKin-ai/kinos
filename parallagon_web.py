@@ -1035,27 +1035,45 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
 
-        @self.app.route('/api/suivi', methods=['GET', 'POST'])
+        @self.app.route('/api/suivi', methods=['GET'])
         def suivi():
-            if request.method == "GET":
+            try:
+                # Debug logs
+                self.log_message("Fetching suivi content...", level='debug')
+                
+                # Vérifier que le FileManager est initialisé
+                if not hasattr(self, 'file_manager'):
+                    self.log_message("FileManager not initialized", level='error')
+                    return jsonify({"content": "", "error": "FileManager not initialized"}), 500
+
+                # Vérifier la mission courante
+                if not self.file_manager.current_mission:
+                    self.log_message("No current mission selected", level='warning')
+                    return jsonify({"content": "", "error": "No mission selected"}), 400
+
+                # Construire le chemin complet du fichier
+                suivi_path = os.path.join("missions", self.file_manager.current_mission, "suivi.md")
+                self.log_message(f"Reading from path: {suivi_path}", level='debug')
+
+                # Vérifier que le fichier existe
+                if not os.path.exists(suivi_path):
+                    self.log_message(f"Suivi file not found at: {suivi_path}", level='error')
+                    return jsonify({"content": "", "error": "File not found"}), 404
+
+                # Lire le contenu
                 try:
-                    content = self.file_manager.read_file("suivi")
-                    if content is None:
-                        content = ""
-                    return jsonify({"content": content})
+                    with open(suivi_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        self.log_message(f"Read content length: {len(content)}", level='debug')
+                        self.log_message(f"Content preview: {content[:200]}", level='debug')
+                        return jsonify({"content": content})
                 except Exception as e:
-                    self.log_message(f"Error reading suivi.md: {str(e)}", level='error')
+                    self.log_message(f"Error reading suivi file: {str(e)}", level='error')
                     return jsonify({"content": "", "error": str(e)}), 500
-            elif request.method == "POST":
-                try:
-                    content = request.get_json()["content"]
-                    success = self.file_manager.write_file("suivi", content)
-                    if not success:
-                        raise Exception("Failed to write suivi.md")
-                    return jsonify({"status": "success"})
-                except Exception as e:
-                    self.log_message(f"Error writing suivi.md: {str(e)}", level='error')
-                    return jsonify({"error": str(e)}), 500
+
+            except Exception as e:
+                self.log_message(f"Error in suivi route: {str(e)}", level='error')
+                return jsonify({"content": "", "error": str(e)}), 500
 
         @self.app.route('/api/changes')
         def get_changes():
