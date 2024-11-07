@@ -30,6 +30,33 @@ class ParallagonWeb:
         'debug': 'gray'
     }
 
+    def log_message(self, message: str, level: str = 'info') -> None:
+        """Log a message with optional level"""
+        try:
+            # Format timestamp
+            timestamp = datetime.now().strftime("%H:%M:%S")
+            
+            # Get color for level
+            color = self.LOG_COLORS.get(level, 'white')
+            
+            # Format the message
+            formatted_message = f"[{timestamp}] [{level.upper()}] {message}"
+            
+            # Print to console
+            print(formatted_message)
+            
+            # Log to file if needed
+            try:
+                with open('agent_operations.log', 'a', encoding='utf-8') as f:
+                    f.write(f"{formatted_message}\n")
+            except Exception as file_error:
+                print(f"Error writing to log file: {file_error}")
+                
+        except Exception as e:
+            # Fallback to basic print if logging fails
+            print(f"Logging error: {e}")
+            print(f"Original message: {message}")
+
     def _load_test_data(self):
         """Load test data from template file"""
         try:
