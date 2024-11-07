@@ -1,0 +1,44 @@
+/* Header qui prend toute la largeur */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #1a202c;
+    color: white;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 10;
+}
+
+.current-mission {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin-left: 1rem;
+}
+
+.mission-label {
+    color: #a0aec0;
+    font-size: 0.875rem;
+}
+
+.mission-name {
+    color: white;
+    font-weight: 500;
+}
+
+.logo {
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
