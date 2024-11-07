@@ -52,10 +52,10 @@ class AiderAgent(ParallagonAgent):
             # Construire la commande Aider
             cmd = [
                 "aider",
-                "--model", "gpt-4",
+                "--model", "haiku",
                 "--no-git",
-                "--yes",  # Auto-accept changes
-                self.file_path,
+                "--yes-always",  # Auto-accept changes
+                "--file", self.file_path,
                 *self.watch_files
             ]
             
