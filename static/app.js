@@ -879,30 +879,39 @@ const ParallagonApp = {
                     
                     notifications.forEach(notification => {
                         console.log('Processing notification:', notification);
-                        
-                        // Ajouter la notification visuelle
+                    
+                        // Add visual notification
                         this.addNotification(notification.type, notification.message);
-                        
-                        // Gérer le flash du tab
-                        if (notification.panel) {
+                    
+                        // Handle tab flash if requested
+                        if (notification.flash && notification.panel) {
                             const panelName = notification.panel.toLowerCase();
                             const tabFile = `${panelName}.md`;
                             console.log('Looking for tab:', tabFile, 'in', this.tabIds);
-                            
+                        
                             const tabId = this.tabIds[tabFile];
                             if (tabId) {
                                 console.log('Found tab ID:', tabId);
                                 const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
-                                
+                            
                                 if (tab) {
                                     console.log('Flashing tab:', tabId);
+                                    // Remove any existing flash
                                     tab.classList.remove('flash-tab');
+                                    // Force reflow
                                     void tab.offsetWidth;
+                                    // Add flash class
                                     tab.classList.add('flash-tab');
-                                    
+                                
+                                    // Remove flash class after animation completes
                                     setTimeout(() => {
                                         tab.classList.remove('flash-tab');
                                     }, 1000);
+                                
+                                    // Also update content if available
+                                    if (notification.content) {
+                                        this.content[panelName] = notification.content;
+                                    }
                                 } else {
                                     console.log('Tab element not found for ID:', tabId);
                                 }

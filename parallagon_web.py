@@ -394,7 +394,8 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 'panel': panel_name,
                 'status': os.path.basename(file_path),
                 'operation': 'flash_tab' if flash else 'update',
-                'id': len(self.notifications_queue)
+                'id': len(self.notifications_queue),
+                'flash': flash  # Explicitly include flash flag
             }
             
             # Add to notifications queue

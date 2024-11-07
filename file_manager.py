@@ -176,10 +176,16 @@ En attente d'initialisation...
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(content)
             
-            # Notification
+            # Trigger notification with content
             if self.on_content_changed:
                 panel_name = file_name.split('.')[0].capitalize()
-                self.on_content_changed(file_path, content, panel_name, flash=True)
+                # Always flash on write, include content for immediate update
+                self.on_content_changed(
+                    file_path=file_path,
+                    content=content,
+                    panel_name=panel_name,
+                    flash=True
+                )
             
             return True
             
