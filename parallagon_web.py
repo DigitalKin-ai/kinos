@@ -685,6 +685,7 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 if was_running:
                     self.start_agents()
                     
+                self.log_message(f"Mission {mission['name']} loaded successfully", level='success')
                 return jsonify(mission)
                 
             except Exception as e:

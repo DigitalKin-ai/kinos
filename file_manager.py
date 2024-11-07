@@ -154,22 +154,22 @@ En attente d'initialisation...
     def read_file(self, file_name: str) -> Optional[str]:
         """Read content from a file"""
         try:
+            # Ensure file_name has .md extension
+            if not file_name.endswith('.md'):
+                file_name = f"{file_name}.md"
+                
             # Get full path based on current mission
             if self.current_mission:
-                # Ensure we add .md extension if not present
-                if not file_name.endswith('.md'):
-                    file_name = f"{file_name}.md"
-                    
                 file_path = os.path.join("missions", self.current_mission, file_name)
             else:
                 file_path = self.file_paths.get(file_name)
                 
             if not file_path:
-                self._log_message(f"Chemin non trouvé pour {file_name}")
+                self.logger(f"Chemin non trouvé pour {file_name}")
                 return None
                 
             # Debug log
-            self._log_message(f"Reading file: {file_path}")
+            self.logger(f"Reading file: {file_path}")
                 
             # Ensure parent directory exists
             os.makedirs(os.path.dirname(file_path), exist_ok=True)

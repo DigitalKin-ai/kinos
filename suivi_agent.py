@@ -43,6 +43,15 @@ class SuiviAgent(ParallagonAgent):
         try:
             self.logger(f"[{self.__class__.__name__}] Analyse des activités...")
             
+            # Vérifier que le fichier existe
+            if not os.path.exists(self.file_path):
+                self.logger(f"Création du fichier {self.file_path}")
+                os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+                with open(self.file_path, 'w', encoding='utf-8') as f:
+                    initial_content = f"[{datetime.now().strftime('%H:%M:%S')}] Initialisation du suivi"
+                    f.write(initial_content)
+                self.current_content = initial_content
+            
             current_time = datetime.now()
             if (self.last_summary_time is None or 
                 (current_time - self.last_summary_time).total_seconds() >= 30):
