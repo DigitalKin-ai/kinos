@@ -168,8 +168,8 @@ En attente d'initialisation...
                 file_name = f"{file_name}.md"
 
             # Debug log
-            self.logger(f"Attempting to read: {file_name}")
-            self.logger(f"Current mission: {self.current_mission}")
+            # self.logger(f"Attempting to read: {file_name}")
+            # self.logger(f"Current mission: {self.current_mission}")
 
             # Construct file path
             if self.current_mission:
@@ -177,7 +177,7 @@ En attente d'initialisation...
             else:
                 file_path = file_name  # Default to current directory
 
-            self.logger(f"Full path: {file_path}")
+            # self.logger(f"Full path: {file_path}")
 
             # Ensure directory exists
             os.makedirs(os.path.dirname(file_path) if os.path.dirname(file_path) else '.', exist_ok=True)
