@@ -277,6 +277,15 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                 "logger": self.log_message
             }
 
+            # Load prompts from files
+            def load_prompt(file_path):
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        return f.read()
+                except Exception as e:
+                    self.log_message(f"Error loading prompt from {file_path}: {e}", level='error')
+                    return ""
+
             # Créer les agents avec leurs prompts dédiés ET leurs rôles
             self.agents = {
                 "Specification": SpecificationsAgent({
@@ -284,35 +293,40 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
                     "role": "Specification",
                     "file_path": "specifications.md",
                     "watch_files": ["demande.md", "production.md"],
-                    "prompt_file": "prompts/specifications.md"
+                    "prompt_file": "prompts/specifications.md",
+                    "aider_prompt": load_prompt("prompts/specifications.md")
                 }),
                 "Production": ProductionAgent({
                     **base_config,
-                    "role": "Production",
+                    "role": "Production", 
                     "file_path": "production.md",
                     "watch_files": ["specifications.md", "evaluation.md"],
-                    "prompt_file": "prompts/production.md"
+                    "prompt_file": "prompts/production.md",
+                    "aider_prompt": load_prompt("prompts/production.md")
                 }),
                 "Management": ManagementAgent({
                     **base_config,
                     "role": "Management",
                     "file_path": "management.md",
                     "watch_files": ["specifications.md", "production.md", "evaluation.md"],
-                    "prompt_file": "prompts/management.md"
+                    "prompt_file": "prompts/management.md",
+                    "aider_prompt": load_prompt("prompts/management.md")
                 }),
                 "Evaluation": EvaluationAgent({
                     **base_config,
                     "role": "Evaluation",
                     "file_path": "evaluation.md",
                     "watch_files": ["specifications.md", "production.md"],
-                    "prompt_file": "prompts/evaluation.md"
+                    "prompt_file": "prompts/evaluation.md",
+                    "aider_prompt": load_prompt("prompts/evaluation.md")
                 }),
                 "Contexte": ContexteAgent({
                     **base_config,
                     "role": "Contexte",
                     "file_path": "contexte.md",
                     "watch_files": ["demande.md", "specifications.md", "production.md"],
-                    "prompt_file": "prompts/contexte.md"
+                    "prompt_file": "prompts/contexte.md",
+                    "aider_prompt": load_prompt("prompts/contexte.md")
                 })
             }
 
