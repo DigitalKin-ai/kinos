@@ -74,38 +74,67 @@ const ParallagonApp = {
     methods: {
         async updateSuiviEntries() {
             try {
+                console.log('Fetching suivi entries...');
                 const response = await fetch('/api/suivi');
                 if (!response.ok) {
                     throw new Error('Failed to fetch suivi entries');
                 }
                 const data = await response.json();
                 
-                // Debug log
-                console.log('Raw suivi content:', data.content);
+                // Debug logs détaillés
+                console.log('API Response:', data);
+                console.log('Raw content type:', typeof data.content);
+                console.log('Raw content length:', data.content ? data.content.length : 0);
+                console.log('Raw content:', data.content);
                 
                 if (!data.content) {
                     console.warn('No content in suivi data');
                     return;
                 }
 
-                // Amélioration du parsing pour gérer les lignes vides
-                const entries = data.content
-                    .split('\n')
-                    .filter(line => line.trim()) // Supprimer les lignes vides
-                    .filter(line => line.match(/^\[\d{2}:\d{2}:\d{2}\]/)) // Garder seulement les lignes avec timestamp
+                // Split content et log intermédiaire
+                const lines = data.content.split('\n');
+                console.log('Split lines:', lines);
+                
+                // Filtrage et log intermédiaire
+                const filteredLines = lines
+                    .filter(line => line.trim())
+                    .filter(line => line.match(/^\[\d{2}:\d{2}:\d{2}\]/));
+                console.log('Filtered lines:', filteredLines);
+
+                // Parsing avec plus de logs
+                const entries = filteredLines
                     .map((line, index) => {
+                        console.log('Processing line:', line);
                         const timestampMatch = line.match(/^\[(\d{2}:\d{2}:\d{2})\](.*)/);
-                        if (!timestampMatch) return null;
+                        if (!timestampMatch) {
+                            console.log('No timestamp match for line:', line);
+                            return null;
+                        }
 
                         const [, timestamp, rawMessage] = timestampMatch;
                         const message = rawMessage.trim();
+                        console.log('Parsed timestamp:', timestamp);
+                        console.log('Parsed message:', message);
 
-                        // Détermination du type basée sur le contenu
+                        // Détermination du type avec log
                         let type = 'info';
-                        if (message.includes('réinitialisé')) type = 'warning';
-                        if (message.includes('✓')) type = 'success';
-                        if (message.includes('❌')) type = 'error';
-                        if (message.includes('⚠️')) type = 'warning';
+                        if (message.includes('réinitialisé')) {
+                            type = 'warning';
+                            console.log('Detected reset message');
+                        }
+                        if (message.includes('✓')) {
+                            type = 'success';
+                            console.log('Detected success message');
+                        }
+                        if (message.includes('❌')) {
+                            type = 'error';
+                            console.log('Detected error message');
+                        }
+                        if (message.includes('⚠️')) {
+                            type = 'warning';
+                            console.log('Detected warning message');
+                        }
 
                         return {
                             id: `suivi-${index}`,
@@ -116,14 +145,21 @@ const ParallagonApp = {
                     })
                     .filter(entry => entry !== null);
 
-                // Debug log
-                console.log('Parsed entries:', entries);
+                // Log final
+                console.log('Final parsed entries:', entries);
+                console.log('Number of entries:', entries.length);
 
-                // Mise à jour des entrées
-                this.suiviEntries = entries;
+                // Mise à jour des entrées avec vérification
+                if (entries.length > 0) {
+                    this.suiviEntries = entries;
+                    console.log('Updated suiviEntries:', this.suiviEntries);
+                } else {
+                    console.warn('No valid entries found after parsing');
+                }
                 
             } catch (error) {
                 console.error('Error updating suivi entries:', error);
+                console.error('Error details:', error.message);
                 this.addNotification('error', 'Failed to update suivi entries');
             }
         },
