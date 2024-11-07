@@ -709,11 +709,24 @@ const ParallagonApp = {
                 // Convertir la première lettre en majuscule
                 const formattedAgentId = agentId.charAt(0).toUpperCase() + agentId.slice(1);
                 
-                // Ne pas convertir en SuiviMission
+                // Ne pas ajouter "Mission" au nom
                 const agentName = formattedAgentId;
                 
-                if (!this.agents.hasOwnProperty(agentName)) {
-                    throw new Error(`Agent ${agentId} not found (normalized: ${agentName})`);
+                console.log(`Toggling agent ${agentName}`); // Debug log
+                
+                const response = await fetch(`/api/agent/${agentName}/${this.isAgentRunning(agentId) ? 'stop' : 'start'}`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to toggle agent: ${response.statusText}`);
+                }
+
+                // Mettre à jour l'état de l'agent
+                if (this.isAgentRunning(agentId)) {
+                    this.runningAgents.delete(agentId);
+                } else {
+                    this.runningAgents.add(agentId);
                 }
                 
                 const isRunning = this.isAgentRunning(agentId);

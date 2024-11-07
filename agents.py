@@ -6,6 +6,15 @@ from parallagon_agent import ParallagonAgent
 from aider_agent import AiderAgent
 from suivi_agent import SuiviAgent
 
+__all__ = [
+    'SpecificationsAgent',
+    'ProductionAgent',
+    'ManagementAgent',
+    'EvaluationAgent',
+    'ContexteAgent',
+    'SuiviAgent'
+]
+
 def validate_prompt(prompt_file: str) -> bool:
     """Vérifie qu'un fichier prompt est valide"""
     try:
