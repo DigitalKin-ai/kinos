@@ -141,9 +141,10 @@ En attente d'initialisation...
             # Create parent directory if needed
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
                 
-            # Write content directly
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(content)
+            # Write with file locking
+            with portalocker.Lock(file_path, timeout=10) as lock:
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
                 
             # Notification
             if self.on_content_changed:
@@ -152,6 +153,9 @@ En attente d'initialisation...
             
             return True
             
+        except portalocker.LockException:
+            print(f"FileManager: Fichier {file_name} verrouillé")
+            return False
         except Exception as e:
             print(f"Erreur écriture fichier {file_name}: {e}")
             return False

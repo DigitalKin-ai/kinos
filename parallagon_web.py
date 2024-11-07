@@ -1316,15 +1316,51 @@ Démontrer rigoureusement que l'objectif global du projet ne peut être atteint 
     def setup_error_handlers(self):
         @self.app.errorhandler(404)
         def not_found_error(error):
+            self.log_message(f"404 Error: {str(error)}", level='error')
             return jsonify({'error': 'Resource not found'}), 404
 
         @self.app.errorhandler(500)
         def internal_error(error):
+            self.log_message(f"500 Error: {str(error)}", level='error')
+            import traceback
+            self.log_message(traceback.format_exc(), level='error')
             return jsonify({'error': 'Internal server error'}), 500
 
         @self.app.errorhandler(Exception)
         def handle_exception(error):
+            self.log_message(f"Unhandled Exception: {str(error)}", level='error')
+            import traceback
+            self.log_message(traceback.format_exc(), level='error')
             return jsonify({'error': str(error)}), 500
+
+    def safe_operation(self, operation_func):
+        """Decorator for safe operation execution with recovery"""
+        def wrapper(*args, **kwargs):
+            max_retries = 3
+            retry_count = 0
+            
+            while retry_count < max_retries:
+                try:
+                    return operation_func(*args, **kwargs)
+                except Exception as e:
+                    retry_count += 1
+                    self.log_message(
+                        str(e),
+                        operation=operation_func.__name__,
+                        status=f"RETRY {retry_count}/{max_retries}"
+                    )
+                    
+                    if retry_count == max_retries:
+                        self.log_message(
+                            "Operation failed permanently",
+                            operation=operation_func.__name__,
+                            status="FAILED"
+                        )
+                        raise
+                    
+                    time.sleep(1)  # Wait before retry
+                    
+        return wrapper
 
     def shutdown(self):
         """Graceful shutdown of the application"""

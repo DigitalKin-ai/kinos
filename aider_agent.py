@@ -24,6 +24,8 @@ class AiderAgent(ParallagonAgent):
             
         self.role = config["role"]
         self.aider_prompt = config["aider_prompt"]
+        self.prompt_file = config.get("prompt_file")
+        self._prompt_cache = {}
         
         # Configuration des chemins
         if not os.path.isabs(config["file_path"]):
@@ -79,11 +81,36 @@ class AiderAgent(ParallagonAgent):
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur exécution Aider: {str(e)}")
             return None
 
+    def _load_prompt(self) -> Optional[str]:
+        """Charge le prompt depuis le fichier avec cache"""
+        try:
+            if not self.prompt_file:
+                return None
+                
+            # Vérifier le cache
+            mtime = os.path.getmtime(self.prompt_file)
+            if self.prompt_file in self._prompt_cache:
+                cached_time, cached_content = self._prompt_cache[self.prompt_file]
+                if cached_time == mtime:
+                    return cached_content
+                    
+            # Charger et mettre en cache
+            with open(self.prompt_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            self._prompt_cache[self.prompt_file] = (mtime, content)
+            return content
+            
+        except Exception as e:
+            self.logger(f"Erreur chargement prompt: {e}")
+            return None
+
     def _build_prompt(self, context: dict) -> str:
         """Charge et formate le prompt depuis le fichier"""
         try:
-            with open(self.prompt_file, 'r', encoding='utf-8') as f:
-                prompt_template = f.read()
+            prompt_template = self._load_prompt()
+            if not prompt_template:
+                return super()._build_prompt(context)
+                
             return prompt_template.format(
                 context=self._format_other_files(context)
             )

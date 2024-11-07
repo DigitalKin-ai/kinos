@@ -59,8 +59,20 @@ Tâche: {current_task[:500]}
 Fichier: {content[:1000]}
 Répondre uniquement avec le score."""
 
+            # Vérifier le cache
+            cache_key = f"{file_path}_{hash(current_task)}"
+            if hasattr(self, '_relevance_cache') and cache_key in self._relevance_cache:
+                return self._relevance_cache[cache_key]
+
             response = self._get_llm_response({"prompt": prompt})
-            return float(response.strip())
+            score = float(response.strip())
+            
+            # Mettre en cache
+            if not hasattr(self, '_relevance_cache'):
+                self._relevance_cache = {}
+            self._relevance_cache[cache_key] = score
+            
+            return score
             
         except Exception as e:
             self.logger(f"❌ Erreur d'analyse pour {file_path}: {e}")
