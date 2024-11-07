@@ -47,7 +47,7 @@ const ParallagonApp = {
                 { id: 'evaluation', name: 'Evaluation', icon: 'mdi mdi-check-circle' },
                 { id: 'suivi', name: 'Suivi', icon: 'mdi mdi-history' },
                 { id: 'contexte', name: 'Contexte', icon: 'mdi mdi-file-tree-outline' },
-                { id: 'suivi-mission', name: 'Logs', icon: 'mdi mdi-console-line' }
+                { id: 'logs', name: 'Logs', icon: 'mdi mdi-console-line' }
             ],
             content: {
                 demande: '',
@@ -393,7 +393,6 @@ const ParallagonApp = {
                 await fetch('/api/start', { method: 'POST' });
                 this.running = true;
                 this.startUpdateLoop();
-                // Changer cette ligne pour activer l'onglet suivi au lieu de suivi-mission
                 this.activeTab = 'suivi';
                 this.addNotification('success', 'Agents started successfully');
                 // Start logs update
@@ -416,7 +415,7 @@ const ParallagonApp = {
                             this.logs = data.logs;
                             // Auto-scroll to bottom
                             this.$nextTick(() => {
-                                const logsContent = document.querySelector('.suivi-mission-content');
+                                const logsContent = document.querySelector('.logs-content');
                                 if (logsContent) {
                                     logsContent.scrollTop = logsContent.scrollHeight;
                                 }
