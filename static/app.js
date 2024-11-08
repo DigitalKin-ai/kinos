@@ -190,6 +190,9 @@ const ParallagonApp = {
                 this.currentMission = mission;
                 await this.loadMissionContent(mission.id);
                 
+                // Démarrer la surveillance du contenu dès la sélection de la mission
+                this.startContentMonitoring();
+                
                 // Restart agents if they were running
                 if (wasRunning) {
                     await fetch('/api/start', { method: 'POST' });
@@ -199,6 +202,30 @@ const ParallagonApp = {
             } catch (error) {
                 console.error('Error selecting mission:', error);
                 this.addNotification('error', `Error selecting mission: ${error.message}`);
+            }
+        },
+
+        startContentMonitoring() {
+            // Clear any existing interval
+            if (this.updateInterval) {
+                clearInterval(this.updateInterval);
+            }
+            
+            // Start new monitoring interval
+            this.updateInterval = setInterval(() => {
+                if (this.currentMission) {  // Vérifie seulement si une mission est sélectionnée
+                    this.updateContent();
+                }
+            }, 1000);
+            
+            console.log('Content monitoring started for mission:', this.currentMission.name);
+        },
+
+        stopContentMonitoring() {
+            if (this.updateInterval) {
+                clearInterval(this.updateInterval);
+                this.updateInterval = null;
+                console.log('Content monitoring stopped');
             }
         },
 
@@ -814,13 +841,6 @@ const ParallagonApp = {
                 }
             })
             .then(() => {
-                // Démarrer le polling simple
-                setInterval(() => {
-                    if (this.running) {
-                        this.updateContent();
-                    }
-                }, 1000); // Polling toutes les secondes
-                
                 // Refresh agents status every 5 seconds
                 setInterval(() => {
                     if (this.running) {
@@ -834,7 +854,7 @@ const ParallagonApp = {
             });
     },
     beforeUnmount() {
-        this.stopUpdateLoop();
+        this.stopContentMonitoring();
         if (this.suiviUpdateInterval) {
             clearInterval(this.suiviUpdateInterval);
         }
