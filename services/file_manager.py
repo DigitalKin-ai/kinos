@@ -16,6 +16,7 @@ class FileManager:
         # Store web_instance first
         self.web_instance = web_instance
         
+        # Use relative paths only
         self.file_paths = {
             'demande': 'demande.md',
             'specifications': 'specifications.md',
