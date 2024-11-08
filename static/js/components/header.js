@@ -3,15 +3,7 @@ export default {
     props: {
         currentMission: {
             type: Object,
-            default: () => ({
-                name: '',
-                id: null
-            })
-        }
-    },
-    data() {
-        return {
-            mission: this.currentMission
+            default: () => null
         }
     },
     delimiters: ['${', '}'],
