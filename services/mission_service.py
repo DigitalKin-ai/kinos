@@ -1,3 +1,5 @@
+import os
+
 class MissionService:
     def __init__(self, web_instance):
         self.web_instance = web_instance
@@ -17,3 +19,17 @@ class MissionService:
         except Exception as e:
             self.web_instance.log_message(f"Error creating mission: {str(e)}", level='error')
             raise
+
+    def _load_test_data(self):
+        """Load test data from template file"""
+        try:
+            test_data_path = os.path.join("templates", "test_data", "demande_test_1.md")
+            if not os.path.exists(test_data_path):
+                self.web_instance.log_message(f"Test data file not found: {test_data_path}", level='error')
+                return ""
+                
+            with open(test_data_path, 'r', encoding='utf-8') as f:
+                return f.read()
+        except Exception as e:
+            self.web_instance.log_message(f"Error loading test data: {str(e)}", level='error')
+            return ""

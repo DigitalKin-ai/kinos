@@ -1,3 +1,4 @@
+import os
 import threading
 from typing import Dict, Any
 
@@ -23,6 +24,69 @@ class AgentService:
         except Exception as e:
             self.web_instance.log_message(f"❌ Erreur globale: {str(e)}", level='error')
             raise
+
+    def update_agent_paths(self, mission_name: str) -> None:
+        """Update file paths for all agents when mission changes"""
+        try:
+            mission_dir = os.path.abspath(os.path.join("missions", mission_name))
+            os.makedirs(mission_dir, exist_ok=True)
+            
+            self.web_instance.log_message(f"Updating agent paths for mission: {mission_name}", level='debug')
+            
+            was_running = self.web_instance.running
+            if was_running:
+                self.stop_agents()
+            
+            agent_files = {
+                "Specification": {
+                    "main": os.path.join(mission_dir, "specifications.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "demande.md"),
+                        os.path.join(mission_dir, "production.md")
+                    ]
+                },
+                "Production": {
+                    "main": os.path.join(mission_dir, "production.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ]
+                },
+                "Management": {
+                    "main": os.path.join(mission_dir, "management.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ]
+                },
+                "Evaluation": {
+                    "main": os.path.join(mission_dir, "evaluation.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md")
+                    ]
+                },
+            }
+            
+            for name, agent in self.web_instance.agents.items():
+                try:
+                    if name in agent_files:
+                        config = agent_files[name]
+                        agent.update_paths(
+                            config["main"],
+                            config["watch"]
+                        )
+                except Exception as e:
+                    self.web_instance.log_message(f"Error updating paths for {name}: {str(e)}", level='error')
+            
+            if was_running:
+                self.start_agents()
+                
+            self.web_instance.log_message(f"✓ Agent paths updated for mission: {mission_name}", level='success')
+            
+        except Exception as e:
+            self.web_instance.log_message(f"❌ Error updating agent paths: {str(e)}", level='error')
 
     def stop_agents(self):
         """Stop all agents"""
