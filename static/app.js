@@ -86,27 +86,6 @@ const ParallagonApp = {
             }
         }
     },
-            content: {
-                demande: '',
-                specifications: '',
-                management: '',
-                production: '',
-                evaluation: '',
-                suivi: ''
-            },
-            previousContent: {},
-            suiviUpdateInterval: null,
-            panels: [
-                { id: 'specifications', name: 'Specifications', icon: 'mdi mdi-file-tree', updating: false },
-                { id: 'management', name: 'Management', icon: 'mdi mdi-account-supervisor', updating: false },
-                { id: 'production', name: 'Production', icon: 'mdi mdi-code-braces', updating: false },
-                { id: 'evaluation', name: 'Evaluation', icon: 'mdi mdi-check-circle', updating: false }
-            ],
-            demandeChanged: false,
-            updateInterval: null,
-            ws: null
-        }
-    },
     methods: {
         refreshPanel(panelId) {
             console.log('Refreshing panel:', panelId);
