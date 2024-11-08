@@ -16,7 +16,7 @@
     <mission-selector
         v-model:current-mission="currentMission"
         v-model:loading="loading"
-        :missions="missions"
+        v-model:missions="missions"
         @select-mission="selectMission"
         @create-mission="createMission"
         @sidebar-toggle="handleSidebarToggle">

@@ -17,10 +17,11 @@ export default {
         }
     },
     emits: [
-        'select-mission',
+        'select-mission', 
         'update:loading',
         'update:current-mission',
-        'create-mission',
+        'update:missions',
+        'create-mission', 
         'sidebar-toggle'
     ],
     delimiters: ['${', '}'],
@@ -51,7 +52,7 @@ export default {
             console.log('Fetched missions:', missions);
             
             this.localMissions = missions;
-            this.$emit('update:missions', missions);
+            this.$emit('update:missions', missions); // Utiliser l'émission déclarée
         } catch (error) {
             console.error('Error in MissionSelector mounted:', error);
         }
