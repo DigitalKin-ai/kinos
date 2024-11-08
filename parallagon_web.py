@@ -653,17 +653,27 @@ class ParallagonWeb:
                 if not mission:
                     return jsonify({'error': 'Mission not found'}), 404
 
-                # Réinitialiser chaque fichier de la mission
-                for file_type, initial_content in self.file_manager._get_initial_contents().items():
+                # Liste des fichiers à réinitialiser (excluant demande.md)
+                files_to_reset = {
+                    "specifications": "specifications.md",
+                    "management": "management.md",
+                    "production": "production.md", 
+                    "evaluation": "evaluation.md",
+                    "suivi": "suivi.md"
+                }
+
+                # Réinitialiser chaque fichier de la mission sauf demande.md
+                for file_type, file_name in files_to_reset.items():
+                    initial_content = self.file_manager._get_initial_content(file_type)
                     success = self.mission_service.save_mission_file(
                         mission_id,
                         file_type,
                         initial_content
                     )
                     if not success:
-                        return jsonify({'error': f'Failed to reset {file_type}'}), 500
+                        return jsonify({'error': f'Failed to reset {file_name}'}), 500
 
-                self.log_message(f"Files reset for mission {mission['name']}", level='success')
+                self.log_message(f"Files reset for mission {mission['name']} (excluding demande.md)", level='success')
                 return jsonify({'status': 'success'})
                 
             except Exception as e:
