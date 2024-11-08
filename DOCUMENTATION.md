@@ -6,12 +6,72 @@
 
 #### BaseService
 Base class providing common functionality for all services:
-- Error handling with configurable retry policies
+
+Core Features:
+- Dependency injection via constructor
+- Standardized error handling with retry policies
 - Input validation with custom rules
-- Standardized logging with levels
+- Unified logging system with levels
 - Thread-safe file operations via portalocker
-- Cache management with invalidation
+- Multi-level cache management
 - Performance metrics collection
+- Resource cleanup
+- Service lifecycle management
+
+Error Handling:
+- Exception capture and logging
+- Standardized error formatting
+- Configurable automatic retries
+- Default value fallbacks
+- Controlled error propagation
+- Resource cleanup on errors
+- Circuit breaker pattern
+- Error metrics collection
+- Configurable alerting
+- Automatic recovery
+
+Inherited Methods:
+- _validate_input() - Input validation
+- _handle_error() - Error management
+- _log_operation() - Unified logging
+- _safe_file_operation() - File operations
+- _ensure_directory() - Directory management
+- cleanup() - Resource cleanup
+
+Input Validation:
+- Type checking
+- Format validation
+- Custom constraints
+- Detailed error messages
+- Data sanitization
+
+Standardized Logging:
+- Configurable log levels
+- File rotation
+- Unified format
+- Execution context
+- Performance metrics
+
+Thread-safe File Operations:
+- portalocker integration
+- Configurable timeouts
+- Automatic retries
+- Cleanup handlers
+- Path validation
+
+Cache and Optimization:
+- LRU memory cache
+- Smart invalidation
+- Configurable preloading
+- Usage metrics
+- Periodic cleanup
+
+Automatic Retries:
+- Configurable policies
+- Exponential backoff
+- Custom conditions
+- Attempt limits
+- Retry logging
 
 Key features:
 - Dependency injection via constructor
@@ -30,11 +90,59 @@ Services communicate through:
 ### Notification System
 
 #### Real-time Notifications
+Architecture:
+- Dedicated NotificationService
 - Thread-safe message queue
-- Configurable batch processing
-- Priority levels
-- Message persistence
-- Delivery guarantees
+- Publish/subscribe system
+- WebSocket connections
+- Heartbeat and reconnection
+- Real-time metrics
+
+Message Queue:
+- Thread-safe queue implementation
+- Configurable priorities
+- Smart batching
+- Message timeouts
+- Automatic retries
+- Performance metrics
+- Periodic cleanup
+- Optional persistence
+- FIFO guarantee
+- Backpressure handling
+
+Notification Types:
+- Info: General information
+- Success: Operation completed
+- Warning: Potential issues
+- Error: Operation failed
+- Flash: Ephemeral notifications
+- Status: Agent state changes
+- Content: File modifications
+- System: Infrastructure events
+
+Smart Content Cache:
+- LRU memory cache
+- Timestamp-based invalidation
+- Adaptive preloading
+- Data compression
+- Configurable limits
+- Usage metrics
+
+Change Distribution:
+- WebSocket notifications
+- Optimized polling
+- Type filtering
+- Smart aggregation
+- Order preservation
+- Error handling
+
+State Management:
+- Atomic states
+- Validated transitions
+- Change history
+- Error recovery
+- Stability metrics
+- Configurable alerts
 
 #### Message Types
 - Info: General information
@@ -55,11 +163,33 @@ Services communicate through:
 ### Cache System
 
 #### Multi-level Cache
-- Memory (LRU)
-- File system
-- Distributed (Redis optional)
+Cache Layers:
+- LRU memory cache
+- Redis distributed cache
 - Session cache
-- Agent-specific caches
+- Prompt cache
+- Content cache
+
+Invalidation Strategies:
+- Timestamp-based
+- Dependency-based
+- Event-driven
+- Cascade invalidation
+- Smart preloading
+
+Configuration:
+- Per-level size limits
+- Configurable TTL
+- Eviction policies
+- Data compression
+- Usage metrics
+
+Distributed Locking:
+- portalocker for files
+- Redis locks for cache
+- Configurable timeouts
+- Automatic retries
+- Deadlock detection
 
 #### Invalidation Strategies
 - Time-based (TTL)
