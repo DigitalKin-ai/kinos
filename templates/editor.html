@@ -140,6 +140,10 @@
                         <h2 class="panel-title">
                             <i class="mdi mdi-file-tree mr-2"></i>Specifications
                         </h2>
+                        <button class="btn-prompt" @click="openPromptModal('specifications')">
+                            <i class="mdi mdi-text"></i>
+                            Prompt
+                        </button>
                     </div>
                     <div class="panel-content">
                         <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('specifications'))"></div>
@@ -152,6 +156,10 @@
                         <h2 class="panel-title">
                             <i class="mdi mdi-account-supervisor mr-2"></i>Management
                         </h2>
+                        <button class="btn-prompt" @click="openPromptModal('management')">
+                            <i class="mdi mdi-text"></i>
+                            Prompt
+                        </button>
                     </div>
                     <div class="panel-content">
                         <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('management'))"></div>
@@ -164,6 +172,10 @@
                         <h2 class="panel-title">
                             <i class="mdi mdi-code-braces mr-2"></i>Production
                         </h2>
+                        <button class="btn-prompt" @click="openPromptModal('production')">
+                            <i class="mdi mdi-text"></i>
+                            Prompt
+                        </button>
                     </div>
                     <div class="panel-content">
                         <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('production'))"></div>
@@ -176,6 +188,10 @@
                         <h2 class="panel-title">
                             <i class="mdi mdi-check-circle mr-2"></i>Evaluation
                         </h2>
+                        <button class="btn-prompt" @click="openPromptModal('evaluation')">
+                            <i class="mdi mdi-text"></i>
+                            Prompt
+                        </button>
                     </div>
                     <div class="panel-content">
                         <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('evaluation'))"></div>
@@ -195,6 +211,35 @@
                 </div>
 
 
+            </div>
+        </div>
+    </div>
+
+    <!-- Prompt Modal -->
+    <div v-if="showPromptModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Prompt de l'agent ${currentPromptAgent}</h3>
+                <button class="modal-close" @click="closePromptModal">×</button>
+            </div>
+            <div class="modal-body">
+                <textarea 
+                    v-model="currentPrompt"
+                    class="prompt-editor"
+                    @input="promptChanged = true"
+                ></textarea>
+            </div>
+            <div class="modal-footer">
+                <button 
+                    class="btn-save" 
+                    @click="savePrompt"
+                    :disabled="!promptChanged"
+                >
+                    Sauvegarder
+                </button>
+                <button class="btn-cancel" @click="closePromptModal">
+                    Annuler
+                </button>
             </div>
         </div>
     </div>

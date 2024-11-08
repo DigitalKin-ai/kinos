@@ -804,6 +804,44 @@ class ParallagonWeb:
                 self.log_message(f"Error in suivi route: {str(e)}", level='error')
                 return jsonify({"content": "", "error": str(e)}), 500
 
+        @self.app.route('/api/agent/<agent_id>/prompt', methods=['GET'])
+        def get_agent_prompt(agent_id):
+            """Get the prompt for a specific agent"""
+            try:
+                agent_name = agent_id.capitalize()
+                if agent_name not in self.agents:
+                    return jsonify({'error': 'Agent not found'}), 404
+                    
+                prompt = self.agents[agent_name].get_prompt()
+                return jsonify({'prompt': prompt})
+                
+            except Exception as e:
+                self.log_message(f"Error getting agent prompt: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
+        @self.app.route('/api/agent/<agent_id>/prompt', methods=['POST'])
+        def save_agent_prompt(agent_id):
+            """Save the prompt for a specific agent"""
+            try:
+                data = request.get_json()
+                if not data or 'prompt' not in data:
+                    return jsonify({'error': 'Prompt is required'}), 400
+                    
+                agent_name = agent_id.capitalize()
+                if agent_name not in self.agents:
+                    return jsonify({'error': 'Agent not found'}), 404
+                    
+                success = self.agents[agent_name].save_prompt(data['prompt'])
+                if success:
+                    self.log_message(f"Prompt saved for agent {agent_name}", level='success')
+                    return jsonify({'status': 'success'})
+                else:
+                    return jsonify({'error': 'Failed to save prompt'}), 500
+                    
+            except Exception as e:
+                self.log_message(f"Error saving agent prompt: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
         @self.app.route('/api/changes')
         def get_changes():
             """Return and clear pending changes"""

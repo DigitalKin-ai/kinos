@@ -31,6 +31,10 @@ const ParallagonApp = {
             notifications: [],
             connectionStatus: 'disconnected',
             activeTab: 'demande',
+            showPromptModal: false,
+            currentPromptAgent: null,
+            currentPrompt: '',
+            promptChanged: false,
             tabIds: {
                 'demande.md': 'demande',
                 'specifications.md': 'specifications',
@@ -834,6 +838,56 @@ const ParallagonApp = {
             if (this.notificationsInterval) {
                 clearInterval(this.notificationsInterval);
                 this.notificationsInterval = null;
+            }
+        },
+
+        async openPromptModal(agentId) {
+            try {
+                const response = await fetch(`/api/agent/${agentId}/prompt`);
+                if (!response.ok) {
+                    throw new Error('Failed to load prompt');
+                }
+                const data = await response.json();
+                this.currentPrompt = data.prompt;
+                this.currentPromptAgent = agentId;
+                this.promptChanged = false;
+                this.showPromptModal = true;
+            } catch (error) {
+                this.addNotification('error', `Failed to load prompt: ${error.message}`);
+            }
+        },
+
+        closePromptModal() {
+            if (this.promptChanged) {
+                if (confirm('Des modifications non sauvegardées seront perdues. Continuer ?')) {
+                    this.showPromptModal = false;
+                }
+            } else {
+                this.showPromptModal = false;
+            }
+        },
+
+        async savePrompt() {
+            try {
+                const response = await fetch(`/api/agent/${this.currentPromptAgent}/prompt`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prompt: this.currentPrompt
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save prompt');
+                }
+
+                this.promptChanged = false;
+                this.addNotification('success', 'Prompt saved successfully');
+                this.showPromptModal = false;
+            } catch (error) {
+                this.addNotification('error', `Failed to save prompt: ${error.message}`);
             }
         },
 
