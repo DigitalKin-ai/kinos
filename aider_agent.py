@@ -55,6 +55,9 @@ class AiderAgent(KinOSAgent):
         # Créer le fichier principal s'il n'existe pas
         if not os.path.exists(self.file_path):
             try:
+                # Create parent directory if needed
+                os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+                # Create empty file
                 with open(self.file_path, 'w', encoding='utf-8') as f:
                     f.write("")  # Créer un fichier vide
                 self.logger(f"[{self.__class__.__name__}] ✓ Fichier principal créé: {self.file_path}")
