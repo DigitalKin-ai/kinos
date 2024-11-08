@@ -6,6 +6,8 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+from services.notification_service import NotificationService
+
 from routes.agent_routes import register_agent_routes
 from routes.mission_routes import register_mission_routes
 from routes.notification_routes import register_notification_routes
