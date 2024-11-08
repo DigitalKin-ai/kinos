@@ -3,11 +3,8 @@ from datetime import datetime
 from typing import List, Dict, Optional
 
 class MissionService:
-    def __init__(self):
-        """Initialize the mission service"""
-        self.missions_dir = "missions"
-        os.makedirs(self.missions_dir, exist_ok=True)
-
+    """Service for managing missions"""
+    
     REQUIRED_FILES = [
         "demande.md",
         "specifications.md", 
@@ -17,31 +14,41 @@ class MissionService:
         "suivi.md"
     ]
 
-    def get_all_missions(self) -> List[Dict]:
-        """Get all missions by reading directories"""
-        missions = []
-        try:
-            # Vérifier et créer le dossier missions si nécessaire
-            if not os.path.exists(self.missions_dir):
-                os.makedirs(self.missions_dir)
-                return missions
+    def __init__(self):
+        """Initialize mission service with base directory"""
+        self.missions_dir = "missions"
+        self._ensure_missions_dir()
+        self._missions_cache = None
+        self._last_scan = 0
+        self.scan_interval = 5  # Seconds between directory scans
 
-            # Scanner uniquement le premier niveau du dossier missions
+    def _ensure_missions_dir(self):
+        """Ensure missions directory exists"""
+        if not os.path.exists(self.missions_dir):
+            os.makedirs(self.missions_dir)
+
+    def _scan_missions(self) -> List[Dict]:
+        """Scan missions directory and return mission data"""
+        missions = []
+        mission_id = 1
+        
+        try:
             for item in os.listdir(self.missions_dir):
                 mission_path = os.path.join(self.missions_dir, item)
-                
-                # Ignorer les non-dossiers
                 if not os.path.isdir(mission_path):
                     continue
-
-                # Vérifier si au moins un fichier requis existe
-                if any(os.path.exists(os.path.join(mission_path, req_file)) 
-                      for req_file in self.REQUIRED_FILES):
                     
+                # Check if any required files exist
+                has_files = any(
+                    os.path.exists(os.path.join(mission_path, req_file))
+                    for req_file in self.REQUIRED_FILES
+                )
+                
+                if has_files:
                     mission = {
-                        'id': len(missions) + 1,
+                        'id': mission_id,
                         'name': item,
-                        'description': '',
+                        'path': mission_path,
                         'status': 'active',
                         'created_at': datetime.fromtimestamp(
                             os.path.getctime(mission_path)
@@ -51,53 +58,63 @@ class MissionService:
                         ).isoformat()
                     }
                     missions.append(mission)
-
+                    mission_id += 1
+                    
         except Exception as e:
-            print(f"Error scanning missions: {str(e)}")
+            print(f"Error scanning missions directory: {e}")
             
         return missions
 
+    def get_all_missions(self) -> List[Dict]:
+        """Get all missions with caching"""
+        current_time = datetime.now().timestamp()
+        
+        # Return cached results if fresh
+        if (self._missions_cache is not None and 
+            current_time - self._last_scan < self.scan_interval):
+            return self._missions_cache
+            
+        # Scan directory and update cache
+        self._missions_cache = self._scan_missions()
+        self._last_scan = current_time
+        return self._missions_cache
+
+    def get_mission(self, mission_id: int) -> Optional[Dict]:
+        """Get a specific mission by ID"""
+        missions = self.get_all_missions()
+        for mission in missions:
+            if mission['id'] == mission_id:
+                # Add file paths
+                mission['files'] = {
+                    name: os.path.join(mission['path'], f"{name}.md")
+                    for name in ['demande', 'specifications', 'management', 
+                               'production', 'evaluation', 'suivi']
+                }
+                return mission
+        return None
+
     def create_mission(self, name: str, description: str = None) -> Dict:
-        """Create a new mission directory"""
+        """Create a new mission"""
         mission_dir = os.path.join(self.missions_dir, name)
         if os.path.exists(mission_dir):
             raise ValueError(f"Mission '{name}' already exists")
             
+        # Create mission directory
         os.makedirs(mission_dir)
         
-        # Créer les fichiers requis
+        # Create required files
         for filename in self.REQUIRED_FILES:
             file_path = os.path.join(mission_dir, filename)
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write("")
                 
-        return {
-            'id': len(self.get_all_missions()),
-            'name': name,
-            'description': description,
-            'status': 'active',
-            'created_at': datetime.now().isoformat(),
-            'updated_at': datetime.now().isoformat()
-        }
-
-    def get_mission(self, mission_id: int) -> Optional[Dict]:
-        """Get a mission by ID"""
+        # Force cache refresh
+        self._missions_cache = None
+        
+        # Return new mission data
         missions = self.get_all_missions()
-        for mission in missions:
-            if mission['id'] == mission_id:
-                # Add file paths
-                mission_dir = os.path.join(self.missions_dir, mission['name'])
-                mission['files'] = {
-                    'demande': os.path.join(mission_dir, "demande.md"),
-                    'specifications': os.path.join(mission_dir, "specifications.md"),
-                    'management': os.path.join(mission_dir, "management.md"),
-                    'production': os.path.join(mission_dir, "production.md"),
-                    'evaluation': os.path.join(mission_dir, "evaluation.md"),
-                    'suivi': os.path.join(mission_dir, "suivi.md")
-                }
-                return mission
-        return None
+        return next((m for m in missions if m['name'] == name), None)
 
-    def mission_exists(self, mission_name: str) -> bool:
-        """Check if a mission directory exists"""
-        return os.path.exists(os.path.join(self.missions_dir, mission_name))
+    def mission_exists(self, name: str) -> bool:
+        """Check if a mission exists"""
+        return os.path.exists(os.path.join(self.missions_dir, name))
