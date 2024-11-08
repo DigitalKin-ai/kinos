@@ -1,20 +1,13 @@
+import ApiClient from './api-client.js';
+
 class MissionService {
     constructor(baseUrl = '') {
-        this.baseUrl = baseUrl;
-    }
-
-    handleError(error, operation) {
-        console.error(`Error during ${operation}:`, error);
-        throw new Error(`Failed to ${operation}: ${error.message}`);
+        this.apiClient = new ApiClient(baseUrl);
     }
 
     async getAllMissions() {
         try {
-            const response = await fetch(`${this.baseUrl}/api/missions`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return await response.json();
+            return await this.apiClient.getAllMissions();
         } catch (error) {
             console.error('Error fetching missions:', error);
             throw error;
