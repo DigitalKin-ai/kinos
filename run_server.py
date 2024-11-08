@@ -1,9 +1,13 @@
-from web.parallagon_web import ParallagonWeb
-import logging
 import os
 import sys
-import signal
+import logging
 from dotenv import load_dotenv
+
+# Add the project root directory to Python path
+project_root = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, project_root)
+
+from web.parallagon_web import ParallagonWeb
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +27,7 @@ def get_config():
     
     return config
 
-# Create the application instance
+# Create the application instance 
 parallagon = ParallagonWeb(get_config())
 app = parallagon.get_app()  # This is the WSGI application
 
