@@ -52,6 +52,7 @@ python run_server.py
 - **Agent Management** : Coordination et planification
 - **Agent Production** : Création et implémentation du contenu
 - **Agent Évaluation** : Contrôle qualité et validation
+- **Agent Documentaliste** : Analyse et maintien de la cohérence documentaire
 
 ## 📁 Structure des Fichiers
 
