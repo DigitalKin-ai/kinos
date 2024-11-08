@@ -107,7 +107,7 @@ export default {
         }
     },
     template: `
-        <div class="p-6 h-full overflow-hidden flex flex-col">
+        <div class="p-6 h-full flex flex-col">
             <h2 class="text-2xl font-bold mb-6">Agents Manager</h2>
             
             <div v-if="loading" class="text-gray-600">
