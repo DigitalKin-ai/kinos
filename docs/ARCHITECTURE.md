@@ -29,41 +29,99 @@ The Parallagon system uses a modular architecture built around autonomous agents
 
 ### Agents
 - `agents/parallagon_agent.py` - Base agent class
-  - Base class for all agents
-  - Prompt management
-  - Command execution
   - File monitoring
+  - Self-regulated execution cycles
+  - Automatic error recovery
+  - Dynamic timing adjustments
+  - Resource cleanup
 
-- `agents/agents.py` - Specific agent implementations
-  - SpecificationsAgent
-  - ProductionAgent
-  - ManagementAgent
-  - EvaluationAgent
-  - SuiviAgent
-  - DuplicationAgent
+- `agents/aider_agent.py` - Aider integration
+  - Prompt management with caching
+  - File operation coordination
+  - Change notifications
+  - Error handling and retry
+
+- Specific agent implementations:
+  - SpecificationsAgent - Requirements analysis
+  - ProductionAgent - Code generation and optimization
+  - ManagementAgent - Activity coordination
+  - EvaluationAgent - Testing and validation
+  - SuiviAgent - Progress tracking
 
 ### Services
 - `services/base_service.py` - Base class for all services
-- `services/cache_service.py` - Multi-level caching service
-- `services/file_service.py` - File operations service
-- `services/file_manager.py` - GUI file operations manager
-- `services/mission_service.py` - Mission management service
-- `services/notification_service.py` - Real-time notification service
+  - Error handling with retry policies
+  - Input validation with custom rules
+  - Standardized logging system
+  - Thread-safe file operations
+  - Resource cleanup
+  - Service lifecycle management
 
-### Utils
-- `utils/decorators.py` - Utility decorators
-  - @safe_operation decorator for error handling
-  
-- `utils/exceptions.py` - Custom exceptions
+- `services/cache_service.py` - Multi-level caching service
+  - Memory cache (LRU)
+  - File content cache
+  - Prompt cache
+  - Metadata cache
+  - Cache metrics collection
+  - Automatic cleanup
+
+- `services/file_service.py` - File operations service
+  - Thread-safe file operations
+  - Content caching
+  - Path validation
+  - Mission file management
+  - Error recovery
+
+- `services/notification_service.py` - Real-time notification service
+  - Message queue management
+  - Content change detection
+  - Cache performance metrics
+  - Real-time updates
+
+### Cache System
+- Multi-level caching strategy
+  - Memory cache with LRU eviction
+  - File content caching with timestamps
+  - Prompt caching per agent
+  - Cache invalidation on file changes
+  - Performance metrics collection
+  - Automatic cleanup scheduling
+
+- Cache Operations
+  - Thread-safe access
+  - TTL management
+  - Hit/miss tracking
+  - Size limits
+  - Eviction policies
+
+### Error Management
+- Centralized error handling via ErrorHandler
+- Custom exception hierarchy
   - ParallagonError (base)
   - ValidationError
   - ResourceNotFoundError
   - ServiceError
   - AgentError
   - FileOperationError
+- Automatic retries with @safe_operation decorator
+- Detailed error logging with stack traces
 
-- `utils/log_manager.py` - Basic console logging
-- `utils/logger.py` - Advanced logging with colors
+### Utils
+- `utils/decorators.py` - Utility decorators
+  - @safe_operation decorator for error handling
+  - Retry logic with exponential backoff
+  
+- `utils/exceptions.py` - Custom exceptions hierarchy
+  - Standardized error handling
+  - Error classification
+  - Custom error messages
+  - Stack trace preservation
+
+- `utils/logger.py` - Advanced logging system
+  - Colored output by level
+  - File and console logging
+  - Timestamp formatting
+  - Error context capture
 
   - Gestion des erreurs commune
     * Capture et logging des exceptions
