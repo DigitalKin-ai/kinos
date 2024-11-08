@@ -235,7 +235,11 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/2.0.6/velocity.min.js"></script>
-<script src="{{ url_for('static', filename='app.js') }}"></script>
+<script type="module">
+    import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+    import ParallagonApp from "{{ url_for('static', filename='js/app.js') }}";
+    
+    createApp(ParallagonApp).mount('#app');
+</script>
 {% endblock %}

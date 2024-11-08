@@ -1,3 +1,6 @@
+import MissionSelector from './js/mission-selector.js';
+import MissionService from './js/mission-service.js';
+
 // Debounce utility function
 function debounce(func, wait) {
     let timeout;
@@ -12,7 +15,16 @@ function debounce(func, wait) {
 }
 
 const ParallagonApp = {
+    components: {
+        MissionSelector
+    },
     delimiters: ['${', '}'],  // Use different delimiters to avoid Jinja2 conflicts
+    setup() {
+        const missionService = new MissionService();
+        return {
+            missionService
+        };
+    },
     data() {
         return {
             running: false,
@@ -830,6 +842,21 @@ const ParallagonApp = {
                 this.showPromptModal = false;
             } catch (error) {
                 this.addNotification('error', `Failed to save prompt: ${error.message}`);
+            }
+        },
+
+        async handleMissionSelect(mission) {
+            await this.selectMission(mission);
+        },
+        
+        async handleMissionCreate(name) {
+            try {
+                const mission = await this.missionService.createMission(name);
+                this.missions.unshift(mission);
+                await this.selectMission(mission);
+                this.addNotification('success', `Mission "${name}" created`);
+            } catch (error) {
+                this.addNotification('error', `Failed to create mission: ${error.message}`);
             }
         },
 

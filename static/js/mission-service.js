@@ -3,6 +3,11 @@ class MissionService {
         this.baseUrl = baseUrl;
     }
 
+    handleError(error, operation) {
+        console.error(`Error during ${operation}:`, error);
+        throw new Error(`Failed to ${operation}: ${error.message}`);
+    }
+
     async getAllMissions() {
         try {
             const response = await fetch(`${this.baseUrl}/api/missions`);

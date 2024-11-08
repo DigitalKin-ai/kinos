@@ -1,10 +1,11 @@
-const MissionSelector = {
+export default {
     name: 'MissionSelector',
     props: {
         currentMission: Object,
         missions: Array,
         loading: Boolean
     },
+    delimiters: ['${', '}'],
     emits: ['select-mission', 'create-mission'],
     data() {
         return {
