@@ -191,16 +191,30 @@ En attente d'initialisation...
     def write_file(self, file_name: str, content: str) -> bool:
         """Write content to a file with locking"""
         try:
+            # Log avant écriture
+            self.logger(f"Writing to {file_name}, content length: {len(content)}")
+            
             # Get full path based on current mission
             if self.current_mission:
                 file_path = os.path.join("missions", self.current_mission, f"{file_name}.md")
             else:
                 file_path = self.file_paths.get(file_name)
                 
+            # Log le chemin complet
+            self.logger(f"Full path: {file_path}")
+            
             if not file_path:
                 print(f"FileManager: Chemin non trouvé pour {file_name}")
                 return False
                 
+            # Si le fichier existe, vérifier son contenu actuel
+            if os.path.exists(file_path):
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    current_content = f.read()
+                if current_content == content:
+                    self.logger(f"Content unchanged for {file_name}, skipping write")
+                    return True
+                    
             # Create parent directory if needed
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
                 

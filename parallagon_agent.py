@@ -244,6 +244,13 @@ class ParallagonAgent:
                     time.sleep(1)
                     continue
                     
+                # Vérifier le contenu avant modification
+                current_content = None
+                if os.path.exists(self.file_path):
+                    with open(self.file_path, 'r', encoding='utf-8') as f:
+                        current_content = f.read()
+                    self.logger(f"[{self.__class__.__name__}] Current content size: {len(current_content) if current_content else 0}")
+                
                 # Save state before modifications
                 previous_content = self.current_content if hasattr(self, 'current_content') else None
                 

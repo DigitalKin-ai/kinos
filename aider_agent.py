@@ -65,6 +65,9 @@ class AiderAgent(ParallagonAgent):
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Exécute Aider avec le prompt donné"""
         try:
+            self.logger(f"[{self.__class__.__name__}] Starting Aider run")
+            self.logger(f"[{self.__class__.__name__}] Current file content length: {os.path.getsize(self.file_path) if os.path.exists(self.file_path) else 0}")
+            
             # S'assurer que le fichier principal existe
             if not os.path.exists(self.file_path):
                 self.logger(f"[{self.__class__.__name__}] ❌ Fichier principal non trouvé: {self.file_path}")
