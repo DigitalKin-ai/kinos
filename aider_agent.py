@@ -55,9 +55,21 @@ class AiderAgent(KinOSAgent):
         """Exécute Aider avec le prompt donné"""
         try:
             self.logger(f"[{self.__class__.__name__}] Starting Aider run")
-            self.logger(f"[{self.__class__.__name__}] Current file content length: {os.path.getsize(self.file_path) if os.path.exists(self.file_path) else 0}")
             
-            # Get mission directory from file path
+            # Vérifier si le fichier principal existe
+            if not os.path.exists(self.file_path):
+                self.logger(f"[{self.__class__.__name__}] ❌ Fichier principal non trouvé: {self.file_path}")
+                try:
+                    # Créer le fichier vide
+                    os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+                    with open(self.file_path, 'w', encoding='utf-8') as f:
+                        f.write("")
+                    self.logger(f"[{self.__class__.__name__}] ✓ Fichier principal créé")
+                except Exception as e:
+                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur création fichier: {str(e)}")
+                    return None
+
+            # Obtenir le dossier de mission et le dossier courant
             mission_dir = os.path.dirname(self.file_path)
             current_dir = os.getcwd()
             
@@ -66,20 +78,24 @@ class AiderAgent(KinOSAgent):
                 os.chdir(mission_dir)
                 self.logger(f"[{self.__class__.__name__}] 📂 Changement vers le dossier: {mission_dir}")
 
-                # Use relative paths for files
+                # Utiliser uniquement les noms de fichiers (pas les chemins)
+                main_file = os.path.basename(self.file_path)
+                
+                # Construire la commande avec chemins relatifs
                 cmd = [
                     "aider",
                     "--model", "anthropic/claude-3-5-haiku-20241022",
                     "--no-git",
                     "--yes-always",
-                    "--file", os.path.basename(self.file_path)
+                    "--file", main_file  # Utiliser juste le nom du fichier
                 ]
                 
-                # Add other files with relative paths
+                # Ajouter les autres fichiers (chemins relatifs)
                 for file_path in self.other_files:
-                    if os.path.exists(file_path):
-                        cmd.extend(["--file", os.path.relpath(file_path, mission_dir)])
-                    
+                    rel_path = os.path.relpath(file_path, mission_dir)
+                    if os.path.exists(rel_path):  # Vérifier le chemin relatif
+                        cmd.extend(["--file", rel_path])
+                        
                 # Ajouter le message
                 cmd.extend(["--message", self.prompt])
                 
@@ -104,29 +120,23 @@ class AiderAgent(KinOSAgent):
                     self.logger(f"[{self.__class__.__name__}] ⚠️ Erreurs Aider:\n{stderr}")
                 
                 if process.returncode == 0:
-                    # Si Aider a réussi, lire le nouveau contenu du fichier
-                    with open(self.file_path, 'r', encoding='utf-8') as f:
+                    # Lire le contenu mis à jour (chemin relatif)
+                    with open(main_file, 'r', encoding='utf-8') as f:
                         new_content = f.read()
                     
-                    # Notifier du changement via le service de notification
+                    # Notifier du changement
                     try:
-                        # Construire les données de notification
-                        file_name = os.path.basename(self.file_path)
-                        panel_name = os.path.splitext(file_name)[0].capitalize()
-                        
-                        # Use the notification service instead of direct API call
+                        panel_name = os.path.splitext(main_file)[0].capitalize()
                         success = self.web_instance.notification_service.handle_content_change(
-                            file_path=file_name,
+                            file_path=main_file,
                             content=new_content,
                             panel_name=panel_name,
                             flash=True
                         )
-
                         if success:
                             self.logger(f"✓ Notification sent for {panel_name}")
                         else:
                             self.logger(f"❌ Failed to send notification for {panel_name}")
-
                     except Exception as e:
                         self.logger(f"❌ Error sending notification: {str(e)}")
                     
@@ -134,11 +144,11 @@ class AiderAgent(KinOSAgent):
                 else:
                     self.logger(f"[{self.__class__.__name__}] ❌ Échec (code {process.returncode})")
                     return None
-                
+                    
             finally:
                 # Toujours revenir au dossier original
                 os.chdir(current_dir)
-                
+                    
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur exécution Aider: {str(e)}")
             return None
