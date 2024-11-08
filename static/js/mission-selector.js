@@ -106,6 +106,8 @@ export default {
                 // Emit loading state change
                 this.$emit('update:loading', true);
                 
+                console.log('Selecting mission:', mission); // Debug log
+                
                 const response = await fetch(`/api/missions/${mission.id}/select`, {
                     method: 'POST',
                     headers: {
@@ -124,10 +126,14 @@ export default {
                 this.$emit('select-mission', result);
                 this.$emit('update:current-mission', result);
                 
-                // Stop current agents before changing mission
+                // Attendre que les agents soient arrêtés avant de changer de mission
                 await fetch('/api/agents/stop', { method: 'POST' });
                 
-                console.log('Mission selected:', result.name);
+                // Log pour debug
+                console.log('Mission selected successfully:', result);
+                
+                // Attendre que le changement soit propagé
+                await new Promise(resolve => setTimeout(resolve, 100));
                 
                 return result;
                 

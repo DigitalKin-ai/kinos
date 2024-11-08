@@ -212,17 +212,27 @@ class AgentService:
     def update_agent_paths(self, mission_name: str) -> None:
         """Update file paths for all agents when mission changes"""
         try:
-            # Build and normalize mission path
-            mission_dir = os.path.abspath(os.path.join("missions", mission_name))
-            os.makedirs(mission_dir, exist_ok=True)
-            
+            # Vérifier que le nom de mission est valide
+            if not mission_name:
+                raise ValueError("Mission name cannot be empty")
+                
+            # Log l'état actuel
             self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
+            self.web_instance.logger.log(f"Current FileManager mission: {self.web_instance.file_manager.current_mission}", level='debug')
             
             # Stop agents if running
             was_running = any(agent.running for agent in self.agents.values())
             if was_running:
                 self.stop_all_agents()
+                
+            # Build and normalize mission path
+            mission_dir = os.path.abspath(os.path.join("missions", mission_name))
+            os.makedirs(mission_dir, exist_ok=True)
             
+            # Vérifier que le dossier existe
+            if not os.path.exists(mission_dir):
+                raise ValueError(f"Mission directory not found: {mission_dir}")
+                
             # Update paths for each agent with correct file mappings
             agent_files = {
                 "Specification": {
@@ -258,6 +268,10 @@ class AgentService:
             
             for name, agent in self.agents.items():
                 try:
+                    # Vérifier que l'agent utilise le bon dossier de mission
+                    if not agent.file_path.startswith(mission_dir):
+                        self.web_instance.logger.log(f"Agent {name} using wrong mission dir: {agent.file_path}", level='warning')
+                        
                     if name in agent_files:
                         config = agent_files[name]
                         agent.update_paths(
@@ -266,7 +280,12 @@ class AgentService:
                         )
                 except Exception as e:
                     self.web_instance.logger.log(f"Error updating paths for {name}: {str(e)}", level='error')
-            
+                    
+            # Vérifier que tous les agents utilisent le bon dossier
+            for name, agent in self.agents.items():
+                if not agent.file_path.startswith(mission_dir):
+                    raise ValueError(f"Agent {name} path not updated correctly: {agent.file_path}")
+                    
             # Restart agents if they were running
             if was_running:
                 self.start_all_agents()
