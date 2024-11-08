@@ -181,7 +181,8 @@ class AgentService:
                 "anthropic_api_key": config["anthropic_api_key"],
                 "openai_api_key": config["openai_api_key"],
                 "mission_name": mission_name,
-                "logger": self.web_instance.log_message
+                "logger": self.web_instance.log_message,
+                "web_instance": self.web_instance  # Add web_instance to base config
             }
 
             # Initialize each agent type with correct file paths and prompts
