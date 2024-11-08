@@ -40,18 +40,13 @@ class AiderAgent(ParallagonAgent):
         
         # Créer le dossier de mission si nécessaire
         os.makedirs(mission_dir, exist_ok=True)
-        
-        # Convertir les watch_files pour qu'ils soient dans le dossier de mission
-        if "watch_files" in config:
-            self.watch_files = [
-                os.path.join(mission_dir, os.path.basename(f))
-                for f in config["watch_files"]
-            ]
+
+        # TODO: Ajouter récursivement tous les fichiers texte (md, txt, py, js etc.) du dossier de la mission dans la variable self.other_files
             
         self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
         self.logger(f"[{self.__class__.__name__}] Dossier mission: {mission_dir}")
         self.logger(f"[{self.__class__.__name__}] Fichier principal: {self.file_path}")
-        self.logger(f"[{self.__class__.__name__}] Fichiers secondaires: {self.watch_files}")
+        self.logger(f"[{self.__class__.__name__}] Fichiers secondaires: {self.other_files}")
 
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Exécute Aider avec le prompt donné"""
@@ -77,7 +72,7 @@ class AiderAgent(ParallagonAgent):
                 
                 # Ajouter les fichiers à surveiller en chemins relatifs
                 for file in self.watch_files:
-                    cmd.extend(["--file", os.path.relpath(file, mission_dir)])
+                    cmd.extend(["--file", os.path.relpath(other_files, mission_dir)])
                     
                 # Ajouter le message
                 cmd.extend(["--message", self.prompt])
