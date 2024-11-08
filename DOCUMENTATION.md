@@ -164,6 +164,12 @@
 3. Historique des modifications
 4. Logs d'opérations
 
+### Détection de Duplication
+1. Analyse automatique du code source
+2. Identification des duplications de fonctions
+3. Détection des configurations redondantes
+4. Suggestions de refactoring
+
 ## Guides Pratiques
 
 ### Démarrage Rapide
@@ -183,3 +189,6 @@
 2. Backup des données
 3. Mise à jour des dépendances
 4. Résolution problèmes courants
+
+### Prompts
+- `prompts/duplication.md` : Prompt pour la détection de duplication

@@ -32,6 +32,7 @@ The Parallagon system uses a modular architecture built around autonomous agents
   - ManagementAgent
   - EvaluationAgent
   - SuiviAgent
+  - DuplicationAgent
 
 ### Services
 - `services/base_service.py` - Classe de base pour tous les services
