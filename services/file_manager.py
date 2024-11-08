@@ -13,6 +13,9 @@ class FileManager:
     """Manages file operations for the GUI"""
     
     def __init__(self, web_instance, on_content_changed=None):
+        # Store web_instance first
+        self.web_instance = web_instance
+        
         self.file_paths = {
             'demande': 'demande.md',
             'specifications': 'specifications.md',
