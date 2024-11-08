@@ -1,3 +1,4 @@
+import os
 from flask import jsonify, request
 from utils.decorators import safe_operation
 from utils.error_handler import ErrorHandler
@@ -17,6 +18,35 @@ def register_agent_routes(app, web_instance):
     def stop_all_agents():
         web_instance.agent_service.stop_all_agents()
         return jsonify({'status': 'stopped'})
+    @app.route('/api/agents/list', methods=['GET'])
+    @safe_operation()
+    def list_agents():
+        try:
+            prompts_dir = "prompts"
+            agents = []
+            
+            # List all .md files in prompts directory
+            for file in os.listdir(prompts_dir):
+                if file.endswith('.md'):
+                    agent_id = file[:-3]  # Remove .md
+                    agent_name = agent_id.capitalize()
+                    
+                    # Read prompt file content
+                    with open(os.path.join(prompts_dir, file), 'r', encoding='utf-8') as f:
+                        prompt_content = f.read()
+                    
+                    agents.append({
+                        'id': agent_id,
+                        'name': agent_name,
+                        'prompt': prompt_content,
+                        'running': False  # Initial state
+                    })
+                    
+            return jsonify(agents)
+            
+        except Exception as e:
+            return ErrorHandler.handle_error(e)
+
     @app.route('/api/agents/status', methods=['GET'])
     @safe_operation()
     def get_agents_status():

@@ -31,14 +31,29 @@ export default {
         async loadAgents() {
             try {
                 this.loading = true;
-                const response = await fetch('/api/agents/status');
-                const status = await response.json();
+                // Load agents list from prompt files
+                const response = await fetch('/api/agents/list');
+                if (!response.ok) {
+                    throw new Error('Failed to load agents');
+                }
+                const agents = await response.json();
+                
+                // Load agent states
+                const statusResponse = await fetch('/api/agents/status');
+                const status = await statusResponse.json();
                 this.agentStates = status;
-                this.agents = Object.keys(status).map(name => ({
-                    id: name,
-                    name: name.charAt(0).toUpperCase() + name.slice(1),
-                    running: status[name].running
+                
+                // Combine information
+                this.agents = agents.map(agent => ({
+                    ...agent,
+                    running: this.agentStates[agent.id]?.running || false
                 }));
+                
+                // Initialize prompts
+                this.prompts = agents.reduce((acc, agent) => {
+                    acc[agent.id] = agent.prompt;
+                    return acc;
+                }, {});
             } catch (error) {
                 console.error('Failed to load agents:', error);
             } finally {
@@ -126,14 +141,12 @@ export default {
                                 Save
                             </button>
                         </div>
-                        <textarea v-if="editingPrompt === agent.id"
-                                v-model="prompts[agent.id]"
+                        <textarea v-model="prompts[agent.id]"
+                                :readonly="editingPrompt !== agent.id"
                                 class="w-full h-32 p-2 border rounded"
+                                :class="{'bg-gray-50': editingPrompt !== agent.id}"
                                 :disabled="agent.running">
                         </textarea>
-                        <div v-else class="text-gray-600">
-                            Click Edit to modify prompt
-                        </div>
                     </div>
                     
                     <div class="text-sm text-gray-500">
