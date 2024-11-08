@@ -37,11 +37,47 @@ The Parallagon system uses a modular architecture built around autonomous agents
 ### Services
 - `services/base_service.py` - Classe de base pour tous les services
   - Gestion des erreurs commune
+    * Capture et logging des exceptions
+    * Formatage des messages d'erreur
+    * Retry automatique configurable
+    * Fallback sur valeurs par défaut
+    * Propagation contrôlée
+    * Nettoyage des ressources
+
   - Validation des entrées
+    * Vérification des types
+    * Validation des formats
+    * Contraintes personnalisées
+    * Messages d'erreur détaillés
+    * Sanitization des données
+
   - Logging standardisé
+    * Niveaux de log configurables
+    * Rotation des fichiers
+    * Format unifié
+    * Contexte d'exécution
+    * Métriques de performance
+
   - Opérations fichiers sécurisées
+    * Verrouillage avec portalocker
+    * Timeouts configurables
+    * Retry sur échec
+    * Nettoyage automatique
+    * Validation des chemins
+
   - Cache et optimisation
+    * Cache mémoire LRU
+    * Invalidation intelligente
+    * Préchargement configurable
+    * Métriques d'utilisation
+    * Nettoyage périodique
+
   - Retry automatique
+    * Politiques configurables
+    * Délais exponentiels
+    * Conditions personnalisées
+    * Limites de tentatives
+    * Logging des retries
 
 - `services/agent_service.py` - Gestion des agents
   - Initialisation des agents
@@ -154,9 +190,36 @@ The Parallagon system uses a modular architecture built around autonomous agents
 
 1. Système de Notifications
    - Queue de messages temps réel
+     * File d'attente thread-safe
+     * Priorités configurables
+     * Batching intelligent
+     * Timeout par message
+     * Retry sur échec
+     * Métriques de performance
+
    - Cache de contenu intelligent
+     * Cache LRU en mémoire
+     * Invalidation par timestamp
+     * Préchargement adaptatif
+     * Compression des données
+     * Limites configurables
+     * Métriques d'utilisation
+
    - Diffusion des changements
+     * Notifications WebSocket
+     * Polling optimisé
+     * Filtrage par type
+     * Agrégation intelligente
+     * Ordre préservé
+     * Gestion des erreurs
+
    - Gestion des états
+     * États atomiques
+     * Transitions validées
+     * Historique des changements
+     * Restauration sur erreur
+     * Métriques de stabilité
+     * Alertes configurables
 
 2. Gestion des Erreurs
    - Centralisation avec ErrorHandler

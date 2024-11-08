@@ -200,9 +200,28 @@
 
 ### Détection de Duplication
 1. Analyse automatique du code source
-2. Identification des duplications de fonctions
-3. Détection des configurations redondantes
-4. Suggestions de refactoring
+   - Scan continu des fichiers
+   - Détection des motifs similaires
+   - Analyse syntaxique approfondie
+   - Métriques de complexité
+
+2. Identification des duplications
+   - Fonctions similaires
+   - Blocs de code répétés
+   - Configurations redondantes
+   - Structures de données dupliquées
+
+3. Analyse et suggestions
+   - Calcul des métriques de duplication
+   - Évaluation de l'impact
+   - Propositions de refactoring
+   - Estimation des bénéfices
+
+4. Intégration continue
+   - Rapports automatiques
+   - Seuils d'alerte configurables
+   - Historique des modifications
+   - Tendances et évolution
 
 ## Guides Pratiques
 
