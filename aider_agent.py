@@ -85,8 +85,8 @@ class AiderAgent(ParallagonAgent):
                 ]
                 
                 # Ajouter les fichiers à surveiller en chemins relatifs
-                for file in self.other_files:
-                    cmd.extend(["--file", os.path.relpath(file, mission_dir)])
+                for file_path in self.other_files.keys():  # Utiliser .keys() pour itérer sur les chemins
+                    cmd.extend(["--file", os.path.relpath(file_path, mission_dir)])
                     
                 # Ajouter le message
                 cmd.extend(["--message", self.prompt])
