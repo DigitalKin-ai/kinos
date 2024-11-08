@@ -1,4 +1,12 @@
-from flask import Flask
+import os
+import time
+import threading
+from datetime import datetime
+
+from flask import (
+    Flask, jsonify, request, render_template,
+    redirect, url_for
+)
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -11,6 +19,14 @@ from routes.agent_routes import register_agent_routes
 from routes.mission_routes import register_mission_routes
 from routes.notification_routes import register_notification_routes
 from routes.view_routes import register_view_routes
+
+from agents import (
+    SpecificationsAgent,
+    ProductionAgent,
+    ManagementAgent,
+    EvaluationAgent,
+    SuiviAgent
+)
 
 class ParallagonWeb:
     # Log level colors
