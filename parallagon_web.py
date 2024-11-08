@@ -90,11 +90,11 @@ class ParallagonWeb:
         self.app = Flask(__name__)
         CORS(self.app)
         
-        # Initialize services
-        self.agent_service = AgentService(self)
-        self.mission_service = MissionService(self)
-        self.notification_service = NotificationService(self)
+        # Initialize services - Initialize MissionService first as it has no dependencies
+        self.mission_service = MissionService()  # No web_instance dependency
         self.file_service = FileService(self)
+        self.notification_service = NotificationService(self)
+        self.agent_service = AgentService(self)
         
         # Initialize rate limiter
         self.limiter = Limiter(
