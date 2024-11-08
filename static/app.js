@@ -507,31 +507,24 @@ const ParallagonApp = {
                 const contentResponse = await fetch('/api/content');
                 const contentData = await contentResponse.json();
                 
-                // Get notifications
-                const notificationsResponse = await fetch('/api/notifications');
-                const notificationsData = await notificationsResponse.json();
-                
-                // Process notifications
-                if (Array.isArray(notificationsData)) {
-                    notificationsData.forEach(notification => {
-                        this.addNotification(notification.type, notification.message);
-                    });
-                }
-                
-                // Mise à jour sélective du contenu
-                this.previousContent = { ...this.content };
-                Object.keys(contentData).forEach(key => {
-                    if (key !== 'demande' || !this.demandeChanged) {
-                        this.content[key] = contentData[key];
-                    }
-                });
-
-                // Check for changes and update UI
-                this.panels.forEach(panel => {
-                    const hasChanged = this.previousContent[panel.id] !== this.content[panel.id];
-                    panel.updating = hasChanged;
-                    if (hasChanged) {
-                        this.addLog('info', `${panel.name} content updated`);
+                // Vérifier les changements et mettre à jour
+                Object.keys(contentData).forEach(panelId => {
+                    if (this.content[panelId] !== contentData[panelId]) {
+                        // Mettre à jour le contenu
+                        this.content[panelId] = contentData[panelId];
+                        
+                        // Faire flasher l'onglet correspondant
+                        const tabElement = document.querySelector(`.tab-item[data-tab="${panelId}"]`);
+                        if (tabElement) {
+                            tabElement.classList.remove('flash-tab');
+                            void tabElement.offsetWidth; // Force reflow
+                            tabElement.classList.add('flash-tab');
+                            
+                            // Retirer la classe après l'animation
+                            setTimeout(() => {
+                                tabElement.classList.remove('flash-tab');
+                            }, 1000);
+                        }
                     }
                 });
             } catch (error) {
@@ -773,51 +766,6 @@ const ParallagonApp = {
             }, 1000);
         },
 
-        async checkNotifications() {
-            try {
-                const response = await fetch('/api/notifications');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const notifications = await response.json();
-                
-                if (Array.isArray(notifications) && notifications.length > 0) {
-                    notifications.forEach(notification => {
-                        // Add visual notification
-                        this.addNotification(notification.type, notification.message);
-                        
-                        // Handle content update
-                        if (notification.content && notification.panel) {
-                            const panelId = notification.panel.toLowerCase();
-                            
-                            // Update content with Vue reactivity
-                            this.$set(this.content, panelId, notification.content);
-                            
-                            // Force panel refresh
-                            this.$nextTick(() => {
-                                this.refreshPanel(panelId);
-                            });
-                            
-                            // Handle tab flash
-                            const tabElement = document.querySelector(`.tab-item[data-tab="${panelId}"]`);
-                            if (tabElement) {
-                                // Remove and re-add class to trigger animation
-                                tabElement.classList.remove('flash-tab');
-                                void tabElement.offsetWidth; // Force reflow
-                                tabElement.classList.add('flash-tab');
-                                
-                                // Remove class after animation
-                                setTimeout(() => {
-                                    tabElement.classList.remove('flash-tab');
-                                }, 1000);
-                            }
-                        }
-                    });
-                }
-            } catch (error) {
-                console.error('Failed to check notifications:', error);
-            }
-        },
 
         stopUpdateLoop() {
             if (this.updateInterval) {
@@ -897,26 +845,12 @@ const ParallagonApp = {
         }
     },
     mounted() {
-        // Add notifications container to body
-        const notificationsContainer = document.createElement('div');
-        notificationsContainer.className = 'notifications-container';
-        document.body.appendChild(notificationsContainer);
-
-        // Add suivi updates
-        setInterval(() => {
-            if (this.running) {
-                this.updateSuiviEntries();
-            }
-        }, 1000);
-        
         // Load missions first, then content
         this.loadMissions()
             .then(async () => {
                 // Select first mission if available
                 if (this.missions.length > 0) {
-                    // Attendre que la sélection de mission soit terminée
                     await this.selectMission(this.missions[0]);
-                    // Vérifier que la mission a bien été sélectionnée
                     if (!this.currentMission) {
                         throw new Error('Failed to select mission');
                     }
@@ -925,17 +859,19 @@ const ParallagonApp = {
                 }
             })
             .then(() => {
-                // Ne démarrer le polling que si une mission est sélectionnée
-                if (this.currentMission) {
-                    this.startPolling();
-                    
-                    // Refresh agents status every 5 seconds
-                    setInterval(() => {
-                        if (this.running) {
-                            this.refreshAgentsStatus();
-                        }
-                    }, 5000);
-                }
+                // Démarrer le polling simple
+                setInterval(() => {
+                    if (this.running) {
+                        this.updateContent();
+                    }
+                }, 1000); // Polling toutes les secondes
+                
+                // Refresh agents status every 5 seconds
+                setInterval(() => {
+                    if (this.running) {
+                        this.refreshAgentsStatus();
+                    }
+                }, 5000);
             })
             .catch(error => {
                 console.error('Error in mounted:', error);
