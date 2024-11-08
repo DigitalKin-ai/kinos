@@ -22,8 +22,3 @@ def register_notification_routes(app, web_instance):
             return jsonify({'error': 'Failed to handle notification'}), 500
         return jsonify({'status': 'success'})
 
-    @app.route('/api/changes')
-    @safe_operation()
-    def get_changes():
-        changes = web_instance.notification_service.get_notifications()
-        return jsonify(changes)

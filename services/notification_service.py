@@ -84,9 +84,29 @@ class NotificationService(BaseService):
         """Get and clear pending notifications"""
         try:
             self._log_operation('get_notifications')
-            notifications = self.notifications_queue.copy()
+            current_time = datetime.now()
+            
+            # Filter notifications from last 3 seconds
+            recent_notifications = []
+            for n in self.notifications_queue:
+                try:
+                    notif_time = datetime.strptime(n['timestamp'], "%H:%M:%S")
+                    notif_datetime = current_time.replace(
+                        hour=notif_time.hour,
+                        minute=notif_time.minute,
+                        second=notif_time.second
+                    )
+                    
+                    if (current_time - notif_datetime).total_seconds() <= 3:
+                        recent_notifications.append(n)
+                except ValueError as e:
+                    self.logger.log(f"Invalid timestamp format in notification: {e}", level='error')
+                    continue
+
+            # Clear the queue after filtering
             self.notifications_queue.clear()
-            return notifications
+            
+            return recent_notifications
         except Exception as e:
             return self._handle_error('get_notifications', e, [])
             

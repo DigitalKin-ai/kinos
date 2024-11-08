@@ -611,57 +611,6 @@ class ParallagonWeb:
                 self.log_message(f"Error updating mission: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
-        @self.app.route('/api/agent/<agent_id>/<action>', methods=['POST'])
-        def control_agent(agent_id, action):
-            """Control (start/stop) a specific agent"""
-            try:
-                # Debug logs
-                self.log_message(f"Agent control request: {agent_id} - {action}", level='debug')
-                
-                # Validate action
-                if action not in ['start', 'stop']:
-                    return jsonify({'error': 'Invalid action'}), 400
-                    
-                # Convert agent_id to proper case and normalize
-                agent_name = agent_id.capitalize()
-                
-                # Handle plural forms for agent names
-                if agent_name.endswith('s'):  # Remove trailing 's' for agents
-                    agent_name = agent_name[:-1]
-                
-                # Debug log
-                self.log_message(f"Looking for agent: {agent_name}", level='debug')
-                self.log_message(f"Available agents: {list(self.agents.keys())}", level='debug')
-                
-                if agent_name not in self.agents:
-                    return jsonify({'error': f'Agent {agent_id} not found (normalized: {agent_name})'}), 404
-                    
-                agent = self.agents[agent_name]
-                
-                if action == 'start':
-                    if not agent.running:
-                        agent.start()
-                        thread = threading.Thread(
-                            target=agent.run,
-                            daemon=True,
-                            name=f"Agent-{agent_name}"
-                        )
-                        thread.start()
-                        self.log_message(f"Agent {agent_name} started", level='success')
-                else:  # stop
-                    if agent.running:
-                        agent.stop()
-                        self.log_message(f"Agent {agent_name} stopped", level='success')
-                        
-                return jsonify({
-                    'status': 'success',
-                    'message': f'Agent {agent_name} {action}ed successfully',
-                    'running': agent.running
-                })
-                
-            except Exception as e:
-                self.log_message(f"Error controlling agent {agent_id}: {str(e)}", level='error')
-                return jsonify({'error': str(e)}), 500
 
 
         @self.app.route('/clean')
