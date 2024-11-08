@@ -65,19 +65,13 @@ class MissionService:
             
         return missions
 
-    def get_all_missions(self) -> List[Dict]:
-        """Get all missions with caching"""
-        current_time = datetime.now().timestamp()
-        
-        # Return cached results if fresh
-        if (self._missions_cache is not None and 
-            current_time - self._last_scan < self.scan_interval):
-            return self._missions_cache
-            
-        # Scan directory and update cache
-        self._missions_cache = self._scan_missions()
-        self._last_scan = current_time
-        return self._missions_cache
+    def get_all_missions(self):
+        """Get all missions"""
+        try:
+            return self._scan_missions()
+        except Exception as e:
+            print(f"Error getting missions: {str(e)}")
+            return []
 
     def get_mission(self, mission_id: int) -> Optional[Dict]:
         """Get a specific mission by ID"""
@@ -93,27 +87,31 @@ class MissionService:
                 return mission
         return None
 
-    def create_mission(self, name: str, description: str = None) -> Dict:
+    def create_mission(self, name, description=None):
         """Create a new mission"""
-        mission_dir = os.path.join(self.missions_dir, name)
-        if os.path.exists(mission_dir):
-            raise ValueError(f"Mission '{name}' already exists")
-            
-        # Create mission directory
-        os.makedirs(mission_dir)
-        
-        # Create required files
-        for filename in self.REQUIRED_FILES:
-            file_path = os.path.join(mission_dir, filename)
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write("")
+        try:
+            mission_dir = os.path.join(self.missions_dir, name)
+            if os.path.exists(mission_dir):
+                raise ValueError(f"Mission '{name}' already exists")
                 
-        # Force cache refresh
-        self._missions_cache = None
-        
-        # Return new mission data
-        missions = self.get_all_missions()
-        return next((m for m in missions if m['name'] == name), None)
+            os.makedirs(mission_dir)
+            
+            # Create required files
+            for filename in self.REQUIRED_FILES:
+                file_path = os.path.join(mission_dir, filename)
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write("")
+                    
+            # Force cache refresh
+            self._missions_cache = None
+            
+            # Return new mission data
+            missions = self.get_all_missions()
+            return next((m for m in missions if m['name'] == name), None)
+            
+        except Exception as e:
+            print(f"Error creating mission: {str(e)}")
+            raise
 
     def mission_exists(self, name: str) -> bool:
         """Check if a mission exists"""
