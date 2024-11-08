@@ -1,6 +1,16 @@
 # Architecture Parallagon
 
-## Structure des Fichiers
+## Overview
+
+The Parallagon system uses a modular architecture built around autonomous agents that collaborate through a shared file system. The core components are:
+
+- Web Application (Flask)
+- Autonomous Agents
+- Service Layer
+- File System
+- Real-time Notifications
+
+## Component Architecture
 
 ### Core
 - `parallagon_web.py` - Classe principale de l'application

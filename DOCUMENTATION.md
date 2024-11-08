@@ -1,6 +1,20 @@
-# Documentation Parallagon
+# Parallagon Documentation
 
-## Organisation des Fichiers
+## Getting Started
+
+### Prerequisites
+- Python 3.8+
+- Node.js 14+ (for frontend development)
+- API keys for Anthropic and OpenAI
+
+### Installation
+1. Clone the repository
+2. Create a virtual environment
+3. Install dependencies: `pip install -r requirements.txt`
+4. Copy `.env.example` to `.env` and configure API keys
+5. Run `python parallagon_web.py`
+
+## User Guide
 
 ### 1. Core Application
 - `parallagon_web.py`
@@ -101,6 +115,28 @@
   - Clés API (Anthropic, OpenAI)
   - Paramètres de débogage
   - Configuration serveur
+
+## Development Guide
+
+### Adding a New Agent
+1. Create new agent class in `agents.py`
+2. Inherit from `AiderAgent`
+3. Implement required methods
+4. Register in `AgentService`
+5. Add API routes if needed
+
+### Creating a New Service
+1. Create service class in `services/`
+2. Inherit from `BaseService`
+3. Implement core functionality
+4. Register in `ParallagonWeb`
+5. Add tests
+
+### Frontend Development
+1. Add new components in `static/js/`
+2. Update templates in `templates/`
+3. Add styles in `static/css/`
+4. Test with development server
 
 ## Fonctionnalités Principales
 
