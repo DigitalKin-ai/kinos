@@ -45,7 +45,9 @@ class KinOSAgent:
         'ProductionAgent': 16,      # Medium reactivity
         'ManagementAgent': 30,      # Coordination needs less frequency
         'EvaluationAgent': 36,      # Allow changes to accumulate
-        'SuiviAgent': 20           # More reactive monitoring
+        'SuiviAgent': 20,          # More reactive monitoring
+        'DocumentalisteAgent': 45,  # Documentation updates less frequent
+        'DuplicationAgent': 50      # Code analysis needs more time
     }
 
     def __init__(self, config: Dict[str, Any]):
