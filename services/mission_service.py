@@ -143,7 +143,7 @@ class MissionService:
                 
                 if has_files:
                     mission = {
-                        'id': mission_id,
+                        'id': mission_id,  # Incrément séquentiel des IDs
                         'name': item,
                         'path': mission_path,
                         'status': 'active',
