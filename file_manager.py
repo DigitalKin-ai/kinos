@@ -144,24 +144,14 @@ class FileManager:
     def reset_files(self) -> bool:
         """Reset all files to their initial state"""
         try:
-            initial_contents = self._get_initial_contents()
+            # Get initial contents from MissionService
+            initial_contents = self.web_instance.mission_service._get_initial_contents()
             
             for file_name, content in initial_contents.items():
                 if not self.write_file(file_name, content):
                     return False
             return True
         except Exception as e:
-            print(f"Error resetting files: {e}")
+            self.logger.log(f"Error resetting files: {e}", level='error')
             return False
             
-    def _get_initial_contents(self) -> Dict[str, str]:
-        """Get initial content for all files via MissionService"""
-        try:
-            if hasattr(self, 'web_instance') and self.web_instance:
-                return self.web_instance.mission_service._get_initial_contents()
-            else:
-                self.logger.log("No web_instance available for getting initial contents", level='warning')
-                return {}
-        except Exception as e:
-            self.logger.log(f"Error getting initial contents: {e}", level='error')
-            return {}
