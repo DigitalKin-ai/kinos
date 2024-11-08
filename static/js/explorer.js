@@ -182,23 +182,49 @@ export default ExplorerApp;
             await this.loadMissionFiles();
         },
 
-        async handleMissionCreate(name) {
+        async loadMissionFiles() {
             try {
-                const response = await fetch('/api/missions', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name })
-                });
+                if (!this.currentMission?.id) return;
                 
-                if (!response.ok) throw new Error('Failed to create mission');
+                const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
+                if (!response.ok) throw new Error('Failed to fetch files');
                 
-                const newMission = await response.json();
-                this.missions.push(newMission);
-                this.currentMission = newMission;
-                await this.loadMissionFiles();
+                const currentFiles = await response.json();
+                this.files = currentFiles.map(file => ({
+                    ...file,
+                    displayPath: file.relativePath || file.path
+                }));
             } catch (error) {
-                console.error('Error creating mission:', error);
+                console.error('Error loading files:', error);
             }
+        },
+
+        async checkFileModifications() {
+            try {
+                if (!this.currentMission?.id) return;
+
+                const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
+                if (!response.ok) throw new Error('Failed to fetch files');
+                
+                const currentFiles = await response.json();
+                
+                currentFiles.forEach(file => {
+                    const previousModified = this.fileModifications.get(file.path);
+                    if (previousModified && previousModified < file.modified) {
+                        this.highlightFile(file.path);
+                    }
+                    this.fileModifications.set(file.path, file.modified);
+                });
+            } catch (error) {
+                console.error('Error checking file modifications:', error);
+            }
+        },
+
+        highlightFile(filePath) {
+            this.highlightedFiles.add(filePath);
+            setTimeout(() => {
+                this.highlightedFiles.delete(filePath);
+            }, 2000);
         },
 
         handleSidebarCollapse(collapsed) {
