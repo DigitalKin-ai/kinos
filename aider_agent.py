@@ -55,9 +55,7 @@ class AiderAgent(ParallagonAgent):
 
         # Initialize other_files and load content
         self.other_files = {}  # Initialize empty first
-        self.list_files()  # TODO: TO IMPLEMENT HERE : il faut une liste de tous les documents textuels dans le dossier de la mission
-
-        # TODO : supprimer le fichier principal de other_files
+        self.list_files()  # Load all text files from mission directory
             
         self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
         self.logger(f"[{self.__class__.__name__}] Dossier mission: {mission_dir}")
@@ -157,6 +155,42 @@ class AiderAgent(ParallagonAgent):
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur exécution Aider: {str(e)}")
             return None
+
+    def list_files(self) -> None:
+        """
+        Liste tous les fichiers textuels dans le dossier de la mission 
+        et initialise other_files en excluant le fichier principal.
+        """
+        try:
+            # Obtenir le dossier de la mission
+            mission_dir = os.path.dirname(self.file_path)
+            
+            # Liste des extensions à inclure
+            text_extensions = {'.md', '.txt', '.json', '.yaml', '.yml'}
+            
+            # Récupérer tous les fichiers textuels
+            text_files = {}
+            for file in os.listdir(mission_dir):
+                file_path = os.path.join(mission_dir, file)
+                # Vérifier si c'est un fichier et si l'extension est supportée
+                if (os.path.isfile(file_path) and 
+                    os.path.splitext(file)[1].lower() in text_extensions):
+                    text_files[file_path] = os.path.getmtime(file_path)
+            
+            # Supprimer le fichier principal de la liste
+            if self.file_path in text_files:
+                del text_files[self.file_path]
+                
+            # Mettre à jour other_files
+            self.other_files = text_files
+            
+            self.logger(f"[{self.__class__.__name__}] 📁 Fichiers trouvés: {len(self.other_files)}")
+            for file in self.other_files:
+                self.logger(f"[{self.__class__.__name__}] 📄 {os.path.basename(file)}")
+                
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur listing fichiers: {str(e)}")
+            self.other_files = {}  # Reset en cas d'erreur
 
     def _load_prompt(self) -> Optional[str]:
         """Charge le prompt depuis le fichier avec cache"""
