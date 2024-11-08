@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link href="{{ url_for('static', filename='css/sidebar.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div id="app" class="flex h-screen">
+    <!-- Mission Selector Component -->
+    <mission-selector
+        :current-mission="currentMission"
+        :missions="missions"
+        :loading="loading"
+        @select-mission="selectMission"
+        @create-mission="createMission"
+        @sidebar-toggle="handleSidebarToggle">
+    </mission-selector>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col">
+        <div class="flex-1 p-6">
+            <file-explorer
+                :current-mission="currentMission">
+            </file-explorer>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+    import MissionSelector from "{{ url_for('static', filename='js/mission-selector.js') }}";
+    import MissionService from "{{ url_for('static', filename='js/mission-service.js') }}";
+    import FileExplorer from "{{ url_for('static', filename='js/file-explorer.js') }}";
+
+    const app = Vue.createApp({
+        components: {
+            MissionSelector,
+            FileExplorer
+        },
+        data() {
+            return {
+                missionService: new MissionService(),
+                currentMission: null,
+                missions: [],
+                loading: true
+            }
+        },
+        async mounted() {
+            try {
+                const response = await fetch('/api/missions');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch missions');
+                }
+                const missions = await response.json();
+                this.missions = missions;
+                
+                if (missions.length > 0) {
+                    await this.selectMission(missions[0]);
+                }
+                
+                this.loading = false;
+            } catch (error) {
+                console.error('Failed to load missions:', error);
+                this.loading = false;
+            }
+        },
+        methods: {
+            async selectMission(mission) {
+                this.currentMission = mission;
+            },
+            async createMission(name) {
+                try {
+                    const newMission = await this.missionService.createMission(name);
+                    this.missions.push(newMission);
+                    this.currentMission = newMission;
+                } catch (error) {
+                    console.error('Failed to create mission:', error);
+                }
+            },
+            handleSidebarToggle(collapsed) {
+                // Handle sidebar collapse/expand if needed
+            }
+        }
+    });
+
+    app.mount('#app');
+</script>
+{% endblock %}

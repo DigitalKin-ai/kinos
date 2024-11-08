@@ -30,6 +30,10 @@ def register_view_routes(app, web_instance):
     def agents_page():
         return render_template('agents.html')
 
+    @app.route('/files')
+    def files_page():
+        return render_template('files.html')
+
     @app.route('/clean')
     @safe_operation()
     def clean_interface():
