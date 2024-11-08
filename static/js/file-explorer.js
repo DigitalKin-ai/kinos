@@ -172,8 +172,9 @@ export default {
                 this.expandedFiles.add(file.path);
                 
                 if (!this.fileContents.has(file.path)) {
+                    // Use relative path for request
                     const response = await fetch(
-                        `/api/missions/${this.currentMission.id}/files/${encodeURIComponent(file.path)}`
+                        `/api/missions/${this.currentMission.id}/files/${encodeURIComponent(file.relativePath || file.path)}`
                     );
                     
                     if (!response.ok) {

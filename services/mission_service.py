@@ -36,6 +36,18 @@ class MissionService:
             normalized = os.path.dirname(normalized)
         
         return normalized
+        
+    def _normalize_mission_path(self, path: str) -> str:
+        """Normalise le chemin de mission pour éviter les duplications"""
+        normalized = os.path.abspath(path)
+        parts = normalized.split(os.sep)
+        
+        # Si "missions" apparaît plusieurs fois à la fin, garder une seule occurrence
+        if parts[-2:].count("missions") > 1:
+            # Remonter d'un niveau
+            normalized = os.path.dirname(normalized)
+        
+        return normalized
 
     def _ensure_missions_dir(self):
         """Ensure missions directory exists and initialize if needed"""
