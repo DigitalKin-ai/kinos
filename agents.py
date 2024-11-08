@@ -15,7 +15,8 @@ __all__ = [
     'ProductionAgent', 
     'ManagementAgent',
     'EvaluationAgent',
-    'SuiviAgent'
+    'SuiviAgent',
+    'DuplicationAgent'
 ]
 
 class SpecificationsAgent(AiderAgent):
@@ -92,4 +93,27 @@ class SuiviAgent(AiderAgent):
         super().__init__(config)
         self.prompt_file = "prompts/suivi.md"
         self.role = "suivi"
+
+class DuplicationAgent(AiderAgent):
+    """
+    Agent responsable de la détection et réduction de la duplication.
+    
+    Responsabilités:
+    - Analyse du code source pour la duplication
+    - Identification des fonctions similaires
+    - Détection des configurations redondantes
+    - Proposition de refactoring
+    """
+    def __init__(self, config: Dict):
+        super().__init__(config)
+        self.prompt_file = "prompts/duplication.md"
+        self.role = "duplication"
+        
+    def _build_prompt(self, context: dict) -> str:
+        """
+        Surcharge pour ajouter des informations spécifiques à la détection de duplication
+        """
+        base_prompt = super()._build_prompt(context)
+        # Add any duplication-specific context here
+        return base_prompt
 
