@@ -140,29 +140,30 @@ def register_mission_routes(app, web_instance):
             if not mission:
                 return jsonify({'error': 'Mission not found'}), 404
 
-            # Construct full file path
-            mission_dir = os.path.abspath(os.path.join("missions", mission['name']))
-            # Avoid path duplication
-            if "missions" in mission_dir.split(os.sep)[-2:]:
-                mission_dir = os.path.dirname(mission_dir)
-
-            # Secure the file path
+            # Construire le chemin complet en incluant le nom de la mission
+            mission_dir = os.path.join("missions", mission['name'])
+            
+            # Sécuriser le chemin du fichier
             safe_path = os.path.normpath(file_path)
             if safe_path.startswith('..'):
                 return jsonify({'error': 'Invalid file path'}), 400
 
+            # Construire le chemin complet avec le dossier de mission
             full_path = os.path.join(mission_dir, safe_path)
             
-            # Verify file exists
+            # Log pour debug
+            web_instance.logger.log(f"Accessing file: {full_path}", level='debug')
+            
+            # Vérifier que le fichier existe
             if not os.path.exists(full_path):
-                return jsonify({'error': 'File not found'}), 404
+                return jsonify({'error': f'File not found: {full_path}'}), 404
 
-            # Verify file extension
+            # Vérifier l'extension
             ext = os.path.splitext(full_path)[1].lower()
             if ext not in {'.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml'}:
                 return jsonify({'error': 'Unsupported file type'}), 400
 
-            # Read file content
+            # Lire le contenu du fichier
             with open(full_path, 'r', encoding='utf-8') as f:
                 content = f.read()
 
