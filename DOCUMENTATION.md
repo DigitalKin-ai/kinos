@@ -112,35 +112,31 @@ Centralized error management:
 ### Agents
 
 #### DuplicationAgent
-Specialized agent for detecting and reducing code duplication:
+Agent spécialisé dans la détection et réduction de la duplication de code.
 
-1. Analysis Capabilities:
-- AST parsing for deep code analysis
-- Semantic similarity detection
-- Dependency graph generation
-- Complexity metrics calculation
-- Pattern recognition
+#### Fonctionnalités
+- Analyse statique du code source via AST
+- Détection des fonctions similaires
+- Identification des configurations redondantes
+- Analyse des duplications de documentation
+- Calcul des métriques de complexité
 
-2. Detection Features:
-- Function similarity analysis
-- Code block duplication
-- Configuration redundancy
-- Documentation overlap
-- Test case duplication
+#### Configuration
+```python
+{
+    "name": "Duplication",
+    "prompt_file": "prompts/duplication.md",
+    "check_interval": 300,  # 5 minutes
+    "file_patterns": ["*.py", "*.js", "*.md"]
+}
+```
 
-3. Reporting:
-- Detailed duplication reports
-- Impact assessment
-- Refactoring suggestions
-- Risk analysis
-- Implementation plan
-
-4. Integration:
-- Continuous monitoring
-- Real-time notifications
-- Change tracking
-- Performance metrics
-- Trend analysis
+#### Prompt
+Le prompt de l'agent est configuré dans `prompts/duplication.md` et définit :
+- Objectifs d'analyse
+- Instructions spécifiques
+- Format des rapports
+- Critères d'évaluation
 
 ### Routes API
 
