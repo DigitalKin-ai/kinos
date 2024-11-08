@@ -88,6 +88,23 @@ class KinOSWeb:
             return ""
 
     def __init__(self, config):
+        # Debug directory structure
+        current_file = os.path.abspath(__file__)
+        project_root = os.path.dirname(current_file)
+        template_dir = os.path.join(project_root, 'templates')
+        static_dir = os.path.join(project_root, 'static')
+
+        print("Current file:", current_file)
+        print("Project root:", project_root) 
+        print("Template dir:", template_dir)
+        print("Template dir exists?", os.path.exists(template_dir))
+        print("Static dir:", static_dir)
+        print("Static dir exists?", os.path.exists(static_dir))
+
+        print("\nContents of project root:")
+        for item in os.listdir(project_root):
+            print("-", item)
+
         # Initialize logger first
         self.logger = Logger()
         
