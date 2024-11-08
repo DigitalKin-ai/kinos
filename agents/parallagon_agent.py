@@ -273,22 +273,3 @@ class ParallagonAgent:
                 self.logger(f"Error in agent loop: {e}")
                 if not self.running:
                     break
-from typing import List, Optional
-from utils.decorators import safe_operation
-
-class ParallagonAgent:
-    def __init__(self):
-        """Initialize base agent"""
-        pass
-
-    def _build_prompt(self) -> str:
-        """Build the prompt for this agent"""
-        raise NotImplementedError
-        
-    def _run_aider(self) -> bool:
-        """Run aider with the built prompt"""
-        raise NotImplementedError
-        
-    def list_files(self) -> List[str]:
-        """List files this agent operates on"""
-        raise NotImplementedError

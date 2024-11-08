@@ -27,7 +27,3 @@ class LogManager:
     def warning(self, message: str):
         """Log a warning message"""
         self.logger.warning(message)
-class LogManager:
-    def __init__(self):
-        """Initialize log manager"""
-        pass

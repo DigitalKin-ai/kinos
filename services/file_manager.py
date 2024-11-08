@@ -155,9 +155,3 @@ class FileManager:
             self.logger.log(f"Error resetting files: {e}", level='error')
             return False
             
-from utils.decorators import safe_operation
-
-class FileManager:
-    def __init__(self):
-        """Initialize file manager"""
-        pass
