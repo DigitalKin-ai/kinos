@@ -13,28 +13,28 @@ The Parallagon system uses a modular architecture built around autonomous agents
 ## Component Architecture
 
 ### Core
-- `parallagon_web.py` - Classe principale de l'application
-  - Initialisation de Flask avec configuration avancée
-    * CORS configurable
-    * Rate limiting intelligent
-    * Compression des réponses
-    * Sessions sécurisées
-    * Métriques prometheus
-  - Configuration des routes avec versioning API
-  - Gestion des services avec injection de dépendances
-  - Gestion des erreurs avec retry policies
-  - Monitoring temps réel avec websockets
-  - Cache distribué avec Redis
-  - Authentification JWT configurable
+- `web/parallagon_web.py` - Main web application class
+  - Advanced Flask initialization with configuration
+    * Configurable CORS
+    * Intelligent rate limiting
+    * Response compression
+    * Secure sessions
+    * Prometheus metrics
+  - API route configuration with versioning
+  - Service management with dependency injection
+  - Error handling with retry policies
+  - Real-time monitoring with websockets
+  - Distributed cache with Redis
+  - Configurable JWT authentication
 
 ### Agents
-- `aider_agent.py` - Agent de base utilisant Aider
-  - Classe de base pour tous les agents
-  - Gestion des prompts
-  - Exécution des commandes Aider
-  - Surveillance des fichiers
+- `agents/parallagon_agent.py` - Base agent class
+  - Base class for all agents
+  - Prompt management
+  - Command execution
+  - File monitoring
 
-- `agents.py` - Implémentations spécifiques des agents
+- `agents/agents.py` - Specific agent implementations
   - SpecificationsAgent
   - ProductionAgent
   - ManagementAgent
@@ -43,14 +43,27 @@ The Parallagon system uses a modular architecture built around autonomous agents
   - DuplicationAgent
 
 ### Services
-- `services/base_service.py` - Classe de base pour tous les services
-  - Architecture orientée services
-    * Injection de dépendances via constructeur
-    * Héritage de BaseService obligatoire
-    * Méthodes communes standardisées
-    * Interface unifiée pour tous les services
-    * Gestion du cycle de vie
-    * Métriques de performance
+- `services/base_service.py` - Base class for all services
+- `services/cache_service.py` - Multi-level caching service
+- `services/file_service.py` - File operations service
+- `services/file_manager.py` - GUI file operations manager
+- `services/mission_service.py` - Mission management service
+- `services/notification_service.py` - Real-time notification service
+
+### Utils
+- `utils/decorators.py` - Utility decorators
+  - @safe_operation decorator for error handling
+  
+- `utils/exceptions.py` - Custom exceptions
+  - ParallagonError (base)
+  - ValidationError
+  - ResourceNotFoundError
+  - ServiceError
+  - AgentError
+  - FileOperationError
+
+- `utils/log_manager.py` - Basic console logging
+- `utils/logger.py` - Advanced logging with colors
 
   - Gestion des erreurs commune
     * Capture et logging des exceptions
@@ -166,8 +179,15 @@ The Parallagon system uses a modular architecture built around autonomous agents
 
 ### Frontend Components
 
-#### Vue.js Components
-- `agent-manager.js`
+#### JavaScript
+- `static/js/api-client.js` - API client for frontend
+  - Features:
+    * Base URL configuration
+    * Token management
+    * Response handling
+    * Error handling
+
+- `static/js/agent-manager.js`
   - Props:
     * currentMission: Object
   - Events:
@@ -180,7 +200,7 @@ The Parallagon system uses a modular architecture built around autonomous agents
     * Start/Stop controls
     * Status indicators
 
-- `mission-selector.js`
+- `static/js/mission-selector.js`
   - Props:
     * currentMission: Object
     * missions: Array
