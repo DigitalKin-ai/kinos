@@ -42,9 +42,17 @@ class AgentService:
             # Stop all agents
             self.stop_all_agents()
             
-            # Build mission path
-            mission_dir = os.path.abspath(os.path.join("missions", mission_name))
-            os.makedirs(mission_dir, exist_ok=True)
+            # Normalize and validate mission path
+            mission_dir = os.path.normpath(os.path.abspath(os.path.join("missions", mission_name)))
+            
+            # Create and verify mission directory
+            if not os.path.exists(mission_dir):
+                os.makedirs(mission_dir, exist_ok=True)
+                self.web_instance.logger.log(f"Created mission directory: {mission_dir}", level='debug')
+            
+            # Verify directory permissions
+            if not os.access(mission_dir, os.R_OK | os.W_OK):
+                raise ValueError(f"Mission directory not accessible: {mission_dir}")
             
             self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
             
@@ -55,15 +63,23 @@ class AgentService:
                 "management.md", 
                 "evaluation.md",
                 "suivi.md",
-                "duplication.md"
+                "duplication.md",
+                "documentation.md"
             ]
 
             for filename in required_files:
-                file_path = os.path.join(mission_dir, filename)
+                file_path = os.path.normpath(os.path.join(mission_dir, filename))
                 if not os.path.exists(file_path):
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write("")
-                    self.web_instance.logger.log(f"Created file: {filename}", level='debug')
+                    try:
+                        with open(file_path, 'w', encoding='utf-8') as f:
+                            f.write("")
+                        self.web_instance.logger.log(f"Created file: {filename}", level='debug')
+                    except Exception as e:
+                        raise ValueError(f"Failed to create {filename}: {str(e)}")
+                        
+                # Verify file permissions
+                if not os.access(file_path, os.R_OK | os.W_OK):
+                    raise ValueError(f"File not accessible: {file_path}")
 
             # Define agent file mappings
             self.agent_files = {
