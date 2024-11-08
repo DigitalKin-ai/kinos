@@ -29,15 +29,21 @@ class AgentService:
     def update_agent_paths(self, mission_name: str) -> None:
         """Update file paths for all agents when mission changes"""
         try:
+            # Build and normalize mission path
             mission_dir = os.path.abspath(os.path.join("missions", mission_name))
+            if "missions" in mission_dir.split(os.sep)[-2:]:
+                mission_dir = os.path.dirname(mission_dir)
+                
             os.makedirs(mission_dir, exist_ok=True)
             
-            self.web_instance.log_message(f"Updating agent paths for mission: {mission_name}", level='debug')
+            self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
             
-            was_running = self.web_instance.running
+            # Stop agents if running
+            was_running = self.running
             if was_running:
-                self.stop_agents()
+                self.stop_all_agents()
             
+            # Update paths for each agent with correct file mappings
             agent_files = {
                 "Specification": {
                     "main": os.path.join(mission_dir, "specifications.md"),
@@ -70,24 +76,26 @@ class AgentService:
                 },
             }
             
-            for name, agent in self.web_instance.agents.items():
+            for name, agent in self.agents.items():
                 try:
                     if name in agent_files:
                         config = agent_files[name]
+                        # Pass pre-built absolute paths
                         agent.update_paths(
                             config["main"],
                             config["watch"]
                         )
                 except Exception as e:
-                    self.web_instance.log_message(f"Error updating paths for {name}: {str(e)}", level='error')
+                    self.web_instance.logger.log(f"Error updating paths for {name}: {str(e)}", level='error')
             
+            # Restart agents if they were running
             if was_running:
-                self.start_agents()
+                self.start_all_agents()
                 
-            self.web_instance.log_message(f"✓ Agent paths updated for mission: {mission_name}", level='success')
+            self.web_instance.logger.log(f"✓ Agent paths updated for mission: {mission_name}", level='success')
             
         except Exception as e:
-            self.web_instance.log_message(f"❌ Error updating agent paths: {str(e)}", level='error')
+            self.web_instance.logger.log(f"❌ Error updating agent paths: {str(e)}", level='error')
 
     def stop_agents(self):
         """Stop all agents"""
