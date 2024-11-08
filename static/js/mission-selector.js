@@ -94,7 +94,8 @@ export default {
 
         async selectMission(mission) {
             try {
-                this.loading = true;
+                // Emit loading state change
+                this.$emit('update:loading', true);
                 
                 const response = await fetch(`/api/missions/${mission.id}/select`, {
                     method: 'POST',
@@ -110,11 +111,11 @@ export default {
 
                 const result = await response.json();
                 
-                // Émettre à la fois l'événement et la mise à jour de la prop
+                // Emit events for updates
                 this.$emit('select-mission', result);
-                this.$emit('update:currentMission', result);  // Pour v-model
+                this.$emit('update:currentMission', result);
                 
-                // Arrêter les agents actuels avant de changer de mission
+                // Stop current agents before changing mission
                 await fetch('/api/agents/stop', { method: 'POST' });
                 
                 console.log('Mission selected:', result.name);
@@ -125,7 +126,8 @@ export default {
                 console.error('Failed to select mission:', error);
                 throw error;
             } finally {
-                this.loading = false;
+                // Emit loading state change
+                this.$emit('update:loading', false);
             }
         },
 
