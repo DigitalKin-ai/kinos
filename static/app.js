@@ -466,53 +466,69 @@ const ParallagonApp = {
 
         async updateContent() {
             try {
-                // Ne pas mettre à jour le contenu de la demande si une modification est en cours
+                // Skip if no mission selected
+                if (!this.currentMission) {
+                    return;
+                }
+
+                // Skip demande updates if editing
                 if (this.demandeChanged) {
                     console.debug('Skipping demande update due to pending changes');
                     return;
                 }
 
-                // Get content updates
-                const contentResponse = await fetch('/api/content');
-                const contentData = await contentResponse.json();
+                const response = await fetch('/api/content');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const contentData = await response.json();
                 
-                // Vérifier les changements et mettre à jour
-                Object.keys(contentData).forEach(panelId => {
-                    // Vérifier si le contenu est vide ou undefined
-                    if (!contentData[panelId]) {
-                        console.debug(`Skipping empty content update for ${panelId}`);
+                // Handle error response
+                if (contentData.error) {
+                    throw new Error(contentData.error);
+                }
+                
+                // Process updates
+                Object.entries(contentData).forEach(([panelId, newContent]) => {
+                    // Skip empty content
+                    if (!newContent?.trim()) {
                         return;
                     }
 
-                    // Comparer avec le contenu actuel
-                    if (this.content[panelId] !== contentData[panelId]) {
-                        console.debug(`Content change detected for ${panelId}`);
-                        
-                        // Vérifier que le nouveau contenu n'est pas vide avant de mettre à jour
-                        if (contentData[panelId].trim()) {
-                            // Mettre à jour le contenu
-                            Vue.set(this.content, panelId, contentData[panelId]);
-                            
-                            // Faire flasher l'onglet correspondant
-                            const tabElement = document.querySelector(`.tab-item[data-tab="${panelId}"]`);
-                            if (tabElement) {
-                                tabElement.classList.remove('flash-tab');
-                                void tabElement.offsetWidth; // Force reflow
-                                tabElement.classList.add('flash-tab');
-                                
-                                // Retirer la classe après l'animation
-                                setTimeout(() => {
-                                    tabElement.classList.remove('flash-tab');
-                                }, 1000);
-                            }
-                        } else {
-                            console.debug(`Skipping empty content update for ${panelId}`);
-                        }
+                    // Skip if content hasn't changed
+                    if (this.content[panelId] === newContent) {
+                        return;
                     }
+
+                    // Update content
+                    this.content[panelId] = newContent;
+                    
+                    // Store for diff highlighting
+                    this.previousContent[panelId] = this.content[panelId];
+
+                    // Flash tab
+                    this.flashTab(panelId);
+                    
+                    // Force panel refresh
+                    this.refreshPanel(panelId);
                 });
             } catch (error) {
                 console.error('Failed to update content:', error);
-                this.addLog('error', 'Failed to update content: ' + error.message);
+                this.addNotification('error', `Failed to update content: ${error.message}`);
+            }
+        },
+
+        flashTab(panelId) {
+            const tabElement = document.querySelector(`.tab-item[data-tab="${panelId}"]`);
+            if (tabElement) {
+                tabElement.classList.remove('flash-tab');
+                void tabElement.offsetWidth; // Force reflow
+                tabElement.classList.add('flash-tab');
+                
+                setTimeout(() => {
+                    tabElement.classList.remove('flash-tab');
+                }, 1000);
             }
         },
 

@@ -717,22 +717,37 @@ class ParallagonWeb:
         @self.app.route('/api/content')
         def get_content():
             try:
+                # Only return content if there's a current mission
+                if not self.current_mission:
+                    return jsonify({})
+
                 content = {}
+                mission_dir = os.path.join("missions", self.current_mission['name'])
+                
+                # Get last modified times for comparison
+                current_times = {}
                 for file_name in self.file_paths:
-                    try:
-                        content[file_name] = self.file_manager.read_file(file_name)
-                        # Mettre en cache le contenu
-                        self.content_cache[file_name] = content[file_name]
-                        self.last_modified[file_name] = time.time()
-                    except Exception as e:
-                        self.log_message(f"Error reading {file_name}: {str(e)}")
-                        content[file_name] = ""
+                    file_path = os.path.join(mission_dir, f"{file_name}.md")
+                    if os.path.exists(file_path):
+                        current_times[file_name] = os.path.getmtime(file_path)
                         
-                # Debug log pour vérifier le contenu
-                self.log_message(f"Content loaded: {list(content.keys())}")
+                        # Only read if file has changed
+                        if (file_name not in self.last_modified or 
+                            current_times[file_name] > self.last_modified.get(file_name, 0)):
+                            try:
+                                with open(file_path, 'r', encoding='utf-8') as f:
+                                    file_content = f.read()
+                                    if file_content.strip():  # Only include non-empty content
+                                        content[file_name] = file_content
+                                        self.last_modified[file_name] = current_times[file_name]
+                                        self.log_message(f"Updated content for {file_name}", level='debug')
+                            except Exception as e:
+                                self.log_message(f"Error reading {file_name}: {str(e)}", level='error')
+                                
                 return jsonify(content)
+                
             except Exception as e:
-                self.log_message(f"Error getting content: {str(e)}")
+                self.log_message(f"Error getting content: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/content/change', methods=['POST'])
