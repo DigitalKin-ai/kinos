@@ -18,6 +18,7 @@ const ParallagonApp = {
             running: false,
             loading: false,
             error: null,
+            previousContent: {},
             missionSidebarCollapsed: false,
             currentMission: null,
             missions: [], // Will be loaded from API
@@ -544,6 +545,21 @@ const ParallagonApp = {
             }
         },
 
+        forceContentRefresh(panelId) {
+            this.$nextTick(() => {
+                const panel = document.querySelector(`.panel[data-panel="${panelId}"] .content-display`);
+                if (panel) {
+                    const content = this.formatMarkdown(this.highlightContent(panelId));
+                    panel.innerHTML = content;
+                }
+            });
+        },
+        
+        refreshPanel(panelId) {
+            console.log('Refreshing panel:', panelId);
+            this.forceContentRefresh(panelId);
+        },
+
         flashTab(panelId) {
             const tabElement = document.querySelector(`.tab-item[data-tab="${panelId}"]`);
             if (tabElement) {
@@ -823,6 +839,19 @@ const ParallagonApp = {
             } catch (error) {
                 console.error('Error formatting markdown:', error);
                 return content; // Return original content if parsing fails
+            }
+        }
+    },
+    watch: {
+        'content': {
+            deep: true,
+            handler(newContent, oldContent) {
+                Object.keys(newContent).forEach(panelId => {
+                    if (newContent[panelId] !== oldContent[panelId]) {
+                        console.log('Content changed for panel:', panelId);
+                        this.refreshPanel(panelId);
+                    }
+                });
             }
         }
     },

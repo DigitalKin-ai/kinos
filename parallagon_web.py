@@ -727,70 +727,38 @@ class ParallagonWeb:
                 'agents': {name: agent.should_run() for name, agent in self.agents.items()}
             })
 
-        @self.app.route('/api/content', methods=['GET', 'POST'])
+        @self.app.route('/api/content', methods=['GET'])
         def handle_content():
-            """Route unifiée pour la gestion du contenu"""
             try:
-                if request.method == 'POST':
-                    # Gestion des notifications de changement
-                    data = request.get_json()
-                    
-                    # Validation des données
-                    required_fields = ['file_path', 'content', 'panel']
-                    if not all(field in data for field in required_fields):
-                        missing = [f for f in required_fields if f not in data]
-                        return jsonify({'error': f'Missing required fields: {missing}'}), 400
-                    
-                    # Ajouter la notification avec tous les champs nécessaires
-                    notification = {
-                        'type': data.get('type', 'info'),
-                        'message': data.get('message', 'Content updated'),
-                        'panel': data['panel'],
-                        'content': data['content'],
-                        'flash': data.get('flash', True),
-                        'timestamp': datetime.now().strftime("%H:%M:%S"),
-                        'id': len(self.notifications_queue),
-                        'status': data['file_path']
-                    }
-                    
-                    # Mettre à jour le cache si le contenu n'est pas vide
-                    if data['content'].strip():
-                        self.content_cache[data['file_path']] = data['content']
-                        self.last_modified[data['file_path']] = time.time()
-                    
-                    self.notifications_queue.append(notification)
-                    return jsonify({'status': 'success'})
-                    
-                else:  # GET
-                    # Skip if no mission selected
-                    if not hasattr(self, 'current_mission') or not self.current_mission:
-                        return jsonify({})  # Return empty object if no mission
+                # Skip if no mission selected
+                if not hasattr(self, 'current_mission') or not self.current_mission:
+                    return jsonify({})  # Return empty object if no mission
 
-                    content = {}
-                    mission_dir = os.path.join("missions", self.current_mission)
+                content = {}
+                mission_dir = os.path.join("missions", self.current_mission)
 
-                    # List of files to check
-                    files_to_check = {
-                        'demande': 'demande.md',
-                        'specifications': 'specifications.md', 
-                        'management': 'management.md',
-                        'production': 'production.md',
-                        'evaluation': 'evaluation.md',
-                        'suivi': 'suivi.md'
-                    }
+                # List of files to check
+                files_to_check = {
+                    'demande': 'demande.md',
+                    'specifications': 'specifications.md', 
+                    'management': 'management.md',
+                    'production': 'production.md',
+                    'evaluation': 'evaluation.md',
+                    'suivi': 'suivi.md'
+                }
 
-                    # Check each file
-                    for panel_id, filename in files_to_check.items():
-                        file_path = os.path.join(mission_dir, filename)
-                        try:
-                            if os.path.exists(file_path):
-                                with open(file_path, 'r', encoding='utf-8') as f:
-                                    content[panel_id] = f.read()
-                        except Exception as e:
-                            self.log_message(f"Error reading {filename}: {str(e)}", level='error')
-                            # Continue with other files even if one fails
+                # Check each file
+                for panel_id, filename in files_to_check.items():
+                    file_path = os.path.join(mission_dir, filename)
+                    try:
+                        if os.path.exists(file_path):
+                            with open(file_path, 'r', encoding='utf-8') as f:
+                                content[panel_id] = f.read()
+                    except Exception as e:
+                        self.log_message(f"Error reading {filename}: {str(e)}", level='error')
+                        # Continue with other files even if one fails
 
-                    return jsonify(content)
+                return jsonify(content)
                     
             except Exception as e:
                 self.log_message(f"Error handling content: {str(e)}", level='error')
