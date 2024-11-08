@@ -31,15 +31,12 @@ class AgentService:
         try:
             # Build and normalize mission path
             mission_dir = os.path.abspath(os.path.join("missions", mission_name))
-            if "missions" in mission_dir.split(os.sep)[-2:]:
-                mission_dir = os.path.dirname(mission_dir)
-                
             os.makedirs(mission_dir, exist_ok=True)
             
             self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
             
             # Stop agents if running
-            was_running = self.running
+            was_running = any(agent.running for agent in self.agents.values())
             if was_running:
                 self.stop_all_agents()
             
@@ -73,14 +70,14 @@ class AgentService:
                         os.path.join(mission_dir, "specifications.md"),
                         os.path.join(mission_dir, "production.md")
                     ]
-                },
+                }
             }
             
             for name, agent in self.agents.items():
                 try:
                     if name in agent_files:
                         config = agent_files[name]
-                        # Pass pre-built absolute paths
+                        # Utiliser update_paths au lieu de read_files
                         agent.update_paths(
                             config["main"],
                             config["watch"]
@@ -96,6 +93,7 @@ class AgentService:
             
         except Exception as e:
             self.web_instance.logger.log(f"❌ Error updating agent paths: {str(e)}", level='error')
+            raise
 
     def stop_agents(self):
         """Stop all agents"""
