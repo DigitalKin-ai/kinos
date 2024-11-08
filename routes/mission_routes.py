@@ -20,6 +20,12 @@ def register_mission_routes(app, web_instance):
             name=data['name'],
             description=data.get('description')
         )
+        
+        if mission:
+            # Update current mission in FileManager
+            web_instance.file_manager.current_mission = mission['name']
+            web_instance.logger.log(f"Created mission: {mission['name']}", level='success')
+            
         return jsonify(mission), 201
 
     @app.route('/api/missions/<int:mission_id>', methods=['GET'])
