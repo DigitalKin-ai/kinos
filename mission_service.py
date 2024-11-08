@@ -46,15 +46,16 @@ class MissionService:
                 # Log each potential mission directory found
                 self.logger.log(f"Found potential mission directory: {item}")
                 
-                # Check if any required files exist
-                has_files = False
+                # Check if at least one required file exists
+                has_required_file = False
                 for req_file in self.REQUIRED_FILES:
                     file_path = os.path.join(mission_path, req_file)
                     if os.path.exists(file_path):
-                        has_files = True
+                        has_required_file = True
+                        self.logger.log(f"Found required file: {req_file}")
                         break
                 
-                if has_files:
+                if has_required_file:
                     mission = {
                         'id': mission_id,
                         'name': item,
@@ -70,6 +71,8 @@ class MissionService:
                     missions.append(mission)
                     mission_id += 1
                     self.logger.log(f"Added mission: {item}")
+                else:
+                    self.logger.log(f"No required files found in: {item}")
                         
             self.logger.log(f"Found {len(missions)} valid missions")
             return missions
