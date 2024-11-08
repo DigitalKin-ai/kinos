@@ -1,6 +1,8 @@
 import os
+import threading
 from flask import jsonify, request
 from utils.decorators import safe_operation
+from utils.exceptions import ValidationError, ResourceNotFoundError
 from utils.error_handler import ErrorHandler
 from utils.exceptions import ValidationError, ResourceNotFoundError, ServiceError
 
@@ -89,9 +91,31 @@ def register_agent_routes(app, web_instance):
             if action not in ['start', 'stop']:
                 raise ValidationError(f"Invalid action: {action}")
                 
-            success = web_instance.agent_service.control_agent(agent_id, action)
-            if not success:
-                raise ServiceError(f"Failed to {action} agent {agent_id}")
+            # Convertir l'ID de l'agent en format correct (première lettre majuscule)
+            agent_name = agent_id.capitalize()
+            
+            # Vérifier si l'agent existe
+            if agent_name not in web_instance.agent_service.agents:
+                raise ResourceNotFoundError(f"Agent {agent_id} not found")
+                
+            # Contrôler l'agent
+            if action == 'start':
+                agent = web_instance.agent_service.agents[agent_name]
+                agent.start()
+                thread = threading.Thread(
+                    target=agent.run,
+                    daemon=True,
+                    name=f"Agent-{agent_name}"
+                )
+                thread.start()
+                web_instance.log_message(f"Agent {agent_name} started", level='success')
+            else:  # stop
+                agent = web_instance.agent_service.agents[agent_name]
+                agent.stop()
+                web_instance.log_message(f"Agent {agent_name} stopped", level='info')
+                
             return jsonify({'status': 'success'})
+            
         except Exception as e:
+            web_instance.log_message(f"Failed to {action} agent {agent_id}: {str(e)}", level='error')
             return ErrorHandler.handle_error(e)
