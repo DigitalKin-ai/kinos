@@ -20,7 +20,8 @@ class MissionService:
             self.web_instance.log_message(f"Error creating mission: {str(e)}", level='error')
             raise
 
-    def _load_test_data(self):
+    @safe_operation()
+    def _load_test_data(self) -> str:
         """Load test data from template file"""
         try:
             test_data_path = os.path.join("templates", "test_data", "demande_test_1.md")

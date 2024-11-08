@@ -1,6 +1,6 @@
-import os
-import time
 from datetime import datetime
+from typing import Dict, Any, List, Optional
+from utils.decorators import safe_operation
 
 class NotificationService:
     def __init__(self, web_instance):
@@ -8,42 +8,17 @@ class NotificationService:
         self.notifications_queue = []
         self.content_cache = {}
         self.last_modified = {}
-        
-    def add_notification(self, message, level='info', panel=None):
-        """Add a notification to the queue"""
-        try:
-            notification = {
-                'type': level,
-                'message': message,
-                'timestamp': datetime.now().strftime("%H:%M:%S"),
-                'panel': panel,
-                'id': len(self.notifications_queue)
-            }
-            self.notifications_queue.append(notification)
-        except Exception as e:
-            self.web_instance.log_message(f"Error adding notification: {str(e)}", level='error')
-            
-    def get_notifications(self):
-        """Get and clear notifications queue"""
-        try:
-            notifications = self.notifications_queue.copy()
-            self.notifications_queue.clear()
-            return notifications
-        except Exception as e:
-            self.web_instance.log_message(f"Error getting notifications: {str(e)}", level='error')
-            return []
+        self.last_content = {}
 
-    def check_content_updates(self):
-        """Check for content updates"""
+    @safe_operation()
+    def check_content_updates(self) -> None:
+        """Check for content updates in all monitored files"""
         try:
             current_content = {}
             for file_name, path in self.web_instance.file_paths.items():
                 content = self.web_instance.file_manager.read_file(file_name)
                 if content is not None:
                     current_content[file_name] = content
-
-            if not hasattr(self, 'last_content'):
-                self.last_content = {}
 
             for file_name, content in current_content.items():
                 if content is None:
@@ -61,7 +36,9 @@ class NotificationService:
         except Exception as e:
             self.web_instance.log_message(f"Error checking content updates: {str(e)}", level='error')
 
-    def handle_content_change(self, file_path: str, content: str, panel_name: str = None, flash: bool = False):
+    @safe_operation()
+    def handle_content_change(self, file_path: str, content: str, 
+                            panel_name: str = None, flash: bool = False) -> bool:
         """Handle content change notifications"""
         try:
             timestamp = datetime.now().strftime("%H:%M:%S")
@@ -85,10 +62,20 @@ class NotificationService:
             if content and content.strip():
                 self.content_cache[file_path] = content
                 self.last_modified[file_path] = time.time()
-                self.web_instance.log_message(f"Content cache updated for {panel_name}", level='debug')
                 
             return True
             
         except Exception as e:
             self.web_instance.log_message(f"Error handling content change: {str(e)}", level='error')
             return False
+
+    @safe_operation()
+    def get_notifications(self) -> List[Dict[str, Any]]:
+        """Get and clear pending notifications"""
+        try:
+            notifications = self.notifications_queue.copy()
+            self.notifications_queue.clear()
+            return notifications
+        except Exception as e:
+            self.web_instance.log_message(f"Error getting notifications: {str(e)}", level='error')
+            return []
