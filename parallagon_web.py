@@ -764,39 +764,6 @@ class ParallagonWeb:
             self.stop_agents()
             return jsonify({'status': 'stopped'})
 
-        @self.app.route('/api/suivi', methods=['GET'])
-        def suivi():
-            try:
-                # Vérifier que le FileManager est initialisé
-                if not hasattr(self, 'file_manager'):
-                    self.log_message("FileManager not initialized", level='error')
-                    return jsonify({"content": "", "error": "FileManager not initialized"}), 500
-
-                # Vérifier la mission courante
-                if not self.file_manager.current_mission:
-                    return jsonify({"content": "", "error": "No mission selected"}), 400
-
-                # Construire le chemin complet du fichier
-                suivi_path = os.path.join("missions", self.file_manager.current_mission, "suivi.md")
-
-                # Vérifier que le fichier existe
-                if not os.path.exists(suivi_path):
-                    self.log_message(f"Suivi file not found at: {suivi_path}", level='error')
-                    return jsonify({"content": "", "error": "File not found"}), 404
-
-                # Lire le contenu
-                try:
-                    with open(suivi_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                        return jsonify({"content": content})
-                except Exception as e:
-                    self.log_message(f"Error reading suivi file: {str(e)}", level='error')
-                    return jsonify({"content": "", "error": str(e)}), 500
-
-            except Exception as e:
-                self.log_message(f"Error in suivi route: {str(e)}", level='error')
-                return jsonify({"content": "", "error": str(e)}), 500
-
         @self.app.route('/api/agent/<agent_id>/prompt', methods=['GET'])
         def get_agent_prompt(agent_id):
             """Get the prompt for a specific agent"""

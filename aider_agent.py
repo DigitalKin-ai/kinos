@@ -103,7 +103,6 @@ class AiderAgent(ParallagonAgent):
                 # Logger la commande
                 self.logger(f"[{self.__class__.__name__}] 🤖 Commande Aider:")
                 self.logger(f"  Command: {' '.join(cmd)}")
-                self.logger(f"  Instructions: {self.prompt}")
                 
                 # Exécuter Aider
                 process = subprocess.Popen(
