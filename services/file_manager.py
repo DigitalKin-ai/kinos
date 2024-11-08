@@ -12,8 +12,7 @@ from utils.exceptions import FileOperationError
 class FileManager:
     """Manages file operations for the GUI"""
     
-    def __init__(self, file_paths: Dict[str, str], web_instance, on_content_changed=None):
-        # Ensure all file paths are defined
+    def __init__(self, web_instance, on_content_changed=None):
         self.file_paths = {
             'demande': 'demande.md',
             'specifications': 'specifications.md',
@@ -22,9 +21,6 @@ class FileManager:
             'evaluation': 'evaluation.md',
             'suivi': 'suivi.md'
         }
-        # Override with provided paths
-        if file_paths:
-            self.file_paths.update(file_paths)
             
         self.on_content_changed = on_content_changed
         self.current_mission = None

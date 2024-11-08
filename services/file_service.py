@@ -16,6 +16,7 @@ class FileService(BaseService):
         super().__init__(web_instance)
         self.content_cache = {}
         self.last_modified = {}
+        self.file_manager = FileManager(web_instance)
         
     @safe_operation()
     def read_file(self, file_path: str) -> Optional[str]:

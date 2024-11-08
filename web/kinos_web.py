@@ -97,9 +97,13 @@ class KinOSWeb:
         self.mission_service = MissionService()  # No dependencies
         
         # Initialize other services that depend on web_instance
+        # Initialize services in correct order
         self.file_service = FileService(self)
         self.notification_service = NotificationService(self)
         self.agent_service = AgentService(self)
+        
+        # Set file_manager reference from file_service
+        self.file_manager = self.file_service.file_manager
         
         # Initialize rate limiter
         self.limiter = Limiter(
