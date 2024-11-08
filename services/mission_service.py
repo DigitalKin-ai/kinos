@@ -21,6 +21,16 @@ class MissionService:
         self._last_scan = 0
         self.scan_interval = 5  # Seconds between directory scans
 
+    def _ensure_missions_dir(self):
+        """Ensure missions directory exists"""
+        try:
+            if not os.path.exists(self.missions_dir):
+                os.makedirs(self.missions_dir)
+                print(f"Created missions directory: {self.missions_dir}")
+        except Exception as e:
+            print(f"Error creating missions directory: {e}")
+            raise
+
     def get_all_missions(self):
         """Get all missions"""
         try:
