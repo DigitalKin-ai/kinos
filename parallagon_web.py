@@ -846,7 +846,7 @@ class ParallagonWeb:
                 self.log_message(f"Error in get_changes: {str(e)}", level='error')
                 return jsonify([])
 
-        @self.app.route('/api/notifications', methods=['GET'])
+        @self.app.route('/api/notifications', methods=['GET', 'POST'])
         @self.limiter.limit("500 per minute")
         def get_notifications():
             """Get pending notifications"""

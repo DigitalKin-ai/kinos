@@ -127,20 +127,24 @@ class AiderAgent(ParallagonAgent):
                     
                     # Notifier du changement via une requête à l'API
                     try:
-                        # Construire l'URL relative au fichier modifié
+                        # Construire les données de notification
                         file_name = os.path.basename(self.file_path)
                         panel_name = os.path.splitext(file_name)[0].capitalize()
+                        
+                        notification_data = {
+                            'file_path': file_name,  # Juste le nom du fichier
+                            'content': new_content,
+                            'panel': panel_name,     # Nom du panneau (ex: "Specifications") 
+                            'flash': True,
+                            'type': 'info',
+                            'message': f'Content updated in {panel_name}'
+                        }
                         
                         # Faire la requête POST pour notifier du changement
                         import requests
                         response = requests.post(
-                            'http://localhost:8000/api/content/change',
-                            json={
-                                'file_path': self.file_path,
-                                'content': new_content,
-                                'panel_name': panel_name,
-                                'flash': True
-                            }
+                            'http://localhost:8000/api/notifications',  # Changement d'endpoint
+                            json=notification_data
                         )
                         
                         if response.status_code == 200:
