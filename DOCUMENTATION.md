@@ -37,6 +37,7 @@
     * ManagementAgent : Coordination et gestion du projet
     * EvaluationAgent : Tests et validation
     * SuiviAgent : Documentation et suivi
+    * DuplicationAgent : Détection et réduction de la duplication de code
 
 ### 3. Services
 - `services/base_service.py`
