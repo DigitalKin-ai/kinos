@@ -3,6 +3,7 @@ from flask import (
     redirect, url_for
 )
 from utils.decorators import safe_operation
+from utils.decorators import safe_operation
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -1157,31 +1158,6 @@ class ParallagonWeb:
         """Run the Flask application with optional configuration parameters"""
         self.app.run(host=host, port=port, **kwargs)
 
-    def monitor_agents(self):
-        """Monitor agents and restart them if they crash"""
-        while self.running:
-            try:
-                for name, agent in self.agents.items():
-                    if agent.running:
-                        # Check if agent is active but stuck
-                        if (agent.last_run and 
-                            (datetime.now() - agent.last_run).seconds > 30):  # 30s timeout
-                            self.log_message(
-                                f"Agent {name} seems stuck, restarting...", 
-                                level='warning'
-                            )
-                            # Restart agent
-                            agent.stop()
-                            agent.start()
-                            thread = threading.Thread(
-                                target=agent.run,
-                                daemon=True,
-                                name=f"Agent-{name}"
-                            )
-                            thread.start()
-                time.sleep(5)  # Check every 5 seconds
-            except Exception as e:
-                self.log_message(f"Error in monitor_agents: {str(e)}", level='error')
 
     def start_agents(self):
         """Start all agents"""
