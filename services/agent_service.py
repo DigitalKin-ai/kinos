@@ -80,6 +80,15 @@ class AgentService:
                         os.path.join(mission_dir, "evaluation.md")
                     ]
                 },
+                "Duplication": {
+                    "main": os.path.join(mission_dir, "duplication.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md"),
+                        os.path.join(mission_dir, "management.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ]
+                },
                 "Documentaliste": {
                     "main": os.path.join(mission_dir, "documentation.md"),
                     "watch": [
