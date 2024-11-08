@@ -15,7 +15,8 @@ export default {
             isCreatingMission: false,
             newMissionName: '',
             sidebarCollapsed: false,
-            localMissions: []
+            localMissions: [],
+            runningMissions: new Set()
         }
     },
     async mounted() {
@@ -77,6 +78,32 @@ export default {
 
         selectMission(mission) {
             this.$emit('select-mission', mission);
+        },
+
+        async toggleMissionAgents(mission, event) {
+            event.stopPropagation();
+            try {
+                const isRunning = this.runningMissions.has(mission.id);
+                const endpoint = isRunning ? '/api/agents/stop' : '/api/agents/start';
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ missionId: mission.id })
+                });
+
+                if (response.ok) {
+                    if (isRunning) {
+                        this.runningMissions.delete(mission.id);
+                    } else {
+                        this.runningMissions.add(mission.id);
+                    }
+                }
+            } catch (error) {
+                console.error('Error toggling agents:', error);
+            }
         }
     },
     template: `
@@ -116,10 +143,20 @@ export default {
                 <div v-else v-for="mission in localMissions" 
                      :key="mission.id"
                      class="mission-item"
-                     :class="{ active: currentMission?.id === mission.id }"
-                     @click="selectMission(mission)">
-                    <i class="mdi mdi-folder-outline"></i>
-                    <span class="mission-name">\${ mission.name }</span>
+                     :class="{ active: currentMission?.id === mission.id }">
+                    <div class="flex items-center justify-between w-full px-4 py-2"
+                         @click="selectMission(mission)">
+                        <div class="flex items-center">
+                            <i class="mdi mdi-folder-outline"></i>
+                            <span class="mission-name">\${ mission.name }</span>
+                        </div>
+                        <button @click="toggleMissionAgents(mission, $event)"
+                                class="control-button"
+                                :class="{ 'running': runningMissions.has(mission.id) }"
+                                :title="runningMissions.has(mission.id) ? 'Stop agents' : 'Start agents'">
+                            <i class="mdi" :class="runningMissions.has(mission.id) ? 'mdi-stop' : 'mdi-play'"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
