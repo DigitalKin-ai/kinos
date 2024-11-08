@@ -3,6 +3,7 @@ import time
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from utils.decorators import safe_operation
+from utils.exceptions import ServiceError
 from services.base_service import BaseService
 
 class NotificationService(BaseService):
