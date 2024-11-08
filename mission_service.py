@@ -16,7 +16,7 @@ class MissionService:
 
     def __init__(self):
         """Initialize mission service with base directory"""
-        self.missions_dir = "missions"
+        self.missions_dir = "missions" 
         self._ensure_missions_dir()
         self._missions_cache = None
         self._last_scan = 0
