@@ -149,7 +149,7 @@ class NotificationService(BaseService):
                 }
             
             # List files in directory
-            self.list_files()  # This method already exists in KinOSAgent
+            self.list_files()
             
             self.logger(f"[{self.__class__.__name__}] ✓ Paths updated")
             self.logger(f"[{self.__class__.__name__}] Main file: {self.file_path}")
