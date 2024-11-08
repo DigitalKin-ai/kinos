@@ -1,6 +1,7 @@
 import os
 from typing import Dict, List, Optional
 from datetime import datetime
+from utils.logger import Logger
 from utils.decorators import safe_operation
 from utils.logger import Logger
 from utils.exceptions import AgentError
@@ -18,6 +19,7 @@ class MissionService:
     def __init__(self):
         """Initialize mission service with base directory"""
         self.missions_dir = "missions" 
+        self.logger = Logger()  # Initialize logger
         self._ensure_missions_dir()
         self._missions_cache = None
         self._last_scan = 0
@@ -28,9 +30,9 @@ class MissionService:
         try:
             if not os.path.exists(self.missions_dir):
                 os.makedirs(self.missions_dir)
-                print(f"Created missions directory: {self.missions_dir}")
+                self.logger.log(f"Created missions directory: {self.missions_dir}", level='info')
         except Exception as e:
-            print(f"Error creating missions directory: {e}")
+            self.logger.log(f"Error creating missions directory: {e}", level='error')
             raise
 
     def get_all_missions(self):
@@ -38,7 +40,7 @@ class MissionService:
         try:
             return self._scan_missions()
         except Exception as e:
-            print(f"Error getting missions: {str(e)}")
+            self.logger.log(f"Error getting missions: {str(e)}", level='error')
             return []
 
     def mission_exists(self, mission_id: int) -> bool:
@@ -111,7 +113,7 @@ class MissionService:
                 'updated_at': datetime.now().isoformat()
             }
         except Exception as e:
-            print(f"Error creating mission: {e}")
+            self.logger.log(f"Error creating mission: {e}", level='error')
             return None
 
     def ensure_mission_files(self, mission_name: str) -> bool:
@@ -129,7 +131,7 @@ class MissionService:
                         f.write(content)
             return True
         except Exception as e:
-            print(f"Error ensuring mission files: {e}")
+            self.logger.log(f"Error ensuring mission files: {e}", level='error')
             return False
 
     def _get_initial_content(self, file_type: str) -> str:
@@ -195,5 +197,5 @@ class MissionService:
             return missions
             
         except Exception as e:
-            print(f"Error scanning missions directory: {e}")
+            self.logger.log(f"Error scanning missions directory: {e}", level='error')
             return []
