@@ -90,5 +90,3 @@ export default {
         </div>
     `
 };
-
-export default MissionSelector;
