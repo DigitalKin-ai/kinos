@@ -55,12 +55,14 @@ class AiderAgent(ParallagonAgent):
 
         # Initialize other_files and load content
         self.other_files = {}  # Initialize empty first
-        self.read_files()  # This will populate other_files
+        self.list_files()  # TODO: TO IMPLEMENT HERE : il faut une liste de tous les documents textuels dans le dossier de la mission
+
+        # TODO : supprimer le fichier principal de other_files
             
         self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
         self.logger(f"[{self.__class__.__name__}] Dossier mission: {mission_dir}")
         self.logger(f"[{self.__class__.__name__}] Fichier principal: {self.file_path}")
-        self.logger(f"[{self.__class__.__name__}] Fichiers secondaires: {list(self.other_files.keys())}")
+        self.logger(f"[{self.__class__.__name__}] Fichiers secondaires: {list(self.other_files)}")
 
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Exécute Aider avec le prompt donné"""
@@ -85,7 +87,7 @@ class AiderAgent(ParallagonAgent):
                 ]
                 
                 # Ajouter les fichiers à surveiller en chemins relatifs
-                for file_path in self.other_files.keys():  # Utiliser .keys() pour itérer sur les chemins
+                for file_path in self.other_files:
                     cmd.extend(["--file", os.path.relpath(file_path, mission_dir)])
                     
                 # Ajouter le message
