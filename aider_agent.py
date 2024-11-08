@@ -60,7 +60,7 @@ class AiderAgent(ParallagonAgent):
         self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
         self.logger(f"[{self.__class__.__name__}] Dossier mission: {mission_dir}")
         self.logger(f"[{self.__class__.__name__}] Fichier principal: {self.file_path}")
-        self.logger(f"[{self.__class__.__name__}] Fichiers secondaires: {self.other_files}")
+        self.logger(f"[{self.__class__.__name__}] Fichiers secondaires: {list(self.other_files.keys())}")
 
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Exécute Aider avec le prompt donné"""
