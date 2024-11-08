@@ -3,17 +3,15 @@ import time
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from utils.decorators import safe_operation
-from utils.exceptions import ServiceError
-from utils.logger import Logger
+from services.base_service import BaseService
 
-class NotificationService:
+class NotificationService(BaseService):
     def __init__(self, web_instance):
-        self.web_instance = web_instance
+        super().__init__(web_instance)
         self.notifications_queue = []
         self.content_cache = {}
         self.last_modified = {}
         self.last_content = {}
-        self.logger = Logger()
 
     @safe_operation()
     def check_content_updates(self) -> None:
@@ -47,6 +45,12 @@ class NotificationService:
                             panel_name: str = None, flash: bool = False) -> bool:
         """Handle content change notifications"""
         try:
+            self._validate_input(file_path=file_path, content=content)
+            self._log_operation('handle_content_change', 
+                              file_path=file_path, 
+                              panel_name=panel_name,
+                              flash=flash)
+            
             timestamp = datetime.now().strftime("%H:%M:%S")
             
             if not panel_name:
@@ -72,29 +76,26 @@ class NotificationService:
             return True
             
         except Exception as e:
-            self.logger.log(f"Error handling content change: {str(e)}", level='error')
-            raise ServiceError(f"Failed to handle content change: {str(e)}")
-            return False
+            return self._handle_error('handle_content_change', e, False)
 
     @safe_operation()
     def get_notifications(self) -> List[Dict[str, Any]]:
         """Get and clear pending notifications"""
         try:
+            self._log_operation('get_notifications')
             notifications = self.notifications_queue.copy()
             self.notifications_queue.clear()
             return notifications
         except Exception as e:
-            self.logger.log(f"Error getting notifications: {str(e)}", level='error')
-            raise ServiceError(f"Failed to get notifications: {str(e)}")
-            return []
+            return self._handle_error('get_notifications', e, [])
             
     def cleanup(self):
         """Cleanup notification service resources"""
         try:
+            self._log_operation('cleanup')
             self.notifications_queue.clear()
             self.content_cache.clear()
             self.last_modified.clear()
             self.last_content.clear()
         except Exception as e:
-            self.logger.log(f"Error cleaning up notification service: {str(e)}", level='error')
-            raise ServiceError(f"Failed to cleanup notification service: {str(e)}")
+            self._handle_error('cleanup', e)
