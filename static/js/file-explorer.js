@@ -12,6 +12,11 @@ export default {
             flashingFiles: new Set() // Track flashing files
         }
     },
+    computed: {
+        fileCount() {
+            return this.files ? this.files.length : 0;
+        }
+    },
     created() {
         // Start periodic file checking
         this.startFileWatcher();
@@ -121,7 +126,7 @@ export default {
                     <h2 class="text-2xl font-bold">Files</h2>
                     <div class="flex items-center gap-4">
                         <span class="text-sm text-gray-500">
-                            ${this.files.length} files
+                            {{ fileCount }} files
                         </span>
                     </div>
                 </div>
