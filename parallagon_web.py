@@ -286,10 +286,77 @@ class ParallagonWeb:
             return False
 
     def setup_routes(self):
+        """Configure all application routes"""
         @self.app.route('/explorer')
         def explorer():
             """Explorer interface"""
             return render_template('explorer.html')
+
+        @self.app.route('/api/missions/<int:mission_id>/files/<path:file_path>')
+        def get_mission_file_content(mission_id, file_path):
+            """Get content of a specific file in mission directory"""
+            try:
+                mission = self.mission_service.get_mission(mission_id)
+                if not mission:
+                    return jsonify({'error': 'Mission not found'}), 404
+
+                # Sécuriser le chemin du fichier
+                safe_path = os.path.normpath(file_path)
+                if safe_path.startswith('..'):
+                    return jsonify({'error': 'Invalid file path'}), 400
+
+                full_path = os.path.join("missions", mission['name'], safe_path)
+                if not os.path.exists(full_path):
+                    return jsonify({'error': 'File not found'}), 404
+
+                # Vérifier l'extension
+                ext = os.path.splitext(full_path)[1].lower()
+                if ext not in {'.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml'}:
+                    return jsonify({'error': 'Unsupported file type'}), 400
+
+                # Lire le contenu du fichier
+                with open(full_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                return content, 200, {'Content-Type': 'text/plain'}
+
+            except Exception as e:
+                self.log_message(f"Error reading file content: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
+
+        @self.app.route('/api/missions/<int:mission_id>/files')
+        def get_mission_files(mission_id):
+            """Get all text files in mission directory"""
+            try:
+                mission = self.mission_service.get_mission(mission_id)
+                if not mission:
+                    return jsonify({'error': 'Mission not found'}), 404
+
+                # Extensions de fichiers texte supportées
+                text_extensions = {'.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml'}
+                
+                mission_dir = os.path.join("missions", mission['name'])
+                files = []
+
+                # Parcourir récursivement le dossier
+                for root, _, filenames in os.walk(mission_dir):
+                    for filename in filenames:
+                        if os.path.splitext(filename)[1].lower() in text_extensions:
+                            full_path = os.path.join(root, filename)
+                            relative_path = os.path.relpath(full_path, mission_dir)
+                            files.append({
+                                'name': filename,
+                                'path': full_path,
+                                'relativePath': relative_path,
+                                'size': os.path.getsize(full_path),
+                                'modified': os.path.getmtime(full_path)
+                            })
+
+                return jsonify(files)
+
+            except Exception as e:
+                self.log_message(f"Error getting mission files: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/missions/<int:mission_id>/content', methods=['GET'])
         def get_mission_content(mission_id):
@@ -1310,77 +1377,6 @@ class ParallagonWeb:
         except Exception as e:
             self.log_message(f"❌ Error updating agent paths: {str(e)}", level='error')
 
-    def setup_routes(self):
-        @self.app.route('/explorer')
-        def explorer():
-            """Explorer interface"""
-            return render_template('explorer.html')
-
-        @self.app.route('/api/missions/<int:mission_id>/files/<path:file_path>')
-        def get_mission_file_content(mission_id, file_path):
-            """Get content of a specific file in mission directory"""
-            try:
-                mission = self.mission_service.get_mission(mission_id)
-                if not mission:
-                    return jsonify({'error': 'Mission not found'}), 404
-
-                # Sécuriser le chemin du fichier
-                safe_path = os.path.normpath(file_path)
-                if safe_path.startswith('..'):
-                    return jsonify({'error': 'Invalid file path'}), 400
-
-                full_path = os.path.join("missions", mission['name'], safe_path)
-                if not os.path.exists(full_path):
-                    return jsonify({'error': 'File not found'}), 404
-
-                # Vérifier l'extension
-                ext = os.path.splitext(full_path)[1].lower()
-                if ext not in {'.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml'}:
-                    return jsonify({'error': 'Unsupported file type'}), 400
-
-                # Lire le contenu du fichier
-                with open(full_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-
-                return content, 200, {'Content-Type': 'text/plain'}
-
-            except Exception as e:
-                self.log_message(f"Error reading file content: {str(e)}", level='error')
-                return jsonify({'error': str(e)}), 500
-
-        @self.app.route('/api/missions/<int:mission_id>/files')
-        def get_mission_files(mission_id):
-            """Get all text files in mission directory"""
-            try:
-                mission = self.mission_service.get_mission(mission_id)
-                if not mission:
-                    return jsonify({'error': 'Mission not found'}), 404
-
-                # Extensions de fichiers texte supportées
-                text_extensions = {'.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml'}
-                
-                mission_dir = os.path.join("missions", mission['name'])
-                files = []
-
-                # Parcourir récursivement le dossier
-                for root, _, filenames in os.walk(mission_dir):
-                    for filename in filenames:
-                        if os.path.splitext(filename)[1].lower() in text_extensions:
-                            full_path = os.path.join(root, filename)
-                            relative_path = os.path.relpath(full_path, mission_dir)
-                            files.append({
-                                'name': filename,
-                                'path': full_path,
-                                'relativePath': relative_path,
-                                'size': os.path.getsize(full_path),
-                                'modified': os.path.getmtime(full_path)
-                            })
-
-                return jsonify(files)
-
-            except Exception as e:
-                self.log_message(f"Error getting mission files: {str(e)}", level='error')
-                return jsonify({'error': str(e)}), 500
 
     def get_app(self):
         """Return the Flask app instance"""
