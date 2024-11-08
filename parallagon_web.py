@@ -685,23 +685,6 @@ class ParallagonWeb:
                 self.log_message(f"Error controlling agent {agent_id}: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
-        @self.app.route('/api/agents/status', methods=['GET'])
-        def get_agents_status():
-            """Get status of all agents"""
-            try:
-                status = {
-                    name.lower(): {
-                        'running': agent.running,
-                        'last_run': agent.last_run.isoformat() if agent.last_run else None,
-                        'last_change': agent.last_change.isoformat() if agent.last_change else None
-                    }
-                    for name, agent in self.agents.items()
-                }
-                return jsonify(status)
-                
-            except Exception as e:
-                self.log_message(f"Failed to get agents status: {str(e)}", level='error')
-                return jsonify({'error': str(e)}), 500
 
         @self.app.route('/clean')
         def clean_interface():
@@ -807,54 +790,8 @@ class ParallagonWeb:
                 self.log_message(f"Error resetting files: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
-        @self.app.route('/api/health')
-        def health_check():
-            """Get status of all agents"""
-            try:
-                status = {
-                    name.lower(): {
-                        'running': agent.running,
-                        'last_run': agent.last_run.isoformat() if agent.last_run else None,
-                        'last_change': agent.last_change.isoformat() if agent.last_change else None
-                    }
-                    for name, agent in self.agents.items()
-                }
-                return jsonify(status)
-                
-            except Exception as e:
-                self.log_message(f"Failed to get agents status: {str(e)}", level='error')
-                return jsonify({'error': str(e)}), 500
 
 
-        @self.app.route('/editor')
-        def editor_interface():
-            try:
-                content = self.file_manager.read_file("production")
-                if content is None:
-                    content = ""
-                    
-                suivi_content = self.file_manager.read_file("suivi")
-                if suivi_content is None:
-                    suivi_content = ""
-                    
-                return render_template('editor.html', 
-                                     content=content, 
-                                     suivi_content=suivi_content)
-            except Exception as e:
-                self.log_message(f"Error loading editor: {str(e)}", level='error')
-                return render_template('editor.html',
-                                     content="Error loading content",
-                                     suivi_content="Error loading suivi content")
-
-        @self.app.route('/')
-        def home():
-            """Redirect root to editor interface"""
-            return redirect(url_for('editor_interface'))
-            
-        @self.app.route('/agents')
-        def agents_page():
-            """Agents management interface"""
-            return render_template('agents.html')
 
         @self.app.route('/api/status')
         def get_status():
