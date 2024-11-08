@@ -2,10 +2,15 @@
 
 {% block head %}
 <link href="{{ url_for('static', filename='css/sidebar.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/header.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div id="app" class="flex h-screen">
+<div id="app" class="flex flex-col h-screen">
+    <!-- Header Component -->
+    <header-component :current-mission="currentMission"></header-component>
+    
+    <div class="flex flex-1 overflow-hidden">
     <!-- Mission Selector Component -->
     <mission-selector
         :current-mission="currentMission"
@@ -32,11 +37,13 @@
     import MissionSelector from "{{ url_for('static', filename='js/mission-selector.js') }}";
     import MissionService from "{{ url_for('static', filename='js/mission-service.js') }}";
     import FileExplorer from "{{ url_for('static', filename='js/file-explorer.js') }}";
+    import HeaderComponent from "{{ url_for('static', filename='js/components/header.js') }}";
 
     const app = Vue.createApp({
         components: {
             MissionSelector,
-            FileExplorer
+            FileExplorer,
+            HeaderComponent
         },
         data() {
             return {

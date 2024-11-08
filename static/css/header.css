@@ -1,51 +1,51 @@
-/* Header component */
-:root {
-    --header-bg: #1a202c;
-    --header-text: #ffffff;
-    --header-height: 3.5rem;
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    background-color: var(--header-bg);
-    color: var(--header-text);
-    width: 100%;
-    height: var(--header-height);
-    box-sizing: border-box;
-    position: relative;
-    z-index: 10;
-}
-
-.current-mission {
+/* Header styles */
+.header-link {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+}
+
+.header-link:hover {
+    background-color: #f3f4f6;
+}
+
+.header-link i {
+    font-size: 1.25rem;
+}
+
+.header-link.active {
+    color: #4f46e5;
+    background-color: #eef2ff;
+}
+
+/* Keep the header fixed at top */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: white;
+}
+
+/* Mission indicator styles */
+.mission-indicator {
+    display: flex;
+    align-items: center;
     padding: 0.25rem 0.75rem;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+    background-color: #f3f4f6;
+    border-radius: 0.375rem;
     margin-left: 1rem;
 }
 
-.mission-label {
-    color: #a0aec0;
+.mission-indicator .label {
+    color: #6b7280;
     font-size: 0.875rem;
 }
 
-.mission-name {
-    color: white;
+.mission-indicator .name {
+    color: #111827;
     font-weight: 500;
-}
-
-.logo {
-    font-size: 1.25rem;
-    font-weight: 500;
-}
-
-.controls {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
+    margin-left: 0.5rem;
 }
