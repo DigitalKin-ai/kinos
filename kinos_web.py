@@ -189,7 +189,8 @@ class KinOSWeb:
                 "anthropic_api_key": config["anthropic_api_key"],
                 "openai_api_key": config["openai_api_key"],
                 "logger": self.log_message,
-                "mission_name": mission_name
+                "mission_name": mission_name,
+                "web_instance": self  # Add web instance to config
             }
 
             # Load prompts from files
