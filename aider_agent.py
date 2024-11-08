@@ -28,29 +28,19 @@ class AiderAgent(KinOSAgent):
             raise ValueError("web_instance manquant dans la configuration")
             
         self.name = config["name"]
-        self.web_instance = config["web_instance"]  # Store web_instance
+        self.web_instance = config["web_instance"]
         self.prompt = config["prompt"]
         self.prompt_file = config.get("prompt_file")
         self._prompt_cache = {}
         
-        # Construire les chemins dans le dossier de la mission
-        if os.path.isabs(config["mission_name"]):
-            mission_dir = config["mission_name"]
-        else:
-            mission_dir = os.path.abspath(os.path.join("missions", config["mission_name"]))
-            # Éviter la duplication du chemin missions
-            if "missions" in mission_dir.split(os.sep)[-2:]:
-                mission_dir = os.path.dirname(mission_dir)
+        # Construire le chemin relatif dans le dossier de mission
+        mission_dir = os.path.join("missions", config["mission_name"])
         
         # S'assurer que le dossier de mission existe
         os.makedirs(mission_dir, exist_ok=True)
         
-        # Utiliser le chemin fourni s'il est absolu, sinon le construire
-        if os.path.isabs(config["file_path"]):
-            self.file_path = config["file_path"]
-        else:
-            # Construire le chemin absolu pour le fichier principal
-            self.file_path = os.path.join(mission_dir, os.path.basename(config["file_path"]))
+        # Utiliser un chemin relatif pour le fichier principal
+        self.file_path = os.path.join(mission_dir, os.path.basename(config["file_path"]))
         
         # Créer le fichier principal s'il n'existe pas
         if not os.path.exists(self.file_path):
@@ -80,16 +70,7 @@ class AiderAgent(KinOSAgent):
             self.logger(f"[{self.__class__.__name__}] Starting Aider run")
             self.logger(f"[{self.__class__.__name__}] Current file content length: {os.path.getsize(self.file_path) if os.path.exists(self.file_path) else 0}")
             
-            # S'assurer que le fichier principal existe
-            if not os.path.exists(self.file_path):
-                self.logger(f"[{self.__class__.__name__}] ❌ Fichier principal non trouvé: {self.file_path}")
-                # Créer le fichier s'il n'existe pas
-                os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
-                with open(self.file_path, 'w', encoding='utf-8') as f:
-                    f.write("")  # Créer un fichier vide
-                self.logger(f"[{self.__class__.__name__}] ✓ Fichier principal créé")
-
-            # S'assurer que nous sommes dans le bon dossier de mission
+            # Get mission directory from file path
             mission_dir = os.path.dirname(self.file_path)
             current_dir = os.getcwd()
             
@@ -98,18 +79,18 @@ class AiderAgent(KinOSAgent):
                 os.chdir(mission_dir)
                 self.logger(f"[{self.__class__.__name__}] 📂 Changement vers le dossier: {mission_dir}")
 
-                # Construire la commande avec des chemins relatifs au dossier de mission
+                # Use relative paths for files
                 cmd = [
                     "aider",
                     "--model", "anthropic/claude-3-5-haiku-20241022",
                     "--no-git",
                     "--yes-always",
-                    "--file", os.path.basename(self.file_path),  # Utiliser le nom de fichier relatif
+                    "--file", os.path.basename(self.file_path)
                 ]
                 
-                # Ajouter les fichiers à surveiller en chemins relatifs
+                # Add other files with relative paths
                 for file_path in self.other_files:
-                    if os.path.exists(file_path):  # Vérifier que le fichier existe
+                    if os.path.exists(file_path):
                         cmd.extend(["--file", os.path.relpath(file_path, mission_dir)])
                     
                 # Ajouter le message

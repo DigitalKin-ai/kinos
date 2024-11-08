@@ -187,47 +187,47 @@ class AgentService:
                 "web_instance": self.web_instance  # Add web_instance to base config
             }
 
-            # Initialize each agent type with correct file paths and prompts
+            # Initialize each agent type with relative paths
             self.agents = {
                 "Specification": SpecificationsAgent({
                     **base_config,
                     "name": "Specification",
-                    "file_path": os.path.join(mission_dir, "specifications.md"),
+                    "file_path": "specifications.md",
                     "prompt": load_prompt("prompts/specifications.md"),
                     "prompt_file": "prompts/specifications.md"
                 }),
                 "Production": ProductionAgent({
                     **base_config,
                     "name": "Production",
-                    "file_path": os.path.join(mission_dir, "production.md"),
+                    "file_path": "production.md",
                     "prompt": load_prompt("prompts/production.md"),
                     "prompt_file": "prompts/production.md"
                 }),
                 "Management": ManagementAgent({
                     **base_config,
                     "name": "Management",
-                    "file_path": os.path.join(mission_dir, "management.md"),
+                    "file_path": "management.md",
                     "prompt": load_prompt("prompts/management.md"),
                     "prompt_file": "prompts/management.md"
                 }),
                 "Evaluation": EvaluationAgent({
                     **base_config,
                     "name": "Evaluation",
-                    "file_path": os.path.join(mission_dir, "evaluation.md"),
+                    "file_path": "evaluation.md",
                     "prompt": load_prompt("prompts/evaluation.md"),
                     "prompt_file": "prompts/evaluation.md"
                 }),
                 "Suivi": SuiviAgent({
                     **base_config,
                     "name": "Suivi",
-                    "file_path": os.path.join(mission_dir, "suivi.md"),
+                    "file_path": "suivi.md",
                     "prompt": load_prompt("prompts/suivi.md"),
                     "prompt_file": "prompts/suivi.md"
                 }),
                 "Documentaliste": DocumentalisteAgent({
                     **base_config,
                     "name": "Documentaliste",
-                    "file_path": os.path.join(mission_dir, "documentation.md"),
+                    "file_path": "documentation.md",
                     "prompt": load_prompt("prompts/documentaliste.md"),
                     "prompt_file": "prompts/documentaliste.md"
                 }),
