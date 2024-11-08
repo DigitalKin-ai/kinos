@@ -86,18 +86,20 @@ class ParallagonWeb:
             return ""
 
     def __init__(self, config):
-        # Initialize Flask app
+        # Initialize Flask app first
         self.app = Flask(__name__)
         CORS(self.app)
         
         # Initialize logger first
         self.logger = Logger()
         
-        # Initialize services in correct order
+        # Initialize services in correct order without circular dependencies
         self.mission_service = MissionService()  # No dependencies
-        self.file_service = FileService(self)    # Depends on web_instance
-        self.notification_service = NotificationService(self)  # Depends on web_instance
-        self.agent_service = AgentService(self)  # Depends on web_instance
+        
+        # Initialize other services that depend on web_instance
+        self.file_service = FileService(self)
+        self.notification_service = NotificationService(self)
+        self.agent_service = AgentService(self)
         
         # Initialize rate limiter
         self.limiter = Limiter(
