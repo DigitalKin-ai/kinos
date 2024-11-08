@@ -685,8 +685,8 @@ async function toggleControl() {
     
     try {
         if (!isRunning) {
-            // Démarrage
-            const response = await fetch('/api/start', { method: 'POST' });
+            // Start agents via agent service
+            const response = await fetch('/api/agents/start', { method: 'POST' });
             if (response.ok) {
                 isRunning = true;
                 icon.className = 'stop-icon';
@@ -696,8 +696,8 @@ async function toggleControl() {
                 console.log('Started successfully');
             }
         } else {
-            // Arrêt
-            const response = await fetch('/api/stop', { method: 'POST' });
+            // Stop agents via agent service
+            const response = await fetch('/api/agents/stop', { method: 'POST' });
             if (response.ok) {
                 isRunning = false;
                 icon.className = 'play-icon';

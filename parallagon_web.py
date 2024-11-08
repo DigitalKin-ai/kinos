@@ -744,12 +744,12 @@ class ParallagonWeb:
 
         @self.app.route('/api/start', methods=['POST'])
         def start_agents():
-            self.start_agents()
+            self.agent_service.start_all_agents()
             return jsonify({'status': 'started'})
 
         @self.app.route('/api/stop', methods=['POST'])
         def stop_agents():
-            self.stop_agents()
+            self.agent_service.stop_all_agents()
             return jsonify({'status': 'stopped'})
 
         @self.app.route('/api/agent/<agent_id>/prompt', methods=['GET'])
@@ -983,66 +983,6 @@ class ParallagonWeb:
             raise ServiceError(f"Failed to shutdown cleanly: {str(e)}")
 
 
-    def start_agents(self):
-        """Start all agents"""
-        try:
-            self.log_message("🚀 Démarrage des agents...", level='info')
-            self.running = True
-            
-            # Start monitor thread if not already running
-            if not self.monitor_thread or not self.monitor_thread.is_alive():
-                self.monitor_thread = threading.Thread(
-                    target=self.monitor_agents,
-                    daemon=True,
-                    name="AgentMonitor"
-                )
-                self.monitor_thread.start()
-            
-            # Start agents in separate threads
-            for name, agent in self.agents.items():
-                try:
-                    agent.start()  # Set agent running flag
-                    thread = threading.Thread(
-                        target=agent.run,
-                        daemon=True,
-                        name=f"Agent-{name}"
-                    )
-                    thread.start()
-                    self.log_message(f"✓ Agent {name} démarré", level='success')
-                except Exception as e:
-                    self.log_message(f"❌ Erreur démarrage agent {name}: {str(e)}", level='error')
-                    
-            self.log_message("✨ Tous les agents sont actifs", level='success')
-            
-        except Exception as e:
-            self.log_message(f"❌ Erreur globale: {str(e)}", level='error')
-            raise
-
-    def stop_agents(self):
-        """Stop all agents and update loop"""
-        try:
-            self.running = False
-            
-            # Stop each agent individually
-            for name, agent in self.agents.items():
-                try:
-                    agent.stop()
-                    self.log_message(f"Agent {name} stopped", level='info')
-                except Exception as e:
-                    self.log_message(f"Error stopping agent {name}: {str(e)}", level='error')
-            
-            # Clear running agents set
-            self.runningAgents.clear()
-            
-            # Wait for monitor thread to finish
-            if self.monitor_thread and self.monitor_thread.is_alive():
-                self.monitor_thread.join(timeout=2)
-            
-            self.log_message("All agents stopped", level='success')
-            
-        except Exception as e:
-            self.log_message(f"Error in stop_agents: {str(e)}", level='error')
-            raise
 
 
     def check_content_updates(self):
