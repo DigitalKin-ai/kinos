@@ -29,6 +29,9 @@
   - Intégration avec l'outil Aider
   - Gestion des prompts et fichiers
   - Surveillance des modifications
+  - Système de cache des prompts
+  - Verrouillage des fichiers avec portalocker
+  - Gestion des chemins relatifs/absolus
 
 - `agents.py`
   - Agents spécialisés :
@@ -37,7 +40,13 @@
     * ManagementAgent : Coordination et gestion du projet
     * EvaluationAgent : Tests et validation
     * SuiviAgent : Documentation et suivi
-    * DuplicationAgent : Détection et réduction de la duplication de code
+    * DuplicationAgent : 
+      - Détection de code dupliqué
+      - Analyse des fonctions similaires
+      - Identification des configurations redondantes
+      - Suggestions de refactoring
+      - Analyse de dépendances
+      - Métriques de duplication
 
 ### 3. Services
 - `services/base_service.py`
@@ -74,10 +83,17 @@
 ### 4. Routes API
 - `routes/agent_routes.py`
   - `/api/agents/status` : État des agents
-  - `/api/agent/<id>/prompt` : Gestion des prompts
-  - `/api/agent/<id>/<action>` : Contrôle des agents
-  - `/api/notifications` : Gestion des notifications temps réel
-  - `/api/missions/<id>/reset` : Reset des fichiers de mission
+  - `/api/agents/start` : Démarrer tous les agents
+  - `/api/agents/stop` : Arrêter tous les agents
+  - `/api/agent/<id>/prompt` : GET/POST pour gérer les prompts
+  - `/api/agent/<id>/<action>` : Contrôle individuel des agents
+  - `/api/agent/<id>/logs` : Historique des opérations
+  - `/api/agent/<id>/config` : Configuration des agents
+
+- `routes/notification_routes.py`
+  - `/api/notifications` : GET pour récupérer les notifications
+  - `/api/notifications` : POST pour envoyer des notifications
+  - `/api/changes` : Suivi des modifications en temps réel
 
 - `routes/mission_routes.py`
   - `/api/missions` : CRUD missions
@@ -122,10 +138,17 @@
 
 ### 7. Configuration
 - `config.py`
-  - Variables d'environnement
-  - Clés API (Anthropic, OpenAI)
-  - Paramètres de débogage
-  - Configuration serveur
+  - Variables d'environnement requises:
+    * ANTHROPIC_API_KEY : Clé API Anthropic
+    * OPENAI_API_KEY : Clé API OpenAI
+    * DEBUG : Mode debug (true/false)
+    * PORT : Port du serveur (default: 8000)
+    * HOST : Host du serveur (default: 0.0.0.0)
+    * LOG_LEVEL : Niveau de logging
+    * FILE_LOCK_TIMEOUT : Timeout pour les verrous de fichiers
+    * CACHE_DURATION : Durée de cache des prompts
+    * RETRY_ATTEMPTS : Nombre de tentatives pour les opérations
+    * NOTIFICATION_QUEUE_SIZE : Taille max de la queue de notifications
 
 ## Development Guide
 
