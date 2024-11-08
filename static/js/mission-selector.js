@@ -5,13 +5,32 @@ export default {
         missions: Array,
         loading: Boolean
     },
-    mounted() {
+    async mounted() {
         console.log('MissionSelector mounted');
-        console.log('Props:', {
-            currentMission: this.currentMission,
-            missions: this.missions,
-            loading: this.loading
-        });
+        try {
+            // Log l'état initial
+            console.log('Initial props:', {
+                currentMission: this.currentMission,
+                missions: this.missions,
+                loading: this.loading
+            });
+            
+            // Vérifier si les missions sont déjà chargées
+            if (!this.missions || this.missions.length === 0) {
+                console.log('No missions loaded, fetching from server...');
+                const response = await fetch('/api/missions');
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch missions: ${response.statusText}`);
+                }
+                const missions = await response.json();
+                console.log('Fetched missions:', missions);
+                
+                // Émettre l'événement avec les missions chargées
+                this.$emit('update:missions', missions);
+            }
+        } catch (error) {
+            console.error('Error in MissionSelector mounted:', error);
+        }
     },
     delimiters: ['${', '}'],
     emits: ['select-mission', 'create-mission'],

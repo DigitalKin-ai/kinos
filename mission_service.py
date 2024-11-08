@@ -69,43 +69,59 @@ class MissionService:
         """Get all missions by reading directories and symlinks"""
         try:
             missions = []
-            if os.path.exists(self.missions_dir):
-                print(f"\nScanning missions directory: {self.missions_dir}")  # Debug
-                for mission_name in os.listdir(self.missions_dir):
+            if not os.path.exists(self.missions_dir):
+                os.makedirs(self.missions_dir)
+                return missions
+
+            print(f"Scanning missions directory: {os.path.abspath(self.missions_dir)}")
+            
+            for mission_name in os.listdir(self.missions_dir):
+                try:
                     mission_path = os.path.join(self.missions_dir, mission_name)
                     real_path = self._resolve_mission_path(mission_path)
                     
-                    # Debug logs détaillés
-                    print(f"\nMission trouvée: {mission_name}")
-                    print(f"Chemin: {mission_path}")
-                    print(f"Chemin réel: {real_path}")
-                    print(f"Est un symlink: {os.path.islink(mission_path)}")
-                    print(f"Est un dossier: {os.path.isdir(real_path)}")
-                    if os.path.isdir(real_path):
-                        print("Contenu du dossier:")
-                        try:
-                            print(os.listdir(real_path))
-                        except Exception as e:
-                            print(f"Erreur lecture dossier: {e}")
+                    print(f"\nAnalyzing mission: {mission_name}")
+                    print(f"Path: {mission_path}")
+                    print(f"Real path: {real_path}")
                     
                     if os.path.isdir(real_path):
-                        mission = {
-                            'id': len(missions) + 1,
-                            'name': mission_name,
-                            'description': '',
-                            'status': 'active',
-                            'created_at': datetime.fromtimestamp(os.path.getctime(real_path)).isoformat(),
-                            'updated_at': datetime.fromtimestamp(os.path.getmtime(real_path)).isoformat(),
-                            'external_path': real_path if os.path.islink(mission_path) else None
-                        }
-                        missions.append(mission)
-                        print(f"Mission ajoutée: {mission}")
+                        has_required_files = any(
+                            os.path.exists(os.path.join(real_path, req_file))
+                            for req_file in self.REQUIRED_FILES
+                        )
+                        
+                        if has_required_files:
+                            mission = {
+                                'id': len(missions) + 1,
+                                'name': mission_name,
+                                'description': '',
+                                'status': 'active',
+                                'created_at': datetime.fromtimestamp(
+                                    os.path.getctime(real_path)
+                                ).isoformat(),
+                                'updated_at': datetime.fromtimestamp(
+                                    os.path.getmtime(real_path)
+                                ).isoformat(),
+                                'external_path': real_path if os.path.islink(mission_path) else None
+                            }
+                            missions.append(mission)
+                            print(f"✓ Added mission: {mission_name}")
+                        else:
+                            print(f"⚠️ Skipped mission {mission_name}: missing required files")
                     else:
-                        print(f"Mission ignorée: n'est pas un dossier valide")
+                        print(f"⚠️ Skipped {mission_name}: not a valid directory")
 
+                except Exception as e:
+                    print(f"Error processing mission {mission_name}: {str(e)}")
+                    continue
+
+            print(f"\nTotal missions found: {len(missions)}")
             return missions
+            
         except Exception as e:
-            print(f"Error getting missions: {e}")
+            print(f"❌ Error scanning missions: {str(e)}")
+            import traceback
+            print(traceback.format_exc())
             return []
 
     def get_mission(self, mission_id: int) -> Optional[Dict]:
@@ -188,4 +204,19 @@ class MissionService:
             
         except Exception as e:
             print(f"Error deleting mission: {e}")
+            return False
+    def is_valid_mission(self, mission_path: str) -> bool:
+        """Vérifie si un dossier de mission est valide"""
+        try:
+            # Vérifier si c'est un dossier
+            if not os.path.isdir(mission_path):
+                return False
+                
+            # Vérifier la présence d'au moins un fichier requis
+            return any(
+                os.path.exists(os.path.join(mission_path, req_file))
+                for req_file in self.REQUIRED_FILES
+            )
+        except Exception as e:
+            print(f"Error validating mission {mission_path}: {str(e)}")
             return False
