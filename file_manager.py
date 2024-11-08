@@ -14,7 +14,7 @@ class FileManager:
         """Exception personnalisée pour les erreurs de fichiers"""
         pass
     
-    def __init__(self, file_paths: Dict[str, str], on_content_changed=None):
+    def __init__(self, file_paths: Dict[str, str], web_instance=None, on_content_changed=None):
         # Ensure all file paths are defined
         self.file_paths = {
             'demande': 'demande.md',
@@ -33,37 +33,6 @@ class FileManager:
         self.logger = print  # Par défaut, utiliser print
         self._ensure_files_exist()
         
-    def create_mission_files(self, mission_name: str) -> bool:
-        """Create a new mission directory with default files"""
-        try:
-            # Create mission directory
-            mission_dir = os.path.join("missions", mission_name)
-            os.makedirs(mission_dir, exist_ok=True)
-            
-            # Create default files with error handling
-            files_created = True
-            for file_name in ["demande", "specifications", "management", "production", "evaluation", "suivi"]:
-                try:
-                    file_path = os.path.join(mission_dir, f"{file_name}.md")
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        initial_content = self._get_initial_content(file_name)
-                        f.write(initial_content)
-                except Exception as e:
-                    print(f"Error creating {file_name}.md: {e}")
-                    files_created = False
-                    break
-                    
-            if not files_created:
-                # Cleanup on failure
-                import shutil
-                shutil.rmtree(mission_dir, ignore_errors=True)
-                return False
-                
-            return True
-            
-        except Exception as e:
-            print(f"Error creating mission files: {e}")
-            return False
         
     def _ensure_files_exist(self):
         """Create files if they don't exist in current mission folder"""
@@ -71,72 +40,10 @@ class FileManager:
         if not self.current_mission:
             return
             
-        mission_dir = os.path.join("missions", self.current_mission)
-        
-        # Liste explicite des fichiers à créer
-        required_files = [
-            "demande.md",
-            "specifications.md",
-            "management.md",
-            "production.md",
-            "evaluation.md",
-            "suivi.md",
-        ]
-        
-        for file_name in required_files:
-            try:
-                file_path = os.path.join(mission_dir, file_name)
-                if not os.path.exists(file_path):
-                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        initial_content = self._get_initial_content(file_name.replace('.md', ''))
-                        f.write(initial_content)
-                    print(f"Created {file_name} with initial content")
-                else:
-                    print(f"Using existing file: {file_path}")
-                    
-            except Exception as e:
-                raise self.FileError(f"Error with {file_name}: {str(e)}")
+        # Use mission service to ensure files exist
+        if not self.web_instance.mission_service.ensure_mission_files(self.current_mission):
+            raise self.FileError(f"Failed to ensure files exist for mission {self.current_mission}")
 
-    def _get_initial_content(self, file_name: str) -> str:
-        """Get initial content for a file based on its name"""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        
-        if file_name == 'demande':
-            return f"""# Demande Actuelle
-[timestamp: {timestamp}]
-[status: NEW]
-
-Entrez votre demande ici...
-
-# Historique des Demandes
-- [INIT] Création du fichier"""
-            
-        elif file_name == 'specifications':
-            return f"""# État Actuel
-[status: INIT]
-En attente de demande...
-
-# Signaux
-
-# Contenu Principal
-
-# Historique
-- [{timestamp}] Création du fichier"""
-            
-        elif file_name in ['management', 'production', 'evaluation']:
-            return f"""# État Actuel
-[status: INIT]
-En attente d'initialisation...
-
-# Signaux
-
-# Contenu Principal
-
-# Historique
-- [{timestamp}] Création du fichier"""
-            
-        return ""  # Default empty content
 
     def _log_message(self, message: str):
         """Méthode sécurisée pour le logging"""
