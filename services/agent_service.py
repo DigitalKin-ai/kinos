@@ -187,16 +187,11 @@ class AgentService:
     def start_all_agents(self) -> None:
         """Start all agents"""
         try:
+            self.web_instance.log_message("🚀 Starting agents...", level='info')
             self.running = True
             
             # Start monitor thread
-            if not self.monitor_thread or not self.monitor_thread.is_alive():
-                self.monitor_thread = threading.Thread(
-                    target=self._monitor_agents,
-                    daemon=True,
-                    name="AgentMonitor"
-                )
-                self.monitor_thread.start()
+            self._start_monitor_thread()
             
             # Start each agent
             for name, agent in self.agents.items():
@@ -208,15 +203,18 @@ class AgentService:
                         name=f"Agent-{name}"
                     )
                     thread.start()
+                    self.web_instance.log_message(f"✓ Agent {name} started", level='success')
                 except Exception as e:
                     self.web_instance.log_message(f"Error starting agent {name}: {str(e)}", level='error')
 
+            self.web_instance.log_message("✨ All agents active", level='success')
+            
         except Exception as e:
             self.web_instance.log_message(f"Error starting agents: {str(e)}", level='error')
             raise
 
     def stop_all_agents(self) -> None:
-        """Stop all agents"""
+        """Stop all agents and monitor thread"""
         try:
             self.running = False
             
@@ -224,6 +222,7 @@ class AgentService:
             for name, agent in self.agents.items():
                 try:
                     agent.stop()
+                    self.web_instance.log_message(f"Agent {name} stopped", level='info')
                 except Exception as e:
                     self.web_instance.log_message(f"Error stopping agent {name}: {str(e)}", level='error')
             
@@ -231,9 +230,21 @@ class AgentService:
             if self.monitor_thread and self.monitor_thread.is_alive():
                 self.monitor_thread.join(timeout=2)
 
+            self.web_instance.log_message("All agents stopped", level='success')
+            
         except Exception as e:
             self.web_instance.log_message(f"Error stopping agents: {str(e)}", level='error')
             raise
+
+    def _start_monitor_thread(self) -> None:
+        """Start the agent monitor thread if not running"""
+        if not self.monitor_thread or not self.monitor_thread.is_alive():
+            self.monitor_thread = threading.Thread(
+                target=self._monitor_agents,
+                daemon=True,
+                name="AgentMonitor"
+            )
+            self.monitor_thread.start()
 
     def _monitor_agents(self) -> None:
         """Monitor agent status and health"""
