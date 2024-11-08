@@ -752,31 +752,43 @@ class ParallagonWeb:
                     return jsonify({'status': 'success'})
                     
                 else:  # GET
-                    # Vérification de mission active
-                    if not self.current_mission:
-                        return jsonify({})
+                    # Vérifier si une mission est sélectionnée
+                    if not hasattr(self, 'current_mission') or not self.current_mission:
+                        return jsonify({})  # Retourner un objet vide si pas de mission
 
                     content = {}
                     mission_dir = os.path.join("missions", self.current_mission['name'])
-                    
-                    # Vérifier les modifications de fichiers
-                    for file_name in self.file_paths:
-                        file_path = os.path.join(mission_dir, f"{file_name}.md")
-                        if os.path.exists(file_path):
-                            current_time = os.path.getmtime(file_path)
-                            
-                            # Lire uniquement si le fichier a changé
-                            if (file_name not in self.last_modified or 
-                                current_time > self.last_modified.get(file_name, 0)):
-                                try:
+
+                    # Liste des fichiers à vérifier
+                    files_to_check = {
+                        'demande': 'demande.md',
+                        'specifications': 'specifications.md', 
+                        'management': 'management.md',
+                        'production': 'production.md',
+                        'evaluation': 'evaluation.md',
+                        'suivi': 'suivi.md'
+                    }
+
+                    # Vérifier chaque fichier
+                    for panel_id, filename in files_to_check.items():
+                        file_path = os.path.join(mission_dir, filename)
+                        try:
+                            if os.path.exists(file_path):
+                                current_time = os.path.getmtime(file_path)
+                                
+                                # Vérifier si le fichier a été modifié
+                                if (panel_id not in self.last_modified or 
+                                    current_time > self.last_modified.get(panel_id, 0)):
                                     with open(file_path, 'r', encoding='utf-8') as f:
                                         file_content = f.read()
-                                        if file_content.strip():  # Ignorer le contenu vide
-                                            content[file_name] = file_content
-                                            self.last_modified[file_name] = current_time
-                                except Exception as e:
-                                    self.log_message(f"Error reading {file_name}: {str(e)}", level='error')
-                    
+                                        if file_content.strip():
+                                            content[panel_id] = file_content
+                                            self.last_modified[panel_id] = current_time
+                                    
+                        except Exception as e:
+                            self.log_message(f"Error reading {filename}: {str(e)}", level='error')
+                            # Continue avec les autres fichiers même si un échoue
+
                     return jsonify(content)
                     
             except Exception as e:
