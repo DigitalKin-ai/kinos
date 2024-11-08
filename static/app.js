@@ -16,6 +16,11 @@ const ParallagonApp = {
     data() {
         return {
             logCounter: 0,  // Counter for unique log IDs
+            running: false,
+            loading: false,
+            error: null,
+            suiviEntries: [], // Store suivi entries
+        }
     },
     
     watch: {
@@ -30,10 +35,6 @@ const ParallagonApp = {
                 });
             }
         }
-            running: false,
-            loading: false,
-            error: null,
-            suiviEntries: [], // Store suivi entries
             suiviContent: '', // Store raw suivi content
             missionSidebarCollapsed: false,
             currentMission: null,
