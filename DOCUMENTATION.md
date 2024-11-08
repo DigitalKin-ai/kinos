@@ -4,8 +4,10 @@
 
 ### Prerequisites
 - Python 3.8+
-- Node.js 14+ (for frontend development)
+- Node.js 16+ (for frontend development)
 - API keys for Anthropic and OpenAI
+- Redis (optional, for advanced caching)
+- PostgreSQL (optional, for production deployments)
 
 ### Installation
 1. Clone the repository
@@ -29,9 +31,12 @@
   - Intégration avec l'outil Aider
   - Gestion des prompts et fichiers
   - Surveillance des modifications
-  - Système de cache des prompts
-  - Verrouillage des fichiers avec portalocker
-  - Gestion des chemins relatifs/absolus
+  - Système de cache des prompts avec invalidation intelligente
+  - Verrouillage des fichiers avec portalocker et timeouts configurables
+  - Gestion des chemins relatifs/absolus avec validation
+  - Retry automatique sur erreurs transitoires
+  - Métriques de performance et logging détaillé
+  - Gestion mémoire optimisée
 
 - `agents.py`
   - Agents spécialisés :
@@ -41,12 +46,16 @@
     * EvaluationAgent : Tests et validation
     * SuiviAgent : Documentation et suivi
     * DuplicationAgent : 
-      - Détection de code dupliqué
-      - Analyse des fonctions similaires
-      - Identification des configurations redondantes
-      - Suggestions de refactoring
-      - Analyse de dépendances
-      - Métriques de duplication
+      - Détection de code dupliqué avec analyse AST
+      - Analyse des fonctions similaires avec métriques de complexité
+      - Identification des configurations redondantes avec diff intelligent
+      - Suggestions de refactoring basées sur les patterns
+      - Analyse de dépendances avec graphe de relations
+      - Métriques de duplication avec seuils configurables
+      - Rapports détaillés au format Markdown
+      - Intégration avec les outils d'analyse statique
+      - Historique des modifications avec git blame
+      - Suggestions de tests pour le code refactoré
 
 ### 3. Services
 - `services/base_service.py`

@@ -14,10 +14,18 @@ The Parallagon system uses a modular architecture built around autonomous agents
 
 ### Core
 - `parallagon_web.py` - Classe principale de l'application
-  - Initialisation de Flask
-  - Configuration des routes
-  - Gestion des services
-  - Gestion des erreurs
+  - Initialisation de Flask avec configuration avancée
+    * CORS configurable
+    * Rate limiting intelligent
+    * Compression des réponses
+    * Sessions sécurisées
+    * Métriques prometheus
+  - Configuration des routes avec versioning API
+  - Gestion des services avec injection de dépendances
+  - Gestion des erreurs avec retry policies
+  - Monitoring temps réel avec websockets
+  - Cache distribué avec Redis
+  - Authentification JWT configurable
 
 ### Agents
 - `aider_agent.py` - Agent de base utilisant Aider
@@ -259,16 +267,28 @@ The Parallagon system uses a modular architecture built around autonomous agents
 ## Sécurité et Performance
 
 1. Validation des Entrées
-   - Décorateurs de validation
-   - Middleware de sécurité
-   - Sanitization des données
+   - Décorateurs de validation avec schémas Pydantic
+   - Middleware de sécurité avec CORS configurable
+   - Sanitization des données avec HTML purifier
+   - Validation des types en temps réel
+   - Protection XSS et CSRF
+   - Limites de taille configurables
 
 2. Gestion des Erreurs
-   - Logging centralisé
-   - Réponses formatées
-   - Recovery automatique
+   - Logging centralisé avec rotation des fichiers
+   - Réponses formatées avec codes HTTP appropriés
+   - Recovery automatique avec circuit breaker
+   - Alerting configurable (email, Slack)
+   - Métriques d'erreurs avec Prometheus
+   - Traçabilité avec OpenTelemetry
 
 3. Optimisation
-   - Cache de contenu
-   - Rate limiting
-   - Pooling de connexions
+   - Cache de contenu multi-niveaux
+     * Cache mémoire avec LRU
+     * Cache Redis distribué
+     * Cache de session utilisateur
+   - Rate limiting adaptatif
+   - Pooling de connexions avec timeouts
+   - Compression des réponses
+   - Lazy loading des ressources
+   - Minification des assets
