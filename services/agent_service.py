@@ -166,6 +166,15 @@ class AgentService:
             # Construct mission directory path
             mission_dir = os.path.join("missions", mission_name)
             
+            # Load prompts from files
+            def load_prompt(file_path):
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        return f.read()
+                except Exception as e:
+                    self.web_instance.log_message(f"Error loading prompt from {file_path}: {e}", level='error')
+                    return ""
+
             # Base configuration for all agents
             base_config = {
                 "check_interval": 10,
@@ -175,32 +184,42 @@ class AgentService:
                 "logger": self.web_instance.log_message
             }
 
-            # Initialize each agent type with correct file paths
+            # Initialize each agent type with correct file paths and prompts
             self.agents = {
                 "Specification": SpecificationsAgent({
                     **base_config,
                     "name": "Specification",
-                    "file_path": os.path.join(mission_dir, "specifications.md")
+                    "file_path": os.path.join(mission_dir, "specifications.md"),
+                    "prompt": load_prompt("prompts/specifications.md"),
+                    "prompt_file": "prompts/specifications.md"
                 }),
                 "Production": ProductionAgent({
                     **base_config,
                     "name": "Production",
-                    "file_path": os.path.join(mission_dir, "production.md")
+                    "file_path": os.path.join(mission_dir, "production.md"),
+                    "prompt": load_prompt("prompts/production.md"),
+                    "prompt_file": "prompts/production.md"
                 }),
                 "Management": ManagementAgent({
                     **base_config,
                     "name": "Management",
-                    "file_path": os.path.join(mission_dir, "management.md")
+                    "file_path": os.path.join(mission_dir, "management.md"),
+                    "prompt": load_prompt("prompts/management.md"),
+                    "prompt_file": "prompts/management.md"
                 }),
                 "Evaluation": EvaluationAgent({
                     **base_config,
                     "name": "Evaluation",
-                    "file_path": os.path.join(mission_dir, "evaluation.md")
+                    "file_path": os.path.join(mission_dir, "evaluation.md"),
+                    "prompt": load_prompt("prompts/evaluation.md"),
+                    "prompt_file": "prompts/evaluation.md"
                 }),
                 "Suivi": SuiviAgent({
                     **base_config,
                     "name": "Suivi",
-                    "file_path": os.path.join(mission_dir, "suivi.md")
+                    "file_path": os.path.join(mission_dir, "suivi.md"),
+                    "prompt": load_prompt("prompts/suivi.md"),
+                    "prompt_file": "prompts/suivi.md"
                 })
             }
 
