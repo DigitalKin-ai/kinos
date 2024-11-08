@@ -1,10 +1,13 @@
-from agents import (SpecificationsAgent, ProductionAgent, 
-    ManagementAgent, EvaluationAgent, SuiviAgent)
-from parallagon_agent import ParallagonAgent
-from flask import Flask, render_template, jsonify, request, make_response, redirect, url_for
+from flask import Flask
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+
+from routes.agent_routes import register_agent_routes
+from routes.mission_routes import register_mission_routes
+from routes.notification_routes import register_notification_routes
+from routes.view_routes import register_view_routes
+from services.agent_service import AgentService
 import threading
 import time
 import os
@@ -29,6 +32,38 @@ class ParallagonWeb:
         'error': 'red',
         'debug': 'gray'
     }
+
+    def __init__(self, config):
+        self.app = Flask(__name__)
+        CORS(self.app)
+        
+        # Initialize services
+        self.agent_service = AgentService(self)
+        
+        # Initialize limiter
+        self.limiter = Limiter(
+            app=self.app,
+            key_func=get_remote_address,
+            default_limits=["1000 per minute"]
+        )
+        
+        # Register routes
+        self._register_routes()
+        
+        # Initialize other components
+        self._initialize_components(config)
+        
+    def _register_routes(self):
+        """Register all route blueprints"""
+        register_agent_routes(self.app, self)
+        register_mission_routes(self.app, self)
+        register_notification_routes(self.app, self)
+        register_view_routes(self.app, self)
+        
+    def _initialize_components(self, config):
+        """Initialize all required components"""
+        # Initialize existing components (missions, agents, etc.)
+        pass
 
     def log_message(self, message: str, level: str = 'info') -> None:
         """Log a message with optional level"""
