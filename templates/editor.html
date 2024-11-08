@@ -8,16 +8,23 @@
 <style>
 @keyframes flash-tab {
     0% { background-color: transparent; }
-    25% { background-color: #ffd700; }
-    75% { background-color: #ffd700; }
+    50% { background-color: #ffd700; }
     100% { background-color: transparent; }
 }
+
 .flash-tab {
     animation: flash-tab 1s ease-in-out;
 }
+
 .tab-item {
     transition: background-color 0.3s ease;
     position: relative;
+}
+
+.content-display {
+    height: 100%;
+    overflow-y: auto;
+    padding: 1rem;
 }
 </style>
 {% endblock %}

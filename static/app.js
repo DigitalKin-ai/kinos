@@ -87,18 +87,19 @@ const ParallagonApp = {
         }
     },
     methods: {
+        forceContentRefresh(panelId) {
+            this.$nextTick(() => {
+                const panel = document.querySelector(`.panel[data-panel="${panelId}"] .content-display`);
+                if (panel) {
+                    const content = this.formatMarkdown(this.highlightContent(panelId));
+                    panel.innerHTML = content;
+                }
+            });
+        },
+        
         refreshPanel(panelId) {
             console.log('Refreshing panel:', panelId);
-            
-            const content = this.content[panelId];
-            if (content) {
-                this.$nextTick(() => {
-                    const panel = document.querySelector(`.panel[data-panel="${panelId}"] .content-display`);
-                    if (panel) {
-                        panel.innerHTML = this.formatMarkdown(this.highlightContent(panelId));
-                    }
-                });
-            }
+            this.forceContentRefresh(panelId);
         },
 
         async linkExternalMission() {
@@ -780,41 +781,35 @@ const ParallagonApp = {
                 }
                 const notifications = await response.json();
                 
-                console.log('Received notifications:', notifications);
-                
                 if (Array.isArray(notifications) && notifications.length > 0) {
                     notifications.forEach(notification => {
-                        console.log('Processing notification:', notification);
-                        
                         // Add visual notification
                         this.addNotification(notification.type, notification.message);
                         
                         // Handle content update
                         if (notification.content && notification.panel) {
                             const panelId = notification.panel.toLowerCase();
-                            console.log('Updating content for panel:', panelId);
                             
-                            // Update content
+                            // Update content with Vue reactivity
                             this.$set(this.content, panelId, notification.content);
                             
                             // Force panel refresh
-                            this.refreshPanel(panelId);
+                            this.$nextTick(() => {
+                                this.refreshPanel(panelId);
+                            });
                             
                             // Handle tab flash
-                            if (notification.flash) {
-                                const tabId = this.tabIds[`${panelId}.md`];
-                                if (tabId) {
-                                    const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
-                                    if (tab) {
-                                        tab.classList.remove('flash-tab');
-                                        void tab.offsetWidth;
-                                        tab.classList.add('flash-tab');
-                                        
-                                        setTimeout(() => {
-                                            tab.classList.remove('flash-tab');
-                                        }, 1000);
-                                    }
-                                }
+                            const tabElement = document.querySelector(`.tab-item[data-tab="${panelId}"]`);
+                            if (tabElement) {
+                                // Remove and re-add class to trigger animation
+                                tabElement.classList.remove('flash-tab');
+                                void tabElement.offsetWidth; // Force reflow
+                                tabElement.classList.add('flash-tab');
+                                
+                                // Remove class after animation
+                                setTimeout(() => {
+                                    tabElement.classList.remove('flash-tab');
+                                }, 1000);
                             }
                         }
                     });
