@@ -136,7 +136,7 @@ class MissionService:
             # Add file paths
             mission['files'] = {
                 name: os.path.join(mission['path'], f"{name}.md")
-                for name in ['demande', 'specifications', 'management', 'rapport']
+                for name in ['demande', 'specifications', 'management',
                             'production', 'evaluation', 'suivi']
             }
             
