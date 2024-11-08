@@ -170,8 +170,6 @@ const ParallagonApp = {
                 // Update UI to show we're viewing this mission
                 this.currentMission = this.missions.find(m => m.id === missionId);
                 
-                this.addNotification('success', `Loaded content for mission "${this.currentMission.name}"`);
-                
             } catch (error) {
                 console.error('Error loading mission content:', error);
                 this.addNotification('error', `Failed to load mission content: ${error.message}`);
