@@ -1,0 +1,44 @@
+.mission-sidebar {
+    width: 250px;
+    transition: width 0.3s ease;
+    background: #f5f5f5;
+    border-right: 1px solid #ddd;
+}
+
+.mission-sidebar.collapsed {
+    width: 50px;
+}
+
+.mission-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.mission-create {
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.mission-list {
+    overflow-y: auto;
+    height: calc(100% - 120px);
+}
+
+.mission-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.mission-item:hover {
+    background-color: #eee;
+}
+
+.mission-item.active {
+    background-color: #e0e0e0;
+}
