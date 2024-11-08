@@ -151,7 +151,7 @@
                 </div>
 
                 <!-- Management content -->
-                <div v-if="activeTab === 'management'" class="panel">
+                <div v-if="activeTab === 'management'" class="panel" data-panel="management">
                     <div class="panel-header">
                         <h2 class="panel-title">
                             <i class="mdi mdi-account-supervisor mr-2"></i>Management
@@ -162,7 +162,10 @@
                         </button>
                     </div>
                     <div class="panel-content">
-                        <div class="content-display markdown-body" v-html="formatMarkdown(highlightContent('management'))"></div>
+                        <div class="content-display markdown-body" 
+                             v-html="formatMarkdown(highlightContent('management'))"
+                             :key="content.management">
+                        </div>
                     </div>
                 </div>
 

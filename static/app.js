@@ -16,6 +16,20 @@ const ParallagonApp = {
     data() {
         return {
             logCounter: 0,  // Counter for unique log IDs
+    },
+    
+    watch: {
+        'content': {
+            deep: true,
+            handler(newContent, oldContent) {
+                Object.keys(newContent).forEach(panelId => {
+                    if (newContent[panelId] !== oldContent[panelId]) {
+                        console.log('Content changed for panel:', panelId);
+                        this.refreshPanel(panelId);
+                    }
+                });
+            }
+        }
             running: false,
             loading: false,
             error: null,
@@ -74,6 +88,20 @@ const ParallagonApp = {
         }
     },
     methods: {
+        refreshPanel(panelId) {
+            console.log('Refreshing panel:', panelId);
+            
+            const content = this.content[panelId];
+            if (content) {
+                this.$nextTick(() => {
+                    const panel = document.querySelector(`.panel[data-panel="${panelId}"] .content-display`);
+                    if (panel) {
+                        panel.innerHTML = this.formatMarkdown(this.highlightContent(panelId));
+                    }
+                });
+            }
+        },
+
         async linkExternalMission() {
             try {
                 // Utiliser l'API moderne de sélection de dossier
@@ -760,11 +788,11 @@ const ParallagonApp = {
                 }
                 const notifications = await response.json();
                 
-                console.log('Received notifications:', notifications); // Debug log
+                console.log('Received notifications:', notifications);
                 
                 if (Array.isArray(notifications) && notifications.length > 0) {
                     notifications.forEach(notification => {
-                        console.log('Processing notification:', notification); // Debug log
+                        console.log('Processing notification:', notification);
                         
                         // Add visual notification
                         this.addNotification(notification.type, notification.message);
@@ -772,28 +800,28 @@ const ParallagonApp = {
                         // Handle content update
                         if (notification.content && notification.panel) {
                             const panelId = notification.panel.toLowerCase();
-                            console.log('Updating content for panel:', panelId); // Debug log
-                            this.content[panelId] = notification.content;
-                        }
-                        
-                        // Handle tab flash
-                        if (notification.flash && notification.panel) {
-                            const tabId = this.tabIds[`${notification.panel.toLowerCase()}.md`];
-                            console.log('Tab flash - looking for:', tabId); // Debug log
+                            console.log('Updating content for panel:', panelId);
                             
-                            if (tabId) {
-                                const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
-                                console.log('Found tab element:', tab ? 'yes' : 'no'); // Debug log
-                                
-                                if (tab) {
-                                    console.log('Flashing tab:', tabId);
-                                    tab.classList.remove('flash-tab');
-                                    void tab.offsetWidth; // Force reflow
-                                    tab.classList.add('flash-tab');
-                                    
-                                    setTimeout(() => {
+                            // Update content
+                            this.$set(this.content, panelId, notification.content);
+                            
+                            // Force panel refresh
+                            this.refreshPanel(panelId);
+                            
+                            // Handle tab flash
+                            if (notification.flash) {
+                                const tabId = this.tabIds[`${panelId}.md`];
+                                if (tabId) {
+                                    const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
+                                    if (tab) {
                                         tab.classList.remove('flash-tab');
-                                    }, 1000);
+                                        void tab.offsetWidth;
+                                        tab.classList.add('flash-tab');
+                                        
+                                        setTimeout(() => {
+                                            tab.classList.remove('flash-tab');
+                                        }, 1000);
+                                    }
                                 }
                             }
                         }
