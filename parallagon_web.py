@@ -848,28 +848,64 @@ class ParallagonWeb:
 
         @self.app.route('/api/notifications', methods=['GET', 'POST'])
         @self.limiter.limit("500 per minute")
-        def get_notifications():
-            """Get pending notifications"""
-            try:
-                # Récupérer les notifications en attente
-                notifications = []
-                
-                # Ajouter les notifications de la queue
-                while self.notifications_queue:
-                    notification = self.notifications_queue.pop(0)
-                    notifications.append(notification)
-                    print(f"Sending notification: {notification}")  # Debug log
+        def handle_notifications():
+            """Handle notifications GET and POST"""
+            if request.method == 'GET':
+                """Get pending notifications"""
+                try:
+                    # Récupérer les notifications en attente
+                    notifications = []
                     
-                # Debug log
-                if notifications:
-                    print(f"Sending {len(notifications)} notifications to frontend")
+                    # Ajouter les notifications de la queue
+                    while self.notifications_queue:
+                        notification = self.notifications_queue.pop(0)
+                        notifications.append(notification)
+                        print(f"Sending notification: {notification}")  # Debug log
+                        
+                    # Debug log
+                    if notifications:
+                        print(f"Sending {len(notifications)} notifications to frontend")
+                        
+                    return jsonify(notifications)
                     
-                return jsonify(notifications)
-                
-            except Exception as e:
-                self.log_message(f"Error getting notifications: {str(e)}", level='error')
-                # Retourner une liste vide au lieu d'une erreur 500
-                return jsonify([])
+                except Exception as e:
+                    self.log_message(f"Error getting notifications: {str(e)}", level='error')
+                    # Retourner une liste vide au lieu d'une erreur 500
+                    return jsonify([])
+                    
+            else:  # POST
+                """Handle content change notifications from agents"""
+                try:
+                    data = request.get_json()
+                    
+                    # Validate required fields
+                    required_fields = ['file_path', 'content', 'panel', 'message']
+                    if not all(field in data for field in required_fields):
+                        return jsonify({'error': 'Missing required fields'}), 400
+                        
+                    # Add notification to queue
+                    notification = {
+                        'type': data.get('type', 'info'),
+                        'message': data['message'],
+                        'panel': data['panel'],
+                        'content': data['content'],
+                        'flash': data.get('flash', True),
+                        'timestamp': datetime.now().strftime("%H:%M:%S"),
+                        'id': len(self.notifications_queue)
+                    }
+                    
+                    self.notifications_queue.append(notification)
+                    
+                    # Update content cache
+                    if data['content'].strip():
+                        self.content_cache[data['file_path']] = data['content']
+                        self.last_modified[data['file_path']] = time.time()
+                        
+                    return jsonify({'status': 'success'})
+                    
+                except Exception as e:
+                    self.log_message(f"Error handling notification: {str(e)}", level='error')
+                    return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/demande', methods=['POST'])
         def save_demande():
