@@ -328,7 +328,7 @@ class ParallagonWeb:
 
         @self.app.route('/api/missions/<int:mission_id>/files')
         def get_mission_files(mission_id):
-            """Get all text files in mission directory"""
+            """Get all text files in mission directory and subdirectories"""
             try:
                 mission = self.mission_service.get_mission(mission_id)
                 if not mission:
@@ -337,15 +337,21 @@ class ParallagonWeb:
                 # Extensions de fichiers texte supportées
                 text_extensions = {'.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml'}
                 
-                mission_dir = os.path.join("missions", mission['name'])
+                # Dossier racine de la mission
+                mission_dir = os.path.abspath(os.path.join("missions", mission['name']))
+                if not os.path.exists(mission_dir):
+                    return jsonify({'error': 'Mission directory not found'}), 404
+                    
                 files = []
 
-                # Parcourir récursivement le dossier
+                # Parcourir récursivement le dossier de la mission
                 for root, _, filenames in os.walk(mission_dir):
                     for filename in filenames:
                         if os.path.splitext(filename)[1].lower() in text_extensions:
                             full_path = os.path.join(root, filename)
+                            # Calculer le chemin relatif par rapport au dossier de la mission
                             relative_path = os.path.relpath(full_path, mission_dir)
+                            
                             files.append({
                                 'name': filename,
                                 'path': full_path,
@@ -354,6 +360,10 @@ class ParallagonWeb:
                                 'modified': os.path.getmtime(full_path)
                             })
 
+                # Trier les fichiers par chemin relatif pour une meilleure organisation
+                files.sort(key=lambda x: x['relativePath'])
+                
+                self.log_message(f"Found {len(files)} files in mission {mission['name']}", level='debug')
                 return jsonify(files)
 
             except Exception as e:
