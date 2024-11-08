@@ -7,6 +7,8 @@
 - Node.js 16+ (for frontend development)
 - API keys for Anthropic and OpenAI
 - portalocker (for file locking)
+- Redis (for distributed caching)
+- PostgreSQL (for persistent storage)
 
 ### Installation
 1. Clone the repository
