@@ -77,7 +77,19 @@
         },
         methods: {
             async selectMission(mission) {
-                this.currentMission = mission;
+                try {
+                    // Mettre à jour directement l'état
+                    this.currentMission = mission;
+                    
+                    // Propager aux composants enfants si nécessaire
+                    this.$nextTick(() => {
+                        // Force refresh des composants qui dépendent de currentMission
+                        this.$forceUpdate();
+                    });
+                    
+                } catch (error) {
+                    console.error('Failed to select mission:', error);
+                }
             },
             async createMission(name) {
                 try {

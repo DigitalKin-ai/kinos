@@ -90,7 +90,8 @@ export default {
 
         async selectMission(mission) {
             try {
-                // Appeler l'API de sélection de mission
+                this.loading = true;
+                
                 const response = await fetch(`/api/missions/${mission.id}/select`, {
                     method: 'POST',
                     headers: {
@@ -99,21 +100,30 @@ export default {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to select mission');
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to select mission');
                 }
 
-                // Mettre à jour la mission courante
-                this.currentMission = mission;
+                const result = await response.json();
                 
-                // Émettre l'événement de sélection
-                this.$emit('select-mission', mission);
-
-                // Recharger les agents avec la nouvelle mission
-                await fetch('/api/agents/stop', { method: 'POST' }); // Arrêter les agents actuels
+                // Émettre l'événement avec la mission mise à jour
+                this.$emit('select-mission', result);
                 
-                console.log('Mission selected:', mission.name);
+                // Mettre à jour l'état local APRÈS la réponse réussie
+                this.currentMission = result;
+                
+                // Arrêter les agents actuels avant de changer de mission
+                await fetch('/api/agents/stop', { method: 'POST' });
+                
+                console.log('Mission selected:', result.name);
+                
+                return result;
+                
             } catch (error) {
                 console.error('Failed to select mission:', error);
+                throw error;
+            } finally {
+                this.loading = false;
             }
         },
 
