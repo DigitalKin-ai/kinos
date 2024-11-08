@@ -237,16 +237,32 @@ class MissionService:
             return False
 
     def _get_initial_content(self, file_type: str) -> str:
-        """Get initial content for a specific file type"""
-        content_map = {
-            'demande': '# Nouvelle Demande\n\nDécrivez votre demande ici...',
-            'specifications': '# Spécifications\n\n## Vue d\'ensemble\n\n## Fonctionnalités\n\n## Contraintes',
-            'management': '# Gestion de Projet\n\n## État Actuel\n\n## Prochaines Étapes\n\n## Risques',
-            'production': '# Production\n\n## Code Source\n\n## Tests\n\n## Documentation',
-            'evaluation': '# Évaluation\n\n## Tests Effectués\n\n## Résultats\n\n## Recommandations',
-            'suivi': '# Suivi\n\n## Historique\n\n## Décisions\n\n## Métriques'
-        }
-        return content_map.get(file_type, '')
+        """Get initial content for a specific file type from templates"""
+        try:
+            # Construire le chemin vers le fichier template
+            template_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),  # Remonte au root du projet
+                'templates',
+                'initial_content',
+                f'{file_type}.md'
+            )
+            
+            # Vérifier si le fichier existe
+            if not os.path.exists(template_path):
+                self.logger.log(f"Template file not found: {template_path}", level='warning')
+                # Retourner un contenu par défaut si le template n'existe pas
+                return f"# {file_type.capitalize()}\n\nInitial content for {file_type}"
+                
+            # Lire le contenu du template
+            with open(template_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            return content
+            
+        except Exception as e:
+            self.logger.log(f"Error loading template for {file_type}: {str(e)}", level='error')
+            # Retourner un contenu par défaut en cas d'erreur
+            return f"# {file_type.capitalize()}\n\nInitial content for {file_type}"
 
     def _scan_missions(self) -> List[Dict]:
         """Scan missions directory and return mission data"""
