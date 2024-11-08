@@ -60,36 +60,57 @@ export default {
 
         async checkFileModifications() {
             try {
-                // Vérifier si une mission est sélectionnée et a un ID valide
+                // Skip if no valid mission
                 if (!this.currentMission?.id) {
-                    return; // Sortir silencieusement si pas de mission valide
+                    return;
                 }
 
-                const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        console.warn('Mission files not found, skipping check');
-                        return;
+                // Add error handling and retry logic
+                const maxRetries = 3;
+                let retryCount = 0;
+                let success = false;
+
+                while (!success && retryCount < maxRetries) {
+                    try {
+                        const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
+                        
+                        if (response.ok) {
+                            const newFiles = await response.json();
+                            // Compare modification timestamps
+                            newFiles.forEach(newFile => {
+                                const existingFile = this.files.find(f => f.path === newFile.path);
+                                if (existingFile && existingFile.modified !== newFile.modified) {
+                                    this.flashFile(newFile.path);
+                                    Object.assign(existingFile, newFile);
+                                }
+                            });
+                            success = true;
+                        } else if (response.status === 404) {
+                            console.warn('Mission files not found, skipping check');
+                            return;
+                        }
+                    } catch (error) {
+                        retryCount++;
+                        if (retryCount < maxRetries) {
+                            // Wait before retrying (exponential backoff)
+                            await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+                            console.warn(`Retry attempt ${retryCount} of ${maxRetries}`);
+                        } else {
+                            throw error;
+                        }
                     }
-                    throw new Error(`Failed to check files: ${response.statusText}`);
                 }
-                
-                const newFiles = await response.json();
-                
-                // Compare modification timestamps
-                newFiles.forEach(newFile => {
-                    const existingFile = this.files.find(f => f.path === newFile.path);
-                    if (existingFile && existingFile.modified !== newFile.modified) {
-                        // File modified - trigger flash
-                        this.flashFile(newFile.path);
-                        // Update file data
-                        Object.assign(existingFile, newFile);
-                    }
-                });
-                
             } catch (error) {
                 console.error('Error checking file modifications:', error);
-                // Ne pas propager l'erreur pour éviter les messages d'erreur répétés
+                // Reduce polling frequency on error
+                if (this.fileCheckInterval) {
+                    clearInterval(this.fileCheckInterval);
+                    this.fileCheckInterval = setInterval(() => {
+                        if (this.currentMission?.id) {
+                            this.checkFileModifications();
+                        }
+                    }, 5000); // Increase interval to 5 seconds on error
+                }
             }
         },
 

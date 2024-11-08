@@ -37,9 +37,17 @@ app = kinos.get_app()  # This is the WSGI application
 
 if __name__ == '__main__':
     if sys.platform == 'win32':
-        # Windows - use waitress
+        # Windows - use waitress with error handling
         from waitress import serve
-        serve(app, host='127.0.0.1', port=8000)
+        try:
+            print("Starting server on http://127.0.0.1:8000")
+            serve(app, host='127.0.0.1', port=8000)
+        except Exception as e:
+            print(f"Error starting server: {e}")
     else:
         # Linux/Unix - use Flask's built-in server
-        app.run(host='0.0.0.0', port=8000)
+        try:
+            print("Starting server on http://0.0.0.0:8000")
+            app.run(host='0.0.0.0', port=8000)
+        except Exception as e:
+            print(f"Error starting server: {e}")

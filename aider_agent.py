@@ -134,43 +134,27 @@ class AiderAgent(KinOSAgent):
                     with open(self.file_path, 'r', encoding='utf-8') as f:
                         new_content = f.read()
                     
-                    # Notifier du changement via une requête à l'API
+                    # Notifier du changement via le service de notification
                     try:
                         # Construire les données de notification
                         file_name = os.path.basename(self.file_path)
                         panel_name = os.path.splitext(file_name)[0].capitalize()
                         
-                        notification_data = {
-                            'file_path': file_name,  # Juste le nom du fichier
-                            'content': new_content,
-                            'panel': panel_name,     # Nom du panneau (ex: "Specifications") 
-                            'flash': True,
-                            'type': 'info',
-                            'message': f'Content updated in {panel_name}'
-                        }
-                        
-                        # Log notification data for debugging
-                        self.logger(f"Sending notification data: {notification_data}")
-                        
-                        # Faire la requête POST pour notifier du changement
-                        import requests
-                        response = requests.post(
-                            'http://localhost:8000/api/content',  # Changement d'endpoint
-                            json=notification_data
+                        # Use the notification service instead of direct API call
+                        success = self.web_instance.notification_service.handle_content_change(
+                            file_path=file_name,
+                            content=new_content,
+                            panel_name=panel_name,
+                            flash=True
                         )
-                        
-                        # Log response details
-                        self.logger(f"Notification response: {response.status_code}")
-                        if response.status_code != 200:
-                            self.logger(f"Response content: {response.text}")
-                            
-                        if response.status_code == 200:
-                            self.logger(f"✓ Notification de changement envoyée pour {panel_name}")
+
+                        if success:
+                            self.logger(f"✓ Notification sent for {panel_name}")
                         else:
-                            self.logger(f"❌ Erreur notification changement: {response.status_code}")
-                            
+                            self.logger(f"❌ Failed to send notification for {panel_name}")
+
                     except Exception as e:
-                        self.logger(f"❌ Erreur envoi notification: {str(e)}")
+                        self.logger(f"❌ Error sending notification: {str(e)}")
                     
                     return stdout
                 else:
