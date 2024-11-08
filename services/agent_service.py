@@ -162,6 +162,74 @@ class AgentService:
         self.monitor_thread = None
         self.running = False
 
+    def update_agent_paths(self, mission_name: str) -> None:
+        """Update file paths for all agents when mission changes"""
+        try:
+            # Build and normalize mission path
+            mission_dir = os.path.abspath(os.path.join("missions", mission_name))
+            os.makedirs(mission_dir, exist_ok=True)
+            
+            self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
+            
+            # Stop agents if running
+            was_running = any(agent.running for agent in self.agents.values())
+            if was_running:
+                self.stop_all_agents()
+            
+            # Update paths for each agent with correct file mappings
+            agent_files = {
+                "Specification": {
+                    "main": os.path.join(mission_dir, "specifications.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "demande.md"),
+                        os.path.join(mission_dir, "production.md")
+                    ]
+                },
+                "Production": {
+                    "main": os.path.join(mission_dir, "production.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ]
+                },
+                "Management": {
+                    "main": os.path.join(mission_dir, "management.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ]
+                },
+                "Evaluation": {
+                    "main": os.path.join(mission_dir, "evaluation.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md")
+                    ]
+                }
+            }
+            
+            for name, agent in self.agents.items():
+                try:
+                    if name in agent_files:
+                        config = agent_files[name]
+                        agent.update_paths(
+                            config["main"],
+                            config["watch"]
+                        )
+                except Exception as e:
+                    self.web_instance.logger.log(f"Error updating paths for {name}: {str(e)}", level='error')
+            
+            # Restart agents if they were running
+            if was_running:
+                self.start_all_agents()
+                
+            self.web_instance.logger.log(f"✓ Agent paths updated for mission: {mission_name}", level='success')
+            
+        except Exception as e:
+            self.web_instance.logger.log(f"❌ Error updating agent paths: {str(e)}", level='error')
+            raise
+
     def init_agents(self, config: Dict[str, Any]) -> None:
         """Initialize all agents with configuration"""
         try:
