@@ -34,7 +34,9 @@ const ParallagonApp = {
                     }
                 });
             }
-        }
+        },
+    data() {
+        return {
             suiviContent: '', // Store raw suivi content
             missionSidebarCollapsed: false,
             currentMission: null,
@@ -641,13 +643,6 @@ const ParallagonApp = {
             }
         },
 
-        isAgentTab(tabId) {
-            return ['specifications', 'management', 'production', 'evaluation', 'suivi'].includes(tabId);
-        },
-
-        isAgentRunning(tabId) {
-            return this.runningAgents.has(tabId);
-        },
 
         updateAgentsStatus(status) {
             // Mettre à jour runningAgents basé sur le statut
@@ -911,20 +906,6 @@ const ParallagonApp = {
         }
     },
 
-    
-    async refreshAgentsStatus() {
-        try {
-            const response = await fetch('/api/agents/status');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const status = await response.json();
-            this.updateAgentsStatus(status);
-        } catch (error) {
-            console.error('Failed to refresh agents status:', error);
-            // Ne pas propager l'erreur, juste logger
-        }
-    },
 
     mounted() {
         // Add notifications container to body
