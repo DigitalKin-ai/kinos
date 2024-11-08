@@ -140,14 +140,6 @@ class ParallagonAgent:
         self.last_change = None
         self.consecutive_no_changes = 0
 
-    # Validation configurations for different agent types
-    VALIDATION_CONFIGS = {
-        'ProductionAgent': {'validate_raw': True},
-        'ManagementAgent': {'required_sections': ["Consignes Actuelles", "TodoList", "Actions Réalisées"]},
-        'SpecificationsAgent': {'require_level1_heading': True},
-        'EvaluationAgent': {'required_sections': ["Évaluations en Cours", "Vue d'Ensemble"]}
-    }
-
     @agent_error_handler("read_files")
     def read_files(self) -> None:
         """
