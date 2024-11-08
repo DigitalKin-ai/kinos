@@ -5,12 +5,25 @@
 class ApiClient {
     constructor(baseUrl = '') {
         this.baseUrl = baseUrl;
+        this.token = null; // For future authentication
+    }
+
+    setToken(token) {
+        this.token = token;
     }
 
     async handleResponse(response) {
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.error || 'API request failed');
+            // Handle different error codes
+            switch(response.status) {
+                case 401:
+                    throw new Error('Unauthorized');
+                case 404:
+                    throw new Error('Resource not found');
+                default:
+                    throw new Error(error.error || 'API request failed');
+            }
         }
         return response.json();
     }
@@ -67,6 +80,36 @@ class ApiClient {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updates)
+        });
+        return this.handleResponse(response);
+    }
+
+    // File operations
+    async getFileContent(missionId, filePath) {
+        const response = await fetch(`${this.baseUrl}/api/missions/${missionId}/files/${filePath}`);
+        return this.handleResponse(response);
+    }
+
+    async saveFileContent(missionId, filePath, content) {
+        const response = await fetch(`${this.baseUrl}/api/missions/${missionId}/files/${filePath}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content })
+        });
+        return this.handleResponse(response);
+    }
+
+    // Agent operations
+    async getAgentLogs(agentId) {
+        const response = await fetch(`${this.baseUrl}/api/agent/${agentId}/logs`);
+        return this.handleResponse(response);
+    }
+
+    async updateAgentConfig(agentId, config) {
+        const response = await fetch(`${this.baseUrl}/api/agent/${agentId}/config`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
         });
         return this.handleResponse(response);
     }
