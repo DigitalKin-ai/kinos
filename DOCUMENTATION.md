@@ -298,7 +298,7 @@ Centralized error management via ErrorHandler:
 
 ### Environment Variables
 Required in `.env`:
-```
+```env
 # API Keys
 ANTHROPIC_API_KEY=your_key_here
 OPENAI_API_KEY=your_key_here
