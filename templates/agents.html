@@ -48,8 +48,14 @@
         },
         async mounted() {
             try {
-                this.missions = await this.missionService.getAllMissions();
+                const response = await fetch('/api/missions');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch missions');
+                }
+                const missions = await response.json();
+                this.missions = missions;
                 this.loading = false;
+                console.log('Loaded missions:', missions);
             } catch (error) {
                 console.error('Failed to load missions:', error);
                 this.loading = false;
