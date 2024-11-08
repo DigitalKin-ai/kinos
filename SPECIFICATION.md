@@ -2,10 +2,63 @@
 *Framework d'Agents Autonomes Parallèles*
 
 ## 1. Vue d'Ensemble
-- Description générale du projet
-- Objectifs principaux
-- Architecture globale
-- Principes de fonctionnement
+
+### Description générale du projet
+Parallagon est un framework innovant d'agents autonomes collaboratifs conçu pour automatiser et optimiser le développement logiciel. Il met en œuvre une approche unique où plusieurs agents spécialisés travaillent en parallèle, chacun ayant un rôle distinct mais interconnecté dans le processus de développement.
+
+### Objectifs principaux
+- **Automatisation intelligente** : Réduire la charge manuelle en automatisant les tâches répétitives du développement
+- **Collaboration multi-agents** : Permettre une coopération efficace entre agents spécialisés
+- **Adaptabilité** : S'ajuster dynamiquement aux besoins et contraintes des projets
+- **Traçabilité** : Assurer un suivi complet des décisions et modifications
+- **Qualité** : Maintenir des standards élevés grâce à des vérifications continues
+
+### Architecture globale
+Le système s'articule autour de trois couches principales :
+
+1. **Couche Agents**
+   - Agents spécialisés (Specifications, Production, Management, etc.)
+   - Moteur de coordination
+   - Système de communication inter-agents
+
+2. **Couche Infrastructure**
+   - Système de fichiers
+   - Base de données des missions
+   - Gestionnaire d'états
+   - Système de logging
+
+3. **Couche Interface**
+   - Interface web réactive
+   - API REST
+   - Système de notifications
+   - Tableaux de bord
+
+### Principes de fonctionnement
+
+1. **Autonomie des agents**
+   - Chaque agent opère de manière indépendante
+   - Prise de décision autonome basée sur son domaine d'expertise
+   - Auto-régulation du rythme d'exécution
+
+2. **Communication asynchrone**
+   - Échange d'informations via le système de fichiers
+   - Notifications en temps réel des modifications
+   - Synchronisation automatique des états
+
+3. **Persistence et cohérence**
+   - Sauvegarde systématique des modifications
+   - Gestion des conflits
+   - Maintien de la cohérence des données
+
+4. **Adaptabilité dynamique**
+   - Ajustement automatique des intervalles d'exécution
+   - Adaptation aux charges de travail
+   - Optimisation des ressources
+
+5. **Monitoring continu**
+   - Surveillance en temps réel des activités
+   - Détection et récupération des erreurs
+   - Métriques de performance
 
 ## 2. Composants Principaux
 ### 2.1 Agents
