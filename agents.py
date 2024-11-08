@@ -35,7 +35,7 @@ class SpecificationsAgent(AiderAgent):
             raise ValueError("web_instance manquant dans la configuration")
         super().__init__(config)
         self.prompt_file = "prompts/specifications.md"
-        self.role = "specifications"
+        self.role = "specifications"  # Using "specifications" consistently
         self.web_instance = config['web_instance']
 
 class ProductionAgent(AiderAgent):
