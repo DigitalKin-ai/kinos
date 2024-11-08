@@ -32,7 +32,13 @@ def register_view_routes(app, web_instance):
 
     @app.route('/files')
     def files_page():
-        return render_template('files.html')
+        """Render the files interface"""
+        try:
+            logger.log("Loading files interface", level="info")
+            return render_template('files.html')
+        except Exception as e:
+            logger.log(f"Error loading files interface: {str(e)}", level="error")
+            return ErrorHandler.handle_error(e)
 
     @app.route('/clean')
     @safe_operation()
