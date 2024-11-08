@@ -163,21 +163,45 @@ class AgentService:
                 self.web_instance.log_message("No mission available for initialization")
                 return
 
+            # Construct mission directory path
+            mission_dir = os.path.join("missions", mission_name)
+            
             # Base configuration for all agents
             base_config = {
                 "check_interval": 10,
                 "anthropic_api_key": config["anthropic_api_key"],
                 "openai_api_key": config["openai_api_key"],
-                "mission_name": mission_name
+                "mission_name": mission_name,
+                "logger": self.web_instance.log_message
             }
 
-            # Initialize each agent type
+            # Initialize each agent type with correct file paths
             self.agents = {
-                "Specification": SpecificationsAgent({**base_config, "name": "Specification"}),
-                "Production": ProductionAgent({**base_config, "name": "Production"}),
-                "Management": ManagementAgent({**base_config, "name": "Management"}),
-                "Evaluation": EvaluationAgent({**base_config, "name": "Evaluation"}),
-                "Suivi": SuiviAgent({**base_config, "name": "Suivi"})
+                "Specification": SpecificationsAgent({
+                    **base_config,
+                    "name": "Specification",
+                    "file_path": os.path.join(mission_dir, "specifications.md")
+                }),
+                "Production": ProductionAgent({
+                    **base_config,
+                    "name": "Production",
+                    "file_path": os.path.join(mission_dir, "production.md")
+                }),
+                "Management": ManagementAgent({
+                    **base_config,
+                    "name": "Management",
+                    "file_path": os.path.join(mission_dir, "management.md")
+                }),
+                "Evaluation": EvaluationAgent({
+                    **base_config,
+                    "name": "Evaluation",
+                    "file_path": os.path.join(mission_dir, "evaluation.md")
+                }),
+                "Suivi": SuiviAgent({
+                    **base_config,
+                    "name": "Suivi",
+                    "file_path": os.path.join(mission_dir, "suivi.md")
+                })
             }
 
         except Exception as e:
