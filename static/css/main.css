@@ -19,6 +19,35 @@ Add component-specific styles to their respective CSS files.
 Follow BEM naming convention for all classes.
 */
 
+/* Styles pour le contenu Markdown */
+.prose {
+    color: #374151;
+    max-width: none;
+}
+
+.prose h1 { font-size: 2em; margin: 1em 0 0.5em; }
+.prose h2 { font-size: 1.5em; margin: 1em 0 0.5em; }
+.prose h3 { font-size: 1.3em; margin: 1em 0 0.5em; }
+.prose p { margin-bottom: 1em; }
+.prose ul, .prose ol { margin-bottom: 1em; padding-left: 2em; }
+.prose code { 
+    background: #f5f5f5; 
+    padding: 0.2em 0.4em; 
+    border-radius: 3px;
+    font-family: monospace;
+}
+.prose pre { 
+    background: #f5f5f5; 
+    padding: 1em; 
+    margin-bottom: 1em; 
+    overflow-x: auto;
+}
+
+*:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
 /* File explorer flash effect */
 .bg-yellow-100 {
     background-color: #fef9c3;
