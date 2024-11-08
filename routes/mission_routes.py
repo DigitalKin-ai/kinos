@@ -55,6 +55,10 @@ def register_mission_routes(app, web_instance):
             if not mission:
                 return jsonify({'error': 'Mission not found'}), 404
 
+            # S'assurer que le dossier et les fichiers existent
+            if not web_instance.mission_service.ensure_mission_files(mission_id):
+                return jsonify({'error': 'Failed to ensure mission files'}), 500
+
             # Extensions de fichiers supportées
             text_extensions = {'.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml'}
             
