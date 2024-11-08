@@ -8,15 +8,47 @@
 - API keys for Anthropic and OpenAI
 - portalocker (for file locking)
 - Redis (optional, for distributed caching)
+- Aider CLI tool installed and configured
+
+### System Requirements
+- 4GB RAM minimum
+- 2 CPU cores minimum
+- 1GB free disk space
+- Network access for API calls
 
 ### Environment Variables
 Required in `.env`:
 ```
+# API Keys
 ANTHROPIC_API_KEY=your_key_here
 OPENAI_API_KEY=your_key_here
+
+# Server Configuration
 DEBUG=True/False
 PORT=8000
 HOST=0.0.0.0
+
+# File Operations
+FILE_LOCK_TIMEOUT=10
+MAX_FILE_SIZE=10485760
+LOCK_CHECK_INTERVAL=100
+
+# Cache Settings
+CACHE_DURATION=3600
+CACHE_CLEANUP_INTERVAL=300
+CONTENT_CACHE_SIZE=1000
+
+# Error Handling
+RETRY_ATTEMPTS=3
+RETRY_DELAY=1.0
+ERROR_RETRY_CODES=[408,429,500,502,503,504]
+
+# Notifications
+NOTIFICATION_QUEUE_SIZE=500
+NOTIFICATION_BATCH_SIZE=50
+
+# Logging
+LOG_LEVEL=info
 ```
 
 ### Installation
@@ -40,30 +72,30 @@ HOST=0.0.0.0
   - Framework de base pour les agents autonomes
   - Intégration avec l'outil Aider
   - Gestion des prompts avec cache et invalidation
-    * Cache LRU configurable
+    * Cache LRU configurable via CACHE_DURATION
     * Invalidation basée sur les timestamps
-    * Préchargement intelligent
-    * Métriques de performance
+    * Préchargement intelligent avec _load_prompt()
+    * Cache par agent avec _prompt_cache
   - Surveillance des fichiers avec portalocker
-    * Verrouillage thread-safe
+    * Verrouillage thread-safe via Lock class
+    * Timeouts configurables via FILE_LOCK_TIMEOUT
+    * Retry automatique avec @safe_operation
+    * Nettoyage des verrous via context manager
+  - Gestion des chemins de fichiers
+    * Résolution des chemins absolus
+    * Validation des chemins via _validate_file_path
+    * Création automatique des dossiers manquants
+    * Support des liens symboliques
+  - Exécution sécurisée des commandes
+    * Validation des entrées
+    * Capture des erreurs stdout/stderr
     * Timeouts configurables
-    * Retry automatique
-    * Nettoyage des verrous
-  - Retry automatique via @safe_operation
-    * Délais exponentiels
-    * Conditions personnalisables
-    * Limites configurables
-    * Logging des tentatives
-  - Logging détaillé avec niveaux
-    * Rotation des fichiers
-    * Formatage configurable
-    * Niveaux multiples
-    * Métriques agrégées
-  - Métriques de performance
-    * Temps d'exécution
-    * Taux de succès
-    * Utilisation mémoire
-    * Latence des opérations
+    * Retry sur échec avec délai exponentiel
+  - Notifications temps réel
+    * Envoi via API /api/notifications
+    * Support du flash des onglets
+    * Messages formatés avec timestamps
+    * Queue thread-safe
 
 - `agents.py`
   - Agents spécialisés :
