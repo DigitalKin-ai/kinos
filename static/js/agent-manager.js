@@ -96,15 +96,22 @@ export default {
         async toggleAgent(agent) {
             try {
                 const action = agent.running ? 'stop' : 'start';
+                console.log(`Attempting to ${action} agent: ${agent.id}`);
+                
                 const response = await fetch(`/api/agent/${agent.id}/${action}`, {
                     method: 'POST'
                 });
                 const result = await response.json();
+                
                 if (result.status === 'success') {
                     agent.running = !agent.running;
+                    console.log(`Successfully ${action}ed agent: ${agent.id}`);
+                } else {
+                    throw new Error(result.error || `Failed to ${action} agent`);
                 }
             } catch (error) {
                 console.error(`Failed to ${action} agent:`, error);
+                alert(`Error ${action}ing agent: ${error.message}`);
             }
         },
 
