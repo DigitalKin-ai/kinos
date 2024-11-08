@@ -190,7 +190,7 @@ class KinOSWeb:
                 "openai_api_key": config["openai_api_key"],
                 "logger": self.log_message,
                 "mission_name": mission_name,
-                "web_instance": self  # Add web instance to config
+                "web_instance": self  # Add web_instance to base config
             }
 
             # Load prompts from files
