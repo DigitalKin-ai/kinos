@@ -221,6 +221,20 @@ class AgentService:
                     "file_path": os.path.join(mission_dir, "suivi.md"),
                     "prompt": load_prompt("prompts/suivi.md"),
                     "prompt_file": "prompts/suivi.md"
+                }),
+                "Documentaliste": DocumentalisteAgent({
+                    **base_config,
+                    "name": "Documentaliste",
+                    "file_path": os.path.join(mission_dir, "documentation.md"),
+                    "prompt": load_prompt("prompts/documentaliste.md"),
+                    "prompt_file": "prompts/documentaliste.md"
+                }),
+                "Duplication": DuplicationAgent({
+                    **base_config,
+                    "name": "Duplication",
+                    "file_path": os.path.join(mission_dir, "duplication.md"),
+                    "prompt": load_prompt("prompts/duplication.md"),
+                    "prompt_file": "prompts/duplication.md"
                 })
             }
 
