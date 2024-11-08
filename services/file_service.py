@@ -4,6 +4,7 @@ FileService - Service de gestion des fichiers pour KinOS
 import os
 import portalocker
 from typing import Dict, Optional, List
+from services.file_manager import FileManager
 from datetime import datetime
 from utils.exceptions import FileOperationError, ValidationError
 from utils.decorators import safe_operation
