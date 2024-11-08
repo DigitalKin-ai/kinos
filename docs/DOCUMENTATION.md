@@ -824,12 +824,12 @@ CSRF_PROTECTION=True
 2. Create a virtual environment
 3. Install dependencies: `pip install -r requirements.txt`
 4. Copy `.env.example` to `.env` and configure API keys
-5. Run `python web/kinos_web.py`
+5. Run `python kinos_web.py`
 
 ## User Guide
 
 ### 1. Core Application
-- `web/kinos_web.py`
+- `kinos_web.py`
   - Point d'entrée principal de l'application
   - Configuration Flask et middleware
   - Initialisation des services

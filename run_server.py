@@ -11,7 +11,7 @@ sys.path.insert(0, project_root)
 project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
-from web.kinos_web import KinOSWeb
+from kinos_web import KinOSWeb
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

@@ -12864,3 +12864,444 @@ werkzeug.exceptions.MethodNotAllowed: 405 Method Not Allowed: The method is not 
 [16:06:24] [INFO] [SuiviAgent] Fichier principal: C:\Users\conta\kinos\missions\Mission IoT Kineis\suivi.md
 [16:06:24] [INFO] [SuiviAgent] Fichiers secondaires: ['C:\\Users\\conta\\kinos\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\kinos\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\kinos\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\kinos\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\kinos\\missions\\Mission IoT Kineis\\specifications.md']
 [16:06:24] [SUCCESS] All components initialized successfully
+[16:44:53] [INFO] [SpecificationsAgent] 📁 Fichiers trouvés: 5
+[16:44:53] [INFO] [SpecificationsAgent] 📄 demande.md
+[16:44:53] [INFO] [SpecificationsAgent] 📄 evaluation.md
+[16:44:53] [INFO] [SpecificationsAgent] 📄 management.md
+[16:44:53] [INFO] [SpecificationsAgent] 📄 production.md
+[16:44:53] [INFO] [SpecificationsAgent] 📄 suivi.md
+[16:44:53] [INFO] [SpecificationsAgent] Initialisé comme Specification
+[16:44:53] [INFO] [SpecificationsAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:44:53] [INFO] [SpecificationsAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\specifications.md
+[16:44:53] [INFO] [SpecificationsAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:44:54] [INFO] [ProductionAgent] 📁 Fichiers trouvés: 5
+[16:44:54] [INFO] [ProductionAgent] 📄 demande.md
+[16:44:54] [INFO] [ProductionAgent] 📄 evaluation.md
+[16:44:54] [INFO] [ProductionAgent] 📄 management.md
+[16:44:54] [INFO] [ProductionAgent] 📄 specifications.md
+[16:44:54] [INFO] [ProductionAgent] 📄 suivi.md
+[16:44:54] [INFO] [ProductionAgent] Initialisé comme Production
+[16:44:54] [INFO] [ProductionAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:44:54] [INFO] [ProductionAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\production.md
+[16:44:54] [INFO] [ProductionAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:44:54] [INFO] [ManagementAgent] 📁 Fichiers trouvés: 5
+[16:44:54] [INFO] [ManagementAgent] 📄 demande.md
+[16:44:54] [INFO] [ManagementAgent] 📄 evaluation.md
+[16:44:54] [INFO] [ManagementAgent] 📄 production.md
+[16:44:54] [INFO] [ManagementAgent] 📄 specifications.md
+[16:44:54] [INFO] [ManagementAgent] 📄 suivi.md
+[16:44:54] [INFO] [ManagementAgent] Initialisé comme Management
+[16:44:54] [INFO] [ManagementAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:44:54] [INFO] [ManagementAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\management.md
+[16:44:54] [INFO] [ManagementAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:44:54] [INFO] [EvaluationAgent] 📁 Fichiers trouvés: 5
+[16:44:54] [INFO] [EvaluationAgent] 📄 demande.md
+[16:44:54] [INFO] [EvaluationAgent] 📄 management.md
+[16:44:54] [INFO] [EvaluationAgent] 📄 production.md
+[16:44:54] [INFO] [EvaluationAgent] 📄 specifications.md
+[16:44:54] [INFO] [EvaluationAgent] 📄 suivi.md
+[16:44:54] [INFO] [EvaluationAgent] Initialisé comme Evaluation
+[16:44:54] [INFO] [EvaluationAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:44:54] [INFO] [EvaluationAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\evaluation.md
+[16:44:54] [INFO] [EvaluationAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:44:55] [INFO] [SuiviAgent] 📁 Fichiers trouvés: 5
+[16:44:55] [INFO] [SuiviAgent] 📄 demande.md
+[16:44:55] [INFO] [SuiviAgent] 📄 evaluation.md
+[16:44:55] [INFO] [SuiviAgent] 📄 management.md
+[16:44:55] [INFO] [SuiviAgent] 📄 production.md
+[16:44:55] [INFO] [SuiviAgent] 📄 specifications.md
+[16:44:55] [INFO] [SuiviAgent] Initialisé comme Suivi
+[16:44:55] [INFO] [SuiviAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:44:55] [INFO] [SuiviAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\suivi.md
+[16:44:55] [INFO] [SuiviAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md']
+[16:44:55] [SUCCESS] All components initialized successfully
+[16:47:32] [INFO] [SpecificationsAgent] 📁 Fichiers trouvés: 5
+[16:47:32] [INFO] [SpecificationsAgent] 📄 demande.md
+[16:47:32] [INFO] [SpecificationsAgent] 📄 evaluation.md
+[16:47:32] [INFO] [SpecificationsAgent] 📄 management.md
+[16:47:32] [INFO] [SpecificationsAgent] 📄 production.md
+[16:47:32] [INFO] [SpecificationsAgent] 📄 suivi.md
+[16:47:32] [INFO] [SpecificationsAgent] Initialisé comme Specification
+[16:47:32] [INFO] [SpecificationsAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:47:32] [INFO] [SpecificationsAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\specifications.md
+[16:47:32] [INFO] [SpecificationsAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:47:33] [INFO] [ProductionAgent] 📁 Fichiers trouvés: 5
+[16:47:33] [INFO] [ProductionAgent] 📄 demande.md
+[16:47:33] [INFO] [ProductionAgent] 📄 evaluation.md
+[16:47:33] [INFO] [ProductionAgent] 📄 management.md
+[16:47:33] [INFO] [ProductionAgent] 📄 specifications.md
+[16:47:33] [INFO] [ProductionAgent] 📄 suivi.md
+[16:47:33] [INFO] [ProductionAgent] Initialisé comme Production
+[16:47:33] [INFO] [ProductionAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:47:33] [INFO] [ProductionAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\production.md
+[16:47:33] [INFO] [ProductionAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:47:33] [INFO] [ManagementAgent] 📁 Fichiers trouvés: 5
+[16:47:33] [INFO] [ManagementAgent] 📄 demande.md
+[16:47:33] [INFO] [ManagementAgent] 📄 evaluation.md
+[16:47:33] [INFO] [ManagementAgent] 📄 production.md
+[16:47:33] [INFO] [ManagementAgent] 📄 specifications.md
+[16:47:33] [INFO] [ManagementAgent] 📄 suivi.md
+[16:47:33] [INFO] [ManagementAgent] Initialisé comme Management
+[16:47:33] [INFO] [ManagementAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:47:33] [INFO] [ManagementAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\management.md
+[16:47:33] [INFO] [ManagementAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:47:34] [INFO] [EvaluationAgent] 📁 Fichiers trouvés: 5
+[16:47:34] [INFO] [EvaluationAgent] 📄 demande.md
+[16:47:34] [INFO] [EvaluationAgent] 📄 management.md
+[16:47:34] [INFO] [EvaluationAgent] 📄 production.md
+[16:47:34] [INFO] [EvaluationAgent] 📄 specifications.md
+[16:47:34] [INFO] [EvaluationAgent] 📄 suivi.md
+[16:47:34] [INFO] [EvaluationAgent] Initialisé comme Evaluation
+[16:47:34] [INFO] [EvaluationAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:47:34] [INFO] [EvaluationAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\evaluation.md
+[16:47:34] [INFO] [EvaluationAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:47:34] [INFO] [SuiviAgent] 📁 Fichiers trouvés: 5
+[16:47:34] [INFO] [SuiviAgent] 📄 demande.md
+[16:47:34] [INFO] [SuiviAgent] 📄 evaluation.md
+[16:47:34] [INFO] [SuiviAgent] 📄 management.md
+[16:47:34] [INFO] [SuiviAgent] 📄 production.md
+[16:47:34] [INFO] [SuiviAgent] 📄 specifications.md
+[16:47:34] [INFO] [SuiviAgent] Initialisé comme Suivi
+[16:47:34] [INFO] [SuiviAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:47:34] [INFO] [SuiviAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\suivi.md
+[16:47:34] [INFO] [SuiviAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md']
+[16:47:34] [SUCCESS] All components initialized successfully
+[16:50:49] [INFO] [SpecificationsAgent] 📁 Fichiers trouvés: 5
+[16:50:49] [INFO] [SpecificationsAgent] 📄 demande.md
+[16:50:49] [INFO] [SpecificationsAgent] 📄 evaluation.md
+[16:50:49] [INFO] [SpecificationsAgent] 📄 management.md
+[16:50:49] [INFO] [SpecificationsAgent] 📄 production.md
+[16:50:49] [INFO] [SpecificationsAgent] 📄 suivi.md
+[16:50:49] [INFO] [SpecificationsAgent] Initialisé comme Specification
+[16:50:49] [INFO] [SpecificationsAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:50:49] [INFO] [SpecificationsAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\specifications.md
+[16:50:49] [INFO] [SpecificationsAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:50:49] [INFO] [ProductionAgent] 📁 Fichiers trouvés: 5
+[16:50:49] [INFO] [ProductionAgent] 📄 demande.md
+[16:50:49] [INFO] [ProductionAgent] 📄 evaluation.md
+[16:50:49] [INFO] [ProductionAgent] 📄 management.md
+[16:50:49] [INFO] [ProductionAgent] 📄 specifications.md
+[16:50:49] [INFO] [ProductionAgent] 📄 suivi.md
+[16:50:49] [INFO] [ProductionAgent] Initialisé comme Production
+[16:50:49] [INFO] [ProductionAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:50:49] [INFO] [ProductionAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\production.md
+[16:50:49] [INFO] [ProductionAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:50:50] [INFO] [ManagementAgent] 📁 Fichiers trouvés: 5
+[16:50:50] [INFO] [ManagementAgent] 📄 demande.md
+[16:50:50] [INFO] [ManagementAgent] 📄 evaluation.md
+[16:50:50] [INFO] [ManagementAgent] 📄 production.md
+[16:50:50] [INFO] [ManagementAgent] 📄 specifications.md
+[16:50:50] [INFO] [ManagementAgent] 📄 suivi.md
+[16:50:50] [INFO] [ManagementAgent] Initialisé comme Management
+[16:50:50] [INFO] [ManagementAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:50:50] [INFO] [ManagementAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\management.md
+[16:50:50] [INFO] [ManagementAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:50:50] [INFO] [EvaluationAgent] 📁 Fichiers trouvés: 5
+[16:50:50] [INFO] [EvaluationAgent] 📄 demande.md
+[16:50:50] [INFO] [EvaluationAgent] 📄 management.md
+[16:50:50] [INFO] [EvaluationAgent] 📄 production.md
+[16:50:50] [INFO] [EvaluationAgent] 📄 specifications.md
+[16:50:50] [INFO] [EvaluationAgent] 📄 suivi.md
+[16:50:50] [INFO] [EvaluationAgent] Initialisé comme Evaluation
+[16:50:50] [INFO] [EvaluationAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:50:50] [INFO] [EvaluationAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\evaluation.md
+[16:50:50] [INFO] [EvaluationAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:50:50] [INFO] [SuiviAgent] 📁 Fichiers trouvés: 5
+[16:50:50] [INFO] [SuiviAgent] 📄 demande.md
+[16:50:50] [INFO] [SuiviAgent] 📄 evaluation.md
+[16:50:50] [INFO] [SuiviAgent] 📄 management.md
+[16:50:50] [INFO] [SuiviAgent] 📄 production.md
+[16:50:50] [INFO] [SuiviAgent] 📄 specifications.md
+[16:50:50] [INFO] [SuiviAgent] Initialisé comme Suivi
+[16:50:50] [INFO] [SuiviAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:50:50] [INFO] [SuiviAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\suivi.md
+[16:50:50] [INFO] [SuiviAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md']
+[16:50:50] [SUCCESS] All components initialized successfully
+[16:52:24] [INFO] [SpecificationsAgent] 📁 Fichiers trouvés: 5
+[16:52:24] [INFO] [SpecificationsAgent] 📄 demande.md
+[16:52:24] [INFO] [SpecificationsAgent] 📄 evaluation.md
+[16:52:24] [INFO] [SpecificationsAgent] 📄 management.md
+[16:52:24] [INFO] [SpecificationsAgent] 📄 production.md
+[16:52:24] [INFO] [SpecificationsAgent] 📄 suivi.md
+[16:52:24] [INFO] [SpecificationsAgent] Initialisé comme Specification
+[16:52:24] [INFO] [SpecificationsAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:52:24] [INFO] [SpecificationsAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\specifications.md
+[16:52:24] [INFO] [SpecificationsAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:52:25] [INFO] [ProductionAgent] 📁 Fichiers trouvés: 5
+[16:52:25] [INFO] [ProductionAgent] 📄 demande.md
+[16:52:25] [INFO] [ProductionAgent] 📄 evaluation.md
+[16:52:25] [INFO] [ProductionAgent] 📄 management.md
+[16:52:25] [INFO] [ProductionAgent] 📄 specifications.md
+[16:52:25] [INFO] [ProductionAgent] 📄 suivi.md
+[16:52:25] [INFO] [ProductionAgent] Initialisé comme Production
+[16:52:25] [INFO] [ProductionAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:52:25] [INFO] [ProductionAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\production.md
+[16:52:25] [INFO] [ProductionAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:52:25] [INFO] [ManagementAgent] 📁 Fichiers trouvés: 5
+[16:52:25] [INFO] [ManagementAgent] 📄 demande.md
+[16:52:25] [INFO] [ManagementAgent] 📄 evaluation.md
+[16:52:25] [INFO] [ManagementAgent] 📄 production.md
+[16:52:25] [INFO] [ManagementAgent] 📄 specifications.md
+[16:52:25] [INFO] [ManagementAgent] 📄 suivi.md
+[16:52:25] [INFO] [ManagementAgent] Initialisé comme Management
+[16:52:25] [INFO] [ManagementAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:52:25] [INFO] [ManagementAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\management.md
+[16:52:25] [INFO] [ManagementAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:52:26] [INFO] [EvaluationAgent] 📁 Fichiers trouvés: 5
+[16:52:26] [INFO] [EvaluationAgent] 📄 demande.md
+[16:52:26] [INFO] [EvaluationAgent] 📄 management.md
+[16:52:26] [INFO] [EvaluationAgent] 📄 production.md
+[16:52:26] [INFO] [EvaluationAgent] 📄 specifications.md
+[16:52:26] [INFO] [EvaluationAgent] 📄 suivi.md
+[16:52:26] [INFO] [EvaluationAgent] Initialisé comme Evaluation
+[16:52:26] [INFO] [EvaluationAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:52:26] [INFO] [EvaluationAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\evaluation.md
+[16:52:26] [INFO] [EvaluationAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:52:26] [INFO] [SuiviAgent] 📁 Fichiers trouvés: 5
+[16:52:26] [INFO] [SuiviAgent] 📄 demande.md
+[16:52:26] [INFO] [SuiviAgent] 📄 evaluation.md
+[16:52:26] [INFO] [SuiviAgent] 📄 management.md
+[16:52:26] [INFO] [SuiviAgent] 📄 production.md
+[16:52:26] [INFO] [SuiviAgent] 📄 specifications.md
+[16:52:26] [INFO] [SuiviAgent] Initialisé comme Suivi
+[16:52:26] [INFO] [SuiviAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:52:26] [INFO] [SuiviAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\suivi.md
+[16:52:26] [INFO] [SuiviAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md']
+[16:52:26] [SUCCESS] All components initialized successfully
+[16:54:11] [INFO] [SpecificationsAgent] 📁 Fichiers trouvés: 5
+[16:54:11] [INFO] [SpecificationsAgent] 📄 demande.md
+[16:54:11] [INFO] [SpecificationsAgent] 📄 evaluation.md
+[16:54:11] [INFO] [SpecificationsAgent] 📄 management.md
+[16:54:11] [INFO] [SpecificationsAgent] 📄 production.md
+[16:54:11] [INFO] [SpecificationsAgent] 📄 suivi.md
+[16:54:11] [INFO] [SpecificationsAgent] Initialisé comme Specification
+[16:54:11] [INFO] [SpecificationsAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:54:11] [INFO] [SpecificationsAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\specifications.md
+[16:54:11] [INFO] [SpecificationsAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:54:11] [INFO] [ProductionAgent] 📁 Fichiers trouvés: 5
+[16:54:11] [INFO] [ProductionAgent] 📄 demande.md
+[16:54:11] [INFO] [ProductionAgent] 📄 evaluation.md
+[16:54:11] [INFO] [ProductionAgent] 📄 management.md
+[16:54:11] [INFO] [ProductionAgent] 📄 specifications.md
+[16:54:11] [INFO] [ProductionAgent] 📄 suivi.md
+[16:54:11] [INFO] [ProductionAgent] Initialisé comme Production
+[16:54:11] [INFO] [ProductionAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:54:11] [INFO] [ProductionAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\production.md
+[16:54:11] [INFO] [ProductionAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:54:11] [INFO] [ManagementAgent] 📁 Fichiers trouvés: 5
+[16:54:11] [INFO] [ManagementAgent] 📄 demande.md
+[16:54:11] [INFO] [ManagementAgent] 📄 evaluation.md
+[16:54:11] [INFO] [ManagementAgent] 📄 production.md
+[16:54:11] [INFO] [ManagementAgent] 📄 specifications.md
+[16:54:11] [INFO] [ManagementAgent] 📄 suivi.md
+[16:54:11] [INFO] [ManagementAgent] Initialisé comme Management
+[16:54:11] [INFO] [ManagementAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:54:11] [INFO] [ManagementAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\management.md
+[16:54:11] [INFO] [ManagementAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:54:12] [INFO] [EvaluationAgent] 📁 Fichiers trouvés: 5
+[16:54:12] [INFO] [EvaluationAgent] 📄 demande.md
+[16:54:12] [INFO] [EvaluationAgent] 📄 management.md
+[16:54:12] [INFO] [EvaluationAgent] 📄 production.md
+[16:54:12] [INFO] [EvaluationAgent] 📄 specifications.md
+[16:54:12] [INFO] [EvaluationAgent] 📄 suivi.md
+[16:54:12] [INFO] [EvaluationAgent] Initialisé comme Evaluation
+[16:54:12] [INFO] [EvaluationAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:54:12] [INFO] [EvaluationAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\evaluation.md
+[16:54:12] [INFO] [EvaluationAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[16:54:12] [INFO] [SuiviAgent] 📁 Fichiers trouvés: 5
+[16:54:12] [INFO] [SuiviAgent] 📄 demande.md
+[16:54:12] [INFO] [SuiviAgent] 📄 evaluation.md
+[16:54:12] [INFO] [SuiviAgent] 📄 management.md
+[16:54:12] [INFO] [SuiviAgent] 📄 production.md
+[16:54:12] [INFO] [SuiviAgent] 📄 specifications.md
+[16:54:12] [INFO] [SuiviAgent] Initialisé comme Suivi
+[16:54:12] [INFO] [SuiviAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[16:54:12] [INFO] [SuiviAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\suivi.md
+[16:54:12] [INFO] [SuiviAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md']
+[16:54:12] [SUCCESS] All components initialized successfully
+[16:54:15] [INFO] Loading editor interface
+[16:54:15] [INFO] Creating new file: production.md
+[16:54:15] [ERROR] Erreur lecture production.md: 'MissionService' object has no attribute '_get_initial_content'
+[16:54:15] [INFO] Creating new file: suivi.md
+[16:54:15] [ERROR] Erreur lecture suivi.md: 'MissionService' object has no attribute '_get_initial_content'
+[16:54:15] [ERROR] Error loading editor: editor.html
+[17:00:03] [DEBUG] Project root: C:\Users\conta\parallagon
+[17:00:03] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[17:00:03] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[17:00:03] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[17:00:03] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[17:00:04] [INFO] [SpecificationsAgent] 📁 Fichiers trouvés: 5
+[17:00:04] [INFO] [SpecificationsAgent] 📄 demande.md
+[17:00:04] [INFO] [SpecificationsAgent] 📄 evaluation.md
+[17:00:04] [INFO] [SpecificationsAgent] 📄 management.md
+[17:00:04] [INFO] [SpecificationsAgent] 📄 production.md
+[17:00:04] [INFO] [SpecificationsAgent] 📄 suivi.md
+[17:00:04] [INFO] [SpecificationsAgent] Initialisé comme Specification
+[17:00:04] [INFO] [SpecificationsAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:00:04] [INFO] [SpecificationsAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\specifications.md
+[17:00:04] [INFO] [SpecificationsAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[17:00:05] [INFO] [ProductionAgent] 📁 Fichiers trouvés: 5
+[17:00:05] [INFO] [ProductionAgent] 📄 demande.md
+[17:00:05] [INFO] [ProductionAgent] 📄 evaluation.md
+[17:00:05] [INFO] [ProductionAgent] 📄 management.md
+[17:00:05] [INFO] [ProductionAgent] 📄 specifications.md
+[17:00:05] [INFO] [ProductionAgent] 📄 suivi.md
+[17:00:05] [INFO] [ProductionAgent] Initialisé comme Production
+[17:00:05] [INFO] [ProductionAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:00:05] [INFO] [ProductionAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\production.md
+[17:00:05] [INFO] [ProductionAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[17:00:06] [INFO] [ManagementAgent] 📁 Fichiers trouvés: 5
+[17:00:06] [INFO] [ManagementAgent] 📄 demande.md
+[17:00:06] [INFO] [ManagementAgent] 📄 evaluation.md
+[17:00:06] [INFO] [ManagementAgent] 📄 production.md
+[17:00:06] [INFO] [ManagementAgent] 📄 specifications.md
+[17:00:06] [INFO] [ManagementAgent] 📄 suivi.md
+[17:00:06] [INFO] [ManagementAgent] Initialisé comme Management
+[17:00:06] [INFO] [ManagementAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:00:06] [INFO] [ManagementAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\management.md
+[17:00:06] [INFO] [ManagementAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[17:00:06] [INFO] [EvaluationAgent] 📁 Fichiers trouvés: 5
+[17:00:06] [INFO] [EvaluationAgent] 📄 demande.md
+[17:00:06] [INFO] [EvaluationAgent] 📄 management.md
+[17:00:06] [INFO] [EvaluationAgent] 📄 production.md
+[17:00:06] [INFO] [EvaluationAgent] 📄 specifications.md
+[17:00:06] [INFO] [EvaluationAgent] 📄 suivi.md
+[17:00:06] [INFO] [EvaluationAgent] Initialisé comme Evaluation
+[17:00:06] [INFO] [EvaluationAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:00:06] [INFO] [EvaluationAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\evaluation.md
+[17:00:06] [INFO] [EvaluationAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[17:00:07] [INFO] [SuiviAgent] 📁 Fichiers trouvés: 5
+[17:00:07] [INFO] [SuiviAgent] 📄 demande.md
+[17:00:07] [INFO] [SuiviAgent] 📄 evaluation.md
+[17:00:07] [INFO] [SuiviAgent] 📄 management.md
+[17:00:07] [INFO] [SuiviAgent] 📄 production.md
+[17:00:07] [INFO] [SuiviAgent] 📄 specifications.md
+[17:00:07] [INFO] [SuiviAgent] Initialisé comme Suivi
+[17:00:07] [INFO] [SuiviAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:00:07] [INFO] [SuiviAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\suivi.md
+[17:00:07] [INFO] [SuiviAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md']
+[17:00:07] [SUCCESS] All components initialized successfully
+[17:01:20] [DEBUG] Project root: C:\Users\conta\parallagon
+[17:01:20] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[17:01:20] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[17:01:20] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[17:01:20] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[17:01:21] [INFO] [SpecificationsAgent] 📁 Fichiers trouvés: 5
+[17:01:21] [INFO] [SpecificationsAgent] 📄 demande.md
+[17:01:21] [INFO] [SpecificationsAgent] 📄 evaluation.md
+[17:01:21] [INFO] [SpecificationsAgent] 📄 management.md
+[17:01:21] [INFO] [SpecificationsAgent] 📄 production.md
+[17:01:21] [INFO] [SpecificationsAgent] 📄 suivi.md
+[17:01:21] [INFO] [SpecificationsAgent] Initialisé comme Specification
+[17:01:21] [INFO] [SpecificationsAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:01:21] [INFO] [SpecificationsAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\specifications.md
+[17:01:21] [INFO] [SpecificationsAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[17:01:22] [INFO] [ProductionAgent] 📁 Fichiers trouvés: 5
+[17:01:22] [INFO] [ProductionAgent] 📄 demande.md
+[17:01:22] [INFO] [ProductionAgent] 📄 evaluation.md
+[17:01:22] [INFO] [ProductionAgent] 📄 management.md
+[17:01:22] [INFO] [ProductionAgent] 📄 specifications.md
+[17:01:22] [INFO] [ProductionAgent] 📄 suivi.md
+[17:01:22] [INFO] [ProductionAgent] Initialisé comme Production
+[17:01:22] [INFO] [ProductionAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:01:22] [INFO] [ProductionAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\production.md
+[17:01:22] [INFO] [ProductionAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[17:01:23] [INFO] [ManagementAgent] 📁 Fichiers trouvés: 5
+[17:01:23] [INFO] [ManagementAgent] 📄 demande.md
+[17:01:23] [INFO] [ManagementAgent] 📄 evaluation.md
+[17:01:23] [INFO] [ManagementAgent] 📄 production.md
+[17:01:23] [INFO] [ManagementAgent] 📄 specifications.md
+[17:01:23] [INFO] [ManagementAgent] 📄 suivi.md
+[17:01:23] [INFO] [ManagementAgent] Initialisé comme Management
+[17:01:23] [INFO] [ManagementAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:01:23] [INFO] [ManagementAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\management.md
+[17:01:23] [INFO] [ManagementAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[17:01:23] [INFO] [EvaluationAgent] 📁 Fichiers trouvés: 5
+[17:01:23] [INFO] [EvaluationAgent] 📄 demande.md
+[17:01:23] [INFO] [EvaluationAgent] 📄 management.md
+[17:01:23] [INFO] [EvaluationAgent] 📄 production.md
+[17:01:23] [INFO] [EvaluationAgent] 📄 specifications.md
+[17:01:23] [INFO] [EvaluationAgent] 📄 suivi.md
+[17:01:23] [INFO] [EvaluationAgent] Initialisé comme Evaluation
+[17:01:23] [INFO] [EvaluationAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:01:23] [INFO] [EvaluationAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\evaluation.md
+[17:01:23] [INFO] [EvaluationAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[17:01:24] [INFO] [SuiviAgent] 📁 Fichiers trouvés: 5
+[17:01:24] [INFO] [SuiviAgent] 📄 demande.md
+[17:01:24] [INFO] [SuiviAgent] 📄 evaluation.md
+[17:01:24] [INFO] [SuiviAgent] 📄 management.md
+[17:01:24] [INFO] [SuiviAgent] 📄 production.md
+[17:01:24] [INFO] [SuiviAgent] 📄 specifications.md
+[17:01:24] [INFO] [SuiviAgent] Initialisé comme Suivi
+[17:01:24] [INFO] [SuiviAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:01:24] [INFO] [SuiviAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\suivi.md
+[17:01:24] [INFO] [SuiviAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md']
+[17:01:24] [SUCCESS] All components initialized successfully
+[17:01:27] [INFO] Loading editor interface
+[17:01:27] [INFO] Creating new file: production.md
+[17:01:27] [ERROR] Erreur lecture production.md: 'MissionService' object has no attribute '_get_initial_content'
+[17:01:27] [INFO] Creating new file: suivi.md
+[17:01:27] [ERROR] Erreur lecture suivi.md: 'MissionService' object has no attribute '_get_initial_content'
+[17:01:27] [ERROR] Error loading editor: editor.html
+[17:03:36] [DEBUG] Project root: C:\Users\conta\parallagon
+[17:03:36] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[17:03:36] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[17:03:36] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[17:03:36] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[17:03:37] [INFO] [SpecificationsAgent] 📁 Fichiers trouvés: 5
+[17:03:37] [INFO] [SpecificationsAgent] 📄 demande.md
+[17:03:37] [INFO] [SpecificationsAgent] 📄 evaluation.md
+[17:03:37] [INFO] [SpecificationsAgent] 📄 management.md
+[17:03:37] [INFO] [SpecificationsAgent] 📄 production.md
+[17:03:37] [INFO] [SpecificationsAgent] 📄 suivi.md
+[17:03:37] [INFO] [SpecificationsAgent] Initialisé comme Specification
+[17:03:37] [INFO] [SpecificationsAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:03:37] [INFO] [SpecificationsAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\specifications.md
+[17:03:37] [INFO] [SpecificationsAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[17:03:38] [INFO] [ProductionAgent] 📁 Fichiers trouvés: 5
+[17:03:38] [INFO] [ProductionAgent] 📄 demande.md
+[17:03:38] [INFO] [ProductionAgent] 📄 evaluation.md
+[17:03:38] [INFO] [ProductionAgent] 📄 management.md
+[17:03:38] [INFO] [ProductionAgent] 📄 specifications.md
+[17:03:38] [INFO] [ProductionAgent] 📄 suivi.md
+[17:03:38] [INFO] [ProductionAgent] Initialisé comme Production
+[17:03:38] [INFO] [ProductionAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:03:38] [INFO] [ProductionAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\production.md
+[17:03:38] [INFO] [ProductionAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[17:03:38] [INFO] [ManagementAgent] 📁 Fichiers trouvés: 5
+[17:03:38] [INFO] [ManagementAgent] 📄 demande.md
+[17:03:38] [INFO] [ManagementAgent] 📄 evaluation.md
+[17:03:38] [INFO] [ManagementAgent] 📄 production.md
+[17:03:38] [INFO] [ManagementAgent] 📄 specifications.md
+[17:03:38] [INFO] [ManagementAgent] 📄 suivi.md
+[17:03:38] [INFO] [ManagementAgent] Initialisé comme Management
+[17:03:38] [INFO] [ManagementAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:03:38] [INFO] [ManagementAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\management.md
+[17:03:38] [INFO] [ManagementAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[17:03:39] [INFO] [EvaluationAgent] 📁 Fichiers trouvés: 5
+[17:03:39] [INFO] [EvaluationAgent] 📄 demande.md
+[17:03:39] [INFO] [EvaluationAgent] 📄 management.md
+[17:03:39] [INFO] [EvaluationAgent] 📄 production.md
+[17:03:39] [INFO] [EvaluationAgent] 📄 specifications.md
+[17:03:39] [INFO] [EvaluationAgent] 📄 suivi.md
+[17:03:39] [INFO] [EvaluationAgent] Initialisé comme Evaluation
+[17:03:39] [INFO] [EvaluationAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:03:39] [INFO] [EvaluationAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\evaluation.md
+[17:03:39] [INFO] [EvaluationAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\suivi.md']
+[17:03:40] [INFO] [SuiviAgent] 📁 Fichiers trouvés: 5
+[17:03:40] [INFO] [SuiviAgent] 📄 demande.md
+[17:03:40] [INFO] [SuiviAgent] 📄 evaluation.md
+[17:03:40] [INFO] [SuiviAgent] 📄 management.md
+[17:03:40] [INFO] [SuiviAgent] 📄 production.md
+[17:03:40] [INFO] [SuiviAgent] 📄 specifications.md
+[17:03:40] [INFO] [SuiviAgent] Initialisé comme Suivi
+[17:03:40] [INFO] [SuiviAgent] Dossier mission: C:\Users\conta\parallagon\missions\Mission IoT Kineis
+[17:03:40] [INFO] [SuiviAgent] Fichier principal: C:\Users\conta\parallagon\missions\Mission IoT Kineis\suivi.md
+[17:03:40] [INFO] [SuiviAgent] Fichiers secondaires: ['C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\demande.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\evaluation.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\management.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\production.md', 'C:\\Users\\conta\\parallagon\\missions\\Mission IoT Kineis\\specifications.md']
+[17:03:40] [SUCCESS] All components initialized successfully
+[17:03:41] [INFO] Loading editor interface
+[17:03:41] [INFO] Creating new file: production.md
+[17:03:41] [ERROR] Erreur lecture production.md: 'MissionService' object has no attribute '_get_initial_content'
+[17:03:41] [INFO] Creating new file: suivi.md
+[17:03:41] [ERROR] Erreur lecture suivi.md: 'MissionService' object has no attribute '_get_initial_content'
+[17:03:41] [ERROR] Error loading editor: editor.html

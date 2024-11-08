@@ -1,5 +1,5 @@
 import pytest
-from web.kinos_web import KinOSWeb
+from kinos_web import KinOSWeb
 from config import Config
 
 @pytest.fixture

@@ -13,7 +13,7 @@ The KinOS system uses a modular architecture built around autonomous agents that
 ## Component Architecture
 
 ### Core
-- `web/kinos_web.py` - Main web application class
+- `kinos_web.py` - Main web application class
   - Advanced Flask initialization with configuration
     * Configurable CORS
     * Intelligent rate limiting

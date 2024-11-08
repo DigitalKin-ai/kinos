@@ -1,6 +1,6 @@
 import pytest
 import time
-from web.kinos_web import KinOSWeb
+from kinos_web import KinOSWeb
 
 def test_agent_startup_time(test_config):
     """Test le temps de démarrage des agents"""

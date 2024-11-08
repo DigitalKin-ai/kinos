@@ -1,5 +1,5 @@
 import pytest
-from web.kinos_web import KinOSWeb
+from kinos_web import KinOSWeb
 
 def test_web_initialization(test_config):
     """Test l'initialisation de l'application web"""
