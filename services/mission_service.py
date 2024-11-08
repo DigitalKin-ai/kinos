@@ -57,37 +57,33 @@ class MissionService:
         return normalized
 
     def _ensure_missions_dir(self):
-        """Ensure missions directory exists and initialize if needed"""
+        """Find and set the missions directory path"""
         try:
             # Chercher d'abord dans le répertoire courant
             if os.path.exists("missions"):
                 self.missions_dir = self._normalize_mission_path("missions")
-                self.logger.log(f"Found existing missions directory: {self.missions_dir}", level='info')
+                self.logger.log(f"Found missions directory: {self.missions_dir}", level='info')
                 return True
 
             # Si non trouvé, chercher dans le répertoire parent
             parent_missions = self._normalize_mission_path(os.path.join(os.path.dirname(__file__), "..", "missions"))
             if os.path.exists(parent_missions):
                 self.missions_dir = parent_missions
-                self.logger.log(f"Found existing missions directory: {self.missions_dir}", level='info')
+                self.logger.log(f"Found missions directory: {self.missions_dir}", level='info')
                 return True
 
             # Si toujours pas trouvé, chercher dans le répertoire utilisateur
             user_missions = self._normalize_mission_path(os.path.expanduser(os.path.join("~", "parallagon", "missions")))
             if os.path.exists(user_missions):
                 self.missions_dir = user_missions
-                self.logger.log(f"Found existing missions directory: {self.missions_dir}", level='info')
+                self.logger.log(f"Found missions directory: {self.missions_dir}", level='info')
                 return True
 
-            # Si aucun dossier missions n'est trouvé, en créer un dans le répertoire courant
-            self.missions_dir = self._normalize_mission_path("missions")
-            os.makedirs(self.missions_dir, exist_ok=True)
-            self.logger.log(f"Created new missions directory: {self.missions_dir}", level='info')
-            
-            return True
+            # Si aucun dossier missions n'est trouvé, lever une exception
+            raise ValueError("No missions directory found")
 
         except Exception as e:
-            self.logger.log(f"Error ensuring missions directory: {e}", level='error')
+            self.logger.log(f"Error finding missions directory: {e}", level='error')
             raise
 
     def get_all_missions(self):
