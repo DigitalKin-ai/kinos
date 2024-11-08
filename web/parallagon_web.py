@@ -1145,3 +1145,22 @@ if __name__ == "__main__":
         port=Config.PORT,
         debug=Config.DEBUG
     )
+from flask import Flask
+from services.agent_service import AgentService
+from services.mission_service import MissionService
+
+app = Flask(__name__)
+
+def create_app():
+    """Create and configure Flask application"""
+    app = Flask(__name__)
+    
+    # Initialize services
+    app.agent_service = AgentService(app)
+    app.mission_service = MissionService()
+    
+    return app
+
+if __name__ == '__main__':
+    app = create_app()
+    app.run(debug=True)
