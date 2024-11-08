@@ -1157,9 +1157,6 @@ class ParallagonWeb:
         """Run the Flask application with optional configuration parameters"""
         self.app.run(host=host, port=port, **kwargs)
 
-                if not self.running:  # Exit if system is shutting down
-                    break
-
     def monitor_agents(self):
         """Monitor agents and restart them if they crash"""
         while self.running:
