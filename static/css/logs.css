@@ -1,0 +1,43 @@
+/* Styles for log messages */
+.log-container {
+    font-family: monospace;
+    padding: 10px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin: 10px 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.log-entry {
+    padding: 4px 8px;
+    margin: 2px 0;
+    border-radius: 2px;
+}
+
+.log-info {
+    color: #0066cc;
+}
+
+.log-success {
+    color: #28a745;
+}
+
+.log-warning {
+    color: #ffc107;
+}
+
+.log-error {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+}
+
+.log-debug {
+    color: #6c757d;
+}
+
+.log-timestamp {
+    color: #666;
+    margin-right: 8px;
+}
