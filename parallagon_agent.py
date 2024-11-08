@@ -100,12 +100,16 @@ class ParallagonAgent:
 
     def __init__(self, config: Dict[str, Any]):
         """
-        Initialize agent with its operational parameters.
+        Initialise l'agent avec sa configuration.
         
-        The config defines:
-        - File responsibilities (main file and watched files)
-        - Communication channels (logging)
-        - Execution timing
+        Args:
+            config: Dictionnaire contenant:
+                - anthropic_api_key: Clé API Anthropic
+                - openai_api_key: Clé API OpenAI 
+                - file_path: Chemin du fichier principal
+                - watch_files: Liste des fichiers à surveiller
+                - check_interval: Intervalle de vérification
+                - logger: Fonction de logging
         """
         # Validation de la configuration
         if not config.get("anthropic_api_key"):
@@ -143,7 +147,13 @@ class ParallagonAgent:
     @agent_error_handler("read_files")
     def read_files(self) -> None:
         """
-        Read all relevant files for the agent, including all text files in mission folder.
+        Lit tous les fichiers pertinents pour l'agent.
+        
+        - Lit le fichier principal (self.file_path)
+        - Parcourt récursivement le dossier mission
+        - Charge tous les fichiers texte supportés (.md, .txt, etc.)
+        - Stocke les contenus dans self.other_files
+        - Gère la création des fichiers/dossiers manquants
         """
         try:
             # Ensure file exists with proper directory structure
@@ -219,7 +229,12 @@ class ParallagonAgent:
     @agent_error_handler("analyze")
     def analyze(self) -> None:
         """
-        Analyze changes and signals in the monitored files.
+        Analyse les changements et signaux dans les fichiers surveillés.
+        
+        - Extrait le statut actuel du fichier
+        - Identifie les signaux présents
+        - Détermine les actions nécessaires
+        - Met à jour l'état interne de l'agent
         """
         try:
             self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
@@ -251,7 +266,19 @@ class ParallagonAgent:
             self.logger(traceback.format_exc())
 
     def write_file(self, content: str) -> bool:
-        """Write content to file with proper error handling"""
+        """
+        Écrit le contenu dans le fichier avec gestion d'erreurs.
+        
+        Args:
+            content: Contenu à écrire
+            
+        Returns:
+            bool: True si l'écriture a réussi, False sinon
+            
+        - Crée les dossiers manquants
+        - Vérifie l'écriture effective
+        - Notifie les changements via l'API
+        """
         try:
             # Debug log pour voir le chemin exact
             self.logger(f"[{self.__class__.__name__}] Tentative d'écriture dans {self.file_path}")
@@ -309,7 +336,14 @@ class ParallagonAgent:
 
     @agent_error_handler("update")
     def update(self) -> None:
-        """Make necessary updates to files based on determined actions."""
+        """
+        Applique les mises à jour nécessaires aux fichiers.
+        
+        - Compare le nouveau contenu avec l'actuel
+        - Écrit les modifications si nécessaire
+        - Notifie les changements
+        - Gère les erreurs d'écriture
+        """
         try:
             if hasattr(self, 'new_content') and self.new_content != self.current_content:
                 self.logger(f"[{self.__class__.__name__}] Mise à jour du fichier {self.file_path}")
@@ -336,7 +370,13 @@ class ParallagonAgent:
             self.logger(traceback.format_exc())
 
     def start(self) -> None:
-        """Start this individual agent"""
+        """
+        Démarre l'agent.
+        
+        - Active le flag running
+        - Réinitialise les métriques
+        - Prépare l'agent pour l'exécution
+        """
         self.running = True
         # Reset metrics
         self.last_run = None
@@ -346,12 +386,11 @@ class ParallagonAgent:
 
     def stop(self) -> None:
         """
-        Stop the agent's execution gracefully.
+        Arrête l'agent proprement.
         
-        Ensures:
-        - Current operations complete
-        - Resources are released
-        - State is properly saved
+        - Désactive le flag running
+        - Termine les opérations en cours
+        - Sauvegarde l'état final
         """
         self.running = False
         # Clean up any pending operations
@@ -359,7 +398,16 @@ class ParallagonAgent:
             self.write_file(self.current_content)
             
     def recover_from_error(self):
-        """Try to recover from error state"""
+        """
+        Tente de récupérer après une erreur.
+        
+        - Réinitialise l'état interne
+        - Recharge les fichiers
+        - Journalise la tentative
+        
+        Returns:
+            bool: True si récupération réussie, False sinon
+        """
         try:
             self.logger(f"[{self.__class__.__name__}] Attempting recovery...")
             
@@ -380,7 +428,16 @@ class ParallagonAgent:
             return False
 
     def update_paths(self, file_path: str, other_files: List[str]) -> None:
-        """Update file paths when mission changes"""
+        """
+        Met à jour les chemins des fichiers quand la mission change.
+        
+        Args:
+            file_path: Nouveau chemin principal
+            other_files: Nouvelle liste de fichiers à surveiller
+            
+        - Met à jour les chemins
+        - Recharge les fichiers
+        """
         try:
             self.file_path = file_path
             self.other_files = other_files
@@ -393,10 +450,15 @@ class ParallagonAgent:
 
     def should_run(self) -> bool:
         """
-        Determines if agent should execute based on:
-        - Time since last execution
-        - Recent activity level
-        - Dynamic timing adjustments
+        Détermine si l'agent doit s'exécuter.
+        
+        Returns:
+            bool: True si l'agent doit s'exécuter
+            
+        Facteurs considérés:
+        - Temps depuis dernière exécution
+        - Niveau d'activité récent
+        - Ajustements dynamiques du timing
         """
         now = datetime.now()
         
@@ -413,16 +475,16 @@ class ParallagonAgent:
 
     def calculate_dynamic_interval(self) -> float:
         """
-        Calculate the optimal interval between agent executions.
-        
-        Factors considered:
-        - Recent change frequency
-        - System activity level
-        - Resource utilization
-        - Agent-specific timing requirements
+        Calcule l'intervalle optimal entre les exécutions.
         
         Returns:
-            float: Calculated interval in seconds
+            float: Intervalle calculé en secondes
+            
+        Facteurs pris en compte:
+        - Fréquence récente des changements
+        - Niveau d'activité système
+        - Utilisation des ressources
+        - Exigences temporelles spécifiques
         """
         base_interval = self.check_interval
         
@@ -435,7 +497,24 @@ class ParallagonAgent:
         return base_interval
 
     def run(self) -> None:
-        """Main agent lifecycle with improved stop handling"""
+        """
+        Boucle principale de l'agent.
+        
+        Cycle d'exécution:
+        1. Vérifie si doit s'exécuter
+        2. Sauvegarde état précédent
+        3. Lit les fichiers
+        4. Analyse les changements
+        5. Détermine les actions
+        6. Applique les mises à jour
+        7. Met à jour les métriques
+        8. Pause adaptative
+        
+        Gère:
+        - Arrêts propres
+        - Récupération d'erreurs
+        - Métriques d'exécution
+        """
         self.running = True
         while self.running:
             try:
