@@ -149,7 +149,7 @@ class AiderAgent(ParallagonAgent):
                         # Faire la requête POST pour notifier du changement
                         import requests
                         response = requests.post(
-                            'http://localhost:8000/api/notifications',  # Changement d'endpoint
+                            'http://localhost:8000/api/content',  # Changement d'endpoint
                             json=notification_data
                         )
                         
