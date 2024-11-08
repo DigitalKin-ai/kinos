@@ -3,6 +3,8 @@ import time
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from utils.decorators import safe_operation
+from utils.exceptions import ServiceError
+from utils.logger import Logger
 
 class NotificationService:
     def __init__(self, web_instance):
@@ -11,6 +13,7 @@ class NotificationService:
         self.content_cache = {}
         self.last_modified = {}
         self.last_content = {}
+        self.logger = Logger()
 
     @safe_operation()
     def check_content_updates(self) -> None:
@@ -36,7 +39,8 @@ class NotificationService:
                     self.last_content[file_name] = content
 
         except Exception as e:
-            self.web_instance.log_message(f"Error checking content updates: {str(e)}", level='error')
+            self.logger.log(f"Error checking content updates: {str(e)}", level='error')
+            raise ServiceError(f"Failed to check content updates: {str(e)}")
 
     @safe_operation()
     def handle_content_change(self, file_path: str, content: str, 
@@ -68,7 +72,8 @@ class NotificationService:
             return True
             
         except Exception as e:
-            self.web_instance.log_message(f"Error handling content change: {str(e)}", level='error')
+            self.logger.log(f"Error handling content change: {str(e)}", level='error')
+            raise ServiceError(f"Failed to handle content change: {str(e)}")
             return False
 
     @safe_operation()
@@ -79,7 +84,8 @@ class NotificationService:
             self.notifications_queue.clear()
             return notifications
         except Exception as e:
-            self.web_instance.log_message(f"Error getting notifications: {str(e)}", level='error')
+            self.logger.log(f"Error getting notifications: {str(e)}", level='error')
+            raise ServiceError(f"Failed to get notifications: {str(e)}")
             return []
             
     def cleanup(self):
@@ -90,4 +96,5 @@ class NotificationService:
             self.last_modified.clear()
             self.last_content.clear()
         except Exception as e:
-            self.web_instance.logger.log(f"Error cleaning up notification service: {str(e)}", level='error')
+            self.logger.log(f"Error cleaning up notification service: {str(e)}", level='error')
+            raise ServiceError(f"Failed to cleanup notification service: {str(e)}")
