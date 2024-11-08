@@ -26,8 +26,8 @@
   * Identification et sélection des réseaux (LoRa, SigFox, Kineis)
   * Optimisation énergétique
 - Deux axes principaux :
-  1. Développement software pour identification/sélection réseaux
-  2. Optimisation firmware pour gestion énergétique
+  1. Développement software  pour identification/sélection réseaux
+  2. Optimisation firmware pour gestion énergétique 
 
 ### Quelles spécifications techniques ?
 - Longueur : Selon template (2000-2500 mots + 1100-1450 par axe)
