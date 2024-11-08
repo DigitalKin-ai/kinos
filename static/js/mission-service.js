@@ -16,7 +16,7 @@ class MissionService {
 
     async createMission(name, description = '') {
         try {
-            const response = await fetch(`${this.baseUrl}/api/missions`, {
+            const response = await fetch('/api/missions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
