@@ -143,12 +143,13 @@ class ParallagonAgent:
     @agent_error_handler("read_files")
     def read_files(self) -> None:
         """
-        Read all relevant files for the agent.
+        Read all relevant files for the agent, including all text files in mission folder.
         """
         try:
             # Ensure file exists with proper directory structure
             os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
             
+            # Read main file
             if not os.path.exists(self.file_path):
                 with open(self.file_path, 'w', encoding='utf-8') as f:
                     initial_content = "# Contenu Initial\n[En attente de contenu à produire...]"
@@ -158,21 +159,58 @@ class ParallagonAgent:
                 with open(self.file_path, 'r', encoding='utf-8') as f:
                     self.current_content = f.read()
             
+            # Reset other_files dictionary
             self.other_files = {}
-            for file_path in self.watch_files:
+            
+            # Get mission directory from file_path
+            mission_dir = os.path.dirname(self.file_path)
+            
+            # Define text file extensions to include
+            TEXT_EXTENSIONS = {'.md', '.txt', '.py', '.js', '.html', '.css', '.json', '.yaml', '.yml'}
+            
+            # Recursive function to scan directory
+            def scan_directory(directory):
                 try:
-                    # Ensure parent directory exists for watched files too
-                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                    
-                    if not os.path.exists(file_path):
-                        with open(file_path, 'w', encoding='utf-8') as f:
-                            f.write("# Contenu Initial\n[En attente de contenu...]")
-                    
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        self.other_files[file_path] = f.read()
+                    for root, _, files in os.walk(directory):
+                        for file in files:
+                            file_path = os.path.join(root, file)
+                            # Check if file extension is in our text extensions list
+                            if os.path.splitext(file)[1].lower() in TEXT_EXTENSIONS:
+                                try:
+                                    # Skip the agent's main file as it's already handled
+                                    if file_path == self.file_path:
+                                        continue
+                                        
+                                    # Read file content
+                                    with open(file_path, 'r', encoding='utf-8') as f:
+                                        self.other_files[file_path] = f.read()
+                                        
+                                except Exception as e:
+                                    self.logger(f"Warning: Could not read file {file_path}: {e}")
+                                    self.other_files[file_path] = ""
+                                    
                 except Exception as e:
-                    self.logger(f"Warning: Could not read watched file {file_path}: {e}")
-                    self.other_files[file_path] = ""
+                    self.logger(f"Warning: Error scanning directory {directory}: {e}")
+
+            # Scan mission directory
+            scan_directory(mission_dir)
+            
+            # Also read explicitly watched files that might be outside mission directory
+            for file_path in self.watch_files:
+                if file_path not in self.other_files:  # Skip if already read
+                    try:
+                        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                        
+                        if not os.path.exists(file_path):
+                            with open(file_path, 'w', encoding='utf-8') as f:
+                                f.write("# Contenu Initial\n[En attente de contenu...]")
+                        
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            self.other_files[file_path] = f.read()
+                            
+                    except Exception as e:
+                        self.logger(f"Warning: Could not read watched file {file_path}: {e}")
+                        self.other_files[file_path] = ""
 
         except Exception as e:
             self.logger(f"❌ Erreur dans read_files: {str(e)}")
