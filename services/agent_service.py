@@ -29,10 +29,20 @@ class AgentService:
     def update_agent_paths(self, mission_name: str) -> None:
         """Update file paths for all agents when mission changes"""
         try:
-            # Stop all agents first
+            # Explicit verification
+            if self.web_instance.file_manager.current_mission != mission_name:
+                self.web_instance.logger.log(
+                    f"Mission mismatch - FileManager: {self.web_instance.file_manager.current_mission}, "
+                    f"Requested: {mission_name}",
+                    level='error'
+                )
+                # Force update
+                self.web_instance.file_manager.current_mission = mission_name
+            
+            # Stop all agents
             self.stop_all_agents()
             
-            # Build and normalize mission path
+            # Build mission path
             mission_dir = os.path.abspath(os.path.join("missions", mission_name))
             os.makedirs(mission_dir, exist_ok=True)
             

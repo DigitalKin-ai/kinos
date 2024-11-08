@@ -27,9 +27,37 @@ class FileManager:
         }
             
         self.on_content_changed = on_content_changed
-        self.current_mission = None
+        self._current_mission = None
         self.logger = Logger()
         self._ensure_files_exist()
+
+    @property
+    def current_mission(self):
+        return self._current_mission
+
+    @current_mission.setter 
+    def current_mission(self, mission_name: str):
+        """Setter with validation for current_mission"""
+        if not mission_name:
+            raise ValueError("Mission name cannot be empty")
+            
+        if hasattr(self, '_current_mission'):
+            self.logger.log(
+                f"Changing mission from {self._current_mission} to {mission_name}",
+                level='info'
+            )
+            
+        self._current_mission = mission_name
+        
+        # Validate the change
+        mission_dir = os.path.join("missions", mission_name)
+        os.makedirs(mission_dir, exist_ok=True)
+        
+        # Verify directory exists
+        if not os.path.exists(mission_dir):
+            raise ValueError(f"Mission directory not found: {mission_dir}")
+            
+        self.logger.log(f"✓ Mission changed to: {mission_name}", level='success')
         
         
     def _ensure_files_exist(self):

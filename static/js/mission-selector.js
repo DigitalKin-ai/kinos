@@ -103,37 +103,33 @@ export default {
 
         async selectMission(mission) {
             try {
-                // Emit loading state change
                 this.$emit('update:loading', true);
                 
-                console.log('Selecting mission:', mission); // Debug log
+                // Stop agents first
+                await fetch('/api/agents/stop', { method: 'POST' });
                 
+                // Select new mission
                 const response = await fetch(`/api/missions/${mission.id}/select`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                    headers: {'Content-Type': 'application/json'}
                 });
 
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to select mission');
+                    throw new Error('Failed to select mission');
                 }
 
                 const result = await response.json();
                 
-                // Emit events with kebab-case
+                // Verify the change was effective
+                const verifyResponse = await fetch(`/api/missions/${mission.id}`);
+                const currentMission = await verifyResponse.json();
+                
+                if (currentMission.name !== mission.name) {
+                    throw new Error('Mission change verification failed');
+                }
+
                 this.$emit('select-mission', result);
                 this.$emit('update:current-mission', result);
-                
-                // Attendre que les agents soient arrêtés avant de changer de mission
-                await fetch('/api/agents/stop', { method: 'POST' });
-                
-                // Log pour debug
-                console.log('Mission selected successfully:', result);
-                
-                // Attendre que le changement soit propagé
-                await new Promise(resolve => setTimeout(resolve, 100));
                 
                 return result;
                 
