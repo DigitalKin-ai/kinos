@@ -5,28 +5,9 @@ from file_manager import FileManager
 
 class MissionService:
     def __init__(self):
+        """Initialize the mission service"""
         self.missions_dir = "missions"
         os.makedirs(self.missions_dir, exist_ok=True)
-        
-    def _resolve_mission_path(self, mission_path: str) -> str:
-        """Resolve real path if it's a symlink"""
-        try:
-            # Convert to absolute path
-            abs_path = os.path.abspath(mission_path)
-            
-            # Resolve symlink if present
-            if os.path.islink(abs_path):
-                real_path = os.path.realpath(abs_path)
-                # Verify the real path exists
-                if not os.path.exists(real_path):
-                    raise ValueError(f"Broken symlink: {mission_path} -> {real_path}")
-                return real_path
-                
-            return abs_path
-            
-        except Exception as e:
-            print(f"Error resolving path: {e}")
-            return mission_path
 
     REQUIRED_FILES = [
         "demande.md",
@@ -75,41 +56,38 @@ class MissionService:
 
             print(f"Scanning missions directory: {os.path.abspath(self.missions_dir)}")
             
+            # Use listdir instead of walk to avoid recursion
             for mission_name in os.listdir(self.missions_dir):
                 try:
                     mission_path = os.path.join(self.missions_dir, mission_name)
-                    real_path = self._resolve_mission_path(mission_path)
                     
-                    print(f"\nAnalyzing mission: {mission_name}")
-                    print(f"Path: {mission_path}")
-                    print(f"Real path: {real_path}")
-                    
-                    if os.path.isdir(real_path):
-                        has_required_files = any(
-                            os.path.exists(os.path.join(real_path, req_file))
-                            for req_file in self.REQUIRED_FILES
-                        )
+                    # Check if it's a directory
+                    if not os.path.isdir(mission_path):
+                        continue
                         
-                        if has_required_files:
-                            mission = {
-                                'id': len(missions) + 1,
-                                'name': mission_name,
-                                'description': '',
-                                'status': 'active',
-                                'created_at': datetime.fromtimestamp(
-                                    os.path.getctime(real_path)
-                                ).isoformat(),
-                                'updated_at': datetime.fromtimestamp(
-                                    os.path.getmtime(real_path)
-                                ).isoformat(),
-                                'external_path': real_path if os.path.islink(mission_path) else None
-                            }
-                            missions.append(mission)
-                            print(f"✓ Added mission: {mission_name}")
-                        else:
-                            print(f"⚠️ Skipped mission {mission_name}: missing required files")
+                    # Check for at least one required file
+                    has_required_files = any(
+                        os.path.exists(os.path.join(mission_path, req_file))
+                        for req_file in self.REQUIRED_FILES
+                    )
+                    
+                    if has_required_files:
+                        mission = {
+                            'id': len(missions) + 1,
+                            'name': mission_name,
+                            'description': '',
+                            'status': 'active',
+                            'created_at': datetime.fromtimestamp(
+                                os.path.getctime(mission_path)
+                            ).isoformat(),
+                            'updated_at': datetime.fromtimestamp(
+                                os.path.getmtime(mission_path)
+                            ).isoformat()
+                        }
+                        missions.append(mission)
+                        print(f"✓ Added mission: {mission_name}")
                     else:
-                        print(f"⚠️ Skipped {mission_name}: not a valid directory")
+                        print(f"⚠️ Skipped mission {mission_name}: missing required files")
 
                 except Exception as e:
                     print(f"Error processing mission {mission_name}: {str(e)}")
