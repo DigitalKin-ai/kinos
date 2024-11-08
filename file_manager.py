@@ -181,7 +181,6 @@ En attente d'initialisation...
             # Read existing file
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-                self.logger(f"Successfully read: {file_path}")
                 return content
                 
         except Exception as e:
