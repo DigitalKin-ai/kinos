@@ -41,19 +41,39 @@ class MissionService:
             print(f"Error getting missions: {str(e)}")
             return []
 
+    def mission_exists(self, mission_id: int) -> bool:
+        """Check if a mission exists by ID"""
+        try:
+            missions = self._scan_missions()
+            return any(mission['id'] == mission_id for mission in missions)
+        except Exception as e:
+            self.logger.log(f"Error checking mission existence: {str(e)}", level='error')
+            return False
+
     def get_mission(self, mission_id: int) -> Optional[Dict]:
         """Get a specific mission by ID"""
-        missions = self.get_all_missions()
-        for mission in missions:
-            if mission['id'] == mission_id:
-                # Add file paths
-                mission['files'] = {
-                    name: os.path.join(mission['path'], f"{name}.md")
-                    for name in ['demande', 'specifications', 'management', 
-                               'production', 'evaluation', 'suivi']
-                }
-                return mission
-        return None
+        try:
+            if not self.mission_exists(mission_id):
+                self.logger.log(f"Mission {mission_id} not found", level='warning')
+                return None
+                
+            missions = self._scan_missions()
+            for mission in missions:
+                if mission['id'] == mission_id:
+                    # Add file paths
+                    mission['files'] = {
+                        name: os.path.join(mission['path'], f"{name}.md")
+                        for name in ['demande', 'specifications', 'management', 
+                                   'production', 'evaluation', 'suivi']
+                    }
+                    self.logger.log(f"Found mission: {mission['name']} (ID: {mission_id})", level='debug')
+                    return mission
+                    
+            return None
+            
+        except Exception as e:
+            self.logger.log(f"Error getting mission: {str(e)}", level='error')
+            return None
 
     def ensure_mission_directory(self, mission_name: str) -> bool:
         """Create mission directory if it doesn't exist"""
@@ -128,13 +148,20 @@ class MissionService:
         """Scan missions directory and return mission data"""
         try:
             missions = []
-            mission_id = 1
+            mission_id = 1  # Start with ID 1
             
+            # Get all mission directories
+            mission_dirs = []
             for item in os.listdir(self.missions_dir):
                 mission_path = os.path.join(self.missions_dir, item)
-                if not os.path.isdir(mission_path):
-                    continue
-                    
+                if os.path.isdir(mission_path):
+                    mission_dirs.append((item, mission_path))
+            
+            # Sort by creation time to maintain consistent IDs
+            mission_dirs.sort(key=lambda x: os.path.getctime(x[1]))
+            
+            # Process each mission directory
+            for mission_name, mission_path in mission_dirs:
                 # Check if any required files exist
                 has_files = any(
                     os.path.exists(os.path.join(mission_path, req_file))
@@ -142,9 +169,10 @@ class MissionService:
                 )
                 
                 if has_files:
+                    # Create mission object with sequential ID
                     mission = {
-                        'id': mission_id,  # Incrément séquentiel des IDs
-                        'name': item,
+                        'id': mission_id,
+                        'name': mission_name,
                         'path': mission_path,
                         'status': 'active',
                         'created_at': datetime.fromtimestamp(
@@ -157,6 +185,13 @@ class MissionService:
                     missions.append(mission)
                     mission_id += 1
                     
+                    # Ensure required files exist
+                    self.ensure_mission_files(mission_name)
+            
+            # Log scanned missions
+            self.logger.log(f"Scanned missions: {[m['name'] for m in missions]}", level='debug')
+            self.logger.log(f"Mission IDs: {[m['id'] for m in missions]}", level='debug')
+            
             return missions
             
         except Exception as e:
