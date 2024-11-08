@@ -767,9 +767,6 @@ class ParallagonWeb:
         @self.app.route('/api/suivi', methods=['GET'])
         def suivi():
             try:
-                # Debug logs
-                self.log_message("Fetching suivi content...", level='debug')
-                
                 # Vérifier que le FileManager est initialisé
                 if not hasattr(self, 'file_manager'):
                     self.log_message("FileManager not initialized", level='error')
@@ -777,12 +774,10 @@ class ParallagonWeb:
 
                 # Vérifier la mission courante
                 if not self.file_manager.current_mission:
-                    self.log_message("No current mission selected", level='warning')
                     return jsonify({"content": "", "error": "No mission selected"}), 400
 
                 # Construire le chemin complet du fichier
                 suivi_path = os.path.join("missions", self.file_manager.current_mission, "suivi.md")
-                self.log_message(f"Reading from path: {suivi_path}", level='debug')
 
                 # Vérifier que le fichier existe
                 if not os.path.exists(suivi_path):
@@ -793,8 +788,6 @@ class ParallagonWeb:
                 try:
                     with open(suivi_path, 'r', encoding='utf-8') as f:
                         content = f.read()
-                        self.log_message(f"Read content length: {len(content)}", level='debug')
-                        self.log_message(f"Content preview: {content[:200]}", level='debug')
                         return jsonify({"content": content})
                 except Exception as e:
                     self.log_message(f"Error reading suivi file: {str(e)}", level='error')
