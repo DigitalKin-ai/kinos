@@ -62,14 +62,12 @@ class AiderAgent(KinOSAgent):
         # Utiliser un chemin relatif pour le fichier principal
         self.file_path = os.path.join(mission_dir, os.path.basename(config["file_path"]))
 
-        # Initialize other_files and load content
-        self.other_files = {}  # Initialize empty first
-        self.list_files()  # Load all text files from mission directory
-            
+        # Initialize other_files as empty dict
+        self.other_files = {}
+
         self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
         self.logger(f"[{self.__class__.__name__}] Dossier mission: {mission_dir}")
         self.logger(f"[{self.__class__.__name__}] Fichier principal: {self.file_path}")
-        self.logger(f"[{self.__class__.__name__}] Fichiers secondaires: {list(self.other_files)}")
 
     def _run_aider(self, prompt: str) -> Optional[str]:
         """
