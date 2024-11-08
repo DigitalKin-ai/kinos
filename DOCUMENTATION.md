@@ -75,6 +75,63 @@ Automatic Retries:
 - Custom conditions
 - Attempt limits
 - Retry logging
+- Configurable retry policies
+- Distributed locking with Redis
+
+Error Handling:
+- Exception capture and logging
+- Standardized error formatting
+- Configurable automatic retries
+- Default value fallbacks
+- Controlled error propagation
+- Resource cleanup on errors
+- Circuit breaker pattern
+- Error metrics collection
+- Configurable alerting
+- Automatic recovery
+
+Inherited Methods:
+- _validate_input() - Input validation
+- _handle_error() - Error management
+- _log_operation() - Unified logging
+- _safe_file_operation() - File operations
+- _ensure_directory() - Directory management
+- cleanup() - Resource cleanup
+
+Input Validation:
+- Type checking
+- Format validation
+- Custom constraints
+- Detailed error messages
+- Data sanitization
+
+Standardized Logging:
+- Configurable log levels
+- File rotation
+- Unified format
+- Execution context
+- Performance metrics
+
+Thread-safe File Operations:
+- portalocker integration
+- Configurable timeouts
+- Automatic retries
+- Cleanup handlers
+- Path validation
+
+Cache and Optimization:
+- LRU memory cache
+- Smart invalidation
+- Configurable preloading
+- Usage metrics
+- Periodic cleanup
+
+Automatic Retries:
+- Configurable policies
+- Exponential backoff
+- Custom conditions
+- Attempt limits
+- Retry logging
 
 Key features:
 - Dependency injection via constructor
@@ -458,13 +515,39 @@ Centralized error management:
 
 #### Agent Routes
 - GET `/api/agents/status` - Get status of all agents
+  - Response: `{ "agent_name": { "running": bool, "last_run": timestamp } }`
+  - Errors: 500 Internal Server Error
+
 - POST `/api/agents/start` - Start all agents
+  - Response: `{ "status": "started" }`
+  - Errors: 500 Internal Server Error
+
 - POST `/api/agents/stop` - Stop all agents
+  - Response: `{ "status": "stopped" }`
+  - Errors: 500 Internal Server Error
+
 - GET `/api/agent/<id>/prompt` - Get agent prompt
+  - Response: `{ "prompt": "prompt content" }`
+  - Errors: 404 Not Found, 500 Internal Server Error
+
 - POST `/api/agent/<id>/prompt` - Update agent prompt
+  - Request: `{ "prompt": "new prompt content" }`
+  - Response: `{ "status": "success" }`
+  - Errors: 400 Bad Request, 404 Not Found, 500 Internal Server Error
+
 - POST `/api/agent/<id>/<action>` - Control individual agent
+  - Actions: "start", "stop"
+  - Response: `{ "status": "success" }`
+  - Errors: 400 Bad Request, 404 Not Found, 500 Internal Server Error
+
 - GET `/api/agent/<id>/logs` - Get agent operation logs
+  - Response: Array of log entries with timestamps
+  - Errors: 404 Not Found, 500 Internal Server Error
+
 - PUT `/api/agent/<id>/config` - Update agent configuration
+  - Request: Configuration object
+  - Response: `{ "status": "success" }`
+  - Errors: 400 Bad Request, 404 Not Found, 500 Internal Server Error
 
 #### Notification Routes
 - GET `/api/notifications` - Get pending notifications
