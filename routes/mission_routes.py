@@ -129,3 +129,45 @@ def register_mission_routes(app, web_instance):
         if not success:
             return jsonify({'error': 'Failed to reset files'}), 500
         return jsonify({'status': 'success'})
+
+    @app.route('/api/missions/<int:mission_id>/files/<path:file_path>', methods=['GET'])
+    @safe_operation()
+    def get_mission_file_content(mission_id, file_path):
+        """Get content of a specific file in mission directory"""
+        try:
+            # Get mission
+            mission = web_instance.mission_service.get_mission(mission_id)
+            if not mission:
+                return jsonify({'error': 'Mission not found'}), 404
+
+            # Construct full file path
+            mission_dir = os.path.abspath(os.path.join("missions", mission['name']))
+            # Avoid path duplication
+            if "missions" in mission_dir.split(os.sep)[-2:]:
+                mission_dir = os.path.dirname(mission_dir)
+
+            # Secure the file path
+            safe_path = os.path.normpath(file_path)
+            if safe_path.startswith('..'):
+                return jsonify({'error': 'Invalid file path'}), 400
+
+            full_path = os.path.join(mission_dir, safe_path)
+            
+            # Verify file exists
+            if not os.path.exists(full_path):
+                return jsonify({'error': 'File not found'}), 404
+
+            # Verify file extension
+            ext = os.path.splitext(full_path)[1].lower()
+            if ext not in {'.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml'}:
+                return jsonify({'error': 'Unsupported file type'}), 400
+
+            # Read file content
+            with open(full_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            return content, 200, {'Content-Type': 'text/plain'}
+
+        except Exception as e:
+            web_instance.logger.log(f"Error reading file content: {str(e)}", level='error')
+            return jsonify({'error': str(e)}), 500
