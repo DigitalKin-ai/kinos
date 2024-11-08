@@ -168,8 +168,8 @@ class KinOSAgent:
             self.file_path = file_path
             self.other_files = other_files
             
-            # Re-read files with new paths
-            self.read_files()
+            # Re-initialize file monitoring with new paths
+            self.list_files()
             
         except Exception as e:
             print(f"Error updating paths for {self.__class__.__name__}: {e}")
