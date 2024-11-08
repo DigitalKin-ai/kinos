@@ -2,6 +2,7 @@ import ApiClient from './api-client.js';
 
 export default {
     name: 'AgentManager',
+    delimiters: ['[[', ']]'],
     props: {
         currentMission: Object
     },
@@ -102,11 +103,11 @@ export default {
                 <div v-for="agent in agents" :key="agent.id" 
                      class="bg-white rounded-lg shadow p-6 border border-gray-200">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold">\${ agent.name }</h3>
+                        <h3 class="text-xl font-semibold">[[ agent.name ]]</h3>
                         <button @click="toggleAgent(agent)"
                                 :class="agent.running ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'"
                                 class="px-4 py-2 rounded text-white font-medium">
-                            \${ agent.running ? 'Stop' : 'Start' }
+                            [[ agent.running ? 'Stop' : 'Start' ]]
                         </button>
                     </div>
                     
@@ -135,7 +136,7 @@ export default {
                     </div>
                     
                     <div class="text-sm text-gray-500">
-                        Last run: \${ agentStates[agent.id]?.last_run || 'Never' }
+                        Last run: [[ agentStates[agent.id]?.last_run || 'Never' ]]
                     </div>
                 </div>
             </div>
