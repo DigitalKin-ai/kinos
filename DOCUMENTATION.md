@@ -45,6 +45,13 @@
   - Gestion des erreurs commune
   - Validation des entrées
   - Logging standardisé
+  - Opérations fichiers sécurisées
+
+- `services/notification_service.py`
+  - Système de notifications temps réel
+  - Queue de messages
+  - Cache de contenu
+  - Diffusion des changements
 
 - `services/agent_service.py`
   - Gestion du cycle de vie des agents
@@ -69,6 +76,8 @@
   - `/api/agents/status` : État des agents
   - `/api/agent/<id>/prompt` : Gestion des prompts
   - `/api/agent/<id>/<action>` : Contrôle des agents
+  - `/api/notifications` : Gestion des notifications temps réel
+  - `/api/missions/<id>/reset` : Reset des fichiers de mission
 
 - `routes/mission_routes.py`
   - `/api/missions` : CRUD missions
@@ -105,10 +114,11 @@
 
 ### 6. Utilitaires
 - `utils/`
-  - `error_handler.py` : Gestion des erreurs
+  - `error_handler.py` : Gestion des erreurs centralisée
   - `exceptions.py` : Exceptions personnalisées
   - `logger.py` : Système de logging
   - `decorators.py` : Décorateurs utilitaires
+    - `@safe_operation` : Gestion sécurisée avec retry
 
 ### 7. Configuration
 - `config.py`

@@ -36,10 +36,12 @@ The Parallagon system uses a modular architecture built around autonomous agents
 
 ### Services
 - `services/base_service.py` - Classe de base pour tous les services
-  - Gestion des erreurs
+  - Gestion des erreurs commune
   - Validation des entrées
-  - Logging
-  - Opérations fichiers
+  - Logging standardisé
+  - Opérations fichiers sécurisées
+  - Cache et optimisation
+  - Retry automatique
 
 - `services/agent_service.py` - Gestion des agents
   - Initialisation des agents
@@ -142,8 +144,37 @@ The Parallagon system uses a modular architecture built around autonomous agents
 
 4. Système de fichiers
    - Organisation par mission
-   - Fichiers spécifiques par agent
-   - Logs et données temporaires
+   - Verrouillage des fichiers avec portalocker
+   - Cache de contenu optimisé
+   - Gestion des timestamps
+   - Détection des modifications
+   - Notifications temps réel
+
+## Nouvelles Fonctionnalités
+
+1. Système de Notifications
+   - Queue de messages temps réel
+   - Cache de contenu intelligent
+   - Diffusion des changements
+   - Gestion des états
+
+2. Gestion des Erreurs
+   - Centralisation avec ErrorHandler
+   - Retry automatique avec @safe_operation
+   - Logging détaillé
+   - Recovery intelligent
+
+3. Système de Cache
+   - Cache de contenu par fichier
+   - Validation des timestamps
+   - Invalidation intelligente
+   - Optimisation mémoire
+
+4. Verrouillage Fichiers
+   - Utilisation de portalocker
+   - Gestion des timeouts
+   - Recovery automatique
+   - Prévention des conflits
 
 ## Points d'Extension
 
