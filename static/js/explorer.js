@@ -5,11 +5,6 @@ const ExplorerApp = {
     components: {
         MissionSelector
     },
-    mounted() {
-        console.log('ExplorerApp mounted');
-        console.log('Missions:', this.missions);
-        this.loadMissions();
-    },
     delimiters: ['${', '}'],
     setup() {
         const missionService = new MissionService();
@@ -59,14 +54,21 @@ const ExplorerApp = {
 
         async checkFileModifications() {
             try {
+                console.log('Checking files for mission:', this.currentMission.id);
                 const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
-                if (!response.ok) return;
+                if (!response.ok) {
+                    console.warn('File check response not OK:', response.status);
+                    return;
+                }
                 
                 const currentFiles = await response.json();
+                console.log('Current files:', currentFiles);
                 
                 currentFiles.forEach(file => {
                     const previousModified = this.fileModifications.get(file.path);
+                    console.log('File:', file.path, 'Previous:', previousModified, 'Current:', file.modified);
                     if (previousModified && previousModified < file.modified) {
+                        console.log('File modified:', file.path);
                         this.highlightFile(file.path);
                     }
                     this.fileModifications.set(file.path, file.modified);
