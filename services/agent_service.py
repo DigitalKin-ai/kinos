@@ -464,16 +464,6 @@ class AgentService:
                     "name": "Duplication",
                     "file_path": os.path.join(mission_dir, "duplication.md"),
                     "prompt": load_prompt("prompts/duplication.md"),
-                    "prompt_file": "prompts/duplication.md"
-                })
-                    "prompt": load_prompt("prompts/documentaliste.md"),
-                    "prompt_file": "prompts/documentaliste.md"
-                }),
-                "Duplication": DuplicationAgent({
-                    **base_config,
-                    "name": "Duplication",
-                    "file_path": os.path.join(mission_dir, "duplication.md"),
-                    "prompt": load_prompt("prompts/duplication.md"),
                     "prompt_file": "prompts/duplication.md",
                     "watch_files": [  # Add files to watch for duplication
                         os.path.join(mission_dir, "*.py"),
