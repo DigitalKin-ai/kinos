@@ -22,7 +22,6 @@ class AiderAgent(ParallagonAgent):
                 - anthropic_api_key: API key for Anthropic
                 - openai_api_key: API key for OpenAI
                 - file_path: Path to main file
-                - watch_files: List of files to watch (optional)
                 - prompt_file: Path to prompt file (optional)
                 - name: Agent name
                 - mission_name: Current mission name
@@ -86,7 +85,7 @@ class AiderAgent(ParallagonAgent):
                 ]
                 
                 # Ajouter les fichiers à surveiller en chemins relatifs
-                for file in self.watch_files:
+                for file in self.other_files:
                     cmd.extend(["--file", os.path.relpath(file, mission_dir)])
                     
                 # Ajouter le message
