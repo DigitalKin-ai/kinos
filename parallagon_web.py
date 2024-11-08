@@ -2,6 +2,7 @@ from flask import (
     Flask, jsonify, request, render_template,
     redirect, url_for
 )
+from utils.decorators import safe_operation
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -1156,31 +1157,6 @@ class ParallagonWeb:
         """Run the Flask application with optional configuration parameters"""
         self.app.run(host=host, port=port, **kwargs)
 
-    def monitor_agents(self):
-        """Monitor agents and restart them if they crash"""
-        while self.running:
-            try:
-                for name, agent in self.agents.items():
-                    if agent.running:
-                        # Check if agent is active but stuck
-                        if (agent.last_run and 
-                            (datetime.now() - agent.last_run).seconds > 30):  # 30s timeout
-                            self.log_message(
-                                f"Agent {name} seems stuck, restarting...", 
-                                level='warning'
-                            )
-                            # Restart agent
-                            agent.stop()
-                            agent.start()
-                            thread = threading.Thread(
-                                target=agent.run,
-                                daemon=True,
-                                name=f"Agent-{name}"
-                            )
-                            thread.start()
-                time.sleep(5)  # Check every 5 seconds
-            except Exception as e:
-                self.log_message(f"Error in monitor_agents: {str(e)}", level='error')
                 if not self.running:  # Exit if system is shutting down
                     break
 
@@ -1271,34 +1247,6 @@ class ParallagonWeb:
             self.log_message(f"Error in stop_agents: {str(e)}", level='error')
             raise
 
-    def safe_operation(self, operation_func):
-        """Decorator for safe operation execution with recovery"""
-        def wrapper(*args, **kwargs):
-            max_retries = 3
-            retry_count = 0
-            
-            while retry_count < max_retries:
-                try:
-                    return operation_func(*args, **kwargs)
-                except Exception as e:
-                    retry_count += 1
-                    self.log_message(
-                        str(e),
-                        operation=operation_func.__name__,
-                        status=f"RETRY {retry_count}/{max_retries}"
-                    )
-                    
-                    if retry_count == max_retries:
-                        self.log_message(
-                            "Operation failed permanently",
-                            operation=operation_func.__name__,
-                            status="FAILED"
-                        )
-                        raise
-                    
-                    time.sleep(1)  # Wait before retry
-                    
-        return wrapper
 
     def check_content_updates(self):
         """Check for content updates"""
@@ -1353,34 +1301,6 @@ class ParallagonWeb:
             self.log_message(traceback.format_exc(), level='error')
             return jsonify({'error': str(error)}), 500
 
-    def safe_operation(self, operation_func):
-        """Decorator for safe operation execution with recovery"""
-        def wrapper(*args, **kwargs):
-            max_retries = 3
-            retry_count = 0
-            
-            while retry_count < max_retries:
-                try:
-                    return operation_func(*args, **kwargs)
-                except Exception as e:
-                    retry_count += 1
-                    self.log_message(
-                        str(e),
-                        operation=operation_func.__name__,
-                        status=f"RETRY {retry_count}/{max_retries}"
-                    )
-                    
-                    if retry_count == max_retries:
-                        self.log_message(
-                            "Operation failed permanently",
-                            operation=operation_func.__name__,
-                            status="FAILED"
-                        )
-                        raise
-                    
-                    time.sleep(1)  # Wait before retry
-                    
-        return wrapper
 
     def shutdown(self):
         """Graceful shutdown of the application"""
