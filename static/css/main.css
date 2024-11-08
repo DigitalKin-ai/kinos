@@ -1,11 +1,20 @@
-@import 'base.css';
-@import 'layout.css';
-@import 'header.css';
-@import 'sidebar.css';
-@import 'panels.css';
-@import 'buttons.css';
-@import 'notifications.css';
-@import 'logs.css';
-@import 'animations.css';
+/* Core styles */
+@import 'base.css';      /* Base styles and resets */
+@import 'layout.css';    /* Layout grid and structure */
+@import 'header.css';    /* Header components */
 
-/* Note : Utiliser des fichiers CSS spécifique plutôt que d'ajouter du contenu ici */
+/* Components */
+@import 'sidebar.css';      /* Mission and navigation sidebar */
+@import 'panels.css';       /* Content panels and editors */
+@import 'buttons.css';      /* Button styles and states */
+@import 'notifications.css'; /* Notification system */
+
+/* Utils */
+@import 'logs.css';      /* Log display formatting */
+@import 'animations.css'; /* Transitions and animations */
+
+/* 
+Note: This file only contains imports.
+Add component-specific styles to their respective CSS files.
+Follow BEM naming convention for all classes.
+*/
