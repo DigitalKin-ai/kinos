@@ -61,23 +61,159 @@ Le système s'articule autour de trois couches principales :
    - Métriques de performance
 
 ## 2. Composants Principaux
+
 ### 2.1 Agents
-- Types d'agents (Specifications, Production, Management, etc.)
-- Rôles et responsabilités
-- Interactions entre agents
-- Cycle de vie des agents
+Les agents sont le cœur du système Parallagon, chacun ayant un rôle spécifique et des responsabilités définies.
+
+#### Types d'agents
+1. **Agent de Spécifications (SpecificationsAgent)**
+   - Analyse des demandes initiales
+   - Définition des exigences techniques
+   - Validation de la cohérence des spécifications
+   - Mise à jour continue des spécifications
+
+2. **Agent de Production (ProductionAgent)**
+   - Génération de code
+   - Implémentation des fonctionnalités
+   - Respect des standards de codage
+   - Optimisation du code
+
+3. **Agent de Management (ManagementAgent)**
+   - Coordination des activités
+   - Gestion des priorités
+   - Suivi de l'avancement
+   - Résolution des conflits
+
+4. **Agent d'Évaluation (EvaluationAgent)**
+   - Tests et validation
+   - Contrôle qualité
+   - Mesure des performances
+   - Identification des améliorations
+
+5. **Agent de Suivi (SuiviAgent)**
+   - Journalisation des activités
+   - Traçabilité des modifications
+   - Génération de rapports
+   - Historique des décisions
+
+#### Cycle de vie des agents
+1. **Initialisation**
+   - Chargement de la configuration
+   - Établissement des connexions
+   - Vérification des dépendances
+
+2. **Exécution**
+   - Surveillance continue
+   - Traitement des événements
+   - Prise de décision
+   - Actions autonomes
+
+3. **Communication**
+   - Échange d'informations
+   - Synchronisation
+   - Notifications
+   - Résolution des conflits
 
 ### 2.2 Système de Fichiers
-- Structure des dossiers missions
-- Format des fichiers .md
-- Gestion des chemins
-- Synchronisation des fichiers
+
+#### Structure des dossiers
+```
+missions/
+├── Mission_1/
+│   ├── demande.md
+│   ├── specifications.md
+│   ├── production.md
+│   ├── management.md
+│   ├── evaluation.md
+│   └── suivi.md
+└── Mission_2/
+    └── ...
+```
+
+#### Gestion des fichiers
+- **Format Markdown standardisé**
+  - Structure cohérente
+  - Sections prédéfinies
+  - Métadonnées intégrées
+  - Balisage sémantique
+
+- **Synchronisation**
+  - Verrouillage des fichiers
+  - Gestion des accès concurrents
+  - Sauvegarde automatique
+  - Historique des versions
+
+- **Organisation**
+  - Séparation des préoccupations
+  - Hiérarchie claire
+  - Nommage conventionnel
+  - Liens entre fichiers
 
 ### 2.3 Interface Web
-- Architecture frontend/backend
-- Composants UI
-- Gestion des événements
-- Mises à jour en temps réel
+
+#### Architecture Frontend
+- **Vue.js 3**
+  - Components réactifs
+  - État centralisé
+  - Rendu optimisé
+  - Gestion des événements
+
+- **Interface utilisateur**
+  - Design responsive
+  - Navigation intuitive
+  - Feedback visuel
+  - Accessibilité
+
+#### Fonctionnalités principales
+1. **Gestion des missions**
+   - Création/suppression
+   - Configuration
+   - Vue d'ensemble
+   - Statuts en temps réel
+
+2. **Édition de contenu**
+   - Éditeur Markdown
+   - Prévisualisation
+   - Historique des modifications
+   - Validation en temps réel
+
+3. **Contrôle des agents**
+   - Démarrage/arrêt
+   - Configuration
+   - Monitoring
+   - Alertes
+
+4. **Visualisation**
+   - Tableaux de bord
+   - Métriques
+   - Logs
+   - Graphiques d'activité
+
+#### Système de notifications
+- **Types de notifications**
+  - Informations
+  - Avertissements
+  - Erreurs
+  - Succès
+
+- **Mécanismes de livraison**
+  - Temps réel
+  - File d'attente
+  - Priorités
+  - Persistance
+
+#### API REST
+- **Points d'entrée**
+  - Gestion des missions
+  - Contrôle des agents
+  - Manipulation des fichiers
+  - Monitoring système
+
+- **Sécurité**
+  - Authentification
+  - Autorisation
+  - Validation des données
+  - Rate limiting
 
 ## 3. Fonctionnalités
 ### 3.1 Gestion des Missions
