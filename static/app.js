@@ -196,8 +196,6 @@ const ParallagonApp = {
                     this.running = true;
                 }
                 
-                this.addNotification('success', `Mission "${mission.name}" selected`);
-                
             } catch (error) {
                 console.error('Error selecting mission:', error);
                 this.addNotification('error', `Error selecting mission: ${error.message}`);
