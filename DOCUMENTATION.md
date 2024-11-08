@@ -31,30 +31,103 @@
   - Framework de base pour les agents autonomes
   - Intégration avec l'outil Aider
   - Gestion des prompts avec cache et invalidation
+    * Cache LRU configurable
+    * Invalidation basée sur les timestamps
+    * Préchargement intelligent
+    * Métriques de performance
   - Surveillance des fichiers avec portalocker
-  - Gestion des chemins avec validation
+    * Verrouillage thread-safe
+    * Timeouts configurables
+    * Retry automatique
+    * Nettoyage des verrous
   - Retry automatique via @safe_operation
+    * Délais exponentiels
+    * Conditions personnalisables
+    * Limites configurables
+    * Logging des tentatives
   - Logging détaillé avec niveaux
+    * Rotation des fichiers
+    * Formatage configurable
+    * Niveaux multiples
+    * Métriques agrégées
   - Métriques de performance
+    * Temps d'exécution
+    * Taux de succès
+    * Utilisation mémoire
+    * Latence des opérations
 
 - `agents.py`
   - Agents spécialisés :
-    * SpecificationsAgent : Analyse des demandes et spécifications
-    * ProductionAgent : Génération et optimisation du code
-    * ManagementAgent : Coordination et gestion du projet
-    * EvaluationAgent : Tests et validation
-    * SuiviAgent : Documentation et suivi
-    * DuplicationAgent : 
-      - Détection de code dupliqué avec analyse AST
-      - Analyse des fonctions similaires avec métriques de complexité
-      - Identification des configurations redondantes avec diff intelligent
-      - Suggestions de refactoring basées sur les patterns
-      - Analyse de dépendances avec graphe de relations
-      - Métriques de duplication avec seuils configurables
-      - Rapports détaillés au format Markdown
-      - Intégration avec les outils d'analyse statique
-      - Historique des modifications avec git blame
-      - Suggestions de tests pour le code refactoré
+    * SpecificationsAgent
+      - Analyse des demandes initiales
+      - Extraction des exigences
+      - Validation de cohérence
+      - Génération de spécifications
+      - Mise à jour continue
+
+    * ProductionAgent
+      - Génération de code optimisé
+      - Respect des standards
+      - Refactoring intelligent
+      - Tests unitaires
+      - Documentation inline
+
+    * ManagementAgent
+      - Coordination des agents
+      - Gestion des priorités
+      - Résolution des conflits
+      - Rapports d'avancement
+      - Métriques de projet
+
+    * EvaluationAgent
+      - Tests fonctionnels
+      - Validation qualité
+      - Mesures performances
+      - Rapports de bugs
+      - Suggestions d'amélioration
+
+    * SuiviAgent
+      - Documentation temps réel
+      - Historique des changements
+      - Rapports de progression
+      - Métriques d'activité
+      - Alertes configurables
+
+    * DuplicationAgent
+      - Analyse statique et dynamique
+        * Parsing AST complet
+        * Graphes de dépendances
+        * Analyse sémantique
+        * Métriques de complexité
+        * Patterns récurrents
+
+      - Détection de duplication
+        * Code source
+        * Configurations
+        * Documentation
+        * Tests
+        * Resources
+
+      - Analyse d'impact
+        * Coût maintenance
+        * Dette technique
+        * Risques potentiels
+        * Bénéfices refactoring
+        * ROI estimé
+
+      - Suggestions d'optimisation
+        * Extraction méthodes
+        * Création classes base
+        * Utilisation interfaces
+        * Patterns conception
+        * Tests de régression
+
+      - Rapports détaillés
+        * Visualisations graphiques
+        * Métriques quantitatives
+        * Recommandations priorisées
+        * Plan d'action
+        * Suivi des changements
 
 ### 3. Services
 - `services/base_service.py`
