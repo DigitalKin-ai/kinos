@@ -13,10 +13,13 @@ Core Features:
 - Input validation with custom rules
 - Unified logging system with levels
 - Thread-safe file operations via portalocker
-- Multi-level cache management
+- Multi-level cache management (Memory, Redis, Session)
 - Performance metrics collection
 - Resource cleanup
 - Service lifecycle management
+- Circuit breaker pattern implementation
+- Configurable retry policies
+- Distributed locking with Redis
 
 Error Handling:
 - Exception capture and logging
@@ -91,12 +94,16 @@ Services communicate through:
 
 #### Real-time Notifications
 Architecture:
-- Dedicated NotificationService
-- Thread-safe message queue
-- Publish/subscribe system
-- WebSocket connections
-- Heartbeat and reconnection
-- Real-time metrics
+- Dedicated NotificationService with thread-safe queue
+- WebSocket real-time updates with fallback polling
+- Publish/subscribe system with Redis backend
+- Configurable WebSocket heartbeat and reconnection
+- Real-time metrics and monitoring
+- Message prioritization and batching
+- Automatic message expiration (TTL)
+- Backpressure handling
+- Guaranteed message delivery
+- Message deduplication
 
 Message Queue:
 - Thread-safe queue implementation
@@ -164,11 +171,16 @@ State Management:
 
 #### Multi-level Cache
 Cache Layers:
-- LRU memory cache
-- Redis distributed cache
-- Session cache
-- Prompt cache
-- Content cache
+- LRU memory cache with configurable size
+- Redis distributed cache with TTL
+- Session cache for user data
+- Prompt cache with invalidation
+- Content cache with timestamps
+- File system cache with locking
+- Metadata cache for quick lookups
+- Agent state cache
+- Configuration cache
+- Route cache for API responses
 
 Invalidation Strategies:
 - Timestamp-based
@@ -208,11 +220,16 @@ Distributed Locking:
 ### Error Management
 
 #### Centralized Error Handling
-- Global error interceptors
-- Custom exception hierarchy
-- Contextual error details
-- Recovery strategies
-- Error aggregation
+- Global error interceptors with retry policies
+- Custom exception hierarchy with error codes
+- Contextual error details and stack traces
+- Automatic recovery strategies
+- Error aggregation and reporting
+- Circuit breaker pattern
+- Error rate monitoring
+- Configurable alerting
+- Error response formatting
+- Validation error handling
 
 #### Retry Policies
 - Exponential backoff
