@@ -1,5 +1,5 @@
-from flask import jsonify, request
 import os
+from flask import jsonify, request
 from utils.decorators import safe_operation
 
 def register_mission_routes(app, web_instance):
