@@ -20,9 +20,12 @@ class SpecificationsAgent(AiderAgent):
     - Mise à jour continue des spécifications
     """
     def __init__(self, config: Dict):
+        if 'web_instance' not in config:
+            raise ValueError("web_instance manquant dans la configuration")
         super().__init__(config)
         self.prompt_file = "prompts/specifications.md"
         self.role = "specifications"
+        self.web_instance = config['web_instance']
 
 class ProductionAgent(AiderAgent):
     """
@@ -35,9 +38,12 @@ class ProductionAgent(AiderAgent):
     - Optimisation du code
     """
     def __init__(self, config: Dict):
+        if 'web_instance' not in config:
+            raise ValueError("web_instance manquant dans la configuration")
         super().__init__(config)
         self.prompt_file = "prompts/production.md"
         self.role = "production"
+        self.web_instance = config['web_instance']
 
 class ManagementAgent(AiderAgent):
     """
@@ -50,9 +56,12 @@ class ManagementAgent(AiderAgent):
     - Résolution des conflits
     """
     def __init__(self, config: Dict):
+        if 'web_instance' not in config:
+            raise ValueError("web_instance manquant dans la configuration")
         super().__init__(config)
         self.prompt_file = "prompts/management.md"
         self.role = "management"
+        self.web_instance = config['web_instance']
 
 class EvaluationAgent(AiderAgent):
     """
@@ -65,9 +74,12 @@ class EvaluationAgent(AiderAgent):
     - Identification des améliorations
     """
     def __init__(self, config: Dict):
+        if 'web_instance' not in config:
+            raise ValueError("web_instance manquant dans la configuration")
         super().__init__(config)
         self.prompt_file = "prompts/evaluation.md"
         self.role = "evaluation"
+        self.web_instance = config['web_instance']
 
 class SuiviAgent(AiderAgent):
     """
@@ -80,9 +92,14 @@ class SuiviAgent(AiderAgent):
     - Historique des décisions
     """
     def __init__(self, config: Dict):
+        # Ensure web_instance is in config before parent init
+        if 'web_instance' not in config:
+            raise ValueError("web_instance manquant dans la configuration")
         super().__init__(config)
         self.prompt_file = "prompts/suivi.md"
         self.role = "suivi"
+        # Store web_instance explicitly
+        self.web_instance = config['web_instance']
 
 class DuplicationAgent(AiderAgent):
     """
