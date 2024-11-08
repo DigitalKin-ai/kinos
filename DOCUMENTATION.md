@@ -6,8 +6,7 @@
 - Python 3.8+
 - Node.js 16+ (for frontend development)
 - API keys for Anthropic and OpenAI
-- Redis (optional, for advanced caching)
-- PostgreSQL (optional, for production deployments)
+- portalocker (for file locking)
 
 ### Installation
 1. Clone the repository
@@ -29,14 +28,12 @@
 - `aider_agent.py`
   - Framework de base pour les agents autonomes
   - Intégration avec l'outil Aider
-  - Gestion des prompts et fichiers
-  - Surveillance des modifications
-  - Système de cache des prompts avec invalidation intelligente
-  - Verrouillage des fichiers avec portalocker et timeouts configurables
-  - Gestion des chemins relatifs/absolus avec validation
-  - Retry automatique sur erreurs transitoires
-  - Métriques de performance et logging détaillé
-  - Gestion mémoire optimisée
+  - Gestion des prompts avec cache et invalidation
+  - Surveillance des fichiers avec portalocker
+  - Gestion des chemins avec validation
+  - Retry automatique via @safe_operation
+  - Logging détaillé avec niveaux
+  - Métriques de performance
 
 - `agents.py`
   - Agents spécialisés :
@@ -139,11 +136,35 @@
 
 ### 6. Utilitaires
 - `utils/`
-  - `error_handler.py` : Gestion des erreurs centralisée
+  - `error_handler.py` : Gestion centralisée des erreurs
+    - Formatage uniforme des erreurs
+    - Conversion en réponses HTTP
+    - Logging automatique
+    - Stack traces en mode debug
+    - Retry configurable
+
   - `exceptions.py` : Exceptions personnalisées
+    - ParallagonError (base)
+    - ValidationError
+    - ResourceNotFoundError 
+    - ServiceError
+    - AgentError
+    - FileOperationError
+
   - `logger.py` : Système de logging
+    - Niveaux configurables
+    - Formatage timestamp
+    - Couleurs par niveau
+    - Sortie fichier/console
+    - Rotation des logs
+
   - `decorators.py` : Décorateurs utilitaires
-    - `@safe_operation` : Gestion sécurisée avec retry
+    - @safe_operation
+      * Retry automatique
+      * Délai configurable
+      * Nombre max de tentatives
+      * Logging des retries
+      * Gestion des timeouts
 
 ### 7. Configuration
 - `config.py`

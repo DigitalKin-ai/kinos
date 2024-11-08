@@ -251,13 +251,26 @@ The Parallagon system uses a modular architecture built around autonomous agents
 
 1. Nouveaux Agents
    - Hériter de AiderAgent
-   - Implémenter la logique spécifique
-   - Ajouter les routes nécessaires
+   - Implémenter méthodes requises:
+     * _build_prompt()
+     * _run_aider()
+     * list_files()
+   - Configurer:
+     * Prompt file
+     * Fichiers à surveiller
+     * Intervalles d'exécution
 
 2. Nouveaux Services
    - Hériter de BaseService
-   - Implémenter les opérations CRUD
-   - Ajouter la gestion d'erreurs
+   - Implémenter méthodes standard:
+     * _validate_input()
+     * _handle_error() 
+     * _log_operation()
+   - Ajouter:
+     * Gestion des erreurs spécifiques
+     * Validation des entrées
+     * Logging personnalisé
+     * Cache si nécessaire
 
 3. Nouvelles Fonctionnalités UI
    - Ajouter les composants Vue.js
@@ -266,13 +279,27 @@ The Parallagon system uses a modular architecture built around autonomous agents
 
 ## Sécurité et Performance
 
-1. Validation des Entrées
-   - Décorateurs de validation avec schémas Pydantic
-   - Middleware de sécurité avec CORS configurable
-   - Sanitization des données avec HTML purifier
-   - Validation des types en temps réel
-   - Protection XSS et CSRF
-   - Limites de taille configurables
+1. Validation et Sécurité
+   - Validation des entrées
+     * Types et formats
+     * Tailles maximales
+     * Caractères autorisés
+     * Chemins de fichiers
+     * JSON/XML valide
+
+   - Sécurité des fichiers
+     * Verrouillage avec portalocker
+     * Timeouts configurables
+     * Retry sur échec
+     * Nettoyage automatique
+     * Chemins sécurisés
+
+   - Protection des données
+     * CORS configurable
+     * Rate limiting
+     * Validation des sessions
+     * Sanitization HTML
+     * Logs sécurisés
 
 2. Gestion des Erreurs
    - Logging centralisé avec rotation des fichiers
