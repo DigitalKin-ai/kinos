@@ -235,11 +235,14 @@ class ParallagonWeb:
                 self.content_cache[file_path] = content
                 self.last_modified[file_path] = time.time()
                 self.log_message(f"Content cache updated for {panel_name}", level='debug')
+                
+            return jsonify({'status': 'success'})
             
         except Exception as e:
             self.log_message(f"Error handling content change: {str(e)}", level='error')
             import traceback
             self.log_message(traceback.format_exc(), level='error')
+            return jsonify({'error': str(e)}), 500
 
     def toggle_agent(self, agent_id: str, action: str) -> bool:
         """
