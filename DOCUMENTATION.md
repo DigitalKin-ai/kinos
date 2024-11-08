@@ -142,23 +142,71 @@ Specialized agent for detecting and reducing code duplication:
 - Performance metrics
 - Trend analysis
 
-### Decorators
+### Routes API
+
+#### Notifications
+- GET `/api/notifications`
+  - Récupère les notifications en attente
+  - Retourne un tableau de notifications avec timestamps
+  - Support du filtrage par type et priorité
+
+- POST `/api/notifications`
+  - Envoie une nouvelle notification
+  - Corps de requête :
+    ```json
+    {
+        "type": "info|warning|error",
+        "message": "Message content",
+        "panel": "Panel name",
+        "flash": true|false
+    }
+    ```
+
+#### Missions
+- POST `/api/missions/<id>/reset`
+  - Réinitialise les fichiers d'une mission
+  - Préserve le fichier demande.md
+  - Recrée les autres fichiers avec contenu initial
+
+### Décorateurs
 
 #### @safe_operation
-Thread-safe operation wrapper with retry logic:
+Décorateur pour sécuriser les opérations avec retry automatique.
+
 ```python
 @safe_operation(max_retries=3, delay=1.0)
 def some_operation():
-    # Operation code here
+    # Code protégé ici
     pass
 ```
 
-Features:
-- Configurable retry attempts
-- Exponential backoff
-- Error logging
-- Resource cleanup
-- Performance tracking
+Paramètres :
+- max_retries : Nombre maximum de tentatives (défaut: 3)
+- delay : Délai entre les tentatives en secondes (défaut: 1.0)
+
+Fonctionnalités :
+- Retry automatique sur exception
+- Délai exponentiel entre les tentatives
+- Logging des retries et erreurs
+- Nettoyage des ressources
+- Propagation de la dernière erreur
+
+### Système de Cache
+
+#### Cache de Contenu
+- Cache LRU en mémoire pour les fichiers
+- Invalidation basée sur les timestamps
+- Configuration via variables d'environnement :
+  ```
+  CACHE_DURATION=3600
+  CACHE_CLEANUP_INTERVAL=300
+  CONTENT_CACHE_SIZE=1000
+  ```
+
+#### Cache des Prompts
+- Cache par agent avec _prompt_cache
+- Invalidation automatique sur modification
+- Préchargement intelligent
 
 ### Development Guide
 
