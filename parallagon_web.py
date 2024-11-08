@@ -98,49 +98,27 @@ class ParallagonWeb:
             return ""
 
     def __init__(self, config):
+        # Initialize Flask app
         self.app = Flask(__name__)
-        CORS(self.app)  # Enable CORS
-        self.monitor_thread = None  # Add monitor thread tracking
-        self.mission_service = MissionService()
+        CORS(self.app)
         
-        # Initialize limiter before setup_routes
+        # Initialize rate limiter
         self.limiter = Limiter(
             app=self.app,
             key_func=get_remote_address,
             default_limits=["1000 per minute"]
         )
         
-        self.setup_routes()  # Initialize routes
+        # Initialize services
+        self.agent_service = AgentService(self)
+        self.mission_service = MissionService(self)
+        self.notification_service = NotificationService(self)
         
-        # Ensure missions directory exists
-        os.makedirs("missions", exist_ok=True)
-        self.content_cache = {}
-        self.last_modified = {}
-        self.last_content = {}
-        self.notifications_queue = []
-        self.setup_error_handlers()
-        # Add file paths configuration
-        self.file_paths = {
-            "demande": "demande.md",
-            "specifications": "specifications.md",
-            "management": "management.md", 
-            "production": "production.md",
-            "evaluation": "evaluation.md",
-            "suivi": "suivi.md"
-        }
-        # Initialize FileManager with current mission
-        first_mission = self.mission_service.get_all_missions()
-        current_mission = first_mission[0]['name'] if first_mission else None
-        
-        self.file_manager = FileManager(
-            self.file_paths,
-            on_content_changed=self.handle_content_change
-        )
-        if current_mission:
-            self.file_manager.current_mission = current_mission
-        self.running = False
-        self.agents = {}
-        self.init_agents(config)
+        # Register routes
+        register_agent_routes(self.app, self)
+        register_mission_routes(self.app, self)
+        register_notification_routes(self.app, self)
+        register_view_routes(self.app, self)
 
     def init_agents(self, config):
         """Initialisation des agents avec configuration standard"""
