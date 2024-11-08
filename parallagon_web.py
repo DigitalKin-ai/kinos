@@ -112,6 +112,12 @@ class ParallagonWeb:
         self.app = Flask(__name__)
         CORS(self.app)
         
+        # Initialize services
+        self.agent_service = AgentService(self)
+        self.mission_service = MissionService(self)
+        self.notification_service = NotificationService(self)
+        self.file_service = FileService(self)
+        
         # Initialize rate limiter
         self.limiter = Limiter(
             app=self.app,
@@ -119,16 +125,15 @@ class ParallagonWeb:
             default_limits=["1000 per minute"]
         )
         
-        # Initialize services
-        self.agent_service = AgentService(self)
-        self.mission_service = MissionService(self)
-        self.notification_service = NotificationService(self)
+        # Register routes and handlers
+        self._register_routes()
+        self._register_error_handlers()
         
-        # Register routes
-        register_agent_routes(self.app, self)
-        register_mission_routes(self.app, self)
-        register_notification_routes(self.app, self)
-        register_view_routes(self.app, self)
+        # Initialize logger
+        self.logger = Logger()
+        
+        # Initialize components with config
+        self._initialize_components(config)
 
     def init_agents(self, config):
         """Initialisation des agents avec configuration standard"""
