@@ -23,17 +23,16 @@
 
         <!-- Main content with sidebar and file list -->
         <div class="content-container">
-            <!-- Mission Selector Component -->
             <MissionSelector
                 :current-mission="currentMission"
                 :missions="missions"
                 :loading="loading"
                 @select-mission="handleMissionSelect"
                 @create-mission="handleMissionCreate"
+                @sidebar-toggle="handleSidebarCollapse"
             />
-
-            <!-- File Explorer -->
-            <div class="file-explorer">
+            
+            <div class="file-explorer" :class="{ 'sidebar-collapsed': missionSidebarCollapsed }">
                 <div class="file-explorer-header">
                     <h2>Files</h2>
                     <div class="file-controls">

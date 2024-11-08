@@ -19,7 +19,8 @@ const ExplorerApp = {
             loading: false,
             files: [],
             searchQuery: '',
-            error: null
+            error: null,
+            missionSidebarCollapsed: false
         };
     },
     computed: {
@@ -101,6 +102,10 @@ const ExplorerApp = {
             } catch (error) {
                 console.error('Error loading file:', error);
             }
+        },
+
+        handleSidebarCollapse(collapsed) {
+            this.missionSidebarCollapsed = collapsed;
         }
     },
     mounted() {

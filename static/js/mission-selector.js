@@ -17,6 +17,7 @@ export default {
     methods: {
         toggleSidebar() {
             this.sidebarCollapsed = !this.sidebarCollapsed;
+            this.$emit('sidebar-toggle', this.sidebarCollapsed);
         },
 
         startCreatingMission() {

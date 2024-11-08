@@ -4,6 +4,12 @@
     flex-direction: column;
     background: white;
     border-left: 1px solid #ddd;
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+}
+
+.file-explorer.sidebar-collapsed {
+    margin-left: 50px;
 }
 
 .file-explorer-header {
@@ -77,6 +83,16 @@
 
 .content-container {
     display: flex;
+    position: relative;
     flex: 1;
     overflow: hidden;
+}
+
+.mission-sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 10;
+    height: 100%;
 }
