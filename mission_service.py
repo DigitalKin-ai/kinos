@@ -21,6 +21,7 @@ class MissionService:
         self._missions_cache = None
         self._last_scan = 0
         self.scan_interval = 5  # Seconds between directory scans
+        self.logger = Logger()  # Initialize logger
 
     def _ensure_missions_dir(self):
         """Ensure missions directory exists"""
