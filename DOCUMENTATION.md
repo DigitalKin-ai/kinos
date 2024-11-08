@@ -7,8 +7,17 @@
 - Node.js 16+ (for frontend development)
 - API keys for Anthropic and OpenAI
 - portalocker (for file locking)
-- Redis (for distributed caching)
-- PostgreSQL (for persistent storage)
+- Redis (optional, for distributed caching)
+
+### Environment Variables
+Required in `.env`:
+```
+ANTHROPIC_API_KEY=your_key_here
+OPENAI_API_KEY=your_key_here
+DEBUG=True/False
+PORT=8000
+HOST=0.0.0.0
+```
 
 ### Installation
 1. Clone the repository
@@ -212,34 +221,37 @@
 ### 6. Utilitaires
 - `utils/`
   - `error_handler.py` : Gestion centralisée des erreurs
-    - Formatage uniforme des erreurs
-    - Conversion en réponses HTTP
-    - Logging automatique
+    - Formatage uniforme des erreurs via `handle_error()`
+    - Conversion en réponses HTTP avec codes appropriés
+    - Logging automatique des erreurs
     - Stack traces en mode debug
-    - Retry configurable
+    - Méthodes spécialisées:
+      * `validation_error()`: Erreurs 400
+      * `not_found_error()`: Erreurs 404  
+      * `service_error()`: Erreurs 500
 
   - `exceptions.py` : Exceptions personnalisées
-    - ParallagonError (base)
-    - ValidationError
-    - ResourceNotFoundError 
-    - ServiceError
-    - AgentError
-    - FileOperationError
+    - `ParallagonError`: Exception de base
+    - `ValidationError`: Erreurs de validation
+    - `ResourceNotFoundError`: Ressource non trouvée
+    - `ServiceError`: Erreurs de service
+    - `AgentError`: Erreurs d'agent
+    - `FileOperationError`: Erreurs fichiers
 
   - `logger.py` : Système de logging
-    - Niveaux configurables
-    - Formatage timestamp
-    - Couleurs par niveau
-    - Sortie fichier/console
-    - Rotation des logs
+    - Niveaux: info, success, warning, error, debug
+    - Formatage: `[HH:MM:SS] [LEVEL] message`
+    - Couleurs par niveau via COLORS dict
+    - Double sortie fichier/console
+    - Gestion des erreurs de logging
 
   - `decorators.py` : Décorateurs utilitaires
-    - @safe_operation
-      * Retry automatique
-      * Délai configurable
-      * Nombre max de tentatives
-      * Logging des retries
-      * Gestion des timeouts
+    - `@safe_operation(max_retries=3, delay=1.0)`
+      * Retry automatique avec délai exponentiel
+      * Nombre de tentatives configurable
+      * Délai entre tentatives paramétrable
+      * Logging des retries et erreurs
+      * Propagation de la dernière erreur
 
 ### 7. Configuration
 - `config.py`

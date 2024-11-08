@@ -172,27 +172,40 @@ The Parallagon system uses a modular architecture built around autonomous agents
 ## Flux de Données
 
 1. Interface utilisateur
-   - Interactions via les routes view
-   - Appels API via les routes API
-   - Notifications temps réel
+   - Routes view pour le rendu des templates
+   - Routes API REST pour les opérations CRUD
+   - Notifications temps réel via polling optimisé
+   - Gestion des états avec Vue.js
+   - Validation côté client
 
-2. Services
-   - Traitement des requêtes
-   - Gestion de l'état
-   - Communication avec les agents
+2. Services (via BaseService)
+   - Validation des entrées avec _validate_input()
+   - Gestion des erreurs via _handle_error()
+   - Logging unifié avec _log_operation()
+   - Opérations fichiers sécurisées
+   - Communication inter-services
 
-3. Agents
-   - Surveillance des fichiers
-   - Exécution des tâches
-   - Mise à jour du contenu
+3. Agents (via AiderAgent)
+   - Surveillance fichiers avec portalocker
+   - Exécution des commandes Aider
+   - Cache des prompts avec invalidation
+   - Notification des changements
+   - Gestion des erreurs et retry
 
 4. Système de fichiers
-   - Organisation par mission
-   - Verrouillage des fichiers avec portalocker
-   - Cache de contenu optimisé
-   - Gestion des timestamps
-   - Détection des modifications
+   - Structure par mission avec FileManager
+   - Verrouillage thread-safe via portalocker
+     * Timeouts configurables
+     * Retry automatique
+     * Nettoyage des verrous
+   - Cache de contenu avec invalidation
+     * Timestamps pour détection changements
+     * Cache LRU en mémoire
+     * Préchargement intelligent
    - Notifications temps réel
+     * Queue de messages thread-safe
+     * Agrégation des changements
+     * Diffusion optimisée
 
 ## Nouvelles Fonctionnalités
 
