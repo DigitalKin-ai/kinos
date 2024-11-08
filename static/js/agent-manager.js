@@ -107,7 +107,7 @@ export default {
         }
     },
     template: `
-        <div class="h-full flex flex-col">
+        <div class="h-screen flex flex-col">
             <div class="sticky top-0 bg-white z-10 p-6 border-b">
                 <h2 class="text-2xl font-bold">Agents Manager</h2>
             </div>
@@ -117,7 +117,7 @@ export default {
             </div>
             
             <div v-else class="flex-1 overflow-y-auto p-6">
-                <div class="grid grid-cols-1 gap-6 min-h-min">
+                <div class="space-y-6">
                 <div v-for="agent in agents" :key="agent.id" 
                      class="bg-white rounded-lg shadow p-6 border border-gray-200">
                     <div class="flex justify-between items-center mb-4">
