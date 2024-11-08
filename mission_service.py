@@ -36,7 +36,12 @@ class MissionService:
             mission_id = 1
             
             # Debug log
-            self.logger.log(f"Scanning missions directory: {self.missions_dir}")
+            self.logger.log(f"Scanning missions directory: {self.missions_dir}", level='debug')
+            
+            # Ensure missions directory exists
+            if not os.path.exists(self.missions_dir):
+                os.makedirs(self.missions_dir)
+                self.logger.log(f"Created missions directory: {self.missions_dir}", level='info')
             
             for item in os.listdir(self.missions_dir):
                 mission_path = os.path.join(self.missions_dir, item)
@@ -44,7 +49,7 @@ class MissionService:
                     continue
                     
                 # Log each potential mission directory found
-                self.logger.log(f"Found potential mission directory: {item}")
+                self.logger.log(f"Found potential mission directory: {item}", level='debug')
                 
                 # Check if at least one required file exists
                 has_required_file = False
@@ -52,7 +57,7 @@ class MissionService:
                     file_path = os.path.join(mission_path, req_file)
                     if os.path.exists(file_path):
                         has_required_file = True
-                        self.logger.log(f"Found required file: {req_file}")
+                        self.logger.log(f"Found required file: {req_file}", level='debug')
                         break
                 
                 if has_required_file:
@@ -70,7 +75,7 @@ class MissionService:
                     }
                     missions.append(mission)
                     mission_id += 1
-                    self.logger.log(f"Added mission: {item}")
+                    self.logger.log(f"Added mission: {item}", level='info')
                 else:
                     self.logger.log(f"No required files found in: {item}")
                         
