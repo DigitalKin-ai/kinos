@@ -37,6 +37,11 @@ const ExplorerApp = {
         }
     },
     methods: {
+        getFileSize(file) {
+            if (!file.content) return '0';
+            return file.content.length.toString();
+        },
+
         startFileWatcher() {
             this.fileCheckInterval = setInterval(() => {
                 if (this.currentMission) {
@@ -122,7 +127,7 @@ const ExplorerApp = {
 
         async loadMissionFiles(missionId) {
             try {
-                const response = await fetch(`/api/missions/${missionId}/files`);
+                const response = await fetch(`/api/missions/${missionId}/files?include_content=true`);
                 if (!response.ok) {
                     throw new Error('Failed to load mission files');
                 }

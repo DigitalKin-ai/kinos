@@ -67,6 +67,15 @@
     margin-left: 1rem;
 }
 
+.file-size {
+    color: #666;
+    font-size: 0.9em;
+    margin-left: 0.5rem;
+    padding: 0.1rem 0.4rem;
+    background: #f0f0f0;
+    border-radius: 3px;
+}
+
 .loading, .no-files, .no-mission {
     padding: 2rem;
     text-align: center;
