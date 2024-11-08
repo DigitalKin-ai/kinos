@@ -3,7 +3,11 @@ import MissionService from './mission-service.js';
 export default {
     name: 'MissionSelector',
     props: {
-        currentMission: Object,
+        currentMission: {
+            type: Object,
+            default: () => null,
+            required: false
+        },
         missions: {
             type: Array,
             default: () => []
@@ -106,11 +110,9 @@ export default {
 
                 const result = await response.json();
                 
-                // Émettre l'événement avec la mission mise à jour
+                // Émettre à la fois l'événement et la mise à jour de la prop
                 this.$emit('select-mission', result);
-                
-                // Mettre à jour l'état local APRÈS la réponse réussie
-                this.currentMission = result;
+                this.$emit('update:currentMission', result);  // Pour v-model
                 
                 // Arrêter les agents actuels avant de changer de mission
                 await fetch('/api/agents/stop', { method: 'POST' });
