@@ -5,16 +5,24 @@ export default {
     props: {
         currentMission: {
             type: Object,
-            default: () => null,
-            required: false
+            default: () => null
         },
         missions: {
             type: Array,
             default: () => []
         },
-        loading: Boolean
+        loading: {
+            type: Boolean,
+            default: false
+        }
     },
-    emits: ['select-mission', 'create-mission', 'update:missions', 'sidebar-toggle'],
+    emits: [
+        'select-mission',
+        'update:loading',
+        'update:current-mission',
+        'create-mission',
+        'sidebar-toggle'
+    ],
     delimiters: ['${', '}'],
     data() {
         return {
@@ -111,9 +119,9 @@ export default {
 
                 const result = await response.json();
                 
-                // Emit events for updates
+                // Emit events with kebab-case
                 this.$emit('select-mission', result);
-                this.$emit('update:currentMission', result);
+                this.$emit('update:current-mission', result);
                 
                 // Stop current agents before changing mission
                 await fetch('/api/agents/stop', { method: 'POST' });
