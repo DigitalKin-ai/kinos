@@ -72,8 +72,17 @@ export default {
                 this.$emit('error', 'Mission name cannot be empty');
                 return;
             }
-            this.$emit('create-mission', this.newMissionName.trim());
-            this.cancelCreatingMission();
+            try {
+                const newMission = await this.missionService.createMission(this.newMissionName.trim());
+                this.missions.push(newMission);
+                // Sélectionner automatiquement la nouvelle mission
+                this.$emit('select-mission', newMission);
+                this.currentMission = newMission;
+                this.cancelCreatingMission();
+            } catch (error) {
+                console.error('Failed to create mission:', error);
+                this.$emit('error', error.message);
+            }
         },
 
         selectMission(mission) {
