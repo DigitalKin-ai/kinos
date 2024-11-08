@@ -790,17 +790,21 @@ class ParallagonWeb:
 
         @self.app.route('/api/health')
         def health_check():
-            return jsonify({
-                'status': 'healthy',
-                'running': self.running,
-                'agents': {
-                    name: {
-                        'running': agent.should_run(),
-                        'last_update': agent.last_update
+            """Get status of all agents"""
+            try:
+                status = {
+                    name.lower(): {
+                        'running': agent.running,
+                        'last_run': agent.last_run.isoformat() if agent.last_run else None,
+                        'last_change': agent.last_change.isoformat() if agent.last_change else None
                     }
                     for name, agent in self.agents.items()
                 }
-            })
+                return jsonify(status)
+                
+            except Exception as e:
+                self.log_message(f"Failed to get agents status: {str(e)}", level='error')
+                return jsonify({'error': str(e)}), 500
 
 
         @self.app.route('/editor')
