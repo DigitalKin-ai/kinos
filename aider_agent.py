@@ -204,6 +204,52 @@ class AiderAgent(ParallagonAgent):
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur listing fichiers: {str(e)}")
             self.other_files = {}  # Reset en cas d'erreur
 
+    def get_prompt(self) -> str:
+        """Get the current prompt content"""
+        try:
+            if not self.prompt_file:
+                return self.prompt  # Return default prompt if no file specified
+                
+            # Try to load from file
+            if os.path.exists(self.prompt_file):
+                with open(self.prompt_file, 'r', encoding='utf-8') as f:
+                    return f.read()
+            else:
+                self.logger(f"Prompt file not found: {self.prompt_file}")
+                return self.prompt  # Fallback to default prompt
+                
+        except Exception as e:
+            self.logger(f"Error loading prompt: {str(e)}")
+            return self.prompt  # Fallback to default prompt
+
+    def save_prompt(self, content: str) -> bool:
+        """Save new prompt content"""
+        try:
+            if not self.prompt_file:
+                self.logger("No prompt file configured")
+                return False
+                
+            # Ensure prompts directory exists
+            os.makedirs(os.path.dirname(self.prompt_file), exist_ok=True)
+            
+            # Save to file
+            with open(self.prompt_file, 'w', encoding='utf-8') as f:
+                f.write(content)
+                
+            # Update instance prompt
+            self.prompt = content
+            
+            # Clear cache
+            if self.prompt_file in self._prompt_cache:
+                del self._prompt_cache[self.prompt_file]
+                
+            self.logger(f"Prompt saved successfully to {self.prompt_file}")
+            return True
+            
+        except Exception as e:
+            self.logger(f"Error saving prompt: {str(e)}")
+            return False
+
     def _load_prompt(self) -> Optional[str]:
         """Charge le prompt depuis le fichier avec cache"""
         try:
