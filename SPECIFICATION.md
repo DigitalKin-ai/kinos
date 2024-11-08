@@ -117,7 +117,7 @@ Les agents sont le cœur du système Parallagon, chacun ayant un rôle spécifiq
 #### Intégration avec Aider
 1. **Format d'appel standardisé**
    ```bash
-   aider --model haiku --no-git --yes-always --file [fichier_principal] --file [fichiers_surveillance] --message [prompt]
+   aider --model anthropic/claude-3-5-haiku-20241022 --no-git --yes-always --file [fichier_principal] --file [autres_fichiers] --message [prompt]
    ```
 
 2. **Choix techniques**

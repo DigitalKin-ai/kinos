@@ -1,55 +1,72 @@
-1. Reformulation de la Demande (corrigée)
-Sujet scientifique : Traceurs IoT universels avec communication multi-réseaux incluant le système satellite Kineis - aspects software et firmware
+# Demande de Document Structuré
 
-Objectif de recherche : Être capable de concevoir un système IoT capable d'identifier les réseaux disponibles (LoRa, SigFox, Kineis) pour choisir le plus pertinent en consommant le moins d'énergie possible
+## 1. Contexte
 
-Axes de travail :
+### Qui demande ?
+- Digital Kin, une entreprise travaillant sur les systèmes IoT
+- Contact : e.thery@digitalkin.ai
+- Demande pour dossier CIR, étape cruciale de justification R&D
 
-Développement software pour l'identification et la sélection des réseaux
-Optimisation du firmware pour la gestion efficace de l'énergie
-Plage de dates : 2023-2024
+### Pour quoi faire ?
+- Lecteurs : Experts CIR et administration fiscale
+- But : Justifier l'éligibilité des travaux R&D au CIR
+- Impact : Démontrer la nécessité d'une approche R&D
+- Délai : Pour dossier CIR 2023-2024
 
-Email : e.thery@digitalkin.ai
+### Quelles attentes qualitatives ?
+- Qualité principale recherchée : Précision technique et rigueur scientifique
+- Niveau de détail : Exhaustif selon template fourni 
+- Style : Scientifique et objectif conformément aux directives CIR
 
-2. Détermination des manques actuels et maximisation de l'éligibilité au CIR (corrigée)
-Résultat à considérer :
+## 2. Contenu
 
-Système logiciel IoT multi-réseaux économe en énergie
-Algorithme de sélection de réseau optimal
-Atteinte de l'objectif idéal : Non
+### Quel sujet précisément ?
+- Sujet : Traceurs IoT universels multi-réseaux avec Kineis
+- Focus sur les aspects software/firmware :
+  * Identification et sélection des réseaux (LoRa, SigFox, Kineis)
+  * Optimisation énergétique
+- Deux axes principaux :
+  1. Développement software pour identification/sélection réseaux
+  2. Optimisation firmware pour gestion énergétique
 
-Preuves des manques actuels :
+### Quelles spécifications techniques ?
+- Longueur : Selon template (2000-2500 mots + 1100-1450 par axe)
+- Format : Selon template état de l'art CIR fourni
+- Période couverte : 2023-2024
+- Langue : Français
 
-Algorithmes d'identification dynamique des réseaux
-Logiciels de sélection en temps réel
-Optimisation logicielle de l'énergie multi-réseaux
-Intégration logicielle Kineis avec autres protocoles
-Gestion firmware des protocoles multiples
-Évaluation de l'éligibilité au CIR : L'éligibilité au CIR de ce projet reste favorable, en se concentrant sur les aspects software et firmware :
+### Quels critères particuliers ?
+- Inclure : 
+  * État des connaissances accessibles
+  * Limites actuelles
+  * Verrous technologiques
+- Éviter : Solutions techniques détaillées
+- Contraintes : Conformité aux critères CIR
 
-Verrous technologiques : Le développement d'algorithmes capables d'identifier et de basculer efficacement entre différents réseaux (LoRa, SigFox, Kineis) tout en optimisant la consommation d'énergie présente des défis techniques significatifs au niveau logiciel.
+## 3. Structure
 
-Incertitudes techniques : L'optimisation logicielle de la consommation d'énergie tout en gérant plusieurs protocoles de communication pose des incertitudes techniques importantes. La gestion efficace des ressources limitées d'un système embarqué pour supporter multiple protocoles est un défi complexe.
+### Comment organiser le contenu ?
+- Structure selon template fourni :
+  * Introduction générale
+  * Développement par axe
+  * Synthèse multi-axes
+  * Conclusion
+  * Références
+- Types de contenus : Texte avec références bibliographiques
 
-Innovation : La création d'un algorithme de sélection de réseau en temps réel, capable de prendre en compte multiples paramètres (disponibilité, consommation d'énergie, qualité de signal) représente une innovation potentielle dans le domaine du software IoT.
+### Quelles ressources utiliser ?
+- Sources académiques récentes (2023-2024)
+- Publications techniques sur IoT, réseaux de communication
+- Documentation Kineis, LoRa, SigFox
+- Recherches scientifiques sur l'optimisation énergétique IoT
 
-Avancement de l'état de l'art : Le développement d'un firmware capable de gérer efficacement les transitions entre technologies terrestres (LoRa, SigFox) et satellitaire (Kineis) tout en optimisant l'énergie pourrait représenter une avancée significative par rapport aux solutions existantes.
+## Notes Complémentaires
+- Focus sur les aspects logiciels/firmware uniquement
+- Importance de l'optimisation énergétique
+- Intégration unique avec système satellite Kineis
+- Lien avec objectifs d'éligibilité CIR
 
-Ces éléments suggèrent que le projet comporte des aspects de recherche et développement logiciel qui vont au-delà de l'ingénierie courante, le rendant potentiellement éligible au CIR.
-
-3. Génération des queries de recherche (inchangée)
-Les queries restent pertinentes car elles se concentrent déjà sur les aspects software et firmware :
-
-"IoT multi-network system energy efficient LoRa SigFox Kineis 2023 2024"
-
-"IoT software network identification selection algorithm LoRa SigFox Kineis 2023 2024"
-
-"IoT firmware energy optimization multi-network LoRa SigFox Kineis 2023 2024"
-
-"Kineis satellite IoT integration energy efficient tracking 2023 2024"
-
-### Niveau de profondeur
-[x] Approfondi (10-15 pages)
+---
 
 # TEMPLATE ÉTAT DE L'ART CIR
 

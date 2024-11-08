@@ -4,7 +4,6 @@ agents.py - Implémentation unifiée des agents Parallagon
 import os
 from parallagon_agent import ParallagonAgent
 from aider_agent import AiderAgent
-from suivi_agent import SuiviAgent
 
 __all__ = [
     'SpecificationsAgent',

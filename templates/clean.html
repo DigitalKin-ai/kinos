@@ -678,55 +678,6 @@ function formatSuiviLine(line) {
     `;
 }
 
-async function updateSuiviContent() {
-    try {
-        const response = await fetch('/api/suivi');
-        if (response.ok) {
-            const data = await response.json();
-            const suiviDisplay = document.getElementById('suivi-display');
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const lines = data.content.split('\n').filter(line => line.trim());
-            
-            // Créer le nouveau contenu HTML
-            const newContent = lines
-                .map(formatSuiviLine)
-                .filter(bubble => bubble !== null)
-                .join('');
-            
-            // Mettre à jour seulement si le contenu a changé
-            if (suiviDisplay.innerHTML !== newContent) {
-                suiviDisplay.innerHTML = newContent;
-                scrollToBottom('suivi-display');
-            }
-        }
-    } catch (error) {
-        console.error('Erreur lors de la mise à jour du suivi:', error);
-    }
-}
-
-// Fonction pour mettre à jour le contenu de production
-async function updateProductionContent() {
-    try {
-        const response = await fetch('/api/content');
-        if (response.ok) {
-            const data = await response.json();
-            if (editor && data.production !== editor.getData()) {
-                editor.setData(data.production);
-            }
-        }
-    } catch (error) {
-        console.error('Erreur lors de la mise à jour du contenu:', error);
-    }
-}
-
-// Mettre à jour le suivi et le contenu périodiquement
-setInterval(() => {
-    updateSuiviContent();
-    if (isRunning) {
-        updateProductionContent();
-    }
-}, 1000);
-
 async function toggleControl() {
     const button = document.getElementById('controlButton');
     const icon = button.firstElementChild;
