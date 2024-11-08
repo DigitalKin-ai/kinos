@@ -74,22 +74,6 @@ const ParallagonApp = {
         }
     },
     methods: {
-        async updateSuiviEntries() {
-            try {
-                const response = await fetch('/api/suivi');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch suivi entries');
-                }
-                const data = await response.json();
-                
-                // Mettre à jour directement le contenu brut
-                this.suiviContent = data.content || '';
-                
-            } catch (error) {
-                console.error('[Suivi] Erreur:', error);
-            }
-        },
-
         async linkExternalMission() {
             try {
                 // Utiliser l'API moderne de sélection de dossier
@@ -224,7 +208,7 @@ const ParallagonApp = {
                 if (Array.isArray(missions)) {
                     this.missions = missions;
                     if (missions.length > 0) {
-                        this.addNotification('success', 'Missions loaded successfully');
+                  
                     } else {
                         this.addNotification('info', 'No missions available. Please create a new mission.');
                     }
@@ -310,20 +294,6 @@ const ParallagonApp = {
                 this.addNotification('error', `Failed to load content: ${error.message}`);
             } finally {
                 this.loading = false;
-            }
-        },
-
-        async updateSuiviContent() {
-            try {
-                const response = await fetch('/api/suivi');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.content !== undefined) {
-                        this.content.suivi = data.content;
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating suivi content:', error);
             }
         },
 
@@ -955,10 +925,6 @@ const ParallagonApp = {
                 // Ne démarrer le polling que si une mission est sélectionnée
                 if (this.currentMission) {
                     this.startPolling();
-                    // Start suivi content updates
-                    this.suiviUpdateInterval = setInterval(() => {
-                        this.updateSuiviContent();
-                    }, 5000);
                     
                     // Refresh agents status every 5 seconds
                     setInterval(() => {
@@ -966,8 +932,6 @@ const ParallagonApp = {
                             this.refreshAgentsStatus();
                         }
                     }, 5000);
-                    
-                    this.addLog('info', 'Application initialized with mission: ' + this.currentMission.name);
                 }
             })
             .catch(error => {
