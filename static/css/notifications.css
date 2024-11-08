@@ -1,11 +1,11 @@
 /* Notifications */
 .notifications-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    bottom: 20px;
+    left: 20px;
     z-index: 1000;
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: 0.75rem;
 }
 
@@ -23,7 +23,7 @@
 
 .notification:hover {
     opacity: 1;
-    transform: translateX(-2px);
+    transform: translateX(2px);
 }
 
 .notification-info {
@@ -44,4 +44,27 @@
 .notification-error {
     border-left-color: #EF4444;
     color: #991B1B;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification {
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification-enter-active {
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification-leave-active {
+    animation: slideIn 0.3s ease-out reverse;
 }
