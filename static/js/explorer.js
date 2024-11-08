@@ -165,7 +165,8 @@ export default {
     }
 };
 
-export default ExplorerApp;
+export default {
+    name: 'ExplorerApp',
     computed: {
         filteredFiles() {
             if (!this.searchQuery) return this.files;
@@ -331,6 +332,7 @@ export default ExplorerApp;
         }
     },
     mounted() {
+        this.loadMissions();
         this.startFileWatcher();
     },
     beforeUnmount() {
