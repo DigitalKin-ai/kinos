@@ -45,9 +45,14 @@ class BaseService:
 
     def _safe_file_operation(self, operation: str, file_path: str, 
                             mode: str = 'r', encoding: str = 'utf-8'):
-        """Context manager for safe file operations"""
+        """Context manager for safe file operations with performance metrics"""
+        start_time = time.time()
         try:
             with open(file_path, mode, encoding=encoding) as f:
                 yield f
+            duration = time.time() - start_time
+            self.logger.log(f"File operation {operation} completed in {duration:.3f}s", level='debug')
         except Exception as e:
+            duration = time.time() - start_time
+            self.logger.log(f"File operation {operation} failed after {duration:.3f}s", level='error')
             raise ServiceError(f"Failed to {operation} file {file_path}: {str(e)}")

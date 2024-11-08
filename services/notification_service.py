@@ -13,6 +13,9 @@ class NotificationService(BaseService):
         self.content_cache = {}
         self.last_modified = {}
         self.last_content = {}
+        self.cache_hits = 0
+        self.cache_misses = 0
+        self.total_notifications = 0
 
     @safe_operation()
     def check_content_updates(self) -> None:
@@ -44,13 +47,20 @@ class NotificationService(BaseService):
     @safe_operation()
     def handle_content_change(self, file_path: str, content: str, 
                             panel_name: str = None, flash: bool = False) -> bool:
-        """Handle content change notifications"""
+        """Handle content change notifications with cache metrics"""
         try:
+            start_time = time.time()
             self._validate_input(file_path=file_path, content=content)
             self._log_operation('handle_content_change', 
                               file_path=file_path, 
                               panel_name=panel_name,
                               flash=flash)
+                              
+            # Track cache performance
+            if file_path in self.content_cache:
+                self.cache_hits += 1
+            else:
+                self.cache_misses += 1
             
             timestamp = datetime.now().strftime("%H:%M:%S")
             
@@ -81,10 +91,22 @@ class NotificationService(BaseService):
 
     @safe_operation()
     def get_notifications(self) -> List[Dict[str, Any]]:
-        """Get and clear pending notifications"""
+        """Get and clear pending notifications with metrics"""
         try:
             self._log_operation('get_notifications')
             current_time = datetime.now()
+            self.total_notifications += len(self.notifications_queue)
+            
+            # Log cache performance metrics periodically
+            if self.total_notifications % 100 == 0:
+                total_cache_ops = self.cache_hits + self.cache_misses
+                hit_rate = (self.cache_hits / total_cache_ops * 100) if total_cache_ops > 0 else 0
+                self.logger.log(
+                    f"Cache performance - Hits: {self.cache_hits}, "
+                    f"Misses: {self.cache_misses}, "
+                    f"Hit rate: {hit_rate:.1f}%",
+                    level='info'
+                )
             
             # Filter notifications from last 3 seconds
             recent_notifications = []
