@@ -959,7 +959,7 @@ const ParallagonApp = {
         if (this.suiviUpdateInterval) {
             clearInterval(this.suiviUpdateInterval);
         }
-    }
+    },
 };
 
 Vue.createApp(ParallagonApp).mount('#app');
