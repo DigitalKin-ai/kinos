@@ -179,3 +179,151 @@ const ExplorerApp = {
 };
 
 export default ExplorerApp;
+export default {
+    name: 'ExplorerApp',
+    data() {
+        return {
+            currentMission: null,
+            missions: [],
+            loading: true,
+            files: [],
+            searchQuery: '',
+            missionSidebarCollapsed: false,
+            highlightedFiles: new Set()
+        }
+    },
+    computed: {
+        filteredFiles() {
+            if (!this.searchQuery) return this.files;
+            const query = this.searchQuery.toLowerCase();
+            return this.files.filter(file => 
+                file.name.toLowerCase().includes(query) ||
+                file.relativePath.toLowerCase().includes(query)
+            );
+        }
+    },
+    methods: {
+        async handleMissionSelect(mission) {
+            this.currentMission = mission;
+            await this.loadMissionFiles();
+        },
+
+        async handleMissionCreate(name) {
+            try {
+                const response = await fetch('/api/missions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                
+                if (!response.ok) throw new Error('Failed to create mission');
+                
+                const newMission = await response.json();
+                this.missions.push(newMission);
+                this.currentMission = newMission;
+                await this.loadMissionFiles();
+            } catch (error) {
+                console.error('Error creating mission:', error);
+            }
+        },
+
+        handleSidebarCollapse(collapsed) {
+            this.missionSidebarCollapsed = collapsed;
+        },
+
+        async loadMissionFiles() {
+            try {
+                if (!this.currentMission?.id) return;
+                
+                const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
+                if (!response.ok) throw new Error('Failed to fetch files');
+                
+                const currentFiles = await response.json();
+                this.files = currentFiles.map(file => ({
+                    ...file,
+                    displayPath: file.relativePath || file.path
+                }));
+            } catch (error) {
+                console.error('Error loading files:', error);
+            }
+        },
+
+        async checkFileModifications() {
+            try {
+                if (!this.currentMission?.id) return;
+
+                const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
+                if (!response.ok) throw new Error('Failed to fetch files');
+                
+                const currentFiles = await response.json();
+                this.files = currentFiles.map(file => ({
+                    ...file,
+                    displayPath: file.relativePath || file.path
+                }));
+
+            } catch (error) {
+                console.error('Error checking files:', error);
+            }
+        },
+
+        getFileSize(file) {
+            if (!file.content) return '0';
+            return file.content.length.toString();
+        },
+
+        async getFileContent(file) {
+            try {
+                const response = await fetch(
+                    `/api/missions/${this.currentMission.id}/files/${encodeURIComponent(file.relativePath || file.path)}`
+                );
+                
+                if (!response.ok) throw new Error('Failed to load file content');
+                
+                return await response.text();
+            } catch (error) {
+                console.error('Error loading file content:', error);
+                return null;
+            }
+        },
+
+        selectFile(file) {
+            this.highlightedFiles.clear();
+            this.highlightedFiles.add(file.path);
+        },
+
+        isFileHighlighted(path) {
+            return this.highlightedFiles.has(path);
+        },
+
+        getFileIcon(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const icons = {
+                'md': 'mdi mdi-language-markdown',
+                'txt': 'mdi mdi-file-document-outline',
+                'py': 'mdi mdi-language-python',
+                'js': 'mdi mdi-language-javascript',
+                'json': 'mdi mdi-code-json'
+            };
+            return icons[ext] || 'mdi mdi-file-outline';
+        }
+    },
+    async mounted() {
+        try {
+            const response = await fetch('/api/missions');
+            if (!response.ok) throw new Error('Failed to fetch missions');
+            
+            this.missions = await response.json();
+            if (this.missions.length > 0) {
+                await this.handleMissionSelect(this.missions[0]);
+            }
+            
+            this.loading = false;
+            
+            // Start file monitoring
+            setInterval(() => this.checkFileModifications(), 2000);
+        } catch (error) {
+            console.error('Error in mounted:', error);
+            this.loading = false;
+        }
+    }
+};
