@@ -1,4 +1,4 @@
-from parallagon_web import ParallagonWeb
+from web.parallagon_web import ParallagonWeb
 import logging
 import os
 import sys
