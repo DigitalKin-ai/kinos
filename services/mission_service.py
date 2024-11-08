@@ -27,14 +27,21 @@ class MissionService:
         
     def _normalize_mission_path(self, path: str) -> str:
         """Normalise le chemin de mission pour éviter les duplications"""
+        # Convertir en chemin absolu
         normalized = os.path.abspath(path)
+        
+        # Séparer le chemin en composants
         parts = normalized.split(os.sep)
         
-        # Si "missions" apparaît plusieurs fois à la fin, garder une seule occurrence
-        if parts[-2:].count("missions") > 1:
-            # Remonter d'un niveau
-            normalized = os.path.dirname(normalized)
+        # Trouver toutes les occurrences de "missions"
+        mission_indices = [i for i, part in enumerate(parts) if part.lower() == "missions"]
         
+        # S'il y a plusieurs "missions", garder seulement la dernière occurrence
+        if len(mission_indices) > 1:
+            # Reconstruire le chemin en gardant tout jusqu'à la dernière occurrence de "missions"
+            last_missions_index = mission_indices[-1]
+            normalized = os.path.join(*parts[:last_missions_index], *parts[last_missions_index+1:])
+            
         return normalized
         
     def _normalize_mission_path(self, path: str) -> str:
@@ -54,26 +61,26 @@ class MissionService:
         try:
             # Chercher d'abord dans le répertoire courant
             if os.path.exists("missions"):
-                self.missions_dir = os.path.abspath("missions")
+                self.missions_dir = self._normalize_mission_path("missions")
                 self.logger.log(f"Found existing missions directory: {self.missions_dir}", level='info')
                 return True
 
             # Si non trouvé, chercher dans le répertoire parent
-            parent_missions = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "missions"))
+            parent_missions = self._normalize_mission_path(os.path.join(os.path.dirname(__file__), "..", "missions"))
             if os.path.exists(parent_missions):
                 self.missions_dir = parent_missions
                 self.logger.log(f"Found existing missions directory: {self.missions_dir}", level='info')
                 return True
 
             # Si toujours pas trouvé, chercher dans le répertoire utilisateur
-            user_missions = os.path.expanduser(os.path.join("~", "parallagon", "missions"))
+            user_missions = self._normalize_mission_path(os.path.expanduser(os.path.join("~", "parallagon", "missions")))
             if os.path.exists(user_missions):
                 self.missions_dir = user_missions
                 self.logger.log(f"Found existing missions directory: {self.missions_dir}", level='info')
                 return True
 
             # Si aucun dossier missions n'est trouvé, en créer un dans le répertoire courant
-            self.missions_dir = os.path.abspath("missions")
+            self.missions_dir = self._normalize_mission_path("missions")
             os.makedirs(self.missions_dir, exist_ok=True)
             self.logger.log(f"Created new missions directory: {self.missions_dir}", level='info')
             
