@@ -120,23 +120,27 @@ def register_mission_routes(app, web_instance):
     @safe_operation()
     def select_mission(mission_id):
         try:
+            # Get mission
             mission = web_instance.mission_service.get_mission(mission_id)
             if not mission:
+                web_instance.logger.log(f"Mission {mission_id} not found", level='error')
                 return jsonify({'error': 'Mission not found'}), 404
                 
             # Update current mission in FileManager
             web_instance.file_manager.current_mission = mission['name']
+            web_instance.logger.log(f"Updated FileManager current mission to: {mission['name']}", level='debug')
             
             # Update agent paths
             web_instance.agent_service.update_agent_paths(mission['name'])
+            web_instance.logger.log(f"Updated agent paths for mission: {mission['name']}", level='debug')
             
-            web_instance.logger.log(f"Selected mission: {mission['name']}", level='success')
+            web_instance.logger.log(f"Successfully selected mission: {mission['name']}", level='success')
             
             return jsonify(mission)
             
         except Exception as e:
-            web_instance.logger.log(f"Error selecting mission: {str(e)}", level='error')
-            return jsonify({'error': str(e)}), 500
+            web_instance.logger.log(f"Error selecting mission {mission_id}: {str(e)}", level='error')
+            return jsonify({'error': f"Failed to select mission: {str(e)}"}), 500
 
     @app.route('/api/missions/<int:mission_id>/reset', methods=['POST'])
     @safe_operation()

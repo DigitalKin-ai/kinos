@@ -80,10 +80,13 @@ class MissionService {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to select mission');
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to select mission');
             }
 
-            return await response.json();
+            const result = await response.json();
+            console.log('Mission selected successfully:', result);
+            return result;
         } catch (error) {
             console.error('Error selecting mission:', error);
             throw error;
