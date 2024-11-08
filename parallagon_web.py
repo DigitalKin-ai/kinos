@@ -714,59 +714,70 @@ class ParallagonWeb:
                 'agents': {name: agent.should_run() for name, agent in self.agents.items()}
             })
 
-        @self.app.route('/api/content')
-        def get_content():
+        @self.app.route('/api/content', methods=['GET', 'POST'])
+        def handle_content():
+            """Route unifiée pour la gestion du contenu"""
             try:
-                # Only return content if there's a current mission
-                if not self.current_mission:
-                    return jsonify({})
+                if request.method == 'POST':
+                    # Gestion des notifications de changement
+                    data = request.get_json()
+                    
+                    # Validation des données
+                    required_fields = ['file_path', 'content', 'panel']
+                    if not all(field in data for field in required_fields):
+                        missing = [f for f in required_fields if f not in data]
+                        return jsonify({'error': f'Missing required fields: {missing}'}), 400
+                    
+                    # Ajouter la notification avec tous les champs nécessaires
+                    notification = {
+                        'type': data.get('type', 'info'),
+                        'message': data.get('message', 'Content updated'),
+                        'panel': data['panel'],
+                        'content': data['content'],
+                        'flash': data.get('flash', True),
+                        'timestamp': datetime.now().strftime("%H:%M:%S"),
+                        'id': len(self.notifications_queue),
+                        'status': data['file_path']
+                    }
+                    
+                    # Mettre à jour le cache si le contenu n'est pas vide
+                    if data['content'].strip():
+                        self.content_cache[data['file_path']] = data['content']
+                        self.last_modified[data['file_path']] = time.time()
+                    
+                    self.notifications_queue.append(notification)
+                    return jsonify({'status': 'success'})
+                    
+                else:  # GET
+                    # Vérification de mission active
+                    if not self.current_mission:
+                        return jsonify({})
 
-                content = {}
-                mission_dir = os.path.join("missions", self.current_mission['name'])
-                
-                # Get last modified times for comparison
-                current_times = {}
-                for file_name in self.file_paths:
-                    file_path = os.path.join(mission_dir, f"{file_name}.md")
-                    if os.path.exists(file_path):
-                        current_times[file_name] = os.path.getmtime(file_path)
-                        
-                        # Only read if file has changed
-                        if (file_name not in self.last_modified or 
-                            current_times[file_name] > self.last_modified.get(file_name, 0)):
-                            try:
-                                with open(file_path, 'r', encoding='utf-8') as f:
-                                    file_content = f.read()
-                                    if file_content.strip():  # Only include non-empty content
-                                        content[file_name] = file_content
-                                        self.last_modified[file_name] = current_times[file_name]
-                                        self.log_message(f"Updated content for {file_name}", level='debug')
-                            except Exception as e:
-                                self.log_message(f"Error reading {file_name}: {str(e)}", level='error')
-                                
-                return jsonify(content)
-                
+                    content = {}
+                    mission_dir = os.path.join("missions", self.current_mission['name'])
+                    
+                    # Vérifier les modifications de fichiers
+                    for file_name in self.file_paths:
+                        file_path = os.path.join(mission_dir, f"{file_name}.md")
+                        if os.path.exists(file_path):
+                            current_time = os.path.getmtime(file_path)
+                            
+                            # Lire uniquement si le fichier a changé
+                            if (file_name not in self.last_modified or 
+                                current_time > self.last_modified.get(file_name, 0)):
+                                try:
+                                    with open(file_path, 'r', encoding='utf-8') as f:
+                                        file_content = f.read()
+                                        if file_content.strip():  # Ignorer le contenu vide
+                                            content[file_name] = file_content
+                                            self.last_modified[file_name] = current_time
+                                except Exception as e:
+                                    self.log_message(f"Error reading {file_name}: {str(e)}", level='error')
+                    
+                    return jsonify(content)
+                    
             except Exception as e:
-                self.log_message(f"Error getting content: {str(e)}", level='error')
-                return jsonify({'error': str(e)}), 500
-
-        @self.app.route('/api/content/change', methods=['POST'])
-        def handle_content_change():
-            try:
-                data = request.get_json()
-                
-                # Appeler la méthode de notification existante
-                self.handle_content_change(
-                    file_path=data['file_path'],
-                    content=data['content'],
-                    panel_name=data['panel_name'],
-                    flash=data.get('flash', True)
-                )
-                
-                return jsonify({'status': 'success'})
-                
-            except Exception as e:
-                self.log_message(f"Error handling content change: {str(e)}", level='error')
+                self.log_message(f"Error handling content: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/start', methods=['POST'])
