@@ -9,7 +9,9 @@ export default {
             loading: true,
             error: null,
             fileCheckInterval: null,
-            flashingFiles: new Set() // Track flashing files
+            flashingFiles: new Set(),
+            expandedFiles: new Set(),
+            fileContents: new Map()
         }
     },
     computed: {
@@ -137,6 +139,46 @@ export default {
 
         formatDate(timestamp) {
             return new Date(timestamp * 1000).toLocaleString();
+        },
+
+        async toggleFile(file) {
+            try {
+                if (this.expandedFiles.has(file.path)) {
+                    this.expandedFiles.delete(file.path);
+                    return;
+                }
+
+                this.expandedFiles.add(file.path);
+                
+                if (!this.fileContents.has(file.path)) {
+                    const response = await fetch(
+                        `/api/missions/${this.currentMission.id}/files/${encodeURIComponent(file.path)}`
+                    );
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to load file content');
+                    }
+                    
+                    const content = await response.text();
+                    this.fileContents.set(file.path, content);
+                }
+            } catch (error) {
+                console.error('Error loading file content:', error);
+                this.expandedFiles.delete(file.path);
+                this.error = `Failed to load content for ${file.name}`;
+            }
+        },
+
+        isExpanded(filePath) {
+            return this.expandedFiles.has(filePath);
+        },
+
+        getFileContent(filePath) {
+            return this.fileContents.get(filePath) || '';
+        },
+
+        formatContent(content) {
+            return marked.parse(content);
         }
     },
     template: `
@@ -161,35 +203,41 @@ export default {
             </div>
 
             <div v-else class="flex-1 overflow-auto">
-                <div class="bg-white shadow overflow-hidden">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modified</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="file in files" 
-                                :key="file.path" 
-                                class="hover:bg-gray-50 transition-colors duration-200"
-                                :class="{ 'bg-yellow-100': isFlashing(file.path) }">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <i class="mdi mdi-file-document-outline text-gray-500 mr-2"></i>
-                                        <span class="text-sm text-gray-900">{{ file.name }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ getFileSize(file) }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ formatDate(file.modified) }}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="bg-white shadow">
+                    <div v-for="file in files" 
+                         :key="file.path" 
+                         class="border-b border-gray-200 last:border-b-0">
+                        
+                        <!-- En-tête du fichier -->
+                        <div @click="toggleFile(file)"
+                             class="px-6 py-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors duration-200"
+                             :class="{ 'bg-yellow-100': isFlashing(file.path) }">
+                            <div class="flex items-center">
+                                <i class="mdi mdi-chevron-right text-gray-500 mr-2 transition-transform duration-200"
+                                   :class="{ 'transform rotate-90': isExpanded(file.path) }"></i>
+                                <i class="mdi mdi-file-document-outline text-gray-500 mr-2"></i>
+                                <span class="text-sm text-gray-900">{{ file.name }}</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span class="text-sm text-gray-500">{{ getFileSize(file) }}</span>
+                                <span class="text-sm text-gray-500">{{ formatDate(file.modified) }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Contenu du fichier (accordéon) -->
+                        <div v-if="isExpanded(file.path)" 
+                             class="border-t border-gray-100 bg-gray-50">
+                            <div class="p-6 overflow-x-auto">
+                                <div v-if="fileContents.has(file.path)"
+                                     class="prose max-w-none"
+                                     v-html="formatContent(getFileContent(file.path))">
+                                </div>
+                                <div v-else class="text-gray-500 text-sm">
+                                    Loading content...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
