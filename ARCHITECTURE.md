@@ -164,11 +164,45 @@ The Parallagon system uses a modular architecture built around autonomous agents
   - safe_operation
   - Retry logic
 
-### Frontend
-- `static/js/`
-  - `agent-manager.js` - Gestion UI des agents
-  - `mission-selector.js` - Sélection des missions
-  - `mission-service.js` - Service frontend missions
+### Frontend Components
+
+#### Vue.js Components
+- `agent-manager.js`
+  - Props:
+    * currentMission: Object
+  - Events:
+    * agent-started
+    * agent-stopped
+    * prompt-updated
+  - Features:
+    * Real-time agent status
+    * Prompt editing
+    * Start/Stop controls
+    * Status indicators
+
+- `mission-selector.js`
+  - Props:
+    * currentMission: Object
+    * missions: Array
+    * loading: Boolean
+  - Events:
+    * select-mission
+    * create-mission
+    * sidebar-toggle
+  - Features:
+    * Mission list navigation
+    * Create new missions
+    * Collapsible sidebar
+    * Loading states
+
+#### Notification System
+- Real-time updates via polling
+- Flash messages for important events
+- Tab highlighting for changes
+- Status indicators
+- Error handling
+- Loading states
+- Success confirmations
 
 - `static/css/`
   - `sidebar.css` - Styles de la sidebar
