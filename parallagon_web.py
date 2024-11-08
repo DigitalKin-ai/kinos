@@ -827,6 +827,11 @@ class ParallagonWeb:
         def home():
             """Redirect root to editor interface"""
             return redirect(url_for('editor_interface'))
+            
+        @self.app.route('/agents')
+        def agents_page():
+            """Agents management interface"""
+            return render_template('agents.html')
 
         @self.app.route('/api/status')
         def get_status():
