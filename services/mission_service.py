@@ -167,14 +167,20 @@ class MissionService:
             if not name or not name.strip():
                 raise ValueError("Mission name cannot be empty")
                 
-            # Create mission directory with absolute path
+            # Construire le chemin directement dans le dossier missions existant
             mission_dir = os.path.join(self.missions_dir, name)
-            os.makedirs(mission_dir, exist_ok=True)
+            
+            # Normaliser le chemin pour éviter toute duplication
+            mission_dir = self._normalize_mission_path(mission_dir)
+            
+            # Log pour debug
+            self.logger.log(f"Creating mission in: {mission_dir}", level='debug')
             
             # Create required files with initial content
             for filename in self.REQUIRED_FILES:
                 file_path = os.path.join(mission_dir, filename)
                 if not os.path.exists(file_path):
+                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
                     with open(file_path, 'w', encoding='utf-8') as f:
                         initial_content = self._get_initial_content(filename.replace('.md', ''))
                         f.write(initial_content)
