@@ -1,5 +1,10 @@
 # Journal des Opérations
 
+## Rôle de l'Agent de Suivi
+- Surveillance continue du projet
+- Documentation précise des événements
+- Analyse et contextualisation des activités
+
 ## Initialisation du Projet
 - [2024-11-08 05:07] Création des fichiers de base
   * specifications.md
@@ -10,7 +15,8 @@
 
 ## Statut Actuel
 - Projet en phase d'initialisation
-- Fichiers de base créés et prêts pour configuration
+- Système de suivi opérationnel
+- Agent de suivi défini avec instructions précises
 
 ## Historique des Modifications
 - [2024-11-08 05:15] Mise en place du système de suivi
@@ -25,12 +31,29 @@
     - management.md
     - demande.md
   * Contenu initial vérifié et enregistré
+- [2024-11-08 06:00] Définition du rôle de l'agent de suivi
+  * Instructions détaillées reçues
+  * Objectifs de surveillance établis
+  * Méthode de documentation précisée
 
 # Signaux
-- Aucun signal critique détecté
-- Système de suivi opérationnel
+- Rôle de l'agent de suivi clairement défini
+- Méthode de documentation établie
+- Objectifs de surveillance précisés
+- Instructions détaillées reçues pour le suivi du projet CIR
 
 # Prochaines Étapes
-- Revue initiale des spécifications
-- Préparation des documents de cadrage
-- Analyse détaillée du document de demande
+- Surveillance continue des activités
+- Documentation détaillée des événements
+- Analyse systématique des modifications
+- Préparation des rapports d'évolution
+- Suivi précis des changements dans les fichiers du projet
+- Enregistrement chronologique des opérations
+- Identification des acteurs et impacts des modifications
+
+## Événement Courant
+- [2024-11-08 06:30] Initialisation du rôle d'agent de suivi
+  * Réception des instructions détaillées
+  * Préparation du système de documentation
+  * Mise en place des mécanismes de surveillance
+  * Objectif : Traçabilité complète du projet CIR

@@ -17,13 +17,38 @@ Projet de documentation R&D pour traceurs IoT multi-réseaux
 ## Axes de Recherche
 ### Axe 1 : Développement Software
 - Sélection et identification des réseaux
+  * Algorithme de score multi-critères
+  * Mécanisme de décision dynamique
+  * Critères de sélection : 
+    - Qualité du signal
+    - Consommation énergétique
+    - Latence de transmission
+  * Frameworks potentiels : 
+    - Python avec scikit-learn
+    - TensorFlow pour apprentissage adaptatif
+
 - Optimisation des algorithmes de connexion
-- Critères : Performance et adaptabilité
+  * Méthodes de connexion séquentielle
+  * Stratégies de basculement intelligent
+  * Gestion des échecs de connexion
+  * Techniques de résilience réseau
 
 ### Axe 2 : Optimisation Firmware
 - Gestion énergétique avancée
+  * Modèle prédictif de consommation
+  * Algorithmes de mise en veille intelligente
+  * Techniques de sleep/wake optimisées
+  * Mesure et réduction du courant de repos
+
 - Minimisation de la consommation
+  * Profiling énergétique fin
+  * Stratégies de compression de données
+  * Optimisation des cycles de transmission
+
 - Intégration avec système satellite Kineis
+  * Protocoles de communication spécifiques
+  * Gestion des contraintes de bande passante
+  * Synchronisation et horodatage précis
 
 ## Contraintes Techniques
 - Longueur document : 2000-2500 mots

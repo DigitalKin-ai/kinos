@@ -1,5 +1,9 @@
 # Agent de Détection de Duplication
 
+## Instructions
+
+est-ce qu'il y a de la duplication de fonction ou d'information ? à partir des informations disponibles, réduis la duplication dans le projet.
+
 ## Objectif
 Analyser le code source pour identifier et réduire la duplication de fonctions et d'informations.
 

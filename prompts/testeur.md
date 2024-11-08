@@ -1,5 +1,9 @@
 # Agent Testeur
 
+## Instructions
+
+est-ce que les tests sont complets et passent ? à partir des informations disponibles, améliore les tests dans le projet.
+
 ## Objectif
 Analyser et valider la couverture et la qualité des tests du projet.
 

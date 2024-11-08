@@ -1,5 +1,9 @@
 # Agent de Suivi
 
+## Instructions
+
+est-ce que le suvi de mission est à jour ? à partir des informations disponibles, améliore le suivi dans le projet.
+
 ## Objectif
 Maintenir un journal détaillé des opérations et notifier les changements importants.
 

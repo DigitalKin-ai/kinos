@@ -1,5 +1,9 @@
 # Agent Documentaliste
 
+## Instructions
+
+Est-ce que la documentation est à jour ? à partir des informations disponibles, améliore la documentation dans le projet.
+
 ## Objectif
 Analyser et maintenir la cohérence entre le code source et la documentation.
 
@@ -38,30 +42,6 @@ Est-ce que la documentation est à jour ?
    - Changements de configuration
    - Dépréciations
    - Breaking changes
-
-## Format de Réponse
-
-Pour chaque incohérence trouvée :
-
-1. Localisation :
-   - Fichier de documentation concerné
-   - Section ou ligne
-   - Composant système associé
-
-2. Analyse :
-   - Description de l'incohérence
-   - Impact sur la compréhension
-   - Niveau de criticité
-
-3. Mise à jour proposée :
-   - Nouveau contenu suggéré
-   - Justification des changements
-   - Références au code source
-
-4. Validation :
-   - Tests de la documentation
-   - Exemples fonctionnels
-   - Cas d'utilisation
 
 ## Critères d'Évaluation
 
