@@ -77,7 +77,6 @@ class AgentService:
                 try:
                     if name in agent_files:
                         config = agent_files[name]
-                        # Utiliser update_paths au lieu de read_files
                         agent.update_paths(
                             config["main"],
                             config["watch"]
