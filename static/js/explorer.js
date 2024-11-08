@@ -25,7 +25,10 @@ const ExplorerApp = {
             files: [],
             searchQuery: '',
             error: null,
-            missionSidebarCollapsed: false
+            missionSidebarCollapsed: false,
+            fileModifications: new Map(),
+            highlightedFiles: new Set(),
+            fileCheckInterval: null
         };
     },
     computed: {
@@ -39,6 +42,51 @@ const ExplorerApp = {
         }
     },
     methods: {
+        startFileWatcher() {
+            this.fileCheckInterval = setInterval(() => {
+                if (this.currentMission) {
+                    this.checkFileModifications();
+                }
+            }, 1000);
+        },
+
+        stopFileWatcher() {
+            if (this.fileCheckInterval) {
+                clearInterval(this.fileCheckInterval);
+                this.fileCheckInterval = null;
+            }
+        },
+
+        async checkFileModifications() {
+            try {
+                const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
+                if (!response.ok) return;
+                
+                const currentFiles = await response.json();
+                
+                currentFiles.forEach(file => {
+                    const previousModified = this.fileModifications.get(file.path);
+                    if (previousModified && previousModified < file.modified) {
+                        this.highlightFile(file.path);
+                    }
+                    this.fileModifications.set(file.path, file.modified);
+                });
+            } catch (error) {
+                console.error('Error checking file modifications:', error);
+            }
+        },
+
+        highlightFile(filePath) {
+            this.highlightedFiles.add(filePath);
+            setTimeout(() => {
+                this.highlightedFiles.delete(filePath);
+            }, 1000);
+        },
+
+        isFileHighlighted(filePath) {
+            return this.highlightedFiles.has(filePath);
+        },
+
         async loadMissions() {
             try {
                 this.loading = true;
@@ -115,6 +163,11 @@ const ExplorerApp = {
     },
     mounted() {
         this.loadMissions();
+        this.startFileWatcher();
+    },
+
+    beforeUnmount() {
+        this.stopFileWatcher();
     }
 };
 

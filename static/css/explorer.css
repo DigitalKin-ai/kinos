@@ -33,12 +33,23 @@
     padding: 1rem;
 }
 
+@keyframes highlightFile {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(255, 235, 59, 0.3); }
+    100% { background-color: transparent; }
+}
+
 .file-item {
     display: flex;
     align-items: center;
     padding: 0.5rem;
     cursor: pointer;
     border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.file-item.highlighted {
+    animation: highlightFile 1s ease;
 }
 
 .file-item:hover {

@@ -56,6 +56,7 @@
                             v-for="file in filteredFiles" 
                             :key="file.path"
                             class="file-item"
+                            :class="{ 'highlighted': isFileHighlighted(file.path) }"
                             @click="selectFile(file)"
                         >
                             <i :class="getFileIcon(file)"></i>
