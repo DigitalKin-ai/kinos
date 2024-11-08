@@ -84,7 +84,7 @@ const ParallagonApp = {
                     }
                 });
             }
-        }
+        },
                 'evaluation.md': 'evaluation',
                 'suivi.md': 'suivi'
             },
