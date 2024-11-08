@@ -14,6 +14,19 @@ class AiderAgent(ParallagonAgent):
     """
     
     def __init__(self, config: Dict):
+        """
+        Initialize the Aider agent with configuration.
+        
+        Args:
+            config (Dict): Configuration dictionary containing:
+                - anthropic_api_key: API key for Anthropic
+                - openai_api_key: API key for OpenAI
+                - file_path: Path to main file
+                - watch_files: List of files to watch (optional)
+                - prompt_file: Path to prompt file (optional)
+                - name: Agent name
+                - mission_name: Current mission name
+        """
         super().__init__(config)
         
         # Validation de la configuration
@@ -41,7 +54,9 @@ class AiderAgent(ParallagonAgent):
         # Créer le dossier de mission si nécessaire
         os.makedirs(mission_dir, exist_ok=True)
 
-        # TODO: Ajouter récursivement tous les fichiers texte (md, txt, py, js etc.) du dossier de la mission dans la variable self.other_files
+        # Initialize other_files and load content
+        self.other_files = {}  # Initialize empty first
+        self.read_files()  # This will populate other_files
             
         self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
         self.logger(f"[{self.__class__.__name__}] Dossier mission: {mission_dir}")
