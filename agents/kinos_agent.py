@@ -41,11 +41,11 @@ class KinOSAgent:
     
     # Default intervals for each agent type (in seconds)
     DEFAULT_INTERVALS = {
-        'SpecificationsAgent': 20,  # Specifications change less frequently
-        'ProductionAgent': 8,       # Medium reactivity
-        'ManagementAgent': 15,      # Coordination needs less frequency
-        'EvaluationAgent': 18,      # Allow changes to accumulate
-        'SuiviAgent': 10            # More reactive monitoring
+        'SpecificationsAgent': 40,  # Specifications change less frequently
+        'ProductionAgent': 16,      # Medium reactivity
+        'ManagementAgent': 30,      # Coordination needs less frequency
+        'EvaluationAgent': 36,      # Allow changes to accumulate
+        'SuiviAgent': 20           # More reactive monitoring
     }
 
     def __init__(self, config: Dict[str, Any]):
@@ -214,10 +214,10 @@ class KinOSAgent:
         """
         base_interval = self.check_interval
         
-        # If no recent changes, gradually increase interval
+        # If no recent changes, increase interval more aggressively
         if self.last_change and self.consecutive_no_changes > 0:
-            # Increase interval up to 5x base rhythm
-            multiplier = min(5, 1 + (self.consecutive_no_changes * 0.5))
+            # Increase up to 10x base rhythm
+            multiplier = min(10, 1 + (self.consecutive_no_changes * 1.0))
             return base_interval * multiplier
             
         return base_interval
