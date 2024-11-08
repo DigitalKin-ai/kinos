@@ -78,13 +78,13 @@ export default {
                 <div v-else-if="missions.length === 0" class="mission-empty">
                     Aucune mission disponible
                 </div>
-                <div v-else v-for="m in missions" 
-                     :key="m.id"
+                <div v-else v-for="mission in missions" 
+                     :key="mission.id"
                      class="mission-item"
-                     :class="{ active: currentMission?.id === m.id }"
-                     @click="selectMission(m)">
+                     :class="{ active: currentMission?.id === mission.id }"
+                     @click="selectMission(mission)">
                     <i class="mdi mdi-folder-outline"></i>
-                    <span class="mission-name">${ m.name }</span>
+                    <span class="mission-name">\${ mission.name }</span>
                 </div>
             </div>
         </div>
