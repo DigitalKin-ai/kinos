@@ -51,46 +51,72 @@ def register_mission_routes(app, web_instance):
     def get_mission_files(mission_id):
         """Get all files in mission directory"""
         try:
+            # Log the request
+            web_instance.logger.log(f"Getting files for mission {mission_id}", level='debug')
+            
+            # Get mission
             mission = web_instance.mission_service.get_mission(mission_id)
             if not mission:
+                web_instance.logger.log(f"Mission {mission_id} not found", level='error')
                 return jsonify({'error': 'Mission not found'}), 404
 
-            # S'assurer que le dossier et les fichiers existent
-            if not web_instance.mission_service.ensure_mission_files(mission_id):
-                return jsonify({'error': 'Failed to ensure mission files'}), 500
-
-            # Extensions de fichiers supportées
-            text_extensions = {'.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml'}
+            # Log mission info
+            web_instance.logger.log(f"Found mission: {mission['name']}", level='debug')
             
-            # Dossier racine de la mission
+            # Get mission directory path
             mission_dir = os.path.abspath(os.path.join("missions", mission['name']))
-            if not os.path.exists(mission_dir):
-                return jsonify({'error': 'Mission directory not found'}), 404
-                
-            files = []
-
-            # Parcourir récursivement le dossier de la mission
-            for root, _, filenames in os.walk(mission_dir):
-                for filename in filenames:
-                    if os.path.splitext(filename)[1].lower() in text_extensions:
-                        full_path = os.path.join(root, filename)
-                        # Calculer le chemin relatif par rapport au dossier de la mission
-                        relative_path = os.path.relpath(full_path, mission_dir)
-                        
-                        files.append({
-                            'name': filename,
-                            'path': relative_path,
-                            'size': os.path.getsize(full_path),
-                            'modified': os.path.getmtime(full_path)
-                        })
-
-            # Trier les fichiers par nom
-            files.sort(key=lambda x: x['path'])
+            web_instance.logger.log(f"Mission directory: {mission_dir}", level='debug')
             
-            return jsonify(files)
+            # Check if directory exists
+            if not os.path.exists(mission_dir):
+                web_instance.logger.log(f"Mission directory not found: {mission_dir}", level='error')
+                # Create directory if it doesn't exist
+                try:
+                    os.makedirs(mission_dir, exist_ok=True)
+                    web_instance.logger.log(f"Created mission directory: {mission_dir}", level='info')
+                except Exception as e:
+                    web_instance.logger.log(f"Failed to create mission directory: {str(e)}", level='error')
+                    return jsonify({'error': 'Failed to create mission directory'}), 500
+
+            # Ensure required files exist
+            required_files = ["demande.md", "specifications.md", "management.md", 
+                            "production.md", "evaluation.md", "suivi.md"]
+            for filename in required_files:
+                file_path = os.path.join(mission_dir, filename)
+                if not os.path.exists(file_path):
+                    try:
+                        with open(file_path, 'w', encoding='utf-8') as f:
+                            f.write("")  # Create empty file
+                        web_instance.logger.log(f"Created file: {filename}", level='info')
+                    except Exception as e:
+                        web_instance.logger.log(f"Failed to create {filename}: {str(e)}", level='error')
+                        continue
+
+            # Get all files
+            files = []
+            try:
+                for root, _, filenames in os.walk(mission_dir):
+                    for filename in filenames:
+                        if filename.endswith(('.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml')):
+                            full_path = os.path.join(root, filename)
+                            relative_path = os.path.relpath(full_path, mission_dir)
+                            
+                            files.append({
+                                'name': filename,
+                                'path': relative_path,
+                                'size': os.path.getsize(full_path),
+                                'modified': os.path.getmtime(full_path)
+                            })
+                
+                web_instance.logger.log(f"Found {len(files)} files", level='debug')
+                return jsonify(files)
+                
+            except Exception as e:
+                web_instance.logger.log(f"Error scanning files: {str(e)}", level='error')
+                return jsonify({'error': f'Error scanning files: {str(e)}'}), 500
 
         except Exception as e:
-            web_instance.logger.log(f"Error getting mission files: {str(e)}", level='error')
+            web_instance.logger.log(f"Unexpected error: {str(e)}", level='error')
             return jsonify({'error': str(e)}), 500
 
     @app.route('/api/missions/<int:mission_id>/reset', methods=['POST'])
