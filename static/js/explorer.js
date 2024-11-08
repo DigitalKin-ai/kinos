@@ -1,30 +1,17 @@
-import MissionSelector from './mission-selector.js';
-import MissionService from './mission-service.js';
-
-const ExplorerApp = {
-    components: {
-        MissionSelector
-    },
-    delimiters: ['${', '}'],
-    setup() {
-        const missionService = new MissionService();
-        return {
-            missionService
-        };
-    },
+export default {
+    name: 'ExplorerApp',
     data() {
         return {
             currentMission: null,
             missions: [],
-            loading: false,
+            loading: true,
             files: [],
             searchQuery: '',
-            error: null,
             missionSidebarCollapsed: false,
-            fileModifications: new Map(),
             highlightedFiles: new Set(),
+            fileModifications: new Map(),
             fileCheckInterval: null
-        };
+        }
     },
     computed: {
         filteredFiles() {
@@ -179,19 +166,6 @@ const ExplorerApp = {
 };
 
 export default ExplorerApp;
-export default {
-    name: 'ExplorerApp',
-    data() {
-        return {
-            currentMission: null,
-            missions: [],
-            loading: true,
-            files: [],
-            searchQuery: '',
-            missionSidebarCollapsed: false,
-            highlightedFiles: new Set()
-        }
-    },
     computed: {
         filteredFiles() {
             if (!this.searchQuery) return this.files;
@@ -295,6 +269,29 @@ export default {
             return this.highlightedFiles.has(path);
         },
 
+        isFileHighlighted(path) {
+            return this.highlightedFiles.has(path);
+        },
+
+        getFileSize(file) {
+            if (!file.content) return '0';
+            return file.content.length.toString();
+        },
+
+        async getFileContent(file) {
+            try {
+                const response = await fetch(
+                    `/api/missions/${this.currentMission.id}/files/${encodeURIComponent(file.relativePath || file.path)}`
+                );
+                
+                if (!response.ok) throw new Error('Failed to load file content');
+                return await response.text();
+            } catch (error) {
+                console.error('Error loading file content:', error);
+                return null;
+            }
+        },
+
         getFileIcon(file) {
             const ext = file.name.split('.').pop().toLowerCase();
             const icons = {
@@ -307,23 +304,12 @@ export default {
             return icons[ext] || 'mdi mdi-file-outline';
         }
     },
-    async mounted() {
-        try {
-            const response = await fetch('/api/missions');
-            if (!response.ok) throw new Error('Failed to fetch missions');
-            
-            this.missions = await response.json();
-            if (this.missions.length > 0) {
-                await this.handleMissionSelect(this.missions[0]);
-            }
-            
-            this.loading = false;
-            
-            // Start file monitoring
-            setInterval(() => this.checkFileModifications(), 2000);
-        } catch (error) {
-            console.error('Error in mounted:', error);
-            this.loading = false;
+    mounted() {
+        this.startFileWatcher();
+    },
+    beforeUnmount() {
+        if (this.fileCheckInterval) {
+            clearInterval(this.fileCheckInterval);
         }
     }
 };
