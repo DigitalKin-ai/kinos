@@ -286,6 +286,11 @@ class ParallagonWeb:
             return False
 
     def setup_routes(self):
+        @self.app.route('/explorer')
+        def explorer():
+            """Explorer interface"""
+            return render_template('explorer.html')
+
         @self.app.route('/api/missions/<int:mission_id>/content', methods=['GET'])
         def get_mission_content(mission_id):
             try:
