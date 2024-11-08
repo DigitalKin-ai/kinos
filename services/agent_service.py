@@ -301,44 +301,37 @@ class AgentService:
                 "Specification": SpecificationsAgent({
                     **base_config,
                     "name": "Specification",
-                    "file_path": "specifications.md",
+                    "file_path": os.path.join(mission_dir, "specifications.md"),
                     "prompt": load_prompt("prompts/specifications.md"),
                     "prompt_file": "prompts/specifications.md"
                 }),
                 "Production": ProductionAgent({
                     **base_config,
                     "name": "Production",
-                    "file_path": "production.md",
+                    "file_path": os.path.join(mission_dir, "production.md"),
                     "prompt": load_prompt("prompts/production.md"),
                     "prompt_file": "prompts/production.md"
                 }),
                 "Management": ManagementAgent({
                     **base_config,
                     "name": "Management",
-                    "file_path": "management.md",
+                    "file_path": os.path.join(mission_dir, "management.md"),
                     "prompt": load_prompt("prompts/management.md"),
                     "prompt_file": "prompts/management.md"
                 }),
                 "Evaluation": EvaluationAgent({
                     **base_config,
                     "name": "Evaluation",
-                    "file_path": "evaluation.md",
+                    "file_path": os.path.join(mission_dir, "evaluation.md"),
                     "prompt": load_prompt("prompts/evaluation.md"),
                     "prompt_file": "prompts/evaluation.md"
                 }),
                 "Suivi": SuiviAgent({
                     **base_config,
                     "name": "Suivi",
-                    "file_path": "suivi.md",
+                    "file_path": os.path.join(mission_dir, "suivi.md"),
                     "prompt": load_prompt("prompts/suivi.md"),
                     "prompt_file": "prompts/suivi.md"
-                }),
-                "Documentaliste": DocumentalisteAgent({
-                    **base_config,
-                    "name": "Documentaliste",
-                    "file_path": "documentation.md",
-                    "prompt": load_prompt("prompts/documentaliste.md"),
-                    "prompt_file": "prompts/documentaliste.md"
                 }),
                 "Documentaliste": DocumentalisteAgent({
                     **base_config,
@@ -352,9 +345,19 @@ class AgentService:
                     "name": "Duplication",
                     "file_path": os.path.join(mission_dir, "duplication.md"),
                     "prompt": load_prompt("prompts/duplication.md"),
-                    "prompt_file": "prompts/duplication.md"
+                    "prompt_file": "prompts/duplication.md",
+                    "watch_files": [  # Add files to watch for duplication
+                        os.path.join(mission_dir, "*.py"),
+                        os.path.join(mission_dir, "*.js"),
+                        os.path.join(mission_dir, "*.md")
+                    ]
                 })
             }
+
+            # Log successful initialization
+            self.web_instance.log_message("All agents initialized successfully", level='success')
+            for name in self.agents:
+                self.web_instance.log_message(f"Agent {name} ready", level='info')
 
         except Exception as e:
             self.web_instance.log_message(f"Error initializing agents: {str(e)}", level='error')
