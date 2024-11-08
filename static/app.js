@@ -478,21 +478,35 @@ const ParallagonApp = {
                 
                 // Vérifier les changements et mettre à jour
                 Object.keys(contentData).forEach(panelId => {
+                    // Vérifier si le contenu est vide ou undefined
+                    if (!contentData[panelId]) {
+                        console.debug(`Skipping empty content update for ${panelId}`);
+                        return;
+                    }
+
+                    // Comparer avec le contenu actuel
                     if (this.content[panelId] !== contentData[panelId]) {
-                        // Mettre à jour le contenu
-                        this.content[panelId] = contentData[panelId];
+                        console.debug(`Content change detected for ${panelId}`);
                         
-                        // Faire flasher l'onglet correspondant
-                        const tabElement = document.querySelector(`.tab-item[data-tab="${panelId}"]`);
-                        if (tabElement) {
-                            tabElement.classList.remove('flash-tab');
-                            void tabElement.offsetWidth; // Force reflow
-                            tabElement.classList.add('flash-tab');
+                        // Vérifier que le nouveau contenu n'est pas vide avant de mettre à jour
+                        if (contentData[panelId].trim()) {
+                            // Mettre à jour le contenu
+                            Vue.set(this.content, panelId, contentData[panelId]);
                             
-                            // Retirer la classe après l'animation
-                            setTimeout(() => {
+                            // Faire flasher l'onglet correspondant
+                            const tabElement = document.querySelector(`.tab-item[data-tab="${panelId}"]`);
+                            if (tabElement) {
                                 tabElement.classList.remove('flash-tab');
-                            }, 1000);
+                                void tabElement.offsetWidth; // Force reflow
+                                tabElement.classList.add('flash-tab');
+                                
+                                // Retirer la classe après l'animation
+                                setTimeout(() => {
+                                    tabElement.classList.remove('flash-tab');
+                                }, 1000);
+                            }
+                        } else {
+                            console.debug(`Skipping empty content update for ${panelId}`);
                         }
                     }
                 });
