@@ -85,8 +85,16 @@ export default {
             }
         },
 
-        selectMission(mission) {
-            this.$emit('select-mission', mission);
+        async selectMission(mission) {
+            try {
+                // Call service method to update backend
+                await this.missionService.selectMission(mission);
+                
+                // Emit event to update parent
+                this.$emit('select-mission', mission);
+            } catch (error) {
+                console.error('Failed to select mission:', error);
+            }
         },
 
         async toggleMissionAgents(mission, event) {
