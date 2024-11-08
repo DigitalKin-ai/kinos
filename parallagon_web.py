@@ -1304,6 +1304,45 @@ class ParallagonWeb:
         except Exception as e:
             self.log_message(f"❌ Error updating agent paths: {str(e)}", level='error')
 
+    @self.app.route('/explorer')
+    def explorer():
+        """Explorer interface"""
+        return render_template('explorer.html')
+
+    @self.app.route('/api/missions/<int:mission_id>/files')
+    def get_mission_files(mission_id):
+        """Get all text files in mission directory"""
+        try:
+            mission = self.mission_service.get_mission(mission_id)
+            if not mission:
+                return jsonify({'error': 'Mission not found'}), 404
+
+            # Extensions de fichiers texte supportées
+            text_extensions = {'.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml'}
+            
+            mission_dir = os.path.join("missions", mission['name'])
+            files = []
+
+            # Parcourir récursivement le dossier
+            for root, _, filenames in os.walk(mission_dir):
+                for filename in filenames:
+                    if os.path.splitext(filename)[1].lower() in text_extensions:
+                        full_path = os.path.join(root, filename)
+                        relative_path = os.path.relpath(full_path, mission_dir)
+                        files.append({
+                            'name': filename,
+                            'path': full_path,
+                            'relativePath': relative_path,
+                            'size': os.path.getsize(full_path),
+                            'modified': os.path.getmtime(full_path)
+                        })
+
+            return jsonify(files)
+
+        except Exception as e:
+            self.log_message(f"Error getting mission files: {str(e)}", level='error')
+            return jsonify({'error': str(e)}), 500
+
     def get_app(self):
         """Return the Flask app instance"""
         return self.app

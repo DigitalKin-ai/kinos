@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Parallagon Explorer{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/explorer.css') }}">
+{% endblock %}
+
+{% block content %}
+<div id="app" v-cloak>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">⚫ Parallagon Explorer</div>
+            <div class="current-mission" v-if="currentMission">
+                <span class="mission-label">Mission:</span>
+                <span class="mission-name">${ currentMission.name }</span>
+            </div>
+        </div>
+
+        <!-- Main content with sidebar and file list -->
+        <div class="content-container">
+            <!-- Mission Selector Component -->
+            <MissionSelector
+                :current-mission="currentMission"
+                :missions="missions"
+                :loading="loading"
+                @select-mission="handleMissionSelect"
+                @create-mission="handleMissionCreate"
+            />
+
+            <!-- File Explorer -->
+            <div class="file-explorer">
+                <div class="file-explorer-header">
+                    <h2>Files</h2>
+                    <div class="file-controls">
+                        <input 
+                            v-model="searchQuery" 
+                            placeholder="Search files..."
+                            class="search-input"
+                        >
+                    </div>
+                </div>
+                
+                <div class="file-list" v-if="currentMission">
+                    <div v-if="loading" class="loading">
+                        Loading files...
+                    </div>
+                    <div v-else-if="filteredFiles.length === 0" class="no-files">
+                        No files found
+                    </div>
+                    <div v-else class="file-tree">
+                        <div 
+                            v-for="file in filteredFiles" 
+                            :key="file.path"
+                            class="file-item"
+                            @click="selectFile(file)"
+                        >
+                            <i :class="getFileIcon(file)"></i>
+                            <span class="file-name">${ file.name }</span>
+                            <span class="file-path">${ file.relativePath }</span>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="no-mission">
+                    Please select a mission to view files
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+    import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+    import ExplorerApp from "{{ url_for('static', filename='js/explorer.js') }}";
+    
+    createApp(ExplorerApp).mount('#app');
+</script>
+{% endblock %}
