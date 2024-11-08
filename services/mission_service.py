@@ -48,14 +48,21 @@ class MissionService:
         
     def _normalize_mission_path(self, path: str) -> str:
         """Normalise le chemin de mission pour éviter les duplications"""
+        # Convertir en chemin absolu
         normalized = os.path.abspath(path)
+        
+        # Séparer le chemin en composants
         parts = normalized.split(os.sep)
         
-        # Si "missions" apparaît plusieurs fois à la fin, garder une seule occurrence
-        if parts[-2:].count("missions") > 1:
-            # Remonter d'un niveau
-            normalized = os.path.dirname(normalized)
+        # Trouver toutes les occurrences de "missions"
+        mission_indices = [i for i, part in enumerate(parts) if part.lower() == "missions"]
         
+        # S'il y a plusieurs "missions", garder seulement la dernière occurrence
+        if len(mission_indices) > 1:
+            # Reconstruire le chemin en gardant tout jusqu'à la dernière occurrence de "missions"
+            last_missions_index = mission_indices[-1]
+            normalized = os.path.join(*parts[:last_missions_index], *parts[last_missions_index+1:])
+            
         return normalized
 
     def _ensure_missions_dir(self):
