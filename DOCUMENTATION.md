@@ -423,6 +423,28 @@ Centralized error management:
 
 ### Agents
 
+#### DocumentalisteAgent
+Agent responsable de la cohérence entre code et documentation.
+
+Responsabilités:
+- Analyse de la documentation existante
+- Détection des incohérences avec le code
+- Mise à jour automatique de la documentation
+- Maintien de la qualité documentaire
+- Validation des références croisées
+- Vérification des exemples de code
+- Génération de documentation manquante
+
+Configuration:
+```python
+{
+    "name": "Documentaliste",
+    "prompt_file": "prompts/documentaliste.md",
+    "check_interval": 300,
+    "file_patterns": ["*.md", "*.py", "*.js"]
+}
+```
+
 #### DuplicationAgent
 Agent spécialisé dans la détection et réduction de la duplication de code.
 
@@ -572,6 +594,7 @@ Fonctionnalités :
 - 2 CPU cores minimum
 - 1GB free disk space
 - Network access for API calls
+- Redis server (optional, for distributed cache)
 
 ### Environment Variables
 Required in `.env`:
@@ -584,28 +607,61 @@ OPENAI_API_KEY=your_key_here
 DEBUG=True/False
 PORT=8000
 HOST=0.0.0.0
+CORS_ORIGINS=["http://localhost:8000"]
+RATE_LIMIT="1000 per minute"
+COMPRESS_RESPONSES=True
+SESSION_SECRET=your_secret_here
 
 # File Operations
 FILE_LOCK_TIMEOUT=10
 MAX_FILE_SIZE=10485760
 LOCK_CHECK_INTERVAL=100
+LOCK_RETRY_COUNT=3
+LOCK_RETRY_DELAY=1.0
+FILE_ENCODING="utf-8"
 
 # Cache Settings
 CACHE_DURATION=3600
 CACHE_CLEANUP_INTERVAL=300
 CONTENT_CACHE_SIZE=1000
+CACHE_STRATEGY="lru"
+REDIS_URL=optional_redis_url
+CACHE_COMPRESSION=True
 
 # Error Handling
 RETRY_ATTEMPTS=3
 RETRY_DELAY=1.0
 ERROR_RETRY_CODES=[408,429,500,502,503,504]
+CIRCUIT_BREAKER_THRESHOLD=5
+ERROR_COOLDOWN=300
+ALERT_ON_ERROR=True
 
 # Notifications
 NOTIFICATION_QUEUE_SIZE=500
 NOTIFICATION_BATCH_SIZE=50
+NOTIFICATION_TIMEOUT=5
+WEBSOCKET_HEARTBEAT=30
+MESSAGE_TTL=3600
+PRIORITY_LEVELS=["high","medium","low"]
 
 # Logging
 LOG_LEVEL=info
+LOG_FORMAT="[%(asctime)s] [%(levelname)s] %(message)s"
+LOG_FILE="parallagon.log"
+LOG_ROTATION="1 day"
+LOG_BACKUP_COUNT=7
+
+# Monitoring
+ENABLE_METRICS=True
+PROMETHEUS_PORT=9090
+TRACE_REQUESTS=True
+PROFILE_ENDPOINTS=False
+
+# Security
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRE=3600
+SECURE_COOKIES=True
+CSRF_PROTECTION=True
 ```
 
 ### Installation
