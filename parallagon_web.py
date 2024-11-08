@@ -1,35 +1,16 @@
-from flask import (
-    Flask, jsonify, request, render_template,
-    redirect, url_for
-)
-from utils.decorators import safe_operation
-from utils.decorators import safe_operation
+from flask import Flask
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+from services.agent_service import AgentService
+from services.mission_service import MissionService
 from services.notification_service import NotificationService
 
 from routes.agent_routes import register_agent_routes
 from routes.mission_routes import register_mission_routes
 from routes.notification_routes import register_notification_routes
 from routes.view_routes import register_view_routes
-from services.agent_service import AgentService
-import threading
-import time
-import os
-import git
-from datetime import datetime
-from typing import Dict, Any
-from mission_service import MissionService
-from file_manager import FileManager
-from agents import (
-    SpecificationsAgent,
-    ProductionAgent,
-    ManagementAgent,
-    EvaluationAgent,
-    SuiviAgent
-)
 
 class ParallagonWeb:
     # Log level colors
@@ -1154,9 +1135,13 @@ class ParallagonWeb:
                 self.log_message(f"❌ Erreur générale: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
-    def run(self, host='0.0.0.0', port=5000, **kwargs):
-        """Run the Flask application with optional configuration parameters"""
-        self.app.run(host=host, port=port, **kwargs)
+    def run(self, host='0.0.0.0', port=8000, debug=False):
+        """Run the Flask application"""
+        self.app.run(host=host, port=port, debug=debug)
+
+    def shutdown(self):
+        """Graceful shutdown of the application"""
+        self.agent_service.stop_all_agents()
 
 
     def start_agents(self):
@@ -1363,24 +1348,19 @@ class ParallagonWeb:
         return self.app
 
 if __name__ == "__main__":
-    # Load keys from .env file
-    from dotenv import load_dotenv
-    import os
+    from config import Config
     
-    load_dotenv()
+    # Validate configuration
+    Config.validate()
     
-    config = {
-        "anthropic_api_key": os.getenv("ANTHROPIC_API_KEY"),
-        "openai_api_key": os.getenv("OPENAI_API_KEY")
-    }
+    # Create and run app
+    app = ParallagonWeb({
+        "anthropic_api_key": Config.ANTHROPIC_API_KEY,
+        "openai_api_key": Config.OPENAI_API_KEY
+    })
     
-    # Validate API keys
-    if not config["openai_api_key"] or config["openai_api_key"] == "your-api-key-here":
-        raise ValueError("OPENAI_API_KEY not configured in .env file")
-        
-    if not config["anthropic_api_key"] or config["anthropic_api_key"] == "your-api-key-here":
-        raise ValueError("ANTHROPIC_API_KEY not configured in .env file")
-    
-    app = ParallagonWeb(config)
-    # Change port to 8000 to match frontend
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(
+        host=Config.HOST,
+        port=Config.PORT,
+        debug=Config.DEBUG
+    )
