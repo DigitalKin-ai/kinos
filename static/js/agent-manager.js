@@ -1,3 +1,5 @@
+import ApiClient from './api-client.js';
+
 export default {
     name: 'AgentManager',
     props: {
@@ -5,11 +7,13 @@ export default {
     },
     data() {
         return {
+            apiClient: new ApiClient(),
             agents: [],
             agentStates: {},
             prompts: {},
             editingPrompt: null,
-            loading: true
+            loading: true,
+            error: null
         }
     },
     watch: {
