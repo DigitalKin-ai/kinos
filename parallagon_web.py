@@ -3,30 +3,24 @@ import time
 import threading
 from datetime import datetime
 
-from flask import (
-    Flask, jsonify, request, render_template,
-    redirect, url_for
-)
+from flask import Flask
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+from utils.error_handler import ErrorHandler
+from utils.exceptions import *
+from utils.logger import Logger
+
 from services.agent_service import AgentService
 from services.mission_service import MissionService
 from services.notification_service import NotificationService
+from services.file_service import FileService
 
 from routes.agent_routes import register_agent_routes
 from routes.mission_routes import register_mission_routes
 from routes.notification_routes import register_notification_routes
 from routes.view_routes import register_view_routes
-
-from agents import (
-    SpecificationsAgent,
-    ProductionAgent,
-    ManagementAgent,
-    EvaluationAgent,
-    SuiviAgent
-)
 
 class ParallagonWeb:
     # Log level colors
@@ -1129,13 +1123,67 @@ class ParallagonWeb:
                 self.log_message(f"❌ Erreur générale: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
+    def _register_routes(self):
+        """Register all route blueprints"""
+        register_agent_routes(self.app, self)
+        register_mission_routes(self.app, self)
+        register_notification_routes(self.app, self)
+        register_view_routes(self.app, self)
+        
+    def _register_error_handlers(self):
+        """Register error handlers for different types of exceptions"""
+        @self.app.errorhandler(ValidationError)
+        def handle_validation_error(error):
+            return ErrorHandler.validation_error(str(error))
+            
+        @self.app.errorhandler(ResourceNotFoundError)
+        def handle_not_found_error(error):
+            return ErrorHandler.not_found_error(str(error))
+            
+        @self.app.errorhandler(ServiceError)
+        def handle_service_error(error):
+            return ErrorHandler.service_error(str(error))
+            
+        @self.app.errorhandler(Exception)
+        def handle_generic_error(error):
+            return ErrorHandler.handle_error(error)
+            
+    def _initialize_components(self, config):
+        """Initialize all components with configuration"""
+        try:
+            # Initialize agents
+            self.agent_service.init_agents(config)
+            
+            # Initialize other components as needed
+            self.logger.log("All components initialized successfully", level='success')
+            
+        except Exception as e:
+            self.logger.log(f"Error initializing components: {str(e)}", level='error')
+            raise ServiceError(f"Failed to initialize components: {str(e)}")
+            
     def run(self, host='0.0.0.0', port=8000, debug=False):
         """Run the Flask application"""
-        self.app.run(host=host, port=port, debug=debug)
-
+        try:
+            self.app.run(host=host, port=port, debug=debug)
+        except Exception as e:
+            self.logger.log(f"Error running application: {str(e)}", level='error')
+            raise ServiceError(f"Failed to start application: {str(e)}")
+            
     def shutdown(self):
         """Graceful shutdown of the application"""
-        self.agent_service.stop_all_agents()
+        try:
+            # Stop all agents
+            self.agent_service.stop_all_agents()
+            
+            # Cleanup services
+            self.notification_service.cleanup()
+            self.file_service.cleanup()
+            
+            self.logger.log("Application shutdown complete", level='info')
+            
+        except Exception as e:
+            self.logger.log(f"Error during shutdown: {str(e)}", level='error')
+            raise ServiceError(f"Failed to shutdown cleanly: {str(e)}")
 
 
     def start_agents(self):

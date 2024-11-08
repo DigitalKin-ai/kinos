@@ -81,3 +81,13 @@ class NotificationService:
         except Exception as e:
             self.web_instance.log_message(f"Error getting notifications: {str(e)}", level='error')
             return []
+            
+    def cleanup(self):
+        """Cleanup notification service resources"""
+        try:
+            self.notifications_queue.clear()
+            self.content_cache.clear()
+            self.last_modified.clear()
+            self.last_content.clear()
+        except Exception as e:
+            self.web_instance.logger.log(f"Error cleaning up notification service: {str(e)}", level='error')
