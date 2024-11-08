@@ -85,11 +85,6 @@ const ParallagonApp = {
                 });
             }
         }
-            tabIds: {
-                'demande.md': 'demande',
-                'specifications.md': 'specifications',
-                'management.md': 'management',
-                'production.md': 'production',
                 'evaluation.md': 'evaluation',
                 'suivi.md': 'suivi'
             },
@@ -123,7 +118,7 @@ const ParallagonApp = {
             ws: null
         }
     },
-    
+
     methods: {
         refreshPanel(panelId) {
             console.log('Refreshing panel:', panelId);
@@ -940,7 +935,6 @@ const ParallagonApp = {
         }
     },
 
-
     mounted() {
         // Add notifications container to body
         const notificationsContainer = document.createElement('div');
@@ -987,7 +981,7 @@ const ParallagonApp = {
                 this.addNotification('error', 'Failed to initialize application');
             });
     },
-    
+
     beforeUnmount() {
         this.stopUpdateLoop();
         if (this.suiviUpdateInterval) {
