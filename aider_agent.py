@@ -78,7 +78,7 @@ class AiderAgent(ParallagonAgent):
                 # Construire la commande avec des chemins relatifs au dossier de mission
                 cmd = [
                     "aider",
-                    "--model", "haiku",
+                    "--model", "anthropic/claude-3-5-haiku-20241022",
                     "--no-git",
                     "--yes-always",
                     "--file", os.path.basename(self.file_path),  # Utiliser le nom de fichier relatif
