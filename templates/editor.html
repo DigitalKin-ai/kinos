@@ -47,6 +47,10 @@
                     <i :class="running ? '■' : '▶'"></i>
                     ${ running ? 'Stop' : 'Start' }
                 </button>
+                <a href="/explorer" class="control-button">
+                    <i class="mdi mdi-folder-search"></i>
+                    Explorer
+                </a>
                 <button class="btn-reset" @click="resetFiles" :disabled="running || !currentMission">
                     <i class="mdi mdi-refresh"></i>Reset
                 </button>

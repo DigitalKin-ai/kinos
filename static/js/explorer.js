@@ -89,9 +89,18 @@ const ExplorerApp = {
             return icons[ext] || icons.default;
         },
 
-        selectFile(file) {
-            // À implémenter : ouverture/prévisualisation du fichier
-            console.log('Selected file:', file);
+        async selectFile(file) {
+            try {
+                const response = await fetch(`/api/missions/${this.currentMission.id}/files/${encodeURIComponent(file.relativePath)}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load file content');
+                }
+                const content = await response.text();
+                // TODO: Implémenter l'affichage du contenu dans une modal ou un panneau
+                console.log('File content:', content);
+            } catch (error) {
+                console.error('Error loading file:', error);
+            }
         }
     },
     mounted() {
