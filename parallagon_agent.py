@@ -1,38 +1,4 @@
 """
-ParallagonAgent - Base class for autonomous parallel agents
-
-Defines the core behavior and lifecycle of a Parallagon agent. Each agent:
-    - Operates independently on its assigned file
-    - Maintains its own rhythm of execution  
-    - Communicates through file content changes
-    - Self-adjusts its activity based on changes detected
-"""
-from typing import Dict, Any, Optional, List
-import re
-import time
-import openai
-import anthropic
-import os
-from datetime import datetime, timedelta
-from functools import wraps
-
-def agent_error_handler(method_name: str):
-    """Décorateur générique pour la gestion des erreurs des agents"""
-    def decorator(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            try:
-                return func(self, *args, **kwargs)
-            except Exception as e:
-                error_msg = f"[{self.__class__.__name__}] ❌ Erreur dans {method_name}: {str(e)}"
-                self.logger(error_msg)
-                import traceback
-                self.logger(traceback.format_exc())
-                return None
-        return wrapper
-    return decorator
-
-"""
 Foundation for autonomous file-focused agents.
 
 Each agent is responsible for:
@@ -55,22 +21,6 @@ import anthropic
 import os
 from datetime import datetime, timedelta
 from functools import wraps
-
-def agent_error_handler(method_name: str):
-    """Décorateur générique pour la gestion des erreurs des agents"""
-    def decorator(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            try:
-                return func(self, *args, **kwargs)
-            except Exception as e:
-                error_msg = f"[{self.__class__.__name__}] ❌ Erreur dans {method_name}: {str(e)}"
-                self.logger(error_msg)
-                import traceback
-                self.logger(traceback.format_exc())
-                return None
-        return wrapper
-    return decorator
 
 class ParallagonAgent:
     """
@@ -144,230 +94,6 @@ class ParallagonAgent:
         self.last_change = None
         self.consecutive_no_changes = 0
 
-    @agent_error_handler("read_files")
-    def read_files(self) -> None:
-        """
-        Lit tous les fichiers pertinents pour l'agent.
-        
-        - Lit le fichier principal (self.file_path)
-        - Parcourt récursivement le dossier mission
-        - Charge tous les fichiers texte supportés (.md, .txt, etc.)
-        - Stocke les contenus dans self.other_files
-        - Gère la création des fichiers/dossiers manquants
-        """
-        try:
-            # Ensure file exists with proper directory structure
-            os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
-            
-            # Read main file
-            if not os.path.exists(self.file_path):
-                with open(self.file_path, 'w', encoding='utf-8') as f:
-                    initial_content = "# Contenu Initial\n[En attente de contenu à produire...]"
-                    f.write(initial_content)
-                    self.current_content = initial_content
-            else:
-                with open(self.file_path, 'r', encoding='utf-8') as f:
-                    self.current_content = f.read()
-            
-            # Reset other_files dictionary
-            self.other_files = {}
-            
-            # Get mission directory from file_path
-            mission_dir = os.path.dirname(self.file_path)
-            
-            # Define text file extensions to include
-            TEXT_EXTENSIONS = {'.md', '.txt', '.py', '.js', '.html', '.css', '.json', '.yaml', '.yml'}
-            
-            # Recursive function to scan directory
-            def scan_directory(directory):
-                try:
-                    for root, _, files in os.walk(directory):
-                        for file in files:
-                            file_path = os.path.join(root, file)
-                            # Check if file extension is in our text extensions list
-                            if os.path.splitext(file)[1].lower() in TEXT_EXTENSIONS:
-                                try:
-                                    # Skip the agent's main file as it's already handled
-                                    if file_path == self.file_path:
-                                        continue
-                                        
-                                    # Read file content
-                                    with open(file_path, 'r', encoding='utf-8') as f:
-                                        self.other_files[file_path] = f.read()
-                                        
-                                except Exception as e:
-                                    self.logger(f"Warning: Could not read file {file_path}: {e}")
-                                    self.other_files[file_path] = ""
-                                    
-                except Exception as e:
-                    self.logger(f"Warning: Error scanning directory {directory}: {e}")
-
-            # Scan mission directory
-            scan_directory(mission_dir)
-            
-            # Also read explicitly watched files that might be outside mission directory
-            for file_path in self.other_files:
-                if file_path not in self.other_files:  # Skip if already read
-                    try:
-                        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                        
-                        if not os.path.exists(file_path):
-                            with open(file_path, 'w', encoding='utf-8') as f:
-                                f.write("# Contenu Initial\n[En attente de contenu...]")
-                        
-                        with open(file_path, 'r', encoding='utf-8') as f:
-                            self.other_files[file_path] = f.read()
-                            
-                    except Exception as e:
-                        self.logger(f"Warning: Could not read watched file {file_path}: {e}")
-                        self.other_files[file_path] = ""
-
-        except Exception as e:
-            self.logger(f"❌ Erreur dans read_files: {str(e)}")
-            raise
-
-    @agent_error_handler("analyze")
-    def analyze(self) -> None:
-        """
-        Analyse les changements et signaux dans les fichiers surveillés.
-        
-        - Extrait le statut actuel du fichier
-        - Identifie les signaux présents
-        - Détermine les actions nécessaires
-        - Met à jour l'état interne de l'agent
-        """
-        try:
-            self.logger(f"[{self.__class__.__name__}] Début de l'analyse...")
-            
-            # Extract current status
-            status_match = re.search(r'\[status: (\w+)\]', self.current_content)
-            self.current_status = status_match.group(1) if status_match else "UNKNOWN"
-            self.logger(f"[{self.__class__.__name__}] Status actuel: {self.current_status}")
-
-            # Extract signals section
-            signals_match = re.search(r'# Signaux\n(.*?)(?=\n#|$)', 
-                                    self.current_content, 
-                                    re.DOTALL)
-            if signals_match:
-                signals_text = signals_match.group(1).strip()
-                self.signals = [s.strip() for s in signals_text.split('\n') if s.strip()]
-                if self.signals:
-                    self.logger(f"[{self.__class__.__name__}] Signaux détectés: {self.signals}")
-            else:
-                self.signals = []
-                self.logger(f"[{self.__class__.__name__}] Aucun signal détecté")
-
-            # Analyze current content and other files to determine needed actions
-            self.determine_actions()
-
-        except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur dans analyze: {str(e)}")
-            import traceback
-            self.logger(traceback.format_exc())
-
-    def write_file(self, content: str) -> bool:
-        """
-        Écrit le contenu dans le fichier avec gestion d'erreurs.
-        
-        Args:
-            content: Contenu à écrire
-            
-        Returns:
-            bool: True si l'écriture a réussi, False sinon
-            
-        - Crée les dossiers manquants
-        - Vérifie l'écriture effective
-        - Notifie les changements via l'API
-        """
-        try:
-            # Debug log pour voir le chemin exact
-            self.logger(f"[{self.__class__.__name__}] Tentative d'écriture dans {self.file_path}")
-            
-            # Créer le répertoire parent si nécessaire
-            os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
-            
-            # Écriture avec gestion explicite du fichier et vérification
-            with open(self.file_path, 'w', encoding='utf-8') as f:
-                f.write(content)
-                
-            # Vérifier que l'écriture a bien eu lieu
-            if os.path.exists(self.file_path):
-                with open(self.file_path, 'r', encoding='utf-8') as f:
-                    written_content = f.read()
-                if written_content.strip() == content.strip():
-                    self.logger(f"[{self.__class__.__name__}] ✓ Contenu écrit et vérifié")
-                    
-                    # Notifier du changement via une requête à l'API
-                    try:
-                        import requests
-                        response = requests.post(
-                            'http://localhost:8000/api/content/change',
-                            json={
-                                'file_path': self.file_path,
-                                'content': content,
-                                'panel_name': self.__class__.__name__.replace('Agent', ''),
-                                'flash': True
-                            }
-                        )
-                        if response.status_code == 200:
-                            self.logger(f"✓ Notification de changement envoyée")
-                        else:
-                            self.logger(f"❌ Erreur notification changement: {response.status_code}")
-                    except Exception as e:
-                        self.logger(f"❌ Erreur envoi notification: {str(e)}")
-                    
-                    return True
-                else:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Contenu écrit différent du contenu voulu")
-                    return False
-                    
-            self.logger(f"[{self.__class__.__name__}] ❌ Fichier non trouvé après écriture")
-            return False
-                
-        except PermissionError:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur de permission sur {self.file_path}")
-            return False
-        except IOError as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur d'écriture: {str(e)}")
-            return False
-        except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur inattendue: {str(e)}")
-            return False
-
-    @agent_error_handler("update")
-    def update(self) -> None:
-        """
-        Applique les mises à jour nécessaires aux fichiers.
-        
-        - Compare le nouveau contenu avec l'actuel
-        - Écrit les modifications si nécessaire
-        - Notifie les changements
-        - Gère les erreurs d'écriture
-        """
-        try:
-            if hasattr(self, 'new_content') and self.new_content != self.current_content:
-                self.logger(f"[{self.__class__.__name__}] Mise à jour du fichier {self.file_path}")
-                
-                # Utiliser with pour garantir la fermeture du fichier
-                try:
-                    with open(self.file_path, 'w', encoding='utf-8') as f:
-                        f.write(self.new_content)
-                    self.current_content = self.new_content
-                    self.logger(f"[{self.__class__.__name__}] ✓ Fichier mis à jour")
-                    
-                    # Notifier du changement si un callback est défini
-                    if hasattr(self, 'on_content_changed') and callable(self.on_content_changed):
-                        self.on_content_changed(self.file_path, self.new_content)
-                        
-                except PermissionError:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur de permission sur {self.file_path}")
-                except IOError as e:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur d'écriture: {str(e)}")
-                    
-        except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur mise à jour: {str(e)}")
-            import traceback
-            self.logger(traceback.format_exc())
 
     def start(self) -> None:
         """
@@ -503,12 +229,8 @@ class ParallagonAgent:
         Cycle d'exécution:
         1. Vérifie si doit s'exécuter
         2. Sauvegarde état précédent
-        3. Lit les fichiers
-        4. Analyse les changements
-        5. Détermine les actions
-        6. Applique les mises à jour
-        7. Met à jour les métriques
-        8. Pause adaptative
+        3. Execute aider
+        4. Pause adaptative
         
         Gère:
         - Arrêts propres
@@ -524,19 +246,6 @@ class ParallagonAgent:
                     
                 # Save state before modifications
                 previous_content = self.current_content if hasattr(self, 'current_content') else None
-                
-                # Execute normal cycle
-                self.read_files()
-                if not self.running:  # Check if stopped during read
-                    break
-                    
-                self.analyze()
-                if not self.running:  # Check if stopped during analysis
-                    break
-                    
-                self.determine_actions()
-                if not self.running:  # Check if stopped during action determination
-                    break
                     
                 self.update()
                 
