@@ -23,14 +23,14 @@
 
         <!-- Main content with sidebar and file list -->
         <div class="content-container">
-            <MissionSelector
+            <mission-selector
                 :current-mission="currentMission"
                 :missions="missions"
                 :loading="loading"
                 @select-mission="handleMissionSelect"
                 @create-mission="handleMissionCreate"
                 @sidebar-toggle="handleSidebarCollapse"
-            />
+            ></mission-selector>
             
             <div class="file-explorer" :class="{ 'sidebar-collapsed': missionSidebarCollapsed }">
                 <div class="file-explorer-header">
@@ -78,6 +78,8 @@
     import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
     import ExplorerApp from "{{ url_for('static', filename='js/explorer.js') }}";
     
-    createApp(ExplorerApp).mount('#app');
+    const app = createApp(ExplorerApp);
+    console.log('Vue app created');
+    app.mount('#app');
 </script>
 {% endblock %}

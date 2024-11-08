@@ -5,6 +5,14 @@ export default {
         missions: Array,
         loading: Boolean
     },
+    mounted() {
+        console.log('MissionSelector mounted');
+        console.log('Props:', {
+            currentMission: this.currentMission,
+            missions: this.missions,
+            loading: this.loading
+        });
+    },
     delimiters: ['${', '}'],
     emits: ['select-mission', 'create-mission'],
     data() {

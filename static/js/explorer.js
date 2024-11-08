@@ -5,6 +5,11 @@ const ExplorerApp = {
     components: {
         MissionSelector
     },
+    mounted() {
+        console.log('ExplorerApp mounted');
+        console.log('Missions:', this.missions);
+        this.loadMissions();
+    },
     delimiters: ['${', '}'],
     setup() {
         const missionService = new MissionService();
