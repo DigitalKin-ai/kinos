@@ -91,9 +91,14 @@ class SuiviAgent(AiderAgent):
     - Historique des décisions
     """
     def __init__(self, config: Dict):
+        # Ensure web_instance is in config before parent init
+        if 'web_instance' not in config:
+            raise ValueError("web_instance manquant dans la configuration")
         super().__init__(config)
         self.prompt_file = "prompts/suivi.md"
         self.role = "suivi"
+        # Store web_instance explicitly
+        self.web_instance = config['web_instance']
 
 class DuplicationAgent(AiderAgent):
     """
