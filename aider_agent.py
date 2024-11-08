@@ -41,19 +41,6 @@ class AiderAgent(KinOSAgent):
         
         # Utiliser un chemin relatif pour le fichier principal
         self.file_path = os.path.join(mission_dir, os.path.basename(config["file_path"]))
-        
-        # Créer le fichier principal s'il n'existe pas
-        if not os.path.exists(self.file_path):
-            try:
-                # Create parent directory if needed
-                os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
-                # Create empty file
-                with open(self.file_path, 'w', encoding='utf-8') as f:
-                    f.write("")  # Créer un fichier vide
-                self.logger(f"[{self.__class__.__name__}] ✓ Fichier principal créé: {self.file_path}")
-            except Exception as e:
-                self.logger(f"[{self.__class__.__name__}] ❌ Erreur création fichier: {str(e)}")
-                raise
 
         # Initialize other_files and load content
         self.other_files = {}  # Initialize empty first
