@@ -29,19 +29,17 @@ class AgentService:
     def update_agent_paths(self, mission_name: str) -> None:
         """Update file paths for all agents when mission changes"""
         try:
+            # Stop all agents first
+            self.stop_all_agents()
+            
             # Build and normalize mission path
             mission_dir = os.path.abspath(os.path.join("missions", mission_name))
             os.makedirs(mission_dir, exist_ok=True)
             
             self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
             
-            # Stop agents if running
-            was_running = any(agent.running for agent in self.agents.values())
-            if was_running:
-                self.stop_all_agents()
-            
-            # Update paths for each agent with correct file mappings
-            agent_files = {
+            # Define agent file mappings
+            self.agent_files = {
                 "Specification": {
                     "main": os.path.join(mission_dir, "specifications.md"),
                     "watch": [
