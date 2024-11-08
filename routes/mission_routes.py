@@ -64,36 +64,18 @@ def register_mission_routes(app, web_instance):
             web_instance.logger.log(f"Found mission: {mission['name']}", level='debug')
             
             # Get mission directory path
-            mission_dir = os.path.abspath(os.path.join("missions", mission['name']))
-            # Éviter la duplication du chemin missions
-            if "missions" in mission_dir.split(os.sep)[-2:]:
-                mission_dir = os.path.dirname(mission_dir)
+            mission_dir = os.path.join("missions", mission['name'])
             web_instance.logger.log(f"Mission directory: {mission_dir}", level='debug')
             
             # Check if directory exists
             if not os.path.exists(mission_dir):
                 web_instance.logger.log(f"Mission directory not found: {mission_dir}", level='error')
-                # Create directory if it doesn't exist
                 try:
                     os.makedirs(mission_dir, exist_ok=True)
                     web_instance.logger.log(f"Created mission directory: {mission_dir}", level='info')
                 except Exception as e:
                     web_instance.logger.log(f"Failed to create mission directory: {str(e)}", level='error')
                     return jsonify({'error': 'Failed to create mission directory'}), 500
-
-            # Ensure required files exist
-            required_files = ["demande.md", "specifications.md", "management.md", 
-                            "production.md", "evaluation.md", "suivi.md"]
-            for filename in required_files:
-                file_path = os.path.join(mission_dir, filename)
-                if not os.path.exists(file_path):
-                    try:
-                        with open(file_path, 'w', encoding='utf-8') as f:
-                            f.write("")  # Create empty file
-                        web_instance.logger.log(f"Created file: {filename}", level='info')
-                    except Exception as e:
-                        web_instance.logger.log(f"Failed to create {filename}: {str(e)}", level='error')
-                        continue
 
             # Get all files
             files = []
@@ -102,15 +84,16 @@ def register_mission_routes(app, web_instance):
                     for filename in filenames:
                         if filename.endswith(('.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml')):
                             full_path = os.path.join(root, filename)
+                            # Calculate relative path from mission directory
                             relative_path = os.path.relpath(full_path, mission_dir)
                             
                             files.append({
                                 'name': filename,
-                                'path': relative_path,
+                                'path': relative_path,  # Relative path from mission dir
                                 'size': os.path.getsize(full_path),
                                 'modified': os.path.getmtime(full_path)
                             })
-                
+            
                 web_instance.logger.log(f"Found {len(files)} files", level='debug')
                 return jsonify(files)
                 
