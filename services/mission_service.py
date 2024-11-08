@@ -176,8 +176,8 @@ class MissionService:
             if not name or not name.strip():
                 raise ValueError("Mission name cannot be empty")
                 
-            # Construire le chemin directement dans le dossier missions existant
-            mission_dir = os.path.join(self.missions_dir, name)
+            # Construire le chemin ABSOLU du dossier mission
+            mission_dir = os.path.abspath(os.path.join(self.missions_dir, name))
             
             # Normaliser le chemin pour éviter toute duplication
             mission_dir = self._normalize_mission_path(mission_dir)
@@ -187,8 +187,10 @@ class MissionService:
             
             # Create required files with initial content
             for filename in self.REQUIRED_FILES:
-                file_path = os.path.join(mission_dir, filename)
+                # Utiliser un chemin absolu pour le fichier
+                file_path = os.path.abspath(os.path.join(mission_dir, filename))
                 if not os.path.exists(file_path):
+                    # Créer le dossier parent avec chemin absolu
                     os.makedirs(os.path.dirname(file_path), exist_ok=True)
                     with open(file_path, 'w', encoding='utf-8') as f:
                         initial_content = self._get_initial_content(filename.replace('.md', ''))
@@ -216,14 +218,17 @@ class MissionService:
     def ensure_mission_files(self, mission_name: str) -> bool:
         """Create standard files for a mission if they don't exist"""
         try:
-            mission_dir = os.path.join(self.missions_dir, mission_name)
+            # Utiliser un chemin absolu pour le dossier mission
+            mission_dir = os.path.abspath(os.path.join(self.missions_dir, mission_name))
             
             # Create each required file if it doesn't exist
             for filename in self.REQUIRED_FILES:
-                file_path = os.path.join(mission_dir, filename)
+                # Utiliser un chemin absolu pour le fichier
+                file_path = os.path.abspath(os.path.join(mission_dir, filename))
                 if not os.path.exists(file_path):
+                    # Créer le dossier parent avec chemin absolu
+                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
                     with open(file_path, 'w', encoding='utf-8') as f:
-                        # Get initial content based on file type
                         content = self._get_initial_content(filename.replace('.md', ''))
                         f.write(content)
             return True
