@@ -115,10 +115,10 @@ class ParallagonAgent:
             
         self.config = config
         self.file_path = config["file_path"]
-        self.watch_files = config.get("watch_files", [])
-        # Make sure file_path is in watch_files if not already
-        if self.file_path not in self.watch_files:
-            self.watch_files.append(self.file_path)
+        self.other_files = config.get("other_files", [])
+        # Make sure file_path is in other_files if not already
+        if self.file_path not in self.other_files:
+            self.other_files.append(self.file_path)
         
         # Initialisation des clients API avec les clés validées
         self.client = anthropic.Client(api_key=config["anthropic_api_key"])
@@ -196,7 +196,7 @@ class ParallagonAgent:
             scan_directory(mission_dir)
             
             # Also read explicitly watched files that might be outside mission directory
-            for file_path in self.watch_files:
+            for file_path in self.other_files:
                 if file_path not in self.other_files:  # Skip if already read
                     try:
                         os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -379,11 +379,11 @@ class ParallagonAgent:
             self.logger(f"[{self.__class__.__name__}] Recovery failed: {str(e)}")
             return False
 
-    def update_paths(self, file_path: str, watch_files: List[str]) -> None:
+    def update_paths(self, file_path: str, other_files: List[str]) -> None:
         """Update file paths when mission changes"""
         try:
             self.file_path = file_path
-            self.watch_files = watch_files
+            self.other_files = other_files
             
             # Re-read files with new paths
             self.read_files()
