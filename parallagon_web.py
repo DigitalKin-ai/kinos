@@ -752,8 +752,24 @@ class ParallagonWeb:
                     file_path = os.path.join(mission_dir, filename)
                     try:
                         if os.path.exists(file_path):
-                            with open(file_path, 'r', encoding='utf-8') as f:
-                                content[panel_id] = f.read()
+                            # Get last modified time
+                            last_modified = os.path.getmtime(file_path)
+                            
+                            # Check if file has been modified
+                            if panel_id not in self.last_modified or self.last_modified[panel_id] != last_modified:
+                                with open(file_path, 'r', encoding='utf-8') as f:
+                                    new_content = f.read()
+                                    
+                                # If content has changed
+                                if panel_id not in self.content_cache or self.content_cache[panel_id] != new_content:
+                                    self.log_message(
+                                        f"File changed: {filename} in mission {self.current_mission}",
+                                        level='info'
+                                    )
+                                    content[panel_id] = new_content
+                                    self.content_cache[panel_id] = new_content
+                                    self.last_modified[panel_id] = last_modified
+                                    
                     except Exception as e:
                         self.log_message(f"Error reading {filename}: {str(e)}", level='error')
                         # Continue with other files even if one fails

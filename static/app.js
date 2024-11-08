@@ -527,6 +527,9 @@ const ParallagonApp = {
                         return;
                     }
 
+                    // Log change
+                    console.log(`Content changed in ${panelId}`);
+
                     // Update content
                     this.content[panelId] = newContent;
                     
@@ -538,6 +541,10 @@ const ParallagonApp = {
                     
                     // Force panel refresh
                     this.refreshPanel(panelId);
+
+                    // Add notification
+                    const panelName = this.tabs.find(t => t.id === panelId)?.name || panelId;
+                    this.addNotification('info', `Contenu mis à jour dans ${panelName}`);
                 });
             } catch (error) {
                 console.error('Failed to update content:', error);
