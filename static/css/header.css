@@ -1,12 +1,19 @@
-/* Header qui prend toute la largeur */
+/* Header component */
+:root {
+    --header-bg: #1a202c;
+    --header-text: #ffffff;
+    --header-height: 3.5rem;
+}
+
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0.5rem 1rem;
-    background-color: #1a202c;
-    color: white;
+    background-color: var(--header-bg);
+    color: var(--header-text);
     width: 100%;
+    height: var(--header-height);
     box-sizing: border-box;
     position: relative;
     z-index: 10;

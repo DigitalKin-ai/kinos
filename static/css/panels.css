@@ -1,14 +1,23 @@
-/* Panels */
+/* Panel components */
+:root {
+    --panel-bg: #ffffff;
+    --panel-border: #e9ecef;
+    --panel-shadow: rgba(0, 0, 0, 0.12);
+    --panel-radius: 0.5rem;
+    --panel-transition: 0.3s ease;
+}
+
 .panel {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
-    background-color: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    background-color: var(--panel-bg);
+    border-radius: var(--panel-radius);
+    border: 1px solid var(--panel-border);
+    box-shadow: 0 1px 3px var(--panel-shadow);
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all var(--panel-transition);
     position: relative;
 }
 
