@@ -1,3 +1,4 @@
+import os
 from typing import Optional, Any
 from utils.exceptions import ServiceError, ValidationError
 from utils.logger import Logger
@@ -27,3 +28,26 @@ class BaseService:
         """Log service operations with relevant details"""
         details = ', '.join(f"{k}={v}" for k, v in kwargs.items())
         self.logger.log(f"Executing {operation}: {details}", level='debug')
+
+    def _validate_file_path(self, file_path: str) -> None:
+        """Validate file path exists and is accessible"""
+        if not os.path.exists(file_path):
+            raise ValidationError(f"File not found: {file_path}")
+        if not os.access(file_path, os.R_OK):
+            raise ValidationError(f"File not readable: {file_path}")
+
+    def _ensure_directory(self, directory: str) -> None:
+        """Ensure directory exists, create if needed"""
+        try:
+            os.makedirs(directory, exist_ok=True)
+        except Exception as e:
+            raise ServiceError(f"Failed to create directory {directory}: {str(e)}")
+
+    def _safe_file_operation(self, operation: str, file_path: str, 
+                            mode: str = 'r', encoding: str = 'utf-8'):
+        """Context manager for safe file operations"""
+        try:
+            with open(file_path, mode, encoding=encoding) as f:
+                yield f
+        except Exception as e:
+            raise ServiceError(f"Failed to {operation} file {file_path}: {str(e)}")
