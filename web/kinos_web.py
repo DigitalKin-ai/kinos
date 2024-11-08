@@ -89,12 +89,27 @@ class KinOSWeb:
 
     def __init__(self, config):
         # Initialize Flask app first with explicit template folder
-        template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
-        static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
+        # Get absolute path to project root
+        project_root = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
         
+        # Configure template and static paths
+        template_dir = os.path.join(project_root, 'templates')
+        static_dir = os.path.join(project_root, 'static')
+        
+        # Verify paths exist
+        if not os.path.exists(template_dir):
+            raise RuntimeError(f"Template directory not found: {template_dir}")
+        if not os.path.exists(static_dir):
+            raise RuntimeError(f"Static directory not found: {static_dir}")
+            
+        # Initialize Flask with verified paths
         self.app = Flask(__name__,
                         template_folder=template_dir,
                         static_folder=static_dir)
+        
+        # Add debug logging for paths
+        self.logger.log(f"Template directory: {template_dir}", level='debug')
+        self.logger.log(f"Static directory: {static_dir}", level='debug')
         CORS(self.app)
         
         # Initialize logger first
