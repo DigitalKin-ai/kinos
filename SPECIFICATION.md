@@ -189,29 +189,31 @@ missions/
   - Accessibilité
 
 #### Fonctionnalités principales
-1. **Gestion des missions**
+
+1. **Navigation**
+   - Side panel de sélection des missions
+   - Navigation contextuelle par mission
+   - Accès rapide aux différentes vues
+
+2. **Page Agents**
+   - Liste complète des agents de la mission
+   - Configuration des prompts par agent
+   - Contrôles Start/Stop pour chaque agent
+   - Indicateurs d'état en temps réel
+   - Personnalisation des paramètres
+
+3. **Page Fichiers**
+   - Vue en temps réel de tous les fichiers de la mission
+   - Mise à jour automatique du contenu
+   - Visualisation des modifications
+   - Organisation hiérarchique des fichiers
+   - Système de coloration syntaxique
+
+4. **Gestion des missions**
    - Création/suppression
    - Configuration
    - Vue d'ensemble
    - Statuts en temps réel
-
-2. **Édition de contenu**
-   - Éditeur Markdown
-   - Prévisualisation
-   - Historique des modifications
-   - Validation en temps réel
-
-3. **Contrôle des agents**
-   - Démarrage/arrêt
-   - Configuration
-   - Monitoring
-   - Alertes
-
-4. **Visualisation**
-   - Tableaux de bord
-   - Métriques
-   - Logs
-   - Graphiques d'activité
 
 #### Système de notifications
 - **Types de notifications**
