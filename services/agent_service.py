@@ -222,29 +222,45 @@ class AgentService:
     def update_agent_paths(self, mission_name: str) -> None:
         """Update file paths for all agents when mission changes"""
         try:
-            # Vérifier que le nom de mission est valide
-            if not mission_name:
-                raise ValueError("Mission name cannot be empty")
-                
-            # Log l'état actuel
-            self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
-            self.web_instance.logger.log(f"Current FileManager mission: {self.web_instance.file_manager.current_mission}", level='debug')
+            # Explicit verification
+            if self.web_instance.file_manager.current_mission != mission_name:
+                self.web_instance.logger.log(
+                    f"Mission mismatch - FileManager: {self.web_instance.file_manager.current_mission}, "
+                    f"Requested: {mission_name}",
+                    level='error'
+                )
+                # Force update
+                self.web_instance.file_manager.current_mission = mission_name
             
-            # Stop agents if running
-            was_running = any(agent.running for agent in self.agents.values())
-            if was_running:
-                self.stop_all_agents()
-                
-            # Build and normalize mission path
+            # Stop all agents
+            self.stop_all_agents()
+            
+            # Build mission path
             mission_dir = os.path.abspath(os.path.join("missions", mission_name))
             os.makedirs(mission_dir, exist_ok=True)
             
-            # Vérifier que le dossier existe
-            if not os.path.exists(mission_dir):
-                raise ValueError(f"Mission directory not found: {mission_dir}")
-                
-            # Update paths for each agent with correct file mappings
-            agent_files = {
+            self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
+            
+            # Ensure all required files exist
+            required_files = [
+                "specifications.md",
+                "production.md",
+                "management.md", 
+                "evaluation.md",
+                "suivi.md",
+                "duplication.md",
+                "documentation.md"
+            ]
+
+            for filename in required_files:
+                file_path = os.path.join(mission_dir, filename)
+                if not os.path.exists(file_path):
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write("")
+                    self.web_instance.logger.log(f"Created file: {filename}", level='debug')
+
+            # Define agent file mappings
+            self.agent_files = {
                 "Specification": {
                     "main": os.path.join(mission_dir, "specifications.md"),
                     "watch": [
@@ -273,28 +289,54 @@ class AgentService:
                         os.path.join(mission_dir, "specifications.md"),
                         os.path.join(mission_dir, "production.md")
                     ]
+                },
+                "Suivi": {
+                    "main": os.path.join(mission_dir, "suivi.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md"),
+                        os.path.join(mission_dir, "management.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ]
+                },
+                "Duplication": {
+                    "main": os.path.join(mission_dir, "duplication.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md"),
+                        os.path.join(mission_dir, "management.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ]
+                },
+                "Documentaliste": {
+                    "main": os.path.join(mission_dir, "documentation.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md"),
+                        os.path.join(mission_dir, "management.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ]
                 }
             }
             
+            # Track if agents were running
+            was_running = any(agent.running for agent in self.agents.values())
+            
             for name, agent in self.agents.items():
                 try:
-                    # Vérifier que l'agent utilise le bon dossier de mission
-                    if not agent.file_path.startswith(mission_dir):
-                        self.web_instance.logger.log(f"Agent {name} using wrong mission dir: {agent.file_path}", level='warning')
-                        
-                    if name in agent_files:
-                        config = agent_files[name]
+                    if name in self.agent_files:
+                        config = self.agent_files[name]
                         agent.update_paths(
                             config["main"],
                             config["watch"]
                         )
+                        # Validate update
+                        if agent._validate_mission_directory():
+                            self.web_instance.logger.log(f"✓ Agent {name} updated successfully", level='success')
+                        else:
+                            raise ValueError(f"Failed to validate directory for agent {name}")
                 except Exception as e:
                     self.web_instance.logger.log(f"Error updating paths for {name}: {str(e)}", level='error')
-                    
-            # Vérifier que tous les agents utilisent le bon dossier
-            for name, agent in self.agents.items():
-                if not agent.file_path.startswith(mission_dir):
-                    raise ValueError(f"Agent {name} path not updated correctly: {agent.file_path}")
                     
             # Restart agents if they were running
             if was_running:
