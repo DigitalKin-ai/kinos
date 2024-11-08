@@ -142,7 +142,9 @@ from agents import (
     ProductionAgent,
     ManagementAgent,
     EvaluationAgent,
-    SuiviAgent
+    SuiviAgent,
+    DocumentalisteAgent,
+    DuplicationAgent
 )
 
 class AgentService:
