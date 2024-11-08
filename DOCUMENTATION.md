@@ -7,8 +7,42 @@
 - Node.js 16+ (for frontend development)
 - API keys for Anthropic and OpenAI
 - portalocker (for thread-safe file locking)
-- Redis (optional, for distributed caching)
 - Aider CLI tool installed and configured
+
+### Core Components
+
+#### BaseService
+Base class providing common functionality for all services:
+- Error handling with configurable retry policies
+- Input validation with custom rules
+- Standardized logging with levels
+- Thread-safe file operations via portalocker
+- Cache management with invalidation
+- Performance metrics collection
+
+#### File Locking System
+Uses portalocker for thread-safe file operations:
+- Configurable timeouts via FILE_LOCK_TIMEOUT
+- Automatic retry on lock failure
+- Lock cleanup on process exit
+- Deadlock prevention
+- File access coordination between agents
+
+#### Cache System
+Multi-level caching strategy:
+- Memory cache with LRU eviction
+- File content caching with timestamps
+- Prompt caching per agent
+- Cache invalidation on file changes
+- Configurable cleanup via CACHE_CLEANUP_INTERVAL
+
+#### Error Handling
+Centralized error management via ErrorHandler:
+- Custom exception hierarchy (ParallagonError base)
+- Automatic retries with @safe_operation decorator
+- Detailed error logging with stack traces
+- Error aggregation and reporting
+- Circuit breaker pattern implementation
 
 ### System Requirements
 - 4GB RAM minimum
@@ -95,6 +129,22 @@ Centralized error management:
 - GET `/api/agent/<id>/prompt` - Get agent prompt
 - POST `/api/agent/<id>/prompt` - Update agent prompt
 - POST `/api/agent/<id>/<action>` - Control individual agent
+- GET `/api/agent/<id>/logs` - Get agent operation logs
+- PUT `/api/agent/<id>/config` - Update agent configuration
+
+#### Notification Routes
+- GET `/api/notifications` - Get pending notifications
+- POST `/api/notifications` - Send new notification
+- GET `/api/changes` - Get content changes stream
+
+#### Mission Routes
+- GET `/api/missions` - List all missions
+- POST `/api/missions` - Create new mission
+- GET `/api/missions/<id>` - Get mission details
+- GET `/api/missions/<id>/content` - Get mission content
+- POST `/api/missions/<id>/reset` - Reset mission files
+- POST `/api/missions/<id>/test-data` - Load test data
+- PUT `/api/missions/<id>` - Update mission
 
 #### Mission Routes
 - GET `/api/missions` - List all missions
