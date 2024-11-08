@@ -1,5 +1,18 @@
 """
-AiderAgent - Agent générique utilisant Aider pour les modifications de fichiers
+AiderAgent - Agent générique utilisant Aider pour les modifications de fichiers.
+Chaque instance représente un rôle spécifique (specifications, production, etc.)
+mais partage la même logique d'interaction avec Aider.
+
+GESTION DES CHEMINS:
+1. Création des fichiers:
+   - Utilise des chemins absolus pour garantir la création au bon endroit
+   - Structure: missions/<nom_mission>/<fichier>.md
+   - Exemple: missions/Mission_1/specifications.md
+
+2. Appel à Aider:
+   - Change le dossier courant vers le dossier mission
+   - Utilise des chemins relatifs pour tous les fichiers
+   - Revient au dossier original après exécution
 """
 from agents.kinos_agent import KinOSAgent
 import os
@@ -14,7 +27,14 @@ class AiderAgent(KinOSAgent):
     """
     
     def __init__(self, config: Dict):
-        """Initialize the Aider agent with configuration."""
+        """
+        Initialize the Aider agent with configuration.
+        
+        GESTION DES CHEMINS:
+        - Construit le chemin absolu du dossier mission: missions/<nom_mission>
+        - Crée le dossier si nécessaire
+        - Stocke le chemin absolu du fichier principal dans self.file_path
+        """
         super().__init__(config)
         
         # Validation de la configuration
@@ -52,7 +72,23 @@ class AiderAgent(KinOSAgent):
         self.logger(f"[{self.__class__.__name__}] Fichiers secondaires: {list(self.other_files)}")
 
     def _run_aider(self, prompt: str) -> Optional[str]:
-        """Exécute Aider avec le prompt donné"""
+        """
+        Exécute Aider avec le prompt donné.
+        
+        GESTION DES CHEMINS:
+        1. Avant exécution:
+           - Stocke le dossier courant (pour y revenir)
+           - Change vers le dossier mission (cd missions/<nom_mission>)
+           
+        2. Pour Aider:
+           - Utilise le nom simple du fichier principal (ex: specifications.md)
+           - Convertit les autres fichiers en chemins relatifs
+           - Vérifie l'existence avec les chemins relatifs
+           
+        3. Après exécution:
+           - Revient au dossier original
+           - Utilise les chemins relatifs pour lire les modifications
+        """
         try:
             self.logger(f"[{self.__class__.__name__}] Starting Aider run")
             
