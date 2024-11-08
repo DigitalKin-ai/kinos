@@ -28,6 +28,38 @@ export default {
         }
     },
     methods: {
+        async startAllAgents() {
+            try {
+                const response = await fetch('/api/agents/start', {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    // Update state of all agents
+                    this.agents.forEach(agent => agent.running = true);
+                }
+            } catch (error) {
+                console.error('Failed to start all agents:', error);
+            }
+        },
+
+        async stopAllAgents() {
+            try {
+                const response = await fetch('/api/agents/stop', {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    // Update state of all agents
+                    this.agents.forEach(agent => agent.running = false);
+                }
+            } catch (error) {
+                console.error('Failed to stop all agents:', error);
+            }
+        },
+
+        areAnyAgentsRunning() {
+            return this.agents.some(agent => agent.running);
+        },
+
         async loadAgents() {
             try {
                 this.loading = true;
@@ -109,7 +141,14 @@ export default {
     template: `
         <div class="h-screen flex flex-col">
             <div class="sticky top-0 bg-white z-10 p-6 border-b">
-                <h2 class="text-2xl font-bold">Agents Manager</h2>
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold">Agents Manager</h2>
+                    <button @click="areAnyAgentsRunning() ? stopAllAgents() : startAllAgents()"
+                            :class="areAnyAgentsRunning() ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'"
+                            class="px-4 py-2 rounded text-white font-medium">
+                        [[ areAnyAgentsRunning() ? 'Stop All' : 'Start All' ]]
+                    </button>
+                </div>
             </div>
             
             <div v-if="loading" class="p-6 text-gray-600">
