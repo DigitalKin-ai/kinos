@@ -144,11 +144,18 @@
     * DEBUG : Mode debug (true/false)
     * PORT : Port du serveur (default: 8000)
     * HOST : Host du serveur (default: 0.0.0.0)
-    * LOG_LEVEL : Niveau de logging
-    * FILE_LOCK_TIMEOUT : Timeout pour les verrous de fichiers
-    * CACHE_DURATION : Durée de cache des prompts
-    * RETRY_ATTEMPTS : Nombre de tentatives pour les opérations
-    * NOTIFICATION_QUEUE_SIZE : Taille max de la queue de notifications
+    * LOG_LEVEL : Niveau de logging (debug/info/warning/error)
+    * FILE_LOCK_TIMEOUT : Timeout verrous fichiers (secondes)
+    * CACHE_DURATION : Durée cache prompts (secondes)
+    * RETRY_ATTEMPTS : Tentatives opérations (1-5)
+    * RETRY_DELAY : Délai entre tentatives (secondes)
+    * NOTIFICATION_QUEUE_SIZE : Taille queue notifications (100-1000)
+    * MAX_FILE_SIZE : Taille max fichiers (bytes)
+    * CONTENT_CACHE_SIZE : Taille cache contenus (items)
+    * LOCK_CHECK_INTERVAL : Intervalle vérification verrous (ms)
+    * ERROR_RETRY_CODES : Codes erreur pour retry (liste)
+    * NOTIFICATION_BATCH_SIZE : Taille lots notifications
+    * CACHE_CLEANUP_INTERVAL : Nettoyage cache (secondes)
 
 ## Development Guide
 
