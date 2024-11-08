@@ -760,49 +760,41 @@ const ParallagonApp = {
                 }
                 const notifications = await response.json();
                 
+                console.log('Received notifications:', notifications); // Debug log
+                
                 if (Array.isArray(notifications) && notifications.length > 0) {
-                    console.log('Received notifications:', notifications);
-                    
                     notifications.forEach(notification => {
-                        console.log('Processing notification:', notification);
-                    
+                        console.log('Processing notification:', notification); // Debug log
+                        
                         // Add visual notification
                         this.addNotification(notification.type, notification.message);
-                    
-                        // Handle tab flash if requested
-                        if (notification.flash && notification.panel) {
-                            const panelName = notification.panel.toLowerCase();
-                            const tabFile = `${panelName}.md`;
-                            console.log('Looking for tab:', tabFile, 'in', this.tabIds);
                         
-                            const tabId = this.tabIds[tabFile];
-                            if (tabId) {
-                                console.log('Found tab ID:', tabId);
-                                const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
+                        // Handle content update
+                        if (notification.content && notification.panel) {
+                            const panelId = notification.panel.toLowerCase();
+                            console.log('Updating content for panel:', panelId); // Debug log
+                            this.content[panelId] = notification.content;
+                        }
+                        
+                        // Handle tab flash
+                        if (notification.flash && notification.panel) {
+                            const tabId = this.tabIds[`${notification.panel.toLowerCase()}.md`];
+                            console.log('Tab flash - looking for:', tabId); // Debug log
                             
+                            if (tabId) {
+                                const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
+                                console.log('Found tab element:', tab ? 'yes' : 'no'); // Debug log
+                                
                                 if (tab) {
                                     console.log('Flashing tab:', tabId);
-                                    // Remove any existing flash
                                     tab.classList.remove('flash-tab');
-                                    // Force reflow
-                                    void tab.offsetWidth;
-                                    // Add flash class
+                                    void tab.offsetWidth; // Force reflow
                                     tab.classList.add('flash-tab');
-                                
-                                    // Remove flash class after animation completes
+                                    
                                     setTimeout(() => {
                                         tab.classList.remove('flash-tab');
                                     }, 1000);
-                                
-                                    // Also update content if available
-                                    if (notification.content) {
-                                        this.content[panelName] = notification.content;
-                                    }
-                                } else {
-                                    console.log('Tab element not found for ID:', tabId);
                                 }
-                            } else {
-                                console.log('No tab ID found for:', tabFile);
                             }
                         }
                     });

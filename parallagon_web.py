@@ -860,11 +860,11 @@ class ParallagonWeb:
                     while self.notifications_queue:
                         notification = self.notifications_queue.pop(0)
                         notifications.append(notification)
-                        print(f"Sending notification: {notification}")  # Debug log
+                        self.log_message(f"Sending notification: {notification}", level='debug')
                         
                     # Debug log
                     if notifications:
-                        print(f"Sending {len(notifications)} notifications to frontend")
+                        self.log_message(f"Sending {len(notifications)} notifications to frontend", level='debug')
                         
                     return jsonify(notifications)
                     
@@ -877,13 +877,16 @@ class ParallagonWeb:
                 """Handle content change notifications from agents"""
                 try:
                     data = request.get_json()
+                    self.log_message(f"Received notification: {data}", level='debug')
                     
                     # Validate required fields
                     required_fields = ['file_path', 'content', 'panel', 'message']
                     if not all(field in data for field in required_fields):
-                        return jsonify({'error': 'Missing required fields'}), 400
+                        missing = [f for f in required_fields if f not in data]
+                        self.log_message(f"Missing required fields: {missing}", level='error')
+                        return jsonify({'error': f'Missing required fields: {missing}'}), 400
                         
-                    # Add notification to queue
+                    # Add notification to queue with explicit flash and status
                     notification = {
                         'type': data.get('type', 'info'),
                         'message': data['message'],
@@ -891,9 +894,11 @@ class ParallagonWeb:
                         'content': data['content'],
                         'flash': data.get('flash', True),
                         'timestamp': datetime.now().strftime("%H:%M:%S"),
-                        'id': len(self.notifications_queue)
+                        'id': len(self.notifications_queue),
+                        'status': data['file_path']  # Important for tab flashing
                     }
                     
+                    self.log_message(f"Adding notification to queue: {notification}", level='debug')
                     self.notifications_queue.append(notification)
                     
                     # Update content cache

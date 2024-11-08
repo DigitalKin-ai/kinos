@@ -140,6 +140,9 @@ class AiderAgent(ParallagonAgent):
                             'message': f'Content updated in {panel_name}'
                         }
                         
+                        # Log notification data for debugging
+                        self.logger(f"Sending notification data: {notification_data}")
+                        
                         # Faire la requête POST pour notifier du changement
                         import requests
                         response = requests.post(
@@ -147,6 +150,11 @@ class AiderAgent(ParallagonAgent):
                             json=notification_data
                         )
                         
+                        # Log response details
+                        self.logger(f"Notification response: {response.status_code}")
+                        if response.status_code != 200:
+                            self.logger(f"Response content: {response.text}")
+                            
                         if response.status_code == 200:
                             self.logger(f"✓ Notification de changement envoyée pour {panel_name}")
                         else:
