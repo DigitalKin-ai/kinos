@@ -1,4 +1,5 @@
 import os
+import os
 import time
 import threading
 from datetime import datetime
@@ -87,8 +88,13 @@ class KinOSWeb:
             return ""
 
     def __init__(self, config):
-        # Initialize Flask app first
-        self.app = Flask(__name__)
+        # Initialize Flask app first with explicit template folder
+        template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
+        static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
+        
+        self.app = Flask(__name__,
+                        template_folder=template_dir,
+                        static_folder=static_dir)
         CORS(self.app)
         
         # Initialize logger first
