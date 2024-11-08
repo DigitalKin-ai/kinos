@@ -84,22 +84,7 @@ const ParallagonApp = {
                     }
                 });
             }
-        },
-            suiviContent: '', // Store raw suivi content
-            missionSidebarCollapsed: false,
-            currentMission: null,
-            missions: [], // Will be loaded from API
-            isCreatingMission: false,
-            newMissionName: '',
-            missionIdCounter: 3, // Start after existing missions
-            runningAgents: new Set(), // Track which agents are running
-            notifications: [],
-            connectionStatus: 'disconnected',
-            activeTab: 'demande',
-            showPromptModal: false,
-            currentPromptAgent: null,
-            currentPrompt: '',
-            promptChanged: false,
+        }
             tabIds: {
                 'demande.md': 'demande',
                 'specifications.md': 'specifications',
@@ -138,6 +123,7 @@ const ParallagonApp = {
             ws: null
         }
     },
+    
     methods: {
         refreshPanel(panelId) {
             console.log('Refreshing panel:', panelId);
