@@ -54,6 +54,12 @@
                 }
                 const missions = await response.json();
                 this.missions = missions;
+                
+                // Automatically select first mission if available
+                if (missions.length > 0) {
+                    await this.selectMission(missions[0]);
+                }
+                
                 this.loading = false;
                 console.log('Loaded missions:', missions);
             } catch (error) {
