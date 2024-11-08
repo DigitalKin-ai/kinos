@@ -142,8 +142,8 @@ class KinOSAgent:
             self.last_change = None
             self.consecutive_no_changes = 0
             
-            # Re-read files
-            self.read_files()
+            # Re-initialize file monitoring
+            self.list_files()
             
             # Log recovery attempt
             self.logger(f"[{self.__class__.__name__}] Recovery complete")
