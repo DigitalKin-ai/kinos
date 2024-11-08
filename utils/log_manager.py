@@ -1,9 +1,9 @@
 """
-LogManager - Simple console logging for Parallagon
+LogManager - Simple console logging for KinOS
 """
 from datetime import datetime
 import logging
-from utils.exceptions import ParallagonError
+from utils.exceptions import KinOSError
 
 class LogManager:
     """Basic console logging manager"""
@@ -15,7 +15,7 @@ class LogManager:
             format='[%(asctime)s] %(message)s',
             datefmt='%H:%M:%S'
         )
-        self.logger = logging.getLogger('Parallagon')
+        self.logger = logging.getLogger('KinOS')
         self.logger.setLevel(logging.INFO)
         
     def log(self, message: str):

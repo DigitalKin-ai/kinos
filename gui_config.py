@@ -1,5 +1,5 @@
 """
-Configuration settings for Parallagon GUI
+Configuration settings for KinOS GUI
 """
 from dataclasses import dataclass, field
 from typing import Dict

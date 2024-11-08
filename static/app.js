@@ -14,7 +14,7 @@ function debounce(func, wait) {
     };
 }
 
-const ParallagonApp = {
+const KinOSApp = {
     components: {
         MissionSelector
     },
@@ -924,4 +924,4 @@ const ParallagonApp = {
     }
 };
 
-Vue.createApp(ParallagonApp).mount('#app');
+Vue.createApp(KinOSApp).mount('#app');

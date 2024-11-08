@@ -1,5 +1,5 @@
 """
-CacheService - Multi-level caching system for Parallagon
+CacheService - Multi-level caching system for KinOS
 """
 from typing import Any, Optional, Dict
 import time

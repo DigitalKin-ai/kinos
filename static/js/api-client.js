@@ -1,5 +1,5 @@
 /**
- * API Client for Parallagon
+ * API Client for KinOS
  * Centralizes all API calls and error handling
  */
 class ApiClient {

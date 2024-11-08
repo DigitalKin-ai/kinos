@@ -1,23 +1,23 @@
-class ParallagonError(Exception):
-    """Base exception for Parallagon application"""
+class KinOSError(Exception):
+    """Base exception for KinOS application"""
     pass
 
-class ValidationError(ParallagonError):
+class ValidationError(KinOSError):
     """Raised when input validation fails"""
     pass
 
-class ResourceNotFoundError(ParallagonError):
+class ResourceNotFoundError(KinOSError):
     """Raised when a requested resource is not found"""
     pass
 
-class ServiceError(ParallagonError):
+class ServiceError(KinOSError):
     """Raised when a service operation fails"""
     pass
 
-class AgentError(ParallagonError):
+class AgentError(KinOSError):
     """Raised when an agent operation fails"""
     pass
 
-class FileOperationError(ParallagonError):
+class FileOperationError(KinOSError):
     """Raised when a file operation fails"""
     pass

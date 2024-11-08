@@ -1,6 +1,6 @@
-# Parallagon
+# KinOS
 
-Parallagon est un framework d'agents autonomes parallèles conçu pour accélérer et améliorer le développement de projets complexes. Chaque agent gère son propre fichier et opère de manière continue et indépendante.
+KinOS est un framework d'agents autonomes parallèles conçu pour accélérer et améliorer le développement de projets complexes. Chaque agent gère son propre fichier et opère de manière continue et indépendante.
 
 ## 🌟 Caractéristiques
 
@@ -15,8 +15,8 @@ Parallagon est un framework d'agents autonomes parallèles conçu pour accélér
 
 1. Clonez le repository :
 ```bash
-git clone git@github.com:DigitalKin-ai/parallagon.git
-cd parallagon
+git clone git@github.com:DigitalKin-ai/kinos.git
+cd kinos
 ```
 
 2. Installez les dépendances :
@@ -124,7 +124,7 @@ python run_server.py
 ## 📁 Structure des Fichiers
 
 ```plaintext
-/parallagon
+/kinos
   ├── demande.md         # Fichier de demande utilisateur
   ├── specifications.md  # Agent Spécification
   ├── management.md      # Agent Management

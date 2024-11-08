@@ -1,4 +1,4 @@
-# Parallagon Documentation
+# KinOS Documentation
 
 ## Architecture
 
@@ -296,7 +296,7 @@ Distributed Locking:
 - Circuit breaker
 
 #### Exception Hierarchy
-- ParallagonError (base)
+- KinOSError (base)
 - ValidationError
 - ResourceNotFoundError
 - ServiceError
@@ -341,7 +341,7 @@ Multi-level caching strategy:
 
 #### Error Handling
 Centralized error management via ErrorHandler:
-- Custom exception hierarchy (ParallagonError base)
+- Custom exception hierarchy (KinOSError base)
 - Automatic retries with @safe_operation decorator
 - Detailed error logging with stack traces
 - Error aggregation and reporting
@@ -404,7 +404,7 @@ PRIORITY_LEVELS=["high","medium","low"]
 # Logging
 LOG_LEVEL=info
 LOG_FORMAT="[%(asctime)s] [%(levelname)s] %(message)s"
-LOG_FILE="parallagon.log"
+LOG_FILE="kinos.log"
 LOG_ROTATION="1 day"
 LOG_BACKUP_COUNT=7
 
@@ -459,7 +459,7 @@ PRIORITY_LEVELS=["high","medium","low"]
 # Logging
 LOG_LEVEL=info
 LOG_FORMAT="[%(asctime)s] [%(levelname)s] %(message)s"
-LOG_FILE="parallagon.log"
+LOG_FILE="kinos.log"
 LOG_ROTATION="1 day"
 LOG_BACKUP_COUNT=7
 
@@ -802,7 +802,7 @@ PRIORITY_LEVELS=["high","medium","low"]
 # Logging
 LOG_LEVEL=info
 LOG_FORMAT="[%(asctime)s] [%(levelname)s] %(message)s"
-LOG_FILE="parallagon.log"
+LOG_FILE="kinos.log"
 LOG_ROTATION="1 day"
 LOG_BACKUP_COUNT=7
 
@@ -824,12 +824,12 @@ CSRF_PROTECTION=True
 2. Create a virtual environment
 3. Install dependencies: `pip install -r requirements.txt`
 4. Copy `.env.example` to `.env` and configure API keys
-5. Run `python parallagon_web.py`
+5. Run `python web/kinos_web.py`
 
 ## User Guide
 
 ### 1. Core Application
-- `parallagon_web.py`
+- `web/kinos_web.py`
   - Point d'entrée principal de l'application
   - Configuration Flask et middleware
   - Initialisation des services
@@ -1031,7 +1031,7 @@ CSRF_PROTECTION=True
       * `service_error()`: Erreurs 500
 
   - `exceptions.py` : Exceptions personnalisées
-    - `ParallagonError`: Exception de base
+    - `KinOSError`: Exception de base
     - `ValidationError`: Erreurs de validation
     - `ResourceNotFoundError`: Ressource non trouvée
     - `ServiceError`: Erreurs de service
@@ -1087,7 +1087,7 @@ CSRF_PROTECTION=True
 1. Create service class in `services/`
 2. Inherit from `BaseService`
 3. Implement core functionality
-4. Register in `ParallagonWeb`
+4. Register in `KinOSWeb`
 5. Add tests
 
 ### Frontend Development

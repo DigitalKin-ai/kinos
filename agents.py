@@ -1,5 +1,5 @@
 """
-agents.py - Implémentation unifiée des agents Parallagon
+agents.py - Implémentation unifiée des agents KinOS
 
 Ce module contient les implémentations spécifiques des agents qui héritent
 de AiderAgent. Chaque agent a un rôle et des responsabilités distincts dans
@@ -7,7 +7,7 @@ le processus de développement.
 """
 import os
 from typing import Dict, Optional
-from parallagon_agent import ParallagonAgent
+from agents.kinos_agent import KinOSAgent
 from aider_agent import AiderAgent
 
 __all__ = [

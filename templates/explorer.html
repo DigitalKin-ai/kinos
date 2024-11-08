@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Parallagon Explorer{% endblock %}
+{% block title %}KinOS Explorer{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/explorer.css') }}">
@@ -14,7 +14,7 @@
     <div class="main-container">
         <!-- Header -->
         <div class="header">
-            <div class="logo">⚫ Parallagon Explorer</div>
+            <div class="logo">⚫ KinOS Explorer</div>
             <div class="current-mission" v-if="currentMission">
                 <span class="mission-label">Mission:</span>
                 <span class="mission-name">${ currentMission.name }</span>

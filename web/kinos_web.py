@@ -22,7 +22,7 @@ from routes.mission_routes import register_mission_routes
 from routes.notification_routes import register_notification_routes
 from routes.view_routes import register_view_routes
 
-class ParallagonWeb:
+class KinOSWeb:
     # Log level colors
     LOG_COLORS = {
         'info': 'blue',
@@ -1135,7 +1135,7 @@ if __name__ == "__main__":
     Config.validate()
     
     # Create and run app
-    app = ParallagonWeb({
+    app = KinOSWeb({
         "anthropic_api_key": Config.ANTHROPIC_API_KEY,
         "openai_api_key": Config.OPENAI_API_KEY
     })

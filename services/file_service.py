@@ -1,5 +1,5 @@
 """
-FileService - Service de gestion des fichiers pour Parallagon
+FileService - Service de gestion des fichiers pour KinOS
 """
 import os
 import portalocker

@@ -1,8 +1,8 @@
 """
-Parallagon main entry point
+KinOS main entry point
 """
 import os
-from parallagon_gui import ParallagonGUI
+from kinos_gui import KinOSGUI
 
 def main():
     # Load API key from environment variable for security
@@ -17,7 +17,7 @@ def main():
     }
     
     # Initialize and run GUI
-    gui = ParallagonGUI(config)
+    gui = KinOSGUI(config)
     gui.run()
 
 if __name__ == "__main__":

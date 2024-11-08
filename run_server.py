@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
-from web.parallagon_web import ParallagonWeb
+from web.kinos_web import KinOSWeb
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -28,8 +28,8 @@ def get_config():
     return config
 
 # Create the application instance 
-parallagon = ParallagonWeb(get_config())
-app = parallagon.get_app()  # This is the WSGI application
+kinos = KinOSWeb(get_config())
+app = kinos.get_app()  # This is the WSGI application
 
 if __name__ == '__main__':
     if sys.platform == 'win32':

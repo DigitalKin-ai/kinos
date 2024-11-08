@@ -16,7 +16,7 @@ Implémentation:
 ### 2. Agents Autonomes (✓)
 Spécification: "Chaque agent opère de manière indépendante"
 Implémentation:
-- ✓ Autonomie complète via ParallagonAgent
+- ✓ Autonomie complète via KinOSAgent
 - ✓ Prise de décision indépendante dans chaque agent
 - ✓ Auto-régulation du rythme avec calculate_dynamic_interval()
 

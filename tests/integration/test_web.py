@@ -1,9 +1,9 @@
 import pytest
-from parallagon_web import ParallagonWeb
+from web.kinos_web import KinOSWeb
 
 def test_web_initialization(test_config):
     """Test l'initialisation de l'application web"""
-    web = ParallagonWeb(test_config)
+    web = KinOSWeb(test_config)
     assert web.app is not None
     assert web.agent_service is not None
     assert web.mission_service is not None

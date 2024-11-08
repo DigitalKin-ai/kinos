@@ -1,5 +1,5 @@
 """
-FileManager - Handles file operations for Parallagon GUI
+FileManager - Handles file operations for KinOS GUI
 """
 import os
 import portalocker

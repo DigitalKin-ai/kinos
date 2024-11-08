@@ -1,10 +1,10 @@
 import pytest
 import time
-from parallagon_web import ParallagonWeb
+from web.kinos_web import KinOSWeb
 
 def test_agent_startup_time(test_config):
     """Test le temps de démarrage des agents"""
-    web = ParallagonWeb(test_config)
+    web = KinOSWeb(test_config)
     
     start_time = time.time()
     web.agent_service.start_all_agents()

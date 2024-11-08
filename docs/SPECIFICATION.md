@@ -1,10 +1,10 @@
-# Parallagon
+# KinOS
 *Framework d'Agents Autonomes Parallèles*
 
 ## 1. Vue d'Ensemble
 
 ### Description générale du projet
-Parallagon est un framework innovant d'agents autonomes collaboratifs conçu pour automatiser et optimiser le développement logiciel. Il met en œuvre une approche unique où plusieurs agents spécialisés travaillent en parallèle, chacun ayant un rôle distinct mais interconnecté dans le processus de développement.
+KinOS est un framework innovant d'agents autonomes collaboratifs conçu pour automatiser et optimiser le développement logiciel. Il met en œuvre une approche unique où plusieurs agents spécialisés travaillent en parallèle, chacun ayant un rôle distinct mais interconnecté dans le processus de développement.
 
 ### Objectifs principaux
 - **Automatisation intelligente** : Réduire la charge manuelle en automatisant les tâches répétitives du développement
@@ -63,7 +63,7 @@ Le système s'articule autour de trois couches principales :
 ## 2. Composants Principaux
 
 ### 2.1 Agents
-Les agents sont le cœur du système Parallagon, chacun ayant un rôle spécifique et des responsabilités définies.
+Les agents sont le cœur du système KinOS, chacun ayant un rôle spécifique et des responsabilités définies.
 
 #### Types d'agents
 1. **Agent de Spécifications (SpecificationsAgent)**

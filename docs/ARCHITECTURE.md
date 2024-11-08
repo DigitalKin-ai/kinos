@@ -1,8 +1,8 @@
-# Architecture Parallagon
+# Architecture KinOS
 
 ## Overview
 
-The Parallagon system uses a modular architecture built around autonomous agents that collaborate through a shared file system. The core components are:
+The KinOS system uses a modular architecture built around autonomous agents that collaborate through a shared file system. The core components are:
 
 - Web Application (Flask)
 - Autonomous Agents
@@ -13,7 +13,7 @@ The Parallagon system uses a modular architecture built around autonomous agents
 ## Component Architecture
 
 ### Core
-- `web/parallagon_web.py` - Main web application class
+- `web/kinos_web.py` - Main web application class
   - Advanced Flask initialization with configuration
     * Configurable CORS
     * Intelligent rate limiting
@@ -28,7 +28,7 @@ The Parallagon system uses a modular architecture built around autonomous agents
   - Configurable JWT authentication
 
 ### Agents
-- `agents/parallagon_agent.py` - Base agent class
+- `agents/kinos_agent.py` - Base agent class
   - File monitoring
   - Self-regulated execution cycles
   - Automatic error recovery
@@ -97,7 +97,7 @@ The Parallagon system uses a modular architecture built around autonomous agents
 ### Error Management
 - Centralized error handling via ErrorHandler
 - Custom exception hierarchy
-  - ParallagonError (base)
+  - KinOSError (base)
   - ValidationError
   - ResourceNotFoundError
   - ServiceError
@@ -221,7 +221,7 @@ The Parallagon system uses a modular architecture built around autonomous agents
   - Stack traces
 
 - `utils/exceptions.py` - Exceptions personnalisées
-  - ParallagonError
+  - KinOSError
   - ValidationError
   - ServiceError
   - etc.

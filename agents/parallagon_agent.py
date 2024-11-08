@@ -22,7 +22,7 @@ import os
 from datetime import datetime, timedelta
 from functools import wraps
 
-class ParallagonAgent:
+class KinOSAgent:
     """
     Foundation for autonomous file-focused agents.
     

@@ -1,5 +1,5 @@
 import pytest
-from parallagon_web import ParallagonWeb
+from web.kinos_web import KinOSWeb
 from config import Config
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def test_config():
 @pytest.fixture
 def app(test_config):
     """Application Flask de test"""
-    app = ParallagonWeb(test_config)
+    app = KinOSWeb(test_config)
     return app.get_app()
 
 @pytest.fixture

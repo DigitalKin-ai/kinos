@@ -1,12 +1,12 @@
 """
 AiderAgent - Agent générique utilisant Aider pour les modifications de fichiers
 """
-from parallagon_agent import ParallagonAgent
+from agents.kinos_agent import KinOSAgent
 import os
 import subprocess
 from typing import Dict, Optional
 
-class AiderAgent(ParallagonAgent):
+class AiderAgent(KinOSAgent):
     """
     Agent utilisant Aider pour effectuer des modifications sur les fichiers.
     Chaque instance représente un rôle spécifique (specifications, production, etc.)
