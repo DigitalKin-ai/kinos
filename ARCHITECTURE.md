@@ -44,6 +44,14 @@ The Parallagon system uses a modular architecture built around autonomous agents
 
 ### Services
 - `services/base_service.py` - Classe de base pour tous les services
+  - Architecture orientée services
+    * Injection de dépendances via constructeur
+    * Héritage de BaseService obligatoire
+    * Méthodes communes standardisées
+    * Interface unifiée pour tous les services
+    * Gestion du cycle de vie
+    * Métriques de performance
+
   - Gestion des erreurs commune
     * Capture et logging des exceptions
     * Formatage des messages d'erreur
@@ -51,6 +59,18 @@ The Parallagon system uses a modular architecture built around autonomous agents
     * Fallback sur valeurs par défaut
     * Propagation contrôlée
     * Nettoyage des ressources
+    * Circuit breaker pattern
+    * Métriques d'erreurs
+    * Alerting configurable
+    * Recovery automatique
+
+  - Méthodes communes héritées
+    * _validate_input() - Validation des entrées
+    * _handle_error() - Gestion des erreurs
+    * _log_operation() - Logging unifié
+    * _safe_file_operation() - Opérations fichiers
+    * _ensure_directory() - Gestion dossiers
+    * cleanup() - Nettoyage ressources
 
   - Validation des entrées
     * Vérification des types
@@ -210,13 +230,35 @@ The Parallagon system uses a modular architecture built around autonomous agents
 ## Nouvelles Fonctionnalités
 
 1. Système de Notifications
-   - Queue de messages temps réel
+   - Architecture temps réel
+     * Service dédié NotificationService
+     * Queue de messages thread-safe
+     * Système publish/subscribe
+     * Gestion des connexions WebSocket
+     * Heartbeat et reconnexion
+     * Métriques temps réel
+
+   - Queue de messages
      * File d'attente thread-safe
-     * Priorités configurables
+     * Priorités configurables 
      * Batching intelligent
      * Timeout par message
      * Retry sur échec
      * Métriques de performance
+     * Nettoyage périodique
+     * Persistance optionnelle
+     * Ordre garanti FIFO
+     * Gestion backpressure
+
+   - Types de notifications
+     * Info - Informations générales
+     * Success - Opérations réussies
+     * Warning - Avertissements
+     * Error - Erreurs système
+     * Flash - Notifications éphémères
+     * Status - États des agents
+     * Content - Changements contenu
+     * System - Messages système
 
    - Cache de contenu intelligent
      * Cache LRU en mémoire
@@ -249,10 +291,33 @@ The Parallagon system uses a modular architecture built around autonomous agents
    - Recovery intelligent
 
 3. Système de Cache
-   - Cache de contenu par fichier
-   - Validation des timestamps
-   - Invalidation intelligente
-   - Optimisation mémoire
+   - Cache multi-niveaux
+     * Cache mémoire LRU
+     * Cache Redis distribué
+     * Cache de session
+     * Cache de prompts
+     * Cache de contenu
+
+   - Stratégies d'invalidation
+     * Par timestamp
+     * Par dépendances
+     * Par événements
+     * Invalidation cascade
+     * Préchargement intelligent
+
+   - Configuration
+     * Taille maximale par niveau
+     * TTL configurable
+     * Politique d'éviction
+     * Compression données
+     * Métriques utilisation
+
+   - Verrouillage distribué
+     * Portalocker pour fichiers
+     * Verrous Redis pour cache
+     * Timeouts configurables
+     * Retry automatique
+     * Détection deadlocks
 
 4. Verrouillage Fichiers
    - Utilisation de portalocker
