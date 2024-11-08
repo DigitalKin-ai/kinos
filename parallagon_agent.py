@@ -246,21 +246,21 @@ class ParallagonAgent:
                     
                 # Save state before modifications
                 previous_content = self.current_content if hasattr(self, 'current_content') else None
-                    
-                self.update()
+                
+                # Exécuter Aider avec le prompt de l'agent
+                if hasattr(self, '_run_aider'):
+                    result = self._run_aider(self.prompt)
+                    if result:
+                        self.last_change = datetime.now()
+                        self.consecutive_no_changes = 0
+                    else:
+                        self.consecutive_no_changes += 1
                 
                 # Update metrics
                 self.last_run = datetime.now()
                 
-                # Check for changes
-                if hasattr(self, 'current_content') and previous_content == self.current_content:
-                    self.consecutive_no_changes += 1
-                else:
-                    self.consecutive_no_changes = 0
-                    self.last_change = datetime.now()
-                
                 # Adaptive pause
-                time.sleep(1)
+                time.sleep(self.calculate_dynamic_interval())
                 
             except Exception as e:
                 self.logger(f"Error in agent loop: {e}")
