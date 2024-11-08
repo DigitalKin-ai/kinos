@@ -65,6 +65,9 @@ def register_mission_routes(app, web_instance):
             
             # Get mission directory path
             mission_dir = os.path.abspath(os.path.join("missions", mission['name']))
+            # Éviter la duplication du chemin missions
+            if "missions" in mission_dir.split(os.sep)[-2:]:
+                mission_dir = os.path.dirname(mission_dir)
             web_instance.logger.log(f"Mission directory: {mission_dir}", level='debug')
             
             # Check if directory exists

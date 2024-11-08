@@ -1105,8 +1105,11 @@ class KinOSWeb:
     def update_agent_paths(self, mission_name: str) -> None:
         """Update file paths for all agents when mission changes"""
         try:
-            # Ensure mission directory exists
+            # Construire et normaliser le chemin de mission
             mission_dir = os.path.abspath(os.path.join("missions", mission_name))
+            if "missions" in mission_dir.split(os.sep)[-2:]:
+                mission_dir = os.path.dirname(mission_dir)
+                
             os.makedirs(mission_dir, exist_ok=True)
             
             self.log_message(f"Updating agent paths for mission: {mission_name}", level='debug')

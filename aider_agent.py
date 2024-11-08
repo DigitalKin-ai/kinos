@@ -31,7 +31,13 @@ class AiderAgent(KinOSAgent):
         self._prompt_cache = {}
         
         # Construire les chemins dans le dossier de la mission
-        mission_dir = os.path.abspath(os.path.join("missions", config["mission_name"]))
+        if os.path.isabs(config["mission_name"]):
+            mission_dir = config["mission_name"]
+        else:
+            mission_dir = os.path.abspath(os.path.join("missions", config["mission_name"]))
+            # Éviter la duplication du chemin missions
+            if "missions" in mission_dir.split(os.sep)[-2:]:
+                mission_dir = os.path.dirname(mission_dir)
         
         # S'assurer que le dossier de mission existe
         os.makedirs(mission_dir, exist_ok=True)

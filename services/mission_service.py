@@ -24,6 +24,18 @@ class MissionService:
         self._missions_cache = None
         self._last_scan = 0
         self.scan_interval = 5  # Seconds between directory scans
+        
+    def _normalize_mission_path(self, path: str) -> str:
+        """Normalise le chemin de mission pour éviter les duplications"""
+        normalized = os.path.abspath(path)
+        parts = normalized.split(os.sep)
+        
+        # Si "missions" apparaît plusieurs fois à la fin, garder une seule occurrence
+        if parts[-2:].count("missions") > 1:
+            # Remonter d'un niveau
+            normalized = os.path.dirname(normalized)
+        
+        return normalized
 
     def _ensure_missions_dir(self):
         """Ensure missions directory exists and initialize if needed"""
@@ -98,6 +110,12 @@ class MissionService:
             
             # Find mission by ID
             mission = next((m for m in missions if m['id'] == mission_id), None)
+            
+            if mission:
+                # Normaliser le chemin
+                mission['path'] = self._normalize_mission_path(
+                    os.path.join(self.missions_dir, mission['name'])
+                )
             
             if not mission:
                 self.logger.log(f"Mission {mission_id} not found", level='warning')
