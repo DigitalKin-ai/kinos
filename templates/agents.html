@@ -19,7 +19,9 @@
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col">
         <div class="flex-1 p-6">
-            <!-- Content will be added later -->
+            <agent-manager
+                :current-mission="currentMission">
+            </agent-manager>
         </div>
     </div>
 </div>
@@ -29,10 +31,12 @@
 <script type="module">
     import MissionSelector from "{{ url_for('static', filename='js/mission-selector.js') }}";
     import MissionService from "{{ url_for('static', filename='js/mission-service.js') }}";
+    import AgentManager from "{{ url_for('static', filename='js/agent-manager.js') }}";
 
     const app = Vue.createApp({
         components: {
-            MissionSelector
+            MissionSelector,
+            AgentManager
         },
         data() {
             return {
