@@ -84,18 +84,8 @@ const ParallagonApp = {
                     }
                 });
             }
-        },
-                'evaluation.md': 'evaluation',
-                'suivi.md': 'suivi'
-            },
-            tabs: [
-                { id: 'demande', name: 'Demande', icon: 'mdi mdi-file-document-outline' },
-                { id: 'specifications', name: 'Specifications', icon: 'mdi mdi-file-tree' },
-                { id: 'management', name: 'Management', icon: 'mdi mdi-account-supervisor' },
-                { id: 'production', name: 'Production', icon: 'mdi mdi-code-braces' },
-                { id: 'evaluation', name: 'Evaluation', icon: 'mdi mdi-check-circle' },
-                { id: 'suivi', name: 'Suivi', icon: 'mdi mdi-history' }
-            ],
+        }
+    },
             content: {
                 demande: '',
                 specifications: '',
@@ -114,7 +104,6 @@ const ParallagonApp = {
             ],
             demandeChanged: false,
             updateInterval: null,
-            previousContent: {},
             ws: null
         }
     },
