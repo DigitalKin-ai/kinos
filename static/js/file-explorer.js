@@ -117,7 +117,14 @@ export default {
     template: `
         <div class="h-full flex flex-col">
             <div class="bg-white shadow px-6 py-4 mb-4">
-                <h2 class="text-2xl font-bold">Files</h2>
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold">Files</h2>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm text-gray-500">
+                            ${this.files.length} files
+                        </span>
+                    </div>
+                </div>
             </div>
 
             <div v-if="loading" class="flex-1 flex items-center justify-center">
