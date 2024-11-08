@@ -15,12 +15,9 @@ const ParallagonApp = {
     delimiters: ['${', '}'],  // Use different delimiters to avoid Jinja2 conflicts
     data() {
         return {
-            logCounter: 0,  // Counter for unique log IDs
             running: false,
             loading: false,
             error: null,
-            suiviEntries: [], // Store suivi entries
-            suiviContent: '', // Store raw suivi content
             missionSidebarCollapsed: false,
             currentMission: null,
             missions: [], // Will be loaded from API
@@ -29,7 +26,6 @@ const ParallagonApp = {
             missionIdCounter: 3, // Start after existing missions
             runningAgents: new Set(), // Track which agents are running
             notifications: [],
-            connectionStatus: 'disconnected',
             activeTab: 'demande',
             showPromptModal: false,
             currentPromptAgent: null,
@@ -469,31 +465,6 @@ const ParallagonApp = {
             }
         },
 
-        startPolling() {
-            setInterval(async () => {
-                if (this.running) {
-                    try {
-                        const response = await fetch('/api/content');
-                        const data = await response.json();
-                        
-                        this.previousContent = { ...this.content };
-                        this.content = data;
-
-                        // Check for changes and update UI
-                        this.panels.forEach(panel => {
-                            const hasChanged = this.previousContent[panel.id] !== this.content[panel.id];
-                            panel.updating = hasChanged;
-                            if (hasChanged) {
-                                this.addLog('info', `${panel.name} content updated`);
-                            }
-                        });
-                    } catch (error) {
-                        console.error('Failed to poll content:', error);
-                        this.addLog('error', 'Failed to update content: ' + error.message);
-                    }
-                }
-            }, 1000); // Poll every second
-        },
 
         async updateContent() {
             try {
@@ -721,60 +692,18 @@ const ParallagonApp = {
             }
         },
 
-        async checkForChanges() {
-            if (!this.running) {
-                console.debug('App not running, skipping change check');
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/changes');
-                const changes = await response.json();
-                
-                changes.forEach(change => {
-                    if (change.operation === 'flash_tab' && change.status) {
-                        const tabId = this.tabIds[change.status];
-                        if (tabId) {
-                            const tab = document.querySelector(`.tab-item[data-tab="${tabId}"]`);
-                            if (tab) {
-                                tab.classList.remove('flash-tab');
-                                void tab.offsetWidth; // Force reflow
-                                tab.classList.add('flash-tab');
-                                
-                                setTimeout(() => {
-                                    tab.classList.remove('flash-tab');
-                                }, 1000);
-                            }
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error('Error checking changes:', error);
-            }
-        },
-
         startUpdateLoop() {
-            // Vérifier les notifications plus fréquemment
-            this.notificationsInterval = setInterval(() => {
-                this.checkNotifications();
-            }, 500);  // Toutes les 500ms
-            
-            // Autres mises à jour moins fréquentes
             this.updateInterval = setInterval(() => {
-                this.updateContent();
-                this.checkForChanges();
+                if (this.running) {
+                    this.updateContent();
+                }
             }, 1000);
         },
-
 
         stopUpdateLoop() {
             if (this.updateInterval) {
                 clearInterval(this.updateInterval);
                 this.updateInterval = null;
-            }
-            if (this.notificationsInterval) {
-                clearInterval(this.notificationsInterval);
-                this.notificationsInterval = null;
             }
         },
 
