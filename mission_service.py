@@ -45,18 +45,14 @@ class MissionService:
                 
             os.makedirs(mission_dir)
             
-            # Create default files with error handling
-            for file_name in self.REQUIRED_FILES:
-                try:
-                    file_path = os.path.join(mission_dir, file_name)
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write(f"# {file_name[:-3].capitalize()}\n[Initial content]")
-                except Exception as e:
-                    # Cleanup on failure
-                    import shutil
-                    shutil.rmtree(mission_dir, ignore_errors=True)
-                    raise Exception(f"Failed to create {file_name}: {str(e)}")
-                    
+            # Utiliser FileManager pour créer les fichiers
+            file_manager = FileManager({}, None)  # Pas besoin de paths ou callback ici
+            if not file_manager.create_mission_files(name):
+                # Cleanup on failure
+                import shutil
+                shutil.rmtree(mission_dir, ignore_errors=True)
+                raise Exception("Failed to create mission files")
+                
             return {
                 'id': len(self.get_all_missions()),
                 'name': name,
