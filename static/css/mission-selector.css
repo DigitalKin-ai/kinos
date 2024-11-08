@@ -68,6 +68,58 @@
 .mission-create-btn i {
     color: #666;
 }
+
+.mission-item {
+    position: relative;
+}
+
+.control-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.control-button:hover {
+    transform: scale(1.1);
+}
+
+.control-button.running {
+    background-color: #dc2626;
+}
+
+.control-button i {
+    font-size: 18px;
+}
+
+.control-button {
+    position: relative;
+    overflow: hidden;
+}
+
+.control-button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: scale(0);
+    transition: transform 0.2s ease;
+}
+
+.control-button:active::after {
+    transform: scale(1);
+}
 .mission-item {
     position: relative;
 }
