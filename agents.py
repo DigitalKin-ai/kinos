@@ -16,7 +16,8 @@ __all__ = [
     'ManagementAgent',
     'EvaluationAgent',
     'SuiviAgent',
-    'DuplicationAgent'
+    'DuplicationAgent',
+    'DocumentalisteAgent'
 ]
 
 class SpecificationsAgent(AiderAgent):
@@ -115,5 +116,28 @@ class DuplicationAgent(AiderAgent):
         """
         base_prompt = super()._build_prompt(context)
         # Add any duplication-specific context here
+        return base_prompt
+
+class DocumentalisteAgent(AiderAgent):
+    """
+    Agent responsable de la cohérence entre code et documentation.
+    
+    Responsabilités:
+    - Analyse de la documentation existante
+    - Détection des incohérences avec le code
+    - Mise à jour de la documentation
+    - Maintien de la qualité documentaire
+    """
+    def __init__(self, config: Dict):
+        super().__init__(config)
+        self.prompt_file = "prompts/documentaliste.md"
+        self.role = "documentaliste"
+        
+    def _build_prompt(self, context: dict) -> str:
+        """
+        Surcharge pour ajouter des informations spécifiques à l'analyse de documentation
+        """
+        base_prompt = super()._build_prompt(context)
+        # Add documentation-specific context here
         return base_prompt
 
