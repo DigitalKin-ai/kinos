@@ -50,17 +50,13 @@ class FileManager:
             if not file_name.endswith('.md'):
                 file_name = f"{file_name}.md"
 
-            # Debug log
-            # self.logger(f"Attempting to read: {file_name}")
-            # self.logger(f"Current mission: {self.current_mission}")
-
             # Construct file path
             if self.current_mission:
                 file_path = os.path.join("missions", self.current_mission, file_name)
             else:
                 file_path = file_name  # Default to current directory
 
-            # self.logger(f"Full path: {file_path}")
+            self.logger.log(f"Reading file: {file_path}", level='debug')
 
             # Ensure directory exists
             os.makedirs(os.path.dirname(file_path) if os.path.dirname(file_path) else '.', exist_ok=True)
@@ -73,9 +69,9 @@ class FileManager:
                     f.write(initial_content)
                 return initial_content
 
-            # Read existing file
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
+            # Read existing file with locking
+            with portalocker.Lock(file_path, 'r', timeout=10) as lock:
+                content = lock.read()
                 return content
                 
         except Exception as e:
@@ -98,7 +94,7 @@ class FileManager:
             self.logger.log(f"Full path: {file_path}", level='debug')
             
             if not file_path:
-                print(f"FileManager: Chemin non trouvé pour {file_name}")
+                self.logger.log(f"FileManager: Chemin non trouvé pour {file_name}", level='error')
                 return False
                 
             # Si le fichier existe, vérifier son contenu actuel
@@ -131,10 +127,10 @@ class FileManager:
             return True
             
         except portalocker.LockException:
-            print(f"FileManager: Fichier {file_name} verrouillé")
+            self.logger.log(f"FileManager: Fichier {file_name} verrouillé", level='error')
             return False
         except Exception as e:
-            print(f"Erreur écriture fichier {file_name}: {e}")
+            self.logger.log(f"Erreur écriture fichier {file_name}: {e}", level='error')
             return False
             
     def reset_files(self) -> bool:
