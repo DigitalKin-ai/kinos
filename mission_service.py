@@ -29,20 +29,28 @@ class MissionService:
 
     def _scan_missions(self) -> List[Dict]:
         """Scan missions directory and return mission data"""
-        missions = []
-        mission_id = 1
-        
         try:
+            missions = []
+            mission_id = 1
+            
+            # Debug log
+            self.logger.log(f"Scanning missions directory: {self.missions_dir}")
+            
             for item in os.listdir(self.missions_dir):
                 mission_path = os.path.join(self.missions_dir, item)
                 if not os.path.isdir(mission_path):
                     continue
                     
+                # Log each potential mission directory found
+                self.logger.log(f"Found potential mission directory: {item}")
+                
                 # Check if any required files exist
-                has_files = any(
-                    os.path.exists(os.path.join(mission_path, req_file))
-                    for req_file in self.REQUIRED_FILES
-                )
+                has_files = False
+                for req_file in self.REQUIRED_FILES:
+                    file_path = os.path.join(mission_path, req_file)
+                    if os.path.exists(file_path):
+                        has_files = True
+                        break
                 
                 if has_files:
                     mission = {
@@ -59,11 +67,14 @@ class MissionService:
                     }
                     missions.append(mission)
                     mission_id += 1
-                    
+                    self.logger.log(f"Added mission: {item}")
+                        
+            self.logger.log(f"Found {len(missions)} valid missions")
+            return missions
+                
         except Exception as e:
-            print(f"Error scanning missions directory: {e}")
-            
-        return missions
+            self.logger.log(f"Error scanning missions directory: {e}", level='error')
+            return []
 
     def get_all_missions(self):
         """Get all missions"""
