@@ -14,18 +14,7 @@ class AiderAgent(ParallagonAgent):
     """
     
     def __init__(self, config: Dict):
-        """
-        Initialize the Aider agent with configuration.
-        
-        Args:
-            config (Dict): Configuration dictionary containing:
-                - anthropic_api_key: API key for Anthropic
-                - openai_api_key: API key for OpenAI
-                - file_path: Path to main file
-                - prompt_file: Path to prompt file (optional)
-                - name: Agent name
-                - mission_name: Current mission name
-        """
+        """Initialize the Aider agent with configuration."""
         super().__init__(config)
         
         # Validation de la configuration
@@ -42,16 +31,27 @@ class AiderAgent(ParallagonAgent):
         self._prompt_cache = {}
         
         # Construire les chemins dans le dossier de la mission
-        mission_dir = os.path.join("missions", config["mission_name"])
+        mission_dir = os.path.abspath(os.path.join("missions", config["mission_name"]))
         
-        # S'assurer que le chemin de fichier est dans le dossier de mission
-        self.file_path = os.path.join(
-            mission_dir, 
-            os.path.basename(config["file_path"])
-        )
-        
-        # Créer le dossier de mission si nécessaire
+        # S'assurer que le dossier de mission existe
         os.makedirs(mission_dir, exist_ok=True)
+        
+        # Utiliser le chemin fourni s'il est absolu, sinon le construire
+        if os.path.isabs(config["file_path"]):
+            self.file_path = config["file_path"]
+        else:
+            # Construire le chemin absolu pour le fichier principal
+            self.file_path = os.path.join(mission_dir, os.path.basename(config["file_path"]))
+        
+        # Créer le fichier principal s'il n'existe pas
+        if not os.path.exists(self.file_path):
+            try:
+                with open(self.file_path, 'w', encoding='utf-8') as f:
+                    f.write("")  # Créer un fichier vide
+                self.logger(f"[{self.__class__.__name__}] ✓ Fichier principal créé: {self.file_path}")
+            except Exception as e:
+                self.logger(f"[{self.__class__.__name__}] ❌ Erreur création fichier: {str(e)}")
+                raise
 
         # Initialize other_files and load content
         self.other_files = {}  # Initialize empty first
