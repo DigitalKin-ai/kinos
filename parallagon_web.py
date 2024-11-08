@@ -32,28 +32,6 @@ class ParallagonWeb:
         'debug': 'gray'
     }
 
-    def __init__(self, config):
-        self.app = Flask(__name__)
-        CORS(self.app)
-        
-        # Initialize all services
-        self.agent_service = AgentService(self)
-        self.mission_service = MissionService(self)
-        self.notification_service = NotificationService(self)
-        
-        # Initialize limiter
-        self.limiter = Limiter(
-            app=self.app,
-            key_func=get_remote_address,
-            default_limits=["1000 per minute"]
-        )
-        
-        # Register routes
-        self._register_routes()
-        
-        # Initialize other components
-        self._initialize_components(config)
-        
     def _register_routes(self):
         """Register all route blueprints"""
         register_agent_routes(self.app, self)
