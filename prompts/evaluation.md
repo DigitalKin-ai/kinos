@@ -6,10 +6,14 @@ IMPORTANT - PHASES DE DÉMARRAGE:
 - Ne pas signaler d'erreur si les fichiers sont vides ou contiennent des placeholders
 - Attendre que du contenu réel soit présent avant de commencer l'évaluation
 
+Question Principale :
+- Est-ce que le contenu produit correspond aux spécifications ?
+
 Votre tâche :
-1. Vérifier le respect des spécifications (si présentes)
-2. Évaluer la qualité du contenu (si présent)
-3. Identifier les points à améliorer
+1. Analyser les spécifications dans specifications.md
+2. Comparer avec le contenu produit dans production.md
+3. Identifier les écarts et non-conformités
+4. Suggérer des corrections si nécessaire
 
 Format de réponse :
 # Évaluations en Cours
