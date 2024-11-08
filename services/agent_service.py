@@ -98,10 +98,13 @@ class AgentService:
                 }
             }
             
+            # Track if agents were running
+            was_running = any(agent.running for agent in self.agents.values())
+            
             for name, agent in self.agents.items():
                 try:
-                    if name in agent_files:
-                        config = agent_files[name]
+                    if name in self.agent_files:
+                        config = self.agent_files[name]
                         agent.update_paths(
                             config["main"],
                             config["watch"]
