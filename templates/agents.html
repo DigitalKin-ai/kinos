@@ -15,8 +15,8 @@
     <!-- Mission Selector Component -->
     <mission-selector
         v-model:currentMission="currentMission"
+        v-model:loading="loading"
         :missions="missions"
-        :loading="loading"
         @select-mission="selectMission"
         @create-mission="createMission"
         @sidebar-toggle="handleSidebarToggle">
