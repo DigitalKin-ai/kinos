@@ -48,11 +48,78 @@ python run_server.py
 
 ## 🤖 Agents
 
-- **Agent Spécification** : Gestion du template et structure documentaire
-- **Agent Management** : Coordination et planification
-- **Agent Production** : Création et implémentation du contenu
-- **Agent Évaluation** : Contrôle qualité et validation
-- **Agent Documentaliste** : Analyse et maintien de la cohérence documentaire
+#### Core Agents
+1. **SpecificationsAgent**
+   - Gestion du template et structure documentaire
+   - Analyse des demandes initiales
+   - Extraction des exigences
+   - Configuration:
+     ```python
+     {
+         "name": "Specification",
+         "prompt_file": "prompts/specifications.md",
+         "check_interval": 300
+     }
+     ```
+
+2. **ProductionAgent**
+   - Création et implémentation du contenu
+   - Génération de code optimisé
+   - Respect des standards
+   - Configuration:
+     ```python
+     {
+         "name": "Production",
+         "prompt_file": "prompts/production.md",
+         "check_interval": 300
+     }
+     ```
+
+3. **ManagementAgent**
+   - Coordination et planification
+   - Gestion des priorités
+   - Résolution des conflits
+   - Configuration:
+     ```python
+     {
+         "name": "Management",
+         "prompt_file": "prompts/management.md",
+         "check_interval": 300
+     }
+     ```
+
+4. **EvaluationAgent**
+   - Contrôle qualité et validation
+   - Tests fonctionnels
+   - Mesures performances
+   - Configuration:
+     ```python
+     {
+         "name": "Evaluation",
+         "prompt_file": "prompts/evaluation.md",
+         "check_interval": 300
+     }
+     ```
+
+5. **DocumentalisteAgent**
+   - Analyse de la documentation existante
+   - Détection des incohérences avec le code
+   - Mise à jour automatique de la documentation
+   - Configuration:
+     ```python
+     {
+         "name": "Documentaliste",
+         "prompt_file": "prompts/documentaliste.md",
+         "check_interval": 300
+     }
+     ```
+
+#### Agent Interactions
+- Surveillance continue des fichiers partagés
+- Communication via système de fichiers
+- Notifications temps réel des modifications
+- Coordination via AgentService
+- Résolution des conflits par ManagementAgent
 
 ## 📁 Structure des Fichiers
 
