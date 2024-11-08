@@ -205,44 +205,6 @@ class ParallagonWeb:
             self.log_message(traceback.format_exc(), level='error')
             raise
 
-    def handle_content_change(self, file_path: str, content: str, panel_name: str = None, flash: bool = False):
-        """Handle content change notifications"""
-        try:
-            # Format timestamp consistently
-            timestamp = datetime.now().strftime("%H:%M:%S")
-            
-            # Get panel name from file path if not provided
-            if not panel_name:
-                panel_name = os.path.splitext(os.path.basename(file_path))[0].capitalize()
-            
-            # Create notification with all required fields
-            notification = {
-                'type': 'info',
-                'message': f'Content updated in {panel_name}',
-                'timestamp': timestamp,
-                'panel': panel_name,
-                'status': os.path.basename(file_path),
-                'operation': 'flash_tab' if flash else 'update',
-                'id': len(self.notifications_queue),
-                'flash': flash  # Explicitly include flash flag
-            }
-            
-            # Add to notifications queue
-            self.notifications_queue.append(notification)
-            
-            # Update cache with validation
-            if content and content.strip():
-                self.content_cache[file_path] = content
-                self.last_modified[file_path] = time.time()
-                self.log_message(f"Content cache updated for {panel_name}", level='debug')
-                
-            return jsonify({'status': 'success'})
-            
-        except Exception as e:
-            self.log_message(f"Error handling content change: {str(e)}", level='error')
-            import traceback
-            self.log_message(traceback.format_exc(), level='error')
-            return jsonify({'error': str(e)}), 500
 
     def toggle_agent(self, agent_id: str, action: str) -> bool:
         """
@@ -832,44 +794,10 @@ class ParallagonWeb:
         def get_changes():
             """Return and clear pending changes"""
             try:
-                # Obtenir le timestamp actuel
-                current_time = datetime.now()
-                
-                # Convertir les timestamps des notifications en objets datetime pour comparaison
-                recent_notifications = []
-                for n in self.notifications_queue:
-                    try:
-                        # Convertir le timestamp de la notification en datetime
-                        notif_time = datetime.strptime(n['timestamp'], "%H:%M:%S")
-                        # Utiliser la date d'aujourd'hui avec l'heure de la notification
-                        notif_datetime = current_time.replace(
-                            hour=notif_time.hour,
-                            minute=notif_time.minute,
-                            second=notif_time.second
-                        )
-                        
-                        # Garder seulement les notifications des 3 dernières secondes
-                        if (current_time - notif_datetime).total_seconds() <= 3:
-                            recent_notifications.append(n)
-                            
-                    except ValueError as e:
-                        self.log_message(f"Invalid timestamp format in notification: {e}", level='error')
-                        continue
-                
-                # Debug logging
-                if recent_notifications:
-                    self.log_message(
-                        f"Sending {len(recent_notifications)} notifications", 
-                        level='debug'
-                    )
-                
-                # Clear queue after getting notifications
-                self.notifications_queue = []
-                
-                return jsonify(recent_notifications)
-                    
+                notifications = self.notification_service.get_notifications()
+                return jsonify(notifications)
             except Exception as e:
-                self.log_message(f"Error in get_changes: {str(e)}", level='error')
+                self.logger.log(f"Error in get_changes: {str(e)}", level='error')
                 return jsonify([])
 
         @self.app.route('/api/notifications', methods=['GET', 'POST'])
