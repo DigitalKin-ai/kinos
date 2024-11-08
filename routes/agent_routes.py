@@ -1,10 +1,10 @@
 import os
 import threading
+import traceback
 from flask import jsonify, request
 from utils.decorators import safe_operation
-from utils.exceptions import ValidationError, ResourceNotFoundError
-from utils.error_handler import ErrorHandler
 from utils.exceptions import ValidationError, ResourceNotFoundError, ServiceError
+from utils.error_handler import ErrorHandler
 
 def register_agent_routes(app, web_instance):
     """Register all agent-related routes"""
@@ -89,33 +89,58 @@ def register_agent_routes(app, web_instance):
     def control_agent(agent_id, action):
         try:
             if action not in ['start', 'stop']:
+                web_instance.log_message(f"Invalid action attempted: {action}", level='error')
                 raise ValidationError(f"Invalid action: {action}")
                 
-            # Convertir l'ID de l'agent en format correct (première lettre majuscule)
-            agent_name = agent_id.capitalize()
+            # Log l'état initial
+            web_instance.log_message(f"Attempting to {action} agent {agent_id}", level='debug')
+            web_instance.log_message(f"Available agents: {list(web_instance.agent_service.agents.keys())}", level='debug')
             
-            # Vérifier si l'agent existe
+            # Convertir l'ID de l'agent
+            agent_name = agent_id.capitalize()
+            web_instance.log_message(f"Looking for agent with name: {agent_name}", level='debug')
+            
+            # Vérification détaillée de l'agent
             if agent_name not in web_instance.agent_service.agents:
+                web_instance.log_message(
+                    f"Agent {agent_name} not found in available agents: {list(web_instance.agent_service.agents.keys())}", 
+                    level='error'
+                )
                 raise ResourceNotFoundError(f"Agent {agent_id} not found")
                 
-            # Contrôler l'agent
-            if action == 'start':
-                agent = web_instance.agent_service.agents[agent_name]
-                agent.start()
-                thread = threading.Thread(
-                    target=agent.run,
-                    daemon=True,
-                    name=f"Agent-{agent_name}"
-                )
-                thread.start()
-                web_instance.log_message(f"Agent {agent_name} started", level='success')
-            else:  # stop
-                agent = web_instance.agent_service.agents[agent_name]
-                agent.stop()
-                web_instance.log_message(f"Agent {agent_name} stopped", level='info')
-                
-            return jsonify({'status': 'success'})
+            # Log avant l'action
+            web_instance.log_message(f"Found agent {agent_name}, attempting {action}", level='debug')
             
+            try:
+                if action == 'start':
+                    agent = web_instance.agent_service.agents[agent_name]
+                    agent.start()
+                    thread = threading.Thread(
+                        target=agent.run,
+                        daemon=True,
+                        name=f"Agent-{agent_name}"
+                    )
+                    thread.start()
+                    web_instance.log_message(f"Successfully started agent {agent_name}", level='success')
+                else:  # stop
+                    agent = web_instance.agent_service.agents[agent_name]
+                    agent.stop()
+                    web_instance.log_message(f"Successfully stopped agent {agent_name}", level='success')
+                
+                return jsonify({'status': 'success'})
+                
+            except Exception as e:
+                web_instance.log_message(
+                    f"Error during {action} operation for {agent_name}: {str(e)}\n"
+                    f"Stack trace: {traceback.format_exc()}", 
+                    level='error'
+                )
+                raise
+                
         except Exception as e:
-            web_instance.log_message(f"Failed to {action} agent {agent_id}: {str(e)}", level='error')
+            web_instance.log_message(
+                f"Failed to {action} agent {agent_id}: {str(e)}\n"
+                f"Stack trace: {traceback.format_exc()}", 
+                level='error'
+            )
             return ErrorHandler.handle_error(e)
