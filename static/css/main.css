@@ -18,3 +18,12 @@ Note: This file only contains imports.
 Add component-specific styles to their respective CSS files.
 Follow BEM naming convention for all classes.
 */
+
+/* File explorer flash effect */
+.bg-yellow-100 {
+    background-color: #fef9c3;
+}
+
+.transition-colors {
+    transition: background-color 0.3s ease;
+}

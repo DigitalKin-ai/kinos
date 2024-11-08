@@ -7,7 +7,19 @@ export default {
         return {
             files: [],
             loading: true,
-            error: null
+            error: null,
+            fileCheckInterval: null,
+            flashingFiles: new Set() // Track flashing files
+        }
+    },
+    created() {
+        // Start periodic file checking
+        this.startFileWatcher();
+    },
+    beforeUnmount() {
+        // Cleanup interval when component is destroyed
+        if (this.fileCheckInterval) {
+            clearInterval(this.fileCheckInterval);
         }
     },
     watch: {
@@ -21,6 +33,52 @@ export default {
         }
     },
     methods: {
+        startFileWatcher() {
+            this.fileCheckInterval = setInterval(() => {
+                if (this.currentMission) {
+                    this.checkFileModifications();
+                }
+            }, 2000); // Check every 2 seconds
+        },
+
+        async checkFileModifications() {
+            try {
+                const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
+                if (!response.ok) {
+                    throw new Error('Failed to check files');
+                }
+                
+                const newFiles = await response.json();
+                
+                // Compare modification timestamps
+                newFiles.forEach(newFile => {
+                    const existingFile = this.files.find(f => f.path === newFile.path);
+                    if (existingFile && existingFile.modified !== newFile.modified) {
+                        // File modified - trigger flash
+                        this.flashFile(newFile.path);
+                        // Update file data
+                        Object.assign(existingFile, newFile);
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error checking file modifications:', error);
+            }
+        },
+
+        flashFile(filePath) {
+            // Add file to flashing set
+            this.flashingFiles.add(filePath);
+            // Remove after 2 seconds
+            setTimeout(() => {
+                this.flashingFiles.delete(filePath);
+            }, 2000);
+        },
+
+        isFlashing(filePath) {
+            return this.flashingFiles.has(filePath);
+        },
+
         async loadMissionFiles() {
             try {
                 this.loading = true;
@@ -81,7 +139,10 @@ export default {
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="file in files" :key="file.path" class="hover:bg-gray-50">
+                            <tr v-for="file in files" 
+                                :key="file.path" 
+                                class="hover:bg-gray-50 transition-colors duration-200"
+                                :class="{ 'bg-yellow-100': isFlashing(file.path) }">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <i class="mdi mdi-file-document-outline text-gray-500 mr-2"></i>
