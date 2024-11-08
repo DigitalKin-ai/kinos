@@ -413,14 +413,26 @@ const ParallagonApp = {
 
                 if (confirm('Are you sure you want to reset all files to their initial state?')) {
                     const response = await fetch(`/api/missions/${this.currentMission.id}/reset`, {
-                        method: 'POST'
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
                     });
                     
-                    if (response.ok) {
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to reset files');
+                    }
+
+                    // Attendre la réponse JSON
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
                         this.addNotification('success', 'Files reset successfully');
+                        // Recharger le contenu après réinitialisation
                         await this.loadMissionContent(this.currentMission.id);
                     } else {
-                        throw new Error('Failed to reset files');
+                        throw new Error(result.error || 'Reset operation failed');
                     }
                 }
             } catch (error) {
