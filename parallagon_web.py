@@ -76,15 +76,18 @@ class ParallagonWeb:
         CORS(self.app)  # Enable CORS
         self.monitor_thread = None  # Add monitor thread tracking
         self.mission_service = MissionService()
-        self.setup_routes()  # Initialize routes
         
-        # Ensure missions directory exists
-        os.makedirs("missions", exist_ok=True)
+        # Initialize limiter before setup_routes
         self.limiter = Limiter(
             app=self.app,
             key_func=get_remote_address,
             default_limits=["1000 per minute"]
         )
+        
+        self.setup_routes()  # Initialize routes
+        
+        # Ensure missions directory exists
+        os.makedirs("missions", exist_ok=True)
         self.content_cache = {}
         self.last_modified = {}
         self.last_content = {}
@@ -112,7 +115,6 @@ class ParallagonWeb:
         self.running = False
         self.agents = {}
         self.init_agents(config)
-        self.setup_routes()
 
     def init_agents(self, config):
         """Initialisation des agents avec configuration standard"""
