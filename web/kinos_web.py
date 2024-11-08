@@ -88,7 +88,9 @@ class KinOSWeb:
             return ""
 
     def __init__(self, config):
-        # Initialize Flask app first with explicit template folder
+        # Initialize logger first
+        self.logger = Logger()
+        
         # Get absolute path to project root
         project_root = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
         
@@ -106,14 +108,11 @@ class KinOSWeb:
         self.app = Flask(__name__,
                         template_folder=template_dir,
                         static_folder=static_dir)
+        CORS(self.app)
         
         # Add debug logging for paths
         self.logger.log(f"Template directory: {template_dir}", level='debug')
         self.logger.log(f"Static directory: {static_dir}", level='debug')
-        CORS(self.app)
-        
-        # Initialize logger first
-        self.logger = Logger()
         
         # Initialize services in correct order without circular dependencies
         self.mission_service = MissionService()  # No dependencies
