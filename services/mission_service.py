@@ -28,22 +28,33 @@ class MissionService:
     def _ensure_missions_dir(self):
         """Ensure missions directory exists and initialize if needed"""
         try:
-            # Get absolute path to missions directory
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            project_root = os.path.dirname(current_dir)
-            self.missions_dir = os.path.join(project_root, "missions")
+            # Chercher d'abord dans le répertoire courant
+            if os.path.exists("missions"):
+                self.missions_dir = os.path.abspath("missions")
+                self.logger.log(f"Found existing missions directory: {self.missions_dir}", level='info')
+                return True
+
+            # Si non trouvé, chercher dans le répertoire parent
+            parent_missions = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "missions"))
+            if os.path.exists(parent_missions):
+                self.missions_dir = parent_missions
+                self.logger.log(f"Found existing missions directory: {self.missions_dir}", level='info')
+                return True
+
+            # Si toujours pas trouvé, chercher dans le répertoire utilisateur
+            user_missions = os.path.expanduser(os.path.join("~", "parallagon", "missions"))
+            if os.path.exists(user_missions):
+                self.missions_dir = user_missions
+                self.logger.log(f"Found existing missions directory: {self.missions_dir}", level='info')
+                return True
+
+            # Si aucun dossier missions n'est trouvé, en créer un dans le répertoire courant
+            self.missions_dir = os.path.abspath("missions")
+            os.makedirs(self.missions_dir, exist_ok=True)
+            self.logger.log(f"Created new missions directory: {self.missions_dir}", level='info')
             
-            # Create directory if it doesn't exist
-            if not os.path.exists(self.missions_dir):
-                os.makedirs(self.missions_dir)
-                self.logger.log(f"Created missions directory: {self.missions_dir}", level='info')
-                
-                # Create a default mission if none exist
-                self.create_mission("Mission_1", "Default mission")
-                self.logger.log("Created default mission", level='info')
-                
             return True
-            
+
         except Exception as e:
             self.logger.log(f"Error ensuring missions directory: {e}", level='error')
             raise
@@ -68,7 +79,13 @@ class MissionService:
     def get_mission(self, mission_id: int) -> Optional[Dict]:
         """Get a specific mission by ID with better error handling"""
         try:
+            # Log le chemin du dossier missions
+            self.logger.log(f"Looking for mission {mission_id} in {self.missions_dir}", level='debug')
+            
             missions = self._scan_missions()
+            
+            # Log les missions trouvées
+            self.logger.log(f"Found missions: {[m['name'] for m in missions]}", level='debug')
             
             # Check if missions list is empty
             if not missions:
