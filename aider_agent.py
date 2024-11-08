@@ -65,6 +65,14 @@ class AiderAgent(ParallagonAgent):
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Exécute Aider avec le prompt donné"""
         try:
+            # S'assurer que le fichier principal existe
+            if not os.path.exists(self.file_path):
+                self.logger(f"[{self.__class__.__name__}] ❌ Fichier principal non trouvé: {self.file_path}")
+                # Créer le fichier s'il n'existe pas
+                os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+                with open(self.file_path, 'w', encoding='utf-8') as f:
+                    f.write("")  # Créer un fichier vide
+                self.logger(f"[{self.__class__.__name__}] ✓ Fichier principal créé")
 
             # S'assurer que nous sommes dans le bon dossier de mission
             mission_dir = os.path.dirname(self.file_path)
@@ -86,7 +94,8 @@ class AiderAgent(ParallagonAgent):
                 
                 # Ajouter les fichiers à surveiller en chemins relatifs
                 for file_path in self.other_files:
-                    cmd.extend(["--file", os.path.relpath(file_path, mission_dir)])
+                    if os.path.exists(file_path):  # Vérifier que le fichier existe
+                        cmd.extend(["--file", os.path.relpath(file_path, mission_dir)])
                     
                 # Ajouter le message
                 cmd.extend(["--message", self.prompt])
