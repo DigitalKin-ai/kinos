@@ -1,4 +1,7 @@
-from flask import Flask
+from flask import (
+    Flask, jsonify, request, render_template,
+    redirect, url_for
+)
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -20,7 +23,8 @@ from agents import (
     SpecificationsAgent,
     ProductionAgent,
     ManagementAgent,
-    EvaluationAgent
+    EvaluationAgent,
+    SuiviAgent
 )
 
 class ParallagonWeb:
