@@ -30,7 +30,7 @@ class FileManager:
             
         self.on_content_changed = on_content_changed
         self.current_mission = None
-        self.logger = print  # Par défaut, utiliser print
+        self.logger = Logger()
         self._ensure_files_exist()
         
         
@@ -45,15 +45,6 @@ class FileManager:
             raise self.FileError(f"Failed to ensure files exist for mission {self.current_mission}")
 
 
-    def _log_message(self, message: str):
-        """Méthode sécurisée pour le logging"""
-        try:
-            if hasattr(self, 'logger'):
-                self.logger(message)
-            else:
-                print(message)
-        except:
-            print(message)  # Fallback ultime
 
     def read_file(self, file_name: str) -> Optional[str]:
         """Read content from a file"""
@@ -79,7 +70,7 @@ class FileManager:
 
             # Create if doesn't exist
             if not os.path.exists(file_path):
-                self.logger(f"Creating new file: {file_path}")
+                self.logger.log(f"Creating new file: {file_path}", level='info')
                 initial_content = self.web_instance.mission_service._get_initial_content(file_name.replace('.md', ''))
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(initial_content)
@@ -91,14 +82,14 @@ class FileManager:
                 return content
                 
         except Exception as e:
-            self.logger(f"Erreur lecture {file_name}: {str(e)}")
+            self.logger.log(f"Erreur lecture {file_name}: {str(e)}", level='error')
             return None
             
     def write_file(self, file_name: str, content: str) -> bool:
         """Write content to a file with locking"""
         try:
             # Log avant écriture
-            self.logger(f"Writing to {file_name}, content length: {len(content)}")
+            self.logger.log(f"Writing to {file_name}, content length: {len(content)}", level='info')
             
             # Get full path based on current mission
             if self.current_mission:
@@ -107,7 +98,7 @@ class FileManager:
                 file_path = self.file_paths.get(file_name)
                 
             # Log le chemin complet
-            self.logger(f"Full path: {file_path}")
+            self.logger.log(f"Full path: {file_path}", level='debug')
             
             if not file_path:
                 print(f"FileManager: Chemin non trouvé pour {file_name}")
@@ -118,7 +109,7 @@ class FileManager:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     current_content = f.read()
                 if current_content == content:
-                    self.logger(f"Content unchanged for {file_name}, skipping write")
+                    self.logger.log(f"Content unchanged for {file_name}, skipping write", level='debug')
                     return True
                     
             # Create parent directory if needed
@@ -168,8 +159,8 @@ class FileManager:
             if hasattr(self, 'web_instance') and self.web_instance:
                 return self.web_instance.mission_service._get_initial_contents()
             else:
-                self.logger("No web_instance available for getting initial contents")
+                self.logger.log("No web_instance available for getting initial contents", level='warning')
                 return {}
         except Exception as e:
-            self.logger(f"Error getting initial contents: {e}")
+            self.logger.log(f"Error getting initial contents: {e}", level='error')
             return {}
