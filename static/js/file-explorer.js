@@ -31,16 +31,26 @@ export default {
         currentMission: {
             immediate: true,
             handler(newMission) {
-                if (newMission) {
+                if (newMission?.id) { // Vérifier l'existence d'un ID valide
                     this.loadMissionFiles();
+                    // Redémarrer le watcher avec la nouvelle mission
+                    this.startFileWatcher();
+                } else {
+                    // Réinitialiser les fichiers si pas de mission
+                    this.files = [];
                 }
             }
         }
     },
     methods: {
         startFileWatcher() {
+            // Arrêter l'intervalle existant si présent
+            if (this.fileCheckInterval) {
+                clearInterval(this.fileCheckInterval);
+            }
+            
             this.fileCheckInterval = setInterval(() => {
-                if (this.currentMission) {
+                if (this.currentMission?.id) { // Vérifier l'existence d'un ID valide
                     this.checkFileModifications();
                 }
             }, 2000); // Check every 2 seconds
@@ -48,9 +58,18 @@ export default {
 
         async checkFileModifications() {
             try {
+                // Vérifier si une mission est sélectionnée et a un ID valide
+                if (!this.currentMission?.id) {
+                    return; // Sortir silencieusement si pas de mission valide
+                }
+
                 const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
                 if (!response.ok) {
-                    throw new Error('Failed to check files');
+                    if (response.status === 404) {
+                        console.warn('Mission files not found, skipping check');
+                        return;
+                    }
+                    throw new Error(`Failed to check files: ${response.statusText}`);
                 }
                 
                 const newFiles = await response.json();
@@ -68,6 +87,7 @@ export default {
                 
             } catch (error) {
                 console.error('Error checking file modifications:', error);
+                // Ne pas propager l'erreur pour éviter les messages d'erreur répétés
             }
         },
 
