@@ -26,13 +26,26 @@ class MissionService:
         self.scan_interval = 5  # Seconds between directory scans
 
     def _ensure_missions_dir(self):
-        """Ensure missions directory exists"""
+        """Ensure missions directory exists and initialize if needed"""
         try:
+            # Get absolute path to missions directory
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.dirname(current_dir)
+            self.missions_dir = os.path.join(project_root, "missions")
+            
+            # Create directory if it doesn't exist
             if not os.path.exists(self.missions_dir):
                 os.makedirs(self.missions_dir)
                 self.logger.log(f"Created missions directory: {self.missions_dir}", level='info')
+                
+                # Create a default mission if none exist
+                self.create_mission("Mission_1", "Default mission")
+                self.logger.log("Created default mission", level='info')
+                
+            return True
+            
         except Exception as e:
-            self.logger.log(f"Error creating missions directory: {e}", level='error')
+            self.logger.log(f"Error ensuring missions directory: {e}", level='error')
             raise
 
     def get_all_missions(self):
@@ -53,25 +66,35 @@ class MissionService:
             return False
 
     def get_mission(self, mission_id: int) -> Optional[Dict]:
-        """Get a specific mission by ID"""
+        """Get a specific mission by ID with better error handling"""
         try:
-            if not self.mission_exists(mission_id):
+            missions = self._scan_missions()
+            
+            # Check if missions list is empty
+            if not missions:
+                self.logger.log("No missions found, creating default mission", level='info')
+                default_mission = self.create_mission("Mission_1", "Default mission")
+                if default_mission:
+                    missions = [default_mission]
+                else:
+                    raise Exception("Failed to create default mission")
+            
+            # Find mission by ID
+            mission = next((m for m in missions if m['id'] == mission_id), None)
+            
+            if not mission:
                 self.logger.log(f"Mission {mission_id} not found", level='warning')
                 return None
                 
-            missions = self._scan_missions()
-            for mission in missions:
-                if mission['id'] == mission_id:
-                    # Add file paths
-                    mission['files'] = {
-                        name: os.path.join(mission['path'], f"{name}.md")
-                        for name in ['demande', 'specifications', 'management', 
-                                   'production', 'evaluation', 'suivi']
-                    }
-                    self.logger.log(f"Found mission: {mission['name']} (ID: {mission_id})", level='debug')
-                    return mission
-                    
-            return None
+            # Add file paths
+            mission['files'] = {
+                name: os.path.join(mission['path'], f"{name}.md")
+                for name in ['demande', 'specifications', 'management', 
+                            'production', 'evaluation', 'suivi']
+            }
+            
+            self.logger.log(f"Found mission: {mission['name']} (ID: {mission_id})", level='debug')
+            return mission
             
         except Exception as e:
             self.logger.log(f"Error getting mission: {str(e)}", level='error')
@@ -93,25 +116,34 @@ class MissionService:
             # Validate mission name
             if not name or not name.strip():
                 raise ValueError("Mission name cannot be empty")
-
-            # Create mission directory
-            if not self.ensure_mission_directory(name):
-                raise RuntimeError("Failed to create mission directory")
-
-            # Ensure required files exist
-            if not self.ensure_mission_files(name):
-                raise RuntimeError("Failed to create mission files")
+                
+            # Create mission directory with absolute path
+            mission_dir = os.path.join(self.missions_dir, name)
+            os.makedirs(mission_dir, exist_ok=True)
+            
+            # Create required files with initial content
+            for filename in self.REQUIRED_FILES:
+                file_path = os.path.join(mission_dir, filename)
+                if not os.path.exists(file_path):
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        initial_content = self._get_initial_content(filename.replace('.md', ''))
+                        f.write(initial_content)
+                    self.logger.log(f"Created file: {filename}", level='debug')
 
             # Return mission data
-            return {
+            mission_data = {
                 'id': len(self.get_all_missions()) + 1,
                 'name': name,
-                'path': os.path.join(self.missions_dir, name),
+                'path': mission_dir,
                 'status': 'active',
                 'description': description,
                 'created_at': datetime.now().isoformat(),
                 'updated_at': datetime.now().isoformat()
             }
+            
+            self.logger.log(f"Created mission: {name}", level='success')
+            return mission_data
+            
         except Exception as e:
             self.logger.log(f"Error creating mission: {e}", level='error')
             return None
