@@ -114,6 +114,30 @@ Les agents sont le cœur du système Parallagon, chacun ayant un rôle spécifiq
    - Notifications
    - Résolution des conflits
 
+#### Intégration avec Aider
+1. **Format d'appel standardisé**
+   ```bash
+   aider --model haiku --no-git --yes-always --file [fichier_principal] --file [fichiers_surveillance] --message [prompt]
+   ```
+
+2. **Choix techniques**
+   - **Model haiku**: Optimisé pour les modifications de code et documentation
+   - **--no-git**: Évite les conflits avec le système de versioning externe
+   - **--yes-always**: Permet l'automatisation complète sans interventions
+   - **--file**: Spécifie les fichiers à surveiller et modifier
+
+3. **Avantages de cette approche**
+   - Isolation des modifications par agent
+   - Contrôle granulaire des changements
+   - Traçabilité des opérations
+   - Cohérence des modifications
+
+4. **Gestion des chemins**
+   - Utilisation de chemins relatifs pour la portabilité
+   - Changement de contexte vers le dossier de mission
+   - Retour au dossier original après exécution
+   - Gestion des erreurs de chemins
+
 ### 2.2 Système de Fichiers
 
 #### Structure des dossiers
