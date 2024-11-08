@@ -185,9 +185,31 @@ The Parallagon system uses a modular architecture built around autonomous agents
 
 ### Configuration
 - `config.py` - Configuration de l'application
-  - Variables d'environnement
-  - Clés API
-  - Paramètres de debug
+  - Variables d'environnement requises
+    * ANTHROPIC_API_KEY - Clé API Anthropic
+    * OPENAI_API_KEY - Clé API OpenAI
+    * DEBUG - Mode debug (true/false)
+    * PORT - Port serveur (default: 8000)
+    * HOST - Host serveur (default: 0.0.0.0)
+    * LOG_LEVEL - Niveau logging
+    * FILE_LOCK_TIMEOUT - Timeout verrous
+    * CACHE_DURATION - Durée cache
+    * RETRY_ATTEMPTS - Tentatives max
+    * RETRY_DELAY - Délai entre tentatives
+    * NOTIFICATION_QUEUE_SIZE - Taille queue
+    * MAX_FILE_SIZE - Taille max fichiers
+    * CONTENT_CACHE_SIZE - Taille cache
+    * LOCK_CHECK_INTERVAL - Intervalle verrous
+    * ERROR_RETRY_CODES - Codes pour retry
+    * NOTIFICATION_BATCH_SIZE - Taille lots
+    * CACHE_CLEANUP_INTERVAL - Nettoyage
+
+  - Validation configuration
+    * Types de données
+    * Valeurs par défaut
+    * Contraintes
+    * Dépendances
+    * Logging erreurs
 
 ## Flux de Données
 
