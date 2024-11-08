@@ -2,6 +2,8 @@ import os
 from typing import Dict, List, Optional
 from datetime import datetime
 from utils.decorators import safe_operation
+from utils.logger import Logger
+from utils.exceptions import AgentError
 
 class MissionService:
     REQUIRED_FILES = [

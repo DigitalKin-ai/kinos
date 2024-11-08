@@ -7,13 +7,10 @@ from typing import Dict, Optional
 from pathlib import Path
 from datetime import datetime
 from utils.logger import Logger
+from utils.exceptions import FileOperationError
 
 class FileManager:
     """Manages file operations for the GUI"""
-    
-    class FileError(Exception):
-        """Exception personnalisée pour les erreurs de fichiers"""
-        pass
     
     def __init__(self, file_paths: Dict[str, str], web_instance, on_content_changed=None):
         # Ensure all file paths are defined

@@ -3,6 +3,7 @@ LogManager - Simple console logging for Parallagon
 """
 from datetime import datetime
 import logging
+from utils.exceptions import ParallagonError
 
 class LogManager:
     """Basic console logging manager"""
@@ -15,6 +16,7 @@ class LogManager:
             datefmt='%H:%M:%S'
         )
         self.logger = logging.getLogger('Parallagon')
+        self.logger.setLevel(logging.INFO)
         
     def log(self, message: str):
         """Log a message to console"""
