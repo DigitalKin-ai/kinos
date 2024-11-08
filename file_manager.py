@@ -14,7 +14,7 @@ class FileManager:
         """Exception personnalisée pour les erreurs de fichiers"""
         pass
     
-    def __init__(self, file_paths: Dict[str, str], web_instance=None, on_content_changed=None):
+    def __init__(self, file_paths: Dict[str, str], web_instance, on_content_changed=None):
         # Ensure all file paths are defined
         self.file_paths = {
             'demande': 'demande.md',
@@ -80,7 +80,7 @@ class FileManager:
             # Create if doesn't exist
             if not os.path.exists(file_path):
                 self.logger(f"Creating new file: {file_path}")
-                initial_content = self._get_initial_content(file_name.replace('.md', ''))
+                initial_content = self.web_instance.mission_service._get_initial_content(file_name.replace('.md', ''))
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(initial_content)
                 return initial_content
@@ -163,50 +163,13 @@ class FileManager:
             return False
             
     def _get_initial_contents(self) -> Dict[str, str]:
-        """Get initial content for all files"""
+        """Get initial content for all files via MissionService"""
         try:
-            # Read initial content from template files
-            with open('templates/initial_content/demande.md', 'r', encoding='utf-8') as f:
-                demande_content = f.read()
-                
-            # Return dictionary with template content
-            return {
-                "demande": demande_content,
-                "specifications": """# Spécification de Sortie
-En attente de nouvelles demandes...
-
-# Critères de Succès
-- Critère principal 1
-  * Sous-critère A
-  * Sous-critère B
-- Critère principal 2
-  * Sous-critère A
-  * Sous-critère B""",
-
-                "management": f"""# Consignes Actuelles
-En attente de nouvelles directives...
-
-# TodoList
-- [ ] En attente de demandes
-
-# Actions Réalisées
-- [{datetime.now().strftime("%Y-%m-%d %H:%M")}] Création du fichier""",
-
-                "production": """[En attente de contenu à produire...]""",
-
-                "evaluation": """# Évaluations en Cours
-- Critère 1: [⚠️] En attente
-- Critère 2: [⚠️] En attente
-
-# Vue d'Ensemble
-- Progression: 0%
-- Points forts: À déterminer
-- Points à améliorer: À déterminer
-- Statut global: EN_ATTENTE""",
-
-                "suivi": f"""[{datetime.now().strftime("%H:%M:%S")}] Système réinitialisé.
-[{datetime.now().strftime("%H:%M:%S")}] En attente de nouvelles actions..."""
-            }
+            if hasattr(self, 'web_instance') and self.web_instance:
+                return self.web_instance.mission_service._get_initial_contents()
+            else:
+                self.logger("No web_instance available for getting initial contents")
+                return {}
         except Exception as e:
-            print(f"Error loading initial content templates: {e}")
+            self.logger(f"Error getting initial contents: {e}")
             return {}
