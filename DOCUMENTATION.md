@@ -6,9 +6,210 @@
 - Python 3.8+
 - Node.js 16+ (for frontend development)
 - API keys for Anthropic and OpenAI
-- portalocker (for file locking)
+- portalocker (for thread-safe file locking)
 - Redis (optional, for distributed caching)
 - Aider CLI tool installed and configured
+
+### System Requirements
+- 4GB RAM minimum
+- 2 CPU cores minimum
+- 1GB free disk space
+- Network access for API calls
+
+### Environment Variables
+Required in `.env`:
+```
+# API Keys
+ANTHROPIC_API_KEY=your_key_here
+OPENAI_API_KEY=your_key_here
+
+# Server Configuration
+DEBUG=True/False
+PORT=8000
+HOST=0.0.0.0
+
+# File Operations
+FILE_LOCK_TIMEOUT=10
+MAX_FILE_SIZE=10485760
+LOCK_CHECK_INTERVAL=100
+
+# Cache Settings
+CACHE_DURATION=3600
+CACHE_CLEANUP_INTERVAL=300
+CONTENT_CACHE_SIZE=1000
+
+# Error Handling
+RETRY_ATTEMPTS=3
+RETRY_DELAY=1.0
+ERROR_RETRY_CODES=[408,429,500,502,503,504]
+
+# Notifications
+NOTIFICATION_QUEUE_SIZE=500
+NOTIFICATION_BATCH_SIZE=50
+
+# Logging
+LOG_LEVEL=info
+```
+
+### Core Components
+
+#### BaseService
+Base class providing common functionality for all services:
+- Error handling with retry policies
+- Input validation
+- Standardized logging
+- Thread-safe file operations
+- Caching with invalidation
+- Performance metrics
+
+#### File Locking System
+Uses portalocker for thread-safe file operations:
+- Configurable timeouts
+- Automatic retry on failure
+- Lock cleanup
+- Deadlock prevention
+- File access coordination
+
+#### Cache System
+Multi-level caching strategy:
+- Memory cache with LRU eviction
+- File content caching
+- Prompt caching per agent
+- Cache invalidation on file changes
+- Configurable cleanup intervals
+
+#### Error Handling
+Centralized error management:
+- Custom exception hierarchy
+- Automatic retries with @safe_operation
+- Detailed error logging
+- Error aggregation and reporting
+- Circuit breaker pattern
+
+### API Routes
+
+#### Agent Routes
+- GET `/api/agents/status` - Get status of all agents
+- POST `/api/agents/start` - Start all agents
+- POST `/api/agents/stop` - Stop all agents
+- GET `/api/agent/<id>/prompt` - Get agent prompt
+- POST `/api/agent/<id>/prompt` - Update agent prompt
+- POST `/api/agent/<id>/<action>` - Control individual agent
+
+#### Mission Routes
+- GET `/api/missions` - List all missions
+- POST `/api/missions` - Create new mission
+- GET `/api/missions/<id>` - Get mission details
+- GET `/api/missions/<id>/content` - Get mission content
+- POST `/api/missions/<id>/reset` - Reset mission files
+- POST `/api/missions/<id>/test-data` - Load test data
+
+#### Notification Routes
+- GET `/api/notifications` - Get pending notifications
+- POST `/api/notifications` - Send notification
+- GET `/api/changes` - Get content changes
+
+### Agents
+
+#### DuplicationAgent
+Specialized agent for detecting and reducing code duplication:
+
+1. Analysis Capabilities:
+- AST parsing for deep code analysis
+- Semantic similarity detection
+- Dependency graph generation
+- Complexity metrics calculation
+- Pattern recognition
+
+2. Detection Features:
+- Function similarity analysis
+- Code block duplication
+- Configuration redundancy
+- Documentation overlap
+- Test case duplication
+
+3. Reporting:
+- Detailed duplication reports
+- Impact assessment
+- Refactoring suggestions
+- Risk analysis
+- Implementation plan
+
+4. Integration:
+- Continuous monitoring
+- Real-time notifications
+- Change tracking
+- Performance metrics
+- Trend analysis
+
+### Decorators
+
+#### @safe_operation
+Thread-safe operation wrapper with retry logic:
+```python
+@safe_operation(max_retries=3, delay=1.0)
+def some_operation():
+    # Operation code here
+    pass
+```
+
+Features:
+- Configurable retry attempts
+- Exponential backoff
+- Error logging
+- Resource cleanup
+- Performance tracking
+
+### Development Guide
+
+#### Adding New Agent
+1. Create agent class inheriting from AiderAgent
+2. Implement required methods:
+   - _build_prompt()
+   - _run_aider()
+   - list_files()
+3. Configure:
+   - Prompt file
+   - Watch files
+   - Execution intervals
+4. Register in AgentService
+
+#### Creating New Service
+1. Create service class inheriting from BaseService
+2. Implement standard methods:
+   - _validate_input()
+   - _handle_error()
+   - _log_operation()
+3. Add:
+   - Custom error handling
+   - Input validation
+   - Specialized logging
+   - Cache if needed
+
+#### Best Practices
+1. Error Handling:
+   - Use custom exceptions
+   - Implement retries
+   - Log errors properly
+   - Clean up resources
+
+2. File Operations:
+   - Use portalocker
+   - Handle timeouts
+   - Implement retries
+   - Validate paths
+
+3. Cache Management:
+   - Use LRU cache
+   - Set TTL values
+   - Handle invalidation
+   - Monitor usage
+
+4. Testing:
+   - Unit tests
+   - Integration tests
+   - Performance tests
+   - Error scenarios
 
 ### System Requirements
 - 4GB RAM minimum
