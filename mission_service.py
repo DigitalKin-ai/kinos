@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from typing import List, Dict, Optional
+from utils.logger import Logger
 
 class MissionService:
     """Service for managing missions"""
