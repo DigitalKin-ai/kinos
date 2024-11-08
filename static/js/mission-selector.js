@@ -1,3 +1,5 @@
+import MissionService from './mission-service.js';
+
 export default {
     name: 'MissionSelector',
     props: {
@@ -16,7 +18,8 @@ export default {
             newMissionName: '',
             sidebarCollapsed: false,
             localMissions: [],
-            runningMissions: new Set()
+            runningMissions: new Set(),
+            missionService: new MissionService()
         }
     },
     async mounted() {
@@ -87,11 +90,11 @@ export default {
 
         async selectMission(mission) {
             try {
-                // Call service method to update backend
-                await this.missionService.selectMission(mission);
-                
-                // Emit event to update parent
-                this.$emit('select-mission', mission);
+                // Use initialized missionService
+                const response = await this.missionService.selectMission(mission);
+                if (response) {
+                    this.$emit('select-mission', mission);
+                }
             } catch (error) {
                 console.error('Failed to select mission:', error);
             }
