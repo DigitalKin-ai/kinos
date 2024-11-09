@@ -63,14 +63,26 @@ def register_mission_routes(app, web_instance):
     def get_mission_files(mission_id):
         """Get all files in mission directory"""
         try:
+            # Log début de la requête
+            web_instance.logger.log(f"Getting files for mission {mission_id}", level='debug')
+            
             # Get mission
             mission = web_instance.mission_service.get_mission(mission_id)
             if not mission:
                 web_instance.logger.log(f"Mission {mission_id} not found", level='error')
                 return jsonify({'error': 'Mission not found'}), 404
 
+            # Log mission trouvée
+            web_instance.logger.log(f"Found mission: {mission['name']}", level='debug')
+
             # Build mission path
             mission_dir = os.path.join("missions", mission['name'])
+            web_instance.logger.log(f"Mission directory: {mission_dir}", level='debug')
+
+            # Vérifier que le dossier existe
+            if not os.path.exists(mission_dir):
+                web_instance.logger.log(f"Mission directory not found: {mission_dir}", level='error')
+                return jsonify({'error': 'Mission directory not found'}), 404
 
             # Get all files
             files = []
@@ -82,21 +94,24 @@ def register_mission_routes(app, web_instance):
                                 full_path = os.path.join(root, filename)
                                 relative_path = os.path.relpath(full_path, mission_dir)
                                 
-                                files.append({
+                                file_info = {
                                     'name': filename,
                                     'path': relative_path,
-                                    'relativePath': relative_path,  # Add this for consistency
+                                    'relativePath': relative_path,
                                     'size': os.path.getsize(full_path),
                                     'modified': os.path.getmtime(full_path)
-                                })
+                                }
+                                files.append(file_info)
+                                web_instance.logger.log(f"Added file: {filename}", level='debug')
+                                
                             except (OSError, IOError) as e:
                                 web_instance.logger.log(f"Error processing file {filename}: {str(e)}", level='error')
                                 continue
 
-                # Sort files by path for consistent ordering
+                # Sort files by path
                 files.sort(key=lambda x: x['path'])
                 
-                web_instance.logger.log(f"Found {len(files)} files in mission {mission['name']}", level='debug')
+                web_instance.logger.log(f"Found {len(files)} files in mission {mission['name']}", level='info')
                 return jsonify(files)
 
             except Exception as e:
