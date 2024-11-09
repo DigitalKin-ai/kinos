@@ -68,7 +68,8 @@ class AgentService:
                 "evaluation.md",
                 "suivi.md",
                 "duplication.md",
-                "documentation.md"
+                "documentation.md",
+                "test.md"
             ]
 
             for filename in required_files:
@@ -140,6 +141,14 @@ class AgentService:
                         os.path.join(mission_dir, "specifications.md"),
                         os.path.join(mission_dir, "production.md"),
                         os.path.join(mission_dir, "management.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ]
+                },
+                "Testeur": {
+                    "main": os.path.join(mission_dir, "test.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md"),
                         os.path.join(mission_dir, "evaluation.md")
                     ]
                 }
@@ -481,6 +490,13 @@ class AgentService:
                         os.path.join(mission_dir, "*.js"),
                         os.path.join(mission_dir, "*.md")
                     ]
+                }),
+                "Testeur": TesteurAgent({
+                    **base_config,
+                    "name": "Testeur",
+                    "file_path": os.path.join(mission_dir, "test.md"),
+                    "prompt": load_prompt("prompts/testeur.md"),
+                    "prompt_file": "prompts/testeur.md"
                 })
             }
 
