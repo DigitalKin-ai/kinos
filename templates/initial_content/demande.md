@@ -1,6 +1,4 @@
-Écrivez votre demande ici ⬇️
-
-# Demande de Document Structuré
+# Demande de Dossier Structuré
 
 ## 1. Contexte
 
@@ -10,7 +8,7 @@
 - Dans quel cadre s'inscrit cette demande ?
 
 ### Pour quoi faire ?
-- Qui va lire/utiliser ce document ?
+- Qui va lire/utiliser ce document ? 
 - Dans quel but sera-t-il utilisé ?
 - Quel impact cherchez-vous à avoir ?
 - Pour quand en avez-vous besoin ?
