@@ -13,7 +13,7 @@ def agent_config():
     return {
         "anthropic_api_key": "test_key",
         "openai_api_key": "test_key",
-        "file_path": "test.md",
+        "file_path": "tests.md",
         "mission_name": "test_mission",
         "name": "test_agent",
         "prompt": "test prompt"

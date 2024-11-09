@@ -153,10 +153,7 @@ class AiderAgent(KinOSAgent):
                 cmd.extend(["--message", self.prompt])
                 
                 # Logger la commande
-                self.logger(f"[{self.__class__.__name__}] 🤖 Commande Aider")
-        
-                # Modifier la commande Aider pour être plus tolérante
-                cmd.extend(["--relaxed-search"])
+                self.logger(f"[{self.__class__.__name__}] 🤖 Commande Aider :")
         
                 # Exécuter Aider avec timeout et gestion d'encodage
                 process = subprocess.Popen(

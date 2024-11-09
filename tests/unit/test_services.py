@@ -45,7 +45,7 @@ def test_notification_service_queue():
     
     # Test ajout notification
     service.handle_content_change(
-        file_path="test.md",
+        file_path="tests.md",
         content="test content",
         panel_name="Test"
     )

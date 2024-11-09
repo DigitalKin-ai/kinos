@@ -7,7 +7,7 @@ class MockWebInstance:
     def __init__(self):
         self.logger = Mock()
         self.file_paths = {
-            'test.md': 'test/test.md'
+            'tests.md': 'test/tests.md'
         }
         self.file_manager = Mock()
 
@@ -17,7 +17,7 @@ def notification_service():
 
 def test_notification_queue(notification_service):
     """Test notification queue operations"""
-    notification_service.handle_content_change("test.md", "content", "Test")
+    notification_service.handle_content_change("tests.md", "content", "Test")
     notifications = notification_service.get_notifications()
     assert len(notifications) == 1
     assert notifications[0]["panel"] == "Test"
@@ -25,17 +25,17 @@ def test_notification_queue(notification_service):
 
 def test_content_cache(notification_service):
     """Test content caching"""
-    notification_service.handle_content_change("test.md", "content1", "Test")
-    assert "test.md" in notification_service.content_cache
-    assert notification_service.content_cache["test.md"] == "content1"
+    notification_service.handle_content_change("tests.md", "content1", "Test")
+    assert "tests.md" in notification_service.content_cache
+    assert notification_service.content_cache["tests.md"] == "content1"
     
     # Update content
-    notification_service.handle_content_change("test.md", "content2", "Test")
-    assert notification_service.content_cache["test.md"] == "content2"
+    notification_service.handle_content_change("tests.md", "content2", "Test")
+    assert notification_service.content_cache["tests.md"] == "content2"
 
 def test_cache_metrics(notification_service):
     """Test cache performance metrics"""
-    notification_service.handle_content_change("test.md", "content", "Test")
+    notification_service.handle_content_change("tests.md", "content", "Test")
     notification_service.get_notifications()
     
     assert notification_service.cache_hits >= 0
@@ -44,7 +44,7 @@ def test_cache_metrics(notification_service):
 
 def test_cleanup(notification_service):
     """Test cleanup operation"""
-    notification_service.handle_content_change("test.md", "content", "Test")
+    notification_service.handle_content_change("tests.md", "content", "Test")
     notification_service.cleanup()
     
     assert len(notification_service.notifications_queue) == 0
