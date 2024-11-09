@@ -166,6 +166,9 @@ class RedacteurAgent(AiderAgent):
     - Génération de contenu textuel
     - Mise à jour des documents
     - Maintien de la cohérence du style
+    - Validation des références
+    - Vérification orthographique
+    - Adaptation du style selon le contexte
     """
     def __init__(self, config: Dict):
         if 'web_instance' not in config:
@@ -177,10 +180,30 @@ class RedacteurAgent(AiderAgent):
         
     def _build_prompt(self, context: dict) -> str:
         """
-        Surcharge pour ajouter des informations spécifiques à l'analyse de documentation
+        Surcharge pour ajouter des informations spécifiques à la rédaction
+        et mise à jour du contenu textuel.
+        
+        Args:
+            context: Dictionnaire contenant le contexte d'exécution
+            
+        Returns:
+            str: Prompt enrichi avec le contexte de rédaction
         """
         base_prompt = super()._build_prompt(context)
-        # Add documentation-specific context here
-        return base_prompt
+        
+        # Add redaction-specific context
+        redaction_context = {
+            'file_type': context.get('file_type', 'unknown'),
+            'existing_content': context.get('existing_content', ''),
+            'style_guide': context.get('style_guide', 'standard'),
+            'target_audience': context.get('target_audience', 'technical')
+        }
+        
+        # Extend base prompt with redaction context
+        extended_prompt = f"{base_prompt}\n\nContexte de rédaction:\n"
+        for key, value in redaction_context.items():
+            extended_prompt += f"- {key}: {value}\n"
+            
+        return extended_prompt
 
 
