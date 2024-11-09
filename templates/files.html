@@ -42,10 +42,9 @@
             </div>
 
             <!-- Content -->
-            <div v-if="activeTab === 'files'" class="flex-1 overflow-hidden"> <!-- Conteneur parent -->
-                <div class="h-full overflow-y-auto px-6"> <!-- Conteneur avec scroll -->
+            <div v-if="activeTab === 'files'" class="flex-1 overflow-hidden">
+                <div class="h-full overflow-y-auto px-6">
                     <div class="bg-white shadow rounded-lg">
-                        <!-- Liste des fichiers avec scroll -->
                         <div class="overflow-y-auto">
                             <div v-if="loading" class="flex items-center justify-center py-4">
                                 <p class="text-gray-600">Loading files...</p>
@@ -56,7 +55,6 @@
                             </div>
 
                             <div v-else>
-                                <!-- Single file explorer component -->
                                 <file-explorer
                                     :current-mission="currentMission">
                                 </file-explorer>
