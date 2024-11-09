@@ -42,38 +42,13 @@ class AgentService:
             # Stop all agents
             self.stop_all_agents()
             
-            # Use absolute path for mission directory
-            mission_dir = os.path.abspath(os.path.join(
-                os.path.dirname(os.path.dirname(__file__)), 
-                "missions", 
-                mission_name
-            ))
-            
-            # Verify directory permissions
-            if not os.access(mission_dir, os.R_OK | os.W_OK):
-                raise ValueError(f"Mission directory not accessible: {mission_dir}")
-            
-            self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
-            
-            # Define potential file paths without creating them
-            potential_files = [
-                "specifications.md",
-                "production.md",
-                "management.md", 
-                "evaluation.md",
-                "suivi.md",
-                "duplication.md",
-                "documentation.md",
-                "tests.md"
-            ]
+            # Build mission path - only verify directory exists
+            mission_dir = os.path.abspath(os.path.join("missions", mission_name))
+            if not os.path.exists(mission_dir):
+                os.makedirs(mission_dir)
+                self.web_instance.logger.log(f"Created mission directory: {mission_dir}", level='info')
 
-            # Just define paths for monitoring without creating files
-            for filename in potential_files:
-                file_path = os.path.normpath(os.path.join(mission_dir, filename))
-                # Only verify directory exists
-                os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-            # Define agent file mappings
+            # Define agent file mappings without creating files
             self.agent_files = {
                 "Specification": {
                     "main": os.path.join(mission_dir, "specifications.md"),
@@ -143,37 +118,19 @@ class AgentService:
             
             # Track agent states
             was_running = any(agent.running for agent in self.agents.values())
-            pending_agents = []
             
             for name, agent in self.agents.items():
                 try:
                     if name in self.agent_files:
                         config = self.agent_files[name]
-                        main_file = config["main"]
-                        
-                        # Don't create files, just check if they exist
-                        if not os.path.exists(main_file):
-                            pending_agents.append(name)
-                            self.web_instance.logger.log(
-                                f"Agent {name} waiting for file creation: {os.path.basename(main_file)}", 
-                                level='info'
-                            )
-                            continue
-                            
-                        agent.update_paths(main_file, config["watch"])
-                        
-                        # Validate update for existing files
-                        if agent._validate_mission_directory():
-                            self.web_instance.logger.log(f"✓ Agent {name} updated successfully", level='success')
-                        else:
-                            raise ValueError(f"Failed to validate directory for agent {name}")
-                            
+                        agent.update_paths(
+                            config["main"],
+                            config["watch"]
+                        )
+                        self.web_instance.logger.log(f"✓ Agent {name} paths updated", level='success')
                 except Exception as e:
                     self.web_instance.logger.log(f"Error updating paths for {name}: {str(e)}", level='error')
                     
-            # Store pending agents for status checks
-            self.pending_agents = pending_agents
-            
             # Restart agents if they were running
             if was_running:
                 self.start_all_agents()
@@ -252,32 +209,6 @@ class AgentService:
         self.running = False
         self.pending_agents = []  # Track agents waiting for file creation
         
-    def create_agent_file(self, agent_name: str) -> bool:
-        """Create the main file for a pending agent"""
-        try:
-            if agent_name not in self.agent_files:
-                return False
-                
-            config = self.agent_files[agent_name]
-            main_file = config["main"]
-            
-            # Create parent directory if needed
-            os.makedirs(os.path.dirname(main_file), exist_ok=True)
-            
-            # Create empty file
-            with open(main_file, 'w', encoding='utf-8') as f:
-                f.write("")
-                
-            # Remove from pending list
-            if agent_name in self.pending_agents:
-                self.pending_agents.remove(agent_name)
-                
-            self.web_instance.logger.log(f"Created file for agent {agent_name}: {main_file}", level='success')
-            return True
-            
-        except Exception as e:
-            self.web_instance.logger.log(f"Error creating file for agent {agent_name}: {str(e)}", level='error')
-            return False
 
     def update_agent_paths(self, mission_name: str) -> None:
         """Update file paths for all agents when mission changes without creating files"""
