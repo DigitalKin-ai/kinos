@@ -177,35 +177,27 @@ class MissionService:
             # Normalize name for filesystem
             normalized_name = self._normalize_mission_name(name)
             
-            # Build ABSOLUTE mission directory path
+            # Build mission directory path
             mission_dir = os.path.abspath(os.path.join(self.missions_dir, normalized_name))
             
-            # Normalize path to avoid duplication
-            mission_dir = self._normalize_mission_path(mission_dir)
-            
-            # Log for debug
-            self.logger.log(f"Creating mission in: {mission_dir}", level='debug')
+            # Create directory
+            os.makedirs(mission_dir, exist_ok=True)
             
             # Create only demande.md initially
-            file_path = os.path.abspath(os.path.join(mission_dir, "demande.md"))
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            with open(file_path, 'w', encoding='utf-8') as f:
+            demande_path = os.path.join(mission_dir, "demande.md")
+            with open(demande_path, 'w', encoding='utf-8') as f:
                 f.write("# Demande\n\n[En attente de la demande...]")
 
-            # Return mission data with original and normalized names
-            mission_data = {
+            # Return mission data
+            return {
                 'id': len(self.get_all_missions()) + 1,
-                'name': name,  # Original name
-                'normalized_name': normalized_name,  # Add normalized name
+                'name': name,
                 'path': mission_dir,
                 'status': 'active',
                 'description': description,
                 'created_at': datetime.now().isoformat(),
                 'updated_at': datetime.now().isoformat()
             }
-            
-            self.logger.log(f"Created mission: {name}", level='success')
-            return mission_data
             
         except Exception as e:
             self.logger.log(f"Error creating mission: {e}", level='error')

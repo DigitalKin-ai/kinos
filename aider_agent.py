@@ -28,14 +28,6 @@ class AiderAgent(KinOSAgent):
     """
     
     def __init__(self, config: Dict):
-        """
-        Initialize the Aider agent with configuration.
-        
-        GESTION DES CHEMINS:
-        - Construit le chemin absolu du dossier mission: missions/<nom_mission>
-        - Crée le dossier si nécessaire
-        - Stocke le chemin absolu du fichier principal dans self.file_path
-        """
         super().__init__(config)
         
         # Validation de la configuration
@@ -54,21 +46,10 @@ class AiderAgent(KinOSAgent):
         self.prompt_file = config.get("prompt_file")
         self._prompt_cache = {}
         
-        # Construire le chemin relatif dans le dossier de mission
-        mission_dir = os.path.join("missions", config["mission_name"])
-        
-        # S'assurer que le dossier de mission existe
-        os.makedirs(mission_dir, exist_ok=True)
-        
-        # Utiliser un chemin relatif pour le fichier principal
-        self.file_path = os.path.join(mission_dir, os.path.basename(config["file_path"]))
-
-        # Initialize other_files as empty dict
-        self.other_files = {}
+        # Initialize watched files list
+        self.watched_files = []
 
         self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
-        self.logger(f"[{self.__class__.__name__}] Dossier mission: {mission_dir}")
-        self.logger(f"[{self.__class__.__name__}] Fichier principal: {self.file_path}")
 
     def _validate_mission_directory(self) -> bool:
         """Vérifie que le dossier de mission est valide et accessible"""

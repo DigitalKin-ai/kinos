@@ -48,22 +48,18 @@ class AgentService:
                 os.makedirs(mission_dir)
                 self.web_instance.logger.log(f"Created mission directory: {mission_dir}", level='info')
 
-            # Define agent file mappings without creating files
+            # Define agent file mappings without main file concept
             self.agent_files = {
-                "Specification": {
-                    "main": os.path.join(mission_dir, "specifications.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "demande.md"),
-                        os.path.join(mission_dir, "production.md")
-                    ]
-                },
-                "Production": {
-                    "main": os.path.join(mission_dir, "production.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ]
-                },
+                "Specification": [
+                    os.path.join(mission_dir, "specifications.md"),
+                    os.path.join(mission_dir, "demande.md"),
+                    os.path.join(mission_dir, "production.md")
+                ],
+                "Production": [
+                    os.path.join(mission_dir, "production.md"),
+                    os.path.join(mission_dir, "specifications.md"),
+                    os.path.join(mission_dir, "evaluation.md")
+                ],
                 "Management": {
                     "main": os.path.join(mission_dir, "management.md"),
                     "watch": [
