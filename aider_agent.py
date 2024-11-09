@@ -222,6 +222,24 @@ class AiderAgent(KinOSAgent):
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur exécution Aider: {str(e)}")
             return None
+            
+    def _handle_search_replace_error(self, file_path: str, prompt: str) -> Optional[str]:
+        """Gestion alternative quand SEARCH/REPLACE échoue"""
+        try:
+            # Lire le contenu actuel
+            with open(file_path, 'r', encoding='utf-8') as f:
+                current_content = f.read()
+                
+            # Utiliser une approche plus simple de modification
+            # TODO: Implémenter une logique de modification plus robuste
+            # Pour l'instant, on log juste l'erreur et on continue
+            self.logger(f"[{self.__class__.__name__}] ℹ️ Tentative alternative de modification")
+            
+            return None
+            
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] ❌ Erreur traitement alternatif: {str(e)}")
+            return None
 
     def list_files(self) -> None:
         """
