@@ -64,6 +64,14 @@ class KinOSAgent:
                 - check_interval: Intervalle de vérification
                 - logger: Fonction de logging
         """
+        # Configurer l'encodage par défaut
+        import sys
+        import codecs
+        
+        if sys.stdout.encoding != 'utf-8':
+            sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+        if sys.stderr.encoding != 'utf-8':
+            sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
         # Validation de la configuration
         if not config.get("anthropic_api_key"):
             raise ValueError("anthropic_api_key manquante dans la configuration")

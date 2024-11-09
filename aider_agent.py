@@ -154,17 +154,34 @@ class AiderAgent(KinOSAgent):
                 
                 # Logger la commande
                 self.logger(f"[{self.__class__.__name__}] 🤖 Commande Aider")
-                # self.logger(f"  Command: {' '.join(cmd)}")
-                
-                # Exécuter Aider
+        
+                # Modifier la commande Aider pour être plus tolérante
+                cmd.extend(["--relaxed-search"])
+        
+                # Exécuter Aider avec timeout et gestion d'encodage
                 process = subprocess.Popen(
                     cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    text=True
+                    text=True,
+                    encoding='utf-8',
+                    errors='replace'
                 )
-                
-                stdout, stderr = process.communicate()
+        
+                try:
+                    stdout, stderr = process.communicate(timeout=300)  # 5 minutes timeout
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    self.logger(f"[{self.__class__.__name__}] ❌ Timeout exécution Aider")
+                    return None
+            
+                if stderr and "SearchReplaceNoExactMatch" in stderr:
+                    # Log l'erreur de façon plus détaillée
+                    self.logger(f"[{self.__class__.__name__}] ⚠️ Erreur de correspondance SEARCH/REPLACE")
+                    self.logger(f"Détails: {stderr}")
+            
+                    # Tenter une approche alternative
+                    return self._handle_search_replace_error(main_file, prompt)
                 
                 # Logger la sortie
                 if stdout:
