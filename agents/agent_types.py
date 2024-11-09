@@ -164,3 +164,24 @@ class TesteurAgent(AiderAgent):
         self.prompt_file = "prompts/testeur.md"
         self.role = "testeur"
         self.web_instance = config['web_instance']
+
+class RedacteurAgent(AiderAgent):
+    """
+    Agent responsable de la rédaction et mise à jour du contenu textuel.
+    
+    Responsabilités:
+    - Analyse des demandes de contenu
+    - Génération de contenu textuel
+    - Mise à jour des documents
+    - Maintien de la cohérence du style
+    - Validation des références
+    - Vérification orthographique
+    - Adaptation du style selon le contexte
+    """
+    def __init__(self, config: Dict):
+        if 'web_instance' not in config:
+            raise ValueError("web_instance manquant dans la configuration")
+        super().__init__(config)
+        self.prompt_file = "prompts/redacteur.md"
+        self.role = "redacteur"
+        self.web_instance = config['web_instance']
