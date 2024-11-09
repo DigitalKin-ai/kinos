@@ -66,43 +66,55 @@ def register_mission_routes(app, web_instance):
             # Get mission
             mission = web_instance.mission_service.get_mission(mission_id)
             if not mission:
+                web_instance.logger.log(f"Mission {mission_id} not found", level='error')
                 return jsonify({'error': 'Mission not found'}), 404
 
-            # Get absolute path to project root
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            mission_dir = os.path.abspath(os.path.join(base_dir, "missions", mission['name']))
+            # Build mission path
+            mission_dir = os.path.join("missions", mission['name'])
             
             # Verify directory exists
             if not os.path.exists(mission_dir):
-                web_instance.logger.log(f"Mission directory not found: {mission_dir}", level='error')
-                return jsonify({'error': 'Mission directory not found'}), 404
-
-            # Log path for debug
-            web_instance.logger.log(f"Scanning mission directory: {mission_dir}", level='debug')
+                # Create directory if it doesn't exist
+                try:
+                    os.makedirs(mission_dir, exist_ok=True)
+                    web_instance.logger.log(f"Created mission directory: {mission_dir}", level='info')
+                except Exception as e:
+                    web_instance.logger.log(f"Failed to create mission directory: {str(e)}", level='error')
+                    return jsonify({'error': 'Failed to create mission directory'}), 500
 
             # Get all files
             files = []
-            for root, _, filenames in os.walk(mission_dir):
-                for filename in filenames:
-                    if filename.endswith(('.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml')):
-                        try:
-                            full_path = os.path.join(root, filename)
-                            relative_path = os.path.relpath(full_path, mission_dir)
-                            
-                            files.append({
-                                'name': filename,
-                                'path': relative_path,
-                                'size': os.path.getsize(full_path),
-                                'modified': os.path.getmtime(full_path)
-                            })
-                        except (OSError, IOError) as e:
-                            web_instance.logger.log(f"Error processing file {filename}: {str(e)}", level='error')
-                            continue
+            try:
+                for root, _, filenames in os.walk(mission_dir):
+                    for filename in filenames:
+                        if filename.endswith(('.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml')):
+                            try:
+                                full_path = os.path.join(root, filename)
+                                relative_path = os.path.relpath(full_path, mission_dir)
+                                
+                                files.append({
+                                    'name': filename,
+                                    'path': relative_path,
+                                    'relativePath': relative_path,  # Add this for consistency
+                                    'size': os.path.getsize(full_path),
+                                    'modified': os.path.getmtime(full_path)
+                                })
+                            except (OSError, IOError) as e:
+                                web_instance.logger.log(f"Error processing file {filename}: {str(e)}", level='error')
+                                continue
 
-            return jsonify(files)
+                # Sort files by path for consistent ordering
+                files.sort(key=lambda x: x['path'])
+                
+                web_instance.logger.log(f"Found {len(files)} files in mission {mission['name']}", level='debug')
+                return jsonify(files)
+
+            except Exception as e:
+                web_instance.logger.log(f"Error listing files: {str(e)}", level='error')
+                return jsonify({'error': f'Error listing files: {str(e)}'}), 500
 
         except Exception as e:
-            web_instance.logger.log(f"Unexpected error: {str(e)}", level='error')
+            web_instance.logger.log(f"Unexpected error in get_mission_files: {str(e)}", level='error')
             return jsonify({'error': str(e)}), 500
 
     @app.route('/api/missions/<int:mission_id>/select', methods=['POST'])
