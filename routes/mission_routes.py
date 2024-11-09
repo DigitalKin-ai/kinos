@@ -71,16 +71,6 @@ def register_mission_routes(app, web_instance):
 
             # Build mission path
             mission_dir = os.path.join("missions", mission['name'])
-            
-            # Verify directory exists
-            if not os.path.exists(mission_dir):
-                # Create directory if it doesn't exist
-                try:
-                    os.makedirs(mission_dir, exist_ok=True)
-                    web_instance.logger.log(f"Created mission directory: {mission_dir}", level='info')
-                except Exception as e:
-                    web_instance.logger.log(f"Failed to create mission directory: {str(e)}", level='error')
-                    return jsonify({'error': 'Failed to create mission directory'}), 500
 
             # Get all files
             files = []
