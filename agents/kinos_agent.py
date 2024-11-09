@@ -48,7 +48,8 @@ class KinOSAgent:
         'SuiviAgent': 40,          # More reactive monitoring
         'DocumentalisteAgent': 45,  # Documentation updates less frequent
         'DuplicationAgent': 30,     # Code analysis needs more time
-        'TesteurAgent': 50          # Regular test execution
+        'TesteurAgent': 50,         # Regular test execution
+        'RedacteurAgent': 35        # Content generation and updates
     }
 
     def __init__(self, config: Dict[str, Any]):
