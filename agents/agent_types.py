@@ -18,6 +18,7 @@ __all__ = [
     'SuiviAgent',
     'DuplicationAgent',
     'DocumentalisteAgent',
+    'TesteurAgent',
     'RedacteurAgent'
 ]
 
@@ -138,6 +139,45 @@ class DuplicationAgent(AiderAgent):
         base_prompt = super()._build_prompt(context)
         # Add any duplication-specific context here
         return base_prompt
+
+class DocumentalisteAgent(AiderAgent):
+    """
+    Agent responsable de la cohérence entre code et documentation.
+    
+    Responsabilités:
+    - Analyse de la documentation existante
+    - Détection des incohérences avec le code
+    - Mise à jour de la documentation
+    - Maintien de la qualité documentaire
+    """
+    def __init__(self, config: Dict):
+        if 'web_instance' not in config:
+            raise ValueError("web_instance manquant dans la configuration")
+        super().__init__(config)
+        self.prompt_file = "prompts/documentaliste.md"
+        self.role = "documentaliste"
+        self.web_instance = config['web_instance']
+
+class TesteurAgent(AiderAgent):
+    """
+    Agent responsable des tests et de la validation du code.
+    
+    Responsabilités:
+    - Création et maintenance des tests
+    - Exécution des suites de tests
+    - Analyse des résultats
+    - Identification des régressions
+    - Suggestions d'amélioration
+    - Validation de la couverture
+    - Documentation des tests
+    """
+    def __init__(self, config: Dict):
+        if 'web_instance' not in config:
+            raise ValueError("web_instance manquant dans la configuration")
+        super().__init__(config)
+        self.prompt_file = "prompts/testeur.md"
+        self.role = "testeur"
+        self.web_instance = config['web_instance']
 
 class DocumentalisteAgent(AiderAgent):
     """
