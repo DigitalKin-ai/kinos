@@ -17,7 +17,8 @@ __all__ = [
     'EvaluationAgent',
     'SuiviAgent',
     'DuplicationAgent',
-    'DocumentalisteAgent'
+    'DocumentalisteAgent',
+    'RedacteurAgent'
 ]
 
 class SpecificationsAgent(AiderAgent):
@@ -154,6 +155,24 @@ class DocumentalisteAgent(AiderAgent):
         super().__init__(config)
         self.prompt_file = "prompts/documentaliste.md"
         self.role = "documentaliste"
+        self.web_instance = config['web_instance']
+
+class RedacteurAgent(AiderAgent):
+    """
+    Agent responsable de la rédaction et mise à jour du contenu textuel.
+    
+    Responsabilités:
+    - Analyse des demandes de contenu
+    - Génération de contenu textuel
+    - Mise à jour des documents
+    - Maintien de la cohérence du style
+    """
+    def __init__(self, config: Dict):
+        if 'web_instance' not in config:
+            raise ValueError("web_instance manquant dans la configuration")
+        super().__init__(config)
+        self.prompt_file = "prompts/redacteur.md"
+        self.role = "redacteur"
         self.web_instance = config['web_instance']
         
     def _build_prompt(self, context: dict) -> str:
