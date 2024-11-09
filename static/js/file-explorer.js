@@ -120,8 +120,17 @@ export default {
                             });
                             success = true;
                         } else if (response.status === 404) {
-                            console.warn('Mission files not found');
+                            console.warn(`Mission ${this.currentMission.id} not found`);
+                            // Clear files if mission no longer exists
+                            this.files = [];
+                            // Stop polling since mission doesn't exist
+                            if (this.fileCheckInterval) {
+                                clearInterval(this.fileCheckInterval);
+                                this.fileCheckInterval = null;
+                            }
                             return;
+                        } else {
+                            throw new Error(`Server returned ${response.status}`);
                         }
                     } catch (error) {
                         retryCount++;
@@ -170,17 +179,27 @@ export default {
         async loadMissionFiles() {
             try {
                 this.loading = true;
-                if (!this.currentMission) return;
+                this.error = null; // Reset error state
+                if (!this.currentMission) {
+                    this.error = 'No mission selected';
+                    return;
+                }
                 
                 const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
+                if (response.status === 404) {
+                    this.error = `Mission ${this.currentMission.id} not found`;
+                    this.files = [];
+                    return;
+                }
                 if (!response.ok) {
-                    throw new Error('Failed to load files');
+                    throw new Error(`Failed to load files (${response.status})`);
                 }
                 
                 this.files = await response.json();
             } catch (error) {
                 this.error = error.message;
                 console.error('Error loading files:', error);
+                this.files = [];
             } finally {
                 this.loading = false;
             }
