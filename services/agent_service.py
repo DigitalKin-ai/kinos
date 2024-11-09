@@ -42,8 +42,12 @@ class AgentService:
             # Stop all agents
             self.stop_all_agents()
             
-            # Normalize and validate mission path
-            mission_dir = os.path.normpath(os.path.abspath(os.path.join("missions", mission_name)))
+            # Use absolute path for mission directory
+            mission_dir = os.path.abspath(os.path.join(
+                os.path.dirname(os.path.dirname(__file__)), 
+                "missions", 
+                mission_name
+            ))
             
             # Create and verify mission directory
             if not os.path.exists(mission_dir):
