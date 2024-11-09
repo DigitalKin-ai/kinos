@@ -5,7 +5,8 @@ from .agent_types import (
     EvaluationAgent,
     SuiviAgent,
     DuplicationAgent,
-    DocumentalisteAgent
+    DocumentalisteAgent,
+    TesteurAgent
 )
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     'EvaluationAgent',
     'SuiviAgent',
     'DuplicationAgent',
-    'DocumentalisteAgent'
+    'DocumentalisteAgent',
+    'TesteurAgent'
 ]

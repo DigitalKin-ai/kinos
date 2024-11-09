@@ -15,7 +15,8 @@ class MissionService:
         "evaluation.md",
         "suivi.md",
         "documentation.md",
-        "duplication.md"
+        "duplication.md",
+        "test.md"
     ]
 
     def __init__(self):

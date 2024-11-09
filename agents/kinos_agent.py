@@ -42,10 +42,10 @@ class KinOSAgent:
     # Default intervals for each agent type (in seconds)
     DEFAULT_INTERVALS = {
         'SpecificationsAgent': 40,  # Specifications change less frequently
-        'ProductionAgent': 16,      # Medium reactivity
-        'ManagementAgent': 30,      # Coordination needs less frequency
+        'ProductionAgent': 10,      # Medium reactivity
+        'ManagementAgent': 25,      # Coordination needs less frequency
         'EvaluationAgent': 36,      # Allow changes to accumulate
-        'SuiviAgent': 20,          # More reactive monitoring
+        'SuiviAgent': 30,          # More reactive monitoring
         'DocumentalisteAgent': 45,  # Documentation updates less frequent
         'DuplicationAgent': 50      # Code analysis needs more time
     }

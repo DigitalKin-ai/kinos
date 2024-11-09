@@ -463,6 +463,13 @@ class AgentService:
                     "prompt": load_prompt("prompts/documentaliste.md"),
                     "prompt_file": "prompts/documentaliste.md"
                 }),
+                "Testeur": TesteurAgent({
+                    **base_config,
+                    "name": "Testeur",
+                    "file_path": os.path.join(mission_dir, "test.md"),
+                    "prompt": load_prompt("prompts/testeur.md"),
+                    "prompt_file": "prompts/testeur.md"
+                }),
                 "Duplication": DuplicationAgent({
                     **base_config,
                     "name": "Duplication",
