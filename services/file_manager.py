@@ -31,26 +31,36 @@ class FileManager:
         self.logger = Logger()
         self._ensure_files_exist()
 
+    def _normalize_mission_name(self, mission_name: str) -> str:
+        """Normalize mission name for filesystem use"""
+        normalized = mission_name.replace("'", "_")
+        normalized = normalized.replace('"', "_")
+        normalized = normalized.replace(" ", "_")
+        return normalized
+
     @property
     def current_mission(self):
         return self._current_mission
 
     @current_mission.setter 
     def current_mission(self, mission_name: str):
-        """Setter with validation for current_mission"""
+        """Setter with validation and normalization for current_mission"""
         if not mission_name:
             raise ValueError("Mission name cannot be empty")
             
+        # Normalize mission name for filesystem
+        normalized_name = self._normalize_mission_name(mission_name)
+        
         if hasattr(self, '_current_mission'):
             self.logger.log(
-                f"Changing mission from {self._current_mission} to {mission_name}",
+                f"Changing mission from {self._current_mission} to {normalized_name}",
                 level='info'
             )
             
-        self._current_mission = mission_name
+        self._current_mission = mission_name  # Store original name
         
-        # Validate the change
-        mission_dir = os.path.join("missions", mission_name)
+        # Use normalized name for filesystem operations
+        mission_dir = os.path.join("missions", normalized_name)
         os.makedirs(mission_dir, exist_ok=True)
         
         # Verify directory exists

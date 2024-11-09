@@ -170,6 +170,13 @@ class MissionService:
             print(f"Error creating mission directory: {e}")
             return False
 
+    def _normalize_mission_name(self, mission_name: str) -> str:
+        """Normalize mission name for filesystem use"""
+        normalized = mission_name.replace("'", "_")
+        normalized = normalized.replace('"', "_")
+        normalized = normalized.replace(" ", "_")
+        return normalized
+
     def create_mission(self, name: str, description: str = None) -> Optional[Dict]:
         """Create a new mission and ensure its directory exists"""
         try:
@@ -177,8 +184,11 @@ class MissionService:
             if not name or not name.strip():
                 raise ValueError("Mission name cannot be empty")
                 
+            # Normalize name for filesystem
+            normalized_name = self._normalize_mission_name(name)
+            
             # Construire le chemin ABSOLU du dossier mission
-            mission_dir = os.path.abspath(os.path.join(self.missions_dir, name))
+            mission_dir = os.path.abspath(os.path.join(self.missions_dir, normalized_name))
             
             # Normaliser le chemin pour éviter toute duplication
             mission_dir = self._normalize_mission_path(mission_dir)
@@ -198,10 +208,11 @@ class MissionService:
                         f.write(initial_content)
                     self.logger.log(f"Created file: {filename}", level='debug')
 
-            # Return mission data
+            # Return mission data with original and normalized names
             mission_data = {
                 'id': len(self.get_all_missions()) + 1,
-                'name': name,
+                'name': name,  # Original name
+                'normalized_name': normalized_name,  # Add normalized name
                 'path': mission_dir,
                 'status': 'active',
                 'description': description,
