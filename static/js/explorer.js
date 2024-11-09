@@ -174,11 +174,16 @@ export default {
     name: 'ExplorerApp',
     computed: {
         filteredFiles() {
-            if (!this.searchQuery) return this.files;
+            if (!this.searchQuery) {
+                // Only return files that exist
+                return this.files.filter(file => this.fileExists(file));
+            }
             const query = this.searchQuery.toLowerCase();
             return this.files.filter(file => 
-                file.name.toLowerCase().includes(query) ||
-                file.relativePath.toLowerCase().includes(query)
+                this.fileExists(file) && (
+                    file.name.toLowerCase().includes(query) ||
+                    file.relativePath.toLowerCase().includes(query)
+                )
             );
         }
     },

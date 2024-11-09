@@ -168,7 +168,7 @@ class MissionService:
         return normalized
 
     def create_mission(self, name: str, description: str = None) -> Optional[Dict]:
-        """Create a new mission and ensure its directory exists"""
+        """Create a new mission with only demande.md initially"""
         try:
             # Validate mission name
             if not name or not name.strip():
@@ -177,13 +177,13 @@ class MissionService:
             # Normalize name for filesystem
             normalized_name = self._normalize_mission_name(name)
             
-            # Construire le chemin ABSOLU du dossier mission
+            # Build ABSOLUTE mission directory path
             mission_dir = os.path.abspath(os.path.join(self.missions_dir, normalized_name))
             
-            # Normaliser le chemin pour éviter toute duplication
+            # Normalize path to avoid duplication
             mission_dir = self._normalize_mission_path(mission_dir)
             
-            # Log pour debug
+            # Log for debug
             self.logger.log(f"Creating mission in: {mission_dir}", level='debug')
             
             # Create only demande.md initially
