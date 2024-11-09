@@ -21,29 +21,40 @@ class FileService(BaseService):
         self.file_manager = web_instance.file_manager
         
     @safe_operation()
-    def read_file(self, file_path: str) -> Optional[str]:
-        """Lit le contenu d'un fichier avec cache"""
+    def read_file(self, file_name: str) -> Optional[str]:
+        """Read content from a file with caching and locking"""
         try:
-            self._validate_file_path(file_path)
-            
-            # Vérifier le cache
-            if file_path in self.content_cache:
-                cache_time = self.last_modified.get(file_path, 0)
-                if os.path.getmtime(file_path) <= cache_time:
-                    return self.content_cache[file_path]
-            
-            # Lire le fichier
-            with portalocker.Lock(file_path, 'r', timeout=10) as f:
-                content = f.read()
+            # Normalize file name
+            if not file_name.endswith('.md'):
+                file_name = f"{file_name}.md"
+
+            # Construct absolute file path
+            if self.current_mission:
+                file_path = os.path.abspath(os.path.join("missions", self.current_mission, file_name))
+            else:
+                file_path = os.path.abspath(file_name)
+
+            # Ne pas créer le fichier s'il n'existe pas
+            if not os.path.exists(file_path):
+                return None
+
+            # Check cache first
+            cache_key = f"file:{file_path}"
+            if cache_key in self.content_cache:
+                mtime = os.path.getmtime(file_path)
+                cached_time, cached_content = self.content_cache[cache_key]
+                if mtime == cached_time:
+                    return cached_content
+
+            # Read with locking
+            with portalocker.Lock(file_path, 'r', timeout=10) as lock:
+                content = lock.read()
+                # Cache the content
+                self.content_cache[cache_key] = (os.path.getmtime(file_path), content)
+                return content
                 
-            # Mettre en cache
-            self.content_cache[file_path] = content
-            self.last_modified[file_path] = os.path.getmtime(file_path)
-            
-            return content
-            
         except Exception as e:
-            self._handle_error('read_file', e)
+            self.logger.log(f"Error reading {file_name}: {str(e)}", level='error')
             return None
 
     @safe_operation()
