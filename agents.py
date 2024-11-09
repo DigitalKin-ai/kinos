@@ -164,21 +164,4 @@ class DocumentalisteAgent(AiderAgent):
         # Add documentation-specific context here
         return base_prompt
 
-class TesteurAgent(AiderAgent):
-    """
-    Agent responsable des tests automatisés.
-    
-    Responsabilités:
-    - Création et maintenance des tests unitaires
-    - Tests d'intégration
-    - Tests de non-régression
-    - Validation de la couverture de tests
-    """
-    def __init__(self, config: Dict):
-        if 'web_instance' not in config:
-            raise ValueError("web_instance manquant dans la configuration")
-        super().__init__(config)
-        self.prompt_file = "prompts/testeur.md"
-        self.role = "testeur"
-        self.web_instance = config['web_instance']
 
