@@ -224,11 +224,20 @@ export default {
                 <p class="text-red-500">{{ error }}</p>
             </div>
 
-            <div v-else class="flex-1 overflow-auto">
-                <div class="bg-white shadow">
-                    <div v-for="file in files" 
-                         :key="file.path" 
-                         class="border-b border-gray-200 last:border-b-0">
+            <div class="flex-1 overflow-hidden">
+                <div class="h-full overflow-y-auto px-6">
+                    <div v-if="loading" class="flex items-center justify-center py-4">
+                        <p class="text-gray-600">Loading files...</p>
+                    </div>
+
+                    <div v-else-if="error" class="flex items-center justify-center py-4">
+                        <p class="text-red-500">{{ error }}</p>
+                    </div>
+
+                    <div v-else class="bg-white shadow rounded-lg">
+                        <div v-for="file in files" 
+                             :key="file.path" 
+                             class="border-b border-gray-200 last:border-b-0">
                         
                         <!-- En-tête du fichier -->
                         <div @click="toggleFile(file)"
