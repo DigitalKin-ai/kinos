@@ -245,6 +245,13 @@ class KinOSWeb:
                     "file_path": os.path.join(mission_dir, "tests.md"),
                     "prompt": load_prompt("prompts/testeur.md"),
                     "prompt_file": "prompts/testeur.md"
+                }),
+                "Redacteur": RedacteurAgent({
+                    **base_config,
+                    "name": "Redacteur",
+                    "file_path": os.path.join(mission_dir, "redaction.md"),
+                    "prompt": load_prompt("prompts/redacteur.md"),
+                    "prompt_file": "prompts/redacteur.md"
                 })
             }
 
