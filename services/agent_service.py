@@ -341,6 +341,14 @@ class AgentService:
                         os.path.join(mission_dir, "management.md"),
                         os.path.join(mission_dir, "evaluation.md")
                     ]
+                },
+                "Testeur": {
+                    "main": os.path.join(mission_dir, "tests.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "production.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ]
                 }
             }
             
