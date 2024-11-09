@@ -94,10 +94,27 @@ def register_agent_routes(app, web_instance):
                 
             # Log l'état initial
             web_instance.log_message(f"Attempting to {action} agent {agent_id}", level='debug')
-            web_instance.log_message(f"Available agents: {list(web_instance.agent_service.agents.keys())}", level='debug')
             
-            # Convertir l'ID de l'agent
-            agent_name = agent_id.capitalize()
+            # Map des noms d'agents normalisés
+            agent_name_map = {
+                'specification': 'Specification',
+                'production': 'Production',
+                'management': 'Management',
+                'evaluation': 'Evaluation',
+                'suivi': 'Suivi',
+                'documentaliste': 'Documentaliste',
+                'duplication': 'Duplication',
+                'testeur': 'Testeur',
+                'redacteur': 'Redacteur'
+            }
+            
+            # Convertir l'ID de l'agent en utilisant le mapping
+            agent_name = agent_name_map.get(agent_id.lower())
+            if not agent_name:
+                web_instance.log_message(f"Invalid agent ID: {agent_id}", level='error')
+                raise ValidationError(f"Invalid agent ID: {agent_id}")
+                
+            web_instance.log_message(f"Available agents: {list(web_instance.agent_service.agents.keys())}", level='debug')
             web_instance.log_message(f"Looking for agent with name: {agent_name}", level='debug')
             
             # Vérification détaillée de l'agent
