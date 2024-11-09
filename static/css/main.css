@@ -13,6 +13,45 @@
 @import 'logs.css';      /* Log display formatting */
 @import 'animations.css'; /* Transitions and animations */
 
+/* Styles pour la scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+}
+
+/* Pour Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #ddd transparent;
+}
+
+/* Assurer que le conteneur prend toute la hauteur */
+.h-full {
+    height: 100%;
+}
+
+/* Empêcher le débordement du conteneur parent */
+.overflow-hidden {
+    overflow: hidden;
+}
+
+/* Permettre le défilement du conteneur enfant */
+.overflow-y-auto {
+    overflow-y: auto;
+}
+
 /* 
 Note: This file only contains imports.
 Add component-specific styles to their respective CSS files.

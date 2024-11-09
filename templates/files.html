@@ -24,10 +24,44 @@
 
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col">
-            <div class="flex-1 p-6">
-                <file-explorer
-                    :current-mission="currentMission">
-                </file-explorer>
+            <!-- Contenu principal avec scroll -->
+            <div class="flex-1 overflow-hidden"> <!-- Conteneur parent -->
+                <div class="h-full overflow-y-auto px-6"> <!-- Conteneur avec scroll -->
+                    <div class="bg-white shadow rounded-lg">
+                        <!-- En-tête fixe -->
+                        <div class="sticky top-0 bg-white shadow px-6 py-4 z-10">
+                            <div class="flex justify-between items-center">
+                                <h2 class="text-2xl font-bold">Files</h2>
+                                <div class="flex items-center gap-4">
+                                    <span class="text-sm text-gray-500">
+                                        {{ fileCount }} files
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Liste des fichiers avec scroll -->
+                        <div class="overflow-y-auto">
+                            <div v-if="loading" class="flex items-center justify-center py-4">
+                                <p class="text-gray-600">Loading files...</p>
+                            </div>
+
+                            <div v-else-if="error" class="flex items-center justify-center py-4">
+                                <p class="text-red-500">{{ error }}</p>
+                            </div>
+
+                            <div v-else>
+                                <div v-for="file in files" 
+                                     :key="file.path" 
+                                     class="border-b border-gray-200 last:border-b-0">
+                                    <file-explorer
+                                        :current-mission="currentMission">
+                                    </file-explorer>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
