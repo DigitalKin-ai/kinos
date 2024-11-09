@@ -6,7 +6,7 @@ de AiderAgent. Chaque agent a un rôle et des responsabilités distincts dans
 le processus de développement.
 """
 from typing import Dict, Optional
-from .kinos_agent import KinOSAgent
+from agents.kinos_agent import KinOSAgent
 from aider_agent import AiderAgent
 
 class SpecificationsAgent(AiderAgent):
