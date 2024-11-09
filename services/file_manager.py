@@ -14,28 +14,18 @@ class FileManager:
     """Manages file operations for the GUI"""
     
     def __init__(self, web_instance, on_content_changed=None):
-        """
-        Initialize FileManager with caching and locking support.
-        
-        Args:
-            web_instance: Web application instance
-            on_content_changed: Callback for content changes
-        """
-        # Store web_instance first
+        """Initialize FileManager with minimal file tracking"""
         self.web_instance = web_instance
-        
-        # Use relative paths only
         self.file_paths = {
             'demande': 'demande.md'  # Only track demande.md initially
         }
-            
         self.on_content_changed = on_content_changed
         self._current_mission = None
         self.logger = Logger()
         
         # Initialize cache
-        self.content_cache = {}  # Cache for file contents
-        self.cache_hits = 0      # Track cache performance
+        self.content_cache = {}
+        self.cache_hits = 0
         self.cache_misses = 0
         
         # Configure file locking

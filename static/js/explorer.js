@@ -29,6 +29,10 @@ export default {
         }
     },
     methods: {
+        fileExists(file) {
+            return file && file.size > 0;
+        },
+    methods: {
         getFileSize(file) {
             if (!file.content) return '0';
             return file.content.length.toString();
@@ -263,7 +267,15 @@ export default {
                 if (!response.ok) throw new Error('Failed to fetch files');
                 
                 const currentFiles = await response.json();
-                this.files = currentFiles.map(file => ({
+                
+                // Filter to only show files that physically exist
+                this.files = currentFiles.filter(file => {
+                    try {
+                        return file.size > 0; // A file with size > 0 exists
+                    } catch {
+                        return false;
+                    }
+                }).map(file => ({
                     ...file,
                     displayPath: file.relativePath || file.path
                 }));
