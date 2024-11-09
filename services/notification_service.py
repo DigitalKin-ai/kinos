@@ -171,7 +171,7 @@ class NotificationService(BaseService):
             
             # Update watch files
             if watch_files:
-                self.other_files = {
+                self.mission_files = {
                     path: os.path.getmtime(path) if os.path.exists(path) else 0
                     for path in watch_files
                 }
@@ -181,7 +181,7 @@ class NotificationService(BaseService):
             
             self.logger(f"[{self.__class__.__name__}] ✓ Paths updated")
             self.logger(f"[{self.__class__.__name__}] Main file: {self.file_path}")
-            self.logger(f"[{self.__class__.__name__}] Watch files: {list(self.other_files.keys())}")
+            self.logger(f"[{self.__class__.__name__}] Watch files: {list(self.mission_files.keys())}")
             
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Error updating paths: {str(e)}")
