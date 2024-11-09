@@ -64,6 +64,11 @@ export default {
                 clearInterval(this.fileCheckInterval);
             }
             
+            // Reset poll interval to default if it was increased
+            if (this.pollInterval > 5000) {
+                this.pollInterval = 5000;
+            }
+            
             this.fileCheckInterval = setInterval(() => {
                 if (this.currentMission?.id && this.activeTab === 'files') {
                     this.checkFileModifications();
@@ -91,18 +96,21 @@ export default {
                     return;
                 }
 
-                // Add error handling and retry logic
+                // Add exponential backoff retry logic
                 const maxRetries = 3;
                 let retryCount = 0;
                 let success = false;
 
                 while (!success && retryCount < maxRetries) {
                     try {
-                        const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
+                        const response = await fetch(`/api/missions/${this.currentMission.id}/files`, {
+                            // Add timeout
+                            signal: AbortSignal.timeout(5000)
+                        });
                         
                         if (response.ok) {
                             const newFiles = await response.json();
-                            // Compare modification timestamps
+                            // Update files and handle modifications
                             newFiles.forEach(newFile => {
                                 const existingFile = this.files.find(f => f.path === newFile.path);
                                 if (existingFile && existingFile.modified !== newFile.modified) {
@@ -112,16 +120,19 @@ export default {
                             });
                             success = true;
                         } else if (response.status === 404) {
-                            console.warn('Mission files not found, skipping check');
+                            console.warn('Mission files not found');
                             return;
                         }
                     } catch (error) {
                         retryCount++;
                         if (retryCount < maxRetries) {
-                            // Wait before retrying (exponential backoff)
-                            await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
-                            console.warn(`Retry attempt ${retryCount} of ${maxRetries}`);
+                            // Exponential backoff
+                            const delay = Math.pow(2, retryCount) * 1000;
+                            console.warn(`Retry attempt ${retryCount} of ${maxRetries} in ${delay}ms`);
+                            await new Promise(resolve => setTimeout(resolve, delay));
                         } else {
+                            // After max retries, reduce polling frequency
+                            this.adjustPollingInterval();
                             throw error;
                         }
                     }
@@ -129,14 +140,17 @@ export default {
             } catch (error) {
                 console.error('Error checking file modifications:', error);
                 // Reduce polling frequency on error
-                if (this.fileCheckInterval) {
-                    clearInterval(this.fileCheckInterval);
-                    this.fileCheckInterval = setInterval(() => {
-                        if (this.currentMission?.id) {
-                            this.checkFileModifications();
-                        }
-                    }, 5000); // Increase interval to 5 seconds on error
-                }
+                this.adjustPollingInterval();
+            }
+        },
+
+        // Add method to adjust polling interval
+        adjustPollingInterval() {
+            if (this.fileCheckInterval) {
+                clearInterval(this.fileCheckInterval);
+                // Increase interval on error (double it up to max 30 seconds)
+                this.pollInterval = Math.min(this.pollInterval * 2, 30000);
+                this.startFileChecking();
             }
         },
 
