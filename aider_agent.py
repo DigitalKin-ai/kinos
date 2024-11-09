@@ -137,7 +137,7 @@ class AiderAgent(KinOSAgent):
                 # Construire la commande avec chemins relatifs
                 cmd = [
                     "aider",
-                    "--model", "anthropic/claude-3-5-haiku-20241022",
+                    "--model", "claude-3-5-haiku-20241022",
                     "--no-git",
                     "--yes-always",
                     "--file", main_file  # Utiliser juste le nom du fichier
@@ -153,8 +153,8 @@ class AiderAgent(KinOSAgent):
                 cmd.extend(["--message", self.prompt])
                 
                 # Logger la commande
-                self.logger(f"[{self.__class__.__name__}] 🤖 Commande Aider:")
-                self.logger(f"  Command: {' '.join(cmd)}")
+                self.logger(f"[{self.__class__.__name__}] 🤖 Commande Aider")
+                # self.logger(f"  Command: {' '.join(cmd)}")
                 
                 # Exécuter Aider
                 process = subprocess.Popen(
@@ -168,7 +168,7 @@ class AiderAgent(KinOSAgent):
                 
                 # Logger la sortie
                 if stdout:
-                    self.logger(f"[{self.__class__.__name__}] ✓ Sortie Aider:\n{stdout}")
+                    self.logger(f"[{self.__class__.__name__}] ✅ Sortie Aider:\n{stdout}")
                 if stderr:
                     self.logger(f"[{self.__class__.__name__}] ⚠️ Erreurs Aider:\n{stderr}")
                 
