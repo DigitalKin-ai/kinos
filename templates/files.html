@@ -24,8 +24,25 @@
 
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col">
-            <!-- Contenu principal avec scroll -->
-            <div class="flex-1 overflow-hidden"> <!-- Conteneur parent -->
+            <!-- Tabs -->
+            <div class="flex border-b">
+                <button 
+                    v-for="tab in ['files', 'other']" 
+                    :key="tab"
+                    @click="setActiveTab(tab)"
+                    :class="[
+                        'px-4 py-2 border-b-2',
+                        activeTab === tab 
+                            ? 'border-black text-black' 
+                            : 'border-transparent text-gray-500'
+                    ]"
+                >
+                    {{ tab }}
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div v-if="activeTab === 'files'" class="flex-1 overflow-hidden"> <!-- Conteneur parent -->
                 <div class="h-full overflow-y-auto px-6"> <!-- Conteneur avec scroll -->
                     <div class="bg-white shadow rounded-lg">
                         <!-- En-tête fixe -->

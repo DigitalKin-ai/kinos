@@ -11,7 +11,9 @@ export default {
             fileCheckInterval: null,
             flashingFiles: new Set(),
             expandedFiles: new Set(),
-            fileContents: new Map()
+            fileContents: new Map(),
+            activeTab: 'files',
+            pollInterval: 5000
         }
     },
     computed: {
@@ -29,27 +31,58 @@ export default {
         currentMission: {
             immediate: true,
             handler(newMission) {
-                // Clear any existing watcher
                 if (this.fileCheckInterval) {
                     clearInterval(this.fileCheckInterval);
                     this.fileCheckInterval = null;
                 }
 
-                if (newMission?.id) {
-                    // Load files once initially
+                if (newMission?.id && this.activeTab === 'files') {
                     this.loadMissionFiles();
-                    
-                    // Start a single watcher
-                    this.fileCheckInterval = setInterval(() => {
-                        this.checkFileModifications();
-                    }, 5000);
+                    this.startFileChecking();
                 } else {
                     this.files = [];
+                }
+            }
+        },
+        activeTab: {
+            handler(newTab) {
+                if (newTab === 'files' && this.currentMission?.id) {
+                    this.loadMissionFiles();
+                    this.startFileChecking();
+                } else {
+                    if (this.fileCheckInterval) {
+                        clearInterval(this.fileCheckInterval);
+                        this.fileCheckInterval = null;
+                    }
                 }
             }
         }
     },
     methods: {
+        startFileChecking() {
+            if (this.fileCheckInterval) {
+                clearInterval(this.fileCheckInterval);
+            }
+            
+            this.fileCheckInterval = setInterval(() => {
+                if (this.currentMission?.id && this.activeTab === 'files') {
+                    this.checkFileModifications();
+                }
+            }, this.pollInterval);
+        },
+
+        setActiveTab(tabId) {
+            this.activeTab = tabId;
+            if (this.activeTab === 'files') {
+                this.loadMissionFiles();
+                this.startFileChecking();
+            } else {
+                if (this.fileCheckInterval) {
+                    clearInterval(this.fileCheckInterval);
+                    this.fileCheckInterval = null;
+                }
+            }
+        },
 
         async checkFileModifications() {
             try {
