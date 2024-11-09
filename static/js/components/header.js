@@ -19,10 +19,6 @@ export default {
                         </div>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <a href="/editor" class="text-gray-400 hover:text-white">
-                            <i class="mdi mdi-pencil"></i>
-                            Editor
-                        </a>
                         <a href="/files" class="text-gray-400 hover:text-white">
                             <i class="mdi mdi-folder"></i>
                             Files
@@ -30,10 +26,6 @@ export default {
                         <a href="/agents" class="text-gray-400 hover:text-white">
                             <i class="mdi mdi-robot"></i>
                             Agents
-                        </a>
-                        <a href="/clean" class="text-gray-400 hover:text-white">
-                            <i class="mdi mdi-eye"></i>
-                            Clean
                         </a>
                     </div>
                 </div>
