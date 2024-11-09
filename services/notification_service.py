@@ -132,6 +132,28 @@ class NotificationService(BaseService):
         except Exception as e:
             return self._handle_error('get_notifications', e, [])
             
+    def create_mission_file(self, file_name: str, initial_content: str = "") -> bool:
+        """Create a new mission file on demand"""
+        try:
+            if not self.current_mission:
+                return False
+                
+            file_path = os.path.join("missions", self.current_mission, file_name)
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(initial_content)
+                
+            # Add to tracked files
+            base_name = os.path.splitext(file_name)[0]
+            self.file_paths[base_name] = file_name
+            
+            return True
+            
+        except Exception as e:
+            self.logger.log(f"Error creating file {file_name}: {str(e)}", level='error')
+            return False
+
     def update_paths(self, file_path: str, watch_files: list = None) -> None:
         """Update file paths when mission changes"""
         try:

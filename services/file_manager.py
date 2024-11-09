@@ -26,12 +26,7 @@ class FileManager:
         
         # Use relative paths only
         self.file_paths = {
-            'demande': 'demande.md',
-            'specifications': 'specifications.md',
-            'management': 'management.md',
-            'production': 'production.md',
-            'evaluation': 'evaluation.md',
-            'suivi': 'suivi.md'
+            'demande': 'demande.md'  # Only track demande.md initially
         }
             
         self.on_content_changed = on_content_changed
@@ -103,14 +98,23 @@ class FileManager:
         
         
     def _ensure_files_exist(self):
-        """Create files if they don't exist in current mission folder"""
+        """Create only demande.md if it doesn't exist in current mission folder"""
         # Skip if no mission is selected
         if not self.current_mission:
             return
             
-        # Use mission service to ensure files exist
-        if not self.web_instance.mission_service.ensure_mission_files(self.current_mission):
-            raise self.FileError(f"Failed to ensure files exist for mission {self.current_mission}")
+        try:
+            # Only ensure demande.md exists
+            mission_dir = os.path.join("missions", self.current_mission)
+            demande_path = os.path.join(mission_dir, "demande.md")
+            
+            if not os.path.exists(demande_path):
+                os.makedirs(os.path.dirname(demande_path), exist_ok=True)
+                with open(demande_path, 'w', encoding='utf-8') as f:
+                    f.write("# Demande\n\n[En attente de la demande...]")
+                    
+        except Exception as e:
+            self.logger.log(f"Error ensuring demande.md exists: {str(e)}", level='error')
 
 
 
