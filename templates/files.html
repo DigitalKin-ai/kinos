@@ -86,7 +86,10 @@
                 missionService: new MissionService(),
                 currentMission: null,
                 missions: [],
-                loading: true
+                loading: true,
+                files: [],
+                error: null,
+                fileCount: 0
             }
         },
         async mounted() {
@@ -100,17 +103,36 @@
                 
                 if (missions.length > 0) {
                     await this.selectMission(missions[0]);
+                    await this.loadFiles();
                 }
                 
                 this.loading = false;
             } catch (error) {
                 console.error('Failed to load missions:', error);
+                this.error = error.message;
                 this.loading = false;
             }
         },
         methods: {
             async selectMission(mission) {
                 this.currentMission = mission;
+                await this.loadFiles();
+            },
+            async loadFiles() {
+                try {
+                    if (!this.currentMission?.id) return;
+                    
+                    const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
+                    if (!response.ok) {
+                        throw new Error('Failed to load files');
+                    }
+                    
+                    this.files = await response.json();
+                    this.fileCount = this.files.length;
+                } catch (error) {
+                    console.error('Failed to load files:', error);
+                    this.error = error.message;
+                }
             },
             async createMission(name) {
                 try {
@@ -119,6 +141,7 @@
                     this.currentMission = newMission;
                 } catch (error) {
                     console.error('Failed to create mission:', error);
+                    this.error = error.message;
                 }
             },
             handleSidebarToggle(collapsed) {
