@@ -240,6 +240,20 @@ class KinOSWeb:
                     "prompt_file": "prompts/suivi.md",
                     "prompt": load_prompt("prompts/suivi.md")
                 }),
+                "Documentaliste": DocumentalisteAgent({
+                    **base_config,
+                    "name": "Documentaliste",
+                    "file_path": os.path.join(mission_dir, "documentation.md"),
+                    "prompt_file": "prompts/documentaliste.md",
+                    "prompt": load_prompt("prompts/documentaliste.md")
+                }),
+                "Duplication": DuplicationAgent({
+                    **base_config,
+                    "name": "Duplication",
+                    "file_path": os.path.join(mission_dir, "duplication.md"),
+                    "prompt_file": "prompts/duplication.md",
+                    "prompt": load_prompt("prompts/duplication.md")
+                }),
                 "Testeur": TesteurAgent({
                     **base_config,
                     "name": "Testeur",
