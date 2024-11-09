@@ -238,6 +238,13 @@ class KinOSWeb:
                     "file_path": os.path.join(mission_dir, "suivi.md"),
                     "prompt_file": "prompts/suivi.md",
                     "prompt": load_prompt("prompts/suivi.md")
+                }),
+                "Testeur": TesteurAgent({
+                    **base_config,
+                    "name": "Testeur",
+                    "file_path": os.path.join(mission_dir, "tests.md"),
+                    "prompt": load_prompt("prompts/testeur.md"),
+                    "prompt_file": "prompts/testeur.md"
                 })
             }
 
