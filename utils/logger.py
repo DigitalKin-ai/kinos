@@ -6,7 +6,8 @@ class Logger:
         'success': 'green',
         'warning': 'orange',
         'error': 'red',
-        'debug': 'gray'
+        'debug': 'gray',
+        'redacteur': 'purple'
     }
     
     @staticmethod

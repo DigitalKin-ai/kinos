@@ -31,7 +31,8 @@ class KinOSWeb:
         'success': 'green', 
         'warning': 'orange',
         'error': 'red',
-        'debug': 'gray'
+        'debug': 'gray',
+        'redacteur': 'purple'
     }
 
     def _register_routes(self):
