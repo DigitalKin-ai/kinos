@@ -8,16 +8,7 @@ from utils.exceptions import AgentError
 
 class MissionService:
     REQUIRED_FILES = [
-        "demande.md",
-        "specifications.md", 
-        "management.md",
-        "production.md",
-        "evaluation.md",
-        "suivi.md",
-        "documentation.md",
-        "duplication.md",
-        "tests.md",
-        "redaction.md"
+        "demande.md"  # Seul fichier requis initialement
     ]
 
     def __init__(self):
@@ -197,17 +188,11 @@ class MissionService:
             # Log pour debug
             self.logger.log(f"Creating mission in: {mission_dir}", level='debug')
             
-            # Create required files with initial content
-            for filename in self.REQUIRED_FILES:
-                # Utiliser un chemin absolu pour le fichier
-                file_path = os.path.abspath(os.path.join(mission_dir, filename))
-                if not os.path.exists(file_path):
-                    # Créer le dossier parent avec chemin absolu
-                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        initial_content = self._get_initial_content(filename.replace('.md', ''))
-                        f.write(initial_content)
-                    self.logger.log(f"Created file: {filename}", level='debug')
+            # Create only demande.md
+            file_path = os.path.abspath(os.path.join(mission_dir, "demande.md"))
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write("# Demande\n\n[En attente de la demande...]")
 
             # Return mission data with original and normalized names
             mission_data = {
@@ -229,21 +214,17 @@ class MissionService:
             return None
 
     def ensure_mission_files(self, mission_name: str) -> bool:
-        """Create standard files for a mission if they don't exist"""
+        """Create only demande.md if it doesn't exist"""
         try:
             # Utiliser un chemin absolu pour le dossier mission
             mission_dir = os.path.abspath(os.path.join(self.missions_dir, mission_name))
             
-            # Create each required file if it doesn't exist
-            for filename in self.REQUIRED_FILES:
-                # Utiliser un chemin absolu pour le fichier
-                file_path = os.path.abspath(os.path.join(mission_dir, filename))
-                if not os.path.exists(file_path):
-                    # Créer le dossier parent avec chemin absolu
-                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        content = self._get_initial_content(filename.replace('.md', ''))
-                        f.write(content)
+            # Create only demande.md if it doesn't exist
+            file_path = os.path.abspath(os.path.join(mission_dir, "demande.md"))
+            if not os.path.exists(file_path):
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write("# Demande\n\n[En attente de la demande...]")
             return True
         except Exception as e:
             self.logger.log(f"Error ensuring mission files: {e}", level='error')
@@ -295,13 +276,9 @@ class MissionService:
             
             # Process each mission directory
             for mission_name, mission_path in mission_dirs:
-                # Check if any required files exist
-                has_files = any(
-                    os.path.exists(os.path.join(mission_path, req_file))
-                    for req_file in self.REQUIRED_FILES
-                )
-                
-                if has_files:
+                # Check if demande.md exists
+                demande_file = os.path.join(mission_path, "demande.md")
+                if os.path.exists(demande_file):
                     # Create mission object with sequential ID
                     mission = {
                         'id': mission_id,
@@ -317,13 +294,6 @@ class MissionService:
                     }
                     missions.append(mission)
                     mission_id += 1
-                    
-                    # Ensure required files exist
-                    self.ensure_mission_files(mission_name)
-            
-            # Log scanned missions
-            # self.logger.log(f"Scanned missions: {[m['name'] for m in missions]}", level='debug')
-            # self.logger.log(f"Mission IDs: {[m['id'] for m in missions]}", level='debug')
             
             return missions
             
