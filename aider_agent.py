@@ -3,6 +3,8 @@ AiderAgent - Agent générique utilisant Aider pour les modifications de fichier
 Chaque instance représente un rôle spécifique (specifications, production, etc.)
 mais partage la même logique d'interaction avec Aider.
 
+import time
+
 GESTION DES CHEMINS:
 1. Création des fichiers:
    - Utilise des chemins absolus pour garantir la création au bon endroit
