@@ -41,15 +41,15 @@ class KinOSAgent:
     
     # Default intervals for each agent type (in seconds)
     DEFAULT_INTERVALS = {
-        'SpecificationsAgent': 80,  # Specifications change less frequently
-        'ProductionAgent': 15,      # Medium reactivity
-        'ManagementAgent': 25,      # Coordination needs less frequency
-        'EvaluationAgent': 30,      # Allow changes to accumulate
-        'SuiviAgent': 40,          # More reactive monitoring
-        'DocumentalisteAgent': 45,  # Documentation updates less frequent
-        'DuplicationAgent': 30,     # Code analysis needs more time
-        'TesteurAgent': 50,         # Regular test execution
-        'RedacteurAgent': 15        # Content generation and updates
+        'SpecificationsAgent': 180,  # Specifications change less frequently
+        'ProductionAgent': 120,      # Medium reactivity
+        'ManagementAgent': 150,      # Coordination needs less frequency
+        'EvaluationAgent': 160,      # Allow changes to accumulate
+        'SuiviAgent': 140,          # More reactive monitoring
+        'DocumentalisteAgent': 170,  # Documentation updates less frequent
+        'DuplicationAgent': 160,     # Code analysis needs more time
+        'TesteurAgent': 180,         # Regular test execution
+        'RedacteurAgent': 165        # Content generation and updates
     }
 
     def __init__(self, config: Dict[str, Any]):
@@ -228,11 +228,12 @@ class KinOSAgent:
         
         # If no recent changes, increase interval more aggressively
         if self.last_change and self.consecutive_no_changes > 0:
-            # Increase up to 10x base rhythm
-            multiplier = min(10, 1 + (self.consecutive_no_changes * 1.0))
+            # More aggressive backoff: up to 30x base rhythm
+            multiplier = min(30, 2 ** min(4, self.consecutive_no_changes))
             return base_interval * multiplier
             
-        return base_interval
+        # Add minimum delay to prevent rate limiting
+        return max(base_interval, 60)  # At least 60 seconds between calls
 
     def is_healthy(self) -> bool:
         """

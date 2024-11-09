@@ -166,10 +166,13 @@ class AiderAgent(KinOSAgent):
                 )
         
                 try:
-                    stdout, stderr = process.communicate(timeout=300)  # 5 minutes timeout
+                    # Increased timeout to 10 minutes
+                    stdout, stderr = process.communicate(timeout=600)
                 except subprocess.TimeoutExpired:
                     process.kill()
                     self.logger(f"[{self.__class__.__name__}] ❌ Timeout exécution Aider")
+                    # Add exponential backoff delay on timeout
+                    time.sleep(min(300, 2 ** self.consecutive_no_changes * 30))
                     return None
             
                 if stderr and "SearchReplaceNoExactMatch" in stderr:
