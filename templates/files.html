@@ -68,13 +68,10 @@
                             </div>
 
                             <div v-else>
-                                <div v-for="file in files" 
-                                     :key="file.path" 
-                                     class="border-b border-gray-200 last:border-b-0">
-                                    <file-explorer
-                                        :current-mission="currentMission">
-                                    </file-explorer>
-                                </div>
+                                <!-- Single file explorer component -->
+                                <file-explorer
+                                    :current-mission="currentMission">
+                                </file-explorer>
                             </div>
                         </div>
                     </div>
