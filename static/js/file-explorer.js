@@ -19,44 +19,37 @@ export default {
             return this.files ? this.files.length : 0;
         }
     },
-    created() {
-        // Start periodic file checking
-        this.startFileWatcher();
-    },
     beforeUnmount() {
-        // Cleanup interval when component is destroyed
         if (this.fileCheckInterval) {
             clearInterval(this.fileCheckInterval);
+            this.fileCheckInterval = null;
         }
     },
     watch: {
         currentMission: {
             immediate: true,
             handler(newMission) {
-                if (newMission?.id) { // Vérifier l'existence d'un ID valide
+                // Clear any existing watcher
+                if (this.fileCheckInterval) {
+                    clearInterval(this.fileCheckInterval);
+                    this.fileCheckInterval = null;
+                }
+
+                if (newMission?.id) {
+                    // Load files once initially
                     this.loadMissionFiles();
-                    // Redémarrer le watcher avec la nouvelle mission
-                    this.startFileWatcher();
+                    
+                    // Start a single watcher
+                    this.fileCheckInterval = setInterval(() => {
+                        this.checkFileModifications();
+                    }, 5000);
                 } else {
-                    // Réinitialiser les fichiers si pas de mission
                     this.files = [];
                 }
             }
         }
     },
     methods: {
-        startFileWatcher() {
-            // Arrêter l'intervalle existant si présent
-            if (this.fileCheckInterval) {
-                clearInterval(this.fileCheckInterval);
-            }
-            
-            this.fileCheckInterval = setInterval(() => {
-                if (this.currentMission?.id) { // Vérifier l'existence d'un ID valide
-                    this.checkFileModifications();
-                }
-            }, 5000); // Check every 5 seconds
-        },
 
         async checkFileModifications() {
             try {
