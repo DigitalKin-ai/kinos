@@ -186,7 +186,7 @@ class MissionService:
             # Log pour debug
             self.logger.log(f"Creating mission in: {mission_dir}", level='debug')
             
-            # Create only demande.md
+            # Create only demande.md initially
             file_path = os.path.abspath(os.path.join(mission_dir, "demande.md"))
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
             with open(file_path, 'w', encoding='utf-8') as f:

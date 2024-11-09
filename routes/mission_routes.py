@@ -44,10 +44,23 @@ def register_mission_routes(app, web_instance):
     @app.route('/api/missions/<int:mission_id>/content', methods=['GET'])
     @safe_operation()
     def get_mission_content(mission_id):
-        content = web_instance.mission_service.get_mission_content(mission_id)
-        if not content:
-            return jsonify({'error': 'Content not found'}), 404
-        return jsonify(content)
+        try:
+            mission = web_instance.mission_service.get_mission(mission_id)
+            if not mission:
+                return jsonify({'error': 'Mission not found'}), 404
+                
+            # Only return demande.md content
+            content = {}
+            demande_path = os.path.join(mission['path'], "demande.md")
+            if os.path.exists(demande_path):
+                with open(demande_path, 'r', encoding='utf-8') as f:
+                    content['demande'] = f.read()
+                    
+            return jsonify(content)
+            
+        except Exception as e:
+            web_instance.logger.log(f"Error getting mission content: {str(e)}", level='error')
+            return jsonify({'error': str(e)}), 500
 
     @app.route('/api/missions/<int:mission_id>/test-data', methods=['POST'])
     @safe_operation()
