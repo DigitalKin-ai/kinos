@@ -7,7 +7,7 @@ le processus de développement.
 """
 import os
 from typing import Dict, Optional
-from .kinos_agent import KinOSAgent
+from agents.kinos_agent import KinOSAgent
 from aider_agent import AiderAgent
 
 __all__ = [
