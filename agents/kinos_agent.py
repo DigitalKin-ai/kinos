@@ -225,6 +225,42 @@ class KinOSAgent:
             
         return base_interval
 
+    def is_healthy(self) -> bool:
+        """
+        Vérifie l'état de santé de l'agent.
+        
+        Returns:
+            bool: True si l'agent est en bon état, False sinon
+            
+        Vérifie:
+        - Dernier run < 2x check_interval 
+        - Pas trop d'erreurs consécutives
+        - Fichiers accessibles
+        """
+        try:
+            # Vérifier le dernier run
+            if self.last_run:
+                time_since_last_run = (datetime.now() - self.last_run).total_seconds()
+                if time_since_last_run > (self.check_interval * 2):
+                    self.logger(f"[{self.__class__.__name__}] Inactif depuis {time_since_last_run}s", level='warning')
+                    return False
+                    
+            # Vérifier les fichiers
+            if not os.path.exists(self.file_path):
+                self.logger(f"[{self.__class__.__name__}] Fichier principal non trouvé: {self.file_path}", level='error')
+                return False
+                
+            # Vérifier le nombre d'erreurs consécutives
+            if hasattr(self, 'consecutive_no_changes') and self.consecutive_no_changes > 5:
+                self.logger(f"[{self.__class__.__name__}] Trop d'exécutions sans changement: {self.consecutive_no_changes}", level='warning')
+                return False
+                
+            return True
+            
+        except Exception as e:
+            self.logger(f"[{self.__class__.__name__}] Erreur vérification santé: {str(e)}", level='error')
+            return False
+
     def run(self) -> None:
         """
         Boucle principale de l'agent.
