@@ -13,6 +13,13 @@ class FileManager:
     """Manages file operations for the GUI"""
     
     def __init__(self, web_instance, on_content_changed=None):
+        """
+        Initialize FileManager with caching and locking support.
+        
+        Args:
+            web_instance: Web application instance
+            on_content_changed: Callback for content changes
+        """
         # Store web_instance first
         self.web_instance = web_instance
         
@@ -29,13 +36,37 @@ class FileManager:
         self.on_content_changed = on_content_changed
         self._current_mission = None
         self.logger = Logger()
+        
+        # Initialize cache
+        self.content_cache = {}  # Cache for file contents
+        self.cache_hits = 0      # Track cache performance
+        self.cache_misses = 0
+        
+        # Configure file locking
+        self.lock_timeout = 10   # Seconds
+        self.max_retries = 3     # Number of retry attempts
+        self.retry_delay = 1.0   # Seconds between retries
+        
         self._ensure_files_exist()
 
     def _normalize_mission_name(self, mission_name: str) -> str:
-        """Normalize mission name for filesystem use"""
-        normalized = mission_name.replace("'", "_")
-        normalized = normalized.replace('"', "_")
-        normalized = normalized.replace(" ", "_")
+        """
+        Normalize mission name for filesystem use.
+        Handles special characters and spaces to create valid paths.
+        """
+        # Replace invalid characters
+        invalid_chars = ["'", '"', ' ', '/', '\\', ':', '*', '?', '<', '>', '|']
+        normalized = mission_name
+        for char in invalid_chars:
+            normalized = normalized.replace(char, '_')
+            
+        # Remove multiple consecutive underscores
+        while '__' in normalized:
+            normalized = normalized.replace('__', '_')
+            
+        # Remove leading/trailing underscores
+        normalized = normalized.strip('_')
+        
         return normalized
 
     @property
@@ -82,20 +113,38 @@ class FileManager:
 
 
 
+    @safe_operation(max_retries=3, delay=1.0)
     def read_file(self, file_name: str) -> Optional[str]:
-        """Read content from a file"""
+        """
+        Read content from a file with caching and locking.
+        
+        Args:
+            file_name: Name of file to read
+            
+        Returns:
+            str: File contents or None if error
+        """
         try:
             # Normalize file name
             if not file_name.endswith('.md'):
                 file_name = f"{file_name}.md"
 
-            # Construct file path
+            # Construct absolute file path
             if self.current_mission:
-                file_path = os.path.join("missions", self.current_mission, file_name)
+                file_path = os.path.abspath(os.path.join("missions", self.current_mission, file_name))
             else:
-                file_path = file_name  # Default to current directory
+                file_path = os.path.abspath(file_name)
 
             self.logger.log(f"Reading file: {file_path}", level='debug')
+
+            # Check cache first
+            cache_key = f"file:{file_path}"
+            if cache_key in self.content_cache:
+                mtime = os.path.getmtime(file_path)
+                cached_time, cached_content = self.content_cache[cache_key]
+                if mtime == cached_time:
+                    self.logger.log(f"Cache hit for {file_path}", level='debug')
+                    return cached_content
 
             # Ensure directory exists
             os.makedirs(os.path.dirname(file_path) if os.path.dirname(file_path) else '.', exist_ok=True)
@@ -104,42 +153,56 @@ class FileManager:
             if not os.path.exists(file_path):
                 self.logger.log(f"Creating new file: {file_path}", level='info')
                 initial_content = self.web_instance.mission_service._get_initial_content(file_name.replace('.md', ''))
-                with open(file_path, 'w', encoding='utf-8') as f:
-                    f.write(initial_content)
+                with portalocker.Lock(file_path, 'w', timeout=10) as lock:
+                    lock.write(initial_content)
+                # Cache the new content
+                self.content_cache[cache_key] = (os.path.getmtime(file_path), initial_content)
                 return initial_content
 
             # Read existing file with locking
             with portalocker.Lock(file_path, 'r', timeout=10) as lock:
                 content = lock.read()
+                # Cache the content
+                self.content_cache[cache_key] = (os.path.getmtime(file_path), content)
                 return content
                 
         except Exception as e:
             self.logger.log(f"Erreur lecture {file_name}: {str(e)}", level='error')
             return None
             
+    @safe_operation(max_retries=3, delay=1.0)
     def write_file(self, file_name: str, content: str) -> bool:
-        """Write content to a file with locking"""
+        """
+        Write content to a file with locking and cache invalidation.
+        
+        Args:
+            file_name: Name of file to write
+            content: Content to write
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
         try:
-            # Log avant écriture
+            # Log before writing
             self.logger.log(f"Writing to {file_name}, content length: {len(content)}", level='info')
             
-            # Get full path based on current mission
+            # Get absolute path based on current mission
             if self.current_mission:
-                file_path = os.path.join("missions", self.current_mission, f"{file_name}.md")
+                file_path = os.path.abspath(os.path.join("missions", self.current_mission, f"{file_name}.md"))
             else:
-                file_path = self.file_paths.get(file_name)
+                base_path = self.file_paths.get(file_name)
+                if not base_path:
+                    self.logger.log(f"FileManager: Path not found for {file_name}", level='error')
+                    return False
+                file_path = os.path.abspath(base_path)
                 
-            # Log le chemin complet
+            # Log full path
             self.logger.log(f"Full path: {file_path}", level='debug')
             
-            if not file_path:
-                self.logger.log(f"FileManager: Chemin non trouvé pour {file_name}", level='error')
-                return False
-                
-            # Si le fichier existe, vérifier son contenu actuel
+            # Check if content is unchanged
+            cache_key = f"file:{file_path}"
             if os.path.exists(file_path):
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    current_content = f.read()
+                current_content = self.read_file(file_name)
                 if current_content == content:
                     self.logger.log(f"Content unchanged for {file_name}, skipping write", level='debug')
                     return True
@@ -148,9 +211,12 @@ class FileManager:
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
                 
             # Write with file locking
-            with portalocker.Lock(file_path, timeout=10) as lock:
-                with open(file_path, 'w', encoding='utf-8') as f:
-                    f.write(content)
+            with portalocker.Lock(file_path, 'w', timeout=10) as lock:
+                lock.write(content)
+                
+            # Invalidate cache
+            if cache_key in self.content_cache:
+                del self.content_cache[cache_key]
         
             # Trigger notification with content
             if self.on_content_changed:
