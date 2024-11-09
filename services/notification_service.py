@@ -22,10 +22,12 @@ class NotificationService(BaseService):
         """Check for content updates in all monitored files"""
         try:
             current_content = {}
+            # Ne vérifier que les fichiers qui existent physiquement
             for file_name, path in self.web_instance.file_paths.items():
-                content = self.web_instance.file_manager.read_file(file_name)
-                if content is not None:
-                    current_content[file_name] = content
+                if os.path.exists(path):
+                    content = self.web_instance.file_manager.read_file(file_name)
+                    if content is not None:
+                        current_content[file_name] = content
 
             for file_name, content in current_content.items():
                 if content is None:
@@ -49,6 +51,10 @@ class NotificationService(BaseService):
                             panel_name: str = None, flash: bool = False) -> bool:
         """Handle content change notifications with cache metrics"""
         try:
+            # Vérifier que le fichier existe avant de traiter le changement
+            if not os.path.exists(file_path):
+                return False
+                
             start_time = time.time()
             self._validate_input(file_path=file_path, content=content)
             self._log_operation('handle_content_change', 

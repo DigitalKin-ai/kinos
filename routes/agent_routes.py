@@ -131,6 +131,15 @@ def register_agent_routes(app, web_instance):
             try:
                 if action == 'start':
                     agent = web_instance.agent_service.agents[agent_name]
+                    if not os.path.exists(agent.file_path):
+                        web_instance.log_message(
+                            f"Agent {agent_name} main file does not exist yet", 
+                            level='warning'
+                        )
+                        return jsonify({
+                            'status': 'pending',
+                            'message': 'Agent file not created yet'
+                        }), 202
                     agent.start()
                     thread = threading.Thread(
                         target=agent.run,

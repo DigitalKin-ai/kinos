@@ -106,6 +106,12 @@ export default {
                 if (result.status === 'success') {
                     agent.running = !agent.running;
                     console.log(`Successfully ${action}ed agent: ${agent.id}`);
+                } else if (result.status === 'pending') {
+                    // Gérer le cas où le fichier n'existe pas encore
+                    this.showNotification({
+                        type: 'info',
+                        message: result.message || 'Agent waiting for file creation'
+                    });
                 } else {
                     throw new Error(result.error || `Failed to ${action} agent`);
                 }

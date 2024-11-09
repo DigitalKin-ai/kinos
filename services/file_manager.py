@@ -154,15 +154,9 @@ class FileManager:
             # Ensure directory exists
             os.makedirs(os.path.dirname(file_path) if os.path.dirname(file_path) else '.', exist_ok=True)
 
-            # Create if doesn't exist
+            # Ne pas créer le fichier s'il n'existe pas
             if not os.path.exists(file_path):
-                self.logger.log(f"Creating new file: {file_path}", level='info')
-                initial_content = self.web_instance.mission_service._get_initial_content(file_name.replace('.md', ''))
-                with portalocker.Lock(file_path, 'w', timeout=10) as lock:
-                    lock.write(initial_content)
-                # Cache the new content
-                self.content_cache[cache_key] = (os.path.getmtime(file_path), initial_content)
-                return initial_content
+                return None
 
             # Read existing file with locking
             with portalocker.Lock(file_path, 'r', timeout=10) as lock:
