@@ -55,8 +55,8 @@ class AgentService:
             
             self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
             
-            # Ensure all required files exist
-            required_files = [
+            # Define potential file paths without creating them
+            potential_files = [
                 "specifications.md",
                 "production.md",
                 "management.md", 
@@ -67,19 +67,11 @@ class AgentService:
                 "tests.md"
             ]
 
-            for filename in required_files:
+            # Just define paths for monitoring without creating files
+            for filename in potential_files:
                 file_path = os.path.normpath(os.path.join(mission_dir, filename))
-                if not os.path.exists(file_path):
-                    try:
-                        with open(file_path, 'w', encoding='utf-8') as f:
-                            f.write("")
-                        self.web_instance.logger.log(f"Created file: {filename}", level='debug')
-                    except Exception as e:
-                        raise ValueError(f"Failed to create {filename}: {str(e)}")
-                        
-                # Verify file permissions
-                if not os.access(file_path, os.R_OK | os.W_OK):
-                    raise ValueError(f"File not accessible: {file_path}")
+                # Only verify directory exists
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
             # Define agent file mappings
             self.agent_files = {

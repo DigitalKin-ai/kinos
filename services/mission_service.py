@@ -138,11 +138,9 @@ class MissionService:
                 self.logger.log(f"Mission {mission_id} not found", level='warning')
                 return None
                 
-            # Add file paths
+            # Only include demande.md initially
             mission['files'] = {
-                name: os.path.join(mission['path'], f"{name}.md")
-                for name in ['demande', 'specifications', 'management',
-                            'production', 'evaluation', 'suivi']
+                'demande': os.path.join(mission['path'], "demande.md")
             }
             
             # self.logger.log(f"Found mission: {mission['name']} (ID: {mission_id})", level='debug')
@@ -216,15 +214,16 @@ class MissionService:
     def ensure_mission_files(self, mission_name: str) -> bool:
         """Create only demande.md if it doesn't exist"""
         try:
-            # Utiliser un chemin absolu pour le dossier mission
+            # Use absolute path for mission directory
             mission_dir = os.path.abspath(os.path.join(self.missions_dir, mission_name))
+            os.makedirs(mission_dir, exist_ok=True)
             
-            # Create only demande.md if it doesn't exist
-            file_path = os.path.abspath(os.path.join(mission_dir, "demande.md"))
-            if not os.path.exists(file_path):
-                os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                with open(file_path, 'w', encoding='utf-8') as f:
+            # Only create demande.md
+            demande_path = os.path.abspath(os.path.join(mission_dir, "demande.md"))
+            if not os.path.exists(demande_path):
+                with open(demande_path, 'w', encoding='utf-8') as f:
                     f.write("# Demande\n\n[En attente de la demande...]")
+                self.logger.log(f"Created initial demande.md for mission {mission_name}", level='info')
             return True
         except Exception as e:
             self.logger.log(f"Error ensuring mission files: {e}", level='error')
