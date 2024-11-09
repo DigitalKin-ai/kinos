@@ -44,8 +44,17 @@ class KinOSWeb:
         
     def _initialize_components(self, config):
         """Initialize all required components"""
-        # Initialize existing components (missions, agents, etc.)
-        pass
+        try:
+            # Initialize agents
+            self.agent_service.init_agents(config)
+            
+            # Initialize only essential components
+            # No need to create all files upfront
+            self.logger.log("All components initialized successfully", level='success')
+            
+        except Exception as e:
+            self.logger.log(f"Error initializing components: {str(e)}", level='error')
+            raise ServiceError(f"Failed to initialize components: {str(e)}")
 
     def log_message(self, message: str, level: str = 'info') -> None:
         """Log a message with optional level"""
