@@ -266,24 +266,6 @@ class AgentService:
             os.makedirs(mission_dir, exist_ok=True)
             
             self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
-            
-            # Ensure all required files exist
-            required_files = [
-                "specifications.md",
-                "production.md",
-                "management.md", 
-                "evaluation.md",
-                "suivi.md",
-                "duplication.md",
-                "documentation.md"
-            ]
-
-            for filename in required_files:
-                file_path = os.path.join(mission_dir, filename)
-                if not os.path.exists(file_path):
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write("")
-                    self.web_instance.logger.log(f"Created file: {filename}", level='debug')
 
             # Define agent file mappings
             self.agent_files = {
