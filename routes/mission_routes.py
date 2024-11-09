@@ -63,7 +63,7 @@ def register_mission_routes(app, web_instance):
         """Get all files in mission directory"""
         try:
             # Log the request
-            web_instance.logger.log(f"Getting files for mission {mission_id}", level='debug')
+            # web_instance.logger.log(f"Getting files for mission {mission_id}", level='debug')
             
             # Get mission
             mission = web_instance.mission_service.get_mission(mission_id)
@@ -72,21 +72,11 @@ def register_mission_routes(app, web_instance):
                 return jsonify({'error': 'Mission not found'}), 404
 
             # Log mission info
-            web_instance.logger.log(f"Found mission: {mission['name']}", level='debug')
+            # web_instance.logger.log(f"Found mission: {mission['name']}", level='debug')
             
             # Get mission directory path
             mission_dir = os.path.join("missions", mission['name'])
-            web_instance.logger.log(f"Mission directory: {mission_dir}", level='debug')
-            
-            # Check if directory exists
-            if not os.path.exists(mission_dir):
-                web_instance.logger.log(f"Mission directory not found: {mission_dir}", level='error')
-                try:
-                    os.makedirs(mission_dir, exist_ok=True)
-                    web_instance.logger.log(f"Created mission directory: {mission_dir}", level='info')
-                except Exception as e:
-                    web_instance.logger.log(f"Failed to create mission directory: {str(e)}", level='error')
-                    return jsonify({'error': 'Failed to create mission directory'}), 500
+            # web_instance.logger.log(f"Mission directory: {mission_dir}", level='debug')
 
             # Get all files
             files = []
@@ -105,7 +95,7 @@ def register_mission_routes(app, web_instance):
                                 'modified': os.path.getmtime(full_path)
                             })
             
-                web_instance.logger.log(f"Found {len(files)} files", level='debug')
+                # web_instance.logger.log(f"Found {len(files)} files", level='debug')
                 return jsonify(files)
                 
             except Exception as e:
