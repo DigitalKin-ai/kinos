@@ -8,6 +8,7 @@ from pathlib import Path
 from datetime import datetime
 from utils.logger import Logger
 from utils.exceptions import FileOperationError
+from utils.decorators import safe_operation
 
 class FileManager:
     """Manages file operations for the GUI"""
