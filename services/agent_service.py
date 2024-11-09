@@ -396,24 +396,6 @@ class AgentService:
             # Construct mission directory path
             mission_dir = os.path.join("missions", mission_name)
             
-            # Ensure all required files exist
-            required_files = [
-                "specifications.md",
-                "production.md",
-                "management.md", 
-                "evaluation.md",
-                "suivi.md",
-                "duplication.md",
-                "documentation.md"
-            ]
-
-            for filename in required_files:
-                file_path = os.path.join(mission_dir, filename)
-                if not os.path.exists(file_path):
-                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write("")
-            
             # Load prompts from files
             def load_prompt(file_path):
                 try:
