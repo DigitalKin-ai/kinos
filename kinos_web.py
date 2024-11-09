@@ -253,8 +253,6 @@ class KinOSWeb:
                     "file_path": os.path.join(mission_dir, "redaction.md"),
                     "prompt": load_prompt("prompts/redacteur.md"),
                     "prompt_file": "prompts/redacteur.md"
-                    "prompt": load_prompt("prompts/redacteur.md"),
-                    "prompt_file": "prompts/redacteur.md"
                 })
             }
 
