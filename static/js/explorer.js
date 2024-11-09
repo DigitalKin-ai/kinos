@@ -15,11 +15,16 @@ export default {
     },
     computed: {
         filteredFiles() {
-            if (!this.searchQuery) return this.files;
+            if (!this.searchQuery) {
+                // Only return files that exist
+                return this.files.filter(file => this.fileExists(file));
+            }
             const query = this.searchQuery.toLowerCase();
             return this.files.filter(file => 
-                file.name.toLowerCase().includes(query) ||
-                file.relativePath.toLowerCase().includes(query)
+                this.fileExists(file) && (
+                    file.name.toLowerCase().includes(query) ||
+                    file.relativePath.toLowerCase().includes(query)
+                )
             );
         }
     },
@@ -191,7 +196,15 @@ export default {
                 if (!response.ok) throw new Error('Failed to fetch files');
                 
                 const currentFiles = await response.json();
-                this.files = currentFiles.map(file => ({
+                
+                // Filter to only show files that physically exist
+                this.files = currentFiles.filter(file => {
+                    try {
+                        return file.size > 0; // A file with size > 0 exists
+                    } catch {
+                        return false;
+                    }
+                }).map(file => ({
                     ...file,
                     displayPath: file.relativePath || file.path
                 }));
@@ -209,7 +222,8 @@ export default {
                 
                 const currentFiles = await response.json();
                 
-                currentFiles.forEach(file => {
+                // Only process files that exist
+                currentFiles.filter(file => file.size > 0).forEach(file => {
                     const previousModified = this.fileModifications.get(file.path);
                     if (previousModified && previousModified < file.modified) {
                         this.highlightFile(file.path);
@@ -219,6 +233,10 @@ export default {
             } catch (error) {
                 console.error('Error checking file modifications:', error);
             }
+        },
+
+        fileExists(file) {
+            return file && file.size > 0;
         },
 
         highlightFile(filePath) {
