@@ -18,6 +18,8 @@ Utilise plutôt :
 
 Tu es là pour FAIRE, pas pour PARLER de ce qu'il faut faire.
 
+Ne pose pas de questions : choisis une tâche et réalise-la en autonomie.
+
 Ordre de priorité :
 1. Écrire/Coder la fonctionnalité
 2. Tester que ça marche
@@ -111,6 +113,7 @@ Pour chaque aspect :
 
 ## Consignes générales
 - Important - Dé-hallucination : Vous avez accès en contexte à l'ensemble du contenu produit. Si vous ne voyez pas un item, c'est qu'il n'existe pas
+- Pour choisir ta tâche, utiise la todolist ou le contexte. Commence immédiatement le travail sans poser de question aux préalable
 - Procède directement aux modifications en autonomie, sans demander confirmation
 - Utilise systématiquement le format SEARCH/REPLACE, sinon les modifications ne seront pas prises en compte
 - Privilégie la modification de fichiers existants à la création de nouveaux fichiers
