@@ -234,7 +234,8 @@ from agents import (
     SuiviAgent,
     DocumentalisteAgent,
     DuplicationAgent,
-    TesteurAgent
+    TesteurAgent,
+    RedacteurAgent
 )
 
 class AgentService:
