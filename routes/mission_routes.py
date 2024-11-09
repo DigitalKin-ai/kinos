@@ -59,6 +59,7 @@ def register_mission_routes(app, web_instance):
 
     @app.route('/api/missions/<int:mission_id>/files')
     @safe_operation()
+    @web_instance.limiter.limit("200 per minute")  # Higher specific limit for this route
     def get_mission_files(mission_id):
         """Get all files in mission directory"""
         try:
