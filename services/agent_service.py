@@ -226,7 +226,7 @@ class AgentService:
 import threading
 from datetime import datetime
 from typing import Dict, Any
-from agents import (
+from agents.agent_types import (
     SpecificationsAgent,
     ProductionAgent,
     ManagementAgent,
