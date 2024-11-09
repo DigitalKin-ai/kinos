@@ -49,11 +49,6 @@ class AgentService:
                 mission_name
             ))
             
-            # Create and verify mission directory
-            if not os.path.exists(mission_dir):
-                os.makedirs(mission_dir, exist_ok=True)
-                self.web_instance.logger.log(f"Created mission directory: {mission_dir}", level='debug')
-            
             # Verify directory permissions
             if not os.access(mission_dir, os.R_OK | os.W_OK):
                 raise ValueError(f"Mission directory not accessible: {mission_dir}")
@@ -69,7 +64,7 @@ class AgentService:
                 "suivi.md",
                 "duplication.md",
                 "documentation.md",
-                "test.md"
+                "tests.md"
             ]
 
             for filename in required_files:
@@ -145,7 +140,7 @@ class AgentService:
                     ]
                 },
                 "Testeur": {
-                    "main": os.path.join(mission_dir, "test.md"),
+                    "main": os.path.join(mission_dir, "tests.md"),
                     "watch": [
                         os.path.join(mission_dir, "specifications.md"),
                         os.path.join(mission_dir, "production.md"),
@@ -488,7 +483,7 @@ class AgentService:
                 "Testeur": TesteurAgent({
                     **base_config,
                     "name": "Testeur",
-                    "file_path": os.path.join(mission_dir, "test.md"),
+                    "file_path": os.path.join(mission_dir, "tests.md"),
                     "prompt": load_prompt("prompts/testeur.md"),
                     "prompt_file": "prompts/testeur.md"
                 })

@@ -16,7 +16,7 @@ class MissionService:
         "suivi.md",
         "documentation.md",
         "duplication.md",
-        "test.md"
+        "tests.md"
     ]
 
     def __init__(self):
@@ -117,12 +117,12 @@ class MissionService:
         """Get a specific mission by ID with better error handling"""
         try:
             # Log le chemin du dossier missions
-            self.logger.log(f"Looking for mission {mission_id} in {self.missions_dir}", level='debug')
+            # self.logger.log(f"Looking for mission {mission_id} in {self.missions_dir}", level='debug')
             
             missions = self._scan_missions()
             
             # Log les missions trouvées
-            self.logger.log(f"Found missions: {[m['name'] for m in missions]}", level='debug')
+            # self.logger.log(f"Found missions: {[m['name'] for m in missions]}", level='debug')
             
             # Check if missions list is empty
             if not missions:
@@ -153,7 +153,7 @@ class MissionService:
                             'production', 'evaluation', 'suivi']
             }
             
-            self.logger.log(f"Found mission: {mission['name']} (ID: {mission_id})", level='debug')
+            # self.logger.log(f"Found mission: {mission['name']} (ID: {mission_id})", level='debug')
             return mission
             
         except Exception as e:
@@ -310,8 +310,8 @@ class MissionService:
                     self.ensure_mission_files(mission_name)
             
             # Log scanned missions
-            self.logger.log(f"Scanned missions: {[m['name'] for m in missions]}", level='debug')
-            self.logger.log(f"Mission IDs: {[m['id'] for m in missions]}", level='debug')
+            # self.logger.log(f"Scanned missions: {[m['name'] for m in missions]}", level='debug')
+            # self.logger.log(f"Mission IDs: {[m['id'] for m in missions]}", level='debug')
             
             return missions
             
