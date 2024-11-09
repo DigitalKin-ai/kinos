@@ -41,14 +41,14 @@ class KinOSAgent:
     
     # Default intervals for each agent type (in seconds)
     DEFAULT_INTERVALS = {
-        'SpecificationsAgent': 40,  # Specifications change less frequently
+        'SpecificationsAgent': 60,  # Specifications change less frequently
         'ProductionAgent': 10,      # Medium reactivity
         'ManagementAgent': 25,      # Coordination needs less frequency
         'EvaluationAgent': 36,      # Allow changes to accumulate
         'SuiviAgent': 30,          # More reactive monitoring
         'DocumentalisteAgent': 45,  # Documentation updates less frequent
         'DuplicationAgent': 50,     # Code analysis needs more time
-        'TesteurAgent': 25          # Regular test execution
+        'TesteurAgent': 30          # Regular test execution
     }
 
     def __init__(self, config: Dict[str, Any]):
