@@ -70,8 +70,6 @@ def register_mission_routes(app, web_instance):
             return jsonify({'error': 'Failed to load test data'}), 500
         return jsonify({'status': 'success'})
 
-        # Register all routes
-        register_routes()
 
 def should_ignore_file(file_path: str, ignore_patterns: list, web_instance) -> bool:
     """Check if file should be ignored based on gitignore/aiderignore patterns"""
