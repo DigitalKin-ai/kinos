@@ -40,22 +40,20 @@ class KinOSWeb:
     def _register_routes(self):
         """Register all route blueprints"""
         
-        # Only register routes once
         if hasattr(self, '_routes_registered'):
             return
             
-        # Register core routes
-        @self.app.route('/api/status', methods=['GET'], endpoint='api_core_status')  # Changed endpoint name
-        def get_status():
-            """Get server and agents status"""
-            try:
-                status = {
-                    'server': {
-                        'running': True,
-                        'timestamp': datetime.now().isoformat()
-                    },
-                    'agents': {}
-                }
+        register_agent_routes(self.app, self)
+        register_mission_routes(self.app, self)
+        register_notification_routes(self.app, self)
+        register_view_routes(self.app, self)
+        
+        self._routes_registered = True
+
+        # Log registered routes for debugging
+        self.log_message("Registered routes:", 'info')
+        for rule in self.app.url_map.iter_rules():
+            self.log_message(f"  {rule.endpoint}: {rule.methods} {rule}", 'info')
                 
                 # Add agent status if agent service is initialized
                 if hasattr(self, 'agent_service'):
@@ -238,16 +236,6 @@ class KinOSWeb:
         if not os.path.exists(static_dir):
             raise RuntimeError(f"Static directory not found: {static_dir}")
             
-        # Get project paths using PathManager
-        project_root = PathManager.get_project_root()
-        template_dir = PathManager.get_templates_path()
-        static_dir = PathManager.get_static_path()
-        
-        # Add debug logging for paths
-        self.logger.log(f"Project root: {project_root}", 'debug')
-        self.logger.log(f"Template directory: {template_dir}", 'debug')
-        self.logger.log(f"Static directory: {static_dir}", 'debug')
-        
         # Get project paths using PathManager
         project_root = PathManager.get_project_root()
         template_dir = PathManager.get_templates_path()
