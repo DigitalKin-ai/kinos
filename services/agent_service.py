@@ -4,6 +4,7 @@ import threading
 import traceback
 from typing import Dict, Any
 from utils.exceptions import AgentError
+from agents.kinos_agent import KinOSAgent
 
 class AgentService:
     def __init__(self, web_instance):
