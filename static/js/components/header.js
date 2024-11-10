@@ -11,7 +11,6 @@ export default {
             return this.currentMission?.name || 'No Mission Selected';
         }
     },
-    delimiters: ['${', '}'],
     template: `
         <div class="bg-black shadow h-16 flex items-center justify-center">
             <div class="max-w-full mx-auto px-6 w-full h-full flex items-center">
@@ -19,7 +18,7 @@ export default {
                     <div class="flex items-center">
                         <h1 class="text-2xl font-bold text-white flex items-center">
                             <span class="flex items-center">⚫ KinOS</span>
-                            <span class="text-sm text-gray-400 ml-4">${missionName}</span>
+                            <span class="text-sm text-gray-400 ml-4">{{ missionName }}</span>
                         </h1>
                     </div>
                     <div class="flex items-center space-x-4">
