@@ -283,6 +283,8 @@ class KinOSAgent:
     def run(self) -> None:
         """Main agent loop"""
         self.running = True
+        self.logger(f"[{self.__class__.__name__}] Starting run loop")
+        
         while self.running:
             try:
                 if not self.should_run():
@@ -311,6 +313,7 @@ class KinOSAgent:
 
                 # Execute Aider with agent's prompt
                 if hasattr(self, '_run_aider'):
+                    self.logger(f"[{self.__class__.__name__}] Calling _run_aider")
                     result = self._run_aider(self.prompt)
                     if result:
                         self.last_change = datetime.now()
@@ -335,3 +338,5 @@ class KinOSAgent:
                 time.sleep(5)  # Pause before retrying
                 if not self.running:
                     break
+
+        self.logger(f"[{self.__class__.__name__}] Run loop ended")

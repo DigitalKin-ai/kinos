@@ -238,13 +238,14 @@ class AgentService:
             # Update mission directory for all agents with absolute path
             for name, agent in self.agents.items():
                 agent.mission_dir = mission_dir
+                self.web_instance.log_message(f"Set mission dir for {name}: {mission_dir}", level='debug')
                 
             self.running = True
             
             # Start monitor thread
             self._start_monitor_thread()
             
-            # Start each agent in a new thread
+            # Start each agent in a new thread with detailed logging
             for name, agent in self.agents.items():
                 try:
                     self.web_instance.log_message(f"Starting agent {name}...", level='debug')
@@ -252,6 +253,7 @@ class AgentService:
                     
                     # Initialize agent
                     agent.start()
+                    self.web_instance.log_message(f"Agent {name} initialized", level='debug')
                     
                     # Create and start thread for agent
                     thread = threading.Thread(
@@ -260,12 +262,13 @@ class AgentService:
                         name=f"Agent-{name}"
                     )
                     thread.start()
+                    self.web_instance.log_message(f"Thread started for agent {name}", level='debug')
 
                     # Verify thread started
                     if not thread.is_alive():
                         raise AgentError(f"Failed to start thread for agent {name}")
                         
-                    self.web_instance.log_message(f"✓ Agent {name} started", level='success')
+                    self.web_instance.log_message(f"✓ Agent {name} started and running", level='success')
                     
                 except Exception as e:
                     self.web_instance.log_message(
