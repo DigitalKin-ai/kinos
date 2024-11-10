@@ -31,20 +31,20 @@ def register_agent_routes(app, web_instance):
             
             # Validate prompts directory exists and is accessible
             if not os.path.exists(prompts_dir):
-                web_instance.log_message(f"Prompts directory not found: {prompts_dir}", level='error')
+                web_instance.log_message(f"Prompts directory not found: {prompts_dir}", 'error')
                 return jsonify({'error': 'Prompts directory not found'}), 500
             if not os.access(prompts_dir, os.R_OK | os.W_OK):
-                web_instance.log_message(f"Insufficient permissions on prompts directory: {prompts_dir}", level='error')
+                web_instance.log_message(f"Insufficient permissions on prompts directory: {prompts_dir}", 'error')
                 return jsonify({'error': 'Insufficient permissions on prompts directory'}), 500
 
             # Verify directory permissions
             if not os.access(prompts_dir, os.R_OK | os.W_OK):
-                web_instance.log_message(f"Insufficient permissions on prompts directory: {prompts_dir}", level='error')
+                web_instance.log_message(f"Insufficient permissions on prompts directory: {prompts_dir}", 'error')
                 return jsonify({'error': 'Insufficient permissions on prompts directory'}), 500
 
             # Verify directory permissions
             if not os.access(prompts_dir, os.R_OK | os.W_OK):
-                web_instance.log_message(f"Insufficient permissions on prompts directory: {prompts_dir}", level='error')
+                web_instance.log_message(f"Insufficient permissions on prompts directory: {prompts_dir}", 'error')
                 return jsonify({'error': 'Insufficient permissions on prompts directory'}), 500
 
             agents = []
@@ -53,12 +53,12 @@ def register_agent_routes(app, web_instance):
             
             # Validate prompts directory exists
             if not os.path.exists(prompts_dir):
-                web_instance.log_message(f"Prompts directory not found: {prompts_dir}", level='error')
+                web_instance.log_message(f"Prompts directory not found: {prompts_dir}", 'error')
                 return jsonify({'error': 'Prompts directory not found'}), 500
 
             # Verify directory permissions
             if not os.access(prompts_dir, os.R_OK | os.W_OK):
-                web_instance.log_message(f"Insufficient permissions on prompts directory: {prompts_dir}", level='error')
+                web_instance.log_message(f"Insufficient permissions on prompts directory: {prompts_dir}", 'error')
                 return jsonify({'error': 'Insufficient permissions on prompts directory'}), 500
 
             # Get prompts directory using PathManager
@@ -66,7 +66,7 @@ def register_agent_routes(app, web_instance):
             
             # Validate prompts directory exists
             if not os.path.exists(prompts_dir):
-                web_instance.log_message(f"Prompts directory not found: {prompts_dir}", level='error')
+                web_instance.log_message(f"Prompts directory not found: {prompts_dir}", 'error')
                 return jsonify({'error': 'Prompts directory not found'}), 500
 
             # List all .md files in prompts directory
@@ -81,7 +81,7 @@ def register_agent_routes(app, web_instance):
                         
                         # Verify file permissions
                         if not os.access(prompt_path, os.R_OK):
-                            web_instance.log_message(f"Cannot read prompt file: {prompt_path}", level='error')
+                            web_instance.log_message(f"Cannot read prompt file: {prompt_path}", 'error')
                             continue
 
                         # Read file with explicit UTF-8 encoding and error handling
@@ -89,12 +89,12 @@ def register_agent_routes(app, web_instance):
                             with open(prompt_path, 'r', encoding='utf-8', errors='replace') as f:
                                 prompt_content = f.read()
                         except UnicodeError as ue:
-                            web_instance.log_message(f"Unicode error reading {file}: {str(ue)}", level='error')
+                            web_instance.log_message(f"Unicode error reading {file}: {str(ue)}", 'error')
                             continue
 
                         # Validate prompt content
                         if not prompt_content.strip():
-                            web_instance.log_message(f"Empty prompt file: {file}", level='warning')
+                            web_instance.log_message(f"Empty prompt file: {file}", 'warning')
                             continue
                         
                         # Get agent status if available
@@ -132,20 +132,20 @@ def register_agent_routes(app, web_instance):
                             'file_path': prompt_path
                         })
                         
-                        web_instance.log_message(f"Successfully loaded agent: {agent_name}", level='debug')
+                        web_instance.log_message(f"Successfully loaded agent: {agent_name}", 'debug')
                         
                     except Exception as e:
-                        web_instance.log_message(f"Error processing agent {agent_name}: {str(e)}", level='error')
+                        web_instance.log_message(f"Error processing agent {agent_name}: {str(e)}", 'error')
                         continue
             
             # Sort agents by name
             agents.sort(key=lambda x: x['name'])
             
-            web_instance.log_message(f"Successfully listed {len(agents)} agents", level='info')
+            web_instance.log_message(f"Successfully listed {len(agents)} agents", 'info')
             return jsonify(agents)
             
         except Exception as e:
-            web_instance.log_message(f"Error listing agents: {str(e)}", level='error')
+            web_instance.log_message(f"Error listing agents: {str(e)}", 'error')
             return jsonify({'error': str(e)}), 500
 
     @app.route('/api/agents/status', methods=['GET'])
@@ -182,7 +182,7 @@ def register_agent_routes(app, web_instance):
                             }
                         }
                     except Exception as agent_error:
-                        web_instance.log_message(f"Error getting status for agent {name}: {str(agent_error)}", level='error')
+                        web_instance.log_message(f"Error getting status for agent {name}: {str(agent_error)}", 'error')
                         status[name] = {
                             'running': False,
                             'status': 'error',
@@ -199,7 +199,7 @@ def register_agent_routes(app, web_instance):
                         'timestamp': datetime.now().isoformat()
                     }
                 }
-                web_instance.log_message(f"Error getting agent status: {str(e)}", level='error')
+                web_instance.log_message(f"Error getting agent status: {str(e)}", 'error')
                 return jsonify(error_details), 500
                 
         except Exception as e:
@@ -211,7 +211,7 @@ def register_agent_routes(app, web_instance):
                     'timestamp': datetime.now().isoformat()
                 }
             }
-            web_instance.log_message(f"Unhandled error in get_agents_status: {str(e)}", level='error')
+            web_instance.log_message(f"Unhandled error in get_agents_status: {str(e)}", 'error')
             return jsonify(error_details), 500
 
     @app.route('/api/agent/<agent_id>/prompt', methods=['GET'])
@@ -272,5 +272,5 @@ def register_agent_routes(app, web_instance):
             return jsonify({'status': 'success'})
             
         except Exception as e:
-            web_instance.log_message(f"Error controlling agent {agent_id}: {str(e)}", level='error')
+            web_instance.log_message(f"Error controlling agent {agent_id}: {str(e)}", 'error')
             return ErrorHandler.handle_error(e)
