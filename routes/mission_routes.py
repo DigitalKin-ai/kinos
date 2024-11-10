@@ -168,50 +168,87 @@ def register_mission_routes(app, web_instance):
     @safe_operation()
     def select_mission(mission_id):
         try:
-            # Get mission
+            # Log détaillé pour le débogage
+            web_instance.logger.log(f"Tentative de sélection de mission {mission_id}", 'debug')
+        
+            # Validation de la mission
             mission = web_instance.mission_service.get_mission(mission_id)
             if not mission:
-                web_instance.logger.log(f"Mission {mission_id} not found", 'error')
-                return jsonify({'error': 'Mission not found'}), 404
+                web_instance.logger.log(f"Mission {mission_id} non trouvée", 'error')
+                return jsonify({
+                    'error': 'Mission not found', 
+                    'status': 'error'
+                }), 404
 
-            # Verify mission directory exists and is accessible
+            # Journalisation détaillée
+            web_instance.logger.log(f"Mission trouvée : {mission}", 'debug')
+
+            # Vérifier l'existence et l'accessibilité du dossier de mission
             mission_dir = PathManager.get_mission_path(mission['name'])
             if not os.path.exists(mission_dir):
-                web_instance.logger.log(f"Mission directory not found: {mission_dir}", 'error')
-                return jsonify({'error': 'Mission directory not found'}), 404
-                
-            if not os.access(mission_dir, os.R_OK | os.W_OK):
-                web_instance.logger.log(f"Insufficient permissions on: {mission_dir}", 'error')
-                return jsonify({'error': 'Insufficient permissions on mission directory'}), 500
+                web_instance.logger.log(f"Dossier de mission non trouvé : {mission_dir}", 'error')
+                return jsonify({
+                    'error': 'Mission directory not found', 
+                    'status': 'error'
+                }), 404
 
-            # Stop all agents before changing mission
+            if not os.access(mission_dir, os.R_OK | os.W_OK):
+                web_instance.logger.log(f"Permissions insuffisantes sur : {mission_dir}", 'error')
+                return jsonify({
+                    'error': 'Insufficient permissions on mission directory', 
+                    'status': 'error'
+                }), 500
+
+            # Arrêter tous les agents
             try:
                 web_instance.agent_service.stop_all_agents()
-                web_instance.logger.log("All agents stopped successfully", 'success')
+                web_instance.logger.log("Tous les agents arrêtés avec succès", 'success')
             except Exception as stop_error:
-                web_instance.logger.log(f"Warning: Error stopping agents: {stop_error}", 'warning')
-                # Continue even if stop fails
-            
-            # Force socket cleanup
-            web_instance._cleanup_sockets()
-            
-            # Update current mission in FileManager
-            try:
-                web_instance.file_manager.current_mission = mission['name']
-            except Exception as e:
-                web_instance.logger.log(f"Failed to update FileManager mission: {str(e)}", 'error')
-                return jsonify({'error': 'Failed to update current mission'}), 500
+                web_instance.logger.log(f"Erreur lors de l'arrêt des agents : {stop_error}", 'warning')
 
-            web_instance.logger.log(f"Successfully selected mission: {mission['name']}", 'success')
-            
-            # Add delay before returning
-            time.sleep(1)
-            
-            return jsonify(mission)
-            
+            # Nettoyer les sockets
+            web_instance._cleanup_sockets()
+
+            # Mettre à jour la mission courante
+            web_instance.file_manager.current_mission = mission['name']
+
+            # Réinitialiser les agents pour la nouvelle mission
+            try:
+                web_instance.agent_service.init_agents({
+                    "anthropic_api_key": web_instance.config.get("anthropic_api_key"),
+                    "openai_api_key": web_instance.config.get("openai_api_key")
+                })
+                web_instance.logger.log("Agents réinitialisés avec succès", 'success')
+            except Exception as init_error:
+                web_instance.logger.log(f"Erreur lors de l'initialisation des agents : {init_error}", 'error')
+                return jsonify({
+                    'error': 'Failed to reinitialize agents', 
+                    'status': 'error',
+                    'details': str(init_error)
+                }), 500
+
+            # Journalisation
+            web_instance.logger.log(f"Mission sélectionnée : {mission['name']}", 'success')
+
+            return jsonify({
+                'id': mission_id,
+                'name': mission['name'],
+                'path': mission['path'],
+                'status': 'success',
+                'selected_at': datetime.now().isoformat()
+            }), 200
+
         except Exception as e:
-            web_instance.logger.log(f"Error selecting mission {mission_id}: {str(e)}", 'error')
-            return jsonify({'error': f"Failed to select mission: {str(e)}"}), 500
+            # Log détaillé de l'erreur
+            web_instance.logger.log(f"Erreur de sélection de mission : {str(e)}", 'error')
+            web_instance.logger.log(traceback.format_exc(), 'error')
+        
+            return jsonify({
+                'error': 'Échec de la sélection de mission',
+                'details': str(e),
+                'status': 'error',
+                'traceback': traceback.format_exc()
+            }), 500
 
     @app.route('/api/missions/<int:mission_id>/reset', methods=['POST'], endpoint='api_mission_reset')
     @safe_operation()
