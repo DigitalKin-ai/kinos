@@ -80,17 +80,21 @@ class AgentService:
 
     def _get_agent_class(self, agent_name: str):
         """Get the appropriate agent class based on name"""
-        from agents.agent_types import AiderAgent
+        # Map of agent names to their classes
+        agent_classes = {
+            'validation': ValidationAgent,
+            'specifications': SpecificationsAgent,
+            'production': ProductionAgent,
+            'management': ManagementAgent,
+            'evaluation': EvaluationAgent,
+            'suivi': SuiviAgent,
+            'documentaliste': DocumentalisteAgent,
+            'duplication': DuplicationAgent,
+            'testeur': TesteurAgent,
+            'redacteur': RedacteurAgent
+        }
         
-        # Create a dynamic agent class
-        return type(
-            f"{agent_name.capitalize()}Agent",
-            (AiderAgent,),
-            {
-                "__init__": lambda self, config: AiderAgent.__init__(self, config),
-                "role": agent_name
-            }
-        )
+        return agent_classes.get(agent_name.lower())
 
     def init_agents(self, config: Dict[str, Any]) -> None:
         """Initialize all agents with configuration"""
@@ -331,26 +335,21 @@ class AgentService:
                 time.sleep(30)  # Check every 30 seconds
 
     def get_agent_status(self) -> Dict[str, Dict[str, Any]]:
-        """Get status of all agents including pending state"""
+        """Get status of all agents including health metrics"""
         status = {}
         for name, agent in self.agents.items():
             name_lower = name.lower()
-            if name in getattr(self, 'pending_agents', []):
-                status[name_lower] = {
-                    'running': False,
-                    'pending': True,
-                    'status': 'waiting_for_file',
-                    'last_run': None,
-                    'last_change': None
+            status[name_lower] = {
+                'running': agent.running,
+                'status': 'active' if agent.running else 'inactive',
+                'last_run': agent.last_run.isoformat() if agent.last_run else None,
+                'last_change': agent.last_change.isoformat() if agent.last_change else None,
+                'health': {
+                    'is_healthy': agent.is_healthy(),
+                    'consecutive_no_changes': agent.consecutive_no_changes,
+                    'current_interval': agent.calculate_dynamic_interval()
                 }
-            else:
-                status[name_lower] = {
-                    'running': agent.running,
-                    'pending': False,
-                    'status': 'active',
-                    'last_run': agent.last_run.isoformat() if agent.last_run else None,
-                    'last_change': agent.last_change.isoformat() if agent.last_change else None
-                }
+            }
         return status
     def _run_agent_wrapper(self, name: str, agent: 'KinOSAgent') -> None:
         """Wrapper function to catch any exceptions from agent run method"""
