@@ -332,23 +332,18 @@ RULES:
             </div>
             <div class="sticky top-0 bg-white z-10 p-6 border-b">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-bold">Agents Manager</h2>
+                    <h2 class="text-2xl font-bold">Gestionnaire d'Agents</h2>
                     <div class="flex items-center space-x-4">
                         <button @click="openCreateModal"
                                 class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                            <i class="mdi mdi-plus"></i> New Agent
-                        </button>
-                        <button @click="areAnyAgentsRunning() ? stopAllAgents() : startAllAgents()"
-                                :class="areAnyAgentsRunning() ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'"
-                                class="px-4 py-2 rounded text-white font-medium">
-                            [[ areAnyAgentsRunning() ? 'Stop All' : 'Start All' ]]
+                            <i class="mdi mdi-plus"></i> Nouvel Agent
                         </button>
                     </div>
                 </div>
             </div>
             
             <div v-if="loading" class="p-6 text-gray-600">
-                Loading agents...
+                Chargement des agents...
             </div>
             
             <div v-else class="flex-1 overflow-y-auto p-6">
@@ -374,7 +369,7 @@ RULES:
                                     <i class="mdi mdi-loading mdi-spin"></i>
                                 </span>
                                 <span v-else>
-                                    <i class="mdi mdi-pencil"></i> Edit
+                                    <i class="mdi mdi-pencil"></i> Modifier
                                 </span>
                             </button>
                         </div>
@@ -398,7 +393,7 @@ RULES:
                  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg p-6 w-3/4 max-h-[90vh] flex flex-col">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold">Create New Agent</h3>
+                        <h3 class="text-lg font-semibold">Créer un Nouvel Agent</h3>
                         <button @click="closeCreateModal" 
                                 class="text-gray-500 hover:text-gray-700">
                             <i class="mdi mdi-close"></i>
@@ -407,12 +402,12 @@ RULES:
 
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Agent Name
+                            Nom de l'Agent
                         </label>
                         <input v-model="newAgent.name"
                                class="w-full p-2 border rounded-md"
                                :class="{'border-red-500': newAgent.name && !validateAgentName(newAgent.name)}"
-                               placeholder="Enter agent name (letters, numbers, underscore, hyphen)">
+                               placeholder="Entrez le nom de l'agent (lettres, chiffres, underscore, tiret)">
                         <p v-if="newAgent.name && !validateAgentName(newAgent.name)"
                            class="mt-1 text-sm text-red-500">
                             Agent name can only contain letters, numbers, underscore, and hyphen
@@ -421,7 +416,7 @@ RULES:
 
                     <div class="flex-1 mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Agent Prompt
+                            Prompt de l'Agent
                         </label>
                         <textarea v-model="newAgent.prompt"
                                   class="w-full h-[400px] p-4 border rounded-md font-mono text-sm"
@@ -433,7 +428,7 @@ RULES:
                         <button @click="closeCreateModal"
                                 :disabled="creatingAgent"
                                 class="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50">
-                            Cancel
+                            Annuler
                         </button>
                         <button @click="createAgent"
                                 :disabled="creatingAgent || !newAgent.name || !newAgent.prompt || !validateAgentName(newAgent.name)"
@@ -442,7 +437,7 @@ RULES:
                                 <i class="mdi mdi-loading mdi-spin mr-1"></i>
                                 Creating...
                             </span>
-                            <span v-else>Create Agent</span>
+                            <span v-else>Créer l'Agent</span>
                         </button>
                     </div>
                 </div>

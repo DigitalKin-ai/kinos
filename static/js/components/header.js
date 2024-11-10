@@ -8,28 +8,26 @@ export default {
     },
     delimiters: ['${', '}'],
     template: `
-        <div class="bg-black shadow">
-            <div class="max-w-full mx-auto px-6 py-4">
-                <div class="flex justify-between items-center">
+        <div class="bg-black shadow h-16 flex items-center justify-center">
+            <div class="max-w-full mx-auto px-6 w-full h-full flex items-center">
+                <div class="flex justify-between items-center w-full">
                     <div class="flex items-center">
-                        <h1 class="text-2xl font-bold text-white">⚫ KinOS</h1>
-                        <div v-if="currentMission" class="ml-6 flex items-center">
-                            <span class="text-sm text-gray-400">Mission:</span>
-                            <span class="ml-2 text-sm font-medium text-white">\${currentMission.name}</span>
-                        </div>
+                        <h1 class="text-2xl font-bold text-white flex items-center">
+                            <span class="flex items-center">⚫ KinOS</span>
+                        </h1>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <a href="/agents" class="text-gray-400 hover:text-white">
+                        <a href="/agents" class="text-gray-400 hover:text-white flex items-center gap-2">
                             <i class="mdi mdi-robot"></i>
                             Agents
                         </a>
-                        <a href="/teams" class="text-gray-400 hover:text-white">
+                        <a href="/teams" class="text-gray-400 hover:text-white flex items-center gap-2">
                             <i class="mdi mdi-account-group"></i>
-                            Teams
+                            Équipes
                         </a>
-                        <a href="/files" class="text-gray-400 hover:text-white">
+                        <a href="/files" class="text-gray-400 hover:text-white flex items-center gap-2">
                             <i class="mdi mdi-folder"></i>
-                            Files
+                            Fichiers
                         </a>
                     </div>
                 </div>

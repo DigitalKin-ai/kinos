@@ -3,6 +3,20 @@ from utils.decorators import safe_operation
 
 def register_team_routes(app, web_instance):
     """Register all team-related routes"""
+    
+    @app.errorhandler(404)
+    def team_not_found(error):
+        return jsonify({
+            'error': 'Team not found',
+            'details': str(error)
+        }), 404
+
+    @app.errorhandler(400) 
+    def bad_request(error):
+        return jsonify({
+            'error': 'Bad request',
+            'details': str(error)
+        }), 400
 
     @app.route('/api/teams', methods=['GET'], endpoint='api_teams_list')
     @safe_operation()
@@ -136,6 +150,46 @@ def register_team_routes(app, web_instance):
 
         except Exception as e:
             web_instance.log_message(f"Error stopping team {team_id}: {str(e)}", 'error')
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/teams/<team_id>/agents/<agent_name>/<action>', methods=['POST'], endpoint='api_team_agent_control')
+    @safe_operation()
+    def control_team_agent(team_id, agent_name, action):
+        """Control individual agent within a team"""
+        try:
+            # Validate team exists
+            teams = {
+                "book_writing": ["specifications", "management", "evaluation", "suivi", 
+                               "documentaliste", "duplication", "redacteur", "validation"],
+                "literature_review": ["specifications", "management", "evaluation", "suivi",
+                                    "documentaliste", "duplication", "redacteur", "validation"],
+                "coding": ["specifications", "management", "evaluation", "suivi",
+                          "documentaliste", "duplication", "production", "testeur", "validation"]
+            }
+            
+            if team_id not in teams:
+                return jsonify({'error': 'Team not found'}), 404
+                
+            # Validate agent exists in team
+            if agent_name.lower() not in [a.lower() for a in teams[team_id]]:
+                return jsonify({'error': 'Agent not found in team'}), 404
+                
+            # Validate action
+            if action not in ['start', 'stop']:
+                return jsonify({'error': 'Invalid action'}), 400
+
+            # Control agent
+            success = web_instance.agent_service.toggle_agent(agent_name, action)
+            
+            return jsonify({
+                'status': 'success' if success else 'error',
+                'agent': agent_name,
+                'action': action,
+                'team': team_id
+            })
+
+        except Exception as e:
+            web_instance.log_message(f"Error controlling team agent: {str(e)}", 'error')
             return jsonify({'error': str(e)}), 500
 
     @app.route('/api/teams/<team_id>/status', methods=['GET'], endpoint='api_team_status')

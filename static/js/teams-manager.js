@@ -8,6 +8,8 @@ export default {
     },
     data() {
         return {
+            statusCache: new Map(),
+            statusCacheTTL: 5000, // 5 seconds
             showAddAgentModal: false,
             availableAgents: [
                 "SpecificationsAgent",
@@ -96,8 +98,53 @@ export default {
     },
     beforeUnmount() {
         this.stopTeamMonitoring();
+        this.statusCache.clear();
+        this.teamStats.clear();
+        this.teamHistory.clear();
     },
     methods: {
+        async getTeamStatus(team) {
+            const now = Date.now();
+            const cached = this.statusCache.get(team.id);
+            
+            if (cached && (now - cached.timestamp) < this.statusCacheTTL) {
+                return cached.status;
+            }
+
+            try {
+                const response = await fetch(`/api/teams/${encodeURIComponent(team.id)}/status`);
+                if (!response.ok) throw new Error('Failed to fetch team status');
+                
+                const status = await response.json();
+                this.statusCache.set(team.id, {
+                    status,
+                    timestamp: now
+                });
+                
+                return status;
+            } catch (error) {
+                console.error('Error fetching team status:', error);
+                throw error;
+            }
+        },
+
+        async retryOperation(operation, maxRetries = 3) {
+            let attempts = 0;
+            while (attempts < maxRetries) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    attempts++;
+                    if (attempts === maxRetries) throw error;
+                    
+                    // Exponential backoff
+                    await new Promise(resolve => 
+                        setTimeout(resolve, Math.pow(2, attempts) * 1000)
+                    );
+                }
+            }
+        },
+
         async toggleTeam(team) {
             if (this.loadingTeams.has(team.name)) return;
             
@@ -106,24 +153,29 @@ export default {
                 const allRunning = this.isTeamRunning(team);
                 const action = allRunning ? 'stop' : 'start';
 
-                const response = await fetch(
-                    `/api/missions/${this.currentMission.id}/teams/${encodeURIComponent(team.name)}/${action}`, 
-                    { method: 'POST' }
-                );
+                const response = await fetch(`/api/teams/${encodeURIComponent(team.id)}/${action}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
 
                 if (!response.ok) {
                     throw new Error(`Failed to ${action} team`);
                 }
 
-                // Update all agent statuses
+                const result = await response.json();
+                
+                // Update team status based on response
                 const stats = this.teamStats.get(team.name) || {};
                 if (!stats.agentStatus) stats.agentStatus = {};
-            
-                // Set all agents to the new status
-                const newStatus = !allRunning; // true if starting, false if stopping
-                team.agents.forEach(agent => {
-                    stats.agentStatus[agent] = newStatus;
-                });
+                
+                // Update agent statuses from response
+                if (result.agents) {
+                    Object.entries(result.agents).forEach(([agent, status]) => {
+                        stats.agentStatus[agent] = status.running;
+                    });
+                }
             
                 this.teamStats.set(team.name, stats);
                 this.updateTeamHistory(team, `Team ${action}ed`);
@@ -163,12 +215,16 @@ export default {
                 this.loading = true;
                 this.error = null;
                 
-                const response = await fetch(`/api/missions/${this.currentMission.id}/teams`);
+                const response = await fetch('/api/teams');
                 if (!response.ok) {
                     throw new Error('Failed to load teams');
                 }
                 
-                this.teams = await response.json();
+                const teams = await response.json();
+                this.teams = teams.map(team => ({
+                    ...team,
+                    agents: team.agents || []
+                }));
             } catch (error) {
                 console.error('Error loading teams:', error);
                 this.error = error.message;
@@ -258,21 +314,28 @@ export default {
                 const isRunning = this.getAgentStatus(teamName, agentName);
                 const action = isRunning ? 'stop' : 'start';
 
-                const response = await fetch(`/api/missions/${this.currentMission.id}/teams/${encodeURIComponent(teamName)}/agents/${encodeURIComponent(agentName)}/${action}`, {
-                    method: 'POST'
-                });
+                const response = await fetch(
+                    `/api/teams/${encodeURIComponent(team.id)}/agents/${encodeURIComponent(agentName)}/${action}`, 
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
 
                 if (!response.ok) {
                     throw new Error(`Failed to ${action} agent`);
                 }
 
-                // Update agent status in team stats
+                const result = await response.json();
+
+                // Update agent status based on response
                 const stats = this.teamStats.get(teamName) || {};
                 if (!stats.agentStatus) stats.agentStatus = {};
                 stats.agentStatus[agentName] = !isRunning;
                 this.teamStats.set(teamName, stats);
 
-                // Record in history
                 this.updateTeamHistory(team, `Agent ${agentName} ${action}ed`);
 
             } catch (error) {
@@ -307,17 +370,15 @@ export default {
 
         async pollTeamStats(team) {
             try {
-                const response = await fetch(
-                    `/api/missions/${this.currentMission.id}/teams/${encodeURIComponent(team.name)}/stats`
-                );
-                
-                if (response.ok) {
-                    const stats = await response.json();
-                    this.teamStats.set(team.name, {
-                        ...stats,
-                        lastUpdate: new Date()
-                    });
-                }
+                const stats = await this.getTeamStatus(team);
+            
+                this.teamStats.set(team.name, {
+                    successRate: stats.metrics?.success_rate || 0,
+                    completedTasks: stats.metrics?.completed_tasks || 0,
+                    averageResponseTime: stats.metrics?.average_response_time || 0,
+                    agentStatus: stats.agents || {},
+                    lastUpdate: new Date()
+                });
             } catch (error) {
                 console.error('Error fetching team stats:', error);
             }
@@ -440,25 +501,32 @@ export default {
         }
     },
     template: /* html */`
-        <div class="p-6">
+        <div class="p-6 relative h-full flex flex-col">
+            <div v-if="loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
+                <div class="text-center">
+                    <i class="mdi mdi-loading mdi-spin text-4xl text-blue-500"></i>
+                    <p class="mt-2 text-gray-600">Loading teams...</p>
+                </div>
+            </div>
             <div class="mb-6">
                 <h2 class="text-2xl font-bold">Teams</h2>
             </div>
             
-            <div v-if="loading" class="text-gray-600">
-                Loading teams...
-            </div>
-            
-            <div v-else-if="error" class="text-red-500">
-                {{ error }}
-            </div>
-            
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="overflow-auto flex-1 pr-2">
+                <div v-if="loading" class="text-gray-600">
+                    Loading teams...
+                </div>
+                
+                <div v-else-if="error" class="text-red-500">
+                    {{ error }}
+                </div>
+                
+                <div v-else class="grid grid-cols-1 gap-6">
                 <div v-for="team in teams" 
                      :key="team.name"
                      class="bg-white rounded-lg shadow-md p-6 team-card">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold">{{ team.name }}</h3>
+                        <h3 class="text-xl font-semibold">${team.name}</h3>
                         <div class="flex items-center space-x-2">
                             <button @click="openAddAgentModal(team)"
                                     class="p-2 rounded-full hover:bg-gray-100"
@@ -470,20 +538,18 @@ export default {
                                         getTeamStatusClass(team),
                                         {'opacity-75 cursor-wait': loadingTeams.has(team.name)}
                                     ]"
-                                    :disabled="loadingTeams.has(team.name)"
-                                    :title="getTeamStatusText(team)"
-                                    class="mr-2">
+                                    :disabled="loadingTeams.has(team.name)">
                                 <span class="flex items-center">
                                     <i v-if="loadingTeams.has(team.name)" 
                                        class="mdi mdi-loading mdi-spin mr-1"></i>
-                                    {{ getTeamStatusText(team) }}
+                                    ${loadingTeams.has(team.name) ? 'Processing...' : (isTeamRunning(team) ? 'Stop Team' : 'Start Team')}
                                 </span>
                             </button>
                             <button @click="activateTeam(team)"
                                     :class="{'bg-green-500': activeTeam?.name === team.name}"
                                     class="px-3 py-1 rounded text-white"
                                     :disabled="activeTeam?.name === team.name">
-                                {{ activeTeam?.name === team.name ? 'Active' : 'Activate' }}
+                            ${activeTeam?.name === team.name ? 'Active' : 'Activate'}
                             </button>
                         </div>
                     </div>
@@ -493,13 +559,13 @@ export default {
                             <div class="bg-gray-50 rounded p-3">
                                 <div class="text-sm text-gray-500">Success Rate</div>
                                 <div class="text-lg font-semibold">
-                                    {{ formatMetric(teamStats.get(team.name).successRate, 'percentage') }}
+                                    ${formatMetric(teamStats.get(team.name).successRate, 'percentage')}
                                 </div>
                             </div>
                             <div class="bg-gray-50 rounded p-3">
                                 <div class="text-sm text-gray-500">Response Time</div>
                                 <div class="text-lg font-semibold">
-                                    {{ formatMetric(teamStats.get(team.name).averageResponseTime, 'time') }}
+                                    ${formatMetric(teamStats.get(team.name).averageResponseTime, 'time')}
                                 </div>
                             </div>
                         </div>
@@ -514,23 +580,23 @@ export default {
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4">
+                    <!-- Agents Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         <div v-for="agent in team.agents"
                              :key="agent"
-                             class="agent-box flex justify-between items-center">
-                            <span class="text-sm">{{ agent }}</span>
+                             class="bg-gray-50 rounded p-3 flex flex-col justify-between">
+                            <span class="text-sm font-medium mb-2">${agent}</span>
                             <button @click="toggleAgent(team.name, agent)"
                                     :class="[
                                         getAgentStatusClass(team.name, agent),
                                         {'opacity-75 cursor-wait': loadingAgents.has(team.name + '-' + agent)}
                                     ]"
                                     :disabled="loadingAgents.has(team.name + '-' + agent)"
-                                    :title="getAgentStatus(team.name, agent) ? 'Click to stop agent' : 'Click to start agent'"
-                                    class="px-2 py-1 rounded text-white text-xs transition-colors duration-200">
-                                <span class="flex items-center">
+                                    class="w-full">
+                                <span class="flex items-center justify-center">
                                     <i v-if="loadingAgents.has(team.name + '-' + agent)" 
                                        class="mdi mdi-loading mdi-spin mr-1"></i>
-                                    {{ getAgentStatusText(team.name, agent) }}
+                                    ${getAgentStatusText(team.name, agent)}
                                 </span>
                             </button>
                         </div>

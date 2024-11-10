@@ -16,7 +16,7 @@
     flex: 0 0 270px;
     min-width: 48px;
     max-width: 270px;
-    transition: width 0.3s ease;
+    transition: all 0.3s ease;
     background-color: #1a202c;
     color: #a0aec0;
     border-right: 1px solid #2d3748;
@@ -25,28 +25,37 @@
 
 .mission-sidebar.collapsed {
     flex: 0 0 48px;
+    min-width: 48px;
+    max-width: 48px;
 }
 
 .mission-sidebar-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     padding: 0 1rem;
     margin-bottom: 1rem;
 }
 
 .mission-sidebar-header h2 {
+    margin-right: auto;
     color: white;
     font-size: 1.25rem;
-    margin: 0;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 .mission-collapse-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: none;
     border: none;
     color: #a0aec0;
     cursor: pointer;
-    padding: 0.25rem;
+    padding: 0;
 }
 
 .mission-collapse-btn:hover {
@@ -101,10 +110,36 @@
 .mission-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
     padding: 0.75rem 1rem;
     cursor: pointer;
     transition: all 0.2s;
+}
+
+.mission-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.mission-letter {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #2d3748;
+    color: white;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.mission-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .mission-item:hover {
@@ -116,15 +151,12 @@
     color: white;
 }
 
-.mission-item i {
-    font-size: 1.25rem;
+.mission-item.active .mission-letter {
+    background-color: #4a5568;
 }
 
-.mission-name {
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.mission-item:hover .mission-letter {
+    background-color: #4a5568;
 }
 
 .mission-loading {

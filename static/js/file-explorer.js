@@ -561,6 +561,49 @@ export default {
              class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             {{ errorMessage }}
         </div>
+
+        <!-- Edit Agent Modal -->
+        <div v-if="showEditModal && currentEditAgent" 
+             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-3/4 max-h-[90vh] flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">
+                        Editing Agent: [[ currentEditAgent.name ]]
+                    </h3>
+                    <button @click="closeEditModal" 
+                            class="text-gray-500 hover:text-gray-700">
+                        <i class="mdi mdi-close"></i>
+                    </button>
+                </div>
+
+                <div class="flex-1 mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Agent Prompt
+                    </label>
+                    <textarea v-model="currentEditAgent.prompt"
+                              class="w-full h-[400px] p-4 border rounded-md font-mono text-sm"
+                              :disabled="editLoading">
+                    </textarea>
+                </div>
+
+                <div class="flex justify-end space-x-2">
+                    <button @click="closeEditModal"
+                            :disabled="editLoading"
+                            class="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button @click="saveEditedPrompt"
+                            :disabled="editLoading || !currentEditAgent.prompt"
+                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50">
+                        <span v-if="editLoading">
+                            <i class="mdi mdi-loading mdi-spin mr-1"></i>
+                            Saving...
+                        </span>
+                        <span v-else>Save Changes</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
     `
 };

@@ -1,72 +1,93 @@
-/* Buttons */
+/* Base button styles */
+.btn-primary {
+    @apply bg-indigo-600 hover:bg-indigo-700 text-white;
+    @apply px-4 py-2 rounded-md;
+    @apply transition-colors duration-200;
+}
+
+.btn-secondary {
+    @apply bg-white border border-gray-300 text-gray-700;
+    @apply hover:bg-gray-50;
+    @apply px-4 py-2 rounded-md;
+    @apply transition-colors duration-200;
+}
+
+.btn-danger {
+    @apply bg-rose-600 hover:bg-rose-700 text-white;
+    @apply px-4 py-2 rounded-md;
+    @apply transition-colors duration-200;
+}
+
+.btn-success {
+    @apply bg-emerald-600 hover:bg-emerald-700 text-white;
+    @apply px-4 py-2 rounded-md;
+    @apply transition-colors duration-200;
+}
+
+/* Control button states */
 .control-button {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
+    @apply inline-flex items-center justify-center;
+    @apply px-3 py-1.5 rounded-md;
+    @apply text-sm font-medium;
+    @apply transition-all duration-200;
 }
 
-/* Style pour l'état Start */
 .control-button.start {
-    background-color: #40c057;
-    color: white;
+    @apply bg-slate-600 hover:bg-slate-700 text-white;
 }
 
-.control-button.start:hover:not(:disabled) {
-    background-color: #37b24d;
-}
-
-/* Style pour l'état Stop */
 .control-button.stop {
-    background-color: #fa5252;
-    color: white;
+    @apply bg-rose-600 hover:bg-rose-700 text-white;
 }
 
-.control-button.stop:hover:not(:disabled) {
-    background-color: #f03e3e;
+/* Disabled state */
+.control-button:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+    @apply hover:bg-current;
 }
 
-/* État désactivé */
-.control-button:disabled {
-    opacity: 0.65;
-    cursor: not-allowed;
+/* Loading state */
+.btn-loading {
+    @apply relative text-transparent;
 }
 
+.btn-loading::after {
+    @apply absolute inset-0;
+    @apply flex items-center justify-center;
+    @apply text-white;
+    content: "...";
+}
+
+/* Elevated buttons */
+.btn-elevated {
+    @apply shadow-sm;
+    @apply hover:shadow;
+    @apply active:shadow-inner;
+    @apply transition-all duration-200;
+}
+
+/* Hover effects */
+.btn-hover-effect:hover {
+    transform: translateY(-1px);
+}
+
+.btn-hover-effect:active {
+    transform: translateY(0);
+}
+
+/* Export/Clear buttons */
 .btn-export {
-    background-color: #805ad5;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    transition: all 0.2s;
-}
-
-.btn-export:hover {
-    background-color: #6b46c1;
+    @apply bg-indigo-600 hover:bg-indigo-700 text-white;
+    @apply px-4 py-2 rounded-md;
+    @apply inline-flex items-center;
+    @apply transition-colors duration-200;
 }
 
 .btn-clear {
-    background-color: #718096;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    margin-left: 0.5rem;
-    transition: all 0.2s;
-}
-
-.btn-clear:hover {
-    background-color: #4a5568;
+    @apply bg-slate-600 hover:bg-slate-700 text-white;
+    @apply px-4 py-2 rounded-md ml-2;
+    @apply inline-flex items-center;
+    @apply transition-colors duration-200;
 }
