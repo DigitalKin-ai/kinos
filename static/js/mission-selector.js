@@ -265,13 +265,13 @@ export default {
             setTimeout(() => this.checkConnection(), delay);
         },
 
-        validateMissionState(mission) {
-            if (!mission) return false;
-            if (!mission.id) return false;
-            if (!mission.name) return false;
+        validateMissionState(missionData) {
+            if (!missionData) return false;
+            if (!missionData.id) return false;
+            if (!missionData.name) return false;
         
             const requiredProps = ['id', 'name', 'path', 'status'];
-            return requiredProps.every(prop => mission.hasOwnProperty(prop));
+            return requiredProps.every(prop => missionData.hasOwnProperty(prop));
         },
 
         async cleanupMissionState() {
