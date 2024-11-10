@@ -38,6 +38,8 @@ class ApiClient {
     }
 
     async selectMission(missionId) {
+        console.log(`Attempting to select mission ${missionId}`);
+        
         // Vérification de la connexion avant la requête
         if (!this.connectionState.isOnline) {
             throw new Error('No internet connection');
@@ -50,7 +52,8 @@ class ApiClient {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Client-Timestamp': Date.now(),
-                    'X-Client-Version': '1.0.0'
+                    'X-Client-Version': '1.0.0',
+                    'X-Debug-Request': 'true'  // Add a debug header
                 },
                 timeout: 10000  // 10 secondes
             };
@@ -69,6 +72,8 @@ class ApiClient {
                     UNEXPECTED_ERROR: this.handleUnexpectedError
                 }
             });
+
+            console.log('Mission selection response:', response);
 
             // Événement de succès
             const successEvent = new CustomEvent('mission-selected', {
