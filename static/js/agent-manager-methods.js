@@ -5,7 +5,6 @@ export default {
         async loadTeams() {
             try {
                 if (!this.currentMission) {
-                    console.warn('No mission selected');
                     this.teams = [];
                     return [];
                 }
@@ -13,11 +12,12 @@ export default {
                 const apiClient = new ApiClient();
                 const response = await apiClient.getMissionTeams(this.currentMission.id);
                 
-                this.teams = Array.isArray(response) ? response.map(team => ({
+                this.teams = (response || []).map(team => ({
                     ...team,
                     agents: team.agents || [],
-                    status: team.status || 'available'
-                })) : [];
+                    status: team.status || 'available',
+                    metrics: this.calculateTeamMetrics(team)
+                }));
 
                 if (this.teams.length > 0 && !this.activeTeam) {
                     this.activeTeam = this.teams[0];
@@ -27,28 +27,27 @@ export default {
             } catch (error) {
                 console.error('Error loading teams:', error);
                 this.teams = [];
-                this.error = error.message;
+                this.error = error.message || 'Failed to load teams';
                 return [];
             }
         },
 
-        getTeamMetrics(teamId) {
-            if (!teamId) return null;
-            
-            const team = this.teams.find(t => t.id === teamId);
-            if (!team) return null;
-            
-            return {
-                totalAgents: team.agents?.length || 0,
-                activeAgents: team.agents?.filter(a => a.status === 'active').length || 0,
-                health: this.calculateTeamHealth(team)
+        calculateTeamMetrics(team) {
+            if (!team || !team.agents) return {
+                totalAgents: 0,
+                activeAgents: 0,
+                healthPercentage: 0
             };
-        },
-        
-        calculateTeamHealth(team) {
-            if (!team || !team.agents || team.agents.length === 0) return 0;
+
+            const totalAgents = team.agents.length;
+            const activeAgents = team.agents.filter(a => a.status === 'active').length;
             const healthyAgents = team.agents.filter(a => a.health?.is_healthy).length;
-            return healthyAgents / team.agents.length;
+
+            return {
+                totalAgents,
+                activeAgents,
+                healthPercentage: (healthyAgents / totalAgents) * 100
+            };
         },
 
         async loadAgents() {
@@ -56,15 +55,24 @@ export default {
                 this.loading = true;
                 const apiClient = new ApiClient();
                 
-                const agents = await apiClient.get('/agents/list');
-                const status = await apiClient.get('/agents/status');
+                const [agents, status] = await Promise.all([
+                    apiClient.get('/agents/list'),
+                    apiClient.get('/agents/status')
+                ]);
                 
                 this.agents = agents.map(agent => ({
                     ...agent,
                     running: status[agent.id]?.running || false,
                     lastRun: status[agent.id]?.last_run || null,
-                    status: status[agent.id]?.status || 'inactive'
+                    status: status[agent.id]?.status || 'inactive',
+                    health: status[agent.id]?.health || { is_healthy: false }
                 }));
+                
+                this.metrics = {
+                    totalAgents: this.agents.length,
+                    activeAgents: this.agents.filter(a => a.running).length,
+                    healthyAgents: this.agents.filter(a => a.health.is_healthy).length
+                };
                 
                 this.prompts = agents.reduce((acc, agent) => {
                     acc[agent.id] = agent.prompt;
@@ -73,7 +81,8 @@ export default {
                 
             } catch (error) {
                 console.error('Failed to load agents:', error);
-                this.error = error.message;
+                this.error = error.message || 'Failed to load agents';
+                this.agents = [];
             } finally {
                 this.loading = false;
             }
@@ -88,14 +97,36 @@ export default {
                 const action = agent.running ? 'stop' : 'start';
                 
                 await apiClient.controlAgent(agent.id, action);
+                
                 agent.running = !agent.running;
+                agent.status = agent.running ? 'active' : 'inactive';
+                
+                this.updateAgentMetrics();
+                
+                this.$emit('agent-status-changed', {
+                    id: agent.id,
+                    running: agent.running
+                });
                 
             } catch (error) {
                 console.error('Failed to toggle agent:', error);
-                this.error = error.message;
+                this.error = `Could not ${action} agent: ${error.message}`;
+                
+                this.$emit('notification', {
+                    type: 'error',
+                    message: this.error
+                });
             } finally {
                 agent.loading = false;
             }
+        },
+
+        updateAgentMetrics() {
+            this.metrics = {
+                totalAgents: this.agents.length,
+                activeAgents: this.agents.filter(a => a.running).length,
+                healthyAgents: this.agents.filter(a => a.health.is_healthy).length
+            };
         }
     }
 };
