@@ -29,7 +29,7 @@ export default {
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-gray-50 rounded p-3">
                     <div class="text-sm text-gray-500">Efficiency</div>
-                    <div class="text-2xl font-bold">${efficiency}%</div>
+                    <div class="text-2xl font-bold">{{ efficiency }}%</div>
                     <div class="w-full bg-gray-200 rounded-full h-2.5">
                         <div class="bg-blue-600 h-2.5 rounded-full" 
                              :style="{ width: efficiency + '%' }">
@@ -40,21 +40,21 @@ export default {
                 <div class="bg-gray-50 rounded p-3">
                     <div class="text-sm text-gray-500">Agent Health</div>
                     <div class="text-2xl font-bold" :class="healthStatus.class">
-                        ${healthStatus.text}
+                        {{ healthStatus.text }}
                     </div>
                 </div>
 
                 <div class="bg-gray-50 rounded p-3">
                     <div class="text-sm text-gray-500">Tasks Completed</div>
                     <div class="text-2xl font-bold">
-                        ${metrics.completedTasks}
+                        {{ metrics.completedTasks }}
                     </div>
                 </div>
 
                 <div class="bg-gray-50 rounded p-3">
                     <div class="text-sm text-gray-500">Response Time</div>
                     <div class="text-2xl font-bold">
-                        ${metrics.averageResponseTime}ms
+                        {{ metrics.averageResponseTime }}ms
                     </div>
                 </div>
             </div>
