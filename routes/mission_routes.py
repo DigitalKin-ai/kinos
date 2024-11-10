@@ -170,8 +170,12 @@ def register_mission_routes(app, web_instance):
     @safe_operation()
     def select_mission(mission_id):
         try:
+            # Add very explicit logging
+            web_instance.logger.log(f"Mission selection request received for mission {mission_id}", 'debug')
+        
             # Validation préliminaire
             if not mission_id or mission_id <= 0:
+                web_instance.logger.log(f"Invalid mission ID: {mission_id}", 'warning')
                 return jsonify({
                     'status': 'error',
                     'error': 'Invalid mission ID',

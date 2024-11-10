@@ -194,35 +194,37 @@ class ApiClient {
     }
 
     async handleResponse(response) {
-        if (!response.ok) {
-            const error = await response.json();
-            console.error('API Error:', error);
+        console.log('Raw response:', response);
+    
+        try {
+            if (!response.ok) {
+                // Try to parse error even if response is not OK
+                const errorText = await response.text();
+                console.error('Error response text:', errorText);
             
-            // Create detailed error message with all available info
-            let errorMessage = `${error.type || 'Error'}: ${error.error}\n`;
-            if (error.details) {
-                if (error.details.traceback) {
-                    errorMessage += `\nTraceback:\n${error.details.traceback}`;
-                }
-                if (error.details.timestamp) {
-                    errorMessage += `\nTimestamp: ${error.details.timestamp}`;
-                }
-                if (error.details.additional_info) {
-                    errorMessage += `\nAdditional Info: ${JSON.stringify(error.details.additional_info)}`;
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    throw new Error(errorJson.error || 'Unknown server error');
+                } catch {
+                    throw new Error(errorText || 'Unknown server error');
                 }
             }
-            
-            // Display error in UI
-            if (this.onError) {
-                this.onError(errorMessage);
+        
+            // Check for empty response
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.warn('Non-JSON response:', text);
+                return text;
             }
-            
-            // Log full error object for debugging
-            console.error('Full Error Details:', error);
-            
-            throw new Error(errorMessage);
+        
+            const data = await response.json();
+            console.log('Parsed response data:', data);
+            return data;
+        } catch (error) {
+            console.error('Response handling error:', error);
+            throw error;
         }
-        return response.json();
     }
 
     setToken(token) {
