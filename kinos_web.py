@@ -85,6 +85,7 @@ class KinOSWeb:
 
         # Add error handlers
         @self.app.errorhandler(404)
+        @self.app.endpoint('error_404')
         def not_found_error(error):
             """Handle 404 errors"""
             self.log_message(f"404 Error: {str(error)}", 'error')
@@ -96,6 +97,7 @@ class KinOSWeb:
             }), 404
 
         @self.app.errorhandler(500)
+        @self.app.endpoint('error_500')
         def internal_error(error):
             """Handle 500 errors"""
             self.log_message(f"500 Error: {str(error)}", 'error')
@@ -1002,7 +1004,7 @@ class KinOSWeb:
         """Register all route blueprints"""
         
         # First register core routes directly on the app
-        @self.app.route('/api/status', methods=['GET'])
+        @self.app.route('/api/status', methods=['GET'], endpoint='api_core_status')  # Changed endpoint name
         def get_status():
             """Get server and agents status"""
             try:

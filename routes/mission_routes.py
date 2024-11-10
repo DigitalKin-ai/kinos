@@ -193,7 +193,7 @@ def register_mission_routes(app, web_instance):
             return jsonify({'error': 'Failed to reset files'}), 500
         return jsonify({'status': 'success'})
 
-    @app.route('/api/missions/<int:mission_id>/files/<path:file_path>', methods=['GET'])
+    @app.route('/api/missions/<int:mission_id>/files/<path:file_path>', methods=['GET'], endpoint='api_mission_file_content')
     @safe_operation()
     def get_mission_file_content(mission_id, file_path):
         """Get content of a specific file in mission directory"""
