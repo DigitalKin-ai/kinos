@@ -1520,6 +1520,40 @@ Default operational instructions.
         except Exception as e:
             self.web_instance.log_message(f"Error loading prompt template: {str(e)}", 'error')
             return None
+
+    def _create_default_prompt(self, agent_name: str) -> str:
+        """
+        Create a default prompt for an agent
+        
+        Args:
+            agent_name: Name of the agent
+        
+        Returns:
+            str: Default prompt content
+        """
+        return f"""# {agent_name.capitalize()} Agent Default Prompt
+
+## MISSION
+Provide a comprehensive mission description for the {agent_name} agent.
+
+## CONTEXT
+Describe the operational context and key responsibilities.
+
+## INSTRUCTIONS
+1. Define primary objectives
+2. Outline key operational guidelines
+3. Specify decision-making criteria
+
+## RULES
+- Rule 1: Maintain clarity and precision
+- Rule 2: Prioritize mission objectives
+- Rule 3: Adapt to changing requirements
+
+## CONSTRAINTS
+- Adhere to ethical guidelines
+- Maintain confidentiality
+- Optimize resource utilization
+"""
     def _diagnose_agent_initialization(self, agent_name: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Diagnostic détaillé de l'initialisation d'un agent"""
         diagnosis = {
@@ -1594,15 +1628,15 @@ Default operational instructions.
     def _create_dynamic_agent(self, config: Dict[str, Any]) -> Optional['KinOSAgent']:
         """
         Crée dynamiquement un agent à partir de sa configuration
-        
+    
         Args:
             config: Configuration de l'agent incluant prompt et clés API
-            
+        
         Returns:
             KinOSAgent: Instance de l'agent ou None si erreur
         """
         try:
-            # Normalize and validate configuration
+            # Normalize configuration
             if not isinstance(config, dict):
                 config = {'config': config} if config else {}
 
@@ -1613,80 +1647,106 @@ Default operational instructions.
             # Extract configuration, with fallback to empty dict
             agent_config = config.get('config', {})
 
-            # Ensure required fields are present
+            # Debug logging of initial configuration
+            self.web_instance.log_message(
+                f"Initial agent configuration:\n{json.dumps(agent_config, indent=2)}", 
+                'debug'
+            )
+
+            # Ensure name is present
+            if 'name' not in agent_config:
+                # Try to extract name from various possible sources
+                name_sources = [
+                    config.get('name'),
+                    agent_config.get('agent_name'),
+                    agent_config.get('id')
+                ]
+                name = next((n for n in name_sources if n), None)
+            
+                if not name:
+                    self.web_instance.log_message(
+                        "Could not determine agent name", 
+                        'error'
+                    )
+                    return None
+            
+                agent_config['name'] = name.lower().replace('agent', '').strip()
+
+            # Ensure prompt is present
+            if 'prompt' not in agent_config:
+                # Try to find prompt file
+                prompt_file = self._find_agent_prompt(
+                    agent_config['name'], 
+                    [
+                        PathManager.get_prompts_path(),
+                        PathManager.get_custom_prompts_path()
+                    ]
+                )
+            
+                if prompt_file:
+                    prompt_content = self._read_prompt_file(prompt_file)
+                    if prompt_content:
+                        agent_config['prompt'] = prompt_content
+                    else:
+                        self.web_instance.log_message(
+                            f"Empty prompt file for {agent_config['name']}", 
+                            'warning'
+                        )
+                        # Create a default prompt if no content found
+                        agent_config['prompt'] = self._create_default_prompt(agent_config['name'])
+                else:
+                    # Create a default prompt if no file found
+                    agent_config['prompt'] = self._create_default_prompt(agent_config['name'])
+
+            # Validate configuration again
             required_fields = ['name', 'prompt']
             missing_fields = [field for field in required_fields if field not in agent_config]
-            
+        
             if missing_fields:
                 self.web_instance.log_message(
-                    f"Missing required fields in agent config: {missing_fields}", 
-                    'error'
-                )
-                
-                # Try to recover by extracting name from config or filename
-                if 'name' not in agent_config and isinstance(config.get('name'), str):
-                    agent_config['name'] = config['name']
-                
-                # Try to load prompt if not provided
-                if 'prompt' not in agent_config:
-                    # Attempt to find and load prompt file
-                    prompt_file = self._find_agent_prompt(
-                        agent_config.get('name', ''), 
-                        [
-                            PathManager.get_prompts_path(),
-                            PathManager.get_custom_prompts_path()
-                        ]
-                    )
-                    
-                    if prompt_file:
-                        agent_config['prompt'] = self._read_prompt_file(prompt_file)
-            
-            # Recheck required fields after recovery attempts
-            missing_fields = [field for field in required_fields if field not in agent_config]
-            if missing_fields:
-                self.web_instance.log_message(
-                    f"Could not recover missing fields: {missing_fields}", 
+                    f"Still missing required fields: {missing_fields}", 
                     'error'
                 )
                 return None
 
-            # Validate agent configuration
-            if not self._validate_agent_config({'config': agent_config}):
-                self.web_instance.log_message(
-                    f"Invalid configuration for agent {agent_config.get('name')}", 
-                    'error'
-                )
-                return None
+            # Debug logging of final configuration
+            self.web_instance.log_message(
+                f"Final agent configuration for {agent_config['name']}:\n"
+                f"{json.dumps(agent_config, indent=2)}", 
+                'debug'
+            )
 
-            # Create the agent with the validated configuration
+            # Create the agent
             try:
                 from aider_agent import AiderAgent
-                
-                # Create agent with full configuration
-                agent = AiderAgent({
+            
+                # Merge all configuration
+                full_config = {
                     **agent_config,
                     'anthropic_api_key': config.get('anthropic_api_key'),
                     'openai_api_key': config.get('openai_api_key')
-                })
-                
-                # Log successful agent creation
+                }
+            
+                # Create agent
+                agent = AiderAgent(full_config)
+            
                 self.web_instance.log_message(
-                    f"Successfully created agent {agent_config.get('name')}", 
+                    f"Successfully created agent {agent_config['name']}", 
                     'success'
                 )
-                
+            
                 return agent
-                
+            
             except ImportError as e:
                 self.web_instance.log_message(
                     f"Error importing AiderAgent: {str(e)}", 
                     'error'
                 )
                 return None
-                
+            
         except Exception as e:
             self.web_instance.log_message(
-                f"Error creating agent {config.get('name', 'unknown')}: {str(e)}\n"
+                f"Error creating agent: {str(e)}\n"
                 f"Traceback: {traceback.format_exc()}", 
                 'error'
             )
