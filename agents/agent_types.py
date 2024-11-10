@@ -27,8 +27,8 @@ class ValidationAgent(AiderAgent):
         # Sauvegarder le répertoire original avant l'init parent
         self.original_dir = os.getcwd()
         
-        # Le chemin de mission est directement le dossier missions
-        self.mission_path = 'missions'  # On ne joint plus avec mission_name
+        # Construire le chemin absolu de la mission spécifique
+        self.mission_path = os.path.abspath(os.path.join('missions', config['mission_name']))
         
         super().__init__(config)
         self.prompt_file = "prompts/validation.md"
