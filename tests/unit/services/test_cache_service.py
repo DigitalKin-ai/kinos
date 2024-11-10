@@ -63,7 +63,8 @@ def test_cache_file_path():
     """Test cache file path generation"""
     cache = CacheService(None)
     path = cache._get_cache_file_path("test_key")
-    assert path.startswith(PathManager.get_temp_path())
+    temp_path = PathManager.get_temp_path()
+    assert path.startswith(temp_path), f"Path {path} should start with {temp_path}"
     assert path.endswith(".tmp")
     assert "cache_test_key_" in path
 

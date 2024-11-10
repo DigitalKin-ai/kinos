@@ -280,6 +280,10 @@ export default {
             try {
                 if (!this.currentMission?.id) return;
                 
+                // Get mission path first
+                const pathData = await this.getMissionPath(this.currentMission.id);
+                const missionPath = pathData.path;
+                
                 const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
                 if (!response.ok) throw new Error('Failed to fetch files');
                 
