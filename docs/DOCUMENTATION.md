@@ -134,6 +134,170 @@ base_config = {
 - Utilisation de chemins relatifs
 - Normalisation des noms de fichiers
 
+### Gestion des Prompts et Configuration des Agents
+
+#### Configuration des Agents
+La configuration des agents est maintenant plus flexible et robuste :
+
+1. **Structure de Configuration**
+```json
+{
+    "check_interval": 100,
+    "max_retries": 3,
+    "timeout": 300,
+    "cache_size": 1000,
+    "file_patterns": ["*.md", "*.py", "*.js"],
+    "ignore_patterns": [".git/*", "__pycache__/*"],
+    "metrics": {
+        "enabled": true,
+        "collection_interval": 60
+    },
+    "recovery": {
+        "enabled": true,
+        "max_attempts": 3,
+        "cooldown": 300
+    }
+}
+```
+
+2. **Hiérarchie de Configuration**
+- Configuration par défaut dans le code
+- Override via fichiers JSON dans `config/agents/<agent_name>.json`
+- Validation automatique des valeurs
+- Gestion des erreurs et fallbacks
+
+3. **Validation de Configuration**
+- Vérification des champs requis
+- Validation des types de données
+- Contraintes sur les valeurs numériques
+- Logging des erreurs de validation
+
+#### Système de Prompts
+
+1. **Templates de Prompts**
+- Structure standardisée en Markdown
+- Sections obligatoires :
+  * Mission
+  * Context
+  * Instructions
+  * Rules
+- Validation automatique du format
+
+2. **Personnalisation des Prompts**
+- Fichiers de customisation JSON dans `config/prompts/<agent_name>_custom.json`
+- Remplacement de placeholders : `{$variable}`
+- Sections additionnelles configurables
+- Règles personnalisées par agent
+
+3. **Format de Customisation**
+```json
+{
+    "version": "1.0",
+    "customizations": {
+        "variables": {
+            "max_files": 10,
+            "timeout": 300
+        },
+        "additional_sections": [
+            {
+                "title": "Performance Guidelines",
+                "content": "..."
+            }
+        ],
+        "rules": [
+            "Toujours valider les entrées",
+            "Logger les opérations importantes"
+        ]
+    }
+}
+```
+
+4. **Validation des Prompts**
+- Vérification de la structure Markdown
+- Validation des sections requises
+- Contrôle du format des listes
+- Détection des placeholders non remplacés
+
+#### Utilisation
+
+1. **Configuration d'un Agent**
+```bash
+config/agents/validation_agent.json
+```
+```json
+{
+    "check_interval": 120,
+    "max_retries": 5,
+    "file_patterns": ["*.md", "*.py"],
+    "metrics": {
+        "enabled": true,
+        "collection_interval": 30
+    }
+}
+```
+
+2. **Personnalisation d'un Prompt**
+```bash
+config/prompts/validation_agent_custom.json
+```
+```json
+{
+    "version": "1.0",
+    "customizations": {
+        "variables": {
+            "check_depth": 3,
+            "min_coverage": 80
+        },
+        "additional_sections": [
+            {
+                "title": "Validation Criteria",
+                "content": "..."
+            }
+        ]
+    }
+}
+```
+
+#### Bonnes Pratiques
+
+1. **Configuration**
+- Utiliser des valeurs raisonnables par défaut
+- Documenter les options de configuration
+- Valider toutes les entrées utilisateur
+- Prévoir des fallbacks en cas d'erreur
+
+2. **Prompts**
+- Maintenir une structure cohérente
+- Utiliser des sections logiques
+- Documenter les placeholders disponibles
+- Tester les customisations
+
+3. **Validation**
+- Implémenter des contrôles stricts
+- Logger les erreurs de validation
+- Fournir des messages d'erreur clairs
+- Maintenir la rétrocompatibilité
+
+#### Points d'Extension
+
+1. **Nouvelles Configurations**
+- Ajouter des options dans le schéma JSON
+- Implémenter la validation correspondante
+- Mettre à jour la documentation
+- Tester les nouvelles options
+
+2. **Customisation des Prompts**
+- Créer de nouveaux types de sections
+- Ajouter des variables personnalisées
+- Étendre le système de règles
+- Supporter de nouveaux formats
+
+3. **Validation Avancée**
+- Ajouter des règles métier
+- Implémenter des validations spécifiques
+- Supporter des formats personnalisés
+- Étendre les métriques de qualité
+
 ### Service Layer
 
 #### BaseService
