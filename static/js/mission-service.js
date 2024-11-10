@@ -163,7 +163,7 @@ class MissionService {
             // Stop agents if running
             if (wasRunning) {
                 try {
-                    await this.apiClient.controlAgent('stop');
+                    await this.apiClient.post('/api/agents/stop');  // Use apiClient
                     this.runningStates.set(mission.id, false);
                 } catch (stopError) {
                     console.warn('Warning: Failed to stop agents', stopError);
@@ -172,17 +172,12 @@ class MissionService {
 
             // Select new mission with retry
             const result = await this.retryWithBackoff(async () => {
-                const response = await fetch(`/api/missions/${mission.id}/select`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    signal: AbortSignal.timeout(5000)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to select mission: ${response.statusText}`);
+                // Use apiClient instead of direct fetch
+                const response = await this.apiClient.post(`/api/missions/${mission.id}/select`);
+                if (!response) {
+                    throw new Error('Failed to select mission');
                 }
-
-                return response.json();
+                return response;
             });
 
             this.currentMission = result;
