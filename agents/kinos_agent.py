@@ -13,6 +13,7 @@ Key behaviors:
 - Automatic error recovery
 - Activity-based timing adjustments
 """
+import json
 from typing import Dict, Any, Optional, List
 import re
 import time
