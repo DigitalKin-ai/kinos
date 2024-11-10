@@ -21,14 +21,18 @@ class ValidationAgent(AiderAgent):
     def __init__(self, config: Dict):
         if 'web_instance' not in config:
             raise ValueError("web_instance manquant dans la configuration")
-        if 'mission_name' not in config:
-            raise ValueError("mission_name manquant dans la configuration")
             
         # Sauvegarder le répertoire original avant l'init parent
         self.original_dir = os.getcwd()
         
-        # Construire le chemin absolu de la mission spécifique
-        self.mission_path = os.path.abspath(os.path.join('missions', config['mission_name']))
+        # Obtenir la mission actuelle depuis le FileManager
+        current_mission = getattr(config['web_instance'].file_manager, 'current_mission', None)
+        if not current_mission:
+            # Utiliser une valeur par défaut mais ne pas créer le dossier
+            self.mission_path = os.path.abspath(os.path.join('missions', 'default'))
+        else:
+            # Utiliser la mission sélectionnée
+            self.mission_path = os.path.abspath(os.path.join('missions', current_mission))
         
         super().__init__(config)
         self.prompt_file = "prompts/validation.md"
@@ -40,7 +44,15 @@ class ValidationAgent(AiderAgent):
         Démarre l'agent de validation en s'assurant qu'il travaille dans le bon répertoire.
         """
         try:
-            # Vérifier et créer le répertoire de mission si nécessaire
+            # Obtenir la mission actuelle au moment du démarrage
+            current_mission = self.web_instance.file_manager.current_mission
+            if not current_mission:
+                raise ValueError("No mission currently selected")
+                
+            # Mettre à jour le chemin de mission avec la mission actuelle
+            self.mission_path = os.path.abspath(os.path.join('missions', current_mission))
+            
+            # Vérifier que le dossier existe
             if not os.path.exists(self.mission_path):
                 raise ValueError(f"Mission directory not found: {self.mission_path}")
                 
