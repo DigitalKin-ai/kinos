@@ -17,7 +17,7 @@ def register_view_routes(app, web_instance):
     @safe_operation()
     def editor_interface():
         try:
-            logger.log("Loading editor interface", level="info")
+            logger.log("Loading editor interface", "info")
             # Use FileManager which already uses PathManager
             content = web_instance.file_manager.read_file("production")
             suivi_content = web_instance.file_manager.read_file("suivi")
@@ -28,7 +28,7 @@ def register_view_routes(app, web_instance):
                                  content=content or "",
                                  suivi_content=suivi_content or "")
         except Exception as e:
-            logger.log(f"Error loading editor: {str(e)}", level="error")
+            logger.log(f"Error loading editor: {str(e)}", "error")
             return ErrorHandler.handle_error(e)
 
     @app.route('/agents')
@@ -39,21 +39,21 @@ def register_view_routes(app, web_instance):
     def files_page():
         """Render the files interface"""
         try:
-            logger.log("Loading files interface", level="info")
+            logger.log("Loading files interface", "info")
             return render_template('files.html')
         except Exception as e:
-            logger.log(f"Error loading files interface: {str(e)}", level="error")
+            logger.log(f"Error loading files interface: {str(e)}", "error")
             return ErrorHandler.handle_error(e)
 
     @app.route('/clean')
     @safe_operation()
     def clean_interface():
         try:
-            logger.log("Loading clean interface", level="info")
+            logger.log("Loading clean interface", "info")
             mission = web_instance.mission_service.get_current_mission()
             
             if not mission:
-                logger.log("No mission selected", level="warning")
+                logger.log("No mission selected", "warning")
                 raise ResourceNotFoundError("No mission selected")
                 
             # Use FileManager which already uses PathManager
@@ -61,7 +61,7 @@ def register_view_routes(app, web_instance):
             suivi_content = web_instance.file_manager.read_file("suivi") 
             demande_content = web_instance.file_manager.read_file("demande")
 
-            logger.log("Clean interface loaded successfully", level="success")
+            logger.log("Clean interface loaded successfully", "success")
             # Use template path from PathManager
             template_path = os.path.join(PathManager.get_templates_path(), 'clean.html')
             return render_template(template_path,
@@ -70,5 +70,5 @@ def register_view_routes(app, web_instance):
                                  demande_content=demande_content or "")
                                  
         except Exception as e:
-            logger.log(f"Error loading clean interface: {str(e)}", level="error")
+            logger.log(f"Error loading clean interface: {str(e)}", "error")
             return ErrorHandler.handle_error(e)

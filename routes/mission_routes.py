@@ -40,7 +40,7 @@ def load_ignore_patterns(mission_dir: str, web_instance) -> list:
                             line = line.replace('\\', '/')
                             ignore_patterns.append(line)
             except Exception as e:
-                web_instance.logger.log(f"Error reading {ignore_file}: {str(e)}", level='error')
+                web_instance.logger.log(f"Error reading {ignore_file}: {str(e)}", 'error')
                 
     return ignore_patterns
 
@@ -77,29 +77,29 @@ def register_mission_routes(app, web_instance):
         """Get all files in mission directory respecting ignore patterns"""
         try:
             # Log début de la requête
-            web_instance.logger.log(f"Getting files for mission {mission_id}", level='debug')
+            web_instance.logger.log(f"Getting files for mission {mission_id}", 'debug')
             
             # Get mission
             mission = web_instance.mission_service.get_mission(mission_id)
             if not mission:
-                web_instance.logger.log(f"Mission {mission_id} not found", level='error')
+                web_instance.logger.log(f"Mission {mission_id} not found", 'error')
                 return jsonify({'error': 'Mission not found'}), 404
 
             # Log mission trouvée
-            web_instance.logger.log(f"Found mission: {mission['name']}", level='debug')
+            web_instance.logger.log(f"Found mission: {mission['name']}", 'debug')
 
             # Get mission path using PathManager
             mission_dir = PathManager.get_mission_path(mission['name'])
-            web_instance.logger.log(f"Mission directory: {mission_dir}", level='debug')
+            web_instance.logger.log(f"Mission directory: {mission_dir}", 'debug')
 
             # Vérifier que le dossier existe
             if not os.path.exists(mission_dir):
-                web_instance.logger.log(f"Mission directory not found: {mission_dir}", level='error')
+                web_instance.logger.log(f"Mission directory not found: {mission_dir}", 'error')
                 return jsonify({'error': 'Mission directory not found'}), 404
 
             # Load ignore patterns
             ignore_patterns = load_ignore_patterns(mission_dir, web_instance)
-            web_instance.logger.log(f"Loaded ignore patterns: {ignore_patterns}", level='debug')
+            web_instance.logger.log(f"Loaded ignore patterns: {ignore_patterns}", 'debug')
 
             files = []
             try:
@@ -127,24 +127,24 @@ def register_mission_routes(app, web_instance):
                                     'modified': os.path.getmtime(full_path)
                                 }
                                 files.append(file_info)
-                                #web_instance.logger.log(f"Added file: {rel_path}", level='debug')
+                                #web_instance.logger.log(f"Added file: {rel_path}", 'debug')
                                 
                             except (OSError, IOError) as e:
-                                web_instance.logger.log(f"Error processing file {filename}: {str(e)}", level='error')
+                                web_instance.logger.log(f"Error processing file {filename}: {str(e)}", 'error')
                                 continue
 
                 # Sort files by path
                 files.sort(key=lambda x: x['path'])
                 
-                web_instance.logger.log(f"Found {len(files)} files in mission {mission['name']}", level='info')
+                web_instance.logger.log(f"Found {len(files)} files in mission {mission['name']}", 'info')
                 return jsonify(files)
 
             except Exception as e:
-                web_instance.logger.log(f"Error listing files: {str(e)}", level='error')
+                web_instance.logger.log(f"Error listing files: {str(e)}", 'error')
                 return jsonify({'error': f'Error listing files: {str(e)}'}), 500
 
         except Exception as e:
-            web_instance.logger.log(f"Unexpected error in get_mission_files: {str(e)}", level='error')
+            web_instance.logger.log(f"Unexpected error in get_mission_files: {str(e)}", 'error')
             return jsonify({'error': str(e)}), 500
 
     @app.route('/api/missions/<int:mission_id>/select', methods=['POST'])
@@ -154,17 +154,17 @@ def register_mission_routes(app, web_instance):
             # Get mission
             mission = web_instance.mission_service.get_mission(mission_id)
             if not mission:
-                web_instance.logger.log(f"Mission {mission_id} not found", level='error')
+                web_instance.logger.log(f"Mission {mission_id} not found", 'error')
                 return jsonify({'error': 'Mission not found'}), 404
 
             # Verify mission directory exists and is accessible
             mission_dir = os.path.join("missions", mission['name'])
             if not os.path.exists(mission_dir):
-                web_instance.logger.log(f"Mission directory not found: {mission_dir}", level='error')
+                web_instance.logger.log(f"Mission directory not found: {mission_dir}", 'error')
                 return jsonify({'error': 'Mission directory not found'}), 404
                 
             if not os.access(mission_dir, os.R_OK | os.W_OK):
-                web_instance.logger.log(f"Insufficient permissions on: {mission_dir}", level='error')
+                web_instance.logger.log(f"Insufficient permissions on: {mission_dir}", 'error')
                 return jsonify({'error': 'Insufficient permissions on mission directory'}), 500
 
             # Stop all agents before changing mission
@@ -174,15 +174,15 @@ def register_mission_routes(app, web_instance):
             try:
                 web_instance.file_manager.current_mission = mission['name']
             except Exception as e:
-                web_instance.logger.log(f"Failed to update FileManager mission: {str(e)}", level='error')
+                web_instance.logger.log(f"Failed to update FileManager mission: {str(e)}", 'error')
                 return jsonify({'error': 'Failed to update current mission'}), 500
 
-            web_instance.logger.log(f"Successfully selected mission: {mission['name']}", level='success')
+            web_instance.logger.log(f"Successfully selected mission: {mission['name']}", 'success')
             
             return jsonify(mission)
             
         except Exception as e:
-            web_instance.logger.log(f"Error selecting mission {mission_id}: {str(e)}", level='error')
+            web_instance.logger.log(f"Error selecting mission {mission_id}: {str(e)}", 'error')
             return jsonify({'error': f"Failed to select mission: {str(e)}"}), 500
 
     @app.route('/api/missions/<int:mission_id>/reset', methods=['POST'])
@@ -221,7 +221,7 @@ def register_mission_routes(app, web_instance):
             full_path = os.path.join(mission_dir, safe_path)
             
             # Log pour debug
-            web_instance.logger.log(f"Accessing file: {full_path}", level='debug')
+            web_instance.logger.log(f"Accessing file: {full_path}", 'debug')
             
             # Vérifier que le fichier existe
             if not os.path.exists(full_path):
@@ -239,5 +239,5 @@ def register_mission_routes(app, web_instance):
             return content, 200, {'Content-Type': 'text/plain'}
 
         except Exception as e:
-            web_instance.logger.log(f"Error reading file content: {str(e)}", level='error')
+            web_instance.logger.log(f"Error reading file content: {str(e)}", 'error')
             return jsonify({'error': str(e)}), 500
