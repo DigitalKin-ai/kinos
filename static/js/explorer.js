@@ -180,6 +180,19 @@ export default {
             );
         }
     },
+    watch: {
+        'content': {
+            deep: true,
+            handler(newContent, oldContent) {
+                Object.keys(newContent).forEach(panelId => {
+                    if (newContent[panelId] !== oldContent[panelId]) {
+                        console.log('Content changed for panel:', panelId);
+                        this.refreshPanel(panelId);
+                    }
+                });
+            }
+        }
+    },
     methods: {
         async checkFileModifications() {
             try {
@@ -314,19 +327,30 @@ export default {
     mounted() {
         this.loadMissions();
         this.startFileWatcher();
+        
+        // Start content monitoring
+        this.startContentMonitoring();
     },
     
     beforeUnmount() {
+        // Clear all intervals
         if (this.fileCheckInterval) {
             clearInterval(this.fileCheckInterval);
+            this.fileCheckInterval = null;
         }
         if (this.cleanupInterval) {
             clearInterval(this.cleanupInterval);
+            this.cleanupInterval = null;
         }
-        if (this.cleanup) {
+        
+        // Stop monitoring
+        this.stopContentMonitoring();
+        
+        // Cleanup resources
+        if (typeof this.cleanup === 'function') {
             this.cleanup();
         }
-        if (this.stopServerMonitoring) {
+        if (typeof this.stopServerMonitoring === 'function') {
             this.stopServerMonitoring();
         }
     }
