@@ -259,9 +259,8 @@ class KinOSWeb:
                     self.log_message(f"Error loading prompt from {file_path}: {e}", level='error')
                     return ""
 
-            # Découvrir les agents à partir des fichiers prompts
-            self.agents = {}
-            prompts_dir = "prompts"
+            # Get prompts directory using PathManager
+            prompts_dir = PathManager.get_prompts_path()
             
             if not os.path.exists(prompts_dir):
                 os.makedirs(prompts_dir)
