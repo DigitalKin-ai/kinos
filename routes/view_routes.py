@@ -45,6 +45,16 @@ def register_view_routes(app, web_instance):
             logger.log(f"Error loading files interface: {str(e)}", "error")
             return ErrorHandler.handle_error(e)
 
+    @app.route('/teams', endpoint='teams_page')
+    def teams_page():
+        """Render the teams management interface"""
+        try:
+            logger.log("Loading teams interface", "info")
+            return render_template('teams.html')
+        except Exception as e:
+            logger.log(f"Error loading teams interface: {str(e)}", "error")
+            return ErrorHandler.handle_error(e)
+
     @app.route('/clean', endpoint='clean_interface')
     @safe_operation()
     def clean_interface():
