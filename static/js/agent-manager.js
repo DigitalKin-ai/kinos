@@ -1,5 +1,5 @@
 import ApiClient from './api-client.js';
-import TeamMetrics from './teams/TeamMetrics.js';
+import TeamMetrics from './components/teams/TeamMetrics.js';
 
 export default {
     name: 'AgentManager',
