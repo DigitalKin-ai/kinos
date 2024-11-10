@@ -88,17 +88,19 @@ from typing import Dict, Optional
 from agents.kinos_agent import KinOSAgent
 from aider_agent import AiderAgent
 
-__all__ = [
-    'SpecificationsAgent',
-    'ProductionAgent', 
-    'ManagementAgent',
-    'EvaluationAgent',
-    'SuiviAgent',
-    'DuplicationAgent',
-    'DocumentalisteAgent',
-    'TesteurAgent',
-    'RedacteurAgent'
-]
+# Discover and import all agent classes dynamically
+agent_classes = {}
+agent_types_module = importlib.import_module('.agent_types', package=__package__)
+
+for name, obj in inspect.getmembers(agent_types_module):
+    if (inspect.isclass(obj) and 
+        issubclass(obj, AiderAgent) and 
+        obj != AiderAgent):
+        agent_classes[name] = obj
+
+# Export discovered classes
+__all__ = list(agent_classes.keys())
+globals().update(agent_classes)
 
 class SpecificationsAgent(AiderAgent):
     """

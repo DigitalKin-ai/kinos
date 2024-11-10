@@ -466,15 +466,8 @@ class KinOSWeb:
                     
                 path = data['path']
                 
-                # Verify only required files at root level
-                required_files = [
-                    "demande.md",
-                    "specifications.md", 
-                    "management.md",
-                    "production.md",
-                    "evaluation.md",
-                    "suivi.md"
-                ]
+                # Get required files dynamically from web instance
+                required_files = list(web_instance.get_required_agent_files().values())
                 
                 missing_files = []
                 for file in required_files:
@@ -681,14 +674,10 @@ class KinOSWeb:
                 if not mission:
                     return jsonify({'error': 'Mission not found'}), 404
 
-                # Liste des fichiers à réinitialiser (excluant demande.md)
-                files_to_reset = {
-                    "specifications": "specifications.md",
-                    "management": "management.md",
-                    "production": "production.md", 
-                    "evaluation": "evaluation.md",
-                    "suivi": "suivi.md"
-                }
+                # Get required files dynamically based on discovered agents
+                files_to_reset = self.get_required_agent_files()
+                # Remove demande.md since we don't want to reset it
+                files_to_reset.pop("demande", None)
 
                 # Réinitialiser chaque fichier de la mission sauf demande.md
                 for file_type, file_name in files_to_reset.items():
@@ -956,6 +945,17 @@ class KinOSWeb:
         register_notification_routes(self.app, self)
         register_view_routes(self.app, self)
         
+    def get_required_agent_files(self):
+        """Get list of required files based on discovered agents"""
+        files = {"demande": "demande.md"}  # Always required
+        
+        # Add file for each discovered agent
+        for agent_name in self.agent_service.get_available_agents():
+            base_name = agent_name.lower().replace('agent', '')
+            files[base_name] = f"{base_name}.md"
+            
+        return files
+
     def _register_error_handlers(self):
         """Register error handlers for different types of exceptions"""
         @self.app.errorhandler(ValidationError)
