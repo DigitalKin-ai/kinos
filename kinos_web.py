@@ -309,7 +309,7 @@ class KinOSWeb:
             bool: True if successful, False otherwise
         """
         try:
-            agent_name = agent_id.capitalize()
+            agent_name = agent_id.lower()
             if agent_name not in self.agents:
                 self.log_message(f"Agent {agent_id} not found", level='error')
                 return False
@@ -817,7 +817,7 @@ class KinOSWeb:
         def get_agent_prompt(agent_id):
             """Get the prompt for a specific agent"""
             try:
-                agent_name = agent_id.capitalize()
+                agent_name = agent_id.lower()
                 if agent_name not in self.agents:
                     return jsonify({'error': 'Agent not found'}), 404
                     
