@@ -276,8 +276,8 @@ class KinOSWeb:
         self._register_error_handlers()
         
         # Add debug logging for paths
-        self.logger.log(f"Template directory: {template_dir}", 'debug')
-        self.logger.log(f"Static directory: {static_dir}", 'debug')
+        self.logger.log(f"Template directory: {self.template_dir}", 'debug')
+        self.logger.log(f"Static directory: {self.static_dir}", 'debug')
         
         # Import dataset service
         from services.dataset_service import DatasetService
