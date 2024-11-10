@@ -45,12 +45,14 @@ class KinOSWeb:
     def _initialize_components(self, config):
         """Initialize all required components"""
         try:
-            # Initialize agents
+            # Initialize basic services first
+            self.logger.log("Initializing core components...", level='info')
+            
+            # Initialize agents in inactive state
             self.agent_service.init_agents(config)
             
-            # Initialize only essential components
-            # No need to create all files upfront
-            self.logger.log("All components initialized successfully", level='success')
+            # Log success even without active mission
+            self.logger.log("Core components initialized successfully", level='success')
             
         except Exception as e:
             self.logger.log(f"Error initializing components: {str(e)}", level='error')
