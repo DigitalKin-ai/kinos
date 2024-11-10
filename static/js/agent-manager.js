@@ -229,7 +229,16 @@ RULES:
                     agent.loadingPrompt = true;
                 }
 
-                const response = await fetch(`/api/agent/${encodeURIComponent(agentId)}/prompt`);
+                // Add timeout to request
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                const response = await fetch(`/api/agent/${encodeURIComponent(agentId)}/prompt`, {
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
                 if (!response.ok) {
                     const error = await response.json();
                     throw new Error(error.error || 'Failed to load prompt');

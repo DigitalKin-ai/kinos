@@ -161,10 +161,20 @@ export default {
             try {
                 this.$emit('update:loading', true);
 
-                // Check server connection first
-                const isServerAvailable = await this.checkServerConnection();
-                if (!isServerAvailable) {
-                    throw new Error('Server is not responding. Please check if the server is running.');
+                // Check server connection first with timeout
+                try {
+                    const isServerAvailable = await Promise.race([
+                        this.checkServerConnection(),
+                        new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Server connection check timeout')), 5000)
+                        )
+                    ]);
+                    if (!isServerAvailable) {
+                        throw new Error('Server is not responding. Please check if the server is running.');
+                    }
+                } catch (error) {
+                    console.error('Server connection check failed:', error);
+                    throw new Error('Unable to connect to server. Please check if the server is running.');
                 }
 
                 // Validate mission object
