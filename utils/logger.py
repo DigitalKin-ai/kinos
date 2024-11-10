@@ -39,4 +39,6 @@ class Logger:
 
     def _log(self, message: str, level: str = 'info', **kwargs):
         """Alias for log method"""
+        # Remove level from kwargs if present to avoid duplicate
+        kwargs.pop('level', None)
         self.log(message, level=level, **kwargs)
