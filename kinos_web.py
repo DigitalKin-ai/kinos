@@ -256,27 +256,6 @@ class KinOSWeb:
         if not os.path.exists(static_dir):
             raise RuntimeError(f"Static directory not found: {static_dir}")
             
-        # Get and store project paths
-        self.project_root = PathManager.get_project_root()
-        self.template_dir = PathManager.get_templates_path()
-        self.static_dir = PathManager.get_static_path()
-        
-        # Add debug logging for paths
-        self.logger.log(f"Project root: {self.project_root}", 'debug')
-        self.logger.log(f"Template directory: {self.template_dir}", 'debug')
-        self.logger.log(f"Static directory: {self.static_dir}", 'debug')
-        
-        # Verify paths exist
-        if not os.path.exists(self.template_dir):
-            raise RuntimeError(f"Template directory not found: {self.template_dir}")
-        if not os.path.exists(self.static_dir):
-            raise RuntimeError(f"Static directory not found: {self.static_dir}")
-        
-        
-        # Get project paths using PathManager
-        project_root = PathManager.get_project_root()
-        template_dir = PathManager.get_templates_path()
-        static_dir = PathManager.get_static_path()
         
         # Initialize Flask with explicit template and static folders
         self.app = Flask(__name__,
