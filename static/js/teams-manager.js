@@ -114,16 +114,16 @@ export default {
     watch: {
         currentMission: {
             immediate: true,
-            handler(newMission) {
+            async handler(newMission) {
                 if (newMission?.id) {
-                    this.loadTeams();
+                    await this.loadTeams();
                 }
             }
         }
     },
     mounted() {
         if (this.currentMission) {
-            await this.loadTeams();
+            this.loadTeams();
         }
     },
     watch: {
