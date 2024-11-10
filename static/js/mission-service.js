@@ -3,85 +3,68 @@ import ApiClient from './api-client.js';
 class MissionService {
     constructor(baseUrl = '') {
         this.apiClient = new ApiClient(baseUrl);
+        this.currentMission = null;
+        this.missions = [];
+        this.runningStates = new Map();
     }
 
-    async loadMissions() {
+    async initialize() {
         try {
-            this.loading = true;
+            // Load all missions first
             const missions = await this.apiClient.getAllMissions();
             this.missions = missions;
             
-            // Automatically select first mission if it exists
+            // Initialize running states
+            missions.forEach(mission => {
+                this.runningStates.set(mission.id, false);
+            });
+
+            // Select first mission if available
             if (missions.length > 0) {
                 await this.selectMission(missions[0]);
             }
+
+            return missions;
         } catch (error) {
-            console.error('Error fetching missions:', error);
+            console.error('Error initializing mission service:', error);
             throw error;
-        } finally {
-            this.loading = false;
         }
     }
 
     async selectMission(mission) {
+        if (!mission?.id) {
+            throw new Error('Invalid mission selected');
+        }
+
         try {
-            // Stop agents first
-            const stopResponse = await fetch('/api/agents/stop', { 
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!stopResponse.ok) {
-                throw new Error('Failed to stop agents');
+            const wasRunning = this.runningStates.get(mission.id) || false;
+
+            // Stop agents if running
+            if (wasRunning) {
+                await this.apiClient.controlAgent('stop');
+                this.runningStates.set(mission.id, false);
             }
-            
+
             // Select new mission
-            const response = await fetch(`/api/missions/${mission.id}/select`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            const result = await this.apiClient.selectMission(mission.id);
+            this.currentMission = result;
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to select mission');
-            }
-
-            // Verify mission change
-            const verifyResponse = await fetch(`/api/missions/${mission.id}`);
-            if (!verifyResponse.ok) {
-                throw new Error('Mission change verification failed');
-            }
-
-            const result = await response.json();
-            console.log('Mission selected successfully:', result);
             return result;
-            
         } catch (error) {
-            console.error('Error selecting mission:', error);
+            console.error('Mission selection failed:', error);
+            if (mission?.id) {
+                this.runningStates.set(mission.id, false);
+            }
             throw error;
         }
     }
 
     async createMission(name, description = '') {
         try {
-            const response = await fetch('/api/missions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ name, description })
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to create mission');
-            }
-
-            return await response.json();
+            const mission = await this.apiClient.createMission(name, description);
+            this.missions.push(mission);
+            this.runningStates.set(mission.id, false);
+            return mission;
         } catch (error) {
             console.error('Error creating mission:', error);
             throw error;
@@ -89,53 +72,32 @@ class MissionService {
     }
 
     async getMissionContent(missionId) {
-        try {
-            const response = await fetch(`${this.baseUrl}/api/missions/${missionId}/content`);
-            if (!response.ok) {
-                throw new Error('Failed to load mission content');
-            }
-            const content = await response.json();
-            return content;
-        } catch (error) {
-            console.error('Error loading mission content:', error);
-            throw error;
-        }
+        return await this.apiClient.getMissionContent(missionId);
     }
 
     async updateMission(missionId, updates) {
-        try {
-            const response = await fetch(`${this.baseUrl}/api/missions/${missionId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(updates)
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update mission');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Error updating mission:', error);
-            throw error;
+        const result = await this.apiClient.updateMission(missionId, updates);
+        
+        // Update local mission data
+        const index = this.missions.findIndex(m => m.id === missionId);
+        if (index !== -1) {
+            this.missions[index] = {...this.missions[index], ...result};
         }
+        
+        return result;
     }
 
-    async getMissionPath(missionId) {
-        try {
-            const response = await fetch(`${this.baseUrl}/api/missions/${missionId}/path`);
-            if (!response.ok) {
-                throw new Error('Failed to get mission path');
-            }
-            return await response.json();
-        } catch (error) {
-            console.error('Error getting mission path:', error);
-            throw error;
-        }
+    getCurrentMission() {
+        return this.currentMission;
     }
 
+    getMissions() {
+        return this.missions;
+    }
+
+    isRunning(missionId) {
+        return this.runningStates.get(missionId) || false;
+    }
 }
 
 export default MissionService;
