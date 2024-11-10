@@ -168,86 +168,98 @@ def register_mission_routes(app, web_instance):
     @safe_operation()
     def select_mission(mission_id):
         try:
-            # Log détaillé pour le débogage
-            web_instance.logger.log(f"Tentative de sélection de mission {mission_id}", 'debug')
-        
-            # Validation de la mission
+            # Validation préliminaire
+            if not mission_id or mission_id <= 0:
+                return jsonify({
+                    'status': 'error',
+                    'error': 'Invalid mission ID',
+                    'code': 'INVALID_ID'
+                }), 400
+
+            # Log détaillé
+            web_instance.logger.log(f"Attempting to select mission {mission_id}", 'debug')
+
+            # Récupérer la mission avec gestion d'erreur explicite
             mission = web_instance.mission_service.get_mission(mission_id)
             if not mission:
-                web_instance.logger.log(f"Mission {mission_id} non trouvée", 'error')
+                web_instance.logger.log(f"Mission {mission_id} not found", 'error')
                 return jsonify({
-                    'error': 'Mission not found', 
-                    'status': 'error'
+                    'status': 'error',
+                    'error': 'Mission not found',
+                    'code': 'MISSION_NOT_FOUND'
                 }), 404
 
-            # Journalisation détaillée
-            web_instance.logger.log(f"Mission trouvée : {mission}", 'debug')
-
-            # Vérifier l'existence et l'accessibilité du dossier de mission
-            mission_dir = PathManager.get_mission_path(mission['name'])
-            if not os.path.exists(mission_dir):
-                web_instance.logger.log(f"Dossier de mission non trouvé : {mission_dir}", 'error')
+            # Vérifications de pré-sélection
+            mission_path = PathManager.get_mission_path(mission['name'])
+            if not os.path.exists(mission_path):
                 return jsonify({
-                    'error': 'Mission directory not found', 
-                    'status': 'error'
-                }), 404
-
-            if not os.access(mission_dir, os.R_OK | os.W_OK):
-                web_instance.logger.log(f"Permissions insuffisantes sur : {mission_dir}", 'error')
-                return jsonify({
-                    'error': 'Insufficient permissions on mission directory', 
-                    'status': 'error'
+                    'status': 'error',
+                    'error': 'Mission directory does not exist',
+                    'code': 'MISSION_DIR_MISSING',
+                    'path': mission_path
                 }), 500
 
-            # Arrêter tous les agents
+            # Gestion des ressources avant sélection
             try:
+                # Arrêt sécurisé des agents
                 web_instance.agent_service.stop_all_agents()
-                web_instance.logger.log("Tous les agents arrêtés avec succès", 'success')
-            except Exception as stop_error:
-                web_instance.logger.log(f"Erreur lors de l'arrêt des agents : {stop_error}", 'warning')
+                
+                # Nettoyage des ressources
+                web_instance._cleanup_sockets()
+            except Exception as cleanup_error:
+                web_instance.logger.log(f"Resource cleanup error: {cleanup_error}", 'warning')
 
-            # Nettoyer les sockets
-            web_instance._cleanup_sockets()
+            # Mise à jour de la mission courante
+            try:
+                web_instance.file_manager.current_mission = mission['name']
+            except Exception as update_error:
+                web_instance.logger.log(f"Error updating current mission: {update_error}", 'error')
+                return jsonify({
+                    'status': 'error',
+                    'error': 'Failed to update current mission',
+                    'code': 'MISSION_UPDATE_FAILED'
+                }), 500
 
-            # Mettre à jour la mission courante
-            web_instance.file_manager.current_mission = mission['name']
-
-            # Réinitialiser les agents pour la nouvelle mission
+            # Réinitialisation des agents
             try:
                 web_instance.agent_service.init_agents({
                     "anthropic_api_key": web_instance.config.get("anthropic_api_key"),
                     "openai_api_key": web_instance.config.get("openai_api_key")
                 })
-                web_instance.logger.log("Agents réinitialisés avec succès", 'success')
-            except Exception as init_error:
-                web_instance.logger.log(f"Erreur lors de l'initialisation des agents : {init_error}", 'error')
+            except Exception as agent_init_error:
+                web_instance.logger.log(f"Agent initialization error: {agent_init_error}", 'error')
                 return jsonify({
-                    'error': 'Failed to reinitialize agents', 
                     'status': 'error',
-                    'details': str(init_error)
+                    'error': 'Failed to initialize agents',
+                    'code': 'AGENT_INIT_FAILED',
+                    'details': str(agent_init_error)
                 }), 500
 
-            # Journalisation
-            web_instance.logger.log(f"Mission sélectionnée : {mission['name']}", 'success')
-
+            # Réponse de succès avec informations détaillées
             return jsonify({
+                'status': 'success',
                 'id': mission_id,
                 'name': mission['name'],
                 'path': mission['path'],
-                'status': 'success',
-                'selected_at': datetime.now().isoformat()
+                'selected_at': datetime.now().isoformat(),
+                'resources': {
+                    'agents_stopped': True,
+                    'sockets_cleaned': True,
+                    'agents_initialized': True
+                }
             }), 200
 
-        except Exception as e:
-            # Log détaillé de l'erreur
-            web_instance.logger.log(f"Erreur de sélection de mission : {str(e)}", 'error')
-            web_instance.logger.log(traceback.format_exc(), 'error')
-        
+        except Exception as unexpected_error:
+            # Gestion des erreurs inattendues
+            web_instance.logger.log(
+                f"Unexpected mission selection error: {unexpected_error}\n{traceback.format_exc()}",
+                'critical'
+            )
             return jsonify({
-                'error': 'Échec de la sélection de mission',
-                'details': str(e),
                 'status': 'error',
-                'traceback': traceback.format_exc()
+                'error': 'Unexpected server error',
+                'code': 'UNEXPECTED_ERROR',
+                'details': str(unexpected_error)
             }), 500
 
     @app.route('/api/missions/<int:mission_id>/reset', methods=['POST'], endpoint='api_mission_reset')
