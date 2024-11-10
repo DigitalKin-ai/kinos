@@ -150,7 +150,7 @@ class KinOSAgent:
         )
         
         # Handle logger configuration
-        logger_config = config.get("logger", print)
+        logger_config = self.config.get("logger", print)
         if callable(logger_config):
             # If it's a function, create a wrapper that emulates the logger interface
             self.logger = type('Logger', (), {
