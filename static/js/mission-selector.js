@@ -41,10 +41,10 @@ export default {
             maxRetries: 3,
             retryDelay: 1000, // 1 second
             serverCheckInterval: null,
-            serverStatus: {
+            connectionStatus: {
                 connected: true,
                 lastCheck: null,
-                checkInterval: null
+                retryCount: 0
             }
         }
     },
@@ -75,8 +75,8 @@ export default {
                 loading: this.loading
             });
             
-            // Start server status monitoring
-            this.startServerMonitoring();
+            // Start connection monitoring
+            this.startConnectionMonitoring();
 
             // Récupérer la liste des agents depuis l'API
             const agentsResponse = await fetch('/api/agents/list');
@@ -458,10 +458,10 @@ export default {
     },
     template: `
         <div class="mission-sidebar" :class="{ 'collapsed': sidebarCollapsed }">
-            <!-- Server status indicator -->
-            <div v-if="!serverStatus.connected" 
-                 class="server-status-warning bg-red-100 border-l-4 border-red-500 p-4 mb-4">
-                <div class="flex items-center">
+            <!-- Connection status indicator -->
+            <div v-if="!connectionStatus.connected" 
+                 class="connection-error bg-red-100 border-l-4 border-red-500 p-4 mb-4">
+                <div class="flex">
                     <div class="flex-shrink-0">
                         <i class="mdi mdi-alert-circle text-red-500"></i>
                     </div>
