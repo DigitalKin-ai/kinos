@@ -1,5 +1,6 @@
 from typing import Dict, Any, Optional, List
 from datetime import datetime
+import traceback
 from utils.exceptions import ServiceError, ValidationError, ResourceNotFoundError
 from services.base_service import BaseService
 from utils.path_manager import PathManager
@@ -201,8 +202,22 @@ class TeamService(BaseService):
     def activate_team(self, mission_id: int, team_id: str) -> Dict[str, Any]:
         """Activate a team for a mission with enhanced error handling"""
         try:
+            # Log détaillé de l'activation
+            self.web_instance.log_message(
+                f"Attempting to activate team:\n"
+                f"Mission ID: {mission_id}\n"
+                f"Team ID: {team_id}", 
+                'info'
+            )
+
             self._validate_team_id(team_id)
             team = next(t for t in self.predefined_teams if t['id'] == team_id)
+
+            # Log des agents de l'équipe
+            self.web_instance.log_message(
+                f"Team agents: {team['agents']}", 
+                'debug'
+            )
 
             # Stop current active team if exists
             if self.active_team:
@@ -222,15 +237,30 @@ class TeamService(BaseService):
                         'success': success
                     })
                 except Exception as e:
-                    self.logger.log(f"Error activating agent {agent_name}: {str(e)}", 'error')
+                    self.web_instance.log_message(
+                        f"Agent activation failed:\n"
+                        f"Agent: {agent_name}\n"
+                        f"Error: {str(e)}", 
+                        'error'
+                    )
                     activation_results.append({
                         'agent': agent_name,
                         'success': False,
                         'error': str(e)
                     })
 
+            # Log détaillé des résultats d'activation
+            for result in activation_results:
+                if not result['success']:
+                    self.web_instance.log_message(
+                        f"Agent activation failed:\n"
+                        f"Agent: {result['agent']}\n"
+                        f"Error: {result.get('error', 'Unknown error')}", 
+                        'error'
+                    )
+
             self.active_team = team
-            self.logger.log(f"Team {team['name']} activated with results: {activation_results}", 'success')
+            self.web_instance.log_message(f"Team {team['name']} activated with results: {activation_results}", 'success')
 
             return {
                 'team': team,
@@ -239,7 +269,13 @@ class TeamService(BaseService):
             }
 
         except Exception as e:
-            self.logger.log(f"Error activating team: {str(e)}", 'error')
+            self.web_instance.log_message(
+                f"Team activation error:\n"
+                f"Team: {team_id}\n"
+                f"Error: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}", 
+                'critical'
+            )
             raise ServiceError(f"Failed to activate team: {str(e)}")
 
     def _get_agent_statuses(self, team: Dict[str, Any]) -> Dict[str, Any]:

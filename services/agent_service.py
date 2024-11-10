@@ -11,6 +11,7 @@ from agents.kinos_agent import KinOSAgent
 from aider_agent import AiderAgent
 from utils.path_manager import PathManager
 from utils.validators import validate_agent_name
+import sys
 
 class AgentService:
     def _get_agent_status_details(self, agent) -> dict:
@@ -149,74 +150,179 @@ class AgentService:
 
     def init_agents(self, config: Dict[str, Any], team_agents: Optional[List[str]] = None) -> None:
         try:
-            # Validate configuration keys
+            # Log de démarrage du processus d'initialisation
+            self.web_instance.log_message(
+                f"Initializing agents for team: {team_agents}\n"
+                f"Config keys: {list(config.keys())}", 
+                'debug'
+            )
+
+            # Validation des clés de configuration
             required_keys = ['anthropic_api_key', 'openai_api_key']
             for key in required_keys:
                 if key not in config or not config[key]:
+                    self.web_instance.log_message(f"Missing configuration key: {key}", 'critical')
                     raise ValueError(f"Missing required configuration: {key}")
-            
-            # More robust agent initialization
+        
+            # Liste des agents à initialiser
+            agents_to_init = team_agents or [
+                'specifications', 'management', 'evaluation', 
+                'suivi', 'documentaliste', 'duplication', 
+                'redacteur', 'validation', 'production', 'testeur'
+            ]
+        
+            # Validation des chemins de recherche
+            prompt_search_paths = [
+                PathManager.get_prompts_path(),
+                PathManager.get_custom_prompts_path(),
+                os.path.join(PathManager.get_project_root(), 'prompts')
+            ]
+
+            # Log des chemins de recherche
+            for path in prompt_search_paths:
+                self.web_instance.log_message(
+                    f"Searching agent prompts in: {path}\n"
+                    f"Path exists: {os.path.exists(path)}\n"
+                    f"Path contents: {os.listdir(path) if os.path.exists(path) else 'N/A'}", 
+                    'debug'
+                )
+        
             initialized_agents = {}
-            for agent_name in (team_agents or []):
+        
+            for agent_name in agents_to_init:
                 try:
+                    # Normalisation du nom de l'agent
+                    normalized_name = agent_name.lower()
+                
+                    # Recherche du fichier de prompt avec diagnostic avancé
+                    prompt_file = self._find_agent_prompt(normalized_name, prompt_search_paths)
+                
+                    # Lecture du prompt
+                    prompt = self._read_prompt_file(prompt_file) if prompt_file else self._create_default_prompt(normalized_name)
+                
+                    # Configuration de l'agent
                     agent_config = {
                         **config,
-                        "name": agent_name.lower(),
-                        "prompt": self._load_agent_prompt(agent_name)
+                        "name": normalized_name,
+                        "prompt": prompt
                     }
-                    
-                    # Validate prompt before agent creation
-                    if not agent_config["prompt"]:
-                        self.web_instance.log_message(
-                            f"No prompt found for agent {agent_name}. Skipping.", 
-                            'warning'
-                        )
-                        continue
-                    
-                    agent = self._create_agent(agent_config)
+                
+                    # Création dynamique de l'agent
+                    agent = self._create_dynamic_agent(agent_config)
+                
                     if agent:
-                        initialized_agents[agent_name.lower()] = agent
-                    
+                        initialized_agents[normalized_name] = agent
+                        self.web_instance.log_message(f"Successfully initialized agent: {normalized_name}", 'success')
+                    else:
+                        self.web_instance.log_message(
+                            f"Failed to create agent: {normalized_name}. "
+                            f"Searched paths: {prompt_search_paths}", 
+                            'error'
+                        )
+            
                 except Exception as agent_error:
                     self.web_instance.log_message(
-                        f"Error initializing agent {agent_name}: {str(agent_error)}", 
-                        'error'
+                        f"Detailed error initializing agent {agent_name}: {str(agent_error)}\n"
+                        f"Search paths: {prompt_search_paths}\n"
+                        f"Full traceback: {traceback.format_exc()}", 
+                        'critical'
                     )
-            
+        
+            # Mise à jour du dictionnaire d'agents
             self.agents = initialized_agents
-            
-        except Exception as e:
-            self.web_instance.log_message(f"Agent initialization failed: {str(e)}", 'critical')
-            raise
-
-    def _find_prompt_file(self, agent_name: str) -> Optional[str]:
-        """Find prompt file for an agent using API route"""
-        try:
-            # Normalize agent name (lowercase, remove 'Agent' suffix)
-            normalized_name = agent_name.lower().replace('agent', '').strip()
         
-            # Use the existing API route for agent prompt retrieval
-            try:
-                # Attempt to get prompt via API route
-                response = self.web_instance.agent_service.get_agent_prompt(normalized_name)
-            
-                # If prompt exists, return a temporary file path
-                if response:
-                    temp_path = PathManager.get_temp_file(prefix=f"{normalized_name}_prompt_", suffix=".md")
-                    with open(temp_path, 'w', encoding='utf-8') as f:
-                        f.write(response)
-                
-                    self.web_instance.log_message(f"Retrieved prompt for {agent_name} via API", 'debug')
-                    return temp_path
-        
-            except Exception as api_error:
-                self.web_instance.log_message(f"API prompt retrieval error: {str(api_error)}", 'warning')
-        
-            # Fallback to creating a default prompt file
-            return self._create_default_prompt_file(normalized_name)
+            # Résumé de l'initialisation
+            self.web_instance.log_message(
+                f"Agent Initialization Summary:\n"
+                f"Total Agents Attempted: {len(agents_to_init)}\n"
+                f"Successfully Initialized: {len(initialized_agents)}\n"
+                f"Failed Agents: {set(agents_to_init) - set(initialized_agents.keys())}", 
+                'info'
+            )
     
         except Exception as e:
-            self.web_instance.log_message(f"Error finding prompt file for {agent_name}: {str(e)}", 'error')
+            self.web_instance.log_message(
+                f"CRITICAL Agent Initialization Failure:\n"
+                f"Error: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}", 
+                'critical'
+            )
+            raise
+
+    def _find_agent_prompt(self, agent_name: str, search_paths: List[str]) -> Optional[str]:
+        """Diagnostic avancé pour trouver les fichiers de prompt"""
+        normalized_name = agent_name.lower()
+        
+        potential_filenames = [
+            f"{normalized_name}.md",
+            f"{normalized_name}_agent.md", 
+            f"agent_{normalized_name}.md",
+            f"{normalized_name}.txt"
+        ]
+
+        for search_path in search_paths:
+            if not os.path.exists(search_path):
+                self.web_instance.log_message(
+                    f"Search path does not exist: {search_path}", 
+                    'warning'
+                )
+                continue
+
+            for filename in potential_filenames:
+                full_path = os.path.join(search_path, filename)
+                
+                self.web_instance.log_message(
+                    f"Checking potential prompt file: {full_path}\n"
+                    f"File exists: {os.path.exists(full_path)}", 
+                    'debug'
+                )
+
+                if os.path.exists(full_path):
+                    return full_path
+
+        # Log détaillé si aucun fichier n'est trouvé
+        self.web_instance.log_message(
+            f"No prompt file found for agent: {agent_name}\n"
+            f"Searched paths: {search_paths}\n"
+            f"Potential filenames: {potential_filenames}", 
+            'error'
+        )
+        return None
+
+    def _find_prompt_file(self, agent_name: str) -> Optional[str]:
+        """
+        Find or create a prompt file for an agent
+    
+        Args:
+            agent_name (str): Name of the agent
+    
+        Returns:
+            Optional path to prompt file
+        """
+        try:
+            # Normalize agent name
+            normalized_name = agent_name.lower().replace('agent', '').strip()
+        
+            # Possible prompt locations
+            prompt_locations = [
+                PathManager.get_prompt_file(normalized_name),
+                os.path.join(PathManager.get_prompts_path(), f"{normalized_name}.md"),
+                os.path.join(PathManager.get_prompts_path(), "custom", f"{normalized_name}.md")
+            ]
+        
+            # Try to find an existing prompt file
+            for location in prompt_locations:
+                if os.path.exists(location):
+                    self.web_instance.log_message(f"Found prompt for {normalized_name}: {location}", 'debug')
+                    return location
+        
+            # If no prompt found, create a default
+            default_prompt_path = self._create_default_prompt_file(normalized_name)
+        
+            return default_prompt_path
+    
+        except Exception as e:
+            self.web_instance.log_message(f"Error finding prompt for {agent_name}: {str(e)}", 'error')
             return None
 
     def _create_default_prompt_file(self, agent_name: str) -> Optional[str]:
@@ -300,32 +406,35 @@ List any specific constraints or limitations.
 
     def toggle_agent(self, agent_name: str, action: str) -> bool:
         """
-        Toggle agent state (start/stop)
-        
+        Toggle agent state with automatic initialization
+    
         Args:
             agent_name (str): Name of the agent
             action (str): 'start' or 'stop'
-        
+    
         Returns:
             bool: Whether the action was successful
         """
         try:
             # Normalize agent name
             agent_key = agent_name.lower()
-            
-            # Ensure agent is initialized
+        
+            # Check if agent exists, if not, initialize
             if agent_key not in self.agents:
+                self.web_instance.log_message(f"Agent {agent_name} not found. Initializing...", 'info')
+            
+                # Initialize with current configuration
                 self.init_agents({
                     "anthropic_api_key": self.web_instance.config.get("anthropic_api_key", ""),
                     "openai_api_key": self.web_instance.config.get("openai_api_key", "")
                 }, [agent_name])
-            
+        
             # Get agent instance
             agent = self.agents.get(agent_key)
             if not agent:
-                self.web_instance.log_message(f"Agent {agent_name} not found", 'error')
+                self.web_instance.log_message(f"Failed to initialize agent {agent_name}", 'error')
                 return False
-            
+        
             # Perform action
             if action == 'start':
                 if not agent.running:
@@ -340,7 +449,7 @@ List any specific constraints or limitations.
             else:
                 self.web_instance.log_message(f"Invalid action {action} for agent {agent_name}", 'error')
                 return False
-        
+    
         except Exception as e:
             self.web_instance.log_message(f"Error toggling agent {agent_name}: {str(e)}", 'error')
             return False

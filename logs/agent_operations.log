@@ -7970,3 +7970,658 @@ OSError: [WinError 10038] Une opération a été tentée sur autre chose qu’un
 [23:37:48] [ERROR] Error in uncaught_exception: 'team' is undefined
 [23:42:36] [INFO] [23:42:36] [SUCCESS] All agents stopped
 [23:42:36] [DEBUG] Executing cleanup: 
+[23:44:01] [SUCCESS] All agents stopped
+[23:44:01] [ERROR] Error activating agent specifications: Agent specifications not found
+[23:44:01] [ERROR] Error activating agent management: Agent management not found
+[23:44:01] [ERROR] Error activating agent evaluation: Agent evaluation not found
+[23:44:01] [ERROR] Error activating agent suivi: Agent suivi not found
+[23:44:01] [ERROR] Error activating agent documentaliste: Agent documentaliste not found
+[23:44:01] [ERROR] Error activating agent duplication: Agent duplication not found
+[23:44:01] [ERROR] Error activating agent redacteur: Agent redacteur not found
+[23:44:01] [ERROR] Error activating agent validation: Agent validation not found
+[23:44:01] [SUCCESS] Team Book Writing Team activated with results: [{'agent': 'specifications', 'success': False, 'error': 'Agent specifications not found'}, {'agent': 'management', 'success': False, 'error': 'Agent management not found'}, {'agent': 'evaluation', 'success': False, 'error': 'Agent evaluation not found'}, {'agent': 'suivi', 'success': False, 'error': 'Agent suivi not found'}, {'agent': 'documentaliste', 'success': False, 'error': 'Agent documentaliste not found'}, {'agent': 'duplication', 'success': False, 'error': 'Agent duplication not found'}, {'agent': 'redacteur', 'success': False, 'error': 'Agent redacteur not found'}, {'agent': 'validation', 'success': False, 'error': 'Agent validation not found'}]
+[23:44:01] [ERROR] Error calculating health score: 'health'
+[23:44:01] [ERROR] Error calculating team metrics: 'TeamService' object has no attribute '_calculate_activity_score'
+[23:44:01] [SUCCESS] ✓ Équipe book-writing lancée avec succès pour la mission eveil
+[23:44:01] [SUCCESS] All agents stopped
+[23:44:01] [ERROR] Error activating agent specifications: Agent specifications not found
+[23:44:01] [ERROR] Error activating agent management: Agent management not found
+[23:44:01] [ERROR] Error activating agent evaluation: Agent evaluation not found
+[23:44:01] [ERROR] Error activating agent suivi: Agent suivi not found
+[23:44:01] [ERROR] Error activating agent documentaliste: Agent documentaliste not found
+[23:44:01] [ERROR] Error activating agent duplication: Agent duplication not found
+[23:44:01] [ERROR] Error activating agent redacteur: Agent redacteur not found
+[23:44:01] [ERROR] Error activating agent validation: Agent validation not found
+[23:44:01] [SUCCESS] Team Book Writing Team activated with results: [{'agent': 'specifications', 'success': False, 'error': 'Agent specifications not found'}, {'agent': 'management', 'success': False, 'error': 'Agent management not found'}, {'agent': 'evaluation', 'success': False, 'error': 'Agent evaluation not found'}, {'agent': 'suivi', 'success': False, 'error': 'Agent suivi not found'}, {'agent': 'documentaliste', 'success': False, 'error': 'Agent documentaliste not found'}, {'agent': 'duplication', 'success': False, 'error': 'Agent duplication not found'}, {'agent': 'redacteur', 'success': False, 'error': 'Agent redacteur not found'}, {'agent': 'validation', 'success': False, 'error': 'Agent validation not found'}]
+[23:44:01] [ERROR] Error calculating health score: 'health'
+[23:44:01] [ERROR] Error calculating team metrics: 'TeamService' object has no attribute '_calculate_activity_score'
+[23:44:39] [DEBUG] Project root: C:\Users\conta\parallagon
+[23:44:39] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[23:44:39] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[23:44:39] [INFO] Initialisation du serveur web KinOS
+[23:44:39] [DEBUG] Dossier statique: C:\Users\conta\parallagon\static
+[23:44:39] [DEBUG] Dossier templates: C:\Users\conta\parallagon\templates
+[23:44:39] [SUCCESS] Flask app initialized
+[23:44:39] [SUCCESS] CORS configured
+[23:44:39] [INFO] [23:44:39] [INFO] Registered routes:
+[23:44:39] [INFO] [23:44:39] [INFO]   static: {'GET', 'OPTIONS', 'HEAD'} /static/<path:filename>
+[23:44:39] [INFO] [23:44:39] [INFO]   index: {'GET', 'OPTIONS', 'HEAD'} /
+[23:44:39] [INFO] [23:44:39] [INFO]   health_check: {'GET', 'OPTIONS', 'HEAD'} /health
+[23:44:39] [INFO] [23:44:39] [INFO]   get_status: {'GET', 'OPTIONS', 'HEAD'} /api/status
+[23:44:39] [INFO] [23:44:39] [INFO]   api_agents_start: {'POST', 'OPTIONS'} /api/agents/start
+[23:44:39] [INFO] [23:44:39] [INFO]   api_agents_stop: {'POST', 'OPTIONS'} /api/agents/stop
+[23:44:39] [INFO] [23:44:39] [INFO]   api_agents_list: {'GET', 'OPTIONS', 'HEAD'} /api/agents/list
+[23:44:39] [INFO] [23:44:39] [INFO]   api_agents_status: {'GET', 'OPTIONS', 'HEAD'} /api/agents/status
+[23:44:39] [INFO] [23:44:39] [INFO]   api_agent_get_prompt: {'GET', 'OPTIONS', 'HEAD'} /api/agent/<agent_id>/prompt
+[23:44:39] [INFO] [23:44:39] [INFO]   api_agent_save_prompt: {'POST', 'OPTIONS'} /api/agent/<agent_id>/prompt
+[23:44:39] [INFO] [23:44:39] [INFO]   api_agent_control: {'POST', 'OPTIONS'} /api/agent/<agent_id>/<action>
+[23:44:39] [INFO] [23:44:39] [INFO]   api_mission_path_by_name: {'GET', 'OPTIONS', 'HEAD'} /api/paths/mission/<mission_name>
+[23:44:39] [INFO] [23:44:39] [INFO]   api_mission_path: {'GET', 'OPTIONS', 'HEAD'} /api/missions/<int:mission_id>/path
+[23:44:39] [INFO] [23:44:39] [INFO]   api_missions_list: {'GET', 'OPTIONS', 'HEAD'} /api/missions
+[23:44:39] [INFO] [23:44:39] [INFO]   api_mission_files: {'GET', 'OPTIONS', 'HEAD'} /api/missions/<int:mission_id>/files
+[23:44:39] [INFO] [23:44:39] [INFO]   api_mission_select: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/select
+[23:44:39] [INFO] [23:44:39] [INFO]   api_mission_reset: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/reset
+[23:44:39] [INFO] [23:44:39] [INFO]   api_mission_teams: {'GET', 'OPTIONS', 'HEAD'} /api/missions/<int:mission_id>/teams
+[23:44:39] [INFO] [23:44:39] [INFO]   api_mission_file_content: {'GET', 'OPTIONS', 'HEAD'} /api/missions/<int:mission_id>/files/<path:file_path>
+[23:44:39] [INFO] [23:44:39] [INFO]   api_notifications_get: {'GET', 'OPTIONS', 'HEAD'} /api/notifications
+[23:44:39] [INFO] [23:44:39] [INFO]   api_notifications_post: {'POST', 'OPTIONS'} /api/notifications
+[23:44:39] [INFO] [23:44:39] [INFO]   favicon: {'GET', 'OPTIONS', 'HEAD'} /favicon.ico
+[23:44:39] [INFO] [23:44:39] [INFO]   home: {'GET', 'OPTIONS', 'HEAD'} /
+[23:44:39] [INFO] [23:44:39] [INFO]   editor_interface: {'GET', 'OPTIONS', 'HEAD'} /editor
+[23:44:39] [INFO] [23:44:39] [INFO]   agents_page: {'GET', 'OPTIONS', 'HEAD'} /agents
+[23:44:39] [INFO] [23:44:39] [INFO]   files_page: {'GET', 'OPTIONS', 'HEAD'} /files
+[23:44:39] [INFO] [23:44:39] [INFO]   teams_page: {'GET', 'OPTIONS', 'HEAD'} /teams
+[23:44:39] [INFO] [23:44:39] [INFO]   clean_interface: {'GET', 'OPTIONS', 'HEAD'} /clean
+[23:44:39] [INFO] [23:44:39] [INFO]   api_teams_list: {'GET', 'OPTIONS', 'HEAD'} /api/teams
+[23:44:39] [INFO] [23:44:39] [INFO]   api_team_start: {'POST', 'OPTIONS'} /api/teams/<team_id>/start
+[23:44:39] [INFO] [23:44:39] [INFO]   api_team_stop: {'POST', 'OPTIONS'} /api/teams/<team_id>/stop
+[23:44:39] [INFO] [23:44:39] [INFO]   api_team_agent_control: {'POST', 'OPTIONS'} /api/teams/<team_id>/agents/<agent_name>/<action>
+[23:44:39] [INFO] [23:44:39] [INFO]   api_team_status: {'GET', 'OPTIONS', 'HEAD'} /api/teams/<team_id>/status
+[23:44:39] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[23:44:39] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[23:44:39] [INFO] Initializing core components...
+[23:44:39] [SUCCESS] Agents initialized in inactive state
+[23:44:39] [SUCCESS] Core components initialized successfully
+[23:44:40] [INFO] 🚀 KinOS Web Server Startup
+[23:44:40] [INFO] Host: 0.0.0.0
+[23:44:40] [INFO] Port: 8000
+[23:44:40] [INFO] Debug Mode: False
+[23:44:40] [INFO] Static Directory: C:\Users\conta\parallagon\static
+[23:44:40] [INFO] Template Directory: C:\Users\conta\parallagon\templates
+[23:44:50] [ERROR] Error in uncaught_exception: expected token 'name', got '|'
+[23:46:27] [INFO] [23:46:27] [SUCCESS] All agents stopped
+[23:46:27] [DEBUG] Executing cleanup: 
+[23:46:28] [INFO] Application shutdown complete
+[23:46:34] [DEBUG] Project root: C:\Users\conta\parallagon
+[23:46:34] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[23:46:34] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[23:46:34] [INFO] Initialisation du serveur web KinOS
+[23:46:34] [DEBUG] Dossier statique: C:\Users\conta\parallagon\static
+[23:46:34] [DEBUG] Dossier templates: C:\Users\conta\parallagon\templates
+[23:46:34] [SUCCESS] Flask app initialized
+[23:46:34] [SUCCESS] CORS configured
+[23:46:34] [INFO] [23:46:34] [INFO] Registered routes:
+[23:46:34] [INFO] [23:46:34] [INFO]   static: {'HEAD', 'OPTIONS', 'GET'} /static/<path:filename>
+[23:46:34] [INFO] [23:46:34] [INFO]   index: {'HEAD', 'OPTIONS', 'GET'} /
+[23:46:34] [INFO] [23:46:34] [INFO]   health_check: {'HEAD', 'OPTIONS', 'GET'} /health
+[23:46:34] [INFO] [23:46:34] [INFO]   get_status: {'HEAD', 'OPTIONS', 'GET'} /api/status
+[23:46:34] [INFO] [23:46:34] [INFO]   api_agents_start: {'POST', 'OPTIONS'} /api/agents/start
+[23:46:34] [INFO] [23:46:34] [INFO]   api_agents_stop: {'POST', 'OPTIONS'} /api/agents/stop
+[23:46:34] [INFO] [23:46:34] [INFO]   api_agents_list: {'HEAD', 'OPTIONS', 'GET'} /api/agents/list
+[23:46:34] [INFO] [23:46:34] [INFO]   api_agents_status: {'HEAD', 'OPTIONS', 'GET'} /api/agents/status
+[23:46:34] [INFO] [23:46:34] [INFO]   api_agent_get_prompt: {'HEAD', 'OPTIONS', 'GET'} /api/agent/<agent_id>/prompt
+[23:46:34] [INFO] [23:46:34] [INFO]   api_agent_save_prompt: {'POST', 'OPTIONS'} /api/agent/<agent_id>/prompt
+[23:46:34] [INFO] [23:46:34] [INFO]   api_agent_control: {'POST', 'OPTIONS'} /api/agent/<agent_id>/<action>
+[23:46:34] [INFO] [23:46:34] [INFO]   api_mission_path_by_name: {'HEAD', 'OPTIONS', 'GET'} /api/paths/mission/<mission_name>
+[23:46:34] [INFO] [23:46:34] [INFO]   api_mission_path: {'HEAD', 'OPTIONS', 'GET'} /api/missions/<int:mission_id>/path
+[23:46:34] [INFO] [23:46:34] [INFO]   api_missions_list: {'HEAD', 'OPTIONS', 'GET'} /api/missions
+[23:46:34] [INFO] [23:46:34] [INFO]   api_mission_files: {'HEAD', 'OPTIONS', 'GET'} /api/missions/<int:mission_id>/files
+[23:46:34] [INFO] [23:46:34] [INFO]   api_mission_select: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/select
+[23:46:34] [INFO] [23:46:34] [INFO]   api_mission_reset: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/reset
+[23:46:34] [INFO] [23:46:34] [INFO]   api_mission_teams: {'HEAD', 'OPTIONS', 'GET'} /api/missions/<int:mission_id>/teams
+[23:46:34] [INFO] [23:46:34] [INFO]   api_mission_file_content: {'HEAD', 'OPTIONS', 'GET'} /api/missions/<int:mission_id>/files/<path:file_path>
+[23:46:34] [INFO] [23:46:34] [INFO]   api_notifications_get: {'HEAD', 'OPTIONS', 'GET'} /api/notifications
+[23:46:34] [INFO] [23:46:34] [INFO]   api_notifications_post: {'POST', 'OPTIONS'} /api/notifications
+[23:46:34] [INFO] [23:46:34] [INFO]   favicon: {'HEAD', 'OPTIONS', 'GET'} /favicon.ico
+[23:46:34] [INFO] [23:46:34] [INFO]   home: {'HEAD', 'OPTIONS', 'GET'} /
+[23:46:34] [INFO] [23:46:34] [INFO]   editor_interface: {'HEAD', 'OPTIONS', 'GET'} /editor
+[23:46:34] [INFO] [23:46:34] [INFO]   agents_page: {'HEAD', 'OPTIONS', 'GET'} /agents
+[23:46:34] [INFO] [23:46:34] [INFO]   files_page: {'HEAD', 'OPTIONS', 'GET'} /files
+[23:46:34] [INFO] [23:46:34] [INFO]   teams_page: {'HEAD', 'OPTIONS', 'GET'} /teams
+[23:46:34] [INFO] [23:46:34] [INFO]   clean_interface: {'HEAD', 'OPTIONS', 'GET'} /clean
+[23:46:34] [INFO] [23:46:34] [INFO]   api_teams_list: {'HEAD', 'OPTIONS', 'GET'} /api/teams
+[23:46:34] [INFO] [23:46:34] [INFO]   api_team_start: {'POST', 'OPTIONS'} /api/teams/<team_id>/start
+[23:46:34] [INFO] [23:46:34] [INFO]   api_team_stop: {'POST', 'OPTIONS'} /api/teams/<team_id>/stop
+[23:46:34] [INFO] [23:46:34] [INFO]   api_team_agent_control: {'POST', 'OPTIONS'} /api/teams/<team_id>/agents/<agent_name>/<action>
+[23:46:34] [INFO] [23:46:34] [INFO]   api_team_status: {'HEAD', 'OPTIONS', 'GET'} /api/teams/<team_id>/status
+[23:46:34] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[23:46:34] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[23:46:34] [INFO] Initializing core components...
+[23:46:34] [SUCCESS] Agents initialized in inactive state
+[23:46:34] [SUCCESS] Core components initialized successfully
+[23:46:36] [INFO] 🚀 KinOS Web Server Startup
+[23:46:36] [INFO] Host: 0.0.0.0
+[23:46:36] [INFO] Port: 8000
+[23:46:36] [INFO] Debug Mode: False
+[23:46:36] [INFO] Static Directory: C:\Users\conta\parallagon\static
+[23:46:36] [INFO] Template Directory: C:\Users\conta\parallagon\templates
+[23:46:36] [ERROR] Error in uncaught_exception: 'team' is undefined
+[23:46:38] [ERROR] Error in uncaught_exception: 'team' is undefined
+[23:47:53] [SUCCESS] All agents stopped
+[23:47:53] [ERROR] Error activating agent specifications: Agent specifications not found
+[23:47:53] [ERROR] Error activating agent management: Agent management not found
+[23:47:53] [ERROR] Error activating agent evaluation: Agent evaluation not found
+[23:47:53] [ERROR] Error activating agent suivi: Agent suivi not found
+[23:47:53] [ERROR] Error activating agent documentaliste: Agent documentaliste not found
+[23:47:53] [ERROR] Error activating agent duplication: Agent duplication not found
+[23:47:53] [ERROR] Error activating agent redacteur: Agent redacteur not found
+[23:47:53] [ERROR] Error activating agent validation: Agent validation not found
+[23:47:53] [SUCCESS] Team Book Writing Team activated with results: [{'agent': 'specifications', 'success': False, 'error': 'Agent specifications not found'}, {'agent': 'management', 'success': False, 'error': 'Agent management not found'}, {'agent': 'evaluation', 'success': False, 'error': 'Agent evaluation not found'}, {'agent': 'suivi', 'success': False, 'error': 'Agent suivi not found'}, {'agent': 'documentaliste', 'success': False, 'error': 'Agent documentaliste not found'}, {'agent': 'duplication', 'success': False, 'error': 'Agent duplication not found'}, {'agent': 'redacteur', 'success': False, 'error': 'Agent redacteur not found'}, {'agent': 'validation', 'success': False, 'error': 'Agent validation not found'}]
+[23:47:53] [ERROR] Error calculating health score: 'health'
+[23:47:53] [ERROR] Error calculating team metrics: 'TeamService' object has no attribute '_calculate_activity_score'
+[23:47:53] [SUCCESS] ✓ Équipe book-writing lancée avec succès pour la mission eveil
+[23:47:54] [SUCCESS] All agents stopped
+[23:47:54] [ERROR] Error activating agent specifications: Agent specifications not found
+[23:47:54] [ERROR] Error activating agent management: Agent management not found
+[23:47:54] [ERROR] Error activating agent evaluation: Agent evaluation not found
+[23:47:54] [ERROR] Error activating agent suivi: Agent suivi not found
+[23:47:54] [ERROR] Error activating agent documentaliste: Agent documentaliste not found
+[23:47:54] [ERROR] Error activating agent duplication: Agent duplication not found
+[23:47:54] [ERROR] Error activating agent redacteur: Agent redacteur not found
+[23:47:54] [ERROR] Error activating agent validation: Agent validation not found
+[23:47:54] [SUCCESS] Team Book Writing Team activated with results: [{'agent': 'specifications', 'success': False, 'error': 'Agent specifications not found'}, {'agent': 'management', 'success': False, 'error': 'Agent management not found'}, {'agent': 'evaluation', 'success': False, 'error': 'Agent evaluation not found'}, {'agent': 'suivi', 'success': False, 'error': 'Agent suivi not found'}, {'agent': 'documentaliste', 'success': False, 'error': 'Agent documentaliste not found'}, {'agent': 'duplication', 'success': False, 'error': 'Agent duplication not found'}, {'agent': 'redacteur', 'success': False, 'error': 'Agent redacteur not found'}, {'agent': 'validation', 'success': False, 'error': 'Agent validation not found'}]
+[23:47:54] [ERROR] Error calculating health score: 'health'
+[23:47:54] [ERROR] Error calculating team metrics: 'TeamService' object has no attribute '_calculate_activity_score'
+[23:48:44] [INFO] [23:48:44] [SUCCESS] All agents stopped
+[23:48:44] [DEBUG] Executing cleanup: 
+[23:48:49] [DEBUG] Project root: C:\Users\conta\parallagon
+[23:48:49] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[23:48:49] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[23:48:49] [INFO] Initialisation du serveur web KinOS
+[23:48:49] [DEBUG] Dossier statique: C:\Users\conta\parallagon\static
+[23:48:49] [DEBUG] Dossier templates: C:\Users\conta\parallagon\templates
+[23:48:49] [SUCCESS] Flask app initialized
+[23:48:49] [SUCCESS] CORS configured
+[23:48:49] [INFO] [23:48:49] [INFO] Registered routes:
+[23:48:49] [INFO] [23:48:49] [INFO]   static: {'GET', 'OPTIONS', 'HEAD'} /static/<path:filename>
+[23:48:49] [INFO] [23:48:49] [INFO]   index: {'GET', 'OPTIONS', 'HEAD'} /
+[23:48:49] [INFO] [23:48:49] [INFO]   health_check: {'GET', 'OPTIONS', 'HEAD'} /health
+[23:48:49] [INFO] [23:48:49] [INFO]   get_status: {'GET', 'OPTIONS', 'HEAD'} /api/status
+[23:48:49] [INFO] [23:48:49] [INFO]   api_agents_start: {'POST', 'OPTIONS'} /api/agents/start
+[23:48:49] [INFO] [23:48:49] [INFO]   api_agents_stop: {'POST', 'OPTIONS'} /api/agents/stop
+[23:48:49] [INFO] [23:48:49] [INFO]   api_agents_list: {'GET', 'OPTIONS', 'HEAD'} /api/agents/list
+[23:48:49] [INFO] [23:48:49] [INFO]   api_agents_status: {'GET', 'OPTIONS', 'HEAD'} /api/agents/status
+[23:48:49] [INFO] [23:48:49] [INFO]   api_agent_get_prompt: {'GET', 'OPTIONS', 'HEAD'} /api/agent/<agent_id>/prompt
+[23:48:49] [INFO] [23:48:49] [INFO]   api_agent_save_prompt: {'POST', 'OPTIONS'} /api/agent/<agent_id>/prompt
+[23:48:49] [INFO] [23:48:49] [INFO]   api_agent_control: {'POST', 'OPTIONS'} /api/agent/<agent_id>/<action>
+[23:48:49] [INFO] [23:48:49] [INFO]   api_mission_path_by_name: {'GET', 'OPTIONS', 'HEAD'} /api/paths/mission/<mission_name>
+[23:48:49] [INFO] [23:48:49] [INFO]   api_mission_path: {'GET', 'OPTIONS', 'HEAD'} /api/missions/<int:mission_id>/path
+[23:48:49] [INFO] [23:48:49] [INFO]   api_missions_list: {'GET', 'OPTIONS', 'HEAD'} /api/missions
+[23:48:49] [INFO] [23:48:49] [INFO]   api_mission_files: {'GET', 'OPTIONS', 'HEAD'} /api/missions/<int:mission_id>/files
+[23:48:49] [INFO] [23:48:49] [INFO]   api_mission_select: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/select
+[23:48:49] [INFO] [23:48:49] [INFO]   api_mission_reset: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/reset
+[23:48:49] [INFO] [23:48:49] [INFO]   api_mission_teams: {'GET', 'OPTIONS', 'HEAD'} /api/missions/<int:mission_id>/teams
+[23:48:49] [INFO] [23:48:49] [INFO]   api_mission_file_content: {'GET', 'OPTIONS', 'HEAD'} /api/missions/<int:mission_id>/files/<path:file_path>
+[23:48:49] [INFO] [23:48:49] [INFO]   api_notifications_get: {'GET', 'OPTIONS', 'HEAD'} /api/notifications
+[23:48:49] [INFO] [23:48:49] [INFO]   api_notifications_post: {'POST', 'OPTIONS'} /api/notifications
+[23:48:49] [INFO] [23:48:49] [INFO]   favicon: {'GET', 'OPTIONS', 'HEAD'} /favicon.ico
+[23:48:49] [INFO] [23:48:49] [INFO]   home: {'GET', 'OPTIONS', 'HEAD'} /
+[23:48:49] [INFO] [23:48:49] [INFO]   editor_interface: {'GET', 'OPTIONS', 'HEAD'} /editor
+[23:48:49] [INFO] [23:48:49] [INFO]   agents_page: {'GET', 'OPTIONS', 'HEAD'} /agents
+[23:48:49] [INFO] [23:48:49] [INFO]   files_page: {'GET', 'OPTIONS', 'HEAD'} /files
+[23:48:49] [INFO] [23:48:49] [INFO]   teams_page: {'GET', 'OPTIONS', 'HEAD'} /teams
+[23:48:49] [INFO] [23:48:49] [INFO]   clean_interface: {'GET', 'OPTIONS', 'HEAD'} /clean
+[23:48:49] [INFO] [23:48:49] [INFO]   api_teams_list: {'GET', 'OPTIONS', 'HEAD'} /api/teams
+[23:48:49] [INFO] [23:48:49] [INFO]   api_team_start: {'POST', 'OPTIONS'} /api/teams/<team_id>/start
+[23:48:49] [INFO] [23:48:49] [INFO]   api_team_stop: {'POST', 'OPTIONS'} /api/teams/<team_id>/stop
+[23:48:49] [INFO] [23:48:49] [INFO]   api_team_agent_control: {'POST', 'OPTIONS'} /api/teams/<team_id>/agents/<agent_name>/<action>
+[23:48:49] [INFO] [23:48:49] [INFO]   api_team_status: {'GET', 'OPTIONS', 'HEAD'} /api/teams/<team_id>/status
+[23:48:49] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[23:48:49] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[23:48:49] [INFO] Initializing core components...
+[23:48:49] [INFO] [23:48:49] [DEBUG] Found prompt for specifications: C:\Users\conta\parallagon\prompts\specifications.md
+[23:48:49] [INFO] [23:48:49] [ERROR] Error initializing agent specifications: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:48:49] [INFO] [23:48:49] [DEBUG] Found prompt for management: C:\Users\conta\parallagon\prompts\management.md
+[23:48:49] [INFO] [23:48:49] [ERROR] Error initializing agent management: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:48:49] [INFO] [23:48:49] [DEBUG] Found prompt for evaluation: C:\Users\conta\parallagon\prompts\evaluation.md
+[23:48:49] [INFO] [23:48:49] [ERROR] Error initializing agent evaluation: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:48:49] [INFO] [23:48:49] [INFO] Created default prompt file for suivi: C:\Users\conta\parallagon\prompts\custom\suivi.md
+[23:48:49] [INFO] [23:48:49] [ERROR] Error initializing agent suivi: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:48:49] [INFO] [23:48:49] [DEBUG] Found prompt for documentaliste: C:\Users\conta\parallagon\prompts\documentaliste.md
+[23:48:49] [INFO] [23:48:49] [ERROR] Error initializing agent documentaliste: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:48:49] [INFO] [23:48:49] [DEBUG] Found prompt for duplication: C:\Users\conta\parallagon\prompts\duplication.md
+[23:48:49] [INFO] [23:48:49] [ERROR] Error initializing agent duplication: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:48:49] [INFO] [23:48:49] [DEBUG] Found prompt for redacteur: C:\Users\conta\parallagon\prompts\redacteur.md
+[23:48:49] [INFO] [23:48:49] [ERROR] Error initializing agent redacteur: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:48:49] [INFO] [23:48:49] [DEBUG] Found prompt for validation: C:\Users\conta\parallagon\prompts\validation.md
+[23:48:49] [INFO] [23:48:49] [ERROR] Error initializing agent validation: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:48:49] [INFO] [23:48:49] [DEBUG] Found prompt for production: C:\Users\conta\parallagon\prompts\production.md
+[23:48:49] [INFO] [23:48:49] [ERROR] Error initializing agent production: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:48:49] [INFO] [23:48:49] [DEBUG] Found prompt for testeur: C:\Users\conta\parallagon\prompts\testeur.md
+[23:48:49] [INFO] [23:48:49] [ERROR] Error initializing agent testeur: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:48:49] [INFO] [23:48:49] [INFO] Initialized 0/10 agents
+[23:48:49] [SUCCESS] Agents initialized in inactive state
+[23:48:49] [SUCCESS] Core components initialized successfully
+[23:48:50] [INFO] 🚀 KinOS Web Server Startup
+[23:48:50] [INFO] Host: 0.0.0.0
+[23:48:50] [INFO] Port: 8000
+[23:48:50] [INFO] Debug Mode: False
+[23:48:50] [INFO] Static Directory: C:\Users\conta\parallagon\static
+[23:48:50] [INFO] Template Directory: C:\Users\conta\parallagon\templates
+[23:49:28] [ERROR] Error rendering agents page: 'MissionService' object has no attribute 'get_current_mission'
+[23:52:20] [DEBUG] Project root: C:\Users\conta\parallagon
+[23:52:20] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[23:52:20] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[23:52:20] [INFO] Initialisation du serveur web KinOS
+[23:52:20] [DEBUG] Dossier statique: C:\Users\conta\parallagon\static
+[23:52:20] [DEBUG] Dossier templates: C:\Users\conta\parallagon\templates
+[23:52:20] [SUCCESS] Flask app initialized
+[23:52:20] [SUCCESS] CORS configured
+[23:52:20] [INFO] [23:52:20] [INFO] Registered routes:
+[23:52:20] [INFO] [23:52:20] [INFO]   static: {'GET', 'HEAD', 'OPTIONS'} /static/<path:filename>
+[23:52:20] [INFO] [23:52:20] [INFO]   index: {'GET', 'HEAD', 'OPTIONS'} /
+[23:52:20] [INFO] [23:52:20] [INFO]   health_check: {'GET', 'HEAD', 'OPTIONS'} /health
+[23:52:20] [INFO] [23:52:20] [INFO]   get_status: {'GET', 'HEAD', 'OPTIONS'} /api/status
+[23:52:20] [INFO] [23:52:20] [INFO]   api_agents_start: {'POST', 'OPTIONS'} /api/agents/start
+[23:52:20] [INFO] [23:52:20] [INFO]   api_agents_stop: {'POST', 'OPTIONS'} /api/agents/stop
+[23:52:20] [INFO] [23:52:20] [INFO]   api_agents_list: {'GET', 'HEAD', 'OPTIONS'} /api/agents/list
+[23:52:20] [INFO] [23:52:20] [INFO]   api_agents_status: {'GET', 'HEAD', 'OPTIONS'} /api/agents/status
+[23:52:20] [INFO] [23:52:20] [INFO]   api_agent_get_prompt: {'GET', 'HEAD', 'OPTIONS'} /api/agent/<agent_id>/prompt
+[23:52:20] [INFO] [23:52:20] [INFO]   api_agent_save_prompt: {'POST', 'OPTIONS'} /api/agent/<agent_id>/prompt
+[23:52:20] [INFO] [23:52:20] [INFO]   api_agent_control: {'POST', 'OPTIONS'} /api/agent/<agent_id>/<action>
+[23:52:20] [INFO] [23:52:20] [INFO]   api_mission_path_by_name: {'GET', 'HEAD', 'OPTIONS'} /api/paths/mission/<mission_name>
+[23:52:20] [INFO] [23:52:20] [INFO]   api_mission_path: {'GET', 'HEAD', 'OPTIONS'} /api/missions/<int:mission_id>/path
+[23:52:20] [INFO] [23:52:20] [INFO]   api_missions_list: {'GET', 'HEAD', 'OPTIONS'} /api/missions
+[23:52:20] [INFO] [23:52:20] [INFO]   api_mission_files: {'GET', 'HEAD', 'OPTIONS'} /api/missions/<int:mission_id>/files
+[23:52:20] [INFO] [23:52:20] [INFO]   api_mission_select: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/select
+[23:52:20] [INFO] [23:52:20] [INFO]   api_mission_reset: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/reset
+[23:52:20] [INFO] [23:52:20] [INFO]   api_mission_teams: {'GET', 'HEAD', 'OPTIONS'} /api/missions/<int:mission_id>/teams
+[23:52:20] [INFO] [23:52:20] [INFO]   api_mission_file_content: {'GET', 'HEAD', 'OPTIONS'} /api/missions/<int:mission_id>/files/<path:file_path>
+[23:52:20] [INFO] [23:52:20] [INFO]   api_notifications_get: {'GET', 'HEAD', 'OPTIONS'} /api/notifications
+[23:52:20] [INFO] [23:52:20] [INFO]   api_notifications_post: {'POST', 'OPTIONS'} /api/notifications
+[23:52:20] [INFO] [23:52:20] [INFO]   favicon: {'GET', 'HEAD', 'OPTIONS'} /favicon.ico
+[23:52:20] [INFO] [23:52:20] [INFO]   home: {'GET', 'HEAD', 'OPTIONS'} /
+[23:52:20] [INFO] [23:52:20] [INFO]   editor_interface: {'GET', 'HEAD', 'OPTIONS'} /editor
+[23:52:20] [INFO] [23:52:20] [INFO]   agents_page: {'GET', 'HEAD', 'OPTIONS'} /agents
+[23:52:20] [INFO] [23:52:20] [INFO]   files_page: {'GET', 'HEAD', 'OPTIONS'} /files
+[23:52:20] [INFO] [23:52:20] [INFO]   teams_page: {'GET', 'HEAD', 'OPTIONS'} /teams
+[23:52:20] [INFO] [23:52:20] [INFO]   clean_interface: {'GET', 'HEAD', 'OPTIONS'} /clean
+[23:52:20] [INFO] [23:52:20] [INFO]   api_teams_list: {'GET', 'HEAD', 'OPTIONS'} /api/teams
+[23:52:20] [INFO] [23:52:20] [INFO]   api_team_start: {'POST', 'OPTIONS'} /api/teams/<team_id>/start
+[23:52:20] [INFO] [23:52:20] [INFO]   api_team_stop: {'POST', 'OPTIONS'} /api/teams/<team_id>/stop
+[23:52:20] [INFO] [23:52:20] [INFO]   api_team_agent_control: {'POST', 'OPTIONS'} /api/teams/<team_id>/agents/<agent_name>/<action>
+[23:52:20] [INFO] [23:52:20] [INFO]   api_team_status: {'GET', 'HEAD', 'OPTIONS'} /api/teams/<team_id>/status
+[23:52:20] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[23:52:20] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[23:52:20] [INFO] Initializing core components...
+[23:52:20] [INFO] [23:52:20] [DEBUG] Found prompt for specifications: C:\Users\conta\parallagon\prompts\specifications.md
+[23:52:20] [INFO] [23:52:20] [ERROR] Error initializing agent specifications: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:52:20] [INFO] [23:52:20] [DEBUG] Found prompt for management: C:\Users\conta\parallagon\prompts\management.md
+[23:52:20] [INFO] [23:52:20] [ERROR] Error initializing agent management: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:52:20] [INFO] [23:52:20] [DEBUG] Found prompt for evaluation: C:\Users\conta\parallagon\prompts\evaluation.md
+[23:52:20] [INFO] [23:52:20] [ERROR] Error initializing agent evaluation: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:52:20] [INFO] [23:52:20] [DEBUG] Found prompt for suivi: C:\Users\conta\parallagon\prompts\custom\suivi.md
+[23:52:20] [INFO] [23:52:20] [ERROR] Error initializing agent suivi: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:52:20] [INFO] [23:52:20] [DEBUG] Found prompt for documentaliste: C:\Users\conta\parallagon\prompts\documentaliste.md
+[23:52:20] [INFO] [23:52:20] [ERROR] Error initializing agent documentaliste: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:52:20] [INFO] [23:52:20] [DEBUG] Found prompt for duplication: C:\Users\conta\parallagon\prompts\duplication.md
+[23:52:20] [INFO] [23:52:20] [ERROR] Error initializing agent duplication: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:52:20] [INFO] [23:52:20] [DEBUG] Found prompt for redacteur: C:\Users\conta\parallagon\prompts\redacteur.md
+[23:52:20] [INFO] [23:52:20] [ERROR] Error initializing agent redacteur: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:52:20] [INFO] [23:52:20] [DEBUG] Found prompt for validation: C:\Users\conta\parallagon\prompts\validation.md
+[23:52:20] [INFO] [23:52:20] [ERROR] Error initializing agent validation: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:52:20] [INFO] [23:52:20] [DEBUG] Found prompt for production: C:\Users\conta\parallagon\prompts\production.md
+[23:52:20] [INFO] [23:52:20] [ERROR] Error initializing agent production: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:52:20] [INFO] [23:52:20] [DEBUG] Found prompt for testeur: C:\Users\conta\parallagon\prompts\testeur.md
+[23:52:20] [INFO] [23:52:20] [ERROR] Error initializing agent testeur: 'AgentService' object has no attribute '_create_dynamic_agent'
+[23:52:20] [INFO] [23:52:20] [INFO] Initialized 0/10 agents
+[23:52:20] [SUCCESS] Agents initialized in inactive state
+[23:52:20] [SUCCESS] Core components initialized successfully
+[23:52:22] [INFO] 🚀 KinOS Web Server Startup
+[23:52:22] [INFO] Host: 0.0.0.0
+[23:52:22] [INFO] Port: 8000
+[23:52:22] [INFO] Debug Mode: False
+[23:52:22] [INFO] Static Directory: C:\Users\conta\parallagon\static
+[23:52:22] [INFO] Template Directory: C:\Users\conta\parallagon\templates
+[23:52:27] [ERROR] Error rendering agents page: 'MissionService' object has no attribute 'get_current_mission'
+[23:53:35] [SUCCESS] All agents stopped
+[23:53:35] [ERROR] Error activating agent specifications: Agent specifications not found
+[23:53:35] [ERROR] Error activating agent management: Agent management not found
+[23:53:35] [ERROR] Error activating agent evaluation: Agent evaluation not found
+[23:53:35] [ERROR] Error activating agent suivi: Agent suivi not found
+[23:53:35] [ERROR] Error activating agent documentaliste: Agent documentaliste not found
+[23:53:35] [ERROR] Error activating agent duplication: Agent duplication not found
+[23:53:35] [ERROR] Error activating agent redacteur: Agent redacteur not found
+[23:53:35] [ERROR] Error activating agent validation: Agent validation not found
+[23:53:35] [SUCCESS] Team Book Writing Team activated with results: [{'agent': 'specifications', 'success': False, 'error': 'Agent specifications not found'}, {'agent': 'management', 'success': False, 'error': 'Agent management not found'}, {'agent': 'evaluation', 'success': False, 'error': 'Agent evaluation not found'}, {'agent': 'suivi', 'success': False, 'error': 'Agent suivi not found'}, {'agent': 'documentaliste', 'success': False, 'error': 'Agent documentaliste not found'}, {'agent': 'duplication', 'success': False, 'error': 'Agent duplication not found'}, {'agent': 'redacteur', 'success': False, 'error': 'Agent redacteur not found'}, {'agent': 'validation', 'success': False, 'error': 'Agent validation not found'}]
+[23:53:35] [ERROR] Error calculating health score: 'health'
+[23:53:35] [ERROR] Error calculating team metrics: 'TeamService' object has no attribute '_calculate_activity_score'
+[23:53:35] [SUCCESS] ✓ Équipe book-writing lancée avec succès pour la mission eveil
+[23:53:35] [SUCCESS] All agents stopped
+[23:53:35] [ERROR] Error activating agent specifications: Agent specifications not found
+[23:53:35] [ERROR] Error activating agent management: Agent management not found
+[23:53:35] [ERROR] Error activating agent evaluation: Agent evaluation not found
+[23:53:35] [ERROR] Error activating agent suivi: Agent suivi not found
+[23:53:35] [ERROR] Error activating agent documentaliste: Agent documentaliste not found
+[23:53:35] [ERROR] Error activating agent duplication: Agent duplication not found
+[23:53:35] [ERROR] Error activating agent redacteur: Agent redacteur not found
+[23:53:35] [ERROR] Error activating agent validation: Agent validation not found
+[23:53:35] [SUCCESS] Team Book Writing Team activated with results: [{'agent': 'specifications', 'success': False, 'error': 'Agent specifications not found'}, {'agent': 'management', 'success': False, 'error': 'Agent management not found'}, {'agent': 'evaluation', 'success': False, 'error': 'Agent evaluation not found'}, {'agent': 'suivi', 'success': False, 'error': 'Agent suivi not found'}, {'agent': 'documentaliste', 'success': False, 'error': 'Agent documentaliste not found'}, {'agent': 'duplication', 'success': False, 'error': 'Agent duplication not found'}, {'agent': 'redacteur', 'success': False, 'error': 'Agent redacteur not found'}, {'agent': 'validation', 'success': False, 'error': 'Agent validation not found'}]
+[23:53:35] [ERROR] Error calculating health score: 'health'
+[23:53:35] [ERROR] Error calculating team metrics: 'TeamService' object has no attribute '_calculate_activity_score'
+[23:56:23] [SUCCESS] All agents stopped
+[23:56:23] [ERROR] Error activating agent specifications: Agent specifications not found
+[23:56:23] [ERROR] Error activating agent management: Agent management not found
+[23:56:23] [ERROR] Error activating agent evaluation: Agent evaluation not found
+[23:56:23] [ERROR] Error activating agent suivi: Agent suivi not found
+[23:56:23] [ERROR] Error activating agent documentaliste: Agent documentaliste not found
+[23:56:23] [ERROR] Error activating agent duplication: Agent duplication not found
+[23:56:23] [ERROR] Error activating agent redacteur: Agent redacteur not found
+[23:56:23] [ERROR] Error activating agent validation: Agent validation not found
+[23:56:23] [SUCCESS] Team Book Writing Team activated with results: [{'agent': 'specifications', 'success': False, 'error': 'Agent specifications not found'}, {'agent': 'management', 'success': False, 'error': 'Agent management not found'}, {'agent': 'evaluation', 'success': False, 'error': 'Agent evaluation not found'}, {'agent': 'suivi', 'success': False, 'error': 'Agent suivi not found'}, {'agent': 'documentaliste', 'success': False, 'error': 'Agent documentaliste not found'}, {'agent': 'duplication', 'success': False, 'error': 'Agent duplication not found'}, {'agent': 'redacteur', 'success': False, 'error': 'Agent redacteur not found'}, {'agent': 'validation', 'success': False, 'error': 'Agent validation not found'}]
+[23:56:23] [ERROR] Error calculating health score: 'health'
+[23:56:23] [ERROR] Error calculating team metrics: 'TeamService' object has no attribute '_calculate_activity_score'
+[23:56:23] [SUCCESS] ✓ Équipe book-writing lancée avec succès pour la mission eveil
+[23:56:24] [SUCCESS] All agents stopped
+[23:56:24] [ERROR] Error activating agent specifications: Agent specifications not found
+[23:56:24] [ERROR] Error activating agent management: Agent management not found
+[23:56:24] [ERROR] Error activating agent evaluation: Agent evaluation not found
+[23:56:24] [ERROR] Error activating agent suivi: Agent suivi not found
+[23:56:24] [ERROR] Error activating agent documentaliste: Agent documentaliste not found
+[23:56:24] [ERROR] Error activating agent duplication: Agent duplication not found
+[23:56:24] [ERROR] Error activating agent redacteur: Agent redacteur not found
+[23:56:24] [ERROR] Error activating agent validation: Agent validation not found
+[23:56:24] [SUCCESS] Team Book Writing Team activated with results: [{'agent': 'specifications', 'success': False, 'error': 'Agent specifications not found'}, {'agent': 'management', 'success': False, 'error': 'Agent management not found'}, {'agent': 'evaluation', 'success': False, 'error': 'Agent evaluation not found'}, {'agent': 'suivi', 'success': False, 'error': 'Agent suivi not found'}, {'agent': 'documentaliste', 'success': False, 'error': 'Agent documentaliste not found'}, {'agent': 'duplication', 'success': False, 'error': 'Agent duplication not found'}, {'agent': 'redacteur', 'success': False, 'error': 'Agent redacteur not found'}, {'agent': 'validation', 'success': False, 'error': 'Agent validation not found'}]
+[23:56:24] [ERROR] Error calculating health score: 'health'
+[23:56:24] [ERROR] Error calculating team metrics: 'TeamService' object has no attribute '_calculate_activity_score'
+[23:59:09] [DEBUG] Project root: C:\Users\conta\parallagon
+[23:59:09] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[23:59:09] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[23:59:09] [INFO] Initialisation du serveur web KinOS
+[23:59:09] [DEBUG] Dossier statique: C:\Users\conta\parallagon\static
+[23:59:09] [DEBUG] Dossier templates: C:\Users\conta\parallagon\templates
+[23:59:09] [SUCCESS] Flask app initialized
+[23:59:09] [SUCCESS] CORS configured
+[23:59:09] [INFO] [23:59:09] [INFO] Registered routes:
+[23:59:09] [INFO] [23:59:09] [INFO]   static: {'HEAD', 'GET', 'OPTIONS'} /static/<path:filename>
+[23:59:09] [INFO] [23:59:09] [INFO]   index: {'HEAD', 'GET', 'OPTIONS'} /
+[23:59:09] [INFO] [23:59:09] [INFO]   health_check: {'HEAD', 'GET', 'OPTIONS'} /health
+[23:59:09] [INFO] [23:59:09] [INFO]   get_status: {'HEAD', 'GET', 'OPTIONS'} /api/status
+[23:59:09] [INFO] [23:59:09] [INFO]   api_agents_start: {'POST', 'OPTIONS'} /api/agents/start
+[23:59:09] [INFO] [23:59:09] [INFO]   api_agents_stop: {'POST', 'OPTIONS'} /api/agents/stop
+[23:59:09] [INFO] [23:59:09] [INFO]   api_agents_list: {'HEAD', 'GET', 'OPTIONS'} /api/agents/list
+[23:59:09] [INFO] [23:59:09] [INFO]   api_agents_status: {'HEAD', 'GET', 'OPTIONS'} /api/agents/status
+[23:59:09] [INFO] [23:59:09] [INFO]   api_agent_get_prompt: {'HEAD', 'GET', 'OPTIONS'} /api/agent/<agent_id>/prompt
+[23:59:09] [INFO] [23:59:09] [INFO]   api_agent_save_prompt: {'POST', 'OPTIONS'} /api/agent/<agent_id>/prompt
+[23:59:09] [INFO] [23:59:09] [INFO]   api_agent_control: {'POST', 'OPTIONS'} /api/agent/<agent_id>/<action>
+[23:59:09] [INFO] [23:59:09] [INFO]   api_mission_path_by_name: {'HEAD', 'GET', 'OPTIONS'} /api/paths/mission/<mission_name>
+[23:59:09] [INFO] [23:59:09] [INFO]   api_mission_path: {'HEAD', 'GET', 'OPTIONS'} /api/missions/<int:mission_id>/path
+[23:59:09] [INFO] [23:59:09] [INFO]   api_missions_list: {'HEAD', 'GET', 'OPTIONS'} /api/missions
+[23:59:09] [INFO] [23:59:09] [INFO]   api_mission_files: {'HEAD', 'GET', 'OPTIONS'} /api/missions/<int:mission_id>/files
+[23:59:09] [INFO] [23:59:09] [INFO]   api_mission_select: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/select
+[23:59:09] [INFO] [23:59:09] [INFO]   api_mission_reset: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/reset
+[23:59:09] [INFO] [23:59:09] [INFO]   api_mission_teams: {'HEAD', 'GET', 'OPTIONS'} /api/missions/<int:mission_id>/teams
+[23:59:09] [INFO] [23:59:09] [INFO]   api_mission_file_content: {'HEAD', 'GET', 'OPTIONS'} /api/missions/<int:mission_id>/files/<path:file_path>
+[23:59:09] [INFO] [23:59:09] [INFO]   api_notifications_get: {'HEAD', 'GET', 'OPTIONS'} /api/notifications
+[23:59:09] [INFO] [23:59:09] [INFO]   api_notifications_post: {'POST', 'OPTIONS'} /api/notifications
+[23:59:09] [INFO] [23:59:09] [INFO]   favicon: {'HEAD', 'GET', 'OPTIONS'} /favicon.ico
+[23:59:09] [INFO] [23:59:09] [INFO]   home: {'HEAD', 'GET', 'OPTIONS'} /
+[23:59:09] [INFO] [23:59:09] [INFO]   editor_interface: {'HEAD', 'GET', 'OPTIONS'} /editor
+[23:59:09] [INFO] [23:59:09] [INFO]   agents_page: {'HEAD', 'GET', 'OPTIONS'} /agents
+[23:59:09] [INFO] [23:59:09] [INFO]   files_page: {'HEAD', 'GET', 'OPTIONS'} /files
+[23:59:09] [INFO] [23:59:09] [INFO]   teams_page: {'HEAD', 'GET', 'OPTIONS'} /teams
+[23:59:09] [INFO] [23:59:09] [INFO]   clean_interface: {'HEAD', 'GET', 'OPTIONS'} /clean
+[23:59:09] [INFO] [23:59:09] [INFO]   api_teams_list: {'HEAD', 'GET', 'OPTIONS'} /api/teams
+[23:59:09] [INFO] [23:59:09] [INFO]   api_team_start: {'POST', 'OPTIONS'} /api/teams/<team_id>/start
+[23:59:09] [INFO] [23:59:09] [INFO]   api_team_stop: {'POST', 'OPTIONS'} /api/teams/<team_id>/stop
+[23:59:09] [INFO] [23:59:09] [INFO]   api_team_agent_control: {'POST', 'OPTIONS'} /api/teams/<team_id>/agents/<agent_name>/<action>
+[23:59:09] [INFO] [23:59:09] [INFO]   api_team_status: {'HEAD', 'GET', 'OPTIONS'} /api/teams/<team_id>/status
+[23:59:09] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[23:59:09] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[23:59:09] [INFO] Initializing core components...
+[23:59:09] [INFO] [23:59:09] [DEBUG] Initializing agents for team: None
+Config keys: ['anthropic_api_key', 'openai_api_key']
+[23:59:09] [INFO] [23:59:09] [DEBUG] Searching agent prompts in: C:\Users\conta\parallagon\prompts
+Path exists: True
+Path contents: ['chroniqueur.md', 'custom', 'documentaliste.md', 'duplication.md', 'evaluation.md', 'management.md', 'production.md', 'redacteur.md', 'redacteur2.md', 'redacteur3.md', 'specifications.md', 'testeur.md', 'validation.md']
+[23:59:09] [INFO] [23:59:09] [DEBUG] Searching agent prompts in: C:\Users\conta\parallagon\prompts\custom
+Path exists: True
+Path contents: ['suivi.md']
+[23:59:09] [INFO] [23:59:09] [DEBUG] Searching agent prompts in: C:\Users\conta\parallagon\prompts
+Path exists: True
+Path contents: ['chroniqueur.md', 'custom', 'documentaliste.md', 'duplication.md', 'evaluation.md', 'management.md', 'production.md', 'redacteur.md', 'redacteur2.md', 'redacteur3.md', 'specifications.md', 'testeur.md', 'validation.md']
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\specifications.md
+File exists: True
+[23:59:09] [INFO] [23:59:09] [CRITICAL] Detailed error initializing agent specifications: 'AgentService' object has no attribute '_read_prompt_file'
+Search paths: ['C:\\Users\\conta\\parallagon\\prompts', 'C:\\Users\\conta\\parallagon\\prompts\\custom', 'C:\\Users\\conta\\parallagon\\prompts']
+Full traceback: Traceback (most recent call last):
+  File "C:\Users\conta\parallagon\services\agent_service.py", line 201, in init_agents
+    prompt = self._read_prompt_file(prompt_file) if prompt_file else self._create_default_prompt(normalized_name)
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AgentService' object has no attribute '_read_prompt_file'. Did you mean: '_find_prompt_file'?
+
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\management.md
+File exists: True
+[23:59:09] [INFO] [23:59:09] [CRITICAL] Detailed error initializing agent management: 'AgentService' object has no attribute '_read_prompt_file'
+Search paths: ['C:\\Users\\conta\\parallagon\\prompts', 'C:\\Users\\conta\\parallagon\\prompts\\custom', 'C:\\Users\\conta\\parallagon\\prompts']
+Full traceback: Traceback (most recent call last):
+  File "C:\Users\conta\parallagon\services\agent_service.py", line 201, in init_agents
+    prompt = self._read_prompt_file(prompt_file) if prompt_file else self._create_default_prompt(normalized_name)
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AgentService' object has no attribute '_read_prompt_file'. Did you mean: '_find_prompt_file'?
+
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\evaluation.md
+File exists: True
+[23:59:09] [INFO] [23:59:09] [CRITICAL] Detailed error initializing agent evaluation: 'AgentService' object has no attribute '_read_prompt_file'
+Search paths: ['C:\\Users\\conta\\parallagon\\prompts', 'C:\\Users\\conta\\parallagon\\prompts\\custom', 'C:\\Users\\conta\\parallagon\\prompts']
+Full traceback: Traceback (most recent call last):
+  File "C:\Users\conta\parallagon\services\agent_service.py", line 201, in init_agents
+    prompt = self._read_prompt_file(prompt_file) if prompt_file else self._create_default_prompt(normalized_name)
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AgentService' object has no attribute '_read_prompt_file'. Did you mean: '_find_prompt_file'?
+
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\suivi.md
+File exists: False
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\suivi_agent.md
+File exists: False
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\agent_suivi.md
+File exists: False
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\suivi.txt
+File exists: False
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\custom\suivi.md
+File exists: True
+[23:59:09] [INFO] [23:59:09] [CRITICAL] Detailed error initializing agent suivi: 'AgentService' object has no attribute '_read_prompt_file'
+Search paths: ['C:\\Users\\conta\\parallagon\\prompts', 'C:\\Users\\conta\\parallagon\\prompts\\custom', 'C:\\Users\\conta\\parallagon\\prompts']
+Full traceback: Traceback (most recent call last):
+  File "C:\Users\conta\parallagon\services\agent_service.py", line 201, in init_agents
+    prompt = self._read_prompt_file(prompt_file) if prompt_file else self._create_default_prompt(normalized_name)
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AgentService' object has no attribute '_read_prompt_file'. Did you mean: '_find_prompt_file'?
+
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\documentaliste.md
+File exists: True
+[23:59:09] [INFO] [23:59:09] [CRITICAL] Detailed error initializing agent documentaliste: 'AgentService' object has no attribute '_read_prompt_file'
+Search paths: ['C:\\Users\\conta\\parallagon\\prompts', 'C:\\Users\\conta\\parallagon\\prompts\\custom', 'C:\\Users\\conta\\parallagon\\prompts']
+Full traceback: Traceback (most recent call last):
+  File "C:\Users\conta\parallagon\services\agent_service.py", line 201, in init_agents
+    prompt = self._read_prompt_file(prompt_file) if prompt_file else self._create_default_prompt(normalized_name)
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AgentService' object has no attribute '_read_prompt_file'. Did you mean: '_find_prompt_file'?
+
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\duplication.md
+File exists: True
+[23:59:09] [INFO] [23:59:09] [CRITICAL] Detailed error initializing agent duplication: 'AgentService' object has no attribute '_read_prompt_file'
+Search paths: ['C:\\Users\\conta\\parallagon\\prompts', 'C:\\Users\\conta\\parallagon\\prompts\\custom', 'C:\\Users\\conta\\parallagon\\prompts']
+Full traceback: Traceback (most recent call last):
+  File "C:\Users\conta\parallagon\services\agent_service.py", line 201, in init_agents
+    prompt = self._read_prompt_file(prompt_file) if prompt_file else self._create_default_prompt(normalized_name)
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AgentService' object has no attribute '_read_prompt_file'. Did you mean: '_find_prompt_file'?
+
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\redacteur.md
+File exists: True
+[23:59:09] [INFO] [23:59:09] [CRITICAL] Detailed error initializing agent redacteur: 'AgentService' object has no attribute '_read_prompt_file'
+Search paths: ['C:\\Users\\conta\\parallagon\\prompts', 'C:\\Users\\conta\\parallagon\\prompts\\custom', 'C:\\Users\\conta\\parallagon\\prompts']
+Full traceback: Traceback (most recent call last):
+  File "C:\Users\conta\parallagon\services\agent_service.py", line 201, in init_agents
+    prompt = self._read_prompt_file(prompt_file) if prompt_file else self._create_default_prompt(normalized_name)
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AgentService' object has no attribute '_read_prompt_file'. Did you mean: '_find_prompt_file'?
+
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\validation.md
+File exists: True
+[23:59:09] [INFO] [23:59:09] [CRITICAL] Detailed error initializing agent validation: 'AgentService' object has no attribute '_read_prompt_file'
+Search paths: ['C:\\Users\\conta\\parallagon\\prompts', 'C:\\Users\\conta\\parallagon\\prompts\\custom', 'C:\\Users\\conta\\parallagon\\prompts']
+Full traceback: Traceback (most recent call last):
+  File "C:\Users\conta\parallagon\services\agent_service.py", line 201, in init_agents
+    prompt = self._read_prompt_file(prompt_file) if prompt_file else self._create_default_prompt(normalized_name)
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AgentService' object has no attribute '_read_prompt_file'. Did you mean: '_find_prompt_file'?
+
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\production.md
+File exists: True
+[23:59:09] [INFO] [23:59:09] [CRITICAL] Detailed error initializing agent production: 'AgentService' object has no attribute '_read_prompt_file'
+Search paths: ['C:\\Users\\conta\\parallagon\\prompts', 'C:\\Users\\conta\\parallagon\\prompts\\custom', 'C:\\Users\\conta\\parallagon\\prompts']
+Full traceback: Traceback (most recent call last):
+  File "C:\Users\conta\parallagon\services\agent_service.py", line 201, in init_agents
+    prompt = self._read_prompt_file(prompt_file) if prompt_file else self._create_default_prompt(normalized_name)
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AgentService' object has no attribute '_read_prompt_file'. Did you mean: '_find_prompt_file'?
+
+[23:59:09] [INFO] [23:59:09] [DEBUG] Checking potential prompt file: C:\Users\conta\parallagon\prompts\testeur.md
+File exists: True
+[23:59:09] [INFO] [23:59:09] [CRITICAL] Detailed error initializing agent testeur: 'AgentService' object has no attribute '_read_prompt_file'
+Search paths: ['C:\\Users\\conta\\parallagon\\prompts', 'C:\\Users\\conta\\parallagon\\prompts\\custom', 'C:\\Users\\conta\\parallagon\\prompts']
+Full traceback: Traceback (most recent call last):
+  File "C:\Users\conta\parallagon\services\agent_service.py", line 201, in init_agents
+    prompt = self._read_prompt_file(prompt_file) if prompt_file else self._create_default_prompt(normalized_name)
+             ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'AgentService' object has no attribute '_read_prompt_file'. Did you mean: '_find_prompt_file'?
+
+[23:59:09] [INFO] [23:59:09] [INFO] Agent Initialization Summary:
+Total Agents Attempted: 10
+Successfully Initialized: 0
+Failed Agents: {'evaluation', 'duplication', 'suivi', 'validation', 'specifications', 'production', 'redacteur', 'testeur', 'management', 'documentaliste'}
+[23:59:09] [SUCCESS] Agents initialized in inactive state
+[23:59:09] [SUCCESS] Core components initialized successfully
+[23:59:10] [INFO] 🚀 KinOS Web Server Startup
+[23:59:10] [INFO] Host: 0.0.0.0
+[23:59:10] [INFO] Port: 8000
+[23:59:10] [INFO] Debug Mode: False
+[23:59:10] [INFO] Static Directory: C:\Users\conta\parallagon\static
+[23:59:10] [INFO] Template Directory: C:\Users\conta\parallagon\templates
+[23:59:11] [ERROR] Error rendering agents page: 'MissionService' object has no attribute 'get_current_mission'
+[23:59:16] [ERROR] Error rendering agents page: 'MissionService' object has no attribute 'get_current_mission'
+[00:00:38] [INFO] Attempting to activate team:
+Mission ID: 4
+Team ID: book-writing
+[00:00:38] [DEBUG] Team agents: ['specifications', 'management', 'evaluation', 'suivi', 'documentaliste', 'duplication', 'redacteur', 'validation']
+[00:00:38] [SUCCESS] All agents stopped
+[00:00:38] [ERROR] Agent activation failed:
+Agent: specifications
+Error: Agent specifications not found
+[00:00:38] [ERROR] Agent activation failed:
+Agent: management
+Error: Agent management not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: evaluation
+Error: Agent evaluation not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: suivi
+Error: Agent suivi not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: documentaliste
+Error: Agent documentaliste not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: duplication
+Error: Agent duplication not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: redacteur
+Error: Agent redacteur not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: validation
+Error: Agent validation not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: specifications
+Error: Agent specifications not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: management
+Error: Agent management not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: evaluation
+Error: Agent evaluation not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: suivi
+Error: Agent suivi not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: documentaliste
+Error: Agent documentaliste not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: duplication
+Error: Agent duplication not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: redacteur
+Error: Agent redacteur not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: validation
+Error: Agent validation not found
+[00:00:39] [SUCCESS] Team Book Writing Team activated with results: [{'agent': 'specifications', 'success': False, 'error': 'Agent specifications not found'}, {'agent': 'management', 'success': False, 'error': 'Agent management not found'}, {'agent': 'evaluation', 'success': False, 'error': 'Agent evaluation not found'}, {'agent': 'suivi', 'success': False, 'error': 'Agent suivi not found'}, {'agent': 'documentaliste', 'success': False, 'error': 'Agent documentaliste not found'}, {'agent': 'duplication', 'success': False, 'error': 'Agent duplication not found'}, {'agent': 'redacteur', 'success': False, 'error': 'Agent redacteur not found'}, {'agent': 'validation', 'success': False, 'error': 'Agent validation not found'}]
+[00:00:39] [ERROR] Error calculating health score: 'health'
+[00:00:39] [ERROR] Error calculating team metrics: 'TeamService' object has no attribute '_calculate_activity_score'
+[00:00:39] [SUCCESS] ✓ Équipe book-writing lancée avec succès pour la mission eveil
+[00:00:39] [INFO] Attempting to activate team:
+Mission ID: 4
+Team ID: book-writing
+[00:00:39] [DEBUG] Team agents: ['specifications', 'management', 'evaluation', 'suivi', 'documentaliste', 'duplication', 'redacteur', 'validation']
+[00:00:39] [SUCCESS] All agents stopped
+[00:00:39] [ERROR] Agent activation failed:
+Agent: specifications
+Error: Agent specifications not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: management
+Error: Agent management not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: evaluation
+Error: Agent evaluation not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: suivi
+Error: Agent suivi not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: documentaliste
+Error: Agent documentaliste not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: duplication
+Error: Agent duplication not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: redacteur
+Error: Agent redacteur not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: validation
+Error: Agent validation not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: specifications
+Error: Agent specifications not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: management
+Error: Agent management not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: evaluation
+Error: Agent evaluation not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: suivi
+Error: Agent suivi not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: documentaliste
+Error: Agent documentaliste not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: duplication
+Error: Agent duplication not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: redacteur
+Error: Agent redacteur not found
+[00:00:39] [ERROR] Agent activation failed:
+Agent: validation
+Error: Agent validation not found
+[00:00:39] [SUCCESS] Team Book Writing Team activated with results: [{'agent': 'specifications', 'success': False, 'error': 'Agent specifications not found'}, {'agent': 'management', 'success': False, 'error': 'Agent management not found'}, {'agent': 'evaluation', 'success': False, 'error': 'Agent evaluation not found'}, {'agent': 'suivi', 'success': False, 'error': 'Agent suivi not found'}, {'agent': 'documentaliste', 'success': False, 'error': 'Agent documentaliste not found'}, {'agent': 'duplication', 'success': False, 'error': 'Agent duplication not found'}, {'agent': 'redacteur', 'success': False, 'error': 'Agent redacteur not found'}, {'agent': 'validation', 'success': False, 'error': 'Agent validation not found'}]
+[00:00:39] [ERROR] Error calculating health score: 'health'
+[00:00:39] [ERROR] Error calculating team metrics: 'TeamService' object has no attribute '_calculate_activity_score'
