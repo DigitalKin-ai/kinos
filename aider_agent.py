@@ -72,37 +72,14 @@ class AiderAgent(KinOSAgent):
 
     def _run_aider(self, prompt: str) -> Optional[str]:
         """
-        Exécute Aider avec le prompt donné.
-        
-        GESTION DES CHEMINS:
-        1. Avant exécution:
-           - Stocke le dossier courant (pour y revenir)
-           - Change vers le dossier mission (cd missions/<nom_mission>)
-           
-        2. Pour Aider:
-           - Utilise le nom simple du fichier principal (ex: specifications.md)
-           - Convertit les autres fichiers en chemins relatifs
-           - Vérifie l'existence avec les chemins relatifs
-           
-        3. Après exécution:
-           - Revient au dossier original
-           - Utilise les chemins relatifs pour lire les modifications
+        Execute Aider with given prompt.
+        Only works with existing files, doesn't create new ones.
         """
         try:
-            self.logger(f"[{self.__class__.__name__}] Starting Aider run")
-            
-            # Vérifier si le fichier principal existe
+            # Verify if main file exists
             if not os.path.exists(self.file_path):
-                self.logger(f"[{self.__class__.__name__}] ❌ Fichier principal non trouvé: {self.file_path}")
-                try:
-                    # Créer le fichier vide
-                    os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
-                    with open(self.file_path, 'w', encoding='utf-8') as f:
-                        f.write("")
-                    self.logger(f"[{self.__class__.__name__}] ✓ Fichier principal créé")
-                except Exception as e:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Erreur création fichier: {str(e)}")
-                    return None
+                self.logger.log(f"Main file not found: {self.file_path}", level='warning')
+                return None
 
             # Obtenir le dossier de mission et le dossier courant
             mission_dir = os.path.dirname(self.file_path)
