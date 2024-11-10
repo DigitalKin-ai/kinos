@@ -87,8 +87,15 @@
             }
         },
         methods: {
+            handleError(message, error) {
+                console.error(message, error);
+                this.error = typeof error === 'string' ? error : error.message;
+            },
+
             async selectMission(mission) {
                 try {
+                    this.loading = true;
+                    await this.missionService.selectMission(mission);
                     this.currentMission = mission;
                     
                     // Fetch team information for the mission
@@ -99,22 +106,17 @@
                             this.teams = teams;
                             this.activeTeam = teams.length > 0 ? teams[0] : null;
                         } else {
-                            console.warn('Failed to fetch teams:', teamResponse.statusText);
-                            this.teams = [];
-                            this.activeTeam = null;
+                            throw new Error('Failed to fetch teams: ' + teamResponse.statusText);
                         }
                     } catch (teamError) {
-                        console.error('Error fetching teams:', teamError);
+                        this.handleError('Error fetching teams', teamError);
                         this.teams = [];
                         this.activeTeam = null;
                     }
-                    
-                    this.$nextTick(() => {
-                        this.$forceUpdate();
-                    });
-                    
                 } catch (error) {
-                    console.error('Failed to select mission:', error);
+                    this.handleError('Failed to select mission', error);
+                } finally {
+                    this.loading = false;
                 }
             },
             async createMission(name) {

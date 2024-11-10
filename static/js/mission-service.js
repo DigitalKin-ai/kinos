@@ -8,6 +8,11 @@ class MissionService {
         this.currentMission = null;
         this.missions = [];
         this.runningStates = new Map();
+        this.connectionStatus = {
+            connected: true,
+            lastCheck: null,
+            retryCount: 0
+        };
     }
 
     async handleMissionOperation(operation, errorMessage) {

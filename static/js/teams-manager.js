@@ -28,8 +28,10 @@ export default {
             retryAttempts: new Map(),
             maxRetries: 3,
             retryDelay: 1000,
+            error: null,
             errorMessage: null,
             showError: false,
+            loading: false,
             connectionStatus: {
                 connected: true,
                 lastCheck: null,
@@ -115,8 +117,18 @@ export default {
         }
     },
     created() {
-        this.initializeErrorHandling();
+        this.initializeComponent();
     },
+
+    methods: {
+        initializeComponent() {
+            this.error = null;
+            this.loading = false;
+            
+            if (this.currentMission?.id) {
+                this.loadTeams();
+            }
+        },
 
     methods: {
         initializeErrorHandling() {
