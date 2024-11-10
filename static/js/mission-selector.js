@@ -71,34 +71,30 @@ export default {
             this.startConnectionMonitoring();
 
             await this.retryWithBackoff(async () => {
-                const [agentsResponse, missionsResponse] = await Promise.all([
-                    fetch('/api/agents/list'),
-                    fetch('/api/missions')
-                ]);
+                try {
+                    const missionsResponse = await fetch('/api/missions');
+                    if (!missionsResponse.ok) {
+                        throw new Error(`Failed to fetch missions: ${missionsResponse.statusText}`);
+                    }
+                    const missions = await missionsResponse.json();
 
-                if (!agentsResponse.ok) {
-                    throw new Error(`Failed to fetch agents: ${agentsResponse.statusText}`);
+                    this.localMissions = missions;
+                    this.$emit('update:missions', missions);
+
+                    missions.forEach(mission => {
+                        this.runningStates.set(mission.id, false);
+                    });
+                } catch (error) {
+                    console.error('Error fetching missions:', error);
+                    throw error;
                 }
-                if (!missionsResponse.ok) {
-                    throw new Error(`Failed to fetch missions: ${missionsResponse.statusText}`);
-                }
-
-                const agents = await agentsResponse.json();
-                const missions = await missionsResponse.json();
-
-                this.localMissions = missions;
-                this.$emit('update:missions', missions);
-
-                missions.forEach(mission => {
-                    this.runningStates.set(mission.id, false);
-                });
             });
 
         } catch (error) {
             console.error('Error in MissionSelector mounted:', error);
             this.handleError({
                 title: 'Initialization Error',
-                message: error.message,
+                message: 'Failed to load missions. Please check your connection and try again.',
                 type: 'error'
             });
         }
