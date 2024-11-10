@@ -197,6 +197,7 @@ class AgentService:
                 ("Documentaliste", DocumentalisteAgent, "documentaliste.md"),
                 ("Duplication", DuplicationAgent, "duplication.md"),
                 ("Testeur", TesteurAgent, "testeur.md"),
+                ("Validation", ValidationAgent, "validation.md"),
                 ("Redacteur", RedacteurAgent, "redacteur.md")
             ]
 
