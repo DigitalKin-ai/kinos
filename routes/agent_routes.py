@@ -151,27 +151,67 @@ def register_agent_routes(app, web_instance):
     @safe_operation()
     def get_agents_status():
         try:
-            # Vérifier que agent_service est initialisé
+            # Verify agent_service is initialized
             if not hasattr(web_instance, 'agent_service'):
-                return jsonify({'error': 'Agent service not initialized'}), 500
-                
-            # Récupérer le statut de tous les agents
-            status = {}
-            for name, agent in web_instance.agent_service.agents.items():
-                status[name] = {
-                    'running': getattr(agent, 'running', False),
-                    'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
-                    'status': 'active' if getattr(agent, 'running', False) else 'inactive',
-                    'health': {
-                        'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
-                        'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
+                error_details = {
+                    'error': 'Agent service not initialized',
+                    'type': 'ServiceError',
+                    'details': {
+                        'timestamp': datetime.now().isoformat(),
+                        'additional_info': {
+                            'web_instance_attributes': list(web_instance.__dict__.keys())
+                        }
                     }
                 }
-            return jsonify(status)
-            
+                web_instance.log_message("Agent service not initialized", level='error')
+                return jsonify(error_details), 500
+                
+            # Get status of all agents with detailed error handling
+            try:
+                status = {}
+                for name, agent in web_instance.agent_service.agents.items():
+                    try:
+                        status[name] = {
+                            'running': getattr(agent, 'running', False),
+                            'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
+                            'status': 'active' if getattr(agent, 'running', False) else 'inactive',
+                            'health': {
+                                'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
+                                'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
+                            }
+                        }
+                    except Exception as agent_error:
+                        web_instance.log_message(f"Error getting status for agent {name}: {str(agent_error)}", level='error')
+                        status[name] = {
+                            'running': False,
+                            'status': 'error',
+                            'error': str(agent_error)
+                        }
+                return jsonify(status)
+                
+            except Exception as e:
+                error_details = {
+                    'error': str(e),
+                    'type': e.__class__.__name__,
+                    'details': {
+                        'traceback': traceback.format_exc(),
+                        'timestamp': datetime.now().isoformat()
+                    }
+                }
+                web_instance.log_message(f"Error getting agent status: {str(e)}", level='error')
+                return jsonify(error_details), 500
+                
         except Exception as e:
-            web_instance.log_message(f"Error getting agent status: {str(e)}", level='error')
-            return jsonify({'error': str(e)}), 500
+            error_details = {
+                'error': str(e),
+                'type': e.__class__.__name__,
+                'details': {
+                    'traceback': traceback.format_exc(),
+                    'timestamp': datetime.now().isoformat()
+                }
+            }
+            web_instance.log_message(f"Unhandled error in get_agents_status: {str(e)}", level='error')
+            return jsonify(error_details), 500
 
     @app.route('/api/agent/<agent_id>/prompt', methods=['GET'])
     @safe_operation()
