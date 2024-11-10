@@ -124,6 +124,61 @@ export default {
         }
     },
     methods: {
+        async retryWithBackoff(operation, maxRetries = 3) {
+            let delay = 1000; // Start with 1s delay
+            
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    
+                    console.warn(`Attempt ${i + 1} failed, retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2; // Exponential backoff
+                }
+            }
+        },
+
+        startConnectionMonitoring() {
+            this.checkConnection();
+            this.connectionInterval = setInterval(() => {
+                this.checkConnection();
+            }, 30000); // Check every 30 seconds
+        },
+
+        stopConnectionMonitoring() {
+            if (this.connectionInterval) {
+                clearInterval(this.connectionInterval);
+                this.connectionInterval = null;
+            }
+        },
+
+        async checkConnection() {
+            try {
+                const isConnected = await this.missionService.apiClient.checkServerConnection();
+                this.connectionStatus.connected = isConnected;
+                this.connectionStatus.lastCheck = new Date();
+                this.connectionStatus.retryCount = 0;
+            } catch (error) {
+                this.connectionStatus.connected = false;
+                this.connectionStatus.lastCheck = new Date();
+                this.handleConnectionError(error);
+            }
+        },
+
+        handleConnectionError(error) {
+            this.connectionStatus.retryCount++;
+            const message = this.connectionStatus.retryCount > 1 
+                ? `Connection lost. Retry attempt ${this.connectionStatus.retryCount}...`
+                : 'Connection lost. Retrying...';
+            this.handleError({
+                title: 'Connection Error',
+                message: message,
+                type: 'connection'
+            });
+        },
+
         async handleMissionOperation(operation, errorMessage) {
             try {
                 return await this.retryWithBackoff(operation);

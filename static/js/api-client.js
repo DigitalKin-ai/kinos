@@ -40,6 +40,32 @@ class ApiClient {
         return response.json();
     }
 
+    async checkServerConnection() {
+        try {
+            const response = await Promise.race([
+                fetch(`${this.baseUrl}/api/status`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                }),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Connection timeout')), 5000)
+                )
+            ]);
+
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.server?.running === true;
+        } catch (error) {
+            console.error('Server connection check failed:', error);
+            return false;
+        }
+    }
+
     setToken(token) {
         this.token = token;
     }
