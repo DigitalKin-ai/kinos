@@ -164,7 +164,6 @@ class ApiClient {
         });
         return this.handleResponse(response);
     }
-}
 
     async checkServerConnection() {
         try {
