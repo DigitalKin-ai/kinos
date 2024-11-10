@@ -51,6 +51,12 @@
         },
         data() {
             return {
+                activeTeam: null,
+                teams: []
+            }
+        },
+        data() {
+            return {
                 missionService: new MissionService(),
                 currentMission: null,
                 missions: [],
