@@ -168,13 +168,13 @@ export default {
             }
         },
 
-        validateMissionState(missionData) {
-            if (!missionData) return false;
-            if (!missionData.id) return false;
-            if (!missionData.name) return false;
+        validateMissionState(mission) {
+            if (!mission) return false;
+            if (!mission.id) return false;
+            if (!mission.name) return false;
         
             const requiredProps = ['id', 'name', 'path', 'status'];
-            return requiredProps.every(prop => missionData.hasOwnProperty(prop));
+            return requiredProps.every(prop => mission.hasOwnProperty(prop));
         },
 
         async cleanupMissionState() {
@@ -385,13 +385,13 @@ export default {
             setTimeout(() => this.checkConnection(), delay);
         },
 
-        validateMissionState(missionData) {
-            if (!missionData) return false;
-            if (!missionData.id) return false;
-            if (!missionData.name) return false;
+        validateMissionState(mission) {
+            if (!mission) return false;
+            if (!mission.id) return false;
+            if (!mission.name) return false;
     
             const requiredProps = ['id', 'name', 'path', 'status'];
-            return requiredProps.every(prop => missionData.hasOwnProperty(prop));
+            return requiredProps.every(prop => mission.hasOwnProperty(prop));
         },
 
         async cleanupMissionState() {
