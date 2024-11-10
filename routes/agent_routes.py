@@ -95,28 +95,26 @@ def register_agent_routes(app, web_instance):
             # Log l'état initial
             web_instance.log_message(f"Attempting to {action} agent {agent_id}", level='debug')
             
-            # Convert agent ID to lowercase for lookup
+            # Convert agent ID to lowercase and create a case-insensitive mapping
             agent_name = agent_id.lower()
-            if not agent_name:
-                web_instance.log_message(f"Invalid agent ID: {agent_id}", level='error')
-                raise ValidationError(f"Invalid agent ID: {agent_id}")
-                
-            web_instance.log_message(f"Available agents: {list(web_instance.agent_service.agents.keys())}", level='debug')
+            available_agents = {k.lower(): k for k in web_instance.agent_service.agents.keys()}
+            
+            web_instance.log_message(f"Available agents: {list(available_agents.keys())}", level='debug')
             web_instance.log_message(f"Looking for agent with name: {agent_name}", level='debug')
             
-            # Vérification détaillée de l'agent avec nom en minuscules
-            if agent_name not in {k.lower(): k for k in web_instance.agent_service.agents.keys()}:
+            # Case-insensitive check for agent existence
+            if agent_name not in available_agents:
                 web_instance.log_message(
-                    f"Agent {agent_name} not found in available agents: {list(web_instance.agent_service.agents.keys())}", 
+                    f"Agent {agent_name} not found in available agents: {list(available_agents.keys())}", 
                     level='error'
                 )
                 raise ResourceNotFoundError(f"Agent {agent_id} not found")
                 
             # Get the actual case-sensitive key
-            actual_agent_name = {k.lower(): k for k in web_instance.agent_service.agents.keys()}[agent_name]
+            actual_agent_name = available_agents[agent_name]
                 
             # Log avant l'action
-            web_instance.log_message(f"Found agent {agent_name}, attempting {action}", level='debug')
+            web_instance.log_message(f"Found agent {actual_agent_name}, attempting {action}", level='debug')
             
             try:
                 if action == 'start':
@@ -125,20 +123,20 @@ def register_agent_routes(app, web_instance):
                     thread = threading.Thread(
                         target=agent.run,
                         daemon=True,
-                        name=f"Agent-{agent_name}"
+                        name=f"Agent-{actual_agent_name}"
                     )
                     thread.start()
-                    web_instance.log_message(f"Successfully started agent {agent_name}", level='success')
+                    web_instance.log_message(f"Successfully started agent {actual_agent_name}", level='success')
                 else:  # stop
-                    agent = web_instance.agent_service.agents[agent_name]
+                    agent = web_instance.agent_service.agents[actual_agent_name]
                     agent.stop()
-                    web_instance.log_message(f"Successfully stopped agent {agent_name}", level='success')
+                    web_instance.log_message(f"Successfully stopped agent {actual_agent_name}", level='success')
                 
                 return jsonify({'status': 'success'})
                 
             except Exception as e:
                 web_instance.log_message(
-                    f"Error during {action} operation for {agent_name}: {str(e)}\n"
+                    f"Error during {action} operation for {actual_agent_name}: {str(e)}\n"
                     f"Stack trace: {traceback.format_exc()}", 
                     level='error'
                 )
