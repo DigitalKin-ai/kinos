@@ -10,9 +10,11 @@ class MissionService {
 
     async initialize() {
         try {
-            // Load all missions first
-            const missions = await this.apiClient.getAllMissions();
-            this.missions = missions;
+            // Initialize both missions and teams
+            await Promise.all([
+                this._loadMissions(),
+                this.teamService.initialize()
+            ]);
             
             // Initialize running states
             missions.forEach(mission => {
@@ -93,6 +95,23 @@ class MissionService {
 
     getMissions() {
         return this.missions;
+    }
+
+    // Team management methods
+    async getTeams(missionId) {
+        return this.teamService.getTeamsForMission(missionId);
+    }
+
+    async selectTeam(missionId, teamId) {
+        return this.teamService.activateTeam(missionId, teamId);
+    }
+
+    async getTeamStatus(missionId, teamId) {
+        return this.teamService.getTeamStatus(teamId);
+    }
+
+    getActiveTeam() {
+        return this.teamService.activeTeam;
     }
 
     async getTeams(missionId) {

@@ -330,6 +330,14 @@ RULES:
                  class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                 {{ errorMessage }}
             </div>
+
+            <!-- Team Metrics -->
+            <div v-if="activeTeam" class="mb-6">
+                <team-metrics 
+                    :team="activeTeam"
+                    :metrics="getTeamMetrics(activeTeam.id)">
+                </team-metrics>
+            </div>
             <div class="sticky top-0 bg-white z-10 p-6 border-b">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold">Gestionnaire d'Agents</h2>
