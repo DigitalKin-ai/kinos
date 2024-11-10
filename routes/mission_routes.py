@@ -140,11 +140,15 @@ def register_mission_routes(app, web_instance):
                 web_instance.logger.log(f"Mission {mission_id} not found", level='error')
                 return jsonify({'error': 'Mission not found'}), 404
 
-            # Verify mission directory exists
+            # Verify mission directory exists and is accessible
             mission_dir = os.path.join("missions", mission['name'])
             if not os.path.exists(mission_dir):
                 web_instance.logger.log(f"Mission directory not found: {mission_dir}", level='error')
                 return jsonify({'error': 'Mission directory not found'}), 404
+                
+            if not os.access(mission_dir, os.R_OK | os.W_OK):
+                web_instance.logger.log(f"Insufficient permissions on: {mission_dir}", level='error')
+                return jsonify({'error': 'Insufficient permissions on mission directory'}), 500
 
             # Stop all agents before changing mission
             web_instance.agent_service.stop_all_agents()
