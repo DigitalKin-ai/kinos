@@ -1,4 +1,4 @@
-const TeamsManager = {
+export default {
     name: 'TeamsManager',
     props: {
         missionService: {

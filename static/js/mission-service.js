@@ -206,24 +206,6 @@ class MissionService {
     isRunning(missionId) {
         return this.runningStates.get(missionId) || false;
     }
-}
-
-    async retryWithBackoff(operation, maxRetries = 3) {
-        let delay = 1000; // Start with 1s delay
-        
-        for (let i = 0; i < maxRetries; i++) {
-            try {
-                return await operation();
-            } catch (error) {
-                if (i === maxRetries - 1) throw error;
-                
-                console.warn(`Attempt ${i + 1} failed, retrying in ${delay}ms...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                delay *= 2; // Exponential backoff
-            }
-        }
-    }
-}
 
     async retryWithBackoff(operation, maxRetries = 3) {
         let delay = 1000; // Start with 1s delay
