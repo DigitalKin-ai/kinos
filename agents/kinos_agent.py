@@ -186,23 +186,46 @@ class KinOSAgent:
         # Handle logger configuration
         logger_config = self.config.get("logger", print)
         if callable(logger_config):
-            # Create wrapper that ensures level is only passed once
+            # Create wrapper that handles both Logger instances and simple callables
             def create_log_wrapper(func):
-                def wrapper(message, level='info', **kwargs):
-                    # Ensure we only pass level once by removing it from kwargs
-                    kwargs.pop('level', None)
-                    # Call the underlying function with explicit level parameter
-                    return func(message, level, **kwargs)
+                def wrapper(*args, **kwargs):
+                    # Extract message and level
+                    if len(args) >= 2:
+                        message, level = args[0], args[1]
+                    else:
+                        message = args[0] if args else kwargs.get('message', '')
+                        level = kwargs.get('level', 'info')
+
+                    # Convert message to string
+                    msg = str(message)
+
+                    # If logger_config is a logging.Logger instance
+                    if hasattr(logger_config, 'log'):
+                        # Remove level from kwargs if present to avoid duplication
+                        kwargs.pop('level', None)
+                        return logger_config.log(msg, level)
+                    
+                    # If logger_config is a simple callable (like print)
+                    return func(msg)
+
                 return wrapper
                 
             base_logger = create_log_wrapper(logger_config)
             
-            # Create logger object with consistent interface
-            self.logger = type('Logger', (), {
-                'log': base_logger,
-                '_log': base_logger,
-                '__call__': base_logger
-            })()
+            # Create logger object with consistent interface but prevent __str__ output
+            class Logger:
+                def log(self, *args, **kwargs):
+                    return base_logger(*args, **kwargs)
+                def _log(self, *args, **kwargs):
+                    return base_logger(*args, **kwargs)
+                def __call__(self, *args, **kwargs):
+                    return base_logger(*args, **kwargs)
+                def __str__(self):
+                    return "KinOSLogger"
+                def __repr__(self):
+                    return "KinOSLogger"
+                    
+            self.logger = Logger()
         else:
             # Use logger object directly
             self.logger = logger_config
