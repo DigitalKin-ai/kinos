@@ -106,8 +106,11 @@ class AgentService:
                 self.web_instance.log_message("No mission available for initialization")
                 return
 
-            # Construct mission directory path
-            mission_dir = os.path.join("missions", mission_name)
+            # Normalize mission name using the same function as MissionService
+            normalized_name = self.web_instance.mission_service._normalize_mission_name(mission_name)
+            
+            # Construct mission directory path with normalized name
+            mission_dir = os.path.join("missions", normalized_name)
             
             # Load prompts from files
             def load_prompt(file_path):
@@ -123,10 +126,10 @@ class AgentService:
                 "check_interval": 100,
                 "anthropic_api_key": config["anthropic_api_key"],
                 "openai_api_key": config["openai_api_key"],
-                "mission_name": mission_name,
+                "mission_name": mission_name,  # Keep original name for display
                 "logger": self.web_instance.log_message,  # Use log_message directly
                 "web_instance": self.web_instance,
-                "mission_dir": mission_dir
+                "mission_dir": mission_dir  # Use normalized path
             }
 
             # Initialize each agent type with relative paths
