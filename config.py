@@ -10,6 +10,11 @@ class Config:
     PORT = int(os.getenv('PORT', 8000))
     HOST = os.getenv('HOST', '0.0.0.0')
     
+    # Nouvelles configurations de timeout et retry
+    REQUEST_TIMEOUT = int(os.getenv('REQUEST_TIMEOUT', 10))  # 10 secondes
+    MAX_RETRIES = int(os.getenv('MAX_RETRIES', 3))
+    RETRY_DELAY = int(os.getenv('RETRY_DELAY', 1))  # 1 seconde
+    
     @classmethod
     def validate(cls):
         if not cls.ANTHROPIC_API_KEY:
