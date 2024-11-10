@@ -224,66 +224,8 @@ class ApiClient {
         return response.json();
     }
 
-    async checkServerConnection() {
-        try {
-            const response = await Promise.race([
-                fetch('/api/status', {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                }),
-                new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Connection timeout')), 5000)
-                )
-            ]);
-
-            if (!response.ok) {
-                throw new Error(`Server returned ${response.status}`);
-            }
-
-            const data = await response.json();
-            return data.server?.running === true;
-        } catch (error) {
-            console.error('Server connection check failed:', error);
-            return false;
-        }
-    }
-
     setToken(token) {
         this.token = token;
-    }
-
-    async handleResponse(response) {
-        if (!response.ok) {
-            const error = await response.json();
-            console.error('API Error:', error);
-            
-            // Create detailed error message with all available info
-            let errorMessage = `${error.type || 'Error'}: ${error.error}\n`;
-            if (error.details) {
-                if (error.details.traceback) {
-                    errorMessage += `\nTraceback:\n${error.details.traceback}`;
-                }
-                if (error.details.timestamp) {
-                    errorMessage += `\nTimestamp: ${error.details.timestamp}`;
-                }
-                if (error.details.additional_info) {
-                    errorMessage += `\nAdditional Info: ${JSON.stringify(error.details.additional_info)}`;
-                }
-            }
-            
-            // Display error in UI
-            if (this.onError) {
-                this.onError(errorMessage);
-            }
-            
-            // Log full error object for debugging
-            console.error('Full Error Details:', error);
-            
-            throw new Error(errorMessage);
-        }
-        return response.json();
     }
 
     // Agent endpoints
