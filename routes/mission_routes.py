@@ -139,14 +139,23 @@ def register_mission_routes(app, web_instance):
             if not mission:
                 web_instance.logger.log(f"Mission {mission_id} not found", level='error')
                 return jsonify({'error': 'Mission not found'}), 404
-                
-            # Arrêter tous les agents avant de changer de mission
+
+            # Verify mission directory exists
+            mission_dir = os.path.join("missions", mission['name'])
+            if not os.path.exists(mission_dir):
+                web_instance.logger.log(f"Mission directory not found: {mission_dir}", level='error')
+                return jsonify({'error': 'Mission directory not found'}), 404
+
+            # Stop all agents before changing mission
             web_instance.agent_service.stop_all_agents()
             
             # Update current mission in FileManager
-            web_instance.file_manager.current_mission = mission['name']
-            web_instance.logger.log(f"Updated FileManager current mission to: {mission['name']}", level='debug')
-            
+            try:
+                web_instance.file_manager.current_mission = mission['name']
+            except Exception as e:
+                web_instance.logger.log(f"Failed to update FileManager mission: {str(e)}", level='error')
+                return jsonify({'error': 'Failed to update current mission'}), 500
+
             web_instance.logger.log(f"Successfully selected mission: {mission['name']}", level='success')
             
             return jsonify(mission)
