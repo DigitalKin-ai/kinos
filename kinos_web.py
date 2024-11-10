@@ -47,36 +47,36 @@ class KinOSWeb:
         """Initialize all required components"""
         try:
             # Initialize basic services first
-            self.logger.log("Initializing core components...", level='info')
+            self.logger.log("Initializing core components...", 'info')
             
             # Get prompts directory using PathManager
             prompts_dir = PathManager.get_prompts_path()
             
             if not os.path.exists(prompts_dir):
                 os.makedirs(prompts_dir)
-                self.log_message("Created prompts directory", level='info')
+                self.log_message("Created prompts directory", 'info')
                 return
 
             # Initialize agents in inactive state - don't raise error if no agents initialized
             try:
                 self.agent_service.init_agents(config)
-                self.logger.log("Agents initialized in inactive state", level='success')
+                self.logger.log("Agents initialized in inactive state", 'success')
             except ValueError as e:
                 # Log warning but continue if it's just about missing mission
                 if "No mission currently selected" in str(e):
-                    self.logger.log("No mission selected - agents will be initialized when mission is selected", level='warning')
+                    self.logger.log("No mission selected - agents will be initialized when mission is selected", 'warning')
                 else:
                     # Re-raise other ValueError exceptions
                     raise
             except Exception as e:
-                self.logger.log(f"Warning: Agent initialization failed: {str(e)}", level='warning')
+                self.logger.log(f"Warning: Agent initialization failed: {str(e)}", 'warning')
                 # Continue initialization even if agents fail
             
             # Log success
-            self.logger.log("Core components initialized successfully", level='success')
+            self.logger.log("Core components initialized successfully", 'success')
             
         except Exception as e:
-            self.logger.log(f"Error initializing components: {str(e)}", level='error')
+            self.logger.log(f"Error initializing components: {str(e)}", 'error')
             raise ServiceError(f"Failed to initialize components: {str(e)}")
 
     def log_message(self, message: str, level: str = 'info', **kwargs) -> None:
@@ -111,13 +111,13 @@ class KinOSWeb:
         try:
             test_data_path = os.path.join("templates", "test_data", "demande_test_1.md")
             if not os.path.exists(test_data_path):
-                self.log_message(f"Test data file not found: {test_data_path}", level='error')
+                self.log_message(f"Test data file not found: {test_data_path}", 'error')
                 return ""
                 
             with open(test_data_path, 'r', encoding='utf-8') as f:
                 return f.read()
         except Exception as e:
-            self.log_message(f"Error loading test data: {str(e)}", level='error')
+            self.log_message(f"Error loading test data: {str(e)}", 'error')
             return ""
 
     def __init__(self, config):
@@ -133,9 +133,9 @@ class KinOSWeb:
         static_dir = os.path.join(project_root, 'static')
         
         # Add debug logging for paths
-        self.logger.log(f"Project root: {project_root}", level='debug')
-        self.logger.log(f"Template directory: {template_dir}", level='debug')
-        self.logger.log(f"Static directory: {static_dir}", level='debug')
+        self.logger.log(f"Project root: {project_root}", 'debug')
+        self.logger.log(f"Template directory: {template_dir}", 'debug')
+        self.logger.log(f"Static directory: {static_dir}", 'debug')
         
         # Verify paths exist
         if not os.path.exists(template_dir):
@@ -149,9 +149,9 @@ class KinOSWeb:
         static_dir = PathManager.get_static_path()
         
         # Add debug logging for paths
-        self.logger.log(f"Project root: {project_root}", level='debug')
-        self.logger.log(f"Template directory: {template_dir}", level='debug')
-        self.logger.log(f"Static directory: {static_dir}", level='debug')
+        self.logger.log(f"Project root: {project_root}", 'debug')
+        self.logger.log(f"Template directory: {template_dir}", 'debug')
+        self.logger.log(f"Static directory: {static_dir}", 'debug')
         
         # Verify paths exist
         if not os.path.exists(template_dir):
@@ -165,9 +165,9 @@ class KinOSWeb:
         static_dir = PathManager.get_static_path()
         
         # Add debug logging for paths
-        self.logger.log(f"Project root: {project_root}", level='debug')
-        self.logger.log(f"Template directory: {template_dir}", level='debug')
-        self.logger.log(f"Static directory: {static_dir}", level='debug')
+        self.logger.log(f"Project root: {project_root}", 'debug')
+        self.logger.log(f"Template directory: {template_dir}", 'debug')
+        self.logger.log(f"Static directory: {static_dir}", 'debug')
         
         # Get project paths using PathManager
         project_root = PathManager.get_project_root()
@@ -175,9 +175,9 @@ class KinOSWeb:
         static_dir = PathManager.get_static_path()
         
         # Add debug logging for paths
-        self.logger.log(f"Project root: {project_root}", level='debug')
-        self.logger.log(f"Template directory: {template_dir}", level='debug')
-        self.logger.log(f"Static directory: {static_dir}", level='debug')
+        self.logger.log(f"Project root: {project_root}", 'debug')
+        self.logger.log(f"Template directory: {template_dir}", 'debug')
+        self.logger.log(f"Static directory: {static_dir}", 'debug')
         
         # Get project paths using PathManager
         project_root = PathManager.get_project_root()
@@ -197,8 +197,8 @@ class KinOSWeb:
         CORS(self.app)
         
         # Add debug logging for paths
-        self.logger.log(f"Template directory: {template_dir}", level='debug')
-        self.logger.log(f"Static directory: {static_dir}", level='debug')
+        self.logger.log(f"Template directory: {template_dir}", 'debug')
+        self.logger.log(f"Static directory: {static_dir}", 'debug')
         
         # Initialize services in correct order without circular dependencies
         self.mission_service = MissionService()  # No dependencies
@@ -228,7 +228,7 @@ class KinOSWeb:
     def init_agents(self, config):
         """Initialisation des agents avec configuration standard"""
         try:
-            self.log_message("Initializing agents...", level='info')
+            self.log_message("Initializing agents...", 'info')
             
             # S'assurer que le dossier missions existe
             os.makedirs("missions", exist_ok=True)
@@ -236,7 +236,7 @@ class KinOSWeb:
             # Obtenir la liste des missions
             missions = self.mission_service.get_all_missions()
             if not missions:
-                self.log_message("No missions available. Please create a mission first.", level='warning')
+                self.log_message("No missions available. Please create a mission first.", 'warning')
                 return
 
             # Utiliser la première mission par défaut ou la mission courante si définie
@@ -265,7 +265,7 @@ class KinOSWeb:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         return f.read()
                 except Exception as e:
-                    self.log_message(f"Error loading prompt from {file_path}: {e}", level='error')
+                    self.log_message(f"Error loading prompt from {file_path}: {e}", 'error')
                     return ""
 
             # Get prompts directory using PathManager
@@ -273,7 +273,7 @@ class KinOSWeb:
             
             if not os.path.exists(prompts_dir):
                 os.makedirs(prompts_dir)
-                self.log_message("Created prompts directory", level='info')
+                self.log_message("Created prompts directory", 'info')
                 return
 
             for file in os.listdir(prompts_dir):
@@ -292,28 +292,28 @@ class KinOSWeb:
                         
                         # Créer l'agent avec AiderAgent
                         self.agents[agent_name] = AiderAgent(agent_config)
-                        self.log_message(f"✓ Agent {agent_name} initialized", level='success')
+                        self.log_message(f"✓ Agent {agent_name} initialized", 'success')
                         
                     except Exception as e:
-                        self.log_message(f"Error initializing agent {agent_name}: {str(e)}", level='error')
+                        self.log_message(f"Error initializing agent {agent_name}: {str(e)}", 'error')
                         continue
 
             if not self.agents:
-                self.log_message("No agents were initialized", level='warning')
+                self.log_message("No agents were initialized", 'warning')
                 return
 
             # Vérifier que tous les agents sont correctement initialisés
             for name, agent in self.agents.items():
                 if not agent:
                     raise ValueError(f"Agent {name} non initialisé correctement")
-                self.log_message(f"✓ Agent {name} initialisé", level='success')
+                self.log_message(f"✓ Agent {name} initialisé", 'success')
 
-            self.log_message("Agents initialized successfully", level='success')
+            self.log_message("Agents initialized successfully", 'success')
             
         except Exception as e:
-            self.log_message(f"Error initializing agents: {str(e)}", level='error')
+            self.log_message(f"Error initializing agents: {str(e)}", 'error')
             import traceback
-            self.log_message(traceback.format_exc(), level='error')
+            self.log_message(traceback.format_exc(), 'error')
             raise
 
 
@@ -331,7 +331,7 @@ class KinOSWeb:
         try:
             agent_name = agent_id.lower()
             if agent_name not in self.agents:
-                self.log_message(f"Agent {agent_id} not found", level='error')
+                self.log_message(f"Agent {agent_id} not found", 'error')
                 return False
                 
             agent = self.agents[agent_name]
@@ -345,16 +345,16 @@ class KinOSWeb:
                         name=f"Agent-{agent_name}"
                     )
                     thread.start()
-                    self.log_message(f"Agent {agent_name} started", level='success')
+                    self.log_message(f"Agent {agent_name} started", 'success')
             elif action == 'stop':
                 if agent.running:
                     agent.stop()
-                    self.log_message(f"Agent {agent_name} stopped", level='info')
+                    self.log_message(f"Agent {agent_name} stopped", 'info')
             
             return True
             
         except Exception as e:
-            self.log_message(f"Failed to toggle agent {agent_id}: {str(e)}", level='error')
+            self.log_message(f"Failed to toggle agent {agent_id}: {str(e)}", 'error')
             return False
 
     def setup_routes(self):
@@ -393,7 +393,7 @@ class KinOSWeb:
                 return content, 200, {'Content-Type': 'text/plain'}
 
             except Exception as e:
-                self.log_message(f"Error reading file content: {str(e)}", level='error')
+                self.log_message(f"Error reading file content: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/missions/<int:mission_id>/files')
@@ -430,24 +430,24 @@ class KinOSWeb:
                                         'modified': os.path.getmtime(full_path)
                                     }
                                     files.append(file_info)
-                                    web_instance.logger.log(f"Added file: {filename}", level='debug')
+                                    web_instance.logger.log(f"Added file: {filename}", 'debug')
                                 
                                 except (OSError, IOError) as e:
-                                    web_instance.logger.log(f"Error processing file {filename}: {str(e)}", level='error')
+                                    web_instance.logger.log(f"Error processing file {filename}: {str(e)}", 'error')
                                     continue
 
                     # Sort files by path
                     files.sort(key=lambda x: x['path'])
                 
-                    web_instance.logger.log(f"Found {len(files)} files in mission {mission['name']}", level='info')
+                    web_instance.logger.log(f"Found {len(files)} files in mission {mission['name']}", 'info')
                     return jsonify(files)
 
                 except Exception as e:
-                    web_instance.logger.log(f"Error listing files: {str(e)}", level='error')
+                    web_instance.logger.log(f"Error listing files: {str(e)}", 'error')
                     return jsonify({'error': f'Error listing files: {str(e)}'}), 500
 
             except Exception as e:
-                web_instance.logger.log(f"Unexpected error in get_mission_files: {str(e)}", level='error')
+                web_instance.logger.log(f"Unexpected error in get_mission_files: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/missions/<int:mission_id>/content', methods=['GET'])
@@ -463,13 +463,13 @@ class KinOSWeb:
                         with open(file_path, 'r', encoding='utf-8') as f:
                             content[file_type] = f.read()
                     except Exception as e:
-                        self.log_message(f"Error reading {file_type} file: {str(e)}", level='error')
+                        self.log_message(f"Error reading {file_type} file: {str(e)}", 'error')
                         content[file_type] = ""
                         
                 return jsonify(content)
                 
             except Exception as e:
-                self.log_message(f"Error getting mission content: {str(e)}", level='error')
+                self.log_message(f"Error getting mission content: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/missions/<int:mission_id>/content/<file_type>', methods=['POST'])
@@ -488,11 +488,11 @@ class KinOSWeb:
                 if not success:
                     return jsonify({'error': 'Failed to save content'}), 500
                     
-                self.log_message(f"Saved {file_type} content for mission {mission_id}", level='success')
+                self.log_message(f"Saved {file_type} content for mission {mission_id}", 'success')
                 return jsonify({'status': 'success'})
                 
             except Exception as e:
-                self.log_message(f"Error saving mission content: {str(e)}", level='error')
+                self.log_message(f"Error saving mission content: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/missions', methods=['GET'])
@@ -505,7 +505,7 @@ class KinOSWeb:
                 return jsonify(missions)
                 
             except Exception as e:
-                self.log_message(f"Error getting missions: {str(e)}", level='error')
+                self.log_message(f"Error getting missions: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/missions/validate-directory', methods=['POST'])
@@ -565,11 +565,11 @@ class KinOSWeb:
                         self.log_message(f"Found valid path: {path}")
                         return jsonify({'path': path})
                 
-                self.log_message(f"No valid path found for: {directory_name}", level='error')        
+                self.log_message(f"No valid path found for: {directory_name}", 'error')        
                 return jsonify({'error': 'Directory not found'}), 404
                 
             except Exception as e:
-                self.log_message(f"Error getting directory path: {str(e)}", level='error')
+                self.log_message(f"Error getting directory path: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/missions/link', methods=['POST'])
@@ -591,12 +591,12 @@ class KinOSWeb:
                 
                 self.log_message(
                     f"Created link to external mission at {external_path}", 
-                    level='success'
+                    'success'
                 )
                 return jsonify(mission), 201
                 
             except Exception as e:
-                self.log_message(f"Error creating mission link: {str(e)}", level='error')
+                self.log_message(f"Error creating mission link: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/missions', methods=['POST'])
@@ -631,11 +631,11 @@ class KinOSWeb:
                     self.file_manager.current_mission = None
                     return jsonify({'error': 'Failed to create mission files'}), 500
                 
-                self.log_message(f"Mission '{mission_name}' created successfully", level='success')
+                self.log_message(f"Mission '{mission_name}' created successfully", 'success')
                 return jsonify(mission), 201
                 
             except Exception as e:
-                self.log_message(f"Error creating mission: {str(e)}", level='error')
+                self.log_message(f"Error creating mission: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/missions/<int:mission_id>', methods=['GET'])
@@ -660,11 +660,11 @@ class KinOSWeb:
                 if was_running:
                     self.start_agents()
                     
-                self.log_message(f"Mission {mission['name']} loaded successfully", level='success')
+                self.log_message(f"Mission {mission['name']} loaded successfully", 'success')
                 return jsonify(mission)
                 
             except Exception as e:
-                self.log_message(f"Error getting mission: {str(e)}", level='error')
+                self.log_message(f"Error getting mission: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/missions/<int:mission_id>', methods=['PUT'])
@@ -680,11 +680,11 @@ class KinOSWeb:
                 if not mission:
                     return jsonify({'error': 'Mission not found'}), 404
                     
-                self.log_message(f"Mission {mission_id} updated", level='success')
+                self.log_message(f"Mission {mission_id} updated", 'success')
                 return jsonify(mission)
                 
             except Exception as e:
-                self.log_message(f"Error updating mission: {str(e)}", level='error')
+                self.log_message(f"Error updating mission: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
             
 
@@ -708,15 +708,15 @@ class KinOSWeb:
                     with open(demande_path, 'w', encoding='utf-8') as f:
                         f.write(test_data)
 
-                    self.log_message(f"✓ Données de test chargées pour la mission {mission['name']}", level='success')
+                    self.log_message(f"✓ Données de test chargées pour la mission {mission['name']}", 'success')
                     return jsonify({'status': 'success'})
 
                 except Exception as write_error:
-                    self.log_message(f"❌ Erreur d'écriture des données de test: {str(write_error)}", level='error')
+                    self.log_message(f"❌ Erreur d'écriture des données de test: {str(write_error)}", 'error')
                     return jsonify({'error': f'File write error: {str(write_error)}'}), 500
 
             except Exception as e:
-                self.log_message(f"❌ Erreur chargement données test: {str(e)}", level='error')
+                self.log_message(f"❌ Erreur chargement données test: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/missions/<int:mission_id>/reset', methods=['POST'])
@@ -726,11 +726,11 @@ class KinOSWeb:
                 if not mission:
                     return jsonify({'error': 'Mission not found'}), 404
 
-                self.log_message(f"Files reset for mission {mission['name']}", level='success')
+                self.log_message(f"Files reset for mission {mission['name']}", 'success')
                 return jsonify({'status': 'success'})
                 
             except Exception as e:
-                self.log_message(f"Error resetting files: {str(e)}", level='error')
+                self.log_message(f"Error resetting files: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
 
@@ -780,20 +780,20 @@ class KinOSWeb:
                                 if panel_id not in self.content_cache or self.content_cache[panel_id] != new_content:
                                     self.log_message(
                                         f"File changed: {filename} in mission {self.current_mission}",
-                                        level='info'
+                                        'info'
                                     )
                                     content[panel_id] = new_content
                                     self.content_cache[panel_id] = new_content
                                     self.last_modified[panel_id] = last_modified
                                     
                     except Exception as e:
-                        self.log_message(f"Error reading {filename}: {str(e)}", level='error')
+                        self.log_message(f"Error reading {filename}: {str(e)}", 'error')
                         # Continue with other files even if one fails
 
                 return jsonify(content)
                     
             except Exception as e:
-                self.log_message(f"Error handling content: {str(e)}", level='error')
+                self.log_message(f"Error handling content: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/start', methods=['POST'])
@@ -818,7 +818,7 @@ class KinOSWeb:
                 return jsonify({'prompt': prompt})
                 
             except Exception as e:
-                self.log_message(f"Error getting agent prompt: {str(e)}", level='error')
+                self.log_message(f"Error getting agent prompt: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/agent/<agent_id>/prompt', methods=['POST'])
@@ -835,13 +835,13 @@ class KinOSWeb:
                     
                 success = self.agents[agent_name].save_prompt(data['prompt'])
                 if success:
-                    self.log_message(f"Prompt saved for agent {agent_name}", level='success')
+                    self.log_message(f"Prompt saved for agent {agent_name}", 'success')
                     return jsonify({'status': 'success'})
                 else:
                     return jsonify({'error': 'Failed to save prompt'}), 500
                     
             except Exception as e:
-                self.log_message(f"Error saving agent prompt: {str(e)}", level='error')
+                self.log_message(f"Error saving agent prompt: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/changes')
@@ -851,7 +851,7 @@ class KinOSWeb:
                 notifications = self.notification_service.get_notifications()
                 return jsonify(notifications)
             except Exception as e:
-                self.logger.log(f"Error in get_changes: {str(e)}", level='error')
+                self.logger.log(f"Error in get_changes: {str(e)}", 'error')
                 return jsonify([])
 
         @self.app.route('/api/notifications', methods=['GET', 'POST'])
@@ -868,16 +868,16 @@ class KinOSWeb:
                     while self.notifications_queue:
                         notification = self.notifications_queue.pop(0)
                         notifications.append(notification)
-                        self.log_message(f"Sending notification: {notification}", level='debug')
+                        self.log_message(f"Sending notification: {notification}", 'debug')
                         
                     # Debug log
                     if notifications:
-                        self.log_message(f"Sending {len(notifications)} notifications to frontend", level='debug')
+                        self.log_message(f"Sending {len(notifications)} notifications to frontend", 'debug')
                         
                     return jsonify(notifications)
                     
                 except Exception as e:
-                    self.log_message(f"Error getting notifications: {str(e)}", level='error')
+                    self.log_message(f"Error getting notifications: {str(e)}", 'error')
                     # Retourner une liste vide au lieu d'une erreur 500
                     return jsonify([])
                     
@@ -885,13 +885,13 @@ class KinOSWeb:
                 """Handle content change notifications from agents"""
                 try:
                     data = request.get_json()
-                    self.log_message(f"Received notification: {data}", level='debug')
+                    self.log_message(f"Received notification: {data}", 'debug')
                     
                     # Validate required fields
                     required_fields = ['file_path', 'content', 'panel', 'message']
                     if not all(field in data for field in required_fields):
                         missing = [f for f in required_fields if f not in data]
-                        self.log_message(f"Missing required fields: {missing}", level='error')
+                        self.log_message(f"Missing required fields: {missing}", 'error')
                         return jsonify({'error': f'Missing required fields: {missing}'}), 400
                         
                     # Add notification to queue with explicit flash and status
@@ -906,7 +906,7 @@ class KinOSWeb:
                         'status': data['file_path']  # Important for tab flashing
                     }
                     
-                    self.log_message(f"Adding notification to queue: {notification}", level='debug')
+                    self.log_message(f"Adding notification to queue: {notification}", 'debug')
                     self.notifications_queue.append(notification)
                     
                     # Update content cache
@@ -917,7 +917,7 @@ class KinOSWeb:
                     return jsonify({'status': 'success'})
                     
                 except Exception as e:
-                    self.log_message(f"Error handling notification: {str(e)}", level='error')
+                    self.log_message(f"Error handling notification: {str(e)}", 'error')
                     return jsonify({'error': str(e)}), 500
 
 
@@ -935,7 +935,7 @@ class KinOSWeb:
         @self.app.errorhandler(Exception)
         def handle_exception(error):
             """Handle any uncaught exception"""
-            self.logger.log(f"Unhandled Exception: {str(error)}", level='error')
+            self.logger.log(f"Unhandled Exception: {str(error)}", 'error')
             
             error_details = {
                 'error': str(error),
@@ -945,16 +945,16 @@ class KinOSWeb:
             }
             
             # Log the full error details
-            self.logger.log(f"Detailed error info:", level='error')
-            self.logger.log(f"Type: {error_details['type']}", level='error')
-            self.logger.log(f"Traceback:\n{error_details['traceback']}", level='error')
+            self.logger.log(f"Detailed error info:", 'error')
+            self.logger.log(f"Type: {error_details['type']}", 'error')
+            self.logger.log(f"Traceback:\n{error_details['traceback']}", 'error')
             
             return jsonify(error_details), 500
 
         @self.app.errorhandler(500)
         def internal_error(error):
             """Handle internal server errors"""
-            self.logger.log(f"500 Error: {str(error)}", level='error')
+            self.logger.log(f"500 Error: {str(error)}", 'error')
             
             error_details = {
                 'error': str(error),
@@ -984,10 +984,10 @@ class KinOSWeb:
             self.agent_service.init_agents(config)
             
             # Initialize other components as needed
-            self.logger.log("All components initialized successfully", level='success')
+            self.logger.log("All components initialized successfully", 'success')
             
         except Exception as e:
-            self.logger.log(f"Error initializing components: {str(e)}", level='error')
+            self.logger.log(f"Error initializing components: {str(e)}", 'error')
             raise ServiceError(f"Failed to initialize components: {str(e)}")
             
     def run(self, host='0.0.0.0', port=8000, debug=False):
@@ -995,7 +995,7 @@ class KinOSWeb:
         try:
             self.app.run(host=host, port=port, debug=debug)
         except Exception as e:
-            self.logger.log(f"Error running application: {str(e)}", level='error')
+            self.logger.log(f"Error running application: {str(e)}", 'error')
             raise ServiceError(f"Failed to start application: {str(e)}")
             
     def reinitialize_agents(self):
@@ -1006,9 +1006,9 @@ class KinOSWeb:
                     "anthropic_api_key": self.config["anthropic_api_key"],
                     "openai_api_key": self.config["openai_api_key"]
                 })
-                self.logger.log("Agents reinitialized with new mission", level='success')
+                self.logger.log("Agents reinitialized with new mission", 'success')
         except Exception as e:
-            self.logger.log(f"Error reinitializing agents: {str(e)}", level='error')
+            self.logger.log(f"Error reinitializing agents: {str(e)}", 'error')
 
     def shutdown(self):
         """Graceful shutdown of the application"""
@@ -1020,10 +1020,10 @@ class KinOSWeb:
             self.notification_service.cleanup()
             self.file_service.cleanup()
             
-            self.logger.log("Application shutdown complete", level='info')
+            self.logger.log("Application shutdown complete", 'info')
             
         except Exception as e:
-            self.logger.log(f"Error during shutdown: {str(e)}", level='error')
+            self.logger.log(f"Error during shutdown: {str(e)}", 'error')
             raise ServiceError(f"Failed to shutdown cleanly: {str(e)}")
 
 
@@ -1060,26 +1060,26 @@ class KinOSWeb:
                     self.log_message(f"Content updated in {file_name}")
 
         except Exception as e:
-            self.log_message(f"Error checking content updates: {str(e)}", level='error')
+            self.log_message(f"Error checking content updates: {str(e)}", 'error')
 
     def setup_error_handlers(self):
         @self.app.errorhandler(404)
         def not_found_error(error):
-            self.log_message(f"404 Error: {str(error)}", level='error')
+            self.log_message(f"404 Error: {str(error)}", 'error')
             return jsonify({'error': 'Resource not found'}), 404
 
         @self.app.errorhandler(500)
         def internal_error(error):
-            self.log_message(f"500 Error: {str(error)}", level='error')
+            self.log_message(f"500 Error: {str(error)}", 'error')
             import traceback
-            self.log_message(traceback.format_exc(), level='error')
+            self.log_message(traceback.format_exc(), 'error')
             return jsonify({'error': 'Internal server error'}), 500
 
         @self.app.errorhandler(Exception)
         def handle_exception(error):
-            self.log_message(f"Unhandled Exception: {str(error)}", level='error')
+            self.log_message(f"Unhandled Exception: {str(error)}", 'error')
             import traceback
-            self.log_message(traceback.format_exc(), level='error')
+            self.log_message(traceback.format_exc(), 'error')
             return jsonify({'error': str(error)}), 500
 
 
