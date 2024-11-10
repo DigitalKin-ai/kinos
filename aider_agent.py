@@ -91,7 +91,6 @@ class AiderAgent(KinOSAgent):
                 self.logger(f"[{self.__class__.__name__}] 📂 Changed to directory: {mission_path}")
 
                 # Build command with explicit paths and logging
-                from utils.path_manager import PathManager
                 cmd = [
                     "aider",
                     "--model", "claude-3-5-sonnet-20241022",
