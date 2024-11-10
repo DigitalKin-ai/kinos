@@ -735,17 +735,9 @@ export default {
     },
     template: /* html */`
         <div class="p-6 relative h-full flex flex-col">
-            <!-- Error notification -->
             <div v-if="showError" 
                  class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                 {{ errorMessage }}
-            </div>
-
-            <div v-if="loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
-                <div class="text-center">
-                    <i class="mdi mdi-loading mdi-spin text-4xl text-blue-500"></i>
-                    <p class="mt-2 text-gray-600">Loading teams...</p>
-                </div>
             </div>
             <div class="mb-6">
                 <h2 class="text-2xl font-bold">Teams</h2>
@@ -761,9 +753,18 @@ export default {
                 </div>
                 
                 <div v-else class="grid grid-cols-1 gap-6">
-                <div v-for="team in teams" 
-                     :key="team.name"
-                     class="bg-white rounded-lg shadow-md p-6 team-card relative">
+                    <team-card
+                        v-for="team in teams"
+                        :key="team.name" 
+                        :team="team"
+                        :loading="loadingStates.get(team.id)"
+                        :error="errorMessages.get(team.id)"
+                        :is-active="activeTeam?.name === team.name"
+                        :metrics="getTeamMetrics(team.id)"
+                        @toggle="toggleTeam(team)"
+                        @activate="activateTeam(team)"
+                        @add-agent="openAddAgentModal(team)">
+                    </team-card>
                     <!-- Loading indicator -->
                     <div v-if="loadingStates.get(team.id)" 
                          class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
@@ -859,45 +860,12 @@ export default {
             </div>
         </div>
 
-        <!-- Add Agent Modal -->
-        <div v-if="showAddAgentModal" 
-             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg p-6 w-96 max-w-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold">Add Agent to {{ selectedTeamForEdit?.name }}</h3>
-                    <button @click="closeAddAgentModal" class="text-gray-500 hover:text-gray-700">
-                        <i class="mdi mdi-close"></i>
-                    </button>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Select Agent
-                    </label>
-                    <select v-model="selectedAgent"
-                            class="w-full border rounded-md p-2">
-                        <option value="">Choose an agent...</option>
-                        <option v-for="agent in getAvailableAgents()"
-                                :key="agent"
-                                :value="agent">
-                            {{ agent }}
-                        </option>
-                    </select>
-                </div>
-                
-                <div class="flex justify-end space-x-2">
-                    <button @click="closeAddAgentModal"
-                            class="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50">
-                        Cancel
-                    </button>
-                    <button @click="addAgentToTeam"
-                            :disabled="!selectedAgent"
-                            :class="{'opacity-50 cursor-not-allowed': !selectedAgent}"
-                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                        Add to Team
-                    </button>
-                </div>
-            </div>
-        </div>
+            <add-agent-modal
+                :show="showAddAgentModal"
+                :team="selectedTeamForEdit"
+                :available-agents="getAvailableAgents()"
+                @close="closeAddAgentModal"
+                @add="addAgentToTeam">
+            </add-agent-modal>
     `
 }
