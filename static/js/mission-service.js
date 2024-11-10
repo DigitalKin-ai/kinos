@@ -25,6 +25,19 @@ class MissionService {
 
     async selectMission(mission) {
         try {
+            // Stop agents first
+            const stopResponse = await fetch('/api/agents/stop', { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!stopResponse.ok) {
+                throw new Error('Failed to stop agents');
+            }
+            
+            // Select new mission
             const response = await fetch(`/api/missions/${mission.id}/select`, {
                 method: 'POST',
                 headers: {
@@ -37,9 +50,16 @@ class MissionService {
                 throw new Error(error.error || 'Failed to select mission');
             }
 
+            // Verify mission change
+            const verifyResponse = await fetch(`/api/missions/${mission.id}`);
+            if (!verifyResponse.ok) {
+                throw new Error('Mission change verification failed');
+            }
+
             const result = await response.json();
             console.log('Mission selected successfully:', result);
             return result;
+            
         } catch (error) {
             console.error('Error selecting mission:', error);
             throw error;

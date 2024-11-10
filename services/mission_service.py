@@ -105,42 +105,34 @@ class MissionService:
     def get_mission(self, mission_id: int) -> Optional[Dict]:
         """Get a specific mission by ID with better error handling"""
         try:
-            # Log le chemin du dossier missions
-            # self.logger.log(f"Looking for mission {mission_id} in {self.missions_dir}", level='debug')
-            
             missions = self._scan_missions()
             
-            # Log les missions trouvées
-            # self.logger.log(f"Found missions: {[m['name'] for m in missions]}", level='debug')
-            
-            # Check if missions list is empty
             if not missions:
-                self.logger.log("No missions found, creating default mission", level='info')
-                default_mission = self.create_mission("Mission_1", "Default mission")
-                if default_mission:
-                    missions = [default_mission]
-                else:
-                    raise Exception("Failed to create default mission")
-            
+                self.logger.log("No missions found", level='warning')
+                return None
+
             # Find mission by ID
             mission = next((m for m in missions if m['id'] == mission_id), None)
-            
-            if mission:
-                # Normaliser le chemin
-                mission['path'] = self._normalize_mission_path(
-                    os.path.join(self.missions_dir, mission['name'])
-                )
             
             if not mission:
                 self.logger.log(f"Mission {mission_id} not found", level='warning')
                 return None
-                
+
+            # Normalize path
+            mission['path'] = self._normalize_mission_path(
+                os.path.join(self.missions_dir, mission['name'])
+            )
+
+            # Verify directory exists
+            if not os.path.exists(mission['path']):
+                self.logger.log(f"Mission directory not found: {mission['path']}", level='warning')
+                return None
+
             # Only include demande.md initially
             mission['files'] = {
                 'demande': os.path.join(mission['path'], "demande.md")
             }
-            
-            # self.logger.log(f"Found mission: {mission['name']} (ID: {mission_id})", level='debug')
+
             return mission
             
         except Exception as e:
