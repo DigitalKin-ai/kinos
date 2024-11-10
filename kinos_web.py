@@ -248,6 +248,12 @@ class KinOSWeb:
                     "prompt": load_prompt("prompts/testeur.md"),
                     "prompt_file": "prompts/testeur.md"
                 }),
+                "Validation": ValidationAgent({
+                    **base_config,
+                    "name": "Validation",
+                    "prompt": load_prompt("prompts/validation.md"),
+                    "prompt_file": "prompts/validation.md"
+                }),
                 "Redacteur": RedacteurAgent({
                     **base_config,
                     "name": "Redacteur",

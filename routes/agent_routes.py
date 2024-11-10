@@ -105,6 +105,7 @@ def register_agent_routes(app, web_instance):
                 'documentaliste': 'Documentaliste',
                 'duplication': 'Duplication',
                 'testeur': 'Testeur',
+                'validation': 'Validation',
                 'redacteur': 'Redacteur'
             }
             

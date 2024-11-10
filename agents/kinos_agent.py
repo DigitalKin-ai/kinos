@@ -41,6 +41,7 @@ class KinOSAgent:
     
     # Default intervals for each agent type (in seconds)
     DEFAULT_INTERVALS = {
+        'ValidationAgent': 120,      # Validation runs every 2 minutes
         'SpecificationsAgent': 180,  # Specifications change less frequently
         'ProductionAgent': 30,      # Medium reactivity
         'ManagementAgent': 150,      # Coordination needs less frequency

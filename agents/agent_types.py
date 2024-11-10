@@ -5,6 +5,24 @@ Ce module contient les implémentations spécifiques des agents qui héritent
 de AiderAgent. Chaque agent a un rôle et des responsabilités distincts dans
 le processus de développement.
 """
+
+class ValidationAgent(AiderAgent):
+    """
+    Agent responsable de la validation des livrables et de la conformité.
+    
+    Responsabilités:
+    - Validation des spécifications
+    - Vérification de la conformité
+    - Mesures quantitatives
+    - Validation des critères objectifs
+    """
+    def __init__(self, config: Dict):
+        if 'web_instance' not in config:
+            raise ValueError("web_instance manquant dans la configuration")
+        super().__init__(config)
+        self.prompt_file = "prompts/validation.md"
+        self.role = "validation"
+        self.web_instance = config['web_instance']
 import os
 from typing import Dict, Optional
 from agents.kinos_agent import KinOSAgent
