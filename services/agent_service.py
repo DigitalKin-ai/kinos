@@ -47,6 +47,59 @@ class AgentService:
             except locale.Error:
                 pass
 
+    def _discover_agents(self) -> List[Dict[str, str]]:
+        """Discover available agents by scanning prompts directory"""
+        discovered_agents = []
+        prompts_dir = "prompts"
+        
+        try:
+            if not os.path.exists(prompts_dir):
+                os.makedirs(prompts_dir)
+                self.web_instance.log_message("Created prompts directory", level='info')
+                return []
+
+            for file in os.listdir(prompts_dir):
+                if file.endswith('.md'):
+                    agent_name = file[:-3].lower()  # Remove .md extension
+                    agent_class = self._get_agent_class(agent_name)
+                    if agent_class:
+                        discovered_agents.append({
+                            'name': agent_name,
+                            'prompt_file': file,
+                            'class': agent_class
+                        })
+                        self.web_instance.log_message(f"Discovered agent: {agent_name}", level='debug')
+
+            return discovered_agents
+
+        except Exception as e:
+            self.web_instance.log_message(f"Error discovering agents: {str(e)}", level='error')
+            return []
+
+    def _get_agent_class(self, agent_name: str):
+        """Get the appropriate agent class based on name"""
+        from agents.agent_types import (
+            SpecificationsAgent, ProductionAgent, ManagementAgent,
+            EvaluationAgent, SuiviAgent, DocumentalisteAgent,
+            DuplicationAgent, TesteurAgent, ValidationAgent,
+            RedacteurAgent
+        )
+        
+        class_mapping = {
+            'specifications': SpecificationsAgent,
+            'production': ProductionAgent,
+            'management': ManagementAgent,
+            'evaluation': EvaluationAgent,
+            'suivi': SuiviAgent,
+            'documentaliste': DocumentalisteAgent,
+            'duplication': DuplicationAgent,
+            'testeur': TesteurAgent,
+            'validation': ValidationAgent,
+            'redacteur': RedacteurAgent
+        }
+        
+        return class_mapping.get(agent_name)
+
     def init_agents(self, config: Dict[str, Any]) -> None:
         """Initialize all agents with configuration"""
         try:
@@ -82,32 +135,23 @@ class AgentService:
 
             self.web_instance.log_message(f"Initializing agents for mission: {current_mission}", level='info')
 
-            if not os.path.exists("prompts"):
-                raise ValueError("Prompts directory not found")
+            # Discover available agents
+            discovered_agents = self._discover_agents()
+            if not discovered_agents:
+                self.web_instance.log_message("No agents discovered in prompts directory", level='warning')
+                return
 
-            # Initialize each agent type
+            # Initialize each discovered agent
             self.agents = {}
-            agent_configs = [
-                ("specification", SpecificationsAgent, "specifications.md"),
-                ("production", ProductionAgent, "production.md"),
-                ("management", ManagementAgent, "management.md"),
-                ("evaluation", EvaluationAgent, "evaluation.md"),
-                ("suivi", SuiviAgent, "suivi.md"),
-                ("documentaliste", DocumentalisteAgent, "documentaliste.md"),
-                ("duplication", DuplicationAgent, "duplication.md"),
-                ("testeur", TesteurAgent, "testeur.md"),
-                ("validation", ValidationAgent, "validation.md"),
-                ("redacteur", RedacteurAgent, "redacteur.md")
-            ]
 
             successful_inits = 0
-            for name, agent_class, prompt_file in agent_configs:
+            for agent_info in discovered_agents:
                 try:
-                    prompt_path = os.path.join("prompts", prompt_file)
-                    if not os.path.exists(prompt_path):
-                        self.web_instance.log_message(f"Prompt file not found: {prompt_path}", level='error')
-                        continue
+                    name = agent_info['name']
+                    prompt_path = os.path.join("prompts", agent_info['prompt_file'])
+                    agent_class = agent_info['class']
 
+                    # Read prompt content
                     with open(prompt_path, 'r', encoding='utf-8') as f:
                         prompt = f.read()
 
@@ -119,7 +163,7 @@ class AgentService:
                         "is_active": False  # Agents start inactive without mission
                     }
                     
-                    self.agents[name.lower()] = agent_class(agent_config)
+                    self.agents[name] = agent_class(agent_config)
                     successful_inits += 1
                     self.web_instance.log_message(f"✓ Agent {name} initialized (inactive)", level='success')
                     
@@ -129,11 +173,10 @@ class AgentService:
 
             if successful_inits == 0:
                 self.web_instance.log_message("Warning: No agents were successfully initialized", level='warning')
-                # Don't raise an error, just return empty dict
                 return {}
 
             self.web_instance.log_message(f"Successfully initialized {successful_inits} agents", level='success')
-            return self.agents  # Return initialized agents
+            return self.agents
 
         except Exception as e:
             self.web_instance.log_message(f"Error initializing agents: {str(e)}", level='error')
