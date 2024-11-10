@@ -227,9 +227,10 @@ class FileManager:
                 # Create parent directory if needed
                 os.makedirs(os.path.dirname(file_path), exist_ok=True)
                     
-                # Write with file locking
-                with portalocker.Lock(file_path, 'w', timeout=10) as lock:
-                    lock.write(content)
+                # Use FileService for thread-safe writes
+                success = self.web_instance.file_service.write_file(file_path, content)
+                if not success:
+                    raise FileOperationError(f"Failed to write to {file_path}")
                     
                 # Invalidate cache
                 if cache_key in self.content_cache:
