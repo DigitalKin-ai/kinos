@@ -8,7 +8,8 @@ export default {
             currentMission: null,
             loading: false,
             error: null,
-            apiClient: new ApiClient()
+            apiClient: new ApiClient(),
+            activeTeam: null  // Track active team
         }
     },
     props: {
@@ -22,14 +23,25 @@ export default {
             try {
                 if (!this.currentMission) {
                     console.warn('No mission selected');
-                    return;
+                    return [];
                 }
-                
+            
                 const response = await this.apiClient.getMissionTeams(this.currentMission.id);
-                this.teams = response;
-                return response;
+                this.teams = response.map(team => ({
+                    ...team,
+                    agents: team.agents || [],
+                    status: team.status || 'available'
+                }));
+
+                // Set first team as active if no active team
+                if (this.teams.length > 0 && !this.activeTeam) {
+                    this.activeTeam = this.teams[0];
+                }
+
+                return this.teams;
             } catch (error) {
                 console.error('Error loading teams:', error);
+                this.error = error.message;
                 throw error;
             }
         },
