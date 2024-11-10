@@ -262,7 +262,7 @@ class KinOSAgent:
                     with open(main_file_path, 'r', encoding='utf-8') as f:
                         current_content = f.read()
                     self.logger(f"[{self.__class__.__name__}] Current content size: {len(current_content) if current_content else 0}")
-                
+            
                 # Save state before modifications
                 previous_content = self.current_content if hasattr(self, 'current_content') else None
                 
@@ -274,7 +274,7 @@ class KinOSAgent:
                         self.consecutive_no_changes = 0
                     else:
                         self.consecutive_no_changes += 1
-                
+            
                 # Update metrics
                 self.last_run = datetime.now()
                 
