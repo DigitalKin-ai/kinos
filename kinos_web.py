@@ -101,22 +101,18 @@ class KinOSWeb:
                 self.log_message("Created prompts directory", 'info')
                 return
 
-            # Initialize agents in inactive state - don't raise error if no agents initialized
+            # Initialize agents in inactive state
             try:
                 self.agent_service.init_agents(config)
                 self.logger.log("Agents initialized in inactive state", 'success')
             except ValueError as e:
-                # Log warning but continue if it's just about missing mission
-                if "No mission currently selected" in str(e):
+                if "No mission selected" in str(e):
                     self.logger.log("No mission selected - agents will be initialized when mission is selected", 'warning')
                 else:
-                    # Re-raise other ValueError exceptions
                     raise
             except Exception as e:
                 self.logger.log(f"Warning: Agent initialization failed: {str(e)}", 'warning')
-                # Continue initialization even if agents fail
-            
-            # Log success
+                
             self.logger.log("Core components initialized successfully", 'success')
             
         except Exception as e:

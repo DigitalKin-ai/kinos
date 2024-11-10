@@ -138,7 +138,6 @@ export default {
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    console.error('Server error:', errorData);
                     throw new Error(errorData.error || `Server returned ${response.status}`);
                 }
 
@@ -146,10 +145,7 @@ export default {
                 return data.server?.running === true;
             } catch (error) {
                 console.error('Server connection check failed:', error);
-                if (error.message === 'Request timeout') {
-                    throw new Error('Server connection timed out. Please check if the server is running.');
-                }
-                throw new Error(`Server connection failed: ${error.message}`);
+                throw error;
             }
         },
 
