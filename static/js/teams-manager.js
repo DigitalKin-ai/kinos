@@ -19,6 +19,8 @@ export default {
             retryAttempts: new Map(), // Pour gérer les tentatives de retry
             maxRetries: 3,
             retryDelay: 1000,
+            errorMessage: null,
+            showError: false,
             availableAgents: [
                 "SpecificationsAgent",
                 "ManagementAgent", 
