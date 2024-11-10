@@ -52,12 +52,21 @@ const app = createApp({
         }
     },
     methods: {
-        updateMissionState(mission, state) {
-            if (!mission?.id) {
-                console.warn('Attempted to update state for invalid mission');
-                return;
+        async updateRunningState(mission, state) {
+            try {
+                if (!mission?.id) {
+                    console.warn('Attempted to update state for invalid mission');
+                    return;
+                }
+            
+                this.stateUpdateQueue.push({ missionId: mission.id, state });
+                if (!this.stateUpdateInProgress) {
+                    await this.processStateUpdates();
+                }
+            } catch (error) {
+                console.error('Error updating running state:', error);
+                this.handleError('Failed to update mission state');
             }
-            this.runningStates.set(mission.id, state);
         },
 
         async selectMission(mission) {
@@ -70,49 +79,66 @@ const app = createApp({
             try {
                 this.loading = true;
                 const wasRunning = this.runningStates.get(mission.id) || false;
-                
-                // Update state safely
-                this.updateMissionState(mission, false);
 
-                // Stop agents if running
-                if (wasRunning) {
-                    try {
-                        await fetch('/api/agents/stop', { method: 'POST' });
-                        this.runningAgents.clear();
-                    } catch (stopError) {
-                        console.warn('Warning: Failed to stop agents', stopError);
-                        // Continue with mission selection even if stop fails
+                // Vérifier la connexion serveur
+                if (!this.connectionStatus.connected) {
+                    await this.checkConnection();
+                    if (!this.connectionStatus.connected) {
+                        throw new Error('Server is not available. Please try again later.');
                     }
                 }
 
-                // Select mission
-                await this.missionService.selectMission(mission);
-                this.currentMission = this.missionService.getCurrentMission();
-                await this.loadMissionContent(mission.id);
-
-                // Restart agents if they were running
+                // Arrêter les agents si nécessaire
                 if (wasRunning) {
-                    try {
-                        await fetch('/api/agents/start', { method: 'POST' });
-                        // Restore agent states
-                        const status = await fetch('/api/agents/status').then(r => r.json());
-                        Object.keys(status).forEach(agent => {
-                            if (status[agent].running) {
-                                this.runningAgents.add(agent);
-                            }
+                    await this.handleMissionOperation(
+                        async () => {
+                            const response = await fetch('/api/agents/stop', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                signal: AbortSignal.timeout(5000)
+                            });
+                            
+                            if (!response.ok) throw new Error('Failed to stop agents');
+                            this.runningStates.set(mission.id, false);
+                        },
+                        'Failed to stop agents'
+                    );
+                }
+
+                // Sélectionner la mission
+                const result = await this.handleMissionOperation(
+                    async () => {
+                        const response = await fetch(`/api/missions/${mission.id}/select`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            signal: AbortSignal.timeout(5000)
                         });
-                    } catch (startError) {
-                        console.warn('Warning: Failed to restart agents', startError);
-                        this.error = 'Warning: Failed to restart agents after mission selection';
-                    }
-                }
+
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.error || 'Failed to select mission');
+                        }
+
+                        return response.json();
+                    },
+                    'Failed to select mission'
+                );
+
+                // Mettre à jour l'état
+                this.$emit('select-mission', result);
+                this.$emit('update:current-mission', result);
+
+                return result;
+
             } catch (error) {
                 console.error('Mission selection failed:', error);
-                this.error = error.message;
-                // Clear running states on error
-                this.runningAgents.clear();
+                if (mission?.id) {
+                    this.runningStates.set(mission.id, false);
+                }
+                this.handleError(error);
+                throw error;
             } finally {
-                this.loading = false;
+                this.$emit('update:loading', false);
             }
         },
 

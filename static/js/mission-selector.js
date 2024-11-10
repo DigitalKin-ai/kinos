@@ -159,6 +159,44 @@ export default {
             }
         },
 
+        validateMissionState(mission) {
+            if (!mission) return false;
+            if (!mission.id) return false;
+            if (!mission.name) return false;
+
+            const requiredProps = ['id', 'name', 'path', 'status'];
+            return requiredProps.every(prop => mission.hasOwnProperty(prop));
+        },
+
+        getMissionState(mission) {
+            if (!mission?.id) return null;
+            return {
+                running: this.runningStates.get(mission.id) || false,
+                loading: false
+            };
+        },
+
+        cleanupMissionState(mission) {
+            if (mission?.id) {
+                this.runningStates.delete(mission.id);
+                this.stateUpdateQueue = this.stateUpdateQueue.filter(
+                    update => update.missionId !== mission.id
+                );
+            }
+        },
+
+        handleMissionError(mission, error) {
+            console.error(`Error with mission ${mission?.id}:`, error);
+            if (mission?.id) {
+                this.runningStates.set(mission.id, false);
+            }
+            this.handleError({
+                title: 'Mission Error',
+                message: error.message,
+                type: 'error'
+            });
+        },
+
         isRunning(missionId) {
             try {
                 return this.runningStates.get(missionId) || false;
