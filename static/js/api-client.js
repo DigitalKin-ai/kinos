@@ -4,30 +4,119 @@
  */
 class ApiClient {
     constructor(baseUrl = '') {
-        this.baseUrl = ''; // Always use relative paths
-        this.token = null; // For future authentication
-        this.retryCount = 0;
-        this.maxRetries = 3;
+        this.connectionState = {
+            isOnline: navigator.onLine,
+            lastCheckTimestamp: null,
+            connectionErrors: 0
+        };
+
+        // Écouteurs d'événements de connexion
+        window.addEventListener('online', this.handleOnline.bind(this));
+        window.addEventListener('offline', this.handleOffline.bind(this));
     }
 
-    async handleRequest(endpoint, options = {}) {
-        let delay = 1000;
-        for (let i = 0; i < this.maxRetries; i++) {
-            try {
-                const response = await fetch(endpoint, options);
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || `Server returned ${response.status}`);
-                }
-                return response;
-            } catch (error) {
-                if (i === this.maxRetries - 1) throw error;
-                console.warn(`Attempt ${i + 1} failed, retrying in ${delay}ms...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                delay *= 2; // Exponential backoff
+    handleOnline() {
+        this.connectionState.isOnline = true;
+        this.connectionState.connectionErrors = 0;
+        this.notifyConnectionChange('online');
+    }
+
+    handleOffline() {
+        this.connectionState.isOnline = false;
+        this.notifyConnectionChange('offline');
+    }
+
+    notifyConnectionChange(status) {
+        const event = new CustomEvent('connection-status-change', {
+            detail: { 
+                status, 
+                timestamp: new Date() 
             }
+        });
+        window.dispatchEvent(event);
+    }
+
+    async selectMission(missionId) {
+        // Vérification de la connexion avant la requête
+        if (!this.connectionState.isOnline) {
+            throw new Error('No internet connection');
+        }
+
+        try {
+            // Configuration de la requête avec gestion avancée
+            const requestConfig = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Client-Timestamp': Date.now(),
+                    'X-Client-Version': '1.0.0'
+                },
+                timeout: 10000  // 10 secondes
+            };
+
+            // Requête avec gestion des erreurs
+            const response = await this.post(`/api/missions/${missionId}/select`, null, {
+                ...requestConfig,
+                retryStrategy: {
+                    maxRetries: 3,
+                    baseDelay: 1000,
+                    backoffFactor: 2
+                },
+                errorHandling: {
+                    MISSION_NOT_FOUND: this.handleMissionNotFound,
+                    AGENT_INIT_FAILED: this.handleAgentInitError,
+                    UNEXPECTED_ERROR: this.handleUnexpectedError
+                }
+            });
+
+            // Événement de succès
+            const successEvent = new CustomEvent('mission-selected', {
+                detail: {
+                    missionId,
+                    missionName: response.name,
+                    selectedAt: response.selected_at,
+                    resources: response.resources
+                }
+            });
+            window.dispatchEvent(successEvent);
+
+            return response;
+        } catch (error) {
+            // Gestion centralisée des erreurs
+            this.handleMissionSelectionError(error);
+            throw error;
         }
     }
+
+    handleMissionSelectionError(error) {
+        // Analyse et catégorisation de l'erreur
+        const errorCategories = {
+            'No internet connection': this.handleOfflineError,
+            'Mission not found': this.handleMissionNotFoundError,
+            'Timeout': this.handleTimeoutError
+        };
+
+        const errorHandler = errorCategories[error.message] || this.handleGenericError;
+        errorHandler.call(this, error);
+
+        // Mise à jour des métriques de connexion
+        this.updateConnectionMetrics(error);
+    }
+
+    updateConnectionMetrics(error) {
+        this.connectionState.connectionErrors++;
+        this.connectionState.lastCheckTimestamp = Date.now();
+
+        // Événement pour suivre les erreurs de connexion
+        const connectionErrorEvent = new CustomEvent('connection-error', {
+            detail: {
+                error,
+                connectionState: this.connectionState
+            }
+        });
+        window.dispatchEvent(connectionErrorEvent);
+    }
+}
 
     async get(endpoint) {
         const response = await fetch(`${this.baseUrl}${endpoint}`);
