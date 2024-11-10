@@ -141,6 +141,11 @@ export default {
             try {
                 this.loading = true;
                 this.error = null;
+                
+                if (!this.currentMission?.id) {
+                    throw new Error('No mission selected');
+                }
+
                 const teams = await this.missionService.getTeams(this.currentMission.id);
                 this.teams = teams.map(team => ({
                     ...team,
@@ -153,10 +158,7 @@ export default {
                     this.activeTeam = this.teams[0];
                 }
             } catch (error) {
-                console.error('Error loading teams:', error);
-                this.error = error.message || 'Failed to load teams';
-                // Optional: show user-friendly error notification
-                this.showErrorNotification('Could not load teams for this mission');
+                this.handleError('Failed to load teams', error);
             } finally {
                 this.loading = false;
             }
@@ -169,9 +171,11 @@ export default {
     },
     beforeUnmount() {
         this.stopTeamMonitoring();
-        // Use teamStats.clear() instead of non-existent statusCache
         this.teamStats.clear();
         this.teamHistory.clear();
+        if (this.statsInterval) {
+            clearInterval(this.statsInterval);
+        }
     },
     created() {
         this.initializeErrorHandling();

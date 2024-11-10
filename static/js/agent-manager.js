@@ -29,9 +29,7 @@ export default {
             isCreatingMission: false,
             newMissionName: '',
             missionSidebarCollapsed: false,
-            error: null,
             runningAgents: new Set(),
-            notifications: [],
             activeTab: 'demande',
             content: {
                 demande: '',
@@ -64,17 +62,8 @@ export default {
         currentMission: {
             immediate: true,
             handler(newMission) {
-                if (newMission) {
+                if (newMission?.id) {
                     this.loadTeams();
-                }
-            }
-        }
-    },
-    watch: {
-        currentMission: {
-            immediate: true,
-            handler(newMission) {
-                if (newMission) {
                     this.loadAgents();
                 }
             }
