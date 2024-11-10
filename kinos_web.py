@@ -251,10 +251,10 @@ class KinOSWeb:
 </html>""")
         
         # Verify paths exist
-        if not os.path.exists(template_dir):
-            raise RuntimeError(f"Template directory not found: {template_dir}")
-        if not os.path.exists(static_dir):
-            raise RuntimeError(f"Static directory not found: {static_dir}")
+        if not os.path.exists(self.template_dir):
+            raise RuntimeError(f"Template directory not found: {self.template_dir}")
+        if not os.path.exists(self.static_dir):
+            raise RuntimeError(f"Static directory not found: {self.static_dir}")
             
         
         # Initialize Flask with explicit template and static folders
