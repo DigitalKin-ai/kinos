@@ -175,20 +175,30 @@ export default {
         },
 
         async selectMission(mission) {
+            if (!mission?.id) {
+                console.error('Invalid mission object:', mission);
+                return;
+            }
+
             try {
                 this.$emit('update:loading', true);
 
-                // Store previous mission state
-                const wasRunning = this.runningMissions.has(mission.id);
-                
+                // Use the runningStates Map
+                const wasRunning = this.runningStates.get(mission.id) || false;
+
                 // Stop agents if running
                 if (wasRunning) {
                     try {
-                        await fetch('/api/agents/stop', { 
+                        const stopResponse = await fetch('/api/agents/stop', { 
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' }
                         });
-                        this.runningMissions.delete(mission.id);
+                        
+                        if (!stopResponse.ok) {
+                            throw new Error('Failed to stop agents');
+                        }
+                        
+                        this.runningStates.set(mission.id, false);
                     } catch (stopError) {
                         console.warn('Error stopping agents:', stopError);
                     }
@@ -214,11 +224,16 @@ export default {
                 // Restore previous running state if needed
                 if (wasRunning) {
                     try {
-                        await fetch('/api/agents/start', { 
+                        const startResponse = await fetch('/api/agents/start', { 
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' }
                         });
-                        this.runningMissions.add(mission.id);
+                        
+                        if (!startResponse.ok) {
+                            throw new Error('Failed to restart agents');
+                        }
+                        
+                        this.runningStates.set(mission.id, true);
                     } catch (startError) {
                         console.warn('Error restarting agents:', startError);
                         this.handleError('Warning: Failed to restart agents');
@@ -229,7 +244,7 @@ export default {
 
             } catch (error) {
                 console.error('Mission selection failed:', error);
-                this.runningMissions.delete(mission?.id);
+                this.runningStates.set(mission.id, false);
                 this.handleError(error.message);
                 throw error;
             } finally {
