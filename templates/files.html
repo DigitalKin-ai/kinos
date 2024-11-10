@@ -94,6 +94,13 @@
                 activeTab: 'files'
             }
         },
+        // Add this method to ensure missionService is passed
+        created() {
+            // Ensure missionService is initialized before mounting
+            if (!this.missionService) {
+                this.missionService = new MissionService();
+            }
+        },
         async mounted() {
             try {
                 const response = await fetch('/api/missions');
