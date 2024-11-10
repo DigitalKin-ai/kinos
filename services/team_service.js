@@ -7,8 +7,10 @@ export default class TeamService {
         this.connectionStatus = {
             connected: true,
             lastCheck: null,
-            retryCount: 0
+            retryCount: 0,
+            checkInterval: null
         };
+        this.apiClient = new ApiClient();
     }
 
     async initialize() {
