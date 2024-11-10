@@ -81,21 +81,16 @@ class AgentService:
 
     def _get_agent_class(self, agent_name: str):
         """Get the appropriate agent class based on name"""
-        # Map of agent names to their classes
-        agent_classes = {
-            'validation': ValidationAgent,
-            'specifications': SpecificationsAgent,
-            'production': ProductionAgent,
-            'management': ManagementAgent,
-            'evaluation': EvaluationAgent,
-            'suivi': SuiviAgent,
-            'documentaliste': DocumentalisteAgent,
-            'duplication': DuplicationAgent,
-            'testeur': TesteurAgent,
-            'redacteur': RedacteurAgent
-        }
-        
-        return agent_classes.get(agent_name.lower())
+        try:
+            # Import the AiderAgent class dynamically
+            from aider_agent import AiderAgent
+            
+            # All agents use AiderAgent as base class
+            return AiderAgent
+            
+        except ImportError as e:
+            self.web_instance.log_message(f"Error importing agent class: {str(e)}", level='error')
+            return None
 
     def init_agents(self, config: Dict[str, Any]) -> None:
         """Initialize all agents with configuration"""
