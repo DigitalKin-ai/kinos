@@ -353,6 +353,7 @@ Cache Layers:
 - Agent state cache
 - Configuration cache
 - Route cache for API responses
+- Validation cache for metrics
 
 Invalidation Strategies:
 - Timestamp-based

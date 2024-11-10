@@ -176,6 +176,20 @@ class KinOSWeb:
             mission_name = getattr(self, 'current_mission', missions[0]['name']) if missions else None
             if not mission_name:
                 raise ValueError("No mission available for initialization")
+
+            # Default intervals for each agent type (in seconds)
+            DEFAULT_INTERVALS = {
+                'ValidationAgent': 120,      # Validation runs every 2 minutes
+                'SpecificationsAgent': 180,  # Specifications change less frequently
+                'ProductionAgent': 30,      # Medium reactivity
+                'ManagementAgent': 150,      # Coordination needs less frequency
+                'EvaluationAgent': 160,      # Allow changes to accumulate
+                'SuiviAgent': 140,          # More reactive monitoring
+                'DocumentalisteAgent': 170,  # Documentation updates less frequent
+                'DuplicationAgent': 130,     # Code analysis needs more time
+                'TesteurAgent': 190,         # Regular test execution
+                'RedacteurAgent': 35        # Content generation and updates
+            }
                 
             # Create mission directory path
             mission_dir = os.path.join("missions", mission_name)
