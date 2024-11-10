@@ -124,17 +124,32 @@ export default {
         async checkServerConnection() {
             try {
                 const response = await Promise.race([
-                    fetch('http://localhost:8000/api/status', {
-                        method: 'GET'
+                    fetch('/api/status', {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
                     }),
                     new Promise((_, reject) => 
                         setTimeout(() => reject(new Error('Request timeout')), 5000)
                     )
                 ]);
-                return response.ok;
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Server error:', errorData);
+                    throw new Error(errorData.error || `Server returned ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.server?.running === true;
             } catch (error) {
                 console.error('Server connection check failed:', error);
-                return false;
+                if (error.message === 'Request timeout') {
+                    throw new Error('Server connection timed out. Please check if the server is running.');
+                }
+                throw new Error(`Server connection failed: ${error.message}`);
             }
         },
 
@@ -153,7 +168,7 @@ export default {
                 // Check server connection first
                 const isServerAvailable = await this.checkServerConnection();
                 if (!isServerAvailable) {
-                    throw new Error('Server is not available. Please ensure the server is running at http://localhost:8000');
+                    throw new Error('Server is not responding. Please check if the server is running.');
                 }
 
                 // Validate mission object
