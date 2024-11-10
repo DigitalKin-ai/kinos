@@ -21,10 +21,49 @@ class ValidationAgent(AiderAgent):
     def __init__(self, config: Dict):
         if 'web_instance' not in config:
             raise ValueError("web_instance manquant dans la configuration")
+        if 'mission_name' not in config:
+            raise ValueError("mission_name manquant dans la configuration")
+            
+        # Sauvegarder le répertoire original avant l'init parent
+        self.original_dir = os.getcwd()
+        
+        # Construire le chemin complet de la mission
+        self.mission_path = os.path.join('missions', config['mission_name'])
+        
         super().__init__(config)
         self.prompt_file = "prompts/validation.md"
         self.role = "validation"
         self.web_instance = config['web_instance']
+        
+    def start(self) -> None:
+        """
+        Démarre l'agent de validation en s'assurant qu'il travaille dans le bon répertoire.
+        """
+        try:
+            # Vérifier et créer le répertoire de mission si nécessaire
+            if not os.path.exists(self.mission_path):
+                raise ValueError(f"Mission directory not found: {self.mission_path}")
+                
+            # Changer vers le répertoire de mission
+            os.chdir(self.mission_path)
+            
+            # Appeler le start parent
+            super().start()
+            
+        except Exception as e:
+            # En cas d'erreur, revenir au répertoire original
+            os.chdir(self.original_dir)
+            raise e
+            
+    def stop(self) -> None:
+        """
+        Arrête l'agent et restaure le répertoire de travail original.
+        """
+        try:
+            super().stop()
+        finally:
+            # Toujours revenir au répertoire original
+            os.chdir(self.original_dir)
 import os
 from typing import Dict, Optional
 from agents.kinos_agent import KinOSAgent
