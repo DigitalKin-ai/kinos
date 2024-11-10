@@ -65,7 +65,7 @@
 
 {% block scripts %}
 <script type="module">
-    import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+    import { createApp, ref } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
     import MissionSelector from "{{ url_for('static', filename='js/mission-selector.js') }}";
     import MissionService from "{{ url_for('static', filename='js/mission-service.js') }}";
     import AgentManager from "{{ url_for('static', filename='js/agent-manager.js') }}";
@@ -77,34 +77,20 @@
             AgentManager,
             HeaderComponent
         },
-        data() {
+        setup() {
+            const missionService = new MissionService('');
+            const currentMission = ref(null);
+            const missions = ref([]);
+            const loading = ref(true);
+            const error = ref(null);
+
             return {
-                missionService: new MissionService(''),
-                currentMission: null,
-                missions: [],
-                loading: true,
-                error: null
-            }
-        },
-        async mounted() {
-            try {
-                const response = await fetch('/api/missions');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch missions');
-                }
-                const missions = await response.json();
-                this.missions = missions;
-            
-                if (missions.length > 0) {
-                    await this.selectMission(missions[0]);
-                }
-            
-                this.loading = false;
-            } catch (error) {
-                this.error = 'Failed to load missions: ' + error.message;
-                this.loading = false;
-                console.error(error);
-            }
+                missionService,
+                currentMission,
+                missions,
+                loading,
+                error
+            };
         },
         methods: {
             async selectMission(mission) {
@@ -113,7 +99,7 @@
                     await this.missionService.selectMission(mission);
                     this.currentMission = mission;
                 } catch (error) {
-                    this.error = 'Failed to select mission: ' + error.message;
+                    this.error = error.message;
                 } finally {
                     this.loading = false;
                 }
@@ -129,6 +115,25 @@
             },
             handleSidebarToggle(collapsed) {
                 // Handle sidebar collapse/expand if needed
+            }
+        },
+        async mounted() {
+            try {
+                const response = await fetch('/api/missions');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch missions');
+                }
+                this.missions = await response.json();
+            
+                if (this.missions.length > 0) {
+                    await this.selectMission(this.missions[0]);
+                }
+            
+                this.loading = false;
+            } catch (error) {
+                this.error = 'Failed to load missions: ' + error.message;
+                this.loading = false;
+                console.error(error);
             }
         }
     });
