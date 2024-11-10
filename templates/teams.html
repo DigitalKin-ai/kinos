@@ -81,13 +81,18 @@
         },
         methods: {
             async selectMission(mission) {
-                if (!mission?.id) {
+                // Validate mission object
+                if (!mission || !mission.id) {
+                    console.error('Invalid mission selected');
                     this.handleError('Invalid mission selected');
                     return;
                 }
 
                 try {
                     this.$emit('update:loading', true);
+
+                    // Store previous mission state
+                    const wasRunning = this.runningStates.get(mission.id) || false;
 
                     // Check server status first
                     if (!this.connectionStatus.connected) {
@@ -96,8 +101,6 @@
                             throw new Error('Server is not available. Please try again later.');
                         }
                     }
-
-                    const wasRunning = this.runningStates.get(mission.id) || false;
 
                     // Stop agents if running
                     if (wasRunning) {
@@ -170,7 +173,10 @@
 
                 } catch (error) {
                     console.error('Mission selection failed:', error);
-                    this.runningStates.set(mission.id, false);
+                    // Only update running state if mission is valid
+                    if (mission && mission.id) {
+                        this.runningStates.set(mission.id, false);
+                    }
                 
                     // Determine if it's a connection issue
                     const isConnectionError = error.message.includes('Failed to fetch') || 
