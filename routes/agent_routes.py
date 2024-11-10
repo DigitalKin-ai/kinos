@@ -104,20 +104,23 @@ def register_agent_routes(app, web_instance):
             web_instance.log_message(f"Available agents: {list(web_instance.agent_service.agents.keys())}", level='debug')
             web_instance.log_message(f"Looking for agent with name: {agent_name}", level='debug')
             
-            # Vérification détaillée de l'agent
-            if agent_name not in web_instance.agent_service.agents:
+            # Vérification détaillée de l'agent avec nom en minuscules
+            if agent_name not in {k.lower(): k for k in web_instance.agent_service.agents.keys()}:
                 web_instance.log_message(
                     f"Agent {agent_name} not found in available agents: {list(web_instance.agent_service.agents.keys())}", 
                     level='error'
                 )
                 raise ResourceNotFoundError(f"Agent {agent_id} not found")
                 
+            # Get the actual case-sensitive key
+            actual_agent_name = {k.lower(): k for k in web_instance.agent_service.agents.keys()}[agent_name]
+                
             # Log avant l'action
             web_instance.log_message(f"Found agent {agent_name}, attempting {action}", level='debug')
             
             try:
                 if action == 'start':
-                    agent = web_instance.agent_service.agents[agent_name]
+                    agent = web_instance.agent_service.agents[actual_agent_name]
                     if not os.path.exists(agent.file_path):
                         web_instance.log_message(
                             f"Agent {agent_name} main file does not exist yet", 
