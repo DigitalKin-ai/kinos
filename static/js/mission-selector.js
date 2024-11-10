@@ -105,6 +105,9 @@ export default {
             try {
                 this.$emit('update:loading', true);
                 
+                // Store previous mission state
+                const wasRunning = this.runningMissions.has(mission.id);
+                
                 // Stop agents first
                 await fetch('/api/agents/stop', { method: 'POST' });
                 
@@ -115,29 +118,42 @@ export default {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to select mission');
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to select mission');
                 }
 
                 const result = await response.json();
                 
-                // Verify the change was effective
+                // Verify the change was successful
                 const verifyResponse = await fetch(`/api/missions/${mission.id}`);
-                const currentMission = await verifyResponse.json();
-                
-                if (currentMission.name !== mission.name) {
+                if (!verifyResponse.ok) {
                     throw new Error('Mission change verification failed');
                 }
+                const verifiedMission = await verifyResponse.json();
+                
+                // Verify mission data matches
+                if (verifiedMission.id !== mission.id) {
+                    throw new Error('Mission verification mismatch');
+                }
 
+                // Update current mission
                 this.$emit('select-mission', result);
                 this.$emit('update:current-mission', result);
+                
+                // Restore previous running state if needed
+                if (wasRunning) {
+                    await fetch('/api/agents/start', { method: 'POST' });
+                    this.runningMissions.add(mission.id);
+                }
                 
                 return result;
                 
             } catch (error) {
                 console.error('Failed to select mission:', error);
+                // Clear running state on error
+                this.runningMissions.delete(mission.id);
                 throw error;
             } finally {
-                // Emit loading state change
                 this.$emit('update:loading', false);
             }
         },
