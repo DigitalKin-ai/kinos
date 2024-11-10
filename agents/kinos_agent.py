@@ -324,18 +324,18 @@ class KinOSAgent:
             if self.last_run:
                 time_since_last_run = (datetime.now() - self.last_run).total_seconds()
                 if time_since_last_run > (self.check_interval * 2):
-                    self.logger(f"[{self.__class__.__name__}] Inactif depuis {time_since_last_run}s", level='warning')
+                    self.logger(f"[{self.__class__.__name__}] Inactif depuis {time_since_last_run}s", 'warning')
                     return False
                 
             # Vérifier le nombre d'erreurs consécutives
             if hasattr(self, 'consecutive_no_changes') and self.consecutive_no_changes > 5:
-                self.logger(f"[{self.__class__.__name__}] Trop d'exécutions sans changement: {self.consecutive_no_changes}", level='warning')
+                self.logger(f"[{self.__class__.__name__}] Trop d'exécutions sans changement: {self.consecutive_no_changes}", 'warning')
                 return False
                 
             return True
             
         except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] Erreur vérification santé: {str(e)}", level='error')
+            self.logger(f"[{self.__class__.__name__}] Erreur vérification santé: {str(e)}", 'error')
             return False
 
     def run(self) -> None:
