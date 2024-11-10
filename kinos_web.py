@@ -868,59 +868,6 @@ class KinOSWeb:
                     self.log_message(f"Error handling notification: {str(e)}", level='error')
                     return jsonify({'error': str(e)}), 500
 
-        @self.app.route('/api/demande', methods=['POST'])
-        def save_demande():
-            try:
-                data = request.get_json()
-                
-                # Debug logs
-                self.log_message(f"Received save request with data: {data}", level='debug')
-                
-                if not data or 'content' not in data:
-                    self.log_message("❌ Pas de contenu fourni pour la demande", level='error')
-                    return jsonify({'error': 'No content provided'}), 400
-
-                # Vérification explicite de la mission
-                if 'missionId' not in data or 'missionName' not in data:
-                    self.log_message("❌ Informations de mission manquantes", level='error')
-                    return jsonify({'error': 'Mission information missing'}), 400
-
-                # Mise à jour du FileManager avec le nom de la mission
-                self.file_manager.current_mission = data['missionName']
-
-                # Construction du chemin avec vérification
-                mission_path = os.path.join("missions", data['missionName'])
-                if not os.path.exists(mission_path):
-                    os.makedirs(mission_path, exist_ok=True)
-                    self.log_message(f"✓ Dossier mission créé: {mission_path}", level='info')
-
-                demande_path = os.path.join(mission_path, "demande.md")
-                
-                # Log du chemin pour debug
-                self.log_message(f"Saving to path: {demande_path}", level='debug')
-
-                # Écriture du fichier
-                try:
-                    with open(demande_path, 'w', encoding='utf-8') as f:
-                        f.write(data['content'])
-                    
-                    self.log_message("✓ Demande sauvegardée", level='success')
-                    
-                    # Notification du changement
-                    self.handle_content_change(
-                        'demande.md',
-                        data['content'],
-                        panel_name='Demande'
-                    )
-                    return jsonify({'status': 'success', 'success': True})
-                    
-                except Exception as write_error:
-                    self.log_message(f"❌ Erreur d'écriture: {str(write_error)}", level='error')
-                    return jsonify({'error': f'File write error: {str(write_error)}'}), 500
-                    
-            except Exception as e:
-                self.log_message(f"❌ Erreur générale: {str(e)}", level='error')
-                return jsonify({'error': str(e)}), 500
 
     def _register_routes(self):
         """Register all route blueprints"""

@@ -95,10 +95,7 @@ class MissionService {
                 throw new Error('Failed to load mission content');
             }
             const content = await response.json();
-            // Only return demande.md content initially
-            return {
-                demande: content.demande || ''
-            };
+            return content;
         } catch (error) {
             console.error('Error loading mission content:', error);
             throw error;

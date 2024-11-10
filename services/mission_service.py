@@ -132,10 +132,8 @@ class MissionService:
                 self.logger.log(f"Insufficient permissions on: {mission['path']}", level='warning')
                 return None
 
-            # Only include demande.md initially
-            mission['files'] = {
-                'demande': os.path.join(mission['path'], "demande.md")
-            }
+            # Initialize empty files dictionary
+            mission['files'] = {}
 
             return mission
             
