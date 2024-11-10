@@ -362,10 +362,10 @@ export default {
             
             <div class="mission-list" :class="{ 'loading': loading }">
                 <div v-if="loading" class="mission-loading">
-                    Chargement des missions...
+                    Chargement des missions... 
                 </div>
                 <div v-else-if="missions.length === 0" class="mission-empty">
-                    Aucune mission disponible
+                    Aucune mission disponible 
                 </div>
                 <div v-else v-for="mission in sortedMissions" 
                      :key="mission.id"
