@@ -37,7 +37,7 @@ export default {
             errorMessage: null,
             showError: false,
             runningStates: new Map(),
-            stateUpdateQueue: [], // Queue for state updates
+            stateUpdateQueue: [],
             stateUpdateInProgress: false,
             connectionCheckInProgress: false,
             serverRetries: 0,
@@ -134,6 +134,69 @@ export default {
         }
     },
     methods: {
+        async updateRunningState(missionId, state) {
+            try {
+                if (!missionId) return;
+            
+                this.stateUpdateQueue.push({ missionId, state });
+                if (!this.stateUpdateInProgress) {
+                    await this.processStateUpdates();
+                }
+            } catch (error) {
+                console.error('Error updating running state:', error);
+                this.handleError('Failed to update mission state');
+            }
+        },
+
+        async processStateUpdates() {
+            if (this.stateUpdateQueue.length === 0) {
+                this.stateUpdateInProgress = false;
+                return;
+            }
+
+            this.stateUpdateInProgress = true;
+            try {
+                const update = this.stateUpdateQueue.shift();
+                this.runningStates.set(update.missionId, update.state);
+                await this.processStateUpdates();
+            } catch (error) {
+                console.error('Error processing state updates:', error);
+            } finally {
+                this.stateUpdateInProgress = false;
+            }
+        },
+
+        isRunning(missionId) {
+            try {
+                return this.runningStates.get(missionId) || false;
+            } catch (error) {
+                console.error('Error checking running state:', error);
+                return false;
+            }
+        },
+
+        validateMissionState(missionData) {
+            if (!missionData) return false;
+            if (!missionData.id) return false;
+            if (!missionData.name) return false;
+        
+            const requiredProps = ['id', 'name', 'path', 'status'];
+            return requiredProps.every(prop => missionData.hasOwnProperty(prop));
+        },
+
+        async cleanupMissionState() {
+            try {
+                this.stateUpdateQueue = [];
+                this.stateUpdateInProgress = false;
+                this.runningStates.clear();
+                this.errorMessage = null;
+                this.showError = false;
+                this.$emit('update:loading', false);
+            } catch (error) {
+                console.error('Error cleaning up mission state:', error);
+            }
+        },
+
         async handleMissionOperation(operation, errorMessage) {
             try {
                 return await this.retryWithBackoff(operation);
@@ -385,7 +448,10 @@ export default {
             }
         },
 
-        handleError(message) {
+        handleError(error) {
+            const message = typeof error === 'string' ? error : (
+                error.message || 'An unexpected error occurred'
+            );
             this.errorMessage = message;
             this.showError = true;
             setTimeout(() => {
