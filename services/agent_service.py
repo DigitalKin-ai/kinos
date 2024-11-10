@@ -53,11 +53,13 @@ class AgentService:
         prompts_dir = "prompts"
         
         try:
+            # Create prompts directory if it doesn't exist
             if not os.path.exists(prompts_dir):
                 os.makedirs(prompts_dir)
                 self.web_instance.log_message("Created prompts directory", level='info')
                 return []
 
+            # Scan for .md files in prompts directory
             for file in os.listdir(prompts_dir):
                 if file.endswith('.md'):
                     agent_name = file[:-3].lower()  # Remove .md extension
@@ -78,27 +80,17 @@ class AgentService:
 
     def _get_agent_class(self, agent_name: str):
         """Get the appropriate agent class based on name"""
-        from agents.agent_types import (
-            SpecificationsAgent, ProductionAgent, ManagementAgent,
-            EvaluationAgent, SuiviAgent, DocumentalisteAgent,
-            DuplicationAgent, TesteurAgent, ValidationAgent,
-            RedacteurAgent
+        from agents.agent_types import AiderAgent
+        
+        # Create a dynamic agent class
+        return type(
+            f"{agent_name.capitalize()}Agent",
+            (AiderAgent,),
+            {
+                "__init__": lambda self, config: AiderAgent.__init__(self, config),
+                "role": agent_name
+            }
         )
-        
-        class_mapping = {
-            'specifications': SpecificationsAgent,
-            'production': ProductionAgent,
-            'management': ManagementAgent,
-            'evaluation': EvaluationAgent,
-            'suivi': SuiviAgent,
-            'documentaliste': DocumentalisteAgent,
-            'duplication': DuplicationAgent,
-            'testeur': TesteurAgent,
-            'validation': ValidationAgent,
-            'redacteur': RedacteurAgent
-        }
-        
-        return class_mapping.get(agent_name)
 
     def init_agents(self, config: Dict[str, Any]) -> None:
         """Initialize all agents with configuration"""
@@ -121,7 +113,7 @@ class AgentService:
                 "mission_name": "default"   # Default mission name
             }
 
-            # If a mission is selected, update the configuration
+            # Update config if mission is selected
             if current_mission:
                 mission_dir = os.path.abspath(os.path.join("missions", current_mission))
                 if os.path.exists(mission_dir) and os.access(mission_dir, os.R_OK | os.W_OK):
@@ -129,9 +121,6 @@ class AgentService:
                         "mission_dir": mission_dir,
                         "mission_name": current_mission
                     })
-                    self.web_instance.log_message(f"Using mission: {current_mission}", level='info')
-                else:
-                    self.web_instance.log_message(f"Mission directory not found or inaccessible: {mission_dir}", level='warning')
 
             self.web_instance.log_message(f"Initializing agents for mission: {current_mission}", level='info')
 
@@ -143,8 +132,8 @@ class AgentService:
 
             # Initialize each discovered agent
             self.agents = {}
-
             successful_inits = 0
+
             for agent_info in discovered_agents:
                 try:
                     name = agent_info['name']
