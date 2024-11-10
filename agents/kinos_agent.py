@@ -99,16 +99,16 @@ class KinOSAgent:
         # Handle logger configuration
         logger_config = config.get("logger", print)
         if callable(logger_config):
-            # If it's a function, create a wrapper that emulates the logger interface
+            # Si c'est une fonction, créer un wrapper qui émule l'interface logger
             self.logger = type('Logger', (), {
                 'log': logger_config,
                 '__call__': logger_config
             })()
         else:
-            # Otherwise use the logger object directly
+            # Sinon utiliser directement l'objet logger
             self.logger = logger_config
-            
-        # Use self.logger.log for the first notification
+
+        # Utiliser self.logger.log pour la première notification
         self.logger.log(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
         
         # Use agent-specific rhythm or default value
