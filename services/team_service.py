@@ -79,7 +79,12 @@ class TeamService(BaseService):
     def get_teams_for_mission(self, mission_id: int) -> List[Dict[str, Any]]:
         """Get available teams for a mission"""
         try:
-            return self.predefined_teams
+            # Add mission_id to each team for unique identification
+            teams = [
+                {**team, 'id': f"{mission_id}_{team['id']}"} 
+                for team in self.predefined_teams
+            ]
+            return teams
         except Exception as e:
             self.logger.log(f"Error getting teams: {str(e)}", 'error')
             raise ServiceError(f"Failed to get teams: {str(e)}")
