@@ -209,9 +209,26 @@ export default {
             await this.loadMissionFiles();
         },
 
+        async getMissionPath(missionId) {
+            try {
+                const response = await fetch(`/api/missions/${missionId}/path`);
+                if (!response.ok) {
+                    throw new Error('Failed to get mission path');
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error getting mission path:', error);
+                throw error;
+            }
+        },
+
         async loadMissionFiles() {
             try {
                 if (!this.currentMission?.id) return;
+                
+                // Get mission path first
+                const pathData = await this.getMissionPath(this.currentMission.id);
+                const missionPath = pathData.path;
                 
                 const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
                 if (!response.ok) throw new Error('Failed to fetch files');
@@ -227,7 +244,8 @@ export default {
                     }
                 }).map(file => ({
                     ...file,
-                    displayPath: file.relativePath || file.path
+                    displayPath: file.relativePath || file.path,
+                    fullPath: `${missionPath}/${file.relativePath || file.path}`
                 }));
             } catch (error) {
                 console.error('Error loading files:', error);
