@@ -222,6 +222,17 @@ class AgentService:
             if not current_mission:
                 raise AgentError("No current mission set")
 
+            # Initialize agents if not already done
+            if not self.agents:
+                self.web_instance.log_message("Initializing agents...", level='info')
+                self.init_agents({
+                    "anthropic_api_key": self.web_instance.config["anthropic_api_key"],
+                    "openai_api_key": self.web_instance.config["openai_api_key"]
+                })
+                
+                if not self.agents:
+                    raise AgentError("Failed to initialize agents")
+
             # Get absolute path to project root
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             mission_dir = os.path.abspath(os.path.join(project_root, "missions", current_mission))
