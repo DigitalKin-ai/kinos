@@ -36,13 +36,14 @@
 
 {% block scripts %}
 <script type="module">
+    import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
     import MissionSelector from "{{ url_for('static', filename='js/mission-selector.js') }}";
     import MissionService from "{{ url_for('static', filename='js/mission-service.js') }}";
     import AgentManager from "{{ url_for('static', filename='js/agent-manager.js') }}";
     import HeaderComponent from "{{ url_for('static', filename='js/components/header.js') }}";
     import TeamMetrics from "{{ url_for('static', filename='js/components/team-metrics.js') }}";
 
-    const app = Vue.createApp({
+    const app = createApp({
         components: {
             MissionSelector,
             AgentManager,
@@ -51,18 +52,12 @@
         },
         data() {
             return {
-                activeTeam: null,
-                teams: []
-            }
-        },
-        data() {
-            return {
                 missionService: new MissionService(),
                 currentMission: null,
                 missions: [],
                 loading: true,
                 activeTeam: null,
-                teams: []  // Add teams array
+                teams: []
             }
         },
         async mounted() {
@@ -89,7 +84,6 @@
         methods: {
             async selectMission(mission) {
                 try {
-                    // Mettre à jour directement l'état
                     this.currentMission = mission;
                     
                     // Fetch team information for the mission
@@ -97,15 +91,20 @@
                         const teamResponse = await fetch(`/api/missions/${mission.id}/teams`);
                         if (teamResponse.ok) {
                             const teams = await teamResponse.json();
+                            this.teams = teams;
                             this.activeTeam = teams.length > 0 ? teams[0] : null;
+                        } else {
+                            console.warn('Failed to fetch teams:', teamResponse.statusText);
+                            this.teams = [];
+                            this.activeTeam = null;
                         }
                     } catch (teamError) {
-                        console.error('Failed to fetch teams:', teamError);
+                        console.error('Error fetching teams:', teamError);
+                        this.teams = [];
+                        this.activeTeam = null;
                     }
                     
-                    // Propager aux composants enfants si nécessaire
                     this.$nextTick(() => {
-                        // Force refresh des composants qui dépendent de currentMission
                         this.$forceUpdate();
                     });
                     
@@ -118,7 +117,8 @@
                     const newMission = await this.missionService.createMission(name);
                     this.missions.push(newMission);
                     this.currentMission = newMission;
-                    this.activeTeam = null;  // Reset active team when creating a new mission
+                    this.teams = [];
+                    this.activeTeam = null;
                 } catch (error) {
                     console.error('Failed to create mission:', error);
                 }
