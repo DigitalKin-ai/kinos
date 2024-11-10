@@ -43,6 +43,19 @@ export default {
                 missions: this.missions,
                 loading: this.loading
             });
+
+            const agentTypes = [
+                'specification',
+                'production', 
+                'management',
+                'evaluation',
+                'suivi',
+                'documentaliste',
+                'duplication',
+                'testeur',
+                'validation',
+                'redacteur'
+            ];
             
             const response = await fetch('/api/missions');
             if (!response.ok) {

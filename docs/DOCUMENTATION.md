@@ -107,6 +107,15 @@ Chaque agent peut maintenant :
       * Validation des critères objectifs
       * Contrôle qualité automatisé
 
+10. **ValidationAgent**
+    - Validation des livrables et conformité
+    - Responsabilités:
+      * Validation des spécifications
+      * Vérification de la conformité
+      * Mesures quantitatives
+      * Validation des critères objectifs
+      * Contrôle qualité automatisé
+
 #### Configuration des Agents
 ```python
 base_config = {
