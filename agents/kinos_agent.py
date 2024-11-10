@@ -292,10 +292,23 @@ class KinOSAgent:
                 # Lister les fichiers à surveiller
                 self.list_files()
                 
-                # Log pour debug
-                self.logger(f"[{self.__class__.__name__}] Running with prompt: {self.prompt[:100]}...")
+                # Log détaillé pour debug
+                self.logger(f"[{self.__class__.__name__}] Starting execution cycle")
+                self.logger(f"[{self.__class__.__name__}] Current prompt: {self.prompt[:100]}...")
                 self.logger(f"[{self.__class__.__name__}] Watching files: {list(self.mission_files.keys())}")
                 
+                # Vérifier que nous avons des fichiers à surveiller
+                if not self.mission_files:
+                    self.logger(f"[{self.__class__.__name__}] No files to watch, waiting...")
+                    time.sleep(self.check_interval)
+                    continue
+
+                # Vérifier que nous avons un prompt valide
+                if not self.prompt or not self.prompt.strip():
+                    self.logger(f"[{self.__class__.__name__}] No valid prompt, waiting...")
+                    time.sleep(self.check_interval) 
+                    continue
+
                 # Exécuter Aider avec le prompt de l'agent
                 if hasattr(self, '_run_aider'):
                     result = self._run_aider(self.prompt)
@@ -306,7 +319,9 @@ class KinOSAgent:
                     else:
                         self.consecutive_no_changes += 1
                         self.logger(f"[{self.__class__.__name__}] No changes made")
-            
+                else:
+                    self.logger(f"[{self.__class__.__name__}] _run_aider method not implemented")
+        
                 # Update metrics
                 self.last_run = datetime.now()
                 
@@ -316,6 +331,7 @@ class KinOSAgent:
                 time.sleep(interval)
                 
             except Exception as e:
-                self.logger(f"Error in agent loop: {e}")
+                self.logger(f"[{self.__class__.__name__}] Error in agent loop: {str(e)}")
+                time.sleep(5)  # Pause before retrying
                 if not self.running:
                     break
