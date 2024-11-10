@@ -122,7 +122,7 @@ class TeamService(BaseService):
             if not team:
                 raise ServiceError(f"Team {team_id} not found")
 
-            # Get agent statuses
+            # Get agent statuses with more detailed health info
             agent_status = {}
             for agent_name in team['agents']:
                 agent = self.web_instance.agent_service.agents.get(agent_name.lower())
@@ -131,7 +131,8 @@ class TeamService(BaseService):
                         'running': agent.running if hasattr(agent, 'running') else False,
                         'health': {
                             'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
-                            'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
+                            'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0),
+                            'current_interval': agent.calculate_dynamic_interval() if hasattr(agent, 'calculate_dynamic_interval') else None
                         }
                     }
 
@@ -156,7 +157,11 @@ class TeamService(BaseService):
             return {
                 'efficiency': healthy_agents / total_agents if total_agents > 0 else 0,
                 'active_ratio': active_agents / total_agents if total_agents > 0 else 0,
-                'health_score': self._calculate_health_score(agent_status)
+                'health_score': self._calculate_health_score(agent_status),
+                'average_interval': sum(
+                    status['health'].get('current_interval', 0) 
+                    for status in agent_status.values()
+                ) / total_agents if total_agents > 0 else 0
             }
 
         except Exception as e:
