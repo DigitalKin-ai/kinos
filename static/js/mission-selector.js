@@ -53,9 +53,9 @@ export default {
             });
         },
         missionStates() {
-            return this.missions.reduce((acc, missionData) => {
-                acc[missionData.id] = {
-                    running: this.runningStates.get(missionData.id) || false,
+            return this.missions.reduce((acc, mission) => {
+                acc[mission.id] = {
+                    running: this.runningStates.get(mission.id) || false,
                     loading: false
                 };
                 return acc;
@@ -760,19 +760,19 @@ export default {
                 <div v-else-if="missions.length === 0" class="mission-empty">
                     Aucune mission disponible 
                 </div>
-                <div v-else v-for="missionData in sortedMissions" 
-                     :key="missionData.id"
+                <div v-else v-for="mission in sortedMissions" 
+                     :key="mission.id"
                      class="mission-item relative"
-                     :class="{ active: currentMission?.id === missionData.id }"
-                     @mouseenter="hoveredMissionId = missionData.id"
+                     :class="{ active: currentMission?.id === mission.id }"
+                     @mouseenter="hoveredMissionId = mission.id"
                      @mouseleave="hoveredMissionId = null">
                     <div class="flex items-center justify-between w-full px-4 py-2"
-                         @click="selectMission(missionData)">
+                         @click="selectMission(mission)">
                         <div class="mission-content">
                             <div v-if="sidebarCollapsed" class="mission-letter">
-                                ${ missionData.name.charAt(0).toUpperCase() }
+                                ${ mission.name.charAt(0).toUpperCase() }
                             </div>
-                            <span v-else class="mission-name">${ missionData.name }</span>
+                            <span v-else class="mission-name">${ mission.name }</span>
                         </div>
                         <div class="flex items-center">
                             <!-- Date tooltip -->
@@ -780,7 +780,7 @@ export default {
                                 <span v-if="hoveredMissionId === missionData.id"
                                       class="absolute right-16 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
                                       style="top: 50%; transform: translateY(-50%)">
-                                    ${ formatDate(missionData.updated_at || missionData.created_at) }
+                                    ${ formatDate(mission.updated_at || mission.created_at) }
                                 </span>
                             </transition>
                         </div>
