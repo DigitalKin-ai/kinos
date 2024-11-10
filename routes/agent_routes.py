@@ -11,13 +11,13 @@ from utils.path_manager import PathManager
 def register_agent_routes(app, web_instance):
     """Register all agent-related routes"""
     
-    @app.route('/api/agents/start', methods=['POST'])
+    @app.route('/api/agents/start', methods=['POST'], endpoint='api_agents_start')
     @safe_operation()
     def start_all_agents():
         web_instance.agent_service.start_all_agents()
         return jsonify({'status': 'started'})
         
-    @app.route('/api/agents/stop', methods=['POST'])
+    @app.route('/api/agents/stop', methods=['POST'], endpoint='api_agents_stop')
     @safe_operation() 
     def stop_all_agents():
         web_instance.agent_service.stop_all_agents()
