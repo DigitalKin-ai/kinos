@@ -314,111 +314,8 @@ export default {
     mounted() {
         this.loadMissions();
         this.startFileWatcher();
-    }
-}
-        if (!team?.id || !team?.name) {
-            console.error('Invalid team state:', team);
-            return false;
-        }
-        if (!Array.isArray(team.agents)) {
-            console.error('Team has no agents array:', team);
-            return false;
-        }
-        return true;
     },
-
-    updateTeamState(team, newState) {
-        if (!this.validateTeamState(team)) return;
-        
-        const stats = this.teamStats.get(team.name) || {};
-        if (!stats.agentStatus) stats.agentStatus = {};
-        
-        // Update agent statuses from response
-        if (newState.agents) {
-            Object.entries(newState.agents).forEach(([agent, status]) => {
-                stats.agentStatus[agent] = status.running;
-            });
-        }
-        
-        this.teamStats.set(team.name, stats);
-        this.updateTeamHistory(team, `Team state updated`);
-    },
-
-    clearStaleData() {
-        // Clear old team history entries
-        for (const [teamName, history] of this.teamHistory.entries()) {
-            const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-            const filteredHistory = history.filter(entry => entry.timestamp > oneDayAgo);
-            this.teamHistory.set(teamName, filteredHistory);
-        }
-        
-        // Clear metrics for inactive teams
-        for (const [teamName, stats] of this.teamStats.entries()) {
-            if (!this.teams.find(t => t.name === teamName)) {
-                this.teamStats.delete(teamName);
-            }
-        }
-    },
-
-    cleanup() {
-        this.loadingStates.clear();
-        this.errorMessages.clear();
-        this.retryAttempts.clear();
-        this.stopMetricsPolling();
-    },
-
-    validateTeamState(team) {
-        if (!team?.id || !team?.name) {
-            console.error('Invalid team state:', team);
-            return false;
-        }
-        if (!Array.isArray(team.agents)) {
-            console.error('Team has no agents array:', team);
-            return false;
-        }
-        return true;
-    },
-
-    updateTeamState(team, newState) {
-        if (!this.validateTeamState(team)) return;
-        
-        const stats = this.teamStats.get(team.name) || {};
-        if (!stats.agentStatus) stats.agentStatus = {};
-        
-        // Update agent statuses from response
-        if (newState.agents) {
-            Object.entries(newState.agents).forEach(([agent, status]) => {
-                stats.agentStatus[agent] = status.running;
-            });
-        }
-        
-        this.teamStats.set(team.name, stats);
-        this.updateTeamHistory(team, `Team state updated`);
-    },
-
-    clearStaleData() {
-        // Clear old team history entries
-        for (const [teamName, history] of this.teamHistory.entries()) {
-            const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-            const filteredHistory = history.filter(entry => entry.timestamp > oneDayAgo);
-            this.teamHistory.set(teamName, filteredHistory);
-        }
-        
-        // Clear metrics for inactive teams
-        for (const [teamName, stats] of this.teamStats.entries()) {
-            if (!this.teams.find(t => t.name === teamName)) {
-                this.teamStats.delete(teamName);
-            }
-        }
-    },
-
-    cleanup() {
-        this.loadingStates.clear();
-        this.errorMessages.clear();
-        this.retryAttempts.clear();
-        this.stopMetricsPolling();
-    },
-
+    
     beforeUnmount() {
         if (this.fileCheckInterval) {
             clearInterval(this.fileCheckInterval);
@@ -426,7 +323,11 @@ export default {
         if (this.cleanupInterval) {
             clearInterval(this.cleanupInterval);
         }
-        this.cleanup();
-        this.stopServerMonitoring();
+        if (this.cleanup) {
+            this.cleanup();
+        }
+        if (this.stopServerMonitoring) {
+            this.stopServerMonitoring();
+        }
     }
 }
