@@ -94,11 +94,10 @@ class AiderAgent(KinOSAgent):
                 # Build command with explicit paths and logging
                 cmd = [
                     "aider",
-                    "--model", "claude-3-5-sonnet-20241022", 
+                    "--model", "claude-3-5-haiku-20241022", 
                     "--no-git",
                     "--yes-always",
-                    "--cache-prompts",
-                    "--work-dir", work_dir
+                    "--cache-prompts"
                 ]
                 
                 # Add files with detailed logging
@@ -114,9 +113,7 @@ class AiderAgent(KinOSAgent):
                 
                 # Log complete command
                 self.logger(f"[{self.__class__.__name__}] 🤖 Running Aider command:")
-                #self.logger(f"[{self.__class__.__name__}] Command: {' '.join(cmd)}")
-                #self.logger(f"[{self.__class__.__name__}] Files: {files_added}")
-                #self.logger(f"[{self.__class__.__name__}] Prompt: {prompt[:100]}...")
+                self.logger(f"[{self.__class__.__name__}] Command: {' '.join(cmd)}")
                 
                 # Set environment variables for encoding
                 env = os.environ.copy()
