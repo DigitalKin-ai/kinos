@@ -40,7 +40,7 @@ class Logger:
         """Unified call method that handles all logging patterns"""
         # Remove level from kwargs to avoid duplicate
         kwargs.pop('level', None)
-        self.log(message, level=level, **kwargs)
+        self.log(message, level, **kwargs)
 
     def _log(self, message: str, level: str = 'info', **kwargs):
         """Internal logging method"""
