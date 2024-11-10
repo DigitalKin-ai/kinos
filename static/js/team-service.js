@@ -96,7 +96,7 @@ export default class TeamService {
 
     async getTeamsForMission(missionId) {
         try {
-            const response = await fetch(`/api/missions/${missionId}/teams`);
+            const response = await fetch(`/api/missions/${encodeURIComponent(missionId)}/teams`);
             if (!response.ok) throw new Error('Failed to fetch teams');
             const teams = await response.json();
             
@@ -156,7 +156,7 @@ export default class TeamService {
 
     async getTeamStatus(teamId) {
         try {
-            const response = await fetch(`/api/teams/${teamId}/status`);
+            const response = await fetch(`/api/teams/${encodeURIComponent(teamId)}/status`);
             if (!response.ok) throw new Error('Failed to fetch team status');
             
             const status = await response.json();
