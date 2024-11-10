@@ -2,6 +2,7 @@ import os
 import time
 import threading
 import traceback
+import json
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Union
 from utils.exceptions import AgentError
@@ -14,6 +15,15 @@ from utils.validators import validate_agent_name
 import sys
 
 class AgentService:
+    def _normalize_agent_names(self, team_agents: List[str]) -> List[str]:
+        """Normalise les noms d'agents pour correspondre aux conventions"""
+        normalized = []
+        for agent in team_agents:
+            # Supprimer 'Agent' et normaliser
+            norm_name = agent.lower().replace('agent', '').strip()
+            normalized.append(norm_name)
+        return normalized
+
     def _get_agent_status_details(self, agent) -> dict:
         """Get standardized agent status details"""
         return {
@@ -150,32 +160,35 @@ class AgentService:
 
     def init_agents(self, config: Dict[str, Any], team_agents: Optional[List[str]] = None) -> None:
         try:
-            # Log de démarrage du processus d'initialisation
             self.web_instance.log_message(
                 f"Initializing agents for team: {team_agents}\n"
                 f"Config keys: {list(config.keys())}", 
                 'debug'
             )
 
-            # Validation des clés de configuration
-            required_keys = ['anthropic_api_key', 'openai_api_key']
-            for key in required_keys:
-                if key not in config or not config[key]:
-                    self.web_instance.log_message(f"Missing configuration key: {key}", 'critical')
-                    raise ValueError(f"Missing required configuration: {key}")
-        
-            # Liste des agents à initialiser
-            agents_to_init = team_agents or [
-                'specifications', 'management', 'evaluation', 
-                'suivi', 'documentaliste', 'duplication', 
-                'redacteur', 'validation', 'production', 'testeur'
-            ]
-        
+            # Normalisation des noms d'agents
+            normalized_agents = []
+            if team_agents:
+                for agent in team_agents:
+                    # Supprimer 'Agent' du nom et normaliser
+                    norm_name = agent.lower().replace('agent', '').strip()
+                    normalized_agents.append(norm_name)
+            else:
+                normalized_agents = [
+                    'specifications', 'management', 'evaluation', 
+                    'suivi', 'documentaliste', 'duplication', 
+                    'redacteur', 'validation', 'production', 'testeur'
+                ]
+
+            # Log des agents normalisés
+            self.web_instance.log_message(f"Normalized agent names: {normalized_agents}", 'debug')
+
             # Validation des chemins de recherche
             prompt_search_paths = [
                 PathManager.get_prompts_path(),
                 PathManager.get_custom_prompts_path(),
-                os.path.join(PathManager.get_project_root(), 'prompts')
+                os.path.join(PathManager.get_project_root(), 'prompts'),
+                os.path.join(PathManager.get_project_root(), 'prompts', 'custom')
             ]
 
             # Log des chemins de recherche avec vérification détaillée
@@ -190,7 +203,7 @@ class AgentService:
         
             initialized_agents = {}
         
-            for agent_name in agents_to_init:
+            for agent_name in normalized_agents:
                 try:
                     # Normalisation du nom de l'agent
                     normalized_name = agent_name.lower()
@@ -201,16 +214,20 @@ class AgentService:
                     # Lecture du prompt
                     prompt = self._read_prompt_file(prompt_file) if prompt_file else self._create_default_prompt(normalized_name)
                 
-                    # Configuration de l'agent
+                    # Construction de la configuration complète pour l'agent
                     agent_config = {
-                        **config,
-                        "name": normalized_name,
-                        "prompt": prompt
+                        'config': {  # Encapsuler la config dans une sous-clé
+                            'anthropic_api_key': config.get('anthropic_api_key'),
+                            'openai_api_key': config.get('openai_api_key'),
+                            'mission_dir': config.get('mission_dir'),
+                            'name': normalized_name,
+                            'prompt': prompt
+                        }
                     }
-                
+            
                     # Création dynamique de l'agent
                     agent = self._create_dynamic_agent(agent_config)
-                
+            
                     if agent:
                         initialized_agents[normalized_name] = agent
                         self.web_instance.log_message(f"Successfully initialized agent: {normalized_name}", 'success')
@@ -235,9 +252,9 @@ class AgentService:
             # Résumé de l'initialisation
             self.web_instance.log_message(
                 f"Agent Initialization Summary:\n"
-                f"Total Agents Attempted: {len(agents_to_init)}\n"
+                f"Total Agents Attempted: {len(normalized_agents)}\n"
                 f"Successfully Initialized: {len(initialized_agents)}\n"
-                f"Failed Agents: {set(agents_to_init) - set(initialized_agents.keys())}", 
+                f"Failed Agents: {set(normalized_agents) - set(initialized_agents.keys())}", 
                 'info'
             )
     
@@ -292,6 +309,84 @@ class AgentService:
             'error'
         )
         return None
+
+    def _read_prompt_file(self, prompt_file: str) -> Optional[str]:
+        """
+        Lit le contenu d'un fichier prompt avec gestion des erreurs
+        
+        Args:
+            prompt_file: Chemin vers le fichier prompt
+            
+        Returns:
+            str: Contenu du prompt ou None si erreur
+        """
+        try:
+            if not prompt_file or not os.path.exists(prompt_file):
+                self.web_instance.log_message(
+                    f"Prompt file not found: {prompt_file}", 
+                    'error'
+                )
+                return None
+                
+            with open(prompt_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            if not content.strip():
+                self.web_instance.log_message(
+                    f"Empty prompt file: {prompt_file}", 
+                    'warning'
+                )
+                return None
+                
+            self.web_instance.log_message(
+                f"Successfully read prompt from: {prompt_file}", 
+                'debug'
+            )
+            return content
+            
+        except Exception as e:
+            self.web_instance.log_message(
+                f"Error reading prompt file {prompt_file}: {str(e)}", 
+                'error'
+            )
+            return None
+
+    def _create_default_prompt(self, agent_name: str) -> str:
+        """
+        Crée un prompt par défaut pour un agent
+        
+        Args:
+            agent_name: Nom de l'agent
+            
+        Returns:
+            str: Prompt par défaut
+        """
+        default_prompt = f"""# {agent_name.capitalize()} Agent
+
+## MISSION
+Define the core mission and purpose of the {agent_name} agent.
+
+## CONTEXT
+Provide background information and context for the agent's operations.
+
+## INSTRUCTIONS
+Detailed step-by-step instructions for the agent's workflow.
+
+## RULES
+- Rule 1: Define key operational rules
+- Rule 2: Specify constraints and limitations
+- Rule 3: List required behaviors
+
+## CONSTRAINTS
+List any specific constraints or limitations.
+"""
+        
+        self.web_instance.log_message(
+            f"Created default prompt for {agent_name}", 
+            'info'
+        )
+        
+        return default_prompt
 
     def _find_prompt_file(self, agent_name: str) -> Optional[str]:
         """
@@ -408,66 +503,172 @@ List any specific constraints or limitations.
     
         return list(self.agents.keys())
 
-    def toggle_agent(self, agent_name: str, action: str) -> bool:
+    def toggle_agent(self, agent_name: str, action: str, mission_dir: Optional[str] = None) -> bool:
         """
-        Toggle agent state with automatic initialization
-    
+        Toggle agent state with comprehensive validation and logging
+        
         Args:
             agent_name (str): Name of the agent
             action (str): 'start' or 'stop'
-    
+            mission_dir (Optional[str]): Mission directory for the agent
+        
         Returns:
             bool: Whether the action was successful
         """
         try:
+            # Validate input arguments
+            if not agent_name or not isinstance(agent_name, str):
+                self.web_instance.log_message(
+                    f"Invalid agent name: {agent_name}. Must be a non-empty string.", 
+                    'error'
+                )
+                return False
+
+            if action not in ['start', 'stop']:
+                self.web_instance.log_message(
+                    f"Invalid action for agent {agent_name}: {action}. Must be 'start' or 'stop'.", 
+                    'error'
+                )
+                return False
+
+            # Validate mission directory if provided
+            if mission_dir is not None:
+                if not isinstance(mission_dir, str):
+                    self.web_instance.log_message(
+                        f"Invalid mission directory type for {agent_name}: {type(mission_dir)}. Must be a string.", 
+                        'error'
+                    )
+                    return False
+                
+                if not os.path.exists(mission_dir):
+                    self.web_instance.log_message(
+                        f"Mission directory does not exist for {agent_name}: {mission_dir}", 
+                        'warning'
+                    )
+                    # Optionally, you could choose to continue or return False here
+            
             # Normalize agent name
-            agent_key = agent_name.lower()
-        
+            agent_key = agent_name.lower().replace('agent', '').strip()
+            
+            # Detailed logging of initial state
+            self.web_instance.log_message(
+                f"Attempting to {action} agent:\n"
+                f"Agent Name: {agent_name}\n"
+                f"Normalized Key: {agent_key}\n"
+                f"Mission Directory: {mission_dir or 'Not specified'}", 
+                'debug'
+            )
+
             # Check if agent exists, if not, initialize
             if agent_key not in self.agents:
-                self.web_instance.log_message(f"Agent {agent_name} not found. Initializing...", 'info')
+                self.web_instance.log_message(
+                    f"Agent {agent_name} not found. Attempting to initialize...", 
+                    'info'
+                )
             
-                # Initialize with current configuration
-                self.init_agents({
-                    "anthropic_api_key": self.web_instance.config.get("anthropic_api_key", ""),
-                    "openai_api_key": self.web_instance.config.get("openai_api_key", "")
-                }, [agent_name])
-        
-            # Get agent instance
+                try:
+                    # Initialize with current configuration
+                    self.init_agents({
+                        "anthropic_api_key": self.web_instance.config.get("anthropic_api_key", ""),
+                        "openai_api_key": self.web_instance.config.get("openai_api_key", "")
+                    }, [agent_key])
+                except Exception as init_error:
+                    self.web_instance.log_message(
+                        f"Failed to initialize agent {agent_name}:\n"
+                        f"Error: {str(init_error)}\n"
+                        f"Traceback: {traceback.format_exc()}", 
+                        'critical'
+                    )
+                    return False
+
+            # Get agent instance with enhanced error checking
             agent = self.agents.get(agent_key)
             if not agent:
-                self.web_instance.log_message(f"Failed to initialize agent {agent_name}", 'error')
+                self.web_instance.log_message(
+                    f"Critical error: Failed to retrieve agent instance for {agent_name} "
+                    f"despite successful initialization", 
+                    'error'
+                )
                 return False
-        
-            # Perform action
-            if action == 'start':
-                if not agent.running:
-                    agent.start()
-                    self.web_instance.log_message(f"Started agent {agent_name}", 'info')
-                return agent.running
-            elif action == 'stop':
-                if agent.running:
-                    agent.stop()
-                    self.web_instance.log_message(f"Stopped agent {agent_name}", 'info')
-                return not agent.running
-            else:
-                self.web_instance.log_message(f"Invalid action {action} for agent {agent_name}", 'error')
+
+            # Log pre-action agent state
+            pre_action_state = {
+                'running': getattr(agent, 'running', False),
+                'last_run': getattr(agent, 'last_run', None),
+                'mission_dir': getattr(agent, 'mission_dir', None)
+            }
+            self.web_instance.log_message(
+                f"Pre-action agent state for {agent_name}:\n"
+                f"{json.dumps(pre_action_state, indent=2)}", 
+                'debug'
+            )
+
+            # Set mission directory if provided
+            if mission_dir:
+                agent.mission_dir = mission_dir
+                self.web_instance.log_message(
+                    f"Set mission directory for {agent_name}: {mission_dir}", 
+                    'info'
+                )
+
+            # Perform action with detailed logging
+            try:
+                if action == 'start':
+                    if not agent.running:
+                        agent.start()
+                        self.web_instance.log_message(
+                            f"Successfully started agent {agent_name}", 
+                            'success'
+                        )
+                    else:
+                        self.web_instance.log_message(
+                            f"Agent {agent_name} already running. No action taken.", 
+                            'info'
+                        )
+                    return agent.running
+                
+                elif action == 'stop':
+                    if agent.running:
+                        agent.stop()
+                        self.web_instance.log_message(
+                            f"Successfully stopped agent {agent_name}", 
+                            'success'
+                        )
+                    else:
+                        self.web_instance.log_message(
+                            f"Agent {agent_name} already stopped. No action taken.", 
+                            'info'
+                        )
+                    return not agent.running
+
+            except Exception as action_error:
+                self.web_instance.log_message(
+                    f"Error performing {action} action on agent {agent_name}:\n"
+                    f"Error: {str(action_error)}\n"
+                    f"Traceback: {traceback.format_exc()}", 
+                    'critical'
+                )
                 return False
-    
+
         except Exception as e:
-            self.web_instance.log_message(f"Error toggling agent {agent_name}: {str(e)}", 'error')
+            self.web_instance.log_message(
+                f"Unexpected error in toggle_agent for {agent_name}:\n"
+                f"Error: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}", 
+                'critical'
+            )
             return False
 
     def _cleanup_resources(self):
-        """Clean up sockets and other resources"""
+        """Nettoie les ressources des agents"""
         try:
             with self._cleanup_lock:
-                # Force garbage collection
+                # Forcer le garbage collection
                 import gc
                 import socket
                 gc.collect()
                 
-                # Close any lingering sockets
+                # Fermer les sockets
                 for obj in gc.get_objects():
                     if isinstance(obj, socket.socket):
                         try:
@@ -475,7 +676,7 @@ List any specific constraints or limitations.
                         except:
                             pass
                             
-                # Clear any remaining threads
+                # Nettoyer les threads
                 if hasattr(self, 'agent_threads'):
                     for thread in self.agent_threads.values():
                         if thread and thread.is_alive():
@@ -513,10 +714,20 @@ List any specific constraints or limitations.
             # Initialize agents if not already done
             if not self.agents:
                 self.web_instance.log_message("Initializing agents...", 'info')
-                self.init_agents({
+                config = {
                     "anthropic_api_key": self.web_instance.config["anthropic_api_key"],
                     "openai_api_key": self.web_instance.config["openai_api_key"]
-                })
+                }
+                
+                # Validate config before initialization
+                if not self._validate_agent_config(config):
+                    self.web_instance.log_message(
+                        "Invalid configuration for agents, skipping initialization",
+                        'error'
+                    )
+                    raise AgentError("Invalid agent configuration")
+                    
+                self.init_agents(config)
                 
                 if not self.agents:
                     raise AgentError("Failed to initialize agents")
@@ -1076,6 +1287,25 @@ List any specific constraints or limitations.
         except Exception as e:
             self.web_instance.log_message(f"Error restarting agent {name}: {str(e)}", 'error')
 
+    def _verify_team_agents(self, team_agents: List[str]) -> bool:
+        """Vérifie que tous les agents requis sont disponibles"""
+        try:
+            available_agents = set(self.web_instance.agent_service.get_available_agents())
+            normalized_agents = set(self._normalize_agent_names(team_agents))
+            
+            missing_agents = normalized_agents - available_agents
+            if missing_agents:
+                self.web_instance.log_message(
+                    f"Missing required agents: {missing_agents}\n"
+                    f"Available agents: {available_agents}", 
+                    'error'
+                )
+                return False
+            return True
+        except Exception as e:
+            self.web_instance.log_message(f"Error verifying team agents: {str(e)}", 'error')
+            return False
+
     def _update_global_status(self, status_updates: Dict[str, Dict], system_metrics: Dict, health_score: float) -> None:
         """Update global system status based on agent states"""
         try:
@@ -1313,4 +1543,123 @@ Default operational instructions.
             
         except Exception as e:
             self.web_instance.log_message(f"Error loading prompt template: {str(e)}", 'error')
+            return None
+    def _diagnose_agent_initialization(self, agent_name: str, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Diagnostic détaillé de l'initialisation d'un agent"""
+        diagnosis = {
+            'agent_name': agent_name,
+            'timestamp': datetime.now().isoformat(),
+            'config_status': {
+                'has_api_keys': bool(config.get('anthropic_api_key') or config.get('openai_api_key')),
+                'has_mission_dir': bool(config.get('mission_dir')),
+                'mission_dir_exists': os.path.exists(config.get('mission_dir', '')),
+                'mission_dir_writable': os.access(config.get('mission_dir', ''), os.W_OK)
+            },
+            'prompt_status': {
+                'prompt_found': False,
+                'prompt_path': None,
+                'prompt_size': 0,
+                'is_valid': False
+            },
+            'initialization_errors': []
+        }
+        
+        try:
+            # Vérifier le prompt
+            prompt_file = self._find_agent_prompt(agent_name, [
+                PathManager.get_prompts_path(),
+                PathManager.get_custom_prompts_path()
+            ])
+            
+            if prompt_file:
+                diagnosis['prompt_status'].update({
+                    'prompt_found': True,
+                    'prompt_path': prompt_file,
+                    'prompt_size': os.path.getsize(prompt_file),
+                    'is_valid': True
+                })
+        except Exception as e:
+            diagnosis['initialization_errors'].append(f"Prompt error: {str(e)}")
+        
+        return diagnosis
+
+    def _validate_agent_config(self, config: Dict[str, Any]) -> bool:
+        """Valide la configuration d'un agent"""
+        required_fields = ['name', 'prompt']
+        optional_fields = ['mission_dir', 'anthropic_api_key', 'openai_api_key']
+        
+        # Vérifier les champs requis
+        missing_fields = [field for field in required_fields if field not in config]
+        if missing_fields:
+            self.web_instance.log_message(
+                f"Missing required fields in agent config: {missing_fields}", 
+                'error'
+            )
+            return False
+            
+        # Vérifier le mission_dir si fourni
+        if 'mission_dir' in config and config['mission_dir']:
+            if not os.path.exists(config['mission_dir']):
+                self.web_instance.log_message(
+                    f"Mission directory does not exist: {config['mission_dir']}", 
+                    'error'
+                )
+                return False
+                
+        # Vérifier qu'au moins une clé API est présente
+        if not (config.get('anthropic_api_key') or config.get('openai_api_key')):
+            self.web_instance.log_message(
+                "No API keys provided in configuration", 
+                'warning'
+            )
+            
+        return True
+
+    def _create_dynamic_agent(self, config: Dict[str, Any]) -> Optional['KinOSAgent']:
+        """
+        Crée dynamiquement un agent à partir de sa configuration
+        
+        Args:
+            config: Configuration de l'agent incluant prompt et clés API
+            
+        Returns:
+            KinOSAgent: Instance de l'agent ou None si erreur
+        """
+        try:
+            # Valider la configuration
+            if not self._validate_agent_config(config):
+                self.web_instance.log_message(
+                    f"Invalid configuration for agent {config.get('name')}", 
+                    'error'
+                )
+                return None
+
+            # Créer l'agent avec AiderAgent comme base
+            try:
+                from aider_agent import AiderAgent
+                
+                # Créer l'agent avec la configuration complète
+                agent = AiderAgent(config)
+                
+                # Log succès
+                self.web_instance.log_message(
+                    f"Successfully created agent {config.get('name')}", 
+                    'success'
+                )
+                
+                return agent
+                
+            except ImportError as e:
+                self.web_instance.log_message(
+                    f"Error importing AiderAgent: {str(e)}", 
+                    'error'
+                )
+                return None
+                
+        except Exception as e:
+            self.web_instance.log_message(
+                f"Error creating agent {config.get('name', 'unknown')}: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}", 
+                'error'
+            )
             return None
