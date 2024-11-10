@@ -200,16 +200,6 @@ export default {
             );
         }
     },
-    methods: {
-        async handleMissionSelect(mission) {
-            this.currentMission = mission;
-            await this.loadMissionFiles();
-        },
-
-        async getMissionPath(missionId) {
-            try {
-                const response = await fetch(`/api/missions/${missionId}/path`);
-                if (!response.ok) {
                     throw new Error('Failed to get mission path');
                 }
                 return await response.json();
@@ -402,4 +392,4 @@ export default {
             clearInterval(this.fileCheckInterval);
         }
     }
-};
+}
