@@ -46,4 +46,5 @@ class Logger:
         """Internal logging method"""
         # Remove level from kwargs to avoid duplicate
         kwargs.pop('level', None)
-        self.log(message, level=level, **kwargs)
+        # Call log() without explicitly passing level as kwarg
+        self.log(message, level, **kwargs)  # Pass level as positional arg
