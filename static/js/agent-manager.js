@@ -3,6 +3,9 @@ import ApiClient from './api-client.js';
 export default {
     name: 'AgentManager',
     delimiters: ['[[', ']]'],
+    components: {
+        TeamMetrics
+    },
     props: {
         currentMission: Object
     },

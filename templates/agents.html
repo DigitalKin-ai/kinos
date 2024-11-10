@@ -50,6 +50,11 @@
             HeaderComponent,
             TeamMetrics
         },
+        provide() {
+            return {
+                teamMetrics: TeamMetrics
+            }
+        },
         data() {
             return {
                 missionService: new MissionService(),
