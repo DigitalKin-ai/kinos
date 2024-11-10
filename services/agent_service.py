@@ -9,6 +9,7 @@ from agents.kinos_agent import KinOSAgent
 import importlib
 import inspect
 from agents.kinos_agent import KinOSAgent
+from utils.path_manager import PathManager
 
 # Import agent types dynamically
 agent_types_module = importlib.import_module('agents.agent_types')
