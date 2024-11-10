@@ -64,19 +64,20 @@ class AgentService:
                 "openai_api_key": config["openai_api_key"],
                 "logger": self.web_instance.log_message,
                 "web_instance": self.web_instance,
+                "mission_dir": "missions"  # Default missions directory
             }
 
             # Add mission-specific config if a mission is set
             if current_mission:
                 mission_dir = os.path.join("missions", current_mission)
                 if os.path.exists(mission_dir) and os.access(mission_dir, os.R_OK | os.W_OK):
-                    base_config.update({
-                        "mission_name": current_mission,
-                        "mission_dir": mission_dir
-                    })
+                    base_config["mission_dir"] = mission_dir
+                    base_config["mission_name"] = current_mission
                     self.web_instance.log_message(f"Initializing agents for mission: {current_mission}", level='info')
             else:
                 self.web_instance.log_message("Initializing agents without active mission", level='info')
+                # Ensure missions directory exists
+                os.makedirs("missions", exist_ok=True)
 
             if not os.path.exists("prompts"):
                 raise ValueError("Prompts directory not found")
@@ -111,12 +112,13 @@ class AgentService:
                         **base_config,
                         "name": name,
                         "prompt": prompt,
-                        "prompt_file": prompt_path
+                        "prompt_file": prompt_path,
+                        "is_active": False  # Agents start inactive without mission
                     }
                     
                     self.agents[name.lower()] = agent_class(agent_config)
                     successful_inits += 1
-                    self.web_instance.log_message(f"✓ Agent {name} initialized", level='success')
+                    self.web_instance.log_message(f"✓ Agent {name} initialized (inactive)", level='success')
                     
                 except Exception as e:
                     self.web_instance.log_message(f"Failed to initialize {name} agent: {str(e)}", level='error')
