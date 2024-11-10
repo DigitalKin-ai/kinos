@@ -1,20 +1,44 @@
 import ApiClient from './api-client.js';
+import AgentManagerData from './agent-manager-data.js';
+import AgentManagerMethods from './agent-manager-methods.js';
+import AgentManagerTemplate from './agent-manager-template.js';
 
 export default {
+    name: 'AgentManager',
     props: {
         currentMission: {
             type: Object,
-            default: () => null
+            validator: (mission) => mission && mission.id !== undefined,
+            default: null
         }
     },
     data() {
         return {
             ...AgentManagerData.data(),
-            apiClient: new ApiClient()
+            apiClient: new ApiClient(),
+            error: null,
+            loading: false,
+            searchTerm: ''
         };
     },
     computed: {
-        ...AgentManagerData.computed
+        ...AgentManagerData.computed,
+        
+        filteredAgents() {
+            if (!this.agents) return [];
+            return this.agents.filter(agent => 
+                this.searchTerm ? 
+                agent.name.toLowerCase().includes(this.searchTerm.toLowerCase()) : 
+                true
+            );
+        },
+        
+        teamAgentCount() {
+            return this.teams.reduce((acc, team) => {
+                acc[team.id] = team.agents ? team.agents.length : 0;
+                return acc;
+            }, {});
+        }
     },
     watch: {
         currentMission: {
@@ -22,20 +46,50 @@ export default {
             async handler(newMission) {
                 if (newMission) {
                     try {
+                        this.loading = true;
                         await this.loadTeams();
+                        await this.loadAgents();
                     } catch (error) {
-                        console.error('Error loading teams:', error);
-                        this.error = error.message;
+                        this.handleError(error);
+                    } finally {
+                        this.loading = false;
                     }
                 }
             }
         }
     },
     methods: {
-        ...AgentManagerMethods.methods
+        ...AgentManagerMethods.methods,
+        
+        handleError(error) {
+            console.error('Agent Manager Error:', error);
+            this.error = error.message || 'An unexpected error occurred';
+            
+            this.$emit('error', error);
+        },
+        
+        validateAgentName(name) {
+            const nameRegex = /^[a-zA-Z][a-zA-Z0-9_-]{2,29}$/;
+            return nameRegex.test(name);
+        },
+        
+        validatePrompt(prompt) {
+            return prompt && 
+                   prompt.trim().length >= 50 && 
+                   prompt.includes('MISSION:') && 
+                   prompt.includes('INSTRUCTIONS:');
+        },
+        
+        debouncedSearch(searchTerm) {
+            // Simple debounce implementation
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(() => {
+                this.searchTerm = searchTerm;
+            }, 300);
+        }
     },
     template: AgentManagerTemplate
-}
+};
 
         closeCreateModal() {
             if (this.newAgent.name || this.newAgent.prompt !== '') {
