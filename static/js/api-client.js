@@ -295,10 +295,20 @@ class ApiClient {
     }
 
     async selectMission(missionId) {
-        const response = await fetch(`/api/missions/${missionId}/select`, {
-            method: 'POST'
-        });
-        return this.handleResponse(response);
+        try {
+            const response = await this.handleRequest(`/api/missions/${missionId}/select`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Use existing handleResponse method for consistent error handling
+            return response;
+        } catch (error) {
+            console.error('Mission selection error:', error);
+            throw error;
+        }
     }
 
     async getMissionContent(missionId) {
