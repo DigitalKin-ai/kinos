@@ -352,27 +352,9 @@ export default {
             return this.highlightedFiles.has(path);
         },
 
-        isFileHighlighted(path) {
-            return this.highlightedFiles.has(path);
-        },
-
         getFileSize(file) {
             if (!file.content) return '0';
             return file.content.length.toString();
-        },
-
-        async getFileContent(file) {
-            try {
-                const response = await fetch(
-                    `/api/missions/${this.currentMission.id}/files/${encodeURIComponent(file.relativePath || file.path)}`
-                );
-                
-                if (!response.ok) throw new Error('Failed to load file content');
-                return await response.text();
-            } catch (error) {
-                console.error('Error loading file content:', error);
-                return null;
-            }
         },
 
         getFileIcon(file) {
