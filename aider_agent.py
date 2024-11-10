@@ -153,29 +153,39 @@ class AiderAgent(KinOSAgent):
                 self.mission_files = {}
                 return
 
+            # Obtenir le chemin absolu du dossier mission
+            mission_dir = os.path.abspath(self.mission_dir)
+            
+            # Vérifier que nous sommes dans le bon sous-dossier de mission
+            if os.path.basename(os.path.dirname(mission_dir)) != "missions":
+                self.logger(f"[{self.__class__.__name__}] ❌ Invalid mission path structure: {mission_dir}")
+                self.mission_files = {}
+                return
+
             # Liste des extensions à inclure
             text_extensions = {'.md', '.txt', '.json', '.yaml', '.yml', '.py', '.js', '.html', '.css', '.sh'}
             
             # Récupérer tous les fichiers textuels UNIQUEMENT dans le dossier de la mission courante
             text_files = {}
-            for root, _, filenames in os.walk(self.mission_dir):
-                # Vérifier que nous sommes toujours dans le dossier de la mission
-                if not root.startswith(self.mission_dir):
+            for root, _, filenames in os.walk(mission_dir):
+                # Vérifier que nous sommes toujours dans le dossier de la mission courante
+                if not os.path.commonpath([root, mission_dir]) == mission_dir:
                     continue
                     
                 for filename in filenames:
                     if os.path.splitext(filename)[1].lower() in text_extensions:
                         file_path = os.path.join(root, filename)
-                        # Ne garder que les fichiers qui sont dans le dossier de la mission
-                        if os.path.commonpath([file_path, self.mission_dir]) == self.mission_dir:
+                        # Vérifier que le fichier est bien dans le dossier de la mission courante
+                        if os.path.commonpath([file_path, mission_dir]) == mission_dir:
                             text_files[file_path] = os.path.getmtime(file_path)
             
             # Mettre à jour mission_files
             self.mission_files = text_files
             
-            self.logger(f"[{self.__class__.__name__}] 📁 Fichiers trouvés dans {self.mission_dir}: {len(self.mission_files)}")
+            # Log avec chemins relatifs pour plus de clarté
+            self.logger(f"[{self.__class__.__name__}] 📁 Fichiers trouvés dans {os.path.basename(mission_dir)}: {len(self.mission_files)}")
             for file in self.mission_files:
-                rel_path = os.path.relpath(file, self.mission_dir)
+                rel_path = os.path.relpath(file, mission_dir)
                 self.logger(f"[{self.__class__.__name__}] 📄 {rel_path}")
                 
         except Exception as e:
