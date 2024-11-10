@@ -358,6 +358,23 @@
                     this.$emit('update:loading', false);
                 }
             },
+            async loadTeams() {
+                try {
+                    const teamResponse = await fetch(`/api/missions/${this.currentMission.id}/teams`);
+                    if (teamResponse.ok) {
+                        const teams = await teamResponse.json();
+                        this.teams = teams;
+                        this.activeTeam = teams.length > 0 ? teams[0] : null;
+                    } else {
+                        throw new Error('Failed to fetch teams: ' + teamResponse.statusText);
+                    }
+                } catch (error) {
+                    this.handleError('Error fetching teams: ' + error.message);
+                    this.teams = [];
+                    this.activeTeam = null;
+                }
+            },
+
             async createMission(name) {
                 try {
                     const newMission = await this.missionService.createMission(name);
@@ -366,9 +383,10 @@
                     this.teams = [];
                     this.activeTeam = null;
                 } catch (error) {
-                    console.error('Failed to create mission:', error);
+                    this.handleError('Failed to create mission: ' + error.message);
                 }
             },
+
             handleSidebarToggle(collapsed) {
                 // Handle sidebar collapse/expand if needed
             }

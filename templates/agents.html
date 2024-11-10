@@ -81,23 +81,50 @@
                 }
                 const missions = await response.json();
                 this.missions = missions;
-                
-                // Automatically select first mission if available
+            
                 if (missions.length > 0) {
                     await this.selectMission(missions[0]);
                 }
-                
+            
                 this.loading = false;
-                console.log('Loaded missions:', missions);
             } catch (error) {
-                console.error('Failed to load missions:', error);
+                this.handleError('Failed to load missions: ' + error.message);
                 this.loading = false;
             }
         },
         methods: {
-            handleError(message, error) {
-                console.error(message, error);
-                this.error = typeof error === 'string' ? error : error.message;
+            async handleMissionOperation(operation, errorMessage) {
+                try {
+                    return await this.retryWithBackoff(operation);
+                } catch (error) {
+                    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                        this.connectionStatus.connected = false;
+                        throw new Error('Server connection lost. Please check your connection and try again.');
+                    }
+                    throw error;
+                }
+            },
+
+            async retryWithBackoff(operation, maxRetries = 3) {
+                let delay = 1000;
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        return await operation();
+                    } catch (error) {
+                        if (i === maxRetries - 1) throw error;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2;
+                    }
+                }
+            },
+
+            handleError(error) {
+                console.error('Error:', error);
+                this.error = typeof error === 'string' ? error : error.message || 'An unexpected error occurred';
+                this.showError = true;
+                setTimeout(() => {
+                    this.showError = false;
+                }, 5000);
             },
 
             async selectMission(mission) {
@@ -105,24 +132,9 @@
                     this.loading = true;
                     await this.missionService.selectMission(mission);
                     this.currentMission = mission;
-                    
-                    // Fetch team information for the mission
-                    try {
-                        const teamResponse = await fetch(`/api/missions/${mission.id}/teams`);
-                        if (teamResponse.ok) {
-                            const teams = await teamResponse.json();
-                            this.teams = teams;
-                            this.activeTeam = teams.length > 0 ? teams[0] : null;
-                        } else {
-                            throw new Error('Failed to fetch teams: ' + teamResponse.statusText);
-                        }
-                    } catch (teamError) {
-                        this.handleError('Error fetching teams', teamError);
-                        this.teams = [];
-                        this.activeTeam = null;
-                    }
+                    await this.loadTeams();
                 } catch (error) {
-                    this.handleError('Failed to select mission', error);
+                    this.handleError('Failed to select mission: ' + error.message);
                 } finally {
                     this.loading = false;
                 }
