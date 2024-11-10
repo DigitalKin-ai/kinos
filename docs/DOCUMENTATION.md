@@ -293,6 +293,167 @@ config/prompts/validation_agent_custom.json
 - Supporter des formats personnalisés
 - Étendre les métriques de qualité
 
+### Gestion des Chemins (PathManager)
+
+#### Vue d'Ensemble
+Le PathManager est un composant central qui gère tous les chemins de fichiers de manière cohérente et sécurisée :
+- Normalisation des chemins entre systèmes d'exploitation
+- Validation des accès et permissions
+- Gestion des chemins temporaires et de cache
+- Organisation des ressources du projet
+
+#### Méthodes Principales
+
+1. **Chemins de Base**
+   ```python
+   PathManager.get_project_root()  # Racine du projet
+   PathManager.get_mission_path(mission_name)  # Dossier d'une mission
+   PathManager.get_prompts_path()  # Dossier des prompts
+   PathManager.get_config_path()  # Dossier de configuration
+   ```
+
+2. **Ressources Application**
+   ```python
+   PathManager.get_templates_path()  # Templates Flask
+   PathManager.get_static_path()  # Fichiers statiques
+   PathManager.get_logs_path()  # Fichiers de logs
+   ```
+
+3. **Fichiers Temporaires**
+   ```python
+   PathManager.get_temp_path()  # Dossier temp
+   PathManager.get_temp_file(prefix="", suffix="")  # Fichier temporaire
+   PathManager.get_backup_path()  # Dossier backups
+   ```
+
+4. **Fichiers Spécialisés**
+   ```python
+   PathManager.get_config_file_path(filename)  # Fichier config
+   PathManager.get_static_file_path(filename)  # Fichier statique
+   PathManager.get_log_file_path(log_type)  # Fichier log
+   PathManager.get_cache_file_path(cache_key)  # Fichier cache
+   ```
+
+#### Utilisation par Service
+
+1. **FileService**
+   - Accès aux fichiers mission
+   - Validation des chemins
+   - Gestion des permissions
+   ```python
+   file_path = PathManager.get_mission_path(mission_name)
+   if os.path.exists(file_path):
+       # Opérations fichier...
+   ```
+
+2. **CacheService**
+   - Organisation du cache
+   - Fichiers temporaires
+   - Nettoyage automatique
+   ```python
+   cache_file = PathManager.get_cache_file_path(key)
+   temp_file = PathManager.get_temp_file()
+   ```
+
+3. **NotificationService**
+   - Logs d'activité
+   - Fichiers de suivi
+   ```python
+   log_path = PathManager.get_log_file_path('notifications')
+   ```
+
+4. **AgentService**
+   - Prompts des agents
+   - Fichiers de travail
+   ```python
+   prompt_path = PathManager.get_prompts_path()
+   work_dir = PathManager.get_mission_path(mission)
+   ```
+
+#### Bonnes Pratiques
+
+1. **Validation des Chemins**
+   ```python
+   # Toujours utiliser normalize_path pour les entrées externes
+   safe_path = PathManager.normalize_path(user_input)
+   if not safe_path.startswith(PathManager.get_project_root()):
+       raise SecurityError("Invalid path")
+   ```
+
+2. **Gestion des Erreurs**
+   ```python
+   try:
+       path = PathManager.get_mission_path(mission_name)
+   except ValueError as e:
+       logger.error(f"Invalid mission path: {e}")
+   ```
+
+3. **Organisation des Fichiers**
+   ```python
+   # Structure recommandée
+   project_root/
+   ├── missions/
+   ├── prompts/
+   ├── config/
+   ├── templates/
+   ├── static/
+   ├── logs/
+   └── temp/
+   ```
+
+#### Sécurité
+
+1. **Validation des Accès**
+   - Vérification des permissions
+   - Prévention des traversées de répertoire
+   - Normalisation des chemins
+
+2. **Isolation des Ressources**
+   - Séparation des dossiers temporaires
+   - Gestion des backups
+   - Nettoyage automatique
+
+3. **Audit et Logging**
+   - Traçage des accès fichiers
+   - Détection des anomalies
+   - Historique des opérations
+
+#### Configuration
+
+1. **Variables d'Environnement**
+   ```env
+   PROJECT_ROOT=/path/to/project
+   TEMP_DIR=/path/to/temp
+   LOG_DIR=/path/to/logs
+   ```
+
+2. **Paramètres Ajustables**
+   ```python
+   TEMP_FILE_PREFIX = "kinos_"
+   BACKUP_RETENTION = 30  # jours
+   CACHE_CLEANUP_INTERVAL = 3600  # secondes
+   ```
+
+#### Extensibilité
+
+1. **Ajout de Nouveaux Types**
+   ```python
+   @staticmethod
+   def get_custom_path(name: str) -> str:
+       """Get path for custom resource type"""
+       return os.path.join(PathManager.get_project_root(), "custom", name)
+   ```
+
+2. **Validation Personnalisée**
+   ```python
+   @staticmethod
+   def validate_custom_path(path: str) -> bool:
+       """Add custom path validation rules"""
+       return PathManager.normalize_path(path).startswith(
+           PathManager.get_custom_path("")
+       )
+   ```
+
 ### Service Layer
 
 #### BaseService
