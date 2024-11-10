@@ -161,6 +161,31 @@ def register_mission_routes(app, web_instance):
             web_instance.logger.log(f"Error selecting mission {mission_id}: {str(e)}", level='error')
             return jsonify({'error': f"Failed to select mission: {str(e)}"}), 500
 
+    @app.route('/api/missions/<int:mission_id>/select', methods=['POST'])
+    @safe_operation()
+    def select_mission(mission_id):
+        try:
+            # Get mission
+            mission = web_instance.mission_service.get_mission(mission_id)
+            if not mission:
+                web_instance.log_message(f"Mission {mission_id} not found", level='error')
+                return jsonify({'error': 'Mission not found'}), 404
+                
+            # Stop all agents before changing mission
+            web_instance.agent_service.stop_all_agents()
+            
+            # Update current mission in FileManager
+            web_instance.file_manager.current_mission = mission['name']
+            web_instance.logger.log(f"Updated FileManager current mission to: {mission['name']}", level='debug')
+            
+            web_instance.logger.log(f"Successfully selected mission: {mission['name']}", level='success')
+            
+            return jsonify(mission)
+            
+        except Exception as e:
+            web_instance.log_message(f"Error selecting mission {mission_id}: {str(e)}", level='error')
+            return jsonify({'error': f"Failed to select mission: {str(e)}"}), 500
+
     @app.route('/api/missions/<int:mission_id>/reset', methods=['POST'])
     @safe_operation()
     def reset_mission_files(mission_id):

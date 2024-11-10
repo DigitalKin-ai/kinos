@@ -5,11 +5,43 @@ class MissionService {
         this.apiClient = new ApiClient(baseUrl);
     }
 
-    async getAllMissions() {
+    async loadMissions() {
         try {
-            return await this.apiClient.getAllMissions();
+            this.loading = true;
+            const missions = await this.apiClient.getAllMissions();
+            this.missions = missions;
+            
+            // Automatically select first mission if it exists
+            if (missions.length > 0) {
+                await this.selectMission(missions[0]);
+            }
         } catch (error) {
             console.error('Error fetching missions:', error);
+            throw error;
+        } finally {
+            this.loading = false;
+        }
+    }
+
+    async selectMission(mission) {
+        try {
+            const response = await fetch(`/api/missions/${mission.id}/select`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to select mission');
+            }
+
+            const result = await response.json();
+            console.log('Mission selected successfully:', result);
+            return result;
+        } catch (error) {
+            console.error('Error selecting mission:', error);
             throw error;
         }
     }
