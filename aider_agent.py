@@ -75,15 +75,6 @@ class AiderAgent(KinOSAgent):
         Only works with existing files, doesn't create new ones.
         """
         try:
-            # Construire le chemin du fichier principal
-            main_file = f"{self.role}.md"
-            main_file_path = os.path.join(self.mission_dir, main_file)
-
-            # Verify if main file exists
-            if not os.path.exists(main_file_path):
-                self.logger.log(f"Main file not found: {main_file_path}", level='warning')
-                return None
-
             # Obtenir le dossier de mission
             current_dir = os.getcwd()
             
@@ -92,16 +83,13 @@ class AiderAgent(KinOSAgent):
                 os.chdir(self.mission_dir)
                 self.logger(f"[{self.__class__.__name__}] 📂 Changement vers le dossier: {self.mission_dir}")
 
-                # Utiliser uniquement les noms de fichiers (pas les chemins)
-                main_file = os.path.basename(main_file_path)
-                
+
                 # Construire la commande avec chemins relatifs
                 cmd = [
                     "aider",
                     "--model", "claude-3-5-haiku-20241022",
                     "--no-git",
-                    "--yes-always",
-                    "--file", main_file  # Utiliser juste le nom du fichier
+                    "--yes-always"  # Utiliser juste le nom du fichier
                 ]
                 
                 # Ajouter les autres fichiers (chemins relatifs)
@@ -141,25 +129,6 @@ class AiderAgent(KinOSAgent):
                     self.logger(f"[{self.__class__.__name__}] ⚠️ Erreurs Aider:\n{stderr}")
                 
                 if process.returncode == 0:
-                    # Lire le contenu mis à jour (chemin relatif)
-                    with open(main_file, 'r', encoding='utf-8') as f:
-                        new_content = f.read()
-                    
-                    # Notifier du changement
-                    try:
-                        panel_name = os.path.splitext(main_file)[0].capitalize()
-                        success = self.web_instance.notification_service.handle_content_change(
-                            file_path=main_file,
-                            content=new_content,
-                            panel_name=panel_name,
-                            flash=True
-                        )
-                        if success:
-                            self.logger(f"✓ Notification sent for {panel_name}")
-                        else:
-                            self.logger(f"❌ Failed to send notification for {panel_name}")
-                    except Exception as e:
-                        self.logger(f"❌ Error sending notification: {str(e)}")
                     
                     return stdout
                 else:
