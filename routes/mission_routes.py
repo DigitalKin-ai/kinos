@@ -153,14 +153,6 @@ def register_mission_routes(app, web_instance):
             web_instance.file_manager.current_mission = mission['name']
             web_instance.logger.log(f"Updated FileManager current mission to: {mission['name']}", level='debug')
             
-            # Update agent paths
-            web_instance.agent_service.update_agent_paths(mission['name'])
-            web_instance.logger.log(f"Updated agent paths for mission: {mission['name']}", level='debug')
-            
-            # Vérifier que le changement est effectif
-            if web_instance.file_manager.current_mission != mission['name']:
-                raise ValueError(f"Mission change failed. Expected {mission['name']}, got {web_instance.file_manager.current_mission}")
-            
             web_instance.logger.log(f"Successfully selected mission: {mission['name']}", level='success')
             
             return jsonify(mission)

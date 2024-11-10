@@ -26,41 +26,6 @@ class AgentService:
             self.web_instance.log_message(f"❌ Erreur globale: {str(e)}", level='error')
             raise
 
-    def update_agent_paths(self, mission_name: str) -> None:
-        """Update file paths for all agents when mission changes without creating files"""
-        try:
-            # Explicit verification
-            if self.web_instance.file_manager.current_mission != mission_name:
-                self.web_instance.logger.log(
-                    f"Mission mismatch - FileManager: {self.web_instance.file_manager.current_mission}, "
-                    f"Requested: {mission_name}",
-                    level='error'
-                )
-                # Force update
-                self.web_instance.file_manager.current_mission = mission_name
-            
-            # Stop all agents
-            self.stop_all_agents()
-            
-            # Build mission path - only verify directory exists
-            mission_dir = os.path.abspath(os.path.join("missions", mission_name))
-            if not os.path.exists(mission_dir):
-                self.web_instance.logger.log(f"Mission directory not found: {mission_dir}", level='warning')
-            
-            self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
-
-            # Track agent states
-            was_running = any(agent.running for agent in self.agents.values())
-                    
-            # Restart agents if they were running
-            if was_running:
-                self.start_all_agents()
-                
-            self.web_instance.logger.log(f"✓ Agent paths updated for mission: {mission_name}", level='success')
-            
-        except Exception as e:
-            self.web_instance.logger.log(f"❌ Error updating agent paths: {str(e)}", level='error')
-            raise
 
     def stop_agents(self):
         """Stop all agents"""
