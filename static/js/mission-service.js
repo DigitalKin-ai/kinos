@@ -3,7 +3,7 @@ import TeamService from './team-service.js';
 
 class MissionService {
     constructor(baseUrl = '') {
-        this.apiClient = new ApiClient(baseUrl);  // Initialize with empty base URL
+        this.apiClient = new ApiClient('');  // Initialize with empty base URL for relative paths
         this.teamService = new TeamService(this);
         this.currentMission = null;
         this.missions = [];
