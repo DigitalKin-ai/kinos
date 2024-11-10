@@ -114,6 +114,57 @@ const TeamsManager = {
     },
 
     methods: {
+        async handleOperationWithRetry(operation, teamId, errorMessage) {
+            const attempts = this.retryAttempts.get(teamId) || 0;
+            
+            try {
+                this.loadingStates.set(teamId, true);
+                this.errorMessages.delete(teamId);
+                
+                return await operation();
+                
+            } catch (error) {
+                console.error(`Operation failed for team ${teamId}:`, error);
+                
+                if (attempts < this.maxRetries) {
+                    this.retryAttempts.set(teamId, attempts + 1);
+                    await new Promise(resolve => setTimeout(resolve, this.retryDelay * Math.pow(2, attempts)));
+                    return this.handleOperationWithRetry(operation, teamId, errorMessage);
+                }
+                
+                this.errorMessages.set(teamId, errorMessage);
+                throw error;
+                
+            } finally {
+                this.loadingStates.set(teamId, false);
+            }
+        },
+
+        async toggleTeam(team) {
+            if (this.loadingStates.get(team.id)) return;
+            
+            try {
+                await this.handleOperationWithRetry(
+                    async () => {
+                        const action = this.isTeamRunning(team) ? 'stop' : 'start';
+                        const response = await fetch(`/api/teams/${team.id}/${action}`, {
+                            method: 'POST'
+                        });
+                        
+                        if (!response.ok) throw new Error(`Failed to ${action} team`);
+                        
+                        const result = await response.json();
+                        this.updateTeamState(team, result);
+                    },
+                    team.id,
+                    `Failed to toggle team ${team.name}`
+                );
+            } catch (error) {
+                // Error already handled by handleOperationWithRetry
+                console.error('Team toggle failed:', error);
+            }
+        },
+
         initializeComponent() {
             this.error = null;
             this.loading = false;
@@ -124,6 +175,34 @@ const TeamsManager = {
         },
 
     methods: {
+        startServerMonitoring() {
+            // Check immediately
+            this.checkServerStatus();
+            // Then check every 30 seconds
+            this.serverStatus.checkInterval = setInterval(() => {
+                this.checkServerStatus();
+            }, 30000);
+        },
+
+        stopServerMonitoring() {
+            if (this.serverStatus.checkInterval) {
+                clearInterval(this.serverStatus.checkInterval);
+                this.serverStatus.checkInterval = null;
+            }
+        },
+
+        async checkServerStatus() {
+            try {
+                const isConnected = await this.checkServerConnection();
+                this.serverStatus.connected = isConnected;
+                this.serverStatus.lastCheck = new Date();
+            } catch (error) {
+                this.serverStatus.connected = false;
+                this.serverStatus.lastCheck = new Date();
+                console.warn('Server connection check failed:', error);
+            }
+        },
+
         initializeErrorHandling() {
             // Basic error handling initialization
             this.errorMessage = null;

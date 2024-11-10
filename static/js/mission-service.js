@@ -67,6 +67,41 @@ class MissionService {
         }
     }
 
+    validateMissionState(mission) {
+        if (!mission) return false;
+        if (!mission.id) return false;
+        if (!mission.name) return false;
+
+        const requiredProps = ['id', 'name', 'path', 'status'];
+        return requiredProps.every(prop => mission.hasOwnProperty(prop));
+    }
+
+    async cleanupMissionState() {
+        try {
+            this.stateUpdateQueue = [];
+            this.stateUpdateInProgress = false;
+            this.runningStates.clear();
+            this.errorMessage = null;
+            this.showError = false;
+            this.$emit('update:loading', false);
+        } catch (error) {
+            console.error('Error cleaning up mission state:', error);
+        }
+    }
+
+    async handleMissionOperation(operation, errorMessage) {
+        try {
+            return await this.retryWithBackoff(operation);
+        } catch (error) {
+            // Check if it's a connection error
+            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                this.serverStatus.connected = false;
+                throw new Error('Server connection lost. Please check your connection and try again.');
+            }
+            throw error;
+        }
+    }
+
     async initialize() {
         try {
             // Initialize both missions and teams

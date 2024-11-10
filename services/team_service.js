@@ -13,6 +13,38 @@ export default class TeamService {
         this.apiClient = new ApiClient();
     }
 
+    async updateRunningState(missionId, state) {
+        try {
+            if (!missionId) return;
+        
+            this.stateUpdateQueue.push({ missionId, state });
+            if (!this.stateUpdateInProgress) {
+                await this.processStateUpdates();
+            }
+        } catch (error) {
+            console.error('Error updating running state:', error);
+            this.handleError('Failed to update mission state');
+        }
+    }
+
+    async processStateUpdates() {
+        if (this.stateUpdateQueue.length === 0) {
+            this.stateUpdateInProgress = false;
+            return;
+        }
+
+        this.stateUpdateInProgress = true;
+        try {
+            const update = this.stateUpdateQueue.shift();
+            this.runningStates.set(update.missionId, update.state);
+            await this.processStateUpdates();
+        } catch (error) {
+            console.error('Error processing state updates:', error);
+        } finally {
+            this.stateUpdateInProgress = false;
+        }
+    }
+
     async initialize() {
         // Charger les configurations d'équipe prédéfinies
         this.predefinedTeams = [
