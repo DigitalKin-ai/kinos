@@ -5,14 +5,12 @@ import traceback
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from utils.exceptions import AgentError
-from agents.kinos_agent import KinOSAgent
 import importlib
 import inspect
 from agents.kinos_agent import KinOSAgent
-from utils.path_manager import PathManager
-
-from agents.kinos_agent import KinOSAgent
 from aider_agent import AiderAgent
+from utils.path_manager import PathManager
+from utils.validators import validate_agent_name
 
 class AgentService:
     def _get_agent_status_details(self, agent) -> dict:
@@ -766,6 +764,35 @@ class AgentService:
         except Exception as e:
             self.web_instance.log_message(f"Error updating global status: {str(e)}", 'error')
 
+    def create_agent(self, name: str, prompt: str) -> bool:
+        """Create a new agent with the given name and prompt"""
+        try:
+            # Validate name
+            if not validate_agent_name(name):
+                raise ValueError("Invalid agent name format")
+
+            # Get prompts directory using PathManager
+            prompts_dir = PathManager.get_prompts_path()
+            
+            # Check if agent already exists
+            prompt_file = os.path.join(prompts_dir, f'{name}.md')
+            if os.path.exists(prompt_file):
+                raise ValueError(f"Agent {name} already exists")
+
+            # Save prompt file
+            with open(prompt_file, 'w', encoding='utf-8') as f:
+                f.write(prompt)
+
+            # Reinitialize agent
+            self.init_agent(name, prompt)
+
+            self.web_instance.log_message(f"Created new agent: {name}", 'success')
+            return True
+
+        except Exception as e:
+            self.web_instance.log_message(f"Error creating agent: {str(e)}", 'error')
+            raise
+
     def get_agent_prompt(self, agent_id: str) -> Optional[str]:
         """Get the current prompt for a specific agent"""
         try:
@@ -889,6 +916,13 @@ class AgentService:
         except Exception as e:
             self.web_instance.log_message(f"Error backing up prompt: {str(e)}", 'error')
             return False
+
+    def log_agent_creation(self, agent_name: str, success: bool):
+        """Log agent creation events"""
+        if success:
+            self.logger.log(f"Successfully created agent: {agent_name}", 'success')
+        else:
+            self.logger.log(f"Failed to create agent: {agent_name}", 'error')
 
     def _load_prompt_template(self, agent_type: str) -> Optional[str]:
         """Load default prompt template for agent type"""

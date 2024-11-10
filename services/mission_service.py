@@ -129,11 +129,6 @@ class MissionService:
             # Normalize name for filesystem
             normalized_name = self._normalize_mission_name(name)
             
-            # Use PathManager to get mission directory path
-            mission_dir = PathManager.get_mission_path(normalized_name)
-            
-            # Use PathManager to get mission directory path
-            mission_dir = PathManager.get_mission_path(normalized_name)
             
             # Use PathManager to get mission directory path
             mission_dir = PathManager.get_mission_path(normalized_name)

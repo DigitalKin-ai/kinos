@@ -11,7 +11,7 @@ class LogManager:
     def __init__(self):
         """Initialize the logger"""
         logging.basicConfig(
-            level=logging.INFO,
+            logging.INFO,
             format='[%(asctime)s] %(message)s',
             datefmt='%H:%M:%S'
         )

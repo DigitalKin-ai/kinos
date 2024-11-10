@@ -256,6 +256,60 @@ The KinOS system uses a modular architecture built around autonomous agents that
   - safe_operation
   - Retry logic
 
+### Teams Management
+
+#### Architecture
+- **Team Configuration**
+  - Predefined team templates in teams-manager.js
+  - Dynamic agent groupings
+  - Flexible team composition
+  - Status tracking per team
+
+- **Team Operations**
+  - Centralized control via TeamsManager component
+  - Real-time status monitoring
+  - Individual and team-wide agent controls
+  - Performance metrics collection
+
+- **State Management**
+  - Team status tracking
+  - Agent status per team
+  - Loading states
+  - Operation history
+  - Performance metrics
+
+- **Interface Components**
+  - TeamsManager Vue component
+  - Team cards with controls
+  - Agent status indicators
+  - Performance displays
+  - Real-time updates
+
+#### Data Flow
+1. Team Configuration
+   - Stored in teams-manager.js
+   - Loaded on component mount
+   - Updated via UI interactions
+   - Persisted across sessions
+
+2. Status Updates
+   - Regular polling of agent states
+   - Real-time metric updates
+   - Team efficiency calculations
+   - History tracking
+
+3. Control Operations
+   - Team-wide start/stop
+   - Individual agent toggling
+   - Loading state management
+   - Error handling and recovery
+
+#### Integration
+- Interfaces with AgentService
+- Coordinates with NotificationService
+- Uses shared caching layer
+- Maintains operation history
+
 ### Frontend Components
 
 #### JavaScript

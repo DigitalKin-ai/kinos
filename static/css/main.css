@@ -158,3 +158,40 @@ Follow BEM naming convention for all classes.
 .accordion-leave-to {
     max-height: 0;
 }
+.modal-enter-active,
+.modal-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+    opacity: 0;
+}
+
+.modal-backdrop {
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Scrollbar styling for the prompt textarea */
+.prompt-textarea {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.prompt-textarea::-webkit-scrollbar {
+    width: 8px;
+}
+
+.prompt-textarea::-webkit-scrollbar-track {
+    background: #f7fafc;
+}
+
+.prompt-textarea::-webkit-scrollbar-thumb {
+    background-color: #cbd5e0;
+    border-radius: 4px;
+}

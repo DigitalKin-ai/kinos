@@ -162,6 +162,17 @@ class ApiClient {
         return this.handleResponse(response);
     }
 
+    async createAgent(name, prompt) {
+        const response = await fetch(`${this.baseUrl}/api/agents`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, prompt })
+        });
+        return this.handleResponse(response);
+    }
+
     // Notification endpoints
     async getNotifications() {
         const response = await fetch(`${this.baseUrl}/api/notifications`);

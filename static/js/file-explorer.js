@@ -13,7 +13,16 @@ export default {
             expandedFiles: new Set(),
             fileContents: new Map(),
             activeTab: 'files',
-            pollInterval: 5000
+            pollInterval: 5000,
+            editingFile: null,
+            editedContent: '',
+            showEditModal: false,
+            saving: false,
+            hasUnsavedChanges: false,
+            autoSaveInterval: null,
+            lastSavedContent: '',
+            errorMessage: null,
+            showError: false
         }
     },
     computed: {
@@ -27,6 +36,65 @@ export default {
             this.fileCheckInterval = null;
         }
     },
+    methods: {
+        handleKeyPress(e) {
+            // Ctrl/Cmd + S to save
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                if (!this.saving) {
+                    this.saveFileChanges();
+                }
+            }
+            // Esc to close
+            if (e.key === 'Escape') {
+                this.closeEditModal();
+            }
+        },
+
+        startAutoSave() {
+            this.lastSavedContent = this.editedContent;
+            this.autoSaveInterval = setInterval(() => {
+                if (this.hasUnsavedChanges && !this.saving) {
+                    this.saveFileChanges();
+                }
+            }, 30000); // Auto-save every 30 seconds
+        },
+
+        stopAutoSave() {
+            if (this.autoSaveInterval) {
+                clearInterval(this.autoSaveInterval);
+                this.autoSaveInterval = null;
+            }
+        },
+
+        getLanguage(fileName) {
+            const ext = fileName.split('.').pop().toLowerCase();
+            const languageMap = {
+                'js': 'javascript',
+                'py': 'python',
+                'md': 'markdown',
+                'json': 'json',
+                'html': 'html',
+                'css': 'css'
+            };
+            return languageMap[ext] || 'plaintext';
+        },
+
+        highlightCode() {
+            if (this.editingFile) {
+                const language = this.getLanguage(this.editingFile.name);
+                if (language !== 'plaintext') {
+                    this.$nextTick(() => {
+                        const codeElements = this.$el.querySelectorAll('pre code');
+                        codeElements.forEach(block => {
+                            hljs.highlightElement(block);
+                        });
+                    });
+                }
+            }
+        }
+    },
+
     watch: {
         currentMission: {
             immediate: true,
@@ -42,6 +110,12 @@ export default {
                 } else {
                     this.files = [];
                 }
+            }
+        },
+        editedContent(newContent) {
+            if (this.editingFile) {
+                const originalContent = this.fileContents.get(this.editingFile.path);
+                this.hasUnsavedChanges = newContent !== originalContent;
             }
         },
         activeTab: {
@@ -221,6 +295,101 @@ export default {
             return new Date(timestamp * 1000).toLocaleString();
         },
 
+        async editFile(file) {
+            try {
+                // Load the file content if not already loaded
+                if (!this.fileContents.has(file.path)) {
+                    const response = await fetch(
+                        `/api/missions/${this.currentMission.id}/files/${encodeURIComponent(file.relativePath || file.path)}`
+                    );
+                
+                    if (!response.ok) {
+                        throw new Error('Failed to load file content');
+                    }
+                
+                    const content = await response.text();
+                    this.fileContents.set(file.path, content);
+                }
+
+                this.editingFile = file;
+                this.editedContent = this.fileContents.get(file.path);
+                this.showEditModal = true;
+                this.lastSavedContent = this.editedContent;
+            
+                // Add keyboard shortcuts
+                window.addEventListener('keydown', this.handleKeyPress);
+            
+                // Start auto-save
+                this.startAutoSave();
+            
+                // Apply syntax highlighting
+                this.highlightCode();
+            } catch (error) {
+                console.error('Error loading file for edit:', error);
+                this.errorMessage = error.message;
+                this.showError = true;
+            }
+        },
+
+        async saveFileChanges() {
+            if (!this.editingFile || !this.currentMission) return;
+        
+            try {
+                this.saving = true;
+                const response = await fetch(
+                    `/api/missions/${this.currentMission.id}/files/${encodeURIComponent(this.editingFile.relativePath || this.editingFile.path)}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            content: this.editedContent
+                        })
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to save file changes');
+                }
+
+                // Update local content cache
+                this.fileContents.set(this.editingFile.path, this.editedContent);
+                this.lastSavedContent = this.editedContent;
+                this.hasUnsavedChanges = false;
+            
+                // Flash the file to indicate successful save
+                this.flashFile(this.editingFile.path);
+            
+                this.errorMessage = null;
+                this.showError = false;
+
+            } catch (error) {
+                console.error('Error saving file changes:', error);
+                this.errorMessage = error.message;
+                this.showError = true;
+                setTimeout(() => {
+                    this.showError = false;
+                }, 5000);
+            } finally {
+                this.saving = false;
+            }
+        },
+
+        closeEditModal() {
+            if (this.hasUnsavedChanges) {
+                if (!confirm('You have unsaved changes. Are you sure you want to close?')) {
+                    return;
+                }
+            }
+            window.removeEventListener('keydown', this.handleKeyPress);
+            this.stopAutoSave();
+            this.showEditModal = false;
+            this.editingFile = null;
+            this.editedContent = '';
+            this.hasUnsavedChanges = false;
+        },
+
         async toggleFile(file) {
             try {
                 if (this.expandedFiles.has(file.path)) {
@@ -309,6 +478,10 @@ export default {
                                 <span class="text-sm text-gray-900">{{ file.name }}</span>
                             </div>
                             <div class="flex items-center space-x-4">
+                                <button @click.stop="editFile(file)" 
+                                        class="px-2 py-1 text-sm text-blue-600 hover:text-blue-800">
+                                    <i class="mdi mdi-pencil"></i> Edit
+                                </button>
                                 <span class="text-sm text-gray-500">{{ getFileSize(file) }}</span>
                                 <span class="text-sm text-gray-500">{{ formatDate(file.modified) }}</span>
                             </div>
@@ -332,5 +505,62 @@ export default {
             </div>
         </div>
         </div>
+
+    <!-- Edit modal -->
+    <div v-if="showEditModal" 
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-3/4 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">
+                    Editing: {{ editingFile?.name }}
+                </h3>
+                <button @click="closeEditModal" 
+                        class="text-gray-500 hover:text-gray-700">
+                    <i class="mdi mdi-close"></i>
+                </button>
+            </div>
+            
+            <textarea v-model="editedContent"
+                      class="flex-1 w-full p-4 border rounded-md font-mono text-sm mb-4"
+                      style="min-height: 400px"
+                      :disabled="saving">
+            </textarea>
+            
+            <div class="relative">
+                <div class="absolute bottom-0 left-0 p-4 text-sm">
+                    <span v-if="hasUnsavedChanges" class="text-yellow-600">
+                        <i class="mdi mdi-circle-medium animate-pulse"></i>
+                        Unsaved changes
+                    </span>
+                    <span v-else class="text-green-600">
+                        <i class="mdi mdi-check-circle"></i>
+                        All changes saved
+                    </span>
+                    <span v-if="saving" class="ml-4 text-blue-600">
+                        <i class="mdi mdi-loading mdi-spin"></i>
+                        Saving...
+                    </span>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button @click="closeEditModal"
+                            :disabled="saving"
+                            class="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button @click="saveFileChanges"
+                            :disabled="saving"
+                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50">
+                        {{ saving ? 'Saving...' : 'Save Changes' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Error notification -->
+        <div v-if="showError" 
+             class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {{ errorMessage }}
+        </div>
+    </div>
     `
 };

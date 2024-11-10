@@ -136,28 +136,6 @@ class MissionService {
         }
     }
 
-    async selectMission(mission) {
-        try {
-            const response = await fetch(`/api/missions/${mission.id}/select`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to select mission');
-            }
-
-            const result = await response.json();
-            console.log('Mission selected successfully:', result);
-            return result;
-        } catch (error) {
-            console.error('Error selecting mission:', error);
-            throw error;
-        }
-    }
 }
 
 export default MissionService;

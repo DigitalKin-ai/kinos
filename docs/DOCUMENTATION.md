@@ -116,6 +116,76 @@ Chaque agent peut maintenant :
       * Validation des critères objectifs
       * Contrôle qualité automatisé
 
+### Teams Management
+
+#### Team Configurations
+Teams are predefined agent groupings optimized for specific tasks:
+
+1. **Book Writing Team**
+   - Purpose: Content creation and documentation
+   - Agents:
+     * SpecificationsAgent - Content requirements
+     * ManagementAgent - Project coordination
+     * EvaluationAgent - Content evaluation
+     * SuiviAgent - Progress tracking
+     * DocumentalisteAgent - Documentation structure
+     * DuplicationAgent - Content redundancy check
+     * RedacteurAgent - Content writing
+     * ValidationAgent - Quality control
+
+2. **Literature Review Team**
+   - Purpose: Research and analysis
+   - Agents:
+     * SpecificationsAgent - Review scope
+     * ManagementAgent - Review coordination
+     * EvaluationAgent - Analysis evaluation
+     * SuiviAgent - Progress monitoring
+     * DocumentalisteAgent - Source organization
+     * DuplicationAgent - Duplicate detection
+     * RedacteurAgent - Review writing
+     * ValidationAgent - Review validation
+
+3. **Coding Team**
+   - Purpose: Software development
+   - Agents:
+     * SpecificationsAgent - Technical requirements
+     * ManagementAgent - Project management
+     * EvaluationAgent - Code evaluation
+     * SuiviAgent - Development tracking
+     * DocumentalisteAgent - Technical documentation
+     * DuplicationAgent - Code duplication check
+     * ProductionAgent - Code generation
+     * TesteurAgent - Testing
+     * ValidationAgent - Code quality
+
+#### Team Operations
+- **Team-wide Controls**
+  - Start/stop all team agents
+  - Monitor team status
+  - Track team efficiency
+  - View team history
+
+- **Agent-level Controls**
+  - Individual agent start/stop
+  - Status monitoring
+  - Performance tracking
+  - Error handling
+
+- **Team Metrics**
+  - Success rate
+  - Response time
+  - Completed tasks
+  - Team efficiency score
+  - Agent status summary
+
+#### Team Interface
+- Real-time status updates
+- Visual status indicators
+- Loading states for operations
+- Tooltips with detailed information
+- Team and agent-level controls
+- Performance metrics display
+
 #### Configuration des Agents
 ```python
 base_config = {
@@ -858,7 +928,7 @@ MESSAGE_TTL=3600
 PRIORITY_LEVELS=["high","medium","low"]
 
 # Logging
-LOG_LEVEL=info
+LOG_info
 LOG_FORMAT="[%(asctime)s] [%(levelname)s] %(message)s"
 LOG_FILE="kinos.log"
 LOG_ROTATION="1 day"
@@ -913,7 +983,7 @@ MESSAGE_TTL=3600
 PRIORITY_LEVELS=["high","medium","low"]
 
 # Logging
-LOG_LEVEL=info
+LOG_info
 LOG_FORMAT="[%(asctime)s] [%(levelname)s] %(message)s"
 LOG_FILE="kinos.log"
 LOG_ROTATION="1 day"
@@ -1256,7 +1326,7 @@ MESSAGE_TTL=3600
 PRIORITY_LEVELS=["high","medium","low"]
 
 # Logging
-LOG_LEVEL=info
+LOG_info
 LOG_FORMAT="[%(asctime)s] [%(levelname)s] %(message)s"
 LOG_FILE="kinos.log"
 LOG_ROTATION="1 day"

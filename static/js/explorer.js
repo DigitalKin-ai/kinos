@@ -17,10 +17,6 @@ export default {
         fileExists(file) {
             return file && file.size > 0;
         },
-    methods: {
-        fileExists(file) {
-            return file && file.size > 0;
-        },
         
 
         startFileWatcher() {

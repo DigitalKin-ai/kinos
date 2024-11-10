@@ -19,7 +19,7 @@ class BaseService:
     def _handle_error(self, operation: str, error: Exception, 
                      default_value: Optional[Any] = None) -> Any:
         """Handle service operation errors consistently"""
-        self.logger.log(f"Error in {operation}: {str(error)}", level='error')
+        self.logger.log(f"Error in {operation}: {str(error)}", 'error')
         if default_value is not None:
             return default_value
         raise ServiceError(f"Failed to {operation}: {str(error)}")
@@ -27,7 +27,7 @@ class BaseService:
     def _log_operation(self, operation: str, **kwargs) -> None:
         """Log service operations with relevant details"""
         details = ', '.join(f"{k}={v}" for k, v in kwargs.items())
-        self.logger.log(f"Executing {operation}: {details}", level='debug')
+        self.logger.log(f"Executing {operation}: {details}", 'debug')
 
     def _validate_file_path(self, file_path: str) -> None:
         """Validate file path exists and is accessible"""
@@ -51,8 +51,8 @@ class BaseService:
             with open(file_path, mode, encoding=encoding) as f:
                 yield f
             duration = time.time() - start_time
-            self.logger.log(f"File operation {operation} completed in {duration:.3f}s", level='debug')
+            self.logger.log(f"File operation {operation} completed in {duration:.3f}s", 'debug')
         except Exception as e:
             duration = time.time() - start_time
-            self.logger.log(f"File operation {operation} failed after {duration:.3f}s", level='error')
+            self.logger.log(f"File operation {operation} failed after {duration:.3f}s", 'error')
             raise ServiceError(f"Failed to {operation} file {file_path}: {str(e)}")

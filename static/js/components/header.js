@@ -19,13 +19,17 @@ export default {
                         </div>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <a href="/files" class="text-gray-400 hover:text-white">
-                            <i class="mdi mdi-folder"></i>
-                            Files
-                        </a>
                         <a href="/agents" class="text-gray-400 hover:text-white">
                             <i class="mdi mdi-robot"></i>
                             Agents
+                        </a>
+                        <a href="/teams" class="text-gray-400 hover:text-white">
+                            <i class="mdi mdi-account-group"></i>
+                            Teams
+                        </a>
+                        <a href="/files" class="text-gray-400 hover:text-white">
+                            <i class="mdi mdi-folder"></i>
+                            Files
                         </a>
                     </div>
                 </div>

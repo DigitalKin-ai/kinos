@@ -71,6 +71,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    height: 100%;
 }
 
 .header-title h1 {
@@ -78,6 +79,7 @@
     font-weight: 600;
     color: #111827;
     margin: 0;
+    line-height: 1;
 }
 
 .header-nav {
