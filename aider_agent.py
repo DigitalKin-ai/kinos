@@ -20,6 +20,7 @@ import os
 import subprocess
 import time
 import asyncio
+import asyncio
 from typing import Dict, Optional
 
 class AiderAgent(KinOSAgent):
@@ -149,6 +150,27 @@ class AiderAgent(KinOSAgent):
                 
                 stdout, stderr = process.communicate(timeout=600)
                 
+                # If execution successful, save for fine-tuning
+                if process.returncode == 0 and stdout:
+                    # Collect file contents for context
+                    files_context = {}
+                    for file_path in files_added:
+                        try:
+                            with open(file_path, 'r', encoding='utf-8') as f:
+                                files_context[file_path] = f.read()
+                        except Exception as e:
+                            self.logger(f"Error reading file for dataset: {str(e)}")
+
+                    # Async call to dataset service
+                    asyncio.create_task(
+                        self.web_instance.dataset_service.add_interaction_async(
+                            prompt=prompt,
+                            files_context=files_context,
+                            aider_response=stdout,
+                            weight=0.5  # Default value, adjust as needed
+                        )
+                    )
+
                 # If execution successful, save for fine-tuning
                 if process.returncode == 0 and stdout:
                     # Collect file contents for context

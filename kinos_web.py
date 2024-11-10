@@ -207,6 +207,7 @@ class KinOSWeb:
         # Initialize services in correct order without circular dependencies
         self.mission_service = MissionService()  # No dependencies
         self.dataset_service = DatasetService(self)  # Initialize dataset service
+        self.dataset_service = DatasetService(self)  # Initialize dataset service
         
         # Initialize file manager directly
         self.file_manager = FileManager(web_instance=self)
