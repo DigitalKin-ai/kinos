@@ -84,30 +84,44 @@ class TeamService(BaseService):
             raise ServiceError(f"Failed to get teams: {str(e)}")
 
     def activate_team(self, mission_id: int, team_id: str) -> Dict[str, Any]:
-        """Activate a team for a mission"""
+        """Activate a team for a mission with enhanced error handling"""
         try:
-            # Find team configuration
-            team = next((t for t in self.predefined_teams if t['id'] == team_id), None)
-            if not team:
-                raise ServiceError(f"Team {team_id} not found")
+            self._validate_team_id(team_id)
+            team = next(t for t in self.predefined_teams if t['id'] == team_id)
 
             # Stop current active team if exists
             if self.active_team:
-                self.deactivate_team(self.active_team['id'])
+                await self.deactivate_team(self.active_team['id'])
 
-            # Stop all agents
-            self.web_instance.agent_service.stop_all_agents()
+            # Stop all agents first
+            await self.web_instance.agent_service.stop_all_agents()
 
-            # Start only agents in team
+            # Start team agents with validation
+            activation_results = []
             for agent_name in team['agents']:
                 try:
-                    self.web_instance.agent_service.toggle_agent(agent_name, 'start')
+                    self._validate_agent_name(agent_name)
+                    success = await self.web_instance.agent_service.toggle_agent(agent_name, 'start')
+                    activation_results.append({
+                        'agent': agent_name,
+                        'success': success
+                    })
                 except Exception as e:
-                    self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
+                    self.logger.log(f"Error activating agent {agent_name}: {str(e)}", 'error')
+                    activation_results.append({
+                        'agent': agent_name,
+                        'success': False,
+                        'error': str(e)
+                    })
 
             self.active_team = team
-            self.logger.log(f"Team {team['name']} activated", 'success')
-            return team
+            self.logger.log(f"Team {team['name']} activated with results: {activation_results}", 'success')
+
+            return {
+                'team': team,
+                'activation_results': activation_results,
+                'metrics': await self._calculate_team_metrics(team, self._get_agent_statuses(team))
+            }
 
         except Exception as e:
             self.logger.log(f"Error activating team: {str(e)}", 'error')
