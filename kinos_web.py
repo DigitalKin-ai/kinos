@@ -194,7 +194,8 @@ class KinOSWeb:
                 'DocumentalisteAgent': 170,  # Documentation updates less frequent
                 'DuplicationAgent': 130,     # Code analysis needs more time
                 'TesteurAgent': 190,         # Regular test execution
-                'RedacteurAgent': 35        # Content generation and updates
+                'RedacteurAgent': 35,       # Content generation and updates
+                'ValidationAgent': 120       # Regular validation checks
             }
                 
             # Create mission directory path
