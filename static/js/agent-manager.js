@@ -16,6 +16,9 @@ export default {
             loading: true,
             error: null,
             showCreateModal: false,
+            showEditModal: false,
+            currentEditAgent: null,
+            editLoading: false,
             newAgent: {
                 name: '',
                 prompt: ''
@@ -220,31 +223,94 @@ RULES:
 
         async loadPrompt(agentId) {
             try {
-                const response = await fetch(`/api/agent/${agentId}/prompt`);
+                // Set loading state for this specific agent
+                const agent = this.agents.find(a => a.id === agentId);
+                if (agent) {
+                    agent.loadingPrompt = true;
+                }
+
+                const response = await fetch(`/api/agent/${encodeURIComponent(agentId)}/prompt`);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to load prompt');
+                }
+
                 const data = await response.json();
                 this.prompts[agentId] = data.prompt;
                 this.editingPrompt = agentId;
+                
+                // Show edit modal with current prompt
+                this.showEditModal = true;
+                this.currentEditAgent = {
+                    id: agentId,
+                    name: agent?.name || agentId,
+                    prompt: data.prompt
+                };
+
             } catch (error) {
                 console.error('Failed to load prompt:', error);
+                this.errorMessage = `Failed to load prompt: ${error.message}`;
+                this.showError = true;
+                setTimeout(() => this.showError = false, 5000);
+            } finally {
+                // Clear loading state
+                const agent = this.agents.find(a => a.id === agentId);
+                if (agent) {
+                    agent.loadingPrompt = false;
+                }
             }
         },
 
-        async savePrompt(agentId) {
+        closeEditModal() {
+            if (this.hasUnsavedChanges()) {
+                if (!confirm('You have unsaved changes. Are you sure you want to close?')) {
+                    return;
+                }
+            }
+            this.showEditModal = false;
+            this.currentEditAgent = null;
+            this.editLoading = false;
+        },
+
+        hasUnsavedChanges() {
+            return this.currentEditAgent && 
+                   this.prompts[this.currentEditAgent.id] !== this.currentEditAgent.prompt;
+        },
+
+        async saveEditedPrompt() {
+            if (!this.currentEditAgent) return;
+
             try {
-                const response = await fetch(`/api/agent/${agentId}/prompt`, {
+                this.editLoading = true;
+                const response = await fetch(`/api/agent/${encodeURIComponent(this.currentEditAgent.id)}/prompt`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        prompt: this.prompts[agentId]
+                        prompt: this.currentEditAgent.prompt
                     })
                 });
-                if (response.ok) {
-                    this.editingPrompt = null;
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to save prompt');
                 }
+
+                // Update stored prompt
+                this.prompts[this.currentEditAgent.id] = this.currentEditAgent.prompt;
+                
+                // Close modal
+                this.showEditModal = false;
+                this.currentEditAgent = null;
+
             } catch (error) {
                 console.error('Failed to save prompt:', error);
+                this.errorMessage = `Failed to save prompt: ${error.message}`;
+                this.showError = true;
+                setTimeout(() => this.showError = false, 5000);
+            } finally {
+                this.editLoading = false;
             }
         }
     },
@@ -292,15 +358,15 @@ RULES:
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-gray-700 font-medium">Prompt</span>
-                            <button v-if="editingPrompt !== agent.id" 
-                                    @click="loadPrompt(agent.id)"
-                                    class="text-blue-500 hover:text-blue-600">
-                                Edit
-                            </button>
-                            <button v-else 
-                                    @click="savePrompt(agent.id)"
-                                    class="text-green-500 hover:text-green-600">
-                                Save
+                            <button @click="loadPrompt(agent.id)" 
+                                    :disabled="agent.loadingPrompt"
+                                    class="text-blue-500 hover:text-blue-600 disabled:opacity-50">
+                                <span v-if="agent.loadingPrompt">
+                                    <i class="mdi mdi-loading mdi-spin"></i>
+                                </span>
+                                <span v-else>
+                                    <i class="mdi mdi-pencil"></i> Edit
+                                </span>
                             </button>
                         </div>
                         <textarea v-model="prompts[agent.id]"
