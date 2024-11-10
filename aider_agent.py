@@ -99,7 +99,7 @@ class AiderAgent(KinOSAgent):
                 # Build command with explicit paths and logging
                 cmd = [
                     "aider",
-                    "--model", "claude-3-5-haiku-20241022", 
+                    "--model", "claude-3-5-haiku-20241022", # or gpt-4o-mini
                     "--no-git",
                     "--yes-always",
                     "--cache-prompts"
