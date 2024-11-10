@@ -28,9 +28,15 @@ def register_agent_routes(app, web_instance):
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             prompts_dir = os.path.join(project_root, "prompts")
             
+            # Validate prompts directory exists
             if not os.path.exists(prompts_dir):
                 web_instance.log_message(f"Prompts directory not found: {prompts_dir}", level='error')
                 return jsonify({'error': 'Prompts directory not found'}), 500
+
+            # Verify directory permissions
+            if not os.access(prompts_dir, os.R_OK | os.W_OK):
+                web_instance.log_message(f"Insufficient permissions on prompts directory: {prompts_dir}", level='error')
+                return jsonify({'error': 'Insufficient permissions on prompts directory'}), 500
 
             agents = []
             # List all .md files in prompts directory
@@ -42,19 +48,48 @@ def register_agent_routes(app, web_instance):
                     try:
                         # Read prompt file content with absolute path
                         prompt_path = os.path.join(prompts_dir, file)
-                        with open(prompt_path, 'r', encoding='utf-8') as f:
-                            prompt_content = f.read()
+                        
+                        # Verify file permissions
+                        if not os.access(prompt_path, os.R_OK):
+                            web_instance.log_message(f"Cannot read prompt file: {prompt_path}", level='error')
+                            continue
+
+                        # Read file with explicit UTF-8 encoding and error handling
+                        try:
+                            with open(prompt_path, 'r', encoding='utf-8', errors='replace') as f:
+                                prompt_content = f.read()
+                        except UnicodeError as ue:
+                            web_instance.log_message(f"Unicode error reading {file}: {str(ue)}", level='error')
+                            continue
+
+                        # Validate prompt content
+                        if not prompt_content.strip():
+                            web_instance.log_message(f"Empty prompt file: {file}", level='warning')
+                            continue
                         
                         # Get agent status if available
                         agent_status = {}
                         if hasattr(web_instance.agent_service, 'agents'):
                             agent = web_instance.agent_service.agents.get(agent_name)
                             if agent:
-                                agent_status = {
-                                    'running': agent.running if hasattr(agent, 'running') else False,
-                                    'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
-                                    'status': 'active' if getattr(agent, 'running', False) else 'inactive'
-                                }
+                                try:
+                                    agent_status = {
+                                        'running': agent.running if hasattr(agent, 'running') else False,
+                                        'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
+                                        'status': 'active' if getattr(agent, 'running', False) else 'inactive',
+                                        'health': {
+                                            'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
+                                            'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0),
+                                            'current_interval': agent.calculate_dynamic_interval() if hasattr(agent, 'calculate_dynamic_interval') else None
+                                        }
+                                    }
+                                except Exception as status_error:
+                                    web_instance.log_message(f"Error getting status for {agent_name}: {str(status_error)}", level='error')
+                                    agent_status = {
+                                        'running': False,
+                                        'status': 'error',
+                                        'error': str(status_error)
+                                    }
                         
                         agents.append({
                             'id': agent_id,
@@ -62,17 +97,26 @@ def register_agent_routes(app, web_instance):
                             'prompt': prompt_content,
                             'running': agent_status.get('running', False),
                             'last_run': agent_status.get('last_run'),
-                            'status': agent_status.get('status', 'inactive')
+                            'status': agent_status.get('status', 'inactive'),
+                            'health': agent_status.get('health', {'is_healthy': True}),
+                            'file_path': prompt_path
                         })
+                        
+                        web_instance.log_message(f"Successfully loaded agent: {agent_name}", level='debug')
                         
                     except Exception as e:
                         web_instance.log_message(f"Error processing agent {agent_name}: {str(e)}", level='error')
                         continue
-                        
+            
+            # Sort agents by name
+            agents.sort(key=lambda x: x['name'])
+            
+            web_instance.log_message(f"Successfully listed {len(agents)} agents", level='info')
             return jsonify(agents)
             
         except Exception as e:
-            return ErrorHandler.handle_error(e)
+            web_instance.log_message(f"Error listing agents: {str(e)}", level='error')
+            return jsonify({'error': str(e)}), 500
 
     @app.route('/api/agents/status', methods=['GET'])
     @safe_operation()
