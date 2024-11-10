@@ -117,7 +117,7 @@ export default class TeamService {
                 await this.deactivateTeam(this.activeTeam.id);
             }
 
-            const response = await fetch(`/api/missions/${missionId}/teams/${teamId}/activate`, {
+            const response = await fetch(`/api/missions/${encodeURIComponent(missionId)}/teams/${encodeURIComponent(teamId)}/activate`, {
                 method: 'POST'
             });
 
@@ -136,7 +136,7 @@ export default class TeamService {
 
     async deactivateTeam(teamId) {
         try {
-            const response = await fetch(`/api/teams/${teamId}/deactivate`, {
+            const response = await fetch(`/api/teams/${encodeURIComponent(teamId)}/deactivate`, {
                 method: 'POST'
             });
 

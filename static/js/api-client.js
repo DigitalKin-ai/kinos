@@ -142,7 +142,7 @@ class ApiClient {
     }
 
     async saveAgentPrompt(agentId, prompt) {
-        const response = await fetch(`/api/agent/${agentId}/prompt`, {
+        const response = await fetch(`/api/agents/${encodeURIComponent(agentId)}/prompt`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt })

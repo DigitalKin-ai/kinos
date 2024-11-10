@@ -68,7 +68,7 @@
         },
         data() {
             return {
-                missionService: new MissionService(),
+                missionService: new MissionService(''),  // Empty base URL for relative paths
                 currentMission: null,
                 missions: [],
                 loading: true,

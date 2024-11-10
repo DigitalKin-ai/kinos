@@ -242,7 +242,7 @@ RULES:
                 agent.loading = true;
                 const action = agent.running ? 'stop' : 'start';
                 
-                const response = await fetch(`/api/agent/${agent.id}/${action}`, {
+                const response = await fetch(`/api/agents/${encodeURIComponent(agent.id)}/${action}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
