@@ -218,6 +218,9 @@ def register_mission_routes(app, web_instance):
             if safe_path.startswith('..'):
                 return jsonify({'error': 'Invalid file path'}), 400
 
+            # Get mission path using PathManager
+            mission_dir = PathManager.get_mission_path(mission['name'])
+            
             # Construire le chemin complet avec le dossier de mission
             full_path = os.path.join(mission_dir, safe_path)
             
