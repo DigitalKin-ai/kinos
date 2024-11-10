@@ -61,7 +61,7 @@ class FileService(BaseService):
                 return content
                 
         except Exception as e:
-            self.logger.log(f"Error reading {file_name}: {str(e)}", level='error')
+            self.logger.log(f"Error reading {file_name}: {str(e)}", 'error')
             return None
 
     @safe_operation()
