@@ -132,10 +132,34 @@ export default {
                 : (error.message || 'An unexpected error occurred');
             this.showError = true;
 
-            // Automatically hide error after 5 seconds
             setTimeout(() => {
                 this.showError = false;
             }, 5000);
+        },
+
+        async loadTeams() {
+            try {
+                this.loading = true;
+                this.error = null;
+                const teams = await this.missionService.getTeams(this.currentMission.id);
+                this.teams = teams.map(team => ({
+                    ...team,
+                    agents: team.agents || [],
+                    status: team.status || 'available'
+                }));
+            
+                // Set first team as active if no active team
+                if (this.teams.length > 0 && !this.activeTeam) {
+                    this.activeTeam = this.teams[0];
+                }
+            } catch (error) {
+                console.error('Error loading teams:', error);
+                this.error = error.message || 'Failed to load teams';
+                // Optional: show user-friendly error notification
+                this.showErrorNotification('Could not load teams for this mission');
+            } finally {
+                this.loading = false;
+            }
         },
     },
     mounted() {
@@ -148,6 +172,9 @@ export default {
         // Use teamStats.clear() instead of non-existent statusCache
         this.teamStats.clear();
         this.teamHistory.clear();
+    },
+    created() {
+        this.initializeErrorHandling();
     },
     methods: {
         getTeamEfficiency(team) {
