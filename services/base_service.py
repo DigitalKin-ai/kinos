@@ -1,11 +1,45 @@
 import os
 import time
-from typing import Optional, Any
+import functools
+from typing import Optional, Any, Tuple
 from utils.exceptions import ServiceError, ValidationError
 from utils.advanced_logger import AdvancedLogger
 from config.global_config import GlobalConfig
 import logging
 import os
+
+def retry(max_attempts=3, delay=1, backoff=2, exceptions=(Exception,)):
+    """
+    Décorateur de retry avec backoff exponentiel
+    
+    Args:
+        max_attempts (int): Nombre maximum de tentatives
+        delay (int): Délai initial entre les tentatives
+        backoff (int): Facteur de backoff exponentiel
+        exceptions (tuple): Types d'exceptions à gérer
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            current_delay = delay
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    return func(self, *args, **kwargs)
+                except exceptions as e:
+                    if attempt == max_attempts:
+                        raise
+                    
+                    # Log de l'erreur
+                    self.logger.log(
+                        f"Attempt {attempt} failed: {str(e)}. Retrying in {current_delay}s...", 
+                        'warning'
+                    )
+                    
+                    # Attente avec backoff
+                    time.sleep(current_delay)
+                    current_delay *= backoff
+        return wrapper
+    return decorator
 
 class BaseService:
     """Base class for all services providing common functionality"""
@@ -32,6 +66,23 @@ class BaseService:
         """Log service operations with relevant details"""
         details = ', '.join(f"{k}={v}" for k, v in kwargs.items())
         self.logger.log(f"Executing {operation}: {details}", 'debug')
+    
+    @retry(max_attempts=3, delay=1, exceptions=(ServiceError, ConnectionError))
+    def _safe_operation(self, operation):
+        """
+        Exécute une opération avec retry et gestion des erreurs
+        
+        Args:
+            operation (callable): Opération à exécuter
+        
+        Returns:
+            Résultat de l'opération
+        """
+        try:
+            return operation()
+        except Exception as e:
+            self.logger.log(f"Operation failed: {str(e)}", 'error')
+            raise
 
     def _validate_file_path(self, file_path: str) -> None:
         """Validate file path exists and is accessible"""
