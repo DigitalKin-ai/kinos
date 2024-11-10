@@ -244,19 +244,27 @@ class AgentService:
             # Start monitor thread
             self._start_monitor_thread()
             
-            # Start each agent
+            # Start each agent in a new thread
             for name, agent in self.agents.items():
                 try:
                     self.web_instance.log_message(f"Starting agent {name}...", level='debug')
                     self.web_instance.log_message(f"Agent {name} mission dir: {agent.mission_dir}", level='debug')
                     
+                    # Initialize agent
                     agent.start()
+                    
+                    # Create and start thread for agent
                     thread = threading.Thread(
                         target=agent.run,
                         daemon=True,
                         name=f"Agent-{name}"
                     )
                     thread.start()
+
+                    # Verify thread started
+                    if not thread.is_alive():
+                        raise AgentError(f"Failed to start thread for agent {name}")
+                        
                     self.web_instance.log_message(f"✓ Agent {name} started", level='success')
                     
                 except Exception as e:
