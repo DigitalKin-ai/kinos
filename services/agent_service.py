@@ -104,15 +104,11 @@ class AgentService:
                 self.web_instance.log_message("No current mission set", level='error')
                 return
 
-            # Get absolute path to missions directory
-            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            missions_dir = os.path.join(project_root, "missions")
+            # Normalize mission name using FileManager's method
+            normalized_name = self.web_instance.file_manager._normalize_mission_name(current_mission)
             
-            # Normalize mission name
-            normalized_name = self.web_instance.mission_service._normalize_mission_name(current_mission)
-            
-            # Construct absolute mission directory path
-            mission_dir = os.path.abspath(os.path.join(missions_dir, normalized_name))
+            # Use the same missions directory as FileManager
+            mission_dir = os.path.join("missions", normalized_name)
             
             # Verify directory exists and is accessible
             if not os.path.exists(mission_dir):
