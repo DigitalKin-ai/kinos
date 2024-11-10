@@ -36,10 +36,13 @@ export default {
             hoveredMissionId: null,
             errorMessage: null,
             showError: false,
-            runningStates: new Map(),     // Use Map to track running states
+            runningStates: new Map(),
+            stateUpdateQueue: [], // Queue for state updates
+            stateUpdateInProgress: false,
+            connectionCheckInProgress: false,
             serverRetries: 0,
             maxRetries: 3,
-            retryDelay: 1000, // 1 second
+            retryDelay: 1000,
             serverCheckInterval: null,
             connectionStatus: {
                 connected: true,
@@ -69,33 +72,40 @@ export default {
     async mounted() {
         console.log('MissionSelector mounted');
         try {
-            console.log('Initial props:', {
-                currentMission: this.currentMission,
-                missions: this.missions,
-                loading: this.loading
-            });
-            
-            // Start connection monitoring
+            await this.checkConnection();
             this.startConnectionMonitoring();
 
-            // Récupérer la liste des agents depuis l'API
-            const agentsResponse = await fetch('/api/agents/list');
-            if (!agentsResponse.ok) {
-                throw new Error(`Failed to fetch agents: ${agentsResponse.statusText}`);
-            }
-            const agents = await agentsResponse.json();
-            
-            const response = await fetch('/api/missions');
-            if (!response.ok) {
-                throw new Error(`Failed to fetch missions: ${response.statusText}`);
-            }
-            const missions = await response.json();
-            console.log('Fetched missions:', missions);
-            
-            this.localMissions = missions;
-            this.$emit('update:missions', missions); // Utiliser l'émission déclarée
+            await this.retryWithBackoff(async () => {
+                const [agentsResponse, missionsResponse] = await Promise.all([
+                    fetch('/api/agents/list'),
+                    fetch('/api/missions')
+                ]);
+
+                if (!agentsResponse.ok) {
+                    throw new Error(`Failed to fetch agents: ${agentsResponse.statusText}`);
+                }
+                if (!missionsResponse.ok) {
+                    throw new Error(`Failed to fetch missions: ${missionsResponse.statusText}`);
+                }
+
+                const agents = await agentsResponse.json();
+                const missions = await missionsResponse.json();
+
+                this.localMissions = missions;
+                this.$emit('update:missions', missions);
+
+                missions.forEach(mission => {
+                    this.runningStates.set(mission.id, false);
+                });
+            });
+
         } catch (error) {
             console.error('Error in MissionSelector mounted:', error);
+            this.handleError({
+                title: 'Initialization Error',
+                message: error.message,
+                type: 'error'
+            });
         }
     },
     watch: {
@@ -167,29 +177,114 @@ export default {
             }
         },
 
-        async checkConnection() {
+        async updateRunningState(missionId, state) {
             try {
+                if (!missionId) return;
+            
+                this.stateUpdateQueue.push({ missionId, state });
+                if (!this.stateUpdateInProgress) {
+                    await this.processStateUpdates();
+                }
+            } catch (error) {
+                console.error('Error updating running state:', error);
+                this.handleError('Failed to update mission state');
+            }
+        },
+
+        async processStateUpdates() {
+            if (this.stateUpdateQueue.length === 0) {
+                this.stateUpdateInProgress = false;
+                return;
+            }
+
+            this.stateUpdateInProgress = true;
+            try {
+                const update = this.stateUpdateQueue.shift();
+                this.runningStates.set(update.missionId, update.state);
+                await this.processStateUpdates();
+            } catch (error) {
+                console.error('Error processing state updates:', error);
+            } finally {
+                this.stateUpdateInProgress = false;
+            }
+        },
+
+        isRunning(missionId) {
+            try {
+                return this.runningStates.get(missionId) || false;
+            } catch (error) {
+                console.error('Error checking running state:', error);
+                return false;
+            }
+        },
+
+        async checkConnection() {
+            if (this.connectionCheckInProgress) return;
+        
+            try {
+                this.connectionCheckInProgress = true;
                 const isConnected = await this.missionService.apiClient.checkServerConnection();
-                this.connectionStatus.connected = isConnected;
-                this.connectionStatus.lastCheck = new Date();
-                this.connectionStatus.retryCount = 0;
+            
+                if (this.connectionStatus.connected !== isConnected) {
+                    this.connectionStatus.connected = isConnected;
+                    this.connectionStatus.lastCheck = new Date();
+                
+                    if (isConnected && this.connectionStatus.retryCount > 0) {
+                        this.handleError({
+                            title: 'Connection Restored',
+                            message: 'Server connection has been restored',
+                            type: 'success'
+                        });
+                        this.connectionStatus.retryCount = 0;
+                    }
+                }
             } catch (error) {
                 this.connectionStatus.connected = false;
-                this.connectionStatus.lastCheck = new Date();
+                this.connectionStatus.retryCount++;
                 this.handleConnectionError(error);
+            } finally {
+                this.connectionCheckInProgress = false;
             }
         },
 
         handleConnectionError(error) {
-            this.connectionStatus.retryCount++;
-            const message = this.connectionStatus.retryCount > 1 
-                ? `Connection lost. Retry attempt ${this.connectionStatus.retryCount}...`
+            const retryCount = this.connectionStatus.retryCount;
+            const message = retryCount > 1 
+                ? `Connection lost. Retry attempt ${retryCount}...`
                 : 'Connection lost. Retrying...';
+            
             this.handleError({
                 title: 'Connection Error',
                 message: message,
-                type: 'connection'
+                type: 'connection',
+                retry: true,
+                details: error.message
             });
+
+            const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 30000);
+            setTimeout(() => this.checkConnection(), delay);
+        },
+
+        validateMissionState(mission) {
+            if (!mission) return false;
+            if (!mission.id) return false;
+            if (!mission.name) return false;
+        
+            const requiredProps = ['id', 'name', 'path', 'status'];
+            return requiredProps.every(prop => mission.hasOwnProperty(prop));
+        },
+
+        async cleanupMissionState() {
+            try {
+                this.stateUpdateQueue = [];
+                this.stateUpdateInProgress = false;
+                this.runningStates.clear();
+                this.errorMessage = null;
+                this.showError = false;
+                this.$emit('update:loading', false);
+            } catch (error) {
+                console.error('Error cleaning up mission state:', error);
+            }
         },
 
         async handleMissionOperation(operation, errorMessage) {
