@@ -129,7 +129,16 @@ const app = createApp({
         async linkExternalMission() {
             try {
                 // Utiliser l'API moderne de sélection de dossier
-                const directoryHandle = await window.showDirectoryPicker();
+                const directoryHandle = await window.showDirectoryPicker()
+                    .catch(e => {
+                        if (e.name === 'AbortError') {
+                            throw e; // Re-throw abort errors to be handled by catch block
+                        }
+                        throw new Error('Failed to open directory picker');
+                    });
+                if (!directoryHandle?.name) {
+                    throw new Error('Invalid directory selected');
+                }
                 console.log('Selected directory:', directoryHandle.name);
                 
                 // Obtenir le chemin complet via une requête spéciale
@@ -161,7 +170,7 @@ const app = createApp({
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ path })
+                    body: JSON.stringify({ path: responseData.path })
                 });
                 
                 if (linkResponse.ok) {
@@ -215,11 +224,16 @@ const app = createApp({
             }
             
             // Start new monitoring interval
-            this.updateInterval = setInterval(() => {
-                if (this.currentMission) {  // Vérifie seulement si une mission est sélectionnée
-                    this.updateContent();
+            this.updateInterval = setInterval(async () => {
+                if (this.currentMission?.id) {  // Ensure mission has an ID
+                    try {
+                        await this.updateContent();
+                    } catch (error) {
+                        console.error('Error in content update:', error);
+                        this.addNotification('error', 'Failed to update content');
+                    }
                 }
-            }, 1000);
+            }, 5000); // Increased to 5 seconds to reduce server load
             
             if (this.currentMission?.name) {
                 console.log('Content monitoring started for mission:', this.currentMission.name);
@@ -321,11 +335,18 @@ const app = createApp({
                 
                 // Si une mission est sélectionnée, charger son contenu
                 if (this.currentMission) {
-                    const response = await fetch(`/api/missions/${this.currentMission.id}/content`);
+                    const response = await fetch(`/api/missions/${this.currentMission.id}/content`)
+                        .catch(() => {
+                            throw new Error('Network error while loading mission content');
+                        });
                     if (!response.ok) {
-                        throw new Error('Failed to load mission content');
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to load mission content');
                     }
                     const data = await response.json();
+                    if (!data) {
+                        throw new Error('No content received from server');
+                    }
                     this.content = data;
                     this.previousContent = { ...data };
                     
