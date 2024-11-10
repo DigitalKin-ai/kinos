@@ -160,96 +160,72 @@ class AgentService:
 
     def init_agents(self, config: Dict[str, Any], team_agents: Optional[List[str]] = None) -> None:
         try:
-            self.web_instance.log_message(
-                f"Initializing agents for team: {team_agents}\n"
-                f"Config keys: {list(config.keys())}", 
-                'debug'
-            )
-
-            # Normalisation des noms d'agents
-            normalized_agents = []
-            if team_agents:
-                for agent in team_agents:
-                    # Supprimer 'Agent' du nom et normaliser
-                    norm_name = agent.lower().replace('agent', '').strip()
-                    normalized_agents.append(norm_name)
-            else:
-                normalized_agents = [
+            # Normalize team agents if not provided
+            if not team_agents:
+                team_agents = [
                     'specifications', 'management', 'evaluation', 
                     'suivi', 'documentaliste', 'duplication', 
                     'redacteur', 'validation', 'production', 'testeur'
                 ]
-
-            # Log des agents normalisés
-            self.web_instance.log_message(f"Normalized agent names: {normalized_agents}", 'debug')
-
-            # Validation des chemins de recherche
-            prompt_search_paths = [
-                PathManager.get_prompts_path(),
-                PathManager.get_custom_prompts_path(),
-                os.path.join(PathManager.get_project_root(), 'prompts'),
-                os.path.join(PathManager.get_project_root(), 'prompts', 'custom')
+            
+            # Normalize agent names
+            normalized_agents = [
+                agent.lower().replace('agent', '').strip() 
+                for agent in team_agents
             ]
-
-            # Log des chemins de recherche avec vérification détaillée
-            for path in prompt_search_paths:
-                self.web_instance.log_message(
-                    f"Searching agent prompts in: {path}\n"
-                    f"Path exists: {os.path.exists(path)}\n"
-                    f"Path is readable: {os.access(path, os.R_OK)}\n"
-                    f"Path contents: {os.listdir(path) if os.path.exists(path) else 'N/A'}", 
-                    'debug'
-                )
-        
+            
+            # Initialize agents with comprehensive logging
             initialized_agents = {}
-        
             for agent_name in normalized_agents:
                 try:
-                    # Normalisation du nom de l'agent
-                    normalized_name = agent_name.lower()
-                
-                    # Recherche du fichier de prompt avec diagnostic avancé
-                    prompt_file = self._find_agent_prompt(normalized_name, prompt_search_paths)
-                
-                    # Lecture du prompt
-                    prompt = self._read_prompt_file(prompt_file) if prompt_file else self._create_default_prompt(normalized_name)
-                
-                    # Construction de la configuration complète pour l'agent
+                    # Prepare agent-specific configuration
                     agent_config = {
-                        'config': {  # Encapsuler la config dans une sous-clé
+                        'config': {
+                            'name': agent_name,
                             'anthropic_api_key': config.get('anthropic_api_key'),
-                            'openai_api_key': config.get('openai_api_key'),
-                            'mission_dir': config.get('mission_dir'),
-                            'name': normalized_name,
-                            'prompt': prompt
+                            'openai_api_key': config.get('openai_api_key')
                         }
                     }
-            
-                    # Création dynamique de l'agent
+                    
+                    # Attempt to find and load prompt
+                    prompt_file = self._find_agent_prompt(
+                        agent_name, 
+                        [
+                            PathManager.get_prompts_path(),
+                            PathManager.get_custom_prompts_path()
+                        ]
+                    )
+                    
+                    if prompt_file:
+                        prompt_content = self._read_prompt_file(prompt_file)
+                        if prompt_content:
+                            agent_config['config']['prompt'] = prompt_content
+                    
+                    # Create dynamic agent
                     agent = self._create_dynamic_agent(agent_config)
-            
+                    
                     if agent:
-                        initialized_agents[normalized_name] = agent
-                        self.web_instance.log_message(f"Successfully initialized agent: {normalized_name}", 'success')
+                        initialized_agents[agent_name] = agent
+                        self.web_instance.log_message(
+                            f"Successfully initialized agent: {agent_name}", 
+                            'success'
+                        )
                     else:
                         self.web_instance.log_message(
-                            f"Failed to create agent: {normalized_name}. "
-                            f"Searched paths: {prompt_search_paths}", 
+                            f"Failed to create agent: {agent_name}", 
                             'error'
                         )
-            
+                
                 except Exception as agent_error:
                     self.web_instance.log_message(
-                        f"Detailed error initializing agent {agent_name}: {str(agent_error)}\n"
-                        f"Search paths: {prompt_search_paths}\n"
-                        f"Full traceback: {traceback.format_exc()}", 
-                        'critical'
+                        f"Error initializing agent {agent_name}: {str(agent_error)}", 
+                        'error'
                     )
-        
-            # Mise à jour du dictionnaire d'agents
+            
+            # Update agents dictionary
             self.agents = initialized_agents
-        
-            # Résumé de l'initialisation
+            
+            # Log initialization summary
             self.web_instance.log_message(
                 f"Agent Initialization Summary:\n"
                 f"Total Agents Attempted: {len(normalized_agents)}\n"
@@ -257,10 +233,10 @@ class AgentService:
                 f"Failed Agents: {set(normalized_agents) - set(initialized_agents.keys())}", 
                 'info'
             )
-    
+        
         except Exception as e:
             self.web_instance.log_message(
-                f"CRITICAL Agent Initialization Failure:\n"
+                f"Critical Agent Initialization Failure:\n"
                 f"Error: {str(e)}\n"
                 f"Traceback: {traceback.format_exc()}", 
                 'critical'
@@ -1626,24 +1602,76 @@ Default operational instructions.
             KinOSAgent: Instance de l'agent ou None si erreur
         """
         try:
-            # Valider la configuration
-            if not self._validate_agent_config(config):
+            # Normalize and validate configuration
+            if not isinstance(config, dict):
+                config = {'config': config} if config else {}
+
+            # Ensure we have a nested config structure
+            if 'config' not in config:
+                config = {'config': config}
+
+            # Extract configuration, with fallback to empty dict
+            agent_config = config.get('config', {})
+
+            # Ensure required fields are present
+            required_fields = ['name', 'prompt']
+            missing_fields = [field for field in required_fields if field not in agent_config]
+            
+            if missing_fields:
                 self.web_instance.log_message(
-                    f"Invalid configuration for agent {config.get('name')}", 
+                    f"Missing required fields in agent config: {missing_fields}", 
+                    'error'
+                )
+                
+                # Try to recover by extracting name from config or filename
+                if 'name' not in agent_config and isinstance(config.get('name'), str):
+                    agent_config['name'] = config['name']
+                
+                # Try to load prompt if not provided
+                if 'prompt' not in agent_config:
+                    # Attempt to find and load prompt file
+                    prompt_file = self._find_agent_prompt(
+                        agent_config.get('name', ''), 
+                        [
+                            PathManager.get_prompts_path(),
+                            PathManager.get_custom_prompts_path()
+                        ]
+                    )
+                    
+                    if prompt_file:
+                        agent_config['prompt'] = self._read_prompt_file(prompt_file)
+            
+            # Recheck required fields after recovery attempts
+            missing_fields = [field for field in required_fields if field not in agent_config]
+            if missing_fields:
+                self.web_instance.log_message(
+                    f"Could not recover missing fields: {missing_fields}", 
                     'error'
                 )
                 return None
 
-            # Créer l'agent avec AiderAgent comme base
+            # Validate agent configuration
+            if not self._validate_agent_config({'config': agent_config}):
+                self.web_instance.log_message(
+                    f"Invalid configuration for agent {agent_config.get('name')}", 
+                    'error'
+                )
+                return None
+
+            # Create the agent with the validated configuration
             try:
                 from aider_agent import AiderAgent
                 
-                # Créer l'agent avec la configuration complète
-                agent = AiderAgent(config)
+                # Create agent with full configuration
+                agent = AiderAgent({
+                    **agent_config,
+                    'anthropic_api_key': config.get('anthropic_api_key'),
+                    'openai_api_key': config.get('openai_api_key')
+                })
                 
-                # Log succès
+                # Log successful agent creation
                 self.web_instance.log_message(
-                    f"Successfully created agent {config.get('name')}", 
+                    f"Successfully created agent {agent_config.get('name')}", 
                     'success'
                 )
                 
