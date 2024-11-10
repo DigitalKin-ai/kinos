@@ -201,8 +201,12 @@ class KinOSWeb:
         self.logger.log(f"Template directory: {template_dir}", 'debug')
         self.logger.log(f"Static directory: {static_dir}", 'debug')
         
+        # Import dataset service
+        from services.dataset_service import DatasetService
+        
         # Initialize services in correct order without circular dependencies
         self.mission_service = MissionService()  # No dependencies
+        self.dataset_service = DatasetService(self)  # Initialize dataset service
         
         # Initialize file manager directly
         self.file_manager = FileManager(web_instance=self)

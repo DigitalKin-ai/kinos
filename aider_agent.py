@@ -19,6 +19,7 @@ from utils.path_manager import PathManager
 import os
 import subprocess
 import time
+import asyncio
 from typing import Dict, Optional
 
 class AiderAgent(KinOSAgent):
