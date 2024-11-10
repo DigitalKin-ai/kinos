@@ -63,6 +63,18 @@ export default {
         async loadAgents() {
             try {
                 this.loading = true;
+                const agentTypes = [
+                    'specification',
+                    'production',
+                    'management',
+                    'evaluation',
+                    'suivi',
+                    'documentaliste',
+                    'duplication',
+                    'testeur',
+                    'validation',
+                    'redacteur'
+                ];
                 // Load agents list from prompt files
                 const response = await fetch('/api/agents/list');
                 if (!response.ok) {

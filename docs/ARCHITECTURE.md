@@ -20,6 +20,7 @@ The KinOS system uses a modular architecture built around autonomous agents that
     * Response compression
     * Secure sessions
     * Prometheus metrics
+    * Validation metrics collection
   - API route configuration with versioning
   - Service management with dependency injection
   - Error handling with retry policies

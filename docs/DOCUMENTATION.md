@@ -330,6 +330,7 @@ State Management:
 - Status: Agent state changes
 - Content: File modifications
 - System: Infrastructure events
+- Validation: Validation results and metrics
 
 #### Distribution
 - WebSocket real-time updates
