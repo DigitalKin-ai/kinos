@@ -88,6 +88,10 @@ class KinOSWeb:
         register_notification_routes(self.app, self)
         register_view_routes(self.app, self)
         
+        # Register team routes
+        from routes.team_routes import register_team_routes
+        register_team_routes(self.app, self)
+        
         # Add error handlers
         @self.app.errorhandler(404)
         def not_found_error(error):
