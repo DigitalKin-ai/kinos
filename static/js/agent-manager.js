@@ -14,6 +14,7 @@ export default {
             prompts: {},
             editingPrompt: null,
             loading: true,
+            notifications: [],
             stateUpdateQueue: [],
             stateUpdateInProgress: false,
             error: null,
@@ -40,7 +41,6 @@ export default {
             showPromptModal: false,
             currentPromptAgent: null,
             suiviUpdateInterval: null
-            error: null,
             showCreateModal: false,
             showEditModal: false,
             currentEditAgent: null,

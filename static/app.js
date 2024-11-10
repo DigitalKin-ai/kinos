@@ -165,6 +165,20 @@ const app = createApp({
             }
         }
 
+        addNotification(type, message) {
+            const id = Date.now();
+            const notification = {
+                id,
+                type,
+                message,
+                class: `notification-${type}`
+            };
+            this.notifications.push(notification);
+            setTimeout(() => {
+                this.notifications = this.notifications.filter(n => n.id !== id);
+            }, 5000);
+        },
+
         async linkExternalMission() {
             try {
                 // Check if File System Access API is supported
