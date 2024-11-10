@@ -114,7 +114,7 @@ def register_agent_routes(app, web_instance):
                                         }
                                     }
                                 except Exception as status_error:
-                                    web_instance.log_message(f"Error getting status for {agent_name}: {str(status_error)}", level='error')
+                                    web_instance.logger.log(f"Error getting status for {agent_name}: {str(status_error)}", level='error')
                                     agent_status = {
                                         'running': False,
                                         'status': 'error',
