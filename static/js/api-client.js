@@ -8,6 +8,45 @@ class ApiClient {
         this.token = null; // For future authentication
     }
 
+    async get(endpoint) {
+        const response = await fetch(`${this.baseUrl}${endpoint}`);
+        return this.handleResponse(response);
+    }
+
+    async post(endpoint, data = null) {
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        
+        if (data) {
+            options.body = JSON.stringify(data);
+        }
+        
+        const response = await fetch(`${this.baseUrl}${endpoint}`, options);
+        return this.handleResponse(response);
+    }
+
+    async put(endpoint, data) {
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        return this.handleResponse(response);
+    }
+
+    async delete(endpoint) {
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            method: 'DELETE'
+        });
+        return this.handleResponse(response);
+    }
+
     async checkServerConnection() {
         try {
             const response = await Promise.race([
