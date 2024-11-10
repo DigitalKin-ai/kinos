@@ -12,9 +12,12 @@ class Logger:
         'redacteur': 'purple'
     }
     
-    def log(self, message: str, level: str = 'info', file_path: str = None):
-        """Main logging method"""
+    def log(self, message: str, level: str = 'info', **kwargs):
+        """Main logging method that handles all cases"""
         try:
+            # Extract file_path from kwargs if present
+            file_path = kwargs.get('file_path')
+            
             timestamp = datetime.now().strftime("%H:%M:%S")
             formatted_message = f"[{timestamp}] [{level.upper()}] {message}"
             
@@ -32,5 +35,12 @@ class Logger:
             print(f"Original message: {message}")
             
     def __call__(self, message: str, level: str = 'info', **kwargs):
-        """Alias for log method to maintain compatibility"""
-        self.log(message, level=level)
+        """Unified call method that handles all logging patterns"""
+        # Remove any duplicate level parameter from kwargs
+        kwargs.pop('level', None)
+        self.log(message, level=level, **kwargs)
+
+    # For backward compatibility
+    def _log(self, message: str, level: str = 'info', **kwargs):
+        """Alias for log method"""
+        self.log(message, level=level, **kwargs)
