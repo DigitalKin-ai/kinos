@@ -35,7 +35,8 @@ export default {
             missionService: new MissionService(),
             hoveredMissionId: null,
             errorMessage: null,
-            showError: false
+            showError: false,
+            runningMissions: new Set()  // Add Set to track running missions
         }
     },
     computed: {
@@ -160,111 +161,54 @@ export default {
             try {
                 this.$emit('update:loading', true);
 
-                // Check server connection first with timeout
-                try {
-                    const isServerAvailable = await Promise.race([
-                        this.checkServerConnection(),
-                        new Promise((_, reject) => 
-                            setTimeout(() => reject(new Error('Server connection check timeout')), 5000)
-                        )
-                    ]);
-                    if (!isServerAvailable) {
-                        throw new Error('Server is not responding. Please check if the server is running.');
-                    }
-                } catch (error) {
-                    console.error('Server connection check failed:', error);
-                    throw new Error('Unable to connect to server. Please check if the server is running.');
-                }
-
-                // Validate mission object
-                if (!mission?.id) {
-                    throw new Error('Invalid mission data');
-                }
-
                 // Store previous mission state
                 const wasRunning = this.runningMissions.has(mission.id);
                 
-                // Stop agents with timeout and error handling
-                try {
-                    const stopResponse = await Promise.race([
-                        fetch('/api/agents/stop', {
+                // Stop agents if running
+                if (wasRunning) {
+                    try {
+                        await fetch('/api/agents/stop', { 
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' }
-                        }),
-                        new Promise((_, reject) => 
-                            setTimeout(() => reject(new Error('Request timeout')), 5000)
-                        )
-                    ]);
-
-                    if (!stopResponse.ok) {
-                        console.warn('Warning: Failed to stop agents cleanly');
+                        });
+                        this.runningMissions.delete(mission.id);
+                    } catch (stopError) {
+                        console.warn('Error stopping agents:', stopError);
                     }
-                } catch (stopError) {
-                    console.warn('Error stopping agents:', stopError);
                 }
 
-                // Add delay before mission selection
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                // Select new mission
+                const response = await fetch(`/api/missions/${mission.id}/select`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
 
-                // Select mission with retry logic
-                const maxRetries = 3;
-                let lastError = null;
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to select mission');
+                }
 
-                for (let attempt = 0; attempt < maxRetries; attempt++) {
+                const result = await response.json();
+                
+                // Update mission state
+                this.$emit('select-mission', result);
+                this.$emit('update:current-mission', result);
+
+                // Restore previous running state if needed
+                if (wasRunning) {
                     try {
-                        const response = await Promise.race([
-                            fetch(`/api/missions/${mission.id}/select`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' }
-                            }),
-                            new Promise((_, reject) => 
-                                setTimeout(() => reject(new Error('Request timeout')), 5000)
-                            )
-                        ]);
-
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.error || `Failed to select mission (${response.status})`);
-                        }
-
-                        const result = await response.json();
-                        
-                        // Update mission state
-                        this.$emit('select-mission', result);
-                        this.$emit('update:current-mission', result);
-
-                        // Add delay before restoring agents
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-
-                        // Restore previous running state if needed
-                        if (wasRunning) {
-                            try {
-                                await fetch('/api/agents/start', { 
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' }
-                                });
-                                this.runningMissions.add(mission.id);
-                            } catch (startError) {
-                                console.warn('Error restarting agents:', startError);
-                                this.handleError('Warning: Failed to restart agents');
-                            }
-                        }
-
-                        return result;
-
-                    } catch (error) {
-                        lastError = error;
-                        if (attempt < maxRetries - 1) {
-                            // Exponential backoff
-                            await new Promise(resolve => 
-                                setTimeout(resolve, Math.pow(2, attempt + 1) * 1000)
-                            );
-                            continue;
-                        }
+                        await fetch('/api/agents/start', { 
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                        this.runningMissions.add(mission.id);
+                    } catch (startError) {
+                        console.warn('Error restarting agents:', startError);
+                        this.handleError('Warning: Failed to restart agents');
                     }
                 }
 
-                throw new Error(`Failed to select mission after ${maxRetries} attempts: ${lastError?.message}`);
+                return result;
 
             } catch (error) {
                 console.error('Mission selection failed:', error);
