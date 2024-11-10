@@ -101,6 +101,14 @@ class AgentService:
     def init_agents(self, config: Dict[str, Any]) -> None:
         """Initialize all agents with configuration"""
         try:
+            # Verify config contains required API keys
+            if not config.get("anthropic_api_key"):
+                self.web_instance.log_message("Missing Anthropic API key in config", level='error')
+                raise ValueError("anthropic_api_key missing in configuration")
+            if not config.get("openai_api_key"):
+                self.web_instance.log_message("Missing OpenAI API key in config", level='error')
+                raise ValueError("openai_api_key missing in configuration")
+
             # Get current mission from FileManager
             current_mission = self.web_instance.file_manager.current_mission
             if not current_mission:
@@ -109,6 +117,7 @@ class AgentService:
 
             # Normalize mission name using FileManager's method
             normalized_name = self.web_instance.file_manager._normalize_mission_name(current_mission)
+            self.web_instance.log_message(f"Normalized mission name: {normalized_name}", level='debug')
             
             # Use the same missions directory as FileManager
             mission_dir = os.path.join("missions", normalized_name)
@@ -122,14 +131,24 @@ class AgentService:
                 self.web_instance.log_message(f"Insufficient permissions on: {mission_dir}", level='error')
                 return
 
+            # Verify prompts directory exists
+            if not os.path.exists("prompts"):
+                self.web_instance.log_message("Prompts directory not found", level='error')
+                return
+
             self.web_instance.log_message(f"Initializing agents for mission: {current_mission}", level='info')
             self.web_instance.log_message(f"Using directory: {mission_dir}", level='debug')
 
-            # Load prompts from files
+            # Load prompts from files with detailed logging
             def load_prompt(file_path):
                 try:
+                    if not os.path.exists(file_path):
+                        self.web_instance.log_message(f"Prompt file not found: {file_path}", level='error')
+                        return ""
                     with open(file_path, 'r', encoding='utf-8') as f:
-                        return f.read()
+                        content = f.read()
+                        self.web_instance.log_message(f"Successfully loaded prompt: {file_path}", level='debug')
+                        return content
                 except Exception as e:
                     self.web_instance.log_message(f"Error loading prompt from {file_path}: {e}", level='error')
                     return ""
@@ -145,71 +164,52 @@ class AgentService:
                 "mission_dir": mission_dir  # Use normalized path
             }
 
+            self.web_instance.log_message("Starting agent initialization...", level='info')
+
             # Initialize each agent type with relative paths
-            self.agents = {
-                "Specification": SpecificationsAgent({
-                    **base_config,
-                    "name": "Specification",
-                    "prompt": load_prompt("prompts/specifications.md"),
-                    "prompt_file": "prompts/specifications.md"
-                }),
-                "Production": ProductionAgent({
-                    **base_config,
-                    "name": "Production",
-                    "prompt": load_prompt("prompts/production.md"),
-                    "prompt_file": "prompts/production.md"
-                }),
-                "Management": ManagementAgent({
-                    **base_config,
-                    "name": "Management",
-                    "prompt": load_prompt("prompts/management.md"),
-                    "prompt_file": "prompts/management.md"
-                }),
-                "Evaluation": EvaluationAgent({
-                    **base_config,
-                    "name": "Evaluation",
-                    "prompt": load_prompt("prompts/evaluation.md"),
-                    "prompt_file": "prompts/evaluation.md"
-                }),
-                "Suivi": SuiviAgent({
-                    **base_config,
-                    "name": "Suivi",
-                    "prompt": load_prompt("prompts/suivi.md"),
-                    "prompt_file": "prompts/suivi.md"
-                }),
-                "Documentaliste": DocumentalisteAgent({
-                    **base_config,
-                    "name": "Documentaliste", 
-                    "prompt": load_prompt("prompts/documentaliste.md"),
-                    "prompt_file": "prompts/documentaliste.md"
-                }),
-                "Duplication": DuplicationAgent({
-                    **base_config,
-                    "name": "Duplication",
-                    "prompt": load_prompt("prompts/duplication.md"),
-                    "prompt_file": "prompts/duplication.md"
-                }),
-                "Testeur": TesteurAgent({
-                    **base_config,
-                    "name": "Testeur",
-                    "prompt": load_prompt("prompts/testeur.md"),
-                    "prompt_file": "prompts/testeur.md"
-                }),
-                "Redacteur": RedacteurAgent({
-                    **base_config,
-                    "name": "Redacteur",
-                    "prompt": load_prompt("prompts/redacteur.md"),
-                    "prompt_file": "prompts/redacteur.md"
-                })
-            }
+            self.agents = {}
+            agent_configs = [
+                ("Specification", SpecificationsAgent, "specifications.md"),
+                ("Production", ProductionAgent, "production.md"),
+                ("Management", ManagementAgent, "management.md"),
+                ("Evaluation", EvaluationAgent, "evaluation.md"),
+                ("Suivi", SuiviAgent, "suivi.md"),
+                ("Documentaliste", DocumentalisteAgent, "documentaliste.md"),
+                ("Duplication", DuplicationAgent, "duplication.md"),
+                ("Testeur", TesteurAgent, "testeur.md"),
+                ("Redacteur", RedacteurAgent, "redacteur.md")
+            ]
+
+            for name, agent_class, prompt_file in agent_configs:
+                try:
+                    prompt_path = f"prompts/{prompt_file}"
+                    self.web_instance.log_message(f"Initializing {name} agent...", level='debug')
+                    
+                    agent_config = {
+                        **base_config,
+                        "name": name,
+                        "prompt": load_prompt(prompt_path),
+                        "prompt_file": prompt_path
+                    }
+                    
+                    self.agents[name] = agent_class(agent_config)
+                    self.web_instance.log_message(f"✓ Agent {name} initialized successfully", level='success')
+                    
+                except Exception as e:
+                    self.web_instance.log_message(f"Failed to initialize {name} agent: {str(e)}", level='error')
+                    continue
+
+            if not self.agents:
+                raise ValueError("No agents were successfully initialized")
 
             # Log successful initialization
-            self.web_instance.log_message("All agents initialized successfully", level='success')
+            self.web_instance.log_message(f"Successfully initialized {len(self.agents)} agents", level='success')
             for name in self.agents:
                 self.web_instance.log_message(f"Agent {name} ready", level='info')
 
         except Exception as e:
             self.web_instance.log_message(f"Error initializing agents: {str(e)}", level='error')
+            self.web_instance.log_message(f"Stack trace: {traceback.format_exc()}", level='error')
             raise
 
     def start_all_agents(self) -> None:
