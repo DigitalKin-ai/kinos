@@ -39,10 +39,11 @@ class KinOSWeb:
     def _register_routes(self):
         """Register all route blueprints"""
         
+        # Check if routes are already registered
         if hasattr(self, '_routes_registered'):
             return
-            
-        # Register core routes first
+
+        # Register core routes first - ONLY ONE STATUS ROUTE
         @self.app.route('/api/status', methods=['GET'])
         def get_status():
             """Get server and agents status"""
@@ -100,39 +101,6 @@ class KinOSWeb:
             }), 404
 
         @self.app.errorhandler(500)
-        def internal_error(error):
-            """Handle 500 errors"""
-            self.log_message(f"500 Error: {str(error)}", 'error')
-            return jsonify({
-                'error': 'Internal Server Error',
-                'message': str(error),
-                'type': '500',
-                'timestamp': datetime.now().isoformat()
-            }), 500
-
-        # Mark routes as registered
-        self._routes_registered = True
-
-        # Log registered routes for debugging
-        self.log_message("Registered routes:", 'info')
-        for rule in self.app.url_map.iter_rules():
-            self.log_message(f"  {rule.endpoint}: {rule.methods} {rule}", 'info')
-
-        # Add error handlers
-        @self.app.errorhandler(404)
-        @self.app.endpoint('error_404')
-        def not_found_error(error):
-            """Handle 404 errors"""
-            self.log_message(f"404 Error: {str(error)}", 'error')
-            return jsonify({
-                'error': 'Not Found',
-                'message': str(error),
-                'type': '404',
-                'timestamp': datetime.now().isoformat()
-            }), 404
-
-        @self.app.errorhandler(500)
-        @self.app.endpoint('error_500')
         def internal_error(error):
             """Handle 500 errors"""
             self.log_message(f"500 Error: {str(error)}", 'error')
