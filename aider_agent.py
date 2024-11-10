@@ -170,13 +170,19 @@ class AiderAgent(KinOSAgent):
                             loop = asyncio.new_event_loop()
                             asyncio.set_event_loop(loop)
 
+                        # Calculate weight based on changes
+                        weight = self.web_instance.dataset_service._calculate_weight(
+                            files_context,
+                            stdout
+                        )
+
                         # Run dataset collection asynchronously
                         loop.create_task(
                             self.web_instance.dataset_service.add_interaction_async(
                                 prompt=prompt,
                                 files_context=files_context,
                                 aider_response=stdout,
-                                weight=0.5  # Default weight
+                                weight=weight
                             )
                         )
                         self.logger(f"[{self.__class__.__name__}] ✓ Added interaction to dataset")

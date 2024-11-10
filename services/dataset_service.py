@@ -17,6 +17,8 @@ class DatasetService(BaseService):
         self.dataset_file = os.path.join(PathManager.get_project_root(), "data", "fine-tuning.jsonl")
         # Ensure data directory exists
         os.makedirs(os.path.dirname(self.dataset_file), exist_ok=True)
+        # Start cleanup timer
+        self._start_cleanup_timer()
 
     async def add_interaction_async(self, prompt: str, files_context: Dict[str, str], 
                                   aider_response: str, weight: float = 0) -> None:
@@ -100,6 +102,60 @@ class DatasetService(BaseService):
             self.logger.log(f"Error parsing Aider response: {str(e)}", 'error')
             return response  # Return original response if parsing fails
             
+    def _calculate_weight(self, original_content: Dict[str, str], aider_response: str) -> float:
+        """Calculate interaction weight based on changes made"""
+        try:
+            # Base weight
+            weight = 0.5
+            
+            # Increase weight for longer responses
+            if len(aider_response) > 1000:
+                weight += 0.1
+                
+            # Increase weight for multi-file changes
+            if len(original_content) > 1:
+                weight += 0.1 * len(original_content)
+                
+            # Cap weight at 1.0
+            return min(1.0, weight)
+            
+        except Exception as e:
+            self.logger.log(f"Error calculating weight: {str(e)}", 'error')
+            return 0.5  # Default weight on error
+
+    def _start_cleanup_timer(self):
+        """Start periodic dataset cleanup"""
+        import threading
+        
+        def cleanup_task():
+            while True:
+                try:
+                    # Sleep for 1 hour
+                    time.sleep(3600)
+                    
+                    # Remove duplicate entries
+                    unique_entries = set()
+                    cleaned_entries = []
+                    
+                    with open(self.dataset_file, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            entry_hash = hash(line.strip())
+                            if entry_hash not in unique_entries:
+                                unique_entries.add(entry_hash)
+                                cleaned_entries.append(line)
+                    
+                    # Write back cleaned entries
+                    with open(self.dataset_file, 'w', encoding='utf-8') as f:
+                        f.writelines(cleaned_entries)
+                        
+                    self.logger.log("Dataset cleanup completed", 'info')
+                    
+                except Exception as e:
+                    self.logger.log(f"Error in dataset cleanup: {str(e)}", 'error')
+        
+        thread = threading.Thread(target=cleanup_task, daemon=True)
+        thread.start()
+
     def cleanup(self):
         """Cleanup any resources used by the dataset service"""
         try:
