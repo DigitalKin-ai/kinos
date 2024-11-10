@@ -353,3 +353,13 @@ class AgentService:
                     'last_change': agent.last_change.isoformat() if agent.last_change else None
                 }
         return status
+    def _run_agent_wrapper(self, name: str, agent: 'KinOSAgent') -> None:
+        """Wrapper function to catch any exceptions from agent run method"""
+        try:
+            self.web_instance.log_message(f"Agent {name} thread starting run method", level='debug')
+            agent.run()
+        except Exception as e:
+            self.web_instance.log_message(
+                f"Agent {name} thread crashed: {str(e)}\n{traceback.format_exc()}", 
+                level='error'
+            )
