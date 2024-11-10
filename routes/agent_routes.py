@@ -164,7 +164,7 @@ def register_agent_routes(app, web_instance):
                         }
                     }
                 }
-                web_instance.log_message("Agent service not initialized", level='error')
+                web_instance.log_message("Agent service not initialized")
                 return jsonify(error_details), 500
                 
             # Get status of all agents with detailed error handling

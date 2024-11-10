@@ -79,7 +79,7 @@ class KinOSWeb:
             self.logger.log(f"Error initializing components: {str(e)}", level='error')
             raise ServiceError(f"Failed to initialize components: {str(e)}")
 
-    def log_message(self, message: str, level: str = 'info') -> None:
+    def log_message(self, message: str, level: str = 'info', **kwargs) -> None:
         """Log a message with optional level"""
         try:
             # Format timestamp
