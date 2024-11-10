@@ -22,7 +22,8 @@ export default {
         'update:current-mission',
         'update:missions',
         'create-mission', 
-        'sidebar-toggle'
+        'sidebar-toggle',
+        'error'
     ],
     delimiters: ['${', '}'],
     data() {
