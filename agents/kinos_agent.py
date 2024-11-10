@@ -127,12 +127,20 @@ class KinOSAgent:
                 
             base_logger = create_log_wrapper(logger_config)
             
-            # Create logger object with consistent interface
-            self.logger = type('Logger', (), {
-                'log': base_logger,
-                '_log': base_logger,
-                '__call__': base_logger
-            })()
+            # Create logger object with consistent interface but prevent __str__ output
+            class KinOSLogger:
+                def log(self, *args, **kwargs):
+                    return base_logger(*args, **kwargs)
+                def _log(self, *args, **kwargs):
+                    return base_logger(*args, **kwargs)
+                def __call__(self, *args, **kwargs):
+                    return base_logger(*args, **kwargs)
+                def __str__(self):
+                    return "KinOSLogger"
+                def __repr__(self):
+                    return "KinOSLogger"
+                    
+            self.logger = KinOSLogger()
         else:
             # Use logger object directly
             self.logger = logger_config
