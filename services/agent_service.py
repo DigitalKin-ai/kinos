@@ -59,6 +59,9 @@ class AgentService:
                 self.web_instance.log_message("Created prompts directory", level='info')
                 return []
 
+            # Get prompts directory using PathManager
+            prompts_dir = PathManager.get_prompts_path()
+            
             # Scan for .md files in prompts directory
             for file in os.listdir(prompts_dir):
                 if file.endswith('.md'):
