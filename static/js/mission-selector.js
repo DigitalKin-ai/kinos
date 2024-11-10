@@ -32,7 +32,6 @@ export default {
             newMissionName: '',
             sidebarCollapsed: false,
             localMissions: [],
-            runningMissions: new Set(),
             missionService: new MissionService(),
             hoveredMissionId: null,
             errorMessage: null,
@@ -277,31 +276,6 @@ export default {
             }
         },
 
-        async toggleMissionAgents(mission, event) {
-            event.stopPropagation();
-            try {
-                const isRunning = this.runningMissions.has(mission.id);
-                const endpoint = isRunning ? '/api/agents/stop' : '/api/agents/start';
-                
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ missionId: mission.id })
-                });
-
-                if (response.ok) {
-                    if (isRunning) {
-                        this.runningMissions.delete(mission.id);
-                    } else {
-                        this.runningMissions.add(mission.id);
-                    }
-                }
-            } catch (error) {
-                console.error('Error toggling agents:', error);
-            }
-        },
         formatDate(dateString) {
             if (!dateString) return '';
             const date = new Date(dateString);
@@ -388,12 +362,6 @@ export default {
                                     \${ formatDate(mission.updated_at || mission.created_at) }
                                 </span>
                             </transition>
-                            <button @click="toggleMissionAgents(mission, $event)"
-                                    class="control-button"
-                                    :class="{ 'running': runningMissions.has(mission.id) }"
-                                    :title="runningMissions.has(mission.id) ? 'Stop agents' : 'Start agents'">
-                                <i class="mdi" :class="runningMissions.has(mission.id) ? 'mdi-stop' : 'mdi-play'"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
