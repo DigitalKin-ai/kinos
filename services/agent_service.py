@@ -140,7 +140,7 @@ class AgentService:
                 "check_interval": 100,
                 "anthropic_api_key": config["anthropic_api_key"],
                 "openai_api_key": config["openai_api_key"],
-                "mission_name": mission_name,  # Keep original name for display
+                "mission_name": current_mission,  # Keep original name for display
                 "logger": self.web_instance.log_message,  # Use log_message directly
                 "web_instance": self.web_instance,
                 "mission_dir": mission_dir  # Use normalized path
