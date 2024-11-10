@@ -147,40 +147,28 @@ class AiderAgent(KinOSAgent):
         et initialise mission_files.
         """
         try:
-            # Vérifier que le dossier mission existe et est valide
-            if not os.path.exists(self.mission_dir):
-                self.logger(f"[{self.__class__.__name__}] ❌ Mission directory not found: {self.mission_dir}")
+            # Obtenir le nom de la mission courante
+            mission_name = self.web_instance.file_manager.current_mission
+            if not mission_name:
+                self.logger(f"[{self.__class__.__name__}] ❌ Aucune mission sélectionnée")
                 self.mission_files = {}
                 return
 
-            # Obtenir le chemin absolu du projet
+            # Construire le chemin de la mission
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            missions_dir = os.path.join(project_root, "missions")
+            mission_path = os.path.join(project_root, "missions", mission_name)
 
-            # Extraire le vrai nom de la mission du chemin self.mission_dir
-            mission_path = os.path.abspath(self.mission_dir)
-            if "missions" in mission_path:
-                # Prendre la partie après le dernier "missions/"
-                mission_name = mission_path.split("missions" + os.sep)[-1]
-                # Si le nom contient encore des séparateurs, prendre la première partie
-                mission_name = mission_name.split(os.sep)[0]
-            else:
-                raise ValueError("Invalid mission path structure")
-
-            # Construire le chemin correct
-            correct_mission_path = os.path.join(missions_dir, mission_name)
-            
-            if not os.path.exists(correct_mission_path):
-                self.logger(f"[{self.__class__.__name__}] ❌ Mission directory not found: {correct_mission_path}")
+            if not os.path.exists(mission_path):
+                self.logger(f"[{self.__class__.__name__}] ❌ Dossier mission non trouvé: {mission_path}")
                 self.mission_files = {}
                 return
 
             # Liste des extensions à inclure
             text_extensions = {'.md', '.txt', '.json', '.yaml', '.yml', '.py', '.js', '.html', '.css', '.sh'}
             
-            # Récupérer tous les fichiers textuels UNIQUEMENT dans le dossier de la mission courante
+            # Récupérer tous les fichiers textuels
             text_files = {}
-            for root, _, filenames in os.walk(correct_mission_path):
+            for root, _, filenames in os.walk(mission_path):
                 for filename in filenames:
                     if os.path.splitext(filename)[1].lower() in text_extensions:
                         file_path = os.path.join(root, filename)
@@ -189,15 +177,15 @@ class AiderAgent(KinOSAgent):
             # Mettre à jour mission_files
             self.mission_files = text_files
             
-            # Log avec chemins relatifs pour plus de clarté
+            # Log des fichiers trouvés
             self.logger(f"[{self.__class__.__name__}] 📁 Fichiers trouvés dans {mission_name}: {len(self.mission_files)}")
             for file in self.mission_files:
-                rel_path = os.path.relpath(file, correct_mission_path)
+                rel_path = os.path.relpath(file, mission_path)
                 self.logger(f"[{self.__class__.__name__}] 📄 {rel_path}")
                 
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur listing fichiers: {str(e)}")
-            self.mission_files = {}  # Reset en cas d'erreur
+            self.mission_files = {}
 
     def get_prompt(self) -> str:
         """Get the current prompt content with caching"""
