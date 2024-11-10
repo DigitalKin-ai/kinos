@@ -104,7 +104,19 @@ class KinOSAgent:
         )
         
         self.running = False
-        self.logger = config.get("logger", print)
+        
+        # Handle logger configuration
+        logger_config = config.get("logger", print)
+        if callable(logger_config):
+            # If it's a function, create a wrapper that emulates the logger interface
+            self.logger = type('Logger', (), {
+                'log': logger_config,
+                '__call__': logger_config
+            })()
+        else:
+            # Otherwise use the logger object directly
+            self.logger = logger_config
+            
         self.last_run = None
         self.last_change = None
         self.consecutive_no_changes = 0
