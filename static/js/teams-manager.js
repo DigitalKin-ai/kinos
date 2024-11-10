@@ -14,6 +14,11 @@ export default {
         return {
             statusCacheTTL: 5000, // 5 seconds
             showAddAgentModal: false,
+            loadingStates: new Map(), // Pour gérer les états de loading par équipe
+            errorMessages: new Map(), // Pour gérer les messages d'erreur par équipe 
+            retryAttempts: new Map(), // Pour gérer les tentatives de retry
+            maxRetries: 3,
+            retryDelay: 1000,
             availableAgents: [
                 "SpecificationsAgent",
                 "ManagementAgent", 
