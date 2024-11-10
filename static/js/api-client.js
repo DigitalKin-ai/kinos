@@ -199,6 +199,27 @@ class ApiClient {
         return this.handleResponse(response);
     }
 
+    async selectMission(missionId) {
+        const response = await fetch(`${this.baseUrl}/api/missions/${missionId}/select`, {
+            method: 'POST'
+        });
+        return this.handleResponse(response);
+    }
+
+    async getMissionContent(missionId) {
+        const response = await fetch(`${this.baseUrl}/api/missions/${missionId}/content`);
+        return this.handleResponse(response);
+    }
+
+    async createMission(name, description = '') {
+        const response = await fetch(`${this.baseUrl}/api/missions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description })
+        });
+        return this.handleResponse(response);
+    }
+
     // Notification endpoints
     async getNotifications() {
         const response = await fetch(`${this.baseUrl}/api/notifications`);

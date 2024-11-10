@@ -1,20 +1,13 @@
-import MissionService from './mission-service.js';
-
 export default {
     name: 'MissionSelector',
     props: {
-        currentMission: {
+        missionService: {
             type: Object,
-            default: () => null
+            required: true
         },
-        missions: {
-            type: Array,
-            default: () => []
-        },
-        loading: {
-            type: Boolean,
-            default: false
-        }
+        currentMission: Object,
+        missions: Array,
+        loading: Boolean
     },
     emits: [
         'select-mission', 
