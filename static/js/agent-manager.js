@@ -63,15 +63,13 @@ export default {
             immediate: true,
             async handler(newMission) {
                 try {
-                    // Validate mission object
-                    if (!newMission || !newMission.id) {
-                        console.warn('Invalid or empty mission object');
+                    if (!newMission?.id) {
+                        // Clear agents list but don't show error
                         this.agents = [];
                         this.teams = [];
                         return;
                     }
 
-                    // Reset loading and error states
                     this.loading = true;
                     this.error = null;
 
@@ -82,7 +80,7 @@ export default {
                     ]);
                 } catch (error) {
                     console.error('Error loading mission data:', error);
-                    this.error = error.message || 'Failed to load mission data';
+                    this.error = 'Failed to load mission data. Please try again.';
                     this.agents = [];
                     this.teams = [];
                 } finally {
