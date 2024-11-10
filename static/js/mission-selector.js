@@ -95,7 +95,7 @@ export default {
                 this.$emit('update:missions', missions);
 
                 missions.forEach(mission => {
-                    this.runningStates.set(mission.id, false);
+                    this.runningStates.set(missionData.id, false);
                 });
             });
 
@@ -471,7 +471,7 @@ export default {
                     }
                 }
 
-                const wasRunning = this.runningStates.get(mission.id) || false;
+                const wasRunning = this.runningStates.get(missionData.id) || false;
 
                 // Stop agents if running
                 if (wasRunning) {
@@ -535,7 +535,7 @@ export default {
 
             } catch (error) {
                 console.error('Mission selection failed:', error);
-                this.runningStates.set(mission.id, false);
+                this.runningStates.set(missionData.id, false);
                 this.handleError(
                     `Failed to select mission: ${error.message}. ` +
                     'Please ensure the server is running and try again.'
