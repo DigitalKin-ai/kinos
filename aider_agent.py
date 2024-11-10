@@ -153,19 +153,25 @@ class AiderAgent(KinOSAgent):
                 self.mission_files = {}
                 return
 
-            # Obtenir le chemin absolu du dossier mission et le nom de la mission
-            mission_dir = os.path.abspath(self.mission_dir)
-            mission_name = os.path.basename(mission_dir)
-            
-            # Construire le chemin complet correct
+            # Obtenir le chemin absolu du projet
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            correct_mission_path = os.path.join(project_root, "missions", mission_name)
+            missions_dir = os.path.join(project_root, "missions")
+
+            # Extraire le vrai nom de la mission du chemin self.mission_dir
+            mission_path = os.path.abspath(self.mission_dir)
+            if "missions" in mission_path:
+                # Prendre la partie après le dernier "missions/"
+                mission_name = mission_path.split("missions" + os.sep)[-1]
+                # Si le nom contient encore des séparateurs, prendre la première partie
+                mission_name = mission_name.split(os.sep)[0]
+            else:
+                raise ValueError("Invalid mission path structure")
+
+            # Construire le chemin correct
+            correct_mission_path = os.path.join(missions_dir, mission_name)
             
-            # Utiliser le chemin correct
-            mission_dir = correct_mission_path
-            
-            if not os.path.exists(mission_dir):
-                self.logger(f"[{self.__class__.__name__}] ❌ Mission directory not found: {mission_dir}")
+            if not os.path.exists(correct_mission_path):
+                self.logger(f"[{self.__class__.__name__}] ❌ Mission directory not found: {correct_mission_path}")
                 self.mission_files = {}
                 return
 
@@ -174,7 +180,7 @@ class AiderAgent(KinOSAgent):
             
             # Récupérer tous les fichiers textuels UNIQUEMENT dans le dossier de la mission courante
             text_files = {}
-            for root, _, filenames in os.walk(mission_dir):
+            for root, _, filenames in os.walk(correct_mission_path):
                 for filename in filenames:
                     if os.path.splitext(filename)[1].lower() in text_extensions:
                         file_path = os.path.join(root, filename)
@@ -186,7 +192,7 @@ class AiderAgent(KinOSAgent):
             # Log avec chemins relatifs pour plus de clarté
             self.logger(f"[{self.__class__.__name__}] 📁 Fichiers trouvés dans {mission_name}: {len(self.mission_files)}")
             for file in self.mission_files:
-                rel_path = os.path.relpath(file, mission_dir)
+                rel_path = os.path.relpath(file, correct_mission_path)
                 self.logger(f"[{self.__class__.__name__}] 📄 {rel_path}")
                 
         except Exception as e:
