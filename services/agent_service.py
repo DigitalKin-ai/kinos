@@ -213,6 +213,21 @@ class AgentService:
         """Start all agents"""
         try:
             self.web_instance.log_message("🚀 Starting agents...", level='info')
+            
+            # Verify we have agents initialized
+            if not self.agents:
+                self.web_instance.log_message("No agents initialized. Running init_agents first...", level='warning')
+                # Get config from web_instance
+                config = {
+                    "anthropic_api_key": self.web_instance.config["anthropic_api_key"],
+                    "openai_api_key": self.web_instance.config["openai_api_key"]
+                }
+                self.init_agents(config)
+                
+                if not self.agents:
+                    self.web_instance.log_message("Failed to initialize agents", level='error')
+                    return
+
             self.running = True
             
             # Start monitor thread
@@ -221,6 +236,7 @@ class AgentService:
             # Start each agent
             for name, agent in self.agents.items():
                 try:
+                    self.web_instance.log_message(f"Starting agent {name}...", level='debug')
                     agent.start()
                     thread = threading.Thread(
                         target=agent.run,
@@ -229,13 +245,20 @@ class AgentService:
                     )
                     thread.start()
                     self.web_instance.log_message(f"✓ Agent {name} started", level='success')
+                    
                 except Exception as e:
-                    self.web_instance.log_message(f"Error starting agent {name}: {str(e)}", level='error')
+                    self.web_instance.log_message(
+                        f"Error starting agent {name}: {str(e)}\n{traceback.format_exc()}", 
+                        level='error'
+                    )
 
             self.web_instance.log_message("✨ All agents active", level='success')
             
         except Exception as e:
-            self.web_instance.log_message(f"Error starting agents: {str(e)}", level='error')
+            self.web_instance.log_message(
+                f"Error starting agents: {str(e)}\n{traceback.format_exc()}", 
+                level='error'
+            )
             raise
 
     def stop_all_agents(self) -> None:
