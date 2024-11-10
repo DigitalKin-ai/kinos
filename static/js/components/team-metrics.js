@@ -13,11 +13,7 @@ export default {
                 completedTasks: 0,
                 averageResponseTime: 0,
                 errorRate: 0
-            }),
-            validator: (value) => {
-                const requiredKeys = ['efficiency', 'agentHealth', 'completedTasks', 'averageResponseTime', 'errorRate'];
-                return requiredKeys.every(key => key in value);
-            }
+            })
         }
     },
     computed: {
