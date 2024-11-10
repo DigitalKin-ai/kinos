@@ -327,27 +327,27 @@ class KinOSWeb:
                 self.log_message("Created prompts directory", 'info')
                 return
 
+            def _initialize_agent(self, agent_name: str, config: dict) -> Optional[AiderAgent]:
+                """Centralized agent initialization"""
+                try:
+                    agent_config = {
+                        **config,
+                        "name": agent_name,
+                        "prompt": self._load_agent_prompt(agent_name)
+                    }
+                    agent = AiderAgent(agent_config)
+                    self.log_message(f"✓ Agent {agent_name} initialized", 'success')
+                    return agent
+                except Exception as e:
+                    self.log_message(f"Error initializing agent {agent_name}: {str(e)}", 'error')
+                    return None
+
             for file in os.listdir(prompts_dir):
                 if file.endswith('.md'):
                     agent_name = file[:-3].lower()  # Remove .md extension
-                    try:
-                        with open(os.path.join(prompts_dir, file), 'r', encoding='utf-8') as f:
-                            prompt_content = f.read()
-                            
-                        agent_config = {
-                            **base_config,
-                            "name": agent_name,
-                            "prompt": prompt_content,
-                            "prompt_file": os.path.join(prompts_dir, file)
-                        }
-                        
-                        # Créer l'agent avec AiderAgent
-                        self.agents[agent_name] = AiderAgent(agent_config)
-                        self.log_message(f"✓ Agent {agent_name} initialized", 'success')
-                        
-                    except Exception as e:
-                        self.log_message(f"Error initializing agent {agent_name}: {str(e)}", 'error')
-                        continue
+                    agent = self._initialize_agent(agent_name, base_config)
+                    if agent:
+                        self.agents[agent_name] = agent
 
             if not self.agents:
                 self.log_message("No agents were initialized", 'warning')
@@ -1035,20 +1035,27 @@ class KinOSWeb:
         for rule in self.app.url_map.iter_rules():
             self.log_message(f"  {rule.endpoint}: {rule.methods} {rule}", 'info')
 
+    def _handle_api_error(self, operation: str, error: Exception, status_code: int = 500) -> tuple:
+        """Centralized API error handling"""
+        error_details = {
+            'error': str(error),
+            'type': error.__class__.__name__,
+            'details': {
+                'traceback': traceback.format_exc(),
+                'timestamp': datetime.now().isoformat(),
+                'operation': operation
+            }
+        }
+        self.logger.log(f"Error in {operation}: {str(error)}", 'error')
+        return jsonify(error_details), status_code
+
     def _register_error_handlers(self):
         """Register error handlers for different types of exceptions"""
         
         @self.app.errorhandler(Exception)
         def handle_exception(error):
             """Handle any uncaught exception"""
-            self.logger.log(f"Unhandled Exception: {str(error)}", 'error')
-            
-            error_details = {
-                'error': str(error),
-                'type': error.__class__.__name__,
-                'traceback': traceback.format_exc(),
-                'timestamp': datetime.now().isoformat()
-            }
+            return self._handle_api_error('uncaught_exception', error)
             
             # Log the full error details
             self.logger.log(f"Detailed error info:", 'error')

@@ -27,6 +27,19 @@ class FileService(BaseService):
         # Use PathManager for project root
         self.project_root = PathManager.get_project_root()
         
+    def _safe_file_operation(self, operation: str, file_path: str, content: str = None) -> Optional[str]:
+        """Centralized safe file operations with locking"""
+        try:
+            with portalocker.Lock(file_path, 'r' if operation == 'read' else 'w', timeout=10) as lock:
+                if operation == 'read':
+                    return lock.read()
+                else:
+                    lock.write(content)
+                    return None
+        except Exception as e:
+            self.logger.log(f"Error in {operation} operation: {str(e)}", 'error')
+            return None
+
     @safe_operation()
     def read_file(self, file_name: str) -> Optional[str]:
         """Read content from a file with caching and locking"""
@@ -53,12 +66,11 @@ class FileService(BaseService):
                 if mtime == cached_time:
                     return cached_content
 
-            # Read with locking
-            with portalocker.Lock(file_path, 'r', timeout=10) as lock:
-                content = lock.read()
-                # Cache the content
+            # Read with safe operation
+            content = self._safe_file_operation('read', file_path)
+            if content is not None:
                 self.content_cache[cache_key] = (os.path.getmtime(file_path), content)
-                return content
+            return content
                 
         except Exception as e:
             self.logger.log(f"Error reading {file_name}: {str(e)}", 'error')
