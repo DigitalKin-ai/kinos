@@ -68,7 +68,7 @@ class DatasetService(BaseService):
             self.logger.log(f"Error adding interaction to dataset: {str(e)}", 'error')
 
     def _format_files_context(self, files_context: Dict[str, str]) -> str:
-        """Format files context into a readable string"""
+        """Format files context into a readable string with clear file boundaries"""
         formatted = []
         for filename, content in files_context.items():
             formatted.append(f"File: {filename}\n```\n{content}\n```\n")
