@@ -40,10 +40,30 @@ if __name__ == '__main__':
         # Windows - use waitress with error handling
         from waitress import serve
         try:
+            # Add socket cleanup before starting
+            import socket
+            import gc
+            
+            # Force garbage collection
+            gc.collect()
+            
+            # Close any lingering sockets
+            for obj in gc.get_objects():
+                if isinstance(obj, socket.socket):
+                    try:
+                        obj.close()
+                    except:
+                        pass
+                        
             print("Starting server on http://127.0.0.1:8000")
-            serve(app, host='127.0.0.1', port=8000)
+            serve(app, host='127.0.0.1', port=8000, 
+                  cleanup_interval=30,  # Cleanup every 30 seconds
+                  channel_timeout=30,   # Socket timeout
+                  threads=4)            # Limit threads
+                  
         except Exception as e:
             print(f"Error starting server: {e}")
+            sys.exit(1)
     else:
         # Linux/Unix - use Flask's built-in server
         try:
@@ -51,3 +71,4 @@ if __name__ == '__main__':
             app.run(host='0.0.0.0', port=8000)
         except Exception as e:
             print(f"Error starting server: {e}")
+            sys.exit(1)

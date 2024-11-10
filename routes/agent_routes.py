@@ -207,13 +207,34 @@ def register_agent_routes(app, web_instance):
     @app.route('/api/agent/<agent_id>/prompt', methods=['GET'], endpoint='api_agent_get_prompt')
     @safe_operation()
     def get_agent_prompt(agent_id):
+        """Get the prompt for a specific agent"""
         try:
-            prompt = web_instance.agent_service.get_agent_prompt(agent_id)
-            if prompt is None:
-                raise ResourceNotFoundError(f"Agent {agent_id} not found")
-            return jsonify({'prompt': prompt})
+            # Normalize agent name
+            agent_name = agent_id.lower()
+            
+            # Get prompts directory using PathManager
+            prompts_dir = PathManager.get_prompts_path()
+            
+            # Build prompt file path
+            prompt_file = os.path.join(prompts_dir, f"{agent_name}.md")
+            
+            # Check if file exists
+            if not os.path.exists(prompt_file):
+                return jsonify({'error': f'Prompt file not found for agent {agent_id}'}), 404
+                
+            # Read prompt content with explicit encoding
+            try:
+                with open(prompt_file, 'r', encoding='utf-8') as f:
+                    prompt = f.read()
+                return jsonify({'prompt': prompt})
+                
+            except Exception as e:
+                web_instance.log_message(f"Error reading prompt file: {str(e)}", 'error')
+                return jsonify({'error': f'Failed to read prompt file: {str(e)}'}), 500
+                
         except Exception as e:
-            return ErrorHandler.handle_error(e)
+            web_instance.log_message(f"Error getting agent prompt: {str(e)}", 'error')
+            return jsonify({'error': str(e)}), 500
 
     @app.route('/api/agent/<agent_id>/prompt', methods=['POST'], endpoint='api_agent_save_prompt')
     @safe_operation()
