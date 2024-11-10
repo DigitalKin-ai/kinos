@@ -105,6 +105,22 @@
 
                     await this.missionService.selectMission(mission);
                     this.currentMission = mission;
+                    
+                    // Fetch team information for the mission
+                    try {
+                        const teamResponse = await fetch(`/api/missions/${mission.id}/teams`);
+                        if (teamResponse.ok) {
+                            const teams = await teamResponse.json();
+                            this.teams = teams;
+                            this.activeTeam = teams.length > 0 ? teams[0] : null;
+                        } else {
+                            throw new Error('Failed to fetch teams: ' + teamResponse.statusText);
+                        }
+                    } catch (teamError) {
+                        this.handleError('Error fetching teams', teamError);
+                        this.teams = [];
+                        this.activeTeam = null;
+                    }
                 } catch (error) {
                     this.handleError('Failed to select mission', error);
                 } finally {
@@ -252,6 +268,8 @@
                     const newMission = await this.missionService.createMission(name);
                     this.missions.push(newMission);
                     this.currentMission = newMission;
+                    this.teams = [];
+                    this.activeTeam = null;
                 } catch (error) {
                     console.error('Failed to create mission:', error);
                 }
