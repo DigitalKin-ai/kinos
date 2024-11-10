@@ -504,9 +504,9 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                                 signal: AbortSignal.timeout(5000)
                             });
-                            
+                                
                             if (!response.ok) throw new Error('Failed to restart agents');
-                            this.runningStates.set(missionData.id, true);
+                            this.runningStates.set(mission.id, true);
                         });
                     } catch (startError) {
                         console.warn('Warning: Failed to restart agents', startError);
