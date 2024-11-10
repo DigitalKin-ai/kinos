@@ -23,16 +23,13 @@ class DatasetService(BaseService):
 
     async def add_interaction_async(self, prompt: str, files_context: Dict[str, str], 
                                   aider_response: str, weight: float = 0) -> None:
-        """
-        Asynchronously add an interaction to the dataset
-        
-        Args:
-            prompt: The original prompt used
-            files_context: Dict of filename -> content for context
-            aider_response: Raw response from Aider
-            weight: Importance weight for this example (0-1)
-        """
+        """Asynchronously add an interaction to the dataset"""
         try:
+            # Calculate weight and check if entry should be saved
+            weight = self._calculate_weight(files_context, aider_response)
+            if weight is None:
+                return  # Skip saving this entry
+                
             # Format files context
             formatted_context = self._format_files_context(files_context)
             
@@ -65,7 +62,7 @@ class DatasetService(BaseService):
             with open(self.dataset_file, 'a', encoding='utf-8') as f:
                 f.write(json.dumps(entry, ensure_ascii=False) + '\n')
                 
-            self.logger.log(f"Added new interaction to dataset", 'success')
+            self.logger.log(f"Added new interaction to dataset with weight {weight}", 'success')
             
         except Exception as e:
             self.logger.log(f"Error adding interaction to dataset: {str(e)}", 'error')
