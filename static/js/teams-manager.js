@@ -1,9 +1,15 @@
+import TeamCard from './components/teams/TeamCard.js';
+import AgentList from './components/teams/AgentList.js';
+import AddAgentModal from './components/teams/AddAgentModal.js';
 import TeamMetrics from './components/team-metrics.js';
 
 export default {
     name: 'TeamsManager',
     delimiters: ['[[', ']]'],
     components: {
+        TeamCard,
+        AgentList,
+        AddAgentModal,
         TeamMetrics
     },
     props: {
