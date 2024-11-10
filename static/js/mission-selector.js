@@ -105,12 +105,20 @@ export default {
             try {
                 this.$emit('update:loading', true);
                 
+                // Validate mission object
+                if (!mission || !mission.id) {
+                    throw new Error('Invalid mission data');
+                }
+
                 // Store previous mission state
                 const wasRunning = this.runningMissions.has(mission.id);
                 
                 // Stop agents first
                 try {
-                    await fetch('/api/agents/stop', { method: 'POST' });
+                    const stopResponse = await fetch('/api/agents/stop', { method: 'POST' });
+                    if (!stopResponse.ok) {
+                        console.warn('Warning: Failed to stop agents cleanly');
+                    }
                 } catch (stopError) {
                     console.warn('Error stopping agents:', stopError);
                     // Continue with mission selection even if stop fails
@@ -129,52 +137,28 @@ export default {
 
                 const result = await response.json();
                 
-                // Verify the change was successful with better error handling
-                try {
-                    const verifyResponse = await fetch(`/api/missions/${mission.id}`);
-                    if (!verifyResponse.ok) {
-                        if (verifyResponse.status === 404) {
-                            throw new Error('Mission not found');
-                        } else if (verifyResponse.status === 500) {
-                            const errorData = await verifyResponse.json();
-                            throw new Error(errorData.error || 'Internal server error during verification');
-                        } else {
-                            throw new Error(`Verification failed (${verifyResponse.status})`);
-                        }
+                // Update current mission
+                this.$emit('select-mission', result);
+                this.$emit('update:current-mission', result);
+                
+                // Restore previous running state if needed
+                if (wasRunning) {
+                    try {
+                        await fetch('/api/agents/start', { method: 'POST' });
+                        this.runningMissions.add(mission.id);
+                    } catch (startError) {
+                        console.warn('Error restarting agents:', startError);
                     }
-                    
-                    const verifiedMission = await verifyResponse.json();
-                    if (!verifiedMission || verifiedMission.id !== mission.id) {
-                        throw new Error('Mission verification mismatch');
-                    }
-
-                    // Update current mission
-                    this.$emit('select-mission', result);
-                    this.$emit('update:current-mission', result);
-                    
-                    // Restore previous running state if needed
-                    if (wasRunning) {
-                        try {
-                            await fetch('/api/agents/start', { method: 'POST' });
-                            this.runningMissions.add(mission.id);
-                        } catch (startError) {
-                            console.warn('Error restarting agents:', startError);
-                        }
-                    }
-                    
-                    return result;
-                    
-                } catch (verifyError) {
-                    console.error('Mission verification failed:', verifyError);
-                    // Emit error event for parent component
-                    this.$emit('error', verifyError.message);
-                    throw verifyError;
                 }
+                
+                return result;
                 
             } catch (error) {
                 console.error('Failed to select mission:', error);
                 // Clear running state on error
-                this.runningMissions.delete(mission.id);
+                if (mission?.id) {
+                    this.runningMissions.delete(mission.id);
+                }
                 // Emit error event for parent component
                 this.$emit('error', error.message);
                 throw error;
