@@ -51,7 +51,19 @@ export default {
             },
             creatingAgent: false,
             errorMessage: null,
-            showError: false
+            showError: false,
+            activeTeam: null,
+            teams: []
+        }
+    },
+    watch: {
+        currentMission: {
+            immediate: true,
+            handler(newMission) {
+                if (newMission) {
+                    this.loadTeams();
+                }
+            }
         }
     },
     watch: {
