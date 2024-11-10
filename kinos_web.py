@@ -40,7 +40,8 @@ class KinOSWeb:
     def _register_routes(self):
         """Register all route blueprints"""
         
-        @self.app.route('/api/status')
+        # First register core routes directly on the app
+        @self.app.route('/api/status', methods=['GET'])
         def get_status():
             """Get server and agents status"""
             try:
@@ -78,11 +79,39 @@ class KinOSWeb:
                     }
                 }), 500
 
-        # Register other route blueprints
+        # Add error handlers
+        @self.app.errorhandler(404)
+        def not_found_error(error):
+            """Handle 404 errors"""
+            self.log_message(f"404 Error: {str(error)}", 'error')
+            return jsonify({
+                'error': 'Not Found',
+                'message': str(error),
+                'type': '404',
+                'timestamp': datetime.now().isoformat()
+            }), 404
+
+        @self.app.errorhandler(500)
+        def internal_error(error):
+            """Handle 500 errors"""
+            self.log_message(f"500 Error: {str(error)}", 'error')
+            return jsonify({
+                'error': 'Internal Server Error',
+                'message': str(error),
+                'type': '500',
+                'timestamp': datetime.now().isoformat()
+            }), 500
+
+        # Then register blueprint routes
         register_agent_routes(self.app, self)
         register_mission_routes(self.app, self)
         register_notification_routes(self.app, self)
         register_view_routes(self.app, self)
+
+        # Log registered routes for debugging
+        self.log_message("Registered routes:", 'info')
+        for rule in self.app.url_map.iter_rules():
+            self.log_message(f"  {rule.endpoint}: {rule.methods} {rule}", 'info')
         
     def _initialize_components(self, config):
         """Initialize all required components"""
