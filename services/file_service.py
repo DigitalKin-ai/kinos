@@ -9,6 +9,7 @@ from datetime import datetime
 from utils.exceptions import FileOperationError, ValidationError
 from utils.decorators import safe_operation
 from services.base_service import BaseService
+from utils.path_manager import PathManager
 
 class FileService(BaseService):
     """Gère les opérations sur les fichiers"""
@@ -19,6 +20,8 @@ class FileService(BaseService):
         self.last_modified = {}
         # Use the file_manager from web_instance instead of creating a new one
         self.file_manager = web_instance.file_manager
+        # Use PathManager for project root
+        self.project_root = PathManager.get_project_root()
         
     @safe_operation()
     def read_file(self, file_name: str) -> Optional[str]:
@@ -28,11 +31,11 @@ class FileService(BaseService):
             if not file_name.endswith('.md'):
                 file_name = f"{file_name}.md"
 
-            # Construct absolute file path
+            # Construct absolute file path using PathManager
             if self.current_mission:
-                file_path = os.path.abspath(os.path.join("missions", self.current_mission, file_name))
+                file_path = os.path.join(PathManager.get_mission_path(self.current_mission), file_name)
             else:
-                file_path = os.path.abspath(file_name)
+                file_path = os.path.join(self.project_root, file_name)
 
             # Ne pas créer le fichier s'il n'existe pas
             if not os.path.exists(file_path):

@@ -176,15 +176,15 @@ class FileManager:
             # Log before writing
             self.logger.log(f"Writing to {file_name}, content length: {len(content)}", level='info')
             
-            # Get absolute path based on current mission
+            # Get absolute path based on current mission using PathManager
             if self.current_mission:
-                file_path = os.path.join(self.get_mission_path(self.current_mission), f"{file_name}.md")
+                file_path = os.path.join(PathManager.get_mission_path(self.current_mission), f"{file_name}.md")
             else:
                 base_path = self.file_paths.get(file_name)
                 if not base_path:
                     self.logger.log(f"FileManager: Path not found for {file_name}", level='error')
                     return False
-                file_path = os.path.abspath(base_path)
+                file_path = PathManager.normalize_path(base_path)
                 
             # Log full path
             self.logger.log(f"Full path: {file_path}", level='debug')
