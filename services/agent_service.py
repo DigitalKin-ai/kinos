@@ -216,56 +216,40 @@ class AgentService:
         try:
             self.web_instance.log_message("🚀 Starting agents...", level='info')
             
-            # Debug logs pour comprendre le problème de chemin
+            # Get current mission from FileManager
             current_mission = self.web_instance.file_manager.current_mission
-            self.web_instance.log_message(f"Current mission name: {current_mission}", level='debug')
+            if not current_mission:
+                raise AgentError("No current mission set")
+
+            # Get absolute path to project root (where missions directory is)
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             
-            # Vérifier le chemin actuel
-            cwd = os.getcwd()
-            self.web_instance.log_message(f"Current working directory: {cwd}", level='debug')
+            # Build absolute mission path
+            mission_dir = os.path.abspath(os.path.join(project_root, "missions", current_mission))
             
-            # Vérifier le chemin missions
-            missions_base = os.path.join(cwd, "missions")
-            self.web_instance.log_message(f"Base missions path: {missions_base}", level='debug')
-            
-            # Vérifier le chemin complet de la mission
-            mission_dir = os.path.join(missions_base, current_mission)
-            self.web_instance.log_message(f"Full mission path: {mission_dir}", level='debug')
-            
-            # Vérifier si le dossier existe
+            self.web_instance.log_message(f"Using absolute mission path: {mission_dir}", level='debug')
+                
+            # Verify directory exists and is accessible
             if not os.path.exists(mission_dir):
-                self.web_instance.log_message(f"❌ Mission directory not found: {mission_dir}", level='error')
                 raise AgentError(f"Mission directory not found: {mission_dir}")
+            if not os.access(mission_dir, os.R_OK | os.W_OK):
+                raise AgentError(f"Insufficient permissions on: {mission_dir}")
 
-            # Vérifier les agents
-            if not self.agents:
-                self.web_instance.log_message("No agents initialized. Running init_agents first...", level='info')
-                config = {
-                    "anthropic_api_key": self.web_instance.config.get("anthropic_api_key"),
-                    "openai_api_key": self.web_instance.config.get("openai_api_key"),
-                    "mission_dir": mission_dir
-                }
+            # Update mission directory for all agents with absolute path
+            for name, agent in self.agents.items():
+                agent.mission_dir = mission_dir
                 
-                self.init_agents(config)
-                
-                if not self.agents:
-                    raise AgentError("Failed to initialize agents")
-
             self.running = True
             
             # Start monitor thread
             self._start_monitor_thread()
             
-            # Start each agent with directory verification
+            # Start each agent
             for name, agent in self.agents.items():
                 try:
                     self.web_instance.log_message(f"Starting agent {name}...", level='debug')
                     self.web_instance.log_message(f"Agent {name} mission dir: {agent.mission_dir}", level='debug')
                     
-                    if not os.path.exists(agent.mission_dir):
-                        self.web_instance.log_message(f"❌ Agent directory not found: {agent.mission_dir}", level='error')
-                        raise AgentError(f"Agent directory not found: {agent.mission_dir}")
-                        
                     agent.start()
                     thread = threading.Thread(
                         target=agent.run,
