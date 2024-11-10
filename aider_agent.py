@@ -109,14 +109,19 @@ class AiderAgent(KinOSAgent):
                 self.logger(f"[{self.__class__.__name__}] Files: {files_added}")
                 self.logger(f"[{self.__class__.__name__}] Prompt: {prompt[:100]}...")
                 
-                # Execute Aider with timeout
+                # Set environment variables for encoding
+                env = os.environ.copy()
+                env['PYTHONIOENCODING'] = 'utf-8'
+            
+                # Execute Aider with timeout and UTF-8 encoding
                 process = subprocess.Popen(
                     cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
                     encoding='utf-8',
-                    errors='replace'
+                    errors='replace',
+                    env=env
                 )
                 
                 stdout, stderr = process.communicate(timeout=600)

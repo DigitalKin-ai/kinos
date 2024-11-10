@@ -98,6 +98,26 @@ class AgentService:
         self.running = False
         self.pending_agents = []  # Track agents waiting for file creation
 
+        # Set UTF-8 encoding for stdout/stderr
+        import sys
+        import codecs
+        import locale
+        
+        # Force UTF-8 encoding
+        if sys.stdout.encoding != 'utf-8':
+            sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+        if sys.stderr.encoding != 'utf-8':
+            sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+        
+        # Set locale to handle Unicode
+        try:
+            locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+        except locale.Error:
+            try:
+                locale.setlocale(locale.LC_ALL, 'C.UTF-8')
+            except locale.Error:
+                pass
+
     def init_agents(self, config: Dict[str, Any]) -> None:
         """Initialize all agents with configuration"""
         try:
