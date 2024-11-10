@@ -155,7 +155,7 @@ class AgentService:
 
             # Base configuration for all agents
             base_config = {
-                "check_interval": 10,
+                "check_interval": 100,
                 "anthropic_api_key": config["anthropic_api_key"],
                 "openai_api_key": config["openai_api_key"],
                 "mission_name": mission_name,
