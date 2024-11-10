@@ -76,22 +76,25 @@ class AiderAgent(KinOSAgent):
         Only works with existing files, doesn't create new ones.
         """
         try:
+            # Construire le chemin du fichier principal
+            main_file = f"{self.role}.md"
+            main_file_path = os.path.join(self.mission_dir, main_file)
+
             # Verify if main file exists
-            if not os.path.exists(self.file_path):
-                self.logger.log(f"Main file not found: {self.file_path}", level='warning')
+            if not os.path.exists(main_file_path):
+                self.logger.log(f"Main file not found: {main_file_path}", level='warning')
                 return None
 
-            # Obtenir le dossier de mission et le dossier courant
-            mission_dir = os.path.dirname(self.file_path)
+            # Obtenir le dossier de mission
             current_dir = os.getcwd()
             
             try:
                 # Changer vers le dossier de la mission
-                os.chdir(mission_dir)
-                self.logger(f"[{self.__class__.__name__}] 📂 Changement vers le dossier: {mission_dir}")
+                os.chdir(self.mission_dir)
+                self.logger(f"[{self.__class__.__name__}] 📂 Changement vers le dossier: {self.mission_dir}")
 
                 # Utiliser uniquement les noms de fichiers (pas les chemins)
-                main_file = os.path.basename(self.file_path)
+                main_file = os.path.basename(main_file_path)
                 
                 # Construire la commande avec chemins relatifs
                 cmd = [
@@ -104,7 +107,7 @@ class AiderAgent(KinOSAgent):
                 
                 # Ajouter les autres fichiers (chemins relatifs)
                 for file_path in self.mission_files:
-                    rel_path = os.path.relpath(file_path, mission_dir)
+                    rel_path = os.path.relpath(file_path, self.mission_dir)
                     if os.path.exists(rel_path):  # Vérifier le chemin relatif
                         cmd.extend(["--file", rel_path])
                         
@@ -125,12 +128,10 @@ class AiderAgent(KinOSAgent):
                 )
         
                 try:
-                    # Increased timeout to 10 minutes
                     stdout, stderr = process.communicate(timeout=600)
                 except subprocess.TimeoutExpired:
                     process.kill()
                     self.logger(f"[{self.__class__.__name__}] ❌ Timeout exécution Aider")
-                    # Add exponential backoff delay on timeout
                     time.sleep(min(300, 2 ** self.consecutive_no_changes * 30))
                     return None
                 
