@@ -1103,10 +1103,37 @@ class KinOSWeb:
     def run(self, host='0.0.0.0', port=8000, debug=False):
         """Run the Flask application"""
         try:
-            self.app.run(host=host, port=port, debug=debug)
+            # Force socket cleanup before starting
+            self._cleanup_sockets()
+            
+            # Add small delay after cleanup
+            import time
+            time.sleep(1)
+            
+            # Configure Flask server
+            options = {
+                'host': host,
+                'port': port,
+                'debug': debug,
+                'use_reloader': False,  # Disable reloader to prevent socket issues
+                'threaded': True        # Enable threading
+            }
+            
+            # Start server
+            self.logger.log(f"Starting server on {host}:{port}", 'info')
+            self.app.run(**options)
+            
         except Exception as e:
             self.logger.log(f"Error running application: {str(e)}", 'error')
+            import traceback
+            self.logger.log(traceback.format_exc(), 'error')
             raise ServiceError(f"Failed to start application: {str(e)}")
+        finally:
+            # Ensure cleanup on exit
+            try:
+                self.shutdown()
+            except:
+                pass
             
     def reinitialize_agents(self):
         """Reinitialize agents with current mission configuration"""
@@ -1126,34 +1153,48 @@ class KinOSWeb:
         import gc
         import time
         
-        # Force garbage collection
-        gc.collect()
-        
-        # Close any lingering sockets
-        closed = 0
-        for obj in gc.get_objects():
-            if isinstance(obj, socket.socket):
-                try:
-                    obj.close()
-                    closed += 1
-                except:
-                    pass
-                    
-        # Add delay after cleanup
-        if closed > 0:
-            time.sleep(0.5)
+        try:
+            # Force garbage collection first
+            gc.collect()
             
-        # Log cleanup results
-        if closed > 0:
-            self.logger.log(f"Cleaned up {closed} socket(s)", 'info')
+            # Track cleaned sockets
+            closed = 0
+            
+            # Close any lingering sockets
+            for obj in gc.get_objects():
+                try:
+                    if isinstance(obj, socket.socket):
+                        try:
+                            obj.close()
+                            closed += 1
+                        except:
+                            pass
+                except ReferenceError:
+                    # Skip if object was already collected
+                    continue
+                    
+            # Add delay after cleanup
+            if closed > 0:
+                time.sleep(1)
+                
+            # Second GC pass to clean up closed sockets
+            gc.collect()
+                
+            # Log cleanup results
+            if closed > 0:
+                self.logger.log(f"Cleaned up {closed} socket(s)", 'info')
+                
+        except Exception as e:
+            self.logger.log(f"Socket cleanup warning: {str(e)}", 'warning')
+            # Don't raise - we want to continue even if cleanup has issues
 
     def shutdown(self):
         """Graceful shutdown of the application"""
         try:
-            # Stop all agents
+            # Stop all agents first
             self.agent_service.stop_all_agents()
             
-            # Cleanup services
+            # Cleanup services in order
             self.notification_service.cleanup()
             self.file_service.cleanup()
             
@@ -1164,7 +1205,7 @@ class KinOSWeb:
             
         except Exception as e:
             self.logger.log(f"Error during shutdown: {str(e)}", 'error')
-            raise ServiceError(f"Failed to shutdown cleanly: {str(e)}")
+            # Don't raise - we want to complete shutdown even with errors
 
 
 
@@ -1245,18 +1286,25 @@ class KinOSWeb:
 
 if __name__ == "__main__":
     from config import Config
+    import sys
     
-    # Validate configuration
-    Config.validate()
-    
-    # Create and run app
-    app = KinOSWeb({
-        "anthropic_api_key": Config.ANTHROPIC_API_KEY,
-        "openai_api_key": Config.OPENAI_API_KEY
-    })
-    
-    app.run(
-        host=Config.HOST,
-        port=Config.PORT,
-        debug=Config.DEBUG
-    )
+    try:
+        # Validate configuration
+        Config.validate()
+        
+        # Create app instance
+        app = KinOSWeb({
+            "anthropic_api_key": Config.ANTHROPIC_API_KEY,
+            "openai_api_key": Config.OPENAI_API_KEY
+        })
+        
+        # Run app
+        app.run(
+            host=Config.HOST,
+            port=Config.PORT,
+            debug=Config.DEBUG
+        )
+        
+    except Exception as e:
+        print(f"Failed to start application: {e}", file=sys.stderr)
+        sys.exit(1)
