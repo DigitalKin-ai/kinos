@@ -31,7 +31,7 @@ def register_agent_routes(app, web_instance):
             for file in os.listdir(prompts_dir):
                 if file.endswith('.md'):
                     agent_id = file[:-3]  # Remove .md
-                    agent_name = agent_id.capitalize()
+                    agent_name = agent_id.lower()
                     
                     # Read prompt file content
                     with open(os.path.join(prompts_dir, file), 'r', encoding='utf-8') as f:
@@ -95,22 +95,8 @@ def register_agent_routes(app, web_instance):
             # Log l'état initial
             web_instance.log_message(f"Attempting to {action} agent {agent_id}", level='debug')
             
-            # Map des noms d'agents normalisés
-            agent_name_map = {
-                'specification': 'Specification',
-                'production': 'Production',
-                'management': 'Management',
-                'evaluation': 'Evaluation',
-                'suivi': 'Suivi',
-                'documentaliste': 'Documentaliste',
-                'duplication': 'Duplication',
-                'testeur': 'Testeur',
-                'validation': 'Validation',
-                'redacteur': 'Redacteur'
-            }
-            
-            # Convertir l'ID de l'agent en utilisant le mapping
-            agent_name = agent_name_map.get(agent_id.lower())
+            # Convert agent ID to lowercase for lookup
+            agent_name = agent_id.lower()
             if not agent_name:
                 web_instance.log_message(f"Invalid agent ID: {agent_id}", level='error')
                 raise ValidationError(f"Invalid agent ID: {agent_id}")
