@@ -37,11 +37,16 @@ def register_agent_routes(app, web_instance):
                     with open(os.path.join(prompts_dir, file), 'r', encoding='utf-8') as f:
                         prompt_content = f.read()
                     
+                    # Get agent status if it exists
+                    agent_status = web_instance.agent_service.get_agent_status().get(agent_name, {})
+                    
                     agents.append({
                         'id': agent_id,
                         'name': agent_name,
                         'prompt': prompt_content,
-                        'running': False  # Initial state
+                        'running': agent_status.get('running', False),
+                        'last_run': agent_status.get('last_run'),
+                        'status': agent_status.get('status', 'inactive')
                     })
                     
             return jsonify(agents)
@@ -92,29 +97,29 @@ def register_agent_routes(app, web_instance):
                 web_instance.log_message(f"Invalid action attempted: {action}", level='error')
                 raise ValidationError(f"Invalid action: {action}")
                 
-            # Log l'état initial
+            # Log initial state
             web_instance.log_message(f"Attempting to {action} agent {agent_id}", level='debug')
             
-            # Convert agent ID to lowercase and create a case-insensitive mapping
+            # Convert agent ID to lowercase for case-insensitive matching
             agent_name = agent_id.lower()
-            available_agents = {k.lower(): k for k in web_instance.agent_service.agents.keys()}
             
-            web_instance.log_message(f"Available agents: {list(available_agents.keys())}", level='debug')
-            web_instance.log_message(f"Looking for agent with name: {agent_name}", level='debug')
+            # Check if prompt file exists
+            prompt_file = f"{agent_name}.md"
+            prompt_path = os.path.join("prompts", prompt_file)
             
-            # Case-insensitive check for agent existence
-            if agent_name not in available_agents:
-                web_instance.log_message(
-                    f"Agent {agent_name} not found in available agents: {list(available_agents.keys())}", 
-                    level='error'
-                )
+            if not os.path.exists(prompt_path):
+                web_instance.log_message(f"Agent prompt file not found: {prompt_path}", level='error')
                 raise ResourceNotFoundError(f"Agent {agent_id} not found")
+            
+            # Get or create agent instance
+            agent = web_instance.agent_service.agents.get(agent_name)
+            if not agent:
+                # Initialize agent if needed
+                web_instance.agent_service.init_agents(web_instance.config)
+                agent = web_instance.agent_service.agents.get(agent_name)
                 
-            # Get the actual case-sensitive key
-            actual_agent_name = available_agents[agent_name]
-                
-            # Log avant l'action
-            web_instance.log_message(f"Found agent {actual_agent_name}, attempting {action}", level='debug')
+            if not agent:
+                raise ResourceNotFoundError(f"Failed to initialize agent {agent_id}")
             
             try:
                 if action == 'start':

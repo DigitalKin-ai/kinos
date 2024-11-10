@@ -63,18 +63,7 @@ export default {
         async loadAgents() {
             try {
                 this.loading = true;
-                const agentTypes = [
-                    'specification',
-                    'production',
-                    'management',
-                    'evaluation',
-                    'suivi',
-                    'documentaliste',
-                    'duplication',
-                    'testeur',
-                    'validation',
-                    'redacteur'
-                ];
+                
                 // Load agents list from prompt files
                 const response = await fetch('/api/agents/list');
                 if (!response.ok) {
@@ -87,10 +76,12 @@ export default {
                 const status = await statusResponse.json();
                 this.agentStates = status;
                 
-                // Combine information
+                // Combine information with additional status fields
                 this.agents = agents.map(agent => ({
                     ...agent,
-                    running: this.agentStates[agent.id]?.running || false
+                    running: this.agentStates[agent.id]?.running || false,
+                    lastRun: this.agentStates[agent.id]?.last_run || null,
+                    status: this.agentStates[agent.id]?.status || 'inactive'
                 }));
                 
                 // Initialize prompts
@@ -98,8 +89,10 @@ export default {
                     acc[agent.id] = agent.prompt;
                     return acc;
                 }, {});
+                
             } catch (error) {
                 console.error('Failed to load agents:', error);
+                this.error = error.message;
             } finally {
                 this.loading = false;
             }
