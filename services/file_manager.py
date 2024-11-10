@@ -188,24 +188,26 @@ class FileManager:
             # Log full path
             self.logger.log(f"Full path: {file_path}", level='debug')
             
-            # Check if content is unchanged
-            cache_key = f"file:{file_path}"
-            if os.path.exists(file_path):
-                current_content = self.read_file(file_name)
-                if current_content == content:
-                    self.logger.log(f"Content unchanged for {file_name}, skipping write", level='debug')
-                    return True
+            # Only proceed if it's demande.md or file exists
+            if file_name == 'demande' or os.path.exists(file_path):
+                # Check if content is unchanged
+                cache_key = f"file:{file_path}"
+                if os.path.exists(file_path):
+                    current_content = self.read_file(file_name)
+                    if current_content == content:
+                        self.logger.log(f"Content unchanged for {file_name}, skipping write", level='debug')
+                        return True
+                        
+                # Create parent directory if needed
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
                     
-            # Create parent directory if needed
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                
-            # Write with file locking
-            with portalocker.Lock(file_path, 'w', timeout=10) as lock:
-                lock.write(content)
-                
-            # Invalidate cache
-            if cache_key in self.content_cache:
-                del self.content_cache[cache_key]
+                # Write with file locking
+                with portalocker.Lock(file_path, 'w', timeout=10) as lock:
+                    lock.write(content)
+                    
+                # Invalidate cache
+                if cache_key in self.content_cache:
+                    del self.content_cache[cache_key]
         
             # Trigger notification with content
             if self.on_content_changed:
