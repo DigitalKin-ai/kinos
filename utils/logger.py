@@ -12,6 +12,15 @@ class Logger:
         'redacteur': 'purple'
     }
     
+    def __init__(self):
+        self._name = "KinOSLogger"  # Add name attribute
+    
+    def __str__(self):
+        return self._name
+        
+    def __repr__(self):
+        return self._name
+    
     def log(self, message: str, level: str = 'info', **kwargs):
         """Main logging method that handles all cases"""
         try:
