@@ -3,7 +3,7 @@ import time
 import threading
 import traceback
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 from utils.exceptions import AgentError
 import importlib
 import inspect
@@ -26,7 +26,9 @@ class AgentService:
         }
 
     def __init__(self, web_instance):
-        self.web_instance = web_instance
+        # Valider et compléter l'instance web
+        self.web_instance = self.validate_web_instance(web_instance)
+        
         self.agents = {}
         self.monitor_thread = None
         self.running = False
@@ -56,6 +58,45 @@ class AgentService:
                 locale.setlocale(locale.LC_ALL, 'C.UTF-8')
             except locale.Error:
                 pass
+
+    def validate_web_instance(self, web_instance):
+        """
+        Valide et complète une instance web avec des valeurs par défaut
+        
+        Args:
+            web_instance: Instance web à valider
+        
+        Returns:
+            Instance web complétée
+        """
+        from utils.logger import Logger
+        from services.mission_service import MissionService
+        from services.file_manager import FileManager
+        from types import SimpleNamespace
+
+        # Si None, créer une instance par défaut
+        if web_instance is None:
+            web_instance = SimpleNamespace(
+                logger=Logger(),
+                config={},
+                mission_service=MissionService(),
+                file_manager=FileManager(None)
+            )
+
+        # Ajouter des méthodes par défaut si manquantes
+        if not hasattr(web_instance, 'logger'):
+            web_instance.logger = Logger()
+        
+        if not hasattr(web_instance, 'log_message'):
+            web_instance.log_message = lambda msg, level='info': web_instance.logger.log(msg, level)
+        
+        if not hasattr(web_instance, 'mission_service'):
+            web_instance.mission_service = MissionService()
+        
+        if not hasattr(web_instance, 'file_manager'):
+            web_instance.file_manager = FileManager(web_instance)
+
+        return web_instance
 
     def _discover_agents(self) -> List[Dict[str, str]]:
         """Discover available agents by scanning prompts directory"""
@@ -106,61 +147,208 @@ class AgentService:
             self.web_instance.log_message(f"Error importing agent class: {str(e)}", 'error')
             return None
 
-    def init_agents(self, config: Dict[str, Any]) -> None:
+    def init_agents(self, config: Dict[str, Any], team_agents: Optional[List[str]] = None) -> None:
         try:
             self.agents = {}
-            
-            # Get prompts directory using PathManager
-            prompts_dir = PathManager.get_prompts_path()
-            
+        
+            # If no team agents provided, use a default list or get from team service
+            if team_agents is None:
+                # Try to get agents from the current active team
+                try:
+                    active_team = self.web_instance.team_service.active_team
+                    team_agents = active_team['agents'] if active_team else []
+                except Exception:
+                    # Fallback to a default list if team service fails
+                    team_agents = [
+                        'specifications',
+                        'management',
+                        'evaluation',
+                        'suivi',
+                        'documentaliste',
+                        'duplication',
+                        'redacteur',
+                        'validation'
+                    ]
+        
+            # Log the agents being initialized
+            self.web_instance.log_message(f"Initializing agents: {team_agents}", 'info')
+        
             # Get current mission from FileManager if available
             current_mission = None
             if hasattr(self.web_instance.file_manager, 'current_mission'):
-                current_mission = self.web_instance.file_manager.current_mission
-            
+                current_mission = self.web_instance.file_manager.current_mission or "_temp"
+        
             # Base configuration for all agents
             base_config = {
                 **config,
                 "web_instance": self.web_instance,
-                "mission_name": current_mission or "_temp",  # Use _temp if no mission selected
+                "mission_name": current_mission or "_temp",
                 "mission_dir": os.path.join(PathManager.get_project_root(), "missions", current_mission or "_temp")
             }
 
             # Create temp mission dir if needed
             os.makedirs(base_config["mission_dir"], exist_ok=True)
 
-            for file in os.listdir(prompts_dir):
-                if file.endswith('.md'):
-                    agent_name = file[:-3].lower()  # Remove .md extension
-                    try:
-                        with open(os.path.join(prompts_dir, file), 'r', encoding='utf-8') as f:
-                            prompt_content = f.read()
-                            
-                        agent_config = {
-                            **base_config,
-                            "name": agent_name,
-                            "prompt": prompt_content,
-                            "prompt_file": os.path.join(prompts_dir, file)
-                        }
-                        
-                        # Create agent with AiderAgent
-                        self.agents[agent_name] = AiderAgent(agent_config)
-                        self.web_instance.log_message(f"✓ Agent {agent_name} initialized", 'success')
-                        
-                    except Exception as e:
-                        self.web_instance.log_message(f"Error initializing agent {agent_name}: {str(e)}", 'error')
-                        continue
+            # Dynamically import AiderAgent
+            from aider_agent import AiderAgent
+
+            # Initialize each agent
+            for agent_name in team_agents:
+                try:
+                    # Convert to lowercase for consistency
+                    agent_key = agent_name.lower()
+                
+                    # Prepare agent-specific configuration
+                    agent_config = {
+                        **base_config,
+                        "name": agent_key,
+                        "prompt": f"Agent {agent_name} prompt",  # Minimal default prompt
+                        "prompt_file": self._find_prompt_file(agent_name)  # Try to find prompt file
+                    }
+                
+                    # Create agent instance
+                    agent = AiderAgent(agent_config)
+                
+                    # Store agent in dictionary
+                    self.agents[agent_key] = agent
+                
+                    self.web_instance.log_message(f"✓ Agent {agent_name} initialized", 'success')
+                
+                except Exception as e:
+                    self.web_instance.log_message(f"Error initializing agent {agent_name}: {str(e)}", 'error')
 
             if not self.agents:
                 self.web_instance.log_message("No agents were initialized", 'warning')
-                
+            
         except Exception as e:
-            self.web_instance.log_message(f"Error initializing agents: {str(e)}", 'error')
+            self.web_instance.log_message(f"Error in agent initialization: {str(e)}", 'error')
             raise
+
+    def _find_prompt_file(self, agent_name: str) -> Optional[str]:
+        """Find prompt file for a specific agent"""
+        try:
+            # Get prompts directory using PathManager
+            prompts_dir = PathManager.get_prompts_path()
+        
+            # Ensure prompts directory exists
+            os.makedirs(prompts_dir, exist_ok=True)
+        
+            # Possible prompt file variations
+            possible_filenames = [
+                f"{agent_name}.md",
+                f"{agent_name.lower()}.md",
+                f"{agent_name.replace('Agent', '')}.md",
+                f"{agent_name.replace('Agent', '').lower()}.md"
+            ]
+        
+            # Search for prompt file
+            for filename in possible_filenames:
+                prompt_path = os.path.join(prompts_dir, filename)
+            
+                # If prompt file doesn't exist, create a default one
+                if not os.path.exists(prompt_path):
+                    try:
+                        with open(prompt_path, 'w', encoding='utf-8') as f:
+                            f.write(f"# {agent_name} Default Prompt\n\nDefault instructions for {agent_name}")
+                        self.web_instance.log_message(f"Created default prompt file for {agent_name}: {prompt_path}", 'info')
+                    except Exception as create_error:
+                        self.web_instance.log_message(f"Error creating default prompt file: {create_error}", 'error')
+                        continue
+            
+                self.web_instance.log_message(f"Found prompt file for {agent_name}: {prompt_path}", 'debug')
+                return prompt_path
+        
+            # Log if no prompt file found
+            self.web_instance.log_message(f"No prompt file found for {agent_name}", 'warning')
+            return None
+        
+        except Exception as e:
+            self.web_instance.log_message(f"Error finding prompt file for {agent_name}: {str(e)}", 'error')
+            return None
 
     def get_available_agents(self) -> List[str]:
         """Get list of available agent names"""
+        # If no agents, try to initialize
+        if not self.agents:
+            try:
+                # Try to get agents from active team or use a default list
+                team_agents = None
+                try:
+                    active_team = self.web_instance.team_service.active_team
+                    team_agents = active_team['agents'] if active_team else None
+                except Exception:
+                    pass
+            
+                # Use a comprehensive default list if no team agents
+                if not team_agents:
+                    team_agents = [
+                        'specifications',
+                        'management',
+                        'evaluation',
+                        'suivi',
+                        'documentaliste',
+                        'duplication',
+                        'redacteur',
+                        'validation',
+                        'production',
+                        'testeur'
+                    ]
+            
+                self.init_agents({
+                    "anthropic_api_key": self.web_instance.config.get("anthropic_api_key", ""),
+                    "openai_api_key": self.web_instance.config.get("openai_api_key", "")
+                }, team_agents)
+            except Exception as e:
+                self.web_instance.log_message(f"Failed to initialize agents: {str(e)}", 'error')
+    
         return list(self.agents.keys())
+
+    def toggle_agent(self, agent_name: str, action: str) -> bool:
+        """
+        Toggle agent state (start/stop)
+        
+        Args:
+            agent_name (str): Name of the agent
+            action (str): 'start' or 'stop'
+        
+        Returns:
+            bool: Whether the action was successful
+        """
+        try:
+            # Normalize agent name
+            agent_key = agent_name.lower()
+            
+            # Ensure agent is initialized
+            if agent_key not in self.agents:
+                self.init_agents({
+                    "anthropic_api_key": self.web_instance.config.get("anthropic_api_key", ""),
+                    "openai_api_key": self.web_instance.config.get("openai_api_key", "")
+                }, [agent_name])
+            
+            # Get agent instance
+            agent = self.agents.get(agent_key)
+            if not agent:
+                self.web_instance.log_message(f"Agent {agent_name} not found", 'error')
+                return False
+            
+            # Perform action
+            if action == 'start':
+                if not agent.running:
+                    agent.start()
+                    self.web_instance.log_message(f"Started agent {agent_name}", 'info')
+                return agent.running
+            elif action == 'stop':
+                if agent.running:
+                    agent.stop()
+                    self.web_instance.log_message(f"Stopped agent {agent_name}", 'info')
+                return not agent.running
+            else:
+                self.web_instance.log_message(f"Invalid action {action} for agent {agent_name}", 'error')
+                return False
+        
+        except Exception as e:
+            self.web_instance.log_message(f"Error toggling agent {agent_name}: {str(e)}", 'error')
+            return False
 
     def _cleanup_resources(self):
         """Clean up sockets and other resources"""
@@ -512,8 +700,33 @@ class AgentService:
             finally:
                 time.sleep(30)  # Check every 30 seconds
 
-    def get_agent_status(self) -> Dict[str, Dict[str, Any]]:
-        """Get status of all agents including health metrics"""
+    def get_agent_status(self, agent_name: str = None) -> Union[Dict[str, Dict[str, Any]], Dict[str, Any]]:
+        """Get status for all agents or a specific agent"""
+        if agent_name:
+            # Normalize agent name
+            agent_key = agent_name.lower()
+            
+            # Ensure agent exists
+            if agent_key not in self.agents:
+                return {
+                    'running': False,
+                    'status': 'not_initialized',
+                    'error': f'Agent {agent_name} not initialized'
+                }
+            
+            agent = self.agents[agent_key]
+            
+            return {
+                'running': getattr(agent, 'running', False),
+                'status': 'active' if getattr(agent, 'running', False) else 'inactive',
+                'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
+                'health': {
+                    'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
+                    'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
+                }
+            }
+        
+        # If no specific agent, return status for all agents
         status = {}
         for name, agent in self.agents.items():
             name_lower = name.lower()
