@@ -170,7 +170,7 @@
 
                 } catch (error) {
                     console.error('Mission selection failed:', error);
-                    this.runningStates.set(missionId, false);
+                    this.runningStates.set(mission.id, false);
                 
                     // Determine if it's a connection issue
                     const isConnectionError = error.message.includes('Failed to fetch') || 
