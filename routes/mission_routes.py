@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+import fnmatch
 from flask import jsonify, request
 from utils.decorators import safe_operation
 
@@ -64,11 +66,48 @@ def register_mission_routes(app, web_instance):
             return jsonify({'error': 'Failed to load test data'}), 500
         return jsonify({'status': 'success'})
 
+def should_ignore_file(file_path: str, ignore_patterns: list) -> bool:
+    """Check if file should be ignored based on gitignore/aiderignore patterns"""
+    # Convert path to forward slashes for consistent pattern matching
+    file_path = str(Path(file_path)).replace('\\', '/')
+    
+    for pattern in ignore_patterns:
+        # Handle directory patterns ending with /
+        if pattern.endswith('/'):
+            if fnmatch.fnmatch(file_path + '/', pattern):
+                return True
+        # Handle regular patterns
+        if fnmatch.fnmatch(file_path, pattern):
+            return True
+    return False
+
+def load_ignore_patterns(mission_dir: str) -> list:
+    """Load patterns from .gitignore and .aiderignore files"""
+    ignore_patterns = []
+    ignore_files = ['.gitignore', '.aiderignore']
+    
+    for ignore_file in ignore_files:
+        file_path = os.path.join(mission_dir, ignore_file)
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        line = line.strip()
+                        # Skip empty lines and comments
+                        if line and not line.startswith('#'):
+                            # Convert Windows paths to forward slashes
+                            line = line.replace('\\', '/')
+                            ignore_patterns.append(line)
+            except Exception as e:
+                web_instance.logger.log(f"Error reading {ignore_file}: {str(e)}", level='error')
+                
+    return ignore_patterns
+
     @app.route('/api/missions/<int:mission_id>/files')
     @safe_operation()
-    @web_instance.limiter.limit("200 per minute")  # Higher specific limit for this route
+    @web_instance.limiter.limit("200 per minute")
     def get_mission_files(mission_id):
-        """Get all files in mission directory"""
+        """Get all files in mission directory respecting ignore patterns"""
         try:
             # Log début de la requête
             web_instance.logger.log(f"Getting files for mission {mission_id}", level='debug')
@@ -92,25 +131,38 @@ def register_mission_routes(app, web_instance):
                 web_instance.logger.log(f"Mission directory not found: {mission_dir}", level='error')
                 return jsonify({'error': 'Mission directory not found'}), 404
 
-            # Get all files
+            # Load ignore patterns
+            ignore_patterns = load_ignore_patterns(mission_dir)
+            web_instance.logger.log(f"Loaded ignore patterns: {ignore_patterns}", level='debug')
+
             files = []
             try:
                 for root, _, filenames in os.walk(mission_dir):
+                    # Get path relative to mission directory for pattern matching
+                    rel_root = os.path.relpath(root, mission_dir)
+                    
                     for filename in filenames:
                         if filename.endswith(('.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml')):
                             try:
-                                full_path = os.path.join(root, filename)
-                                relative_path = os.path.relpath(full_path, mission_dir)
+                                # Get relative path for pattern matching
+                                rel_path = os.path.join(rel_root, filename)
+                                rel_path = rel_path.replace('\\', '/')
                                 
+                                # Skip if file matches ignore patterns
+                                if should_ignore_file(rel_path, ignore_patterns):
+                                    web_instance.logger.log(f"Ignoring file: {rel_path}", level='debug')
+                                    continue
+
+                                full_path = os.path.join(root, filename)
                                 file_info = {
                                     'name': filename,
-                                    'path': relative_path,
-                                    'relativePath': relative_path,
+                                    'path': rel_path,
+                                    'relativePath': rel_path,
                                     'size': os.path.getsize(full_path),
                                     'modified': os.path.getmtime(full_path)
                                 }
                                 files.append(file_info)
-                                web_instance.logger.log(f"Added file: {filename}", level='debug')
+                                web_instance.logger.log(f"Added file: {rel_path}", level='debug')
                                 
                             except (OSError, IOError) as e:
                                 web_instance.logger.log(f"Error processing file {filename}: {str(e)}", level='error')
