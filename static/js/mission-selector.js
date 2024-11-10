@@ -115,7 +115,7 @@ export default {
                 if (newMissions) {
                     newMissions.forEach(mission => {
                         if (!this.runningStates.has(mission.id)) {
-                            this.runningStates.set(missionData.id, false);
+                            this.runningStates.set(mission.id, false);
                         }
                     });
                 }
