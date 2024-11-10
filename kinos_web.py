@@ -259,8 +259,8 @@ class KinOSWeb:
         
         # Initialize Flask with explicit template and static folders
         self.app = Flask(__name__,
-                        template_folder=template_dir,
-                        static_folder=static_dir,
+                        template_folder=self.template_dir,
+                        static_folder=self.static_dir,
                         static_url_path='/static')
         CORS(self.app)
         
