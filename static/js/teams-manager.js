@@ -117,6 +117,27 @@ export default {
     created() {
         this.initializeErrorHandling();
     },
+
+    methods: {
+        initializeErrorHandling() {
+            // Basic error handling initialization
+            this.errorMessage = null;
+            this.showError = false;
+        },
+
+        handleError(message, error) {
+            console.error(message, error);
+            this.errorMessage = typeof error === 'string' 
+                ? error 
+                : (error.message || 'An unexpected error occurred');
+            this.showError = true;
+
+            // Automatically hide error after 5 seconds
+            setTimeout(() => {
+                this.showError = false;
+            }, 5000);
+        },
+    },
     mounted() {
         if (this.currentMission) {
             this.loadTeams();
