@@ -923,16 +923,6 @@ class KinOSWeb:
                 self.log_message(f"Error handling content: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
-        @self.app.route('/api/start', methods=['POST'])
-        def start_agents():
-            self.agent_service.start_all_agents()
-            return jsonify({'status': 'started'})
-
-        @self.app.route('/api/stop', methods=['POST'])
-        def stop_agents():
-            self.agent_service.stop_all_agents()
-            return jsonify({'status': 'stopped'})
-
         @self.app.route('/api/agent/<agent_id>/prompt', methods=['GET'])
         def get_agent_prompt(agent_id):
             """Get the prompt for a specific agent"""
