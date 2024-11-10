@@ -55,11 +55,12 @@ if __name__ == '__main__':
                     except:
                         pass
                         
-            print("Starting server on http://127.0.0.1:8000")
-            serve(app, host='127.0.0.1', port=8000, 
+            print("Starting server on http://localhost:8000")
+            serve(app, host='localhost', port=8000, 
                   cleanup_interval=30,  # Cleanup every 30 seconds
                   channel_timeout=30,   # Socket timeout
-                  threads=4)            # Limit threads
+                  threads=4,            # Limit threads
+                  url_scheme='http')    # Explicitly set URL scheme
                   
         except Exception as e:
             print(f"Error starting server: {e}")

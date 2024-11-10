@@ -43,6 +43,16 @@ class KinOSWeb:
         if hasattr(self, '_routes_registered'):
             return
 
+        # Add health check endpoint
+        @self.app.route('/health')
+        def health_check():
+            """Simple health check endpoint"""
+            return jsonify({
+                'status': 'healthy',
+                'timestamp': datetime.now().isoformat(),
+                'server': 'KinOS Web'
+            })
+
         # Register core routes first - ONLY ONE STATUS ROUTE
         @self.app.route('/api/status', methods=['GET'])
         def get_status():
@@ -263,7 +273,18 @@ class KinOSWeb:
                         template_folder=self.template_dir,
                         static_folder=self.static_dir,
                         static_url_path='/static')
-        CORS(self.app)
+                        
+        # Log Flask initialization
+        self.logger.log("Flask app initialized", 'success')
+        
+        # Initialize CORS with specific origins
+        CORS(self.app, resources={
+            r"/api/*": {
+                "origins": ["http://localhost:8000", "http://127.0.0.1:8000"],
+                "supports_credentials": True
+            }
+        })
+        self.logger.log("CORS configured", 'success')
         
         # Initialize rate limiter
         self.limiter = Limiter(
