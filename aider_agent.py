@@ -84,12 +84,14 @@ class AiderAgent(KinOSAgent):
                 self.logger(f"[{self.__class__.__name__}] 📂 Changed to directory: {self.mission_dir}")
 
                 # Build command with explicit paths and logging
+                from utils.path_manager import PathManager
                 cmd = [
                     "aider",
                     "--model", "claude-3-5-sonnet-20241022", # instead of claude-3-5-haiku-20241022
                     "--no-git",
                     "--yes-always",
-                    "--cache-prompts"
+                    "--cache-prompts",
+                    "--work-dir", PathManager.get_project_root()
                 ]
                 
                 # Add files with detailed logging
@@ -154,9 +156,9 @@ class AiderAgent(KinOSAgent):
                 self.mission_files = {}
                 return
 
-            # Construire le chemin de la mission
-            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            mission_path = os.path.join(project_root, "missions", mission_name)
+            # Utiliser PathManager pour obtenir le chemin
+            from utils.path_manager import PathManager
+            mission_path = PathManager.get_mission_path(mission_name)
 
             if not os.path.exists(mission_path):
                 self.logger(f"[{self.__class__.__name__}] ❌ Dossier mission non trouvé: {mission_path}")
@@ -201,8 +203,10 @@ class AiderAgent(KinOSAgent):
                     return cached_content
 
             # Load from file if not in cache or cache invalid
-            if os.path.exists(self.prompt_file):
-                with open(self.prompt_file, 'r', encoding='utf-8') as f:
+            from utils.path_manager import PathManager
+            prompt_path = os.path.join(PathManager.get_prompts_path(), self.prompt_file)
+            if os.path.exists(prompt_path):
+                with open(prompt_path, 'r', encoding='utf-8') as f:
                     content = f.read()
                     self._prompt_cache[self.prompt_file] = (mtime, content)
                     return content
