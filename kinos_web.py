@@ -197,6 +197,13 @@ class KinOSWeb:
             self.log_message(f"Error loading test data: {str(e)}", 'error')
             return ""
 
+    def _log_initialization(self, component: str, success: bool, error: Exception = None) -> None:
+        """Centralized initialization logging"""
+        if success:
+            self.logger.log(f"✓ {component} initialized successfully", 'success')
+        else:
+            self.logger.log(f"❌ {component} initialization failed: {str(error)}", 'error')
+
     def __init__(self, config):
         # Store config for agent initialization
         self.config = config
