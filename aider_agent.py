@@ -152,45 +152,36 @@ class AiderAgent(KinOSAgent):
                 
                 # If execution successful, save for fine-tuning
                 if process.returncode == 0 and stdout:
-                    # Collect file contents for context
-                    files_context = {}
-                    for file_path in files_added:
+                    try:
+                        # Collect file contents for context
+                        files_context = {}
+                        for file_path in files_added:
+                            try:
+                                with open(file_path, 'r', encoding='utf-8') as f:
+                                    files_context[file_path] = f.read()
+                            except Exception as e:
+                                self.logger(f"[{self.__class__.__name__}] Error reading file for dataset: {str(e)}")
+                                continue
+
+                        # Create event loop if needed
                         try:
-                            with open(file_path, 'r', encoding='utf-8') as f:
-                                files_context[file_path] = f.read()
-                        except Exception as e:
-                            self.logger(f"Error reading file for dataset: {str(e)}")
+                            loop = asyncio.get_event_loop()
+                        except RuntimeError:
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
 
-                    # Async call to dataset service
-                    asyncio.create_task(
-                        self.web_instance.dataset_service.add_interaction_async(
-                            prompt=prompt,
-                            files_context=files_context,
-                            aider_response=stdout,
-                            weight=0.5  # Default value, adjust as needed
+                        # Run dataset collection asynchronously
+                        loop.create_task(
+                            self.web_instance.dataset_service.add_interaction_async(
+                                prompt=prompt,
+                                files_context=files_context,
+                                aider_response=stdout,
+                                weight=0.5  # Default weight
+                            )
                         )
-                    )
-
-                # If execution successful, save for fine-tuning
-                if process.returncode == 0 and stdout:
-                    # Collect file contents for context
-                    files_context = {}
-                    for file_path in files_added:
-                        try:
-                            with open(file_path, 'r', encoding='utf-8') as f:
-                                files_context[file_path] = f.read()
-                        except Exception as e:
-                            self.logger(f"Error reading file for dataset: {str(e)}")
-
-                    # Async call to dataset service
-                    asyncio.create_task(
-                        self.web_instance.dataset_service.add_interaction_async(
-                            prompt=prompt,
-                            files_context=files_context,
-                            aider_response=stdout,
-                            weight=0.5  # Default value, adjust as needed
-                        )
-                    )
+                        self.logger(f"[{self.__class__.__name__}] ✓ Added interaction to dataset")
+                    except Exception as e:
+                        self.logger(f"[{self.__class__.__name__}] Error saving to dataset: {str(e)}")
 
                 # Log output
                 if stdout:

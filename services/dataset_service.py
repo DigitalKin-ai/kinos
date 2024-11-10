@@ -99,3 +99,13 @@ class DatasetService(BaseService):
         except Exception as e:
             self.logger.log(f"Error parsing Aider response: {str(e)}", 'error')
             return response  # Return original response if parsing fails
+            
+    def cleanup(self):
+        """Cleanup any resources used by the dataset service"""
+        try:
+            # Ensure all pending writes are completed
+            with open(self.dataset_file, 'a', encoding='utf-8') as f:
+                f.flush()
+                os.fsync(f.fileno())
+        except Exception as e:
+            self.logger.log(f"Error during dataset service cleanup: {str(e)}", 'error')
