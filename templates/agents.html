@@ -85,6 +85,17 @@
                     // Mettre à jour directement l'état
                     this.currentMission = mission;
                     
+                    // Fetch team information for the mission
+                    try {
+                        const teamResponse = await fetch(`/api/missions/${mission.id}/teams`);
+                        if (teamResponse.ok) {
+                            const teams = await teamResponse.json();
+                            this.activeTeam = teams.length > 0 ? teams[0] : null;
+                        }
+                    } catch (teamError) {
+                        console.error('Failed to fetch teams:', teamError);
+                    }
+                    
                     // Propager aux composants enfants si nécessaire
                     this.$nextTick(() => {
                         // Force refresh des composants qui dépendent de currentMission
@@ -100,6 +111,7 @@
                     const newMission = await this.missionService.createMission(name);
                     this.missions.push(newMission);
                     this.currentMission = newMission;
+                    this.activeTeam = null;  // Reset active team when creating a new mission
                 } catch (error) {
                     console.error('Failed to create mission:', error);
                 }
