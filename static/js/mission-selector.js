@@ -367,6 +367,46 @@ export default {
             }
         },
 
+        handleConnectionError(error) {
+            const retryCount = this.connectionStatus.retryCount;
+            const message = retryCount > 1 
+                ? `Connection lost. Retry attempt ${retryCount}...`
+                : 'Connection lost. Retrying...';
+        
+            this.handleError({
+                title: 'Connection Error',
+                message: message,
+                type: 'connection',
+                retry: true,
+                details: error.message
+            });
+
+            const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 30000);
+            setTimeout(() => this.checkConnection(), delay);
+        },
+
+        validateMissionState(missionData) {
+            if (!missionData) return false;
+            if (!missionData.id) return false;
+            if (!missionData.name) return false;
+    
+            const requiredProps = ['id', 'name', 'path', 'status'];
+            return requiredProps.every(prop => missionData.hasOwnProperty(prop));
+        },
+
+        async cleanupMissionState() {
+            try {
+                this.stateUpdateQueue = [];
+                this.stateUpdateInProgress = false;
+                this.runningStates.clear();
+                this.errorMessage = null;
+                this.showError = false;
+                this.$emit('update:loading', false);
+            } catch (error) {
+                console.error('Error cleaning up mission state:', error);
+            }
+        },
+
         handleError(error) {
             const message = typeof error === 'string' ? error : (
                 error.message || 'An unexpected error occurred'

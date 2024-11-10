@@ -30,6 +30,47 @@ export default {
             return this.files ? this.files.length : 0;
         }
     },
+
+    fileExists(file) {
+        return file && file.size > 0;
+    },
+    
+    async checkFileModifications() {
+        try {
+            if (!this.currentMission?.id) return;
+
+            const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
+            if (!response.ok) throw new Error('Failed to fetch files');
+            
+            const currentFiles = await response.json();
+            
+            // Only process files that exist
+            currentFiles.filter(file => file.size > 0).forEach(file => {
+                const previousModified = this.fileModifications.get(file.path);
+                if (previousModified && previousModified < file.modified) {
+                    this.highlightFile(file.path);
+                }
+                this.fileModifications.set(file.path, file.modified);
+            });
+        } catch (error) {
+            console.error('Error checking file modifications:', error);
+        }
+    },
+
+    fileExists(file) {
+        return file && file.size > 0;
+    },
+
+    highlightFile(filePath) {
+        this.highlightedFiles.add(filePath);
+        setTimeout(() => {
+            this.highlightedFiles.delete(filePath);
+        }, 2000);
+    },
+
+    handleSidebarCollapse(collapsed) {
+        this.missionSidebarCollapsed = collapsed;
+    },
     beforeUnmount() {
         if (this.fileCheckInterval) {
             clearInterval(this.fileCheckInterval);
