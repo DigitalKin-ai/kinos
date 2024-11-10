@@ -186,8 +186,8 @@ def register_mission_routes(app, web_instance):
             if not mission:
                 return jsonify({'error': 'Mission not found'}), 404
 
-            # Construire le chemin complet en incluant le nom de la mission
-            mission_dir = os.path.join("missions", mission['name'])
+            # Get mission path using PathManager
+            mission_dir = PathManager.get_mission_path(mission['name'])
             
             # Sécuriser le chemin du fichier
             safe_path = os.path.normpath(file_path)
