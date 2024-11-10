@@ -87,6 +87,7 @@ from agents.agent_types import (
     DocumentalisteAgent,
     DuplicationAgent,
     TesteurAgent,
+    ValidationAgent,
     RedacteurAgent
 )
 
