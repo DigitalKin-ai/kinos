@@ -5,6 +5,8 @@ Ce module contient les implémentations spécifiques des agents qui héritent
 de AiderAgent. Chaque agent a un rôle et des responsabilités distincts dans
 le processus de développement.
 """
+from typing import Dict
+from aider_agent import AiderAgent
 
 class ValidationAgent(AiderAgent):
     """
