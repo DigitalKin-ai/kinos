@@ -124,7 +124,7 @@ class AgentService:
                 "anthropic_api_key": config["anthropic_api_key"],
                 "openai_api_key": config["openai_api_key"],
                 "mission_name": mission_name,
-                "logger": self.web_instance.logger.log,  # Use logger.log method
+                "logger": self.web_instance.log_message,  # Use log_message directly
                 "web_instance": self.web_instance,  # Add web_instance to base config
                 "mission_dir": mission_dir  # Add mission directory instead of file_path
             }
