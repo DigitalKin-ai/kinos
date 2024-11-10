@@ -200,6 +200,9 @@ class KinOSWeb:
             self.logger.log(f"❌ {component} initialization failed: {str(error)}", 'error')
 
     def __init__(self, config):
+        # Force socket cleanup first
+        self._cleanup_sockets()
+        
         # Store config for agent initialization
         self.config = config
         
@@ -1094,6 +1097,22 @@ class KinOSWeb:
         except Exception as e:
             self.logger.log(f"Error reinitializing agents: {str(e)}", 'error')
 
+    def _cleanup_sockets(self):
+        """Force cleanup of lingering sockets"""
+        import socket
+        import gc
+        
+        # Force garbage collection
+        gc.collect()
+        
+        # Close any lingering sockets
+        for obj in gc.get_objects():
+            if isinstance(obj, socket.socket):
+                try:
+                    obj.close()
+                except:
+                    pass
+
     def shutdown(self):
         """Graceful shutdown of the application"""
         try:
@@ -1103,6 +1122,9 @@ class KinOSWeb:
             # Cleanup services
             self.notification_service.cleanup()
             self.file_service.cleanup()
+            
+            # Force socket cleanup
+            self._cleanup_sockets()
             
             self.logger.log("Application shutdown complete", 'info')
             
