@@ -116,7 +116,6 @@ class ApiClient {
         });
         window.dispatchEvent(connectionErrorEvent);
     }
-}
 
     async get(endpoint) {
         const response = await fetch(`${this.baseUrl}${endpoint}`);
@@ -163,6 +162,7 @@ class ApiClient {
         });
         return this.handleResponse(response);
     }
+}
 
     async checkServerConnection() {
         try {
@@ -383,64 +383,6 @@ class ApiClient {
         return this.handleResponse(response);
     }
 
-    async selectMission(missionId) {
-        try {
-            // Validation des paramètres
-            if (!missionId || isNaN(missionId)) {
-                throw new Error('Invalid mission ID');
-            }
-
-            const response = await this.handleRequest(`/api/missions/${missionId}/select`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            // Vérifications supplémentaires
-            if (!response.status || response.status !== 'success') {
-                throw new Error(response.error || 'Mission selection failed');
-            }
-
-            // Événement personnalisé pour notifier le changement de mission
-            const event = new CustomEvent('mission-selected', { 
-                detail: { 
-                    missionId, 
-                    missionName: response.name 
-                } 
-            });
-            window.dispatchEvent(event);
-
-            return response;
-        } catch (error) {
-            console.error('Mission selection error:', error);
-            
-            // Événement d'erreur
-            const errorEvent = new CustomEvent('mission-selection-error', { 
-                detail: { 
-                    error: error.message,
-                    missionId 
-                } 
-            });
-            window.dispatchEvent(errorEvent);
-
-            throw error;
-        }
-    }
-
-    async getMissionContent(missionId) {
-        const response = await fetch(`/api/missions/${missionId}/content`);
-        return this.handleResponse(response);
-    }
-
-    async createMission(name, description = '') {
-        const response = await fetch(`/api/missions`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, description })
-        });
-        return this.handleResponse(response);
-    }
 
     // Notification endpoints
     async getNotifications() {
@@ -456,6 +398,4 @@ class ApiClient {
         });
         return this.handleResponse(response);
     }
-}
-
 export default ApiClient;
