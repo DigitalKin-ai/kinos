@@ -626,14 +626,14 @@ export default {
                 <div v-else-if="missions.length === 0" class="mission-empty">
                     Aucune mission disponible 
                 </div>
-                <div v-else v-for="mission in sortedMissions" 
-                     :key="mission.id"
+                <div v-else v-for="missionData in sortedMissions" 
+                     :key="missionData.id"
                      class="mission-item relative"
-                     :class="{ active: currentMission?.id === mission.id }"
-                     @mouseenter="hoveredMissionId = mission.id"
+                     :class="{ active: currentMission?.id === missionData.id }"
+                     @mouseenter="hoveredMissionId = missionData.id"
                      @mouseleave="hoveredMissionId = null">
                     <div class="flex items-center justify-between w-full px-4 py-2"
-                         @click="selectMission(mission)">
+                         @click="selectMission(missionData)">
                         <div class="mission-content">
                             <div v-if="sidebarCollapsed" class="mission-letter">
                                 ${ mission.name.charAt(0).toUpperCase() }
