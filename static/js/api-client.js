@@ -70,7 +70,7 @@ class ApiClient {
     async checkServerConnection() {
         try {
             const response = await Promise.race([
-                fetch(`${this.baseUrl}/api/status`, {
+                fetch('/api/status', {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json'
