@@ -43,7 +43,7 @@ def register_notification_routes(app, web_instance):
             return True
             
         except Exception as e:
-            web_instance.logger.log(f"Error handling notification: {str(e)}", 'error')
+            web_instance.log_message(f"Error handling notification: {str(e)}", 'error')
             return False
 
     @app.route('/api/notifications', methods=['GET'], endpoint='api_notifications_get')
