@@ -170,15 +170,24 @@ class AiderAgent(KinOSAgent):
             self.mission_files = {}  # Reset en cas d'erreur
 
     def get_prompt(self) -> str:
-        """Get the current prompt content"""
+        """Get the current prompt content with caching"""
         try:
             if not self.prompt_file:
                 return self.prompt  # Return default prompt if no file specified
                 
-            # Try to load from file
+            # Check cache first
+            mtime = os.path.getmtime(self.prompt_file)
+            if self.prompt_file in self._prompt_cache:
+                cached_time, cached_content = self._prompt_cache[self.prompt_file]
+                if cached_time == mtime:
+                    return cached_content
+
+            # Load from file if not in cache or cache invalid
             if os.path.exists(self.prompt_file):
                 with open(self.prompt_file, 'r', encoding='utf-8') as f:
-                    return f.read()
+                    content = f.read()
+                    self._prompt_cache[self.prompt_file] = (mtime, content)
+                    return content
             else:
                 self.logger(f"Prompt file not found: {self.prompt_file}")
                 return self.prompt  # Fallback to default prompt
@@ -188,29 +197,41 @@ class AiderAgent(KinOSAgent):
             return self.prompt  # Fallback to default prompt
 
     def save_prompt(self, content: str) -> bool:
-        """Save new prompt content"""
+        """Save new prompt content with validation"""
         try:
             if not self.prompt_file:
                 self.logger("No prompt file configured")
                 return False
                 
+            # Validate content
+            if not content or not content.strip():
+                raise ValueError("Prompt content cannot be empty")
+                
             # Ensure prompts directory exists
             os.makedirs(os.path.dirname(self.prompt_file), exist_ok=True)
             
-            # Save to file
-            with open(self.prompt_file, 'w', encoding='utf-8') as f:
-                f.write(content)
+            # Save to temporary file first
+            temp_file = f"{self.prompt_file}.tmp"
+            try:
+                with open(temp_file, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                    
+                # Rename temp file to actual file (atomic operation)
+                os.replace(temp_file, self.prompt_file)
                 
-            # Update instance prompt
-            self.prompt = content
-            
-            # Clear cache
-            if self.prompt_file in self._prompt_cache:
-                del self._prompt_cache[self.prompt_file]
+                # Update instance prompt and clear cache
+                self.prompt = content
+                if self.prompt_file in self._prompt_cache:
+                    del self._prompt_cache[self.prompt_file]
+                    
+                self.logger(f"Prompt saved successfully to {self.prompt_file}")
+                return True
                 
-            self.logger(f"Prompt saved successfully to {self.prompt_file}")
-            return True
-            
+            finally:
+                # Clean up temp file if it exists
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+                    
         except Exception as e:
             self.logger(f"Error saving prompt: {str(e)}")
             return False
@@ -238,16 +259,39 @@ class AiderAgent(KinOSAgent):
             self.logger(f"Erreur chargement prompt: {e}")
             return None
 
-    def _build_prompt(self, context: dict) -> str:
-        """Charge et formate le prompt depuis le fichier"""
+    def _build_prompt(self, context: dict = None) -> str:
+        """Build the complete prompt with context"""
         try:
-            prompt_template = self._load_prompt()
-            if not prompt_template:
-                return super()._build_prompt(context)
+            # Get base prompt content
+            prompt_content = self.get_prompt()
+            if not prompt_content:
+                raise ValueError("No prompt content available")
                 
-            return prompt_template.format(
-                context=self._format_mission_files(context)
-            )
+            # If no context provided, return base prompt
+            if not context:
+                return prompt_content
+                
+            # Format mission files info
+            files_info = self._format_mission_files(context)
+            
+            # Add agent status info
+            status_info = {
+                'last_run': self.last_run.isoformat() if self.last_run else 'Never',
+                'last_change': self.last_change.isoformat() if self.last_change else 'Never',
+                'consecutive_no_changes': self.consecutive_no_changes,
+                'current_interval': self.calculate_dynamic_interval()
+            }
+            
+            # Combine all context
+            full_context = {
+                'files': files_info,
+                'status': status_info,
+                **context  # Include any additional context
+            }
+            
+            # Format prompt with context
+            return prompt_content.format(**full_context)
+            
         except Exception as e:
-            self.logger(f"Erreur chargement prompt: {e}")
-            return super()._build_prompt(context)  # Fallback au prompt par défaut
+            self.logger(f"Error building prompt: {str(e)}")
+            return self.prompt  # Fallback to default prompt
