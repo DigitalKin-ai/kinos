@@ -1110,18 +1110,17 @@ class KinOSWeb:
             import time
             time.sleep(1)
             
-            # Configure Flask server with socket handling
-            from werkzeug.serving import make_server
+            # Set Flask debug mode
+            self.app.debug = debug
             
-            options = {
-                'debug': debug,
-                'use_reloader': False,  # Disable reloader
-                'threaded': True        # Enable threading
+            # Configure server options (separate from Flask options)
+            server_options = {
+                'threaded': True  # Only pass valid make_server options
             }
             
             # Create server explicitly
             try:
-                self._initialize_server(host, port, options)
+                self._initialize_server(host, port, server_options)
                 self.logger.log(f"Starting server on {host}:{port}", 'info')
                 self.server.serve_forever()
             except Exception as server_error:
