@@ -124,6 +124,19 @@ export default {
         }
     },
     methods: {
+        async handleMissionOperation(operation, errorMessage) {
+            try {
+                return await this.retryWithBackoff(operation);
+            } catch (error) {
+                // Check if it's a connection error
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    this.connectionStatus.connected = false;
+                    throw new Error('Server connection lost. Please check your connection and try again.');
+                }
+                throw error;
+            }
+        },
+
         async retryWithBackoff(operation, maxRetries = 3) {
             let delay = 1000; // Start with 1s delay
             
