@@ -178,7 +178,7 @@
                 } catch (error) {
                     console.error('Mission selection failed:', error);
                     // Only update running state if mission is valid
-                    if (mission && mission.id) {
+                    if (mission?.id) {
                         this.runningStates.set(mission.id, false);
                     }
                 
