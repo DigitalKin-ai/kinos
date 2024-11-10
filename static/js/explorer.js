@@ -200,13 +200,6 @@ export default {
             );
         }
     },
-                    throw new Error('Failed to get mission path');
-                }
-                return await response.json();
-            } catch (error) {
-                console.error('Error getting mission path:', error);
-                throw error;
-            }
         },
 
         async loadMissionFiles() {
