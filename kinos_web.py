@@ -1366,24 +1366,24 @@ class KinOSWeb:
         return self.app
 
 if __name__ == "__main__":
-    from config import Config
+    from config.global_config import GlobalConfig
     import sys
     
     try:
         # Validate configuration
-        Config.validate()
+        GlobalConfig.validate()
         
         # Create app instance
         app = KinOSWeb({
-            "anthropic_api_key": Config.ANTHROPIC_API_KEY,
-            "openai_api_key": Config.OPENAI_API_KEY
+            "anthropic_api_key": GlobalConfig.ANTHROPIC_API_KEY,
+            "openai_api_key": GlobalConfig.OPENAI_API_KEY
         })
         
         # Run app with explicit host/port
         app.run(
-            host='0.0.0.0',  # Listen on all interfaces
-            port=8000,       # Use port 8000
-            debug=Config.DEBUG
+            host=GlobalConfig.HOST,
+            port=GlobalConfig.PORT,
+            debug=GlobalConfig.DEBUG
         )
         
     except Exception as e:

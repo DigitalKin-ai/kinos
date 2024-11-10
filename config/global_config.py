@@ -171,3 +171,38 @@ class GlobalConfig:
         }
         
         return log_levels.get(log_level_str, logging.INFO)
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+class GlobalConfig:
+    # API Keys
+    ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+
+    # Server Configuration
+    DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+    PORT = int(os.getenv('PORT', 8000))
+    HOST = os.getenv('HOST', '0.0.0.0')
+    
+    # Timeout and Retry Configurations
+    REQUEST_TIMEOUT = int(os.getenv('REQUEST_TIMEOUT', 10))  # 10 seconds
+    MAX_RETRIES = int(os.getenv('MAX_RETRIES', 3))
+    RETRY_DELAY = int(os.getenv('RETRY_DELAY', 1))  # 1 second
+    
+    @classmethod
+    def validate(cls):
+        """
+        Validate critical configuration parameters
+        
+        Raises:
+            ValueError: If critical configuration is missing
+        """
+        if not cls.ANTHROPIC_API_KEY:
+            raise ValueError("ANTHROPIC_API_KEY not configured")
+        if not cls.OPENAI_API_KEY:
+            raise ValueError("OPENAI_API_KEY not configured")
+        
+        return True
