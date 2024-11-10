@@ -36,7 +36,11 @@ export default {
             hoveredMissionId: null,
             errorMessage: null,
             showError: false,
-            runningStates: new Map()     // Use Map to track running states
+            runningStates: new Map(),     // Use Map to track running states
+            serverRetries: 0,
+            maxRetries: 3,
+            retryDelay: 1000, // 1 second
+            serverCheckInterval: null
         }
     },
     computed: {
@@ -191,9 +195,52 @@ export default {
             }, 5000);
         },
 
+        async checkServerConnection() {
+            try {
+                const response = await Promise.race([
+                    fetch('/api/status', {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    }),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Request timeout')), 5000)
+                    )
+                ]);
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Server returned ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.server?.running === true;
+            } catch (error) {
+                console.error('Server connection check failed:', error);
+                throw error;
+            }
+        },
+
+        async retryWithBackoff(operation) {
+            let delay = this.retryDelay;
+            
+            for (let i = 0; i < this.maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    if (i === this.maxRetries - 1) throw error;
+                    
+                    console.warn(`Attempt ${i + 1} failed, retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2; // Exponential backoff
+                }
+            }
+        },
+
         async selectMission(mission) {
             if (!mission?.id) {
-                console.error('Invalid mission object:', mission);
                 this.handleError('Invalid mission selected');
                 return;
             }
@@ -201,82 +248,71 @@ export default {
             try {
                 this.$emit('update:loading', true);
 
-                // Check server connection first
-                try {
-                    const checkResponse = await fetch('/api/status', {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        signal: AbortSignal.timeout(5000)
-                    });
-                    
-                    if (!checkResponse.ok) {
-                        throw new Error('Server not responding');
+                // Check server connection with retries
+                await this.retryWithBackoff(async () => {
+                    const isConnected = await this.checkServerConnection();
+                    if (!isConnected) {
+                        throw new Error('Server is not responding. Please check if it is running.');
                     }
-                } catch (connectionError) {
-                    throw new Error('Cannot connect to server. Please ensure the server is running.');
-                }
+                });
 
-                // Use the runningStates Map
                 const wasRunning = this.runningStates.get(mission.id) || false;
 
                 // Stop agents if running
                 if (wasRunning) {
                     try {
-                        const stopResponse = await fetch('/api/agents/stop', { 
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            signal: AbortSignal.timeout(5000)
+                        await this.retryWithBackoff(async () => {
+                            const response = await fetch('/api/agents/stop', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                signal: AbortSignal.timeout(5000)
+                            });
+                            
+                            if (!response.ok) throw new Error('Failed to stop agents');
+                            this.runningStates.set(mission.id, false);
                         });
-                        
-                        if (!stopResponse.ok) {
-                            throw new Error('Failed to stop agents');
-                        }
-                        
-                        this.runningStates.set(mission.id, false);
                     } catch (stopError) {
-                        console.warn('Error stopping agents:', stopError);
-                        this.handleError('Warning: Failed to stop agents');
+                        console.warn('Warning: Failed to stop agents', stopError);
+                        this.handleError('Warning: Failed to stop agents, but continuing mission selection');
                     }
                 }
 
-                // Select new mission with timeout
-                const response = await fetch(`/api/missions/${mission.id}/select`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    signal: AbortSignal.timeout(5000)
+                // Select mission with retries
+                const result = await this.retryWithBackoff(async () => {
+                    const response = await fetch(`/api/missions/${mission.id}/select`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        signal: AbortSignal.timeout(5000)
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to select mission');
+                    }
+
+                    return response.json();
                 });
 
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to select mission');
-                }
-
-                const result = await response.json();
-                
-                // Update mission state
+                // Update state
                 this.$emit('select-mission', result);
                 this.$emit('update:current-mission', result);
 
-                // Restore previous running state if needed
+                // Restore previous state if needed
                 if (wasRunning) {
                     try {
-                        const startResponse = await fetch('/api/agents/start', { 
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            signal: AbortSignal.timeout(5000)
+                        await this.retryWithBackoff(async () => {
+                            const response = await fetch('/api/agents/start', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                signal: AbortSignal.timeout(5000)
+                            });
+                            
+                            if (!response.ok) throw new Error('Failed to restart agents');
+                            this.runningStates.set(mission.id, true);
                         });
-                        
-                        if (!startResponse.ok) {
-                            throw new Error('Failed to restart agents');
-                        }
-                        
-                        this.runningStates.set(mission.id, true);
                     } catch (startError) {
-                        console.warn('Error restarting agents:', startError);
-                        this.handleError('Warning: Failed to restart agents');
+                        console.warn('Warning: Failed to restart agents', startError);
+                        this.handleError('Warning: Failed to restart agents after mission selection');
                     }
                 }
 
@@ -285,7 +321,10 @@ export default {
             } catch (error) {
                 console.error('Mission selection failed:', error);
                 this.runningStates.set(mission.id, false);
-                this.handleError(error.message || 'Failed to select mission. Please try again.');
+                this.handleError(
+                    `Failed to select mission: ${error.message}. ` +
+                    'Please ensure the server is running and try again.'
+                );
                 throw error;
             } finally {
                 this.$emit('update:loading', false);
