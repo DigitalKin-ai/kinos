@@ -48,6 +48,14 @@ class KinOSWeb:
             # Initialize basic services first
             self.logger.log("Initializing core components...", level='info')
             
+            # Get prompts directory using PathManager
+            prompts_dir = PathManager.get_prompts_path()
+            
+            if not os.path.exists(prompts_dir):
+                os.makedirs(prompts_dir)
+                self.log_message("Created prompts directory", level='info')
+                return
+
             # Initialize agents in inactive state - don't raise error if no agents initialized
             try:
                 self.agent_service.init_agents(config)

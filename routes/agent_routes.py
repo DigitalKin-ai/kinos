@@ -60,6 +60,14 @@ def register_agent_routes(app, web_instance):
                 web_instance.log_message(f"Insufficient permissions on prompts directory: {prompts_dir}", level='error')
                 return jsonify({'error': 'Insufficient permissions on prompts directory'}), 500
 
+            # Get prompts directory using PathManager
+            prompts_dir = PathManager.get_prompts_path()
+            
+            # Validate prompts directory exists
+            if not os.path.exists(prompts_dir):
+                web_instance.log_message(f"Prompts directory not found: {prompts_dir}", level='error')
+                return jsonify({'error': 'Prompts directory not found'}), 500
+
             # List all .md files in prompts directory
             for file in os.listdir(prompts_dir):
                 if file.endswith('.md'):

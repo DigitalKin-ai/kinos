@@ -154,6 +154,9 @@ class MissionService:
             # Use PathManager to get mission directory path
             mission_dir = PathManager.get_mission_path(normalized_name)
             
+            # Use PathManager to get mission directory path
+            mission_dir = PathManager.get_mission_path(normalized_name)
+            
             # Create directory
             os.makedirs(mission_dir, exist_ok=True)
             
