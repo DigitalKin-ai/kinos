@@ -74,20 +74,22 @@ class AiderAgent(KinOSAgent):
         try:
             current_dir = os.getcwd()
             
-            # Verify mission directory exists
-            if not os.path.exists(self.mission_dir):
-                self.logger(f"[{self.__class__.__name__}] ❌ Mission directory not found: {self.mission_dir}")
+            # Get mission path using PathManager
+            mission_path = PathManager.get_mission_path(self.web_instance.file_manager.current_mission)
+            
+            if not os.path.exists(mission_path):
+                self.logger(f"[{self.__class__.__name__}] ❌ Mission directory not found: {mission_path}")
                 return None
 
             try:
-                os.chdir(self.mission_dir)
-                self.logger(f"[{self.__class__.__name__}] 📂 Changed to directory: {self.mission_dir}")
+                os.chdir(mission_path)
+                self.logger(f"[{self.__class__.__name__}] 📂 Changed to directory: {mission_path}")
 
                 # Build command with explicit paths and logging
                 from utils.path_manager import PathManager
                 cmd = [
                     "aider",
-                    "--model", "claude-3-5-sonnet-20241022", # instead of claude-3-5-haiku-20241022
+                    "--model", "claude-3-5-sonnet-20241022",
                     "--no-git",
                     "--yes-always",
                     "--cache-prompts",
