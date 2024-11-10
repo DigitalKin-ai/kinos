@@ -24,31 +24,51 @@ def register_agent_routes(app, web_instance):
     @safe_operation()
     def list_agents():
         try:
-            prompts_dir = "prompts"
-            agents = []
+            # Get absolute path to prompts directory
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            prompts_dir = os.path.join(project_root, "prompts")
             
+            if not os.path.exists(prompts_dir):
+                web_instance.log_message(f"Prompts directory not found: {prompts_dir}", level='error')
+                return jsonify({'error': 'Prompts directory not found'}), 500
+
+            agents = []
             # List all .md files in prompts directory
             for file in os.listdir(prompts_dir):
                 if file.endswith('.md'):
                     agent_id = file[:-3]  # Remove .md
                     agent_name = agent_id.lower()
                     
-                    # Read prompt file content
-                    with open(os.path.join(prompts_dir, file), 'r', encoding='utf-8') as f:
-                        prompt_content = f.read()
-                    
-                    # Get agent status if it exists
-                    agent_status = web_instance.agent_service.get_agent_status().get(agent_name, {})
-                    
-                    agents.append({
-                        'id': agent_id,
-                        'name': agent_name,
-                        'prompt': prompt_content,
-                        'running': agent_status.get('running', False),
-                        'last_run': agent_status.get('last_run'),
-                        'status': agent_status.get('status', 'inactive')
-                    })
-                    
+                    try:
+                        # Read prompt file content with absolute path
+                        prompt_path = os.path.join(prompts_dir, file)
+                        with open(prompt_path, 'r', encoding='utf-8') as f:
+                            prompt_content = f.read()
+                        
+                        # Get agent status if available
+                        agent_status = {}
+                        if hasattr(web_instance.agent_service, 'agents'):
+                            agent = web_instance.agent_service.agents.get(agent_name)
+                            if agent:
+                                agent_status = {
+                                    'running': agent.running if hasattr(agent, 'running') else False,
+                                    'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
+                                    'status': 'active' if getattr(agent, 'running', False) else 'inactive'
+                                }
+                        
+                        agents.append({
+                            'id': agent_id,
+                            'name': agent_name,
+                            'prompt': prompt_content,
+                            'running': agent_status.get('running', False),
+                            'last_run': agent_status.get('last_run'),
+                            'status': agent_status.get('status', 'inactive')
+                        })
+                        
+                    except Exception as e:
+                        web_instance.log_message(f"Error processing agent {agent_name}: {str(e)}", level='error')
+                        continue
+                        
             return jsonify(agents)
             
         except Exception as e:
