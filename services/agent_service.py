@@ -11,13 +11,8 @@ import inspect
 from agents.kinos_agent import KinOSAgent
 from utils.path_manager import PathManager
 
-# Import agent types dynamically
-agent_classes = {
-    name: cls for name, cls in inspect.getmembers()
-    if (inspect.isclass(cls) and 
-        issubclass(cls, KinOSAgent) and 
-        cls != KinOSAgent)
-}
+from agents.kinos_agent import KinOSAgent
+from aider_agent import AiderAgent
 
 class AgentService:
     def __init__(self, web_instance):
