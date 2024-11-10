@@ -261,19 +261,19 @@ class MissionService:
             for mission_name, mission_path in mission_dirs:
                 # Create mission object with sequential ID
                 mission = {
-                        'id': mission_id,
-                        'name': mission_name,
-                        'path': mission_path,
-                        'status': 'active',
-                        'created_at': datetime.fromtimestamp(
-                            os.path.getctime(mission_path)
-                        ).isoformat(),
-                        'updated_at': datetime.fromtimestamp(
-                            os.path.getmtime(mission_path)
-                        ).isoformat()
-                    }
-                    missions.append(mission)
-                    mission_id += 1
+                    'id': mission_id,
+                    'name': mission_name,
+                    'path': mission_path,
+                    'status': 'active',
+                    'created_at': datetime.fromtimestamp(
+                        os.path.getctime(mission_path)
+                    ).isoformat(),
+                    'updated_at': datetime.fromtimestamp(
+                        os.path.getmtime(mission_path)
+                    ).isoformat()
+                }
+                missions.append(mission)
+                mission_id += 1
             
             return missions
             
