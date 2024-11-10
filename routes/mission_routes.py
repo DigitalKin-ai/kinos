@@ -4,68 +4,6 @@ import fnmatch
 from flask import jsonify, request
 from utils.decorators import safe_operation
 
-def register_mission_routes(app, web_instance):
-    """Register all mission-related routes"""
-    @app.route('/api/missions', methods=['GET'])
-    @safe_operation()
-    def get_missions():
-        missions = web_instance.mission_service.get_all_missions()
-        return jsonify(missions)
-
-    @app.route('/api/missions', methods=['POST'])
-    @safe_operation()
-    def create_mission():
-        data = request.get_json()
-        if not data or 'name' not in data:
-            return jsonify({'error': 'Name is required'}), 400
-            
-        mission = web_instance.mission_service.create_mission(
-            name=data['name'],
-            description=data.get('description')
-        )
-        
-        if mission:
-            # Update current mission in FileManager
-            web_instance.file_manager.current_mission = mission['name']
-            
-            # Update agent paths for new mission
-            web_instance.agent_service.update_agent_paths(mission['name'])
-            
-            # Log success
-            web_instance.logger.log(f"Created and activated mission: {mission['name']}", level='success')
-            
-        return jsonify(mission), 201
-
-    @app.route('/api/missions/<int:mission_id>', methods=['GET'])
-    @safe_operation()
-    def get_mission(mission_id):
-        mission = web_instance.mission_service.get_mission(mission_id)
-        if not mission:
-            return jsonify({'error': 'Mission not found'}), 404
-        return jsonify(mission)
-
-    @app.route('/api/missions/<int:mission_id>/content', methods=['GET'])
-    @safe_operation()
-    def get_mission_content(mission_id):
-        try:
-            mission = web_instance.mission_service.get_mission(mission_id)
-            if not mission:
-                return jsonify({'error': 'Mission not found'}), 404
-                
-            # Return empty content object - no longer checking for demande.md
-            return jsonify({})
-            
-        except Exception as e:
-            web_instance.logger.log(f"Error getting mission content: {str(e)}", level='error')
-            return jsonify({'error': str(e)}), 500
-
-    @app.route('/api/missions/<int:mission_id>/test-data', methods=['POST'])
-    @safe_operation()
-    def load_test_data(mission_id):
-        success = web_instance.mission_service.load_test_data(mission_id)
-        if not success:
-            return jsonify({'error': 'Failed to load test data'}), 500
-        return jsonify({'status': 'success'})
 
 
 def should_ignore_file(file_path: str, ignore_patterns: list, web_instance) -> bool:
@@ -107,6 +45,12 @@ def load_ignore_patterns(mission_dir: str, web_instance) -> list:
 
 def register_mission_routes(app, web_instance):
     """Register all mission-related routes"""
+    
+    @app.route('/api/missions', methods=['GET'])
+    @safe_operation()
+    def get_missions():
+        missions = web_instance.mission_service.get_all_missions()
+        return jsonify(missions)
 
     @app.route('/api/missions/<int:mission_id>/files')
     @safe_operation()
