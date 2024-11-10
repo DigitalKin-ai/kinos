@@ -78,21 +78,33 @@ The KinOS system uses a modular architecture built around autonomous agents that
   - Cache performance metrics
   - Real-time updates
 
-### Cache System
-- Multi-level caching strategy
-  - Memory cache with LRU eviction
-  - File content caching with timestamps
-  - Prompt caching per agent
-  - Cache invalidation on file changes
-  - Performance metrics collection
-  - Automatic cleanup scheduling
+### File System
+- Structure dynamique par mission
+  * Organisation flexible des fichiers
+  * Création à la demande par les agents
+  * Pas de structure prédéfinie imposée
+  * Support multi-fichiers par agent
 
-- Cache Operations
-  - Thread-safe access
-  - TTL management
-  - Hit/miss tracking
-  - Size limits
-  - Eviction policies
+- Gestion intelligente des chemins
+  * Normalisation automatique via FileManager
+  * Validation stricte des permissions
+  * Résolution dynamique des chemins
+  * Support des chemins relatifs/absolus
+  * Prévention des conflits de noms
+
+- Sécurité et validation
+  * Vérification des permissions UNIX
+  * Validation des chemins de fichiers
+  * Prévention des traversées de répertoire
+  * Nettoyage automatique des ressources
+  * Logging des opérations sensibles
+
+- Optimisation des accès
+  * Cache intelligent du contenu
+  * Verrouillage thread-safe
+  * Retry automatique sur erreur
+  * Gestion efficace des ressources
+  * Métriques de performance
 
 ### Error Management
 - Centralized error handling via ErrorHandler
