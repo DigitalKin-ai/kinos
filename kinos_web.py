@@ -223,6 +223,27 @@ class KinOSWeb:
         self.logger.log(f"Template directory: {template_dir}", 'debug')
         self.logger.log(f"Static directory: {static_dir}", 'debug')
         
+        # Add teams template to template paths
+        teams_template_path = os.path.join(self.template_dir, 'teams.html')
+        if not os.path.exists(teams_template_path):
+            self.logger.log(f"Creating teams template at: {teams_template_path}", 'info')
+            with open(teams_template_path, 'w', encoding='utf-8') as f:
+                f.write("""<!DOCTYPE html>
+<html>
+<head>
+    <title>KinOS - Teams</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/teams.css">
+    <script src="https://unpkg.com/vue@3"></script>
+</head>
+<body>
+    <div id="app">
+        <teams-manager></teams-manager>
+    </div>
+    <script type="module" src="/static/js/teams-manager.js"></script>
+</body>
+</html>""")
+        
         # Verify paths exist
         if not os.path.exists(template_dir):
             raise RuntimeError(f"Template directory not found: {template_dir}")
