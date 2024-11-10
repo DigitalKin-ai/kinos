@@ -62,7 +62,15 @@
                 missions: [],
                 loading: true,
                 activeTeam: null,
-                teams: []
+                teams: [],
+                error: null,
+                errorMessage: null,
+                showError: false,
+                connectionStatus: {
+                    connected: true,
+                    lastCheck: null,
+                    retryCount: 0
+                }
             }
         },
         async mounted() {
