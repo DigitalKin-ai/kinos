@@ -640,8 +640,10 @@ export default {
                             </div>
                             <span v-else class="mission-name">${ mission.name }</span>
                         </div>
-                            <i class="mdi mdi-folder-outline"></i>
-                            <span class="mission-name">\${ mission.name }</span>
+                            <div v-if="sidebarCollapsed" class="mission-letter">
+                                ${ mission.name.charAt(0).toUpperCase() }
+                            </div>
+                            <span v-else class="mission-name">${ mission.name }</span>
                         </div>
                         <div class="flex items-center">
                             <!-- Date tooltip -->
@@ -649,7 +651,7 @@ export default {
                                 <span v-if="hoveredMissionId === mission.id"
                                       class="absolute right-16 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
                                       style="top: 50%; transform: translateY(-50%)">
-                                    \${ formatDate(mission.updated_at || mission.created_at) }
+                                    ${ formatDate(mission.updated_at || mission.created_at) }
                                 </span>
                             </transition>
                         </div>
