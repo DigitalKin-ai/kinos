@@ -1,8 +1,10 @@
 import ApiClient from './api-client.js';
+import TeamService from './team-service.js';
 
 class MissionService {
     constructor(baseUrl = '') {
         this.apiClient = new ApiClient(baseUrl);
+        this.teamService = new TeamService(this);
         this.currentMission = null;
         this.missions = [];
         this.runningStates = new Map();
