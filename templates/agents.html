@@ -40,12 +40,14 @@
     import MissionService from "{{ url_for('static', filename='js/mission-service.js') }}";
     import AgentManager from "{{ url_for('static', filename='js/agent-manager.js') }}";
     import HeaderComponent from "{{ url_for('static', filename='js/components/header.js') }}";
+    import TeamMetrics from "{{ url_for('static', filename='js/components/team-metrics.js') }}";
 
     const app = Vue.createApp({
         components: {
             MissionSelector,
             AgentManager,
-            HeaderComponent
+            HeaderComponent,
+            TeamMetrics
         },
         data() {
             return {
@@ -53,7 +55,7 @@
                 currentMission: null,
                 missions: [],
                 loading: true,
-                activeTeam: null  // Added to resolve warning
+                activeTeam: null
             }
         },
         async mounted() {
