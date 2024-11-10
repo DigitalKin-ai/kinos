@@ -66,6 +66,7 @@ class KinOSAgent:
                 - mission_dir: Mission directory path
                 - name: Agent name
         """
+        self.original_dir = os.getcwd()  # Save original working directory
         # Configure default encoding
         import sys
         import codecs
@@ -156,6 +157,12 @@ class KinOSAgent:
         self.last_run = None
         self.last_change = None
         self.consecutive_no_changes = 0
+        
+        # Change to mission directory if this is a ValidationAgent
+        if self.__class__.__name__ == 'ValidationAgent':
+            if not os.path.exists(self.mission_dir):
+                raise ValueError(f"Mission directory not found: {self.mission_dir}")
+            os.chdir(self.mission_dir)
 
 
     def stop(self) -> None:
@@ -170,6 +177,12 @@ class KinOSAgent:
         # Clean up any pending operations
         if hasattr(self, 'current_content'):
             self.write_file(self.current_content)
+        
+        # Restore original working directory
+        try:
+            os.chdir(self.original_dir)
+        except Exception as e:
+            self.logger.log(f"[{self.__class__.__name__}] Error restoring working directory: {str(e)}")
             
     def recover_from_error(self):
         """
