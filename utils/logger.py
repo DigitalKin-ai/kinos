@@ -15,7 +15,7 @@ class Logger:
     def log(self, message: str, level: str = 'info', **kwargs):
         """Main logging method that handles all cases"""
         try:
-            # Remove level from kwargs to avoid duplicate
+            # Always remove level from kwargs to prevent duplicates
             kwargs.pop('level', None)
             
             # Extract file_path from kwargs
