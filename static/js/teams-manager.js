@@ -782,4 +782,4 @@ export default {
             </div>
         </div>
     `
-};
+}}
