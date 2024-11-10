@@ -304,6 +304,66 @@ class KinOSWeb:
         # Initialize components with config
         self._initialize_components(config)
 
+    def _register_routes(self):
+        """Register all route blueprints"""
+        
+        # Check if routes are already registered to prevent duplicates
+        if hasattr(self, '_routes_registered'):
+            return
+
+        # Register core status route
+        @self.app.route('/api/status', methods=['GET'])
+        def get_status():
+            """Get server and agents status"""
+            try:
+                status = {
+                    'server': {
+                        'running': True,
+                        'timestamp': datetime.now().isoformat()
+                    },
+                    'agents': {}
+                }
+                
+                # Add agent status if agent service is initialized
+                if hasattr(self, 'agent_service'):
+                    for name, agent in self.agent_service.agents.items():
+                        status['agents'][name] = {
+                            'running': agent.running if hasattr(agent, 'running') else False,
+                            'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
+                            'status': 'active' if getattr(agent, 'running', False) else 'inactive',
+                            'health': {
+                                'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
+                                'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
+                            }
+                        }
+                    
+                return jsonify(status)
+                
+            except Exception as e:
+                self.log_message(f"Error getting status: {str(e)}", 'error')
+                return jsonify({
+                    'error': str(e),
+                    'type': e.__class__.__name__,
+                    'details': {
+                        'traceback': traceback.format_exc(),
+                        'timestamp': datetime.now().isoformat()
+                    }
+                }), 500
+
+        # Register all blueprint routes
+        register_agent_routes(self.app, self)
+        register_mission_routes(self.app, self)
+        register_notification_routes(self.app, self)
+        register_view_routes(self.app, self)
+
+        # Mark routes as registered
+        self._routes_registered = True
+
+        # Log registered routes for debugging
+        self.log_message("Registered routes:", 'info')
+        for rule in self.app.url_map.iter_rules():
+            self.log_message(f"  {rule.endpoint}: {rule.methods} {rule}", 'info')
+
     def init_agents(self, config):
         """Initialisation des agents avec configuration standard"""
         try:
@@ -985,83 +1045,6 @@ class KinOSWeb:
                     return jsonify({'error': str(e)}), 500
 
 
-    def _register_routes(self):
-        """Register all route blueprints"""
-        
-        # First register core routes directly on the app
-        @self.app.route('/api/status', methods=['GET'], endpoint='api_core_status')  # Changed endpoint name
-        def get_status():
-            """Get server and agents status"""
-            try:
-                status = {
-                    'server': {
-                        'running': True,
-                        'timestamp': datetime.now().isoformat()
-                    },
-                    'agents': {}
-                }
-                
-                # Add agent status if agent service is initialized
-                if hasattr(self, 'agent_service'):
-                    for name, agent in self.agent_service.agents.items():
-                        status['agents'][name] = {
-                            'running': agent.running if hasattr(agent, 'running') else False,
-                            'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
-                            'status': 'active' if getattr(agent, 'running', False) else 'inactive',
-                            'health': {
-                                'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
-                                'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
-                            }
-                        }
-                    
-                return jsonify(status)
-                
-            except Exception as e:
-                self.log_message(f"Error getting status: {str(e)}", 'error')
-                return jsonify({
-                    'error': str(e),
-                    'type': e.__class__.__name__,
-                    'details': {
-                        'traceback': traceback.format_exc(),
-                        'timestamp': datetime.now().isoformat()
-                    }
-                }), 500
-
-        # Add error handlers
-        @self.app.errorhandler(404)
-        def not_found_error(error):
-            """Handle 404 errors"""
-            self.log_message(f"404 Error: {str(error)}", 'error')
-            return jsonify({
-                'error': 'Not Found',
-                'message': str(error),
-                'type': '404',
-                'timestamp': datetime.now().isoformat()
-            }), 404
-
-        @self.app.errorhandler(500)
-        def internal_error(error):
-            """Handle 500 errors"""
-            self.log_message(f"500 Error: {str(error)}", 'error')
-            return jsonify({
-                'error': 'Internal Server Error',
-                'message': str(error),
-                'type': '500',
-                'timestamp': datetime.now().isoformat()
-            }), 500
-
-        # Then register blueprint routes only once
-        if not hasattr(self, '_routes_registered'):
-            register_agent_routes(self.app, self)
-            register_mission_routes(self.app, self)
-            register_notification_routes(self.app, self)
-            register_view_routes(self.app, self)
-            self._routes_registered = True
-
-        # Log registered routes for debugging
-        self.log_message("Registered routes:", 'info')
-        for rule in self.app.url_map.iter_rules():
-            self.log_message(f"  {rule.endpoint}: {rule.methods} {rule}", 'info')
 
     def _handle_api_error(self, operation: str, error: Exception, status_code: int = 500) -> tuple:
         """Centralized API error handling"""
