@@ -3,7 +3,7 @@ import time
 import threading
 import traceback
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, List
 from utils.exceptions import AgentError
 from agents.kinos_agent import KinOSAgent
 from agents.agent_types import (
