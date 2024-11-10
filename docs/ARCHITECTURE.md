@@ -55,6 +55,7 @@ The KinOS system uses a modular architecture built around autonomous agents that
     * Mesures quantitatives
     * Validation des critères objectifs
     * Contrôle qualité automatisé
+    * Contrôle qualité automatisé
 
 ### Services
 - `services/base_service.py` - Base class for all services
