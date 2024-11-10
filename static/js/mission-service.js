@@ -3,7 +3,7 @@ import TeamService from './team-service.js';
 
 class MissionService {
     constructor(baseUrl = '') {
-        this.apiClient = new ApiClient(baseUrl);
+        this.apiClient = new ApiClient('');  // Empty base URL for relative paths
         this.teamService = new TeamService(this);
         this.currentMission = null;
         this.missions = [];
@@ -13,6 +13,26 @@ class MissionService {
             lastCheck: null,
             retryCount: 0
         };
+    }
+
+    async retryWithBackoff(operation, maxRetries = 3) {
+        let delay = 1000;
+        let lastError = null;
+        
+        for (let i = 0; i < maxRetries; i++) {
+            try {
+                return await operation();
+            } catch (error) {
+                lastError = error;
+                if (i === maxRetries - 1) break;
+                
+                console.warn(`Attempt ${i + 1} failed, retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2; // Exponential backoff
+            }
+        }
+        
+        throw lastError || new Error('Operation failed after retries');
     }
 
     async checkServerConnection() {
