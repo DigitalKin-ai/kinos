@@ -1,3 +1,4 @@
+import os
 from flask import render_template, redirect, url_for
 from utils.decorators import safe_operation
 from utils.error_handler import ErrorHandler
