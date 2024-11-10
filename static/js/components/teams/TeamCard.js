@@ -15,7 +15,15 @@ export default {
         isActive: Boolean,
         metrics: Object
     },
-    emits: ['toggle', 'activate', 'add-agent'],
+    emits: ['toggle', 'activate', 'add-agent', 'toggle-agent'],
+    methods: {
+        handleAgentToggle(agent) {
+            this.$emit('toggle-agent', {
+                teamName: this.team.name,
+                agent: agent
+            });
+        }
+    },
     template: `
         <div class="bg-white rounded-lg shadow-md p-6 team-card relative">
             <!-- Loading indicator -->
