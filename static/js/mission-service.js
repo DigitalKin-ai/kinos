@@ -300,3 +300,47 @@ class MissionService {
 }
 
 export default MissionService;
+import ApiClient from './api-client.js';
+
+export default class MissionService {
+    constructor(baseUrl = '') {
+        this.apiClient = new ApiClient(baseUrl);
+    }
+
+    async getAllMissions() {
+        try {
+            return await this.apiClient.getAllMissions();
+        } catch (error) {
+            console.error('Error fetching missions:', error);
+            throw error;
+        }
+    }
+
+    async selectMission(mission) {
+        try {
+            const missionId = mission.id || mission;
+            return await this.apiClient.selectMission(missionId);
+        } catch (error) {
+            console.error('Error selecting mission:', error);
+            throw error;
+        }
+    }
+
+    async createMission(name, description = '') {
+        try {
+            return await this.apiClient.createMission(name, description);
+        } catch (error) {
+            console.error('Error creating mission:', error);
+            throw error;
+        }
+    }
+
+    async getMissionTeams(missionId) {
+        try {
+            return await this.apiClient.getMissionTeams(missionId);
+        } catch (error) {
+            console.error('Error fetching mission teams:', error);
+            throw error;
+        }
+    }
+}
