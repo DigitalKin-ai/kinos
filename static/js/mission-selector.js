@@ -194,6 +194,9 @@ export default {
                     console.warn('Error stopping agents:', stopError);
                 }
 
+                // Add delay before mission selection
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
                 // Select mission with retry logic
                 const maxRetries = 3;
                 let lastError = null;
@@ -221,6 +224,9 @@ export default {
                         this.$emit('select-mission', result);
                         this.$emit('update:current-mission', result);
 
+                        // Add delay before restoring agents
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+
                         // Restore previous running state if needed
                         if (wasRunning) {
                             try {
@@ -240,6 +246,7 @@ export default {
                     } catch (error) {
                         lastError = error;
                         if (attempt < maxRetries - 1) {
+                            // Exponential backoff
                             await new Promise(resolve => 
                                 setTimeout(resolve, Math.pow(2, attempt + 1) * 1000)
                             );

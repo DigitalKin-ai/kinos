@@ -173,7 +173,7 @@ def register_mission_routes(app, web_instance):
                 return jsonify({'error': 'Mission not found'}), 404
 
             # Verify mission directory exists and is accessible
-            mission_dir = os.path.join("missions", mission['name'])
+            mission_dir = PathManager.get_mission_path(mission['name'])
             if not os.path.exists(mission_dir):
                 web_instance.logger.log(f"Mission directory not found: {mission_dir}", 'error')
                 return jsonify({'error': 'Mission directory not found'}), 404
@@ -183,7 +183,15 @@ def register_mission_routes(app, web_instance):
                 return jsonify({'error': 'Insufficient permissions on mission directory'}), 500
 
             # Stop all agents before changing mission
-            web_instance.agent_service.stop_all_agents()
+            try:
+                web_instance.agent_service.stop_all_agents()
+                web_instance.logger.log("All agents stopped successfully", 'success')
+            except Exception as stop_error:
+                web_instance.logger.log(f"Warning: Error stopping agents: {stop_error}", 'warning')
+                # Continue even if stop fails
+            
+            # Force socket cleanup
+            web_instance._cleanup_sockets()
             
             # Update current mission in FileManager
             try:
@@ -193,6 +201,9 @@ def register_mission_routes(app, web_instance):
                 return jsonify({'error': 'Failed to update current mission'}), 500
 
             web_instance.logger.log(f"Successfully selected mission: {mission['name']}", 'success')
+            
+            # Add delay before returning
+            time.sleep(1)
             
             return jsonify(mission)
             
