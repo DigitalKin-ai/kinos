@@ -1,10 +1,14 @@
 import os
 from pathlib import Path
 import fnmatch
+import os
+from pathlib import Path
+import fnmatch
 from flask import jsonify, request
 from utils.decorators import safe_operation
 
 def register_mission_routes(app, web_instance):
+    """Register all mission-related routes"""
     @app.route('/api/missions', methods=['GET'])
     @safe_operation()
     def get_missions():
