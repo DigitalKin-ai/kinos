@@ -111,7 +111,6 @@ export default {
             try {
                 agent.loading = true;
                 const action = agent.running ? 'stop' : 'start';
-                console.log(`Attempting to ${action} agent: ${agent.id}`);
                 
                 const response = await fetch(`/api/agent/${agent.id}/${action}`, {
                     method: 'POST',
@@ -129,24 +128,15 @@ export default {
                 
                 if (result.status === 'success') {
                     agent.running = !agent.running;
-                    console.log(`Successfully ${action}ed agent: ${agent.id}`);
-                } else if (result.status === 'pending') {
-                    // Handle pending state (waiting for file creation)
-                    this.showNotification({
-                        type: 'info',
-                        message: result.message || 'Agent waiting for file creation'
+                    this.$emit('agent-status-changed', {
+                        id: agent.id,
+                        running: agent.running
                     });
-                } else {
-                    throw new Error(result.error || `Failed to ${action} agent`);
                 }
+                
             } catch (error) {
                 console.error('Failed to toggle agent:', error);
-                // Show error to user
-                if (this.$root.$emit) {
-                    this.$root.$emit('show-error', `Error controlling agent: ${error.message}`);
-                } else {
-                    alert(`Error controlling agent: ${error.message}`);
-                }
+                this.error = error.message;
             } finally {
                 agent.loading = false;
             }
