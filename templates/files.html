@@ -84,7 +84,7 @@
         },
         data() {
             return {
-                missionService: new MissionService(),
+                missionService: null,
                 currentMission: null,
                 missions: [],
                 loading: true,
@@ -97,9 +97,7 @@
         // Add this method to ensure missionService is passed
         created() {
             // Ensure missionService is initialized before mounting
-            if (!this.missionService) {
-                this.missionService = new MissionService();
-            }
+            this.missionService = new MissionService();
         },
         async mounted() {
             try {
@@ -118,7 +116,7 @@
                 this.loading = false;
             } catch (error) {
                 console.error('Failed to load missions:', error);
-                this.error = error.message;
+                this.error = error.message || 'An unexpected error occurred';
                 this.loading = false;
             }
         },
