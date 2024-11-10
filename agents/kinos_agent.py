@@ -95,11 +95,9 @@ class KinOSAgent:
         logger_config = config.get("logger", print)
         if callable(logger_config):
             # Create wrapper that ensures level is only passed once
-            def wrapper(*args, **kwargs):
+            def wrapper(message, level='info', **kwargs):
                 # Extract level from kwargs if present
-                level = kwargs.pop('level', 'info')
-                # If there are positional args, first one is message
-                message = args[0] if args else kwargs.pop('message', '')
+                level = kwargs.pop('level', level)  # Use passed level or default
                 # Call with explicit parameters, no kwargs for level
                 return logger_config(message, level, **kwargs)
             
