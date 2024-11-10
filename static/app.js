@@ -45,14 +45,53 @@ const app = createApp({
     },
     methods: {
         async selectMission(mission) {
+            if (!mission?.id) {
+                console.error('Invalid mission selected');
+                this.error = 'Invalid mission selected';
+                return;
+            }
+
             try {
                 this.loading = true;
+                const wasRunning = this.runningAgents.size > 0;
+
+                // Stop agents if running
+                if (wasRunning) {
+                    try {
+                        await fetch('/api/agents/stop', { method: 'POST' });
+                        this.runningAgents.clear();
+                    } catch (stopError) {
+                        console.warn('Warning: Failed to stop agents', stopError);
+                        // Continue with mission selection even if stop fails
+                    }
+                }
+
+                // Select mission
                 await this.missionService.selectMission(mission);
                 this.currentMission = this.missionService.getCurrentMission();
                 await this.loadMissionContent(mission.id);
+
+                // Restart agents if they were running
+                if (wasRunning) {
+                    try {
+                        await fetch('/api/agents/start', { method: 'POST' });
+                        // Restore agent states
+                        const status = await fetch('/api/agents/status').then(r => r.json());
+                        Object.keys(status).forEach(agent => {
+                            if (status[agent].running) {
+                                this.runningAgents.add(agent);
+                            }
+                        });
+                    } catch (startError) {
+                        console.warn('Warning: Failed to restart agents', startError);
+                        this.error = 'Warning: Failed to restart agents after mission selection';
+                    }
+                }
             } catch (error) {
                 console.error('Mission selection failed:', error);
                 this.error = error.message;
+                // Clear running states on error
+                this.runningAgents.clear();
             } finally {
                 this.loading = false;
             }
