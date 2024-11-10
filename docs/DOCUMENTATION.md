@@ -172,51 +172,46 @@ La configuration des agents est maintenant plus flexible et robuste :
 - Contraintes sur les valeurs numériques
 - Logging des erreurs de validation
 
-#### Système de Prompts
+### Gestion des Prompts
 
-1. **Templates de Prompts**
-- Structure standardisée en Markdown
-- Sections obligatoires :
-  * Mission
-  * Context
-  * Instructions
-  * Rules
-- Validation automatique du format
+#### Structure Simple
+- Fichiers Markdown (*.md) stockés dans le dossier `prompts/`
+- Format libre et flexible
+- Pas de sections obligatoires
+- Pas de validation structurelle
 
-2. **Personnalisation des Prompts**
-- Fichiers de customisation JSON dans `config/prompts/<agent_name>_custom.json`
-- Remplacement de placeholders : `{$variable}`
-- Sections additionnelles configurables
-- Règles personnalisées par agent
+#### Organisation
+- Un fichier prompt par agent : `prompts/<agent_name>.md`
+- Exemple : `prompts/validation.md` pour ValidationAgent
+- Contenu en texte brut, format Markdown
+- Modifications possibles pendant l'exécution
 
-3. **Format de Customisation**
-```json
-{
-    "version": "1.0",
-    "customizations": {
-        "variables": {
-            "max_files": 10,
-            "timeout": 300
-        },
-        "additional_sections": [
-            {
-                "title": "Performance Guidelines",
-                "content": "..."
-            }
-        ],
-        "rules": [
-            "Toujours valider les entrées",
-            "Logger les opérations importantes"
-        ]
-    }
-}
-```
+#### Utilisation
 
-4. **Validation des Prompts**
-- Vérification de la structure Markdown
-- Validation des sections requises
-- Contrôle du format des listes
-- Détection des placeholders non remplacés
+1. **Création d'un Prompt**
+- Créer un fichier .md dans le dossier `prompts/`
+- Écrire les instructions en texte libre
+- Sauvegarder avec le nom de l'agent
+
+2. **Modification des Prompts**
+- Édition directe via l'interface web
+- Rechargement automatique par l'agent
+- Pas de redémarrage nécessaire
+- Conservation de l'historique des modifications
+
+#### Bonnes Pratiques
+
+1. **Rédaction**
+- Être clair et concis
+- Utiliser le Markdown pour la lisibilité
+- Documenter le contexte si nécessaire
+- Éviter les instructions contradictoires
+
+2. **Maintenance**
+- Garder les prompts à jour
+- Documenter les changements majeurs
+- Faire des sauvegardes régulières
+- Tester les modifications importantes
 
 #### Utilisation
 
