@@ -266,6 +266,17 @@ class KinOSWeb:
                         static_url_path='/static')
         CORS(self.app)
         
+        # Initialize rate limiter
+        self.limiter = Limiter(
+            app=self.app,
+            key_func=get_remote_address,
+            default_limits=["1000 per minute"]
+        )
+        
+        # Register routes and handlers
+        self._register_routes()
+        self._register_error_handlers()
+        
         # Add debug logging for paths
         self.logger.log(f"Template directory: {template_dir}", 'debug')
         self.logger.log(f"Static directory: {static_dir}", 'debug')
