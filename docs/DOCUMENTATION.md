@@ -5,11 +5,12 @@
 ### Agents
 
 #### Architecture des Agents
-- **Autonomie des fichiers**
-  - Chaque agent gère ses propres fichiers de manière autonome
-  - Pas de création automatique de fichiers au démarrage
-  - Liberté de créer/modifier plusieurs fichiers selon les besoins
-  - Surveillance dynamique des fichiers pertinents
+- **Gestion autonome des fichiers**
+  - Chaque agent détermine ses besoins en fichiers
+  - Création dynamique des fichiers selon le contexte
+  - Modification flexible de multiples fichiers
+  - Surveillance intelligente des fichiers pertinents
+  - Adaptation aux changements de structure
 
 - **Gestion des chemins**
   - Utilisation des chemins relatifs pour les opérations

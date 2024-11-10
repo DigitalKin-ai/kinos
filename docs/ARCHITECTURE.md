@@ -29,11 +29,12 @@ The KinOS system uses a modular architecture built around autonomous agents that
 
 ### Agents
 - `agents/kinos_agent.py` - Base agent class
-  - File monitoring
+  - Dynamic file management
+  - Flexible file monitoring
   - Self-regulated execution cycles
   - Automatic error recovery
-  - Dynamic timing adjustments
-  - Resource cleanup
+  - Adaptive timing control
+  - Smart resource management
 
 - `agents/aider_agent.py` - Aider integration
   - Prompt management with caching
