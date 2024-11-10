@@ -21,12 +21,15 @@ class CacheService(BaseService):
         super().__init__(web_instance)
         self.config = config or {}
         
+        # Use PathManager for cache directory
+        self.cache_dir = PathManager.get_temp_path()
+        
         # Cache settings
         self.max_size = self.config.get('CACHE_SIZE', 1000)
         self.ttl = self.config.get('CACHE_TTL', 3600)  # 1 hour default
         self.cleanup_interval = self.config.get('CLEANUP_INTERVAL', 300)  # 5 min
         
-        # Initialize caches
+        # Initialize caches with paths
         self._memory_cache: OrderedDict = OrderedDict()
         self._file_cache: Dict = {}
         self._prompt_cache: Dict = {}
@@ -39,6 +42,9 @@ class CacheService(BaseService):
         
         # Thread safety
         self._lock = Lock()
+        
+        # Ensure cache directory exists
+        os.makedirs(self.cache_dir, exist_ok=True)
         
         # Start cleanup timer
         self._start_cleanup_timer()
@@ -141,6 +147,10 @@ class CacheService(BaseService):
             return self._metadata_cache
         else:
             raise ValueError(f"Invalid cache type: {cache_type}")
+            
+    def _get_cache_file_path(self, key: str) -> str:
+        """Get full path for a cache file"""
+        return PathManager.get_temp_file(prefix=f"cache_{key}_", suffix=".tmp")
             
     def _is_expired(self, timestamp: float) -> bool:
         """Check if cache entry is expired"""
