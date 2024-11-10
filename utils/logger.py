@@ -12,22 +12,14 @@ class Logger:
         'redacteur': 'purple'
     }
     
-    def _normalize_params(self, level: str = 'info', **kwargs) -> tuple:
-        """Normalize logging parameters to prevent duplicates"""
-        # Remove level from kwargs if present
-        kwargs.pop('level', None)
-        # Ensure level is a string
-        level = str(level).lower()
-        return level, kwargs
-
-    def log(self, message: str, level: str = 'info', **kwargs):
+    def log(self, message: str, **kwargs):
         """Main logging method that handles all cases"""
         try:
-            # Normalize parameters
-            level, kwargs = self._normalize_params(level, **kwargs)
+            # Extract level from kwargs or use default
+            level = kwargs.pop('level', 'info')
             
             # Extract file_path from kwargs
-            file_path = kwargs.get('file_path')
+            file_path = kwargs.pop('file_path', None)
             
             timestamp = datetime.now().strftime("%H:%M:%S")
             formatted_message = f"[{timestamp}] [{level.upper()}] {message}"
@@ -44,12 +36,10 @@ class Logger:
             print(f"Logging error: {e}")
             print(f"Original message: {message}")
             
-    def __call__(self, message: str, level: str = 'info', **kwargs):
+    def __call__(self, message: str, **kwargs):
         """Unified call method that handles all logging patterns"""
-        level, kwargs = self._normalize_params(level, **kwargs)
-        self.log(message, level=level, **kwargs)
+        self.log(message, **kwargs)
 
-    def _log(self, message: str, level: str = 'info', **kwargs):
-        """Alias for log method with normalized parameters"""
-        level, kwargs = self._normalize_params(level, **kwargs)
-        self.log(message, level=level, **kwargs)
+    def _log(self, message: str, **kwargs):
+        """Alias for log method"""
+        self.log(message, **kwargs)
