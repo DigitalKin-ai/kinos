@@ -39,19 +39,6 @@ class KinOSAgent:
     - Activity-based timing adjustments
     """
     
-    # Default intervals for each agent type (in seconds)
-    DEFAULT_INTERVALS = {
-        'ValidationAgent': 120,      # Validation runs every 2 minutes
-        'SpecificationsAgent': 180,  # Specifications change less frequently
-        'ProductionAgent': 30,      # Medium reactivity
-        'ManagementAgent': 150,      # Coordination needs less frequency
-        'EvaluationAgent': 160,      # Allow changes to accumulate
-        'SuiviAgent': 140,          # More reactive monitoring
-        'DocumentalisteAgent': 170,  # Documentation updates less frequent
-        'DuplicationAgent': 130,     # Code analysis needs more time
-        'TesteurAgent': 190,         # Regular test execution
-        'RedacteurAgent': 35        # Content generation and updates
-    }
 
     def __init__(self, config: Dict[str, Any]):
         """
@@ -118,14 +105,48 @@ class KinOSAgent:
         # Now we can safely log since name is set
         self.logger.log(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
         
-        # Use agent-specific rhythm or default value
-        agent_type = self.__class__.__name__
+        # Load intervals config
+        self.intervals_config = self._load_intervals_config()
+        
+        # Get agent-specific interval or default
         self.check_interval = config.get(
-            "check_interval", 
-            self.DEFAULT_INTERVALS.get(agent_type, 10)
+            "check_interval",
+            self._get_agent_interval()
         )
         
         self.running = False
+        
+    def _load_intervals_config(self) -> Dict:
+        """Load agent intervals from config file"""
+        try:
+            config_path = os.path.join("config", "agent_intervals.json")
+            if os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    return json.load(f)
+            return {"default": 60, "intervals": {}}
+        except Exception as e:
+            self.logger.log(f"Error loading intervals config: {str(e)}", level='error')
+            return {"default": 60, "intervals": {}}
+
+    def _load_intervals_config(self) -> Dict:
+        """Load agent intervals from config file"""
+        try:
+            config_path = os.path.join("config", "agent_intervals.json")
+            if os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    return json.load(f)
+            return {"default": 60, "intervals": {}}
+        except Exception as e:
+            self.logger.log(f"Error loading intervals config: {str(e)}", level='error')
+            return {"default": 60, "intervals": {}}
+
+    def _get_agent_interval(self) -> int:
+        """Get interval for this agent type"""
+        agent_type = self.__class__.__name__.lower().replace('agent', '')
+        return self.intervals_config["intervals"].get(
+            agent_type,
+            self.intervals_config["default"]
+        )
         
         # Handle logger configuration
         logger_config = config.get("logger", print)

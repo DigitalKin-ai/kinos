@@ -1,0 +1,15 @@
+{
+    "default": 60,
+    "intervals": {
+        "validation": 120,
+        "specifications": 180,
+        "production": 30,
+        "management": 150,
+        "evaluation": 160,
+        "suivi": 140,
+        "documentaliste": 170,
+        "duplication": 130,
+        "testeur": 190,
+        "redacteur": 35
+    }
+}
