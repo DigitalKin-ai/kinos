@@ -1164,35 +1164,37 @@ class KinOSWeb:
         """Force cleanup of lingering sockets"""
         import socket
         import gc
-        import time
-        from contextlib import suppress
-        
+    
         try:
             # Force garbage collection first
             gc.collect()
-            
+        
             # Track cleaned sockets
             closed = 0
-            
+        
             # Close any lingering sockets
             for obj in gc.get_objects():
-                with suppress(ReferenceError):
+                try:
                     if isinstance(obj, socket.socket):
-                        with suppress(Exception):
-                            obj.close()
-                            closed += 1
-                            
-            # Add delay after cleanup
-            if closed > 0:
-                time.sleep(1)
+                        try:
+                            obj.shutdown(socket.SHUT_RDWR)
+                        except:
+                            pass
+                        obj.close()
+                        closed += 1
+                except Exception as e:
+                    print(f"Error closing socket: {e}")
                 
+            # Add small delay after cleanup
+            time.sleep(1)
+        
             # Second GC pass to clean up closed sockets
             gc.collect()
-                
+            
             # Log cleanup results
             if closed > 0:
                 self.logger.log(f"Cleaned up {closed} socket(s)", 'info')
-                
+            
         except Exception as e:
             self.logger.log(f"Socket cleanup warning: {str(e)}", 'warning')
 
@@ -1315,21 +1317,29 @@ class KinOSWeb:
             # Configure static files first
             self.app.static_folder = os.path.join(self.project_root, 'static')
             self.app.static_url_path = '/static'
-            
+        
             # Add favicon route
             @self.app.route('/favicon.ico')
             def favicon():
-                return self.app.send_from_directory(
+                return send_from_directory(
                     self.app.static_folder,
                     'favicon.ico',
                     mimetype='image/x-icon'
                 )
-                
+            
             # Add status route if not already registered
             if not self.app.view_functions.get('get_status'):
-                @self.app.route('/api/status')
+                @self.app.route('/api/status', methods=['GET', 'OPTIONS'])
                 def get_status():
                     """Get server status"""
+                    if request.method == 'OPTIONS':
+                        # Handle CORS preflight request
+                        response = make_response()
+                        response.headers.add("Access-Control-Allow-Origin", "*")
+                        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+                        response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+                        return response
+                
                     return jsonify({
                         'server': {
                             'running': True,
