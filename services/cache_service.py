@@ -2,11 +2,13 @@
 CacheService - Multi-level caching system for KinOS
 """
 from typing import Any, Optional, Dict
+import os
 import time
 from collections import OrderedDict
 from threading import Lock
 from utils.exceptions import ServiceError
 from services.base_service import BaseService
+from utils.path_manager import PathManager
 
 class CacheService(BaseService):
     """
