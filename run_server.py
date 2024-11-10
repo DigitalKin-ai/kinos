@@ -14,7 +14,7 @@ sys.path.insert(0, project_root)
 from kinos_web import KinOSWeb
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(logging.INFO)
 logger = logging.getLogger(__name__)
 
 def get_config():
