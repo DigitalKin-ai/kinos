@@ -1110,19 +1110,24 @@ class KinOSWeb:
             import time
             time.sleep(1)
             
-            # Configure Flask server
+            # Configure Flask server with socket handling
+            from werkzeug.serving import make_server
+            
             options = {
-                'host': host,
-                'port': port,
                 'debug': debug,
-                'use_reloader': False,  # Disable reloader to prevent socket issues
+                'use_reloader': False,  # Disable reloader
                 'threaded': True        # Enable threading
             }
             
-            # Start server
-            self.logger.log(f"Starting server on {host}:{port}", 'info')
-            self.app.run(**options)
-            
+            # Create server explicitly
+            try:
+                self._initialize_server(host, port, options)
+                self.logger.log(f"Starting server on {host}:{port}", 'info')
+                self.server.serve_forever()
+            except Exception as server_error:
+                self.logger.log(f"Server error: {str(server_error)}", 'error')
+                raise
+                
         except Exception as e:
             self.logger.log(f"Error running application: {str(e)}", 'error')
             import traceback
@@ -1132,8 +1137,8 @@ class KinOSWeb:
             # Ensure cleanup on exit
             try:
                 self.shutdown()
-            except:
-                pass
+            except Exception as shutdown_error:
+                self.logger.log(f"Error during shutdown: {str(shutdown_error)}", 'error')
             
     def reinitialize_agents(self):
         """Reinitialize agents with current mission configuration"""
@@ -1152,6 +1157,7 @@ class KinOSWeb:
         import socket
         import gc
         import time
+        from contextlib import suppress
         
         try:
             # Force garbage collection first
@@ -1162,17 +1168,12 @@ class KinOSWeb:
             
             # Close any lingering sockets
             for obj in gc.get_objects():
-                try:
+                with suppress(ReferenceError):
                     if isinstance(obj, socket.socket):
-                        try:
+                        with suppress(Exception):
                             obj.close()
                             closed += 1
-                        except:
-                            pass
-                except ReferenceError:
-                    # Skip if object was already collected
-                    continue
-                    
+                            
             # Add delay after cleanup
             if closed > 0:
                 time.sleep(1)
@@ -1186,7 +1187,6 @@ class KinOSWeb:
                 
         except Exception as e:
             self.logger.log(f"Socket cleanup warning: {str(e)}", 'warning')
-            # Don't raise - we want to continue even if cleanup has issues
 
     def shutdown(self):
         """Graceful shutdown of the application"""
@@ -1267,18 +1267,58 @@ class KinOSWeb:
     def shutdown(self):
         """Graceful shutdown of the application"""
         try:
+            # Stop server if running
+            if hasattr(self, 'server'):
+                try:
+                    self.server.shutdown()
+                except:
+                    pass
+            
             # Stop all agents
-            self.stop_agents()
+            if hasattr(self, 'agent_service'):
+                try:
+                    self.agent_service.stop_all_agents()
+                except Exception as e:
+                    self.logger.log(f"Error stopping agents: {str(e)}", 'error')
             
-            # Clear caches
-            self.content_cache.clear()
-            self.last_modified.clear()
+            # Cleanup services
+            for service_name in ['notification_service', 'file_service']:
+                if hasattr(self, service_name):
+                    try:
+                        service = getattr(self, service_name)
+                        if hasattr(service, 'cleanup'):
+                            service.cleanup()
+                    except Exception as e:
+                        self.logger.log(f"Error cleaning up {service_name}: {str(e)}", 'error')
             
-            self.log_message("Application shutdown complete")
+            # Force socket cleanup
+            self._cleanup_sockets()
+            
+            self.logger.log("Application shutdown complete", 'info')
+            
         except Exception as e:
-            self.log_message(f"Error during shutdown: {str(e)}")
+            self.logger.log(f"Error during shutdown: {str(e)}", 'error')
 
 
+
+    def _initialize_server(self, host, port, options):
+        """Initialize the server with proper socket handling"""
+        from werkzeug.serving import make_server
+        import socket
+        
+        # Create socket explicitly
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        
+        try:
+            sock.bind((host, port))
+        except Exception as e:
+            sock.close()
+            raise ServiceError(f"Failed to bind to {host}:{port}: {str(e)}")
+            
+        # Create server with socket
+        self.server = make_server(host, port, self.app, **options)
+        self.server.socket = sock
 
     def get_app(self):
         """Return the Flask app instance"""
