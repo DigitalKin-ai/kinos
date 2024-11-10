@@ -289,6 +289,55 @@ class AgentService:
             )
             self.monitor_thread.start()
 
+    def _calculate_system_health(self, metrics: Dict) -> float:
+        """
+        Calculate overall system health score from metrics
+        
+        Args:
+            metrics: Dictionary containing system metrics
+            
+        Returns:
+            float: Health score between 0.0 and 1.0
+        """
+        try:
+            # Calculate base health score from agent states
+            if metrics['total_agents'] == 0:
+                return 0.0
+                
+            # Weight different factors
+            agent_health = metrics['healthy_agents'] / metrics['total_agents']
+            active_ratio = metrics['active_agents'] / metrics['total_agents']
+            
+            # Calculate error rate
+            total_operations = (metrics['cache_hits'] + metrics['cache_misses'] + 
+                              metrics['file_operations']['reads'] + 
+                              metrics['file_operations']['writes'])
+            error_rate = metrics['error_count'] / max(total_operations, 1)
+            
+            # Calculate cache performance
+            cache_rate = metrics['cache_hits'] / max(metrics['cache_hits'] + metrics['cache_misses'], 1)
+            
+            # Weighted average of health indicators
+            weights = {
+                'agent_health': 0.4,
+                'active_ratio': 0.3,
+                'error_rate': 0.2,
+                'cache_rate': 0.1
+            }
+            
+            health_score = (
+                weights['agent_health'] * agent_health +
+                weights['active_ratio'] * active_ratio +
+                weights['error_rate'] * (1 - error_rate) +  # Invert error rate
+                weights['cache_rate'] * cache_rate
+            )
+            
+            return max(0.0, min(1.0, health_score))  # Clamp between 0 and 1
+            
+        except Exception as e:
+            self.web_instance.log_message(f"Error calculating system health: {str(e)}", level='error')
+            return 0.0  # Return 0 on error
+
     def _monitor_agents(self) -> None:
         """Monitor agent status and health with enhanced metrics"""
         while self.running:
