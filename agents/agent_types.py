@@ -84,6 +84,8 @@ class ValidationAgent(AiderAgent):
             # Toujours revenir au répertoire original
             os.chdir(self.original_dir)
 import os
+import importlib
+import inspect
 from typing import Dict, Optional
 from agents.kinos_agent import KinOSAgent
 from aider_agent import AiderAgent
