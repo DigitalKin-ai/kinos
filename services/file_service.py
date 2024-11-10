@@ -98,34 +98,6 @@ class FileService(BaseService):
             return []
 
     @safe_operation()
-    def ensure_mission_files(self, mission_name: str) -> bool:
-        """S'assure que tous les fichiers requis existent pour une mission"""
-        try:
-            mission_dir = os.path.join("missions", mission_name)
-            os.makedirs(mission_dir, exist_ok=True)
-            
-            required_files = [
-                "demande.md",
-                "specifications.md",
-                "management.md", 
-                "production.md",
-                "evaluation.md",
-                "suivi.md"
-            ]
-            
-            for filename in required_files:
-                file_path = os.path.join(mission_dir, filename)
-                if not os.path.exists(file_path):
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write("")  # Créer fichier vide
-                        
-            return True
-            
-        except Exception as e:
-            self._handle_error('ensure_mission_files', e)
-            return False
-
-    @safe_operation()
     def get_file_content(self, mission_id: int, file_path: str) -> Optional[str]:
         """Récupère le contenu d'un fichier de mission"""
         try:

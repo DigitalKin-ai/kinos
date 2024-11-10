@@ -121,17 +121,6 @@ python run_server.py
 - Coordination via AgentService
 - Résolution des conflits par ManagementAgent
 
-## 📁 Structure des Fichiers
-
-```plaintext
-/kinos
-  ├── demande.md         # Fichier de demande utilisateur
-  ├── specifications.md  # Agent Spécification
-  ├── management.md      # Agent Management
-  ├── production.md      # Agent Production
-  └── evaluation.md      # Agent Evaluation
-```
-
 ## 🛠️ Développement
 
 Pour contribuer au projet :

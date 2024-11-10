@@ -44,22 +44,6 @@ const KinOSApp = {
             currentPromptAgent: null,
             currentPrompt: '',
             promptChanged: false,
-            tabIds: {
-                'demande.md': 'demande',
-                'specifications.md': 'specifications',
-                'management.md': 'management',
-                'production.md': 'production',
-                'evaluation.md': 'evaluation',
-                'suivi.md': 'suivi'
-            },
-            tabs: [
-                { id: 'demande', name: 'Demande', icon: 'mdi mdi-file-document-outline' },
-                { id: 'specifications', name: 'Specifications', icon: 'mdi mdi-file-tree' },
-                { id: 'management', name: 'Management', icon: 'mdi mdi-account-supervisor' },
-                { id: 'production', name: 'Production', icon: 'mdi mdi-code-braces' },
-                { id: 'evaluation', name: 'Evaluation', icon: 'mdi mdi-check-circle' },
-                { id: 'suivi', name: 'Suivi', icon: 'mdi mdi-history' }
-            ],
             content: {
                 demande: '',
                 specifications: '',
@@ -70,12 +54,6 @@ const KinOSApp = {
             },
             previousContent: {},
             suiviUpdateInterval: null,
-            panels: [
-                { id: 'specifications', name: 'Specifications', icon: 'mdi mdi-file-tree', updating: false },
-                { id: 'management', name: 'Management', icon: 'mdi mdi-account-supervisor', updating: false },
-                { id: 'production', name: 'Production', icon: 'mdi mdi-code-braces', updating: false },
-                { id: 'evaluation', name: 'Evaluation', icon: 'mdi mdi-check-circle', updating: false }
-            ],
             demandeChanged: false,
             updateInterval: null,
             ws: null

@@ -15,8 +15,7 @@ Utilise plutôt :
 
 Tu es là pour REDIGER, pas pour PARLER de ce qu'il faut rédiger.
 
-# Instructions
-Est-ce que le contenu textuel couvre l'ensemble des attentes du manager ? à partir des informations disponibles, rédige le contenu textuel nécessaire.
+--> Est-ce que le contenu textuel couvre l'ensemble des attentes du manager ? à partir des informations disponibles, rédige le contenu textuel nécessaire.
 
 # Prompt système : Agent Rédacteur
 

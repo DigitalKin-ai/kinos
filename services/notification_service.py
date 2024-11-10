@@ -160,33 +160,6 @@ class NotificationService(BaseService):
             self.logger.log(f"Error creating file {file_name}: {str(e)}", level='error')
             return False
 
-    def update_paths(self, file_path: str, watch_files: list = None) -> None:
-        """Update file paths when mission changes"""
-        try:
-            # Update main file path
-            self.file_path = file_path
-            
-            # Create directory if needed
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            
-            # Update watch files
-            if watch_files:
-                self.mission_files = {
-                    path: os.path.getmtime(path) if os.path.exists(path) else 0
-                    for path in watch_files
-                }
-            
-            # List files in directory
-            self.list_files()
-            
-            self.logger(f"[{self.__class__.__name__}] ✓ Paths updated")
-            self.logger(f"[{self.__class__.__name__}] Main file: {self.file_path}")
-            self.logger(f"[{self.__class__.__name__}] Watch files: {list(self.mission_files.keys())}")
-            
-        except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Error updating paths: {str(e)}")
-            raise
-
     def cleanup(self):
         """Cleanup notification service resources"""
         try:
