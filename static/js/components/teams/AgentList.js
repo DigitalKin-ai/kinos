@@ -12,6 +12,14 @@ export default {
     },
     emits: ['toggle-agent'],
     methods: {
+        getAgentStatus(teamName, agent) {
+            return this.$parent.getAgentStatus(teamName, agent);
+        },
+
+        handleAgentToggle(agent) {
+            this.$emit('toggle-agent', agent);
+        },
+
         getAgentStatusClass(teamName, agent) {
             const isRunning = this.getAgentStatus(teamName, agent);
             return {
@@ -32,11 +40,6 @@ export default {
 
         getAgentStatusText(teamName, agent) {
             return this.getAgentStatus(teamName, agent) ? 'Stop' : 'Start';
-        },
-
-        getAgentStatus(teamName, agent) {
-            // This should be provided by a prop or parent component
-            return false; // Default state
         }
     },
     template: `

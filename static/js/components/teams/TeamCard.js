@@ -22,6 +22,17 @@ export default {
                 teamName: this.team.name,
                 agent: agent
             });
+        },
+
+        getTeamStatusClass() {
+            return {
+                'bg-red-500': this.team.running,
+                'bg-green-500': !this.team.running,
+                'hover:bg-red-600': this.team.running,
+                'hover:bg-green-600': !this.team.running,
+                'text-white': true,
+                'font-medium': true
+            };
         }
     },
     template: `
