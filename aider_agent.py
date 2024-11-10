@@ -143,27 +143,40 @@ class AiderAgent(KinOSAgent):
 
     def list_files(self) -> None:
         """
-        Liste tous les fichiers textuels dans le dossier de la mission 
+        Liste tous les fichiers textuels dans le dossier de la mission COURANTE 
         et initialise mission_files.
         """
         try:
+            # Vérifier que le dossier mission existe et est valide
+            if not os.path.exists(self.mission_dir):
+                self.logger(f"[{self.__class__.__name__}] ❌ Mission directory not found: {self.mission_dir}")
+                self.mission_files = {}
+                return
+
             # Liste des extensions à inclure
             text_extensions = {'.md', '.txt', '.json', '.yaml', '.yml', '.py', '.js', '.html', '.css', '.sh'}
             
-            # Récupérer tous les fichiers textuels
+            # Récupérer tous les fichiers textuels UNIQUEMENT dans le dossier de la mission courante
             text_files = {}
             for root, _, filenames in os.walk(self.mission_dir):
+                # Vérifier que nous sommes toujours dans le dossier de la mission
+                if not root.startswith(self.mission_dir):
+                    continue
+                    
                 for filename in filenames:
                     if os.path.splitext(filename)[1].lower() in text_extensions:
                         file_path = os.path.join(root, filename)
-                        text_files[file_path] = os.path.getmtime(file_path)
-                
+                        # Ne garder que les fichiers qui sont dans le dossier de la mission
+                        if os.path.commonpath([file_path, self.mission_dir]) == self.mission_dir:
+                            text_files[file_path] = os.path.getmtime(file_path)
+            
             # Mettre à jour mission_files
             self.mission_files = text_files
             
-            self.logger(f"[{self.__class__.__name__}] 📁 Fichiers trouvés: {len(self.mission_files)}")
+            self.logger(f"[{self.__class__.__name__}] 📁 Fichiers trouvés dans {self.mission_dir}: {len(self.mission_files)}")
             for file in self.mission_files:
-                self.logger(f"[{self.__class__.__name__}] 📄 {os.path.basename(file)}")
+                rel_path = os.path.relpath(file, self.mission_dir)
+                self.logger(f"[{self.__class__.__name__}] 📄 {rel_path}")
                 
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur listing fichiers: {str(e)}")
