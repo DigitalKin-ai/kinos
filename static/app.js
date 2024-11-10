@@ -169,11 +169,15 @@ const app = createApp({
             try {
                 // Check if File System Access API is supported
                 if (!('showDirectoryPicker' in window)) {
-                    throw new Error('File System Access API not supported in this browser');
+                    this.addNotification('error', 'File System Access API not supported in this browser');
+                    return;
                 }
                 
                 // Utiliser l'API moderne de sélection de dossier
-                const directoryHandle = await window.showDirectoryPicker()
+                const directoryHandle = await window.showDirectoryPicker({
+                    mode: 'readwrite',
+                    startIn: 'documents'
+                })
                     .catch(e => {
                         if (e.name === 'AbortError') {
                             throw e; // Re-throw abort errors to be handled by catch block
@@ -979,10 +983,19 @@ const app = createApp({
             });
     },
     beforeUnmount() {
+        // Cleanup all intervals
         this.stopContentMonitoring();
+        this.stopUpdateLoop();
         if (this.suiviUpdateInterval) {
             clearInterval(this.suiviUpdateInterval);
         }
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+        }
+        // Clear any pending state
+        this.stateUpdateQueue = [];
+        this.stateUpdateInProgress = false;
+        this.runningAgents.clear();
     }
 });
 
