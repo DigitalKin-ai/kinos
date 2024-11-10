@@ -191,23 +191,6 @@ class MissionService:
             self.logger.log(f"Error creating mission: {e}", level='error')
             return None
 
-    def ensure_mission_files(self, mission_name: str) -> bool:
-        """Create only demande.md if it doesn't exist"""
-        try:
-            # Use absolute path for mission directory
-            mission_dir = os.path.abspath(os.path.join(self.missions_dir, mission_name))
-            os.makedirs(mission_dir, exist_ok=True)
-            
-            # Only create demande.md
-            demande_path = os.path.abspath(os.path.join(mission_dir, "demande.md"))
-            if not os.path.exists(demande_path):
-                with open(demande_path, 'w', encoding='utf-8') as f:
-                    f.write("# Demande\n\n[En attente de la demande...]")
-                self.logger.log(f"Created initial demande.md for mission {mission_name}", level='info')
-            return True
-        except Exception as e:
-            self.logger.log(f"Error ensuring mission files: {e}", level='error')
-            return False
 
     def _get_initial_content(self, file_type: str) -> str:
         """Get initial content for a specific file type from templates"""

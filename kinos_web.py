@@ -674,23 +674,7 @@ class KinOSWeb:
                 if not mission:
                     return jsonify({'error': 'Mission not found'}), 404
 
-                # Get required files dynamically based on discovered agents
-                files_to_reset = self.get_required_agent_files()
-                # Remove demande.md since we don't want to reset it
-                files_to_reset.pop("demande", None)
-
-                # Réinitialiser chaque fichier de la mission sauf demande.md
-                for file_type, file_name in files_to_reset.items():
-                    initial_content = self.file_manager._get_initial_content(file_type)
-                    success = self.mission_service.save_mission_file(
-                        mission_id,
-                        file_type,
-                        initial_content
-                    )
-                    if not success:
-                        return jsonify({'error': f'Failed to reset {file_name}'}), 500
-
-                self.log_message(f"Files reset for mission {mission['name']} (excluding demande.md)", level='success')
+                self.log_message(f"Files reset for mission {mission['name']}", level='success')
                 return jsonify({'status': 'success'})
                 
             except Exception as e:
@@ -945,16 +929,6 @@ class KinOSWeb:
         register_notification_routes(self.app, self)
         register_view_routes(self.app, self)
         
-    def get_required_agent_files(self):
-        """Get list of required files based on discovered agents"""
-        files = {"demande": "demande.md"}  # Always required
-        
-        # Add file for each discovered agent
-        for agent_name in self.agent_service.get_available_agents():
-            base_name = agent_name.lower().replace('agent', '')
-            files[base_name] = f"{base_name}.md"
-            
-        return files
 
     def _register_error_handlers(self):
         """Register error handlers for different types of exceptions"""
