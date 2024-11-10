@@ -352,7 +352,7 @@ class KinOSWeb:
 
         @self.app.route('/api/missions/<int:mission_id>/files')
         def get_mission_files(mission_id):
-            """Get all text files in mission directory and subdirectories"""
+            """Get all files in mission directory respecting ignore patterns"""
             try:
                 mission = self.mission_service.get_mission(mission_id)
                 if not mission:
