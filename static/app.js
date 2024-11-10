@@ -11,6 +11,8 @@ const app = createApp({
             currentMission: null,
             missions: [],
             loading: true,
+            stateUpdateQueue: [],
+            stateUpdateInProgress: false,
             error: null,
             running: false,
             updateInterval: null,
@@ -165,6 +167,11 @@ const app = createApp({
 
         async linkExternalMission() {
             try {
+                // Check if File System Access API is supported
+                if (!('showDirectoryPicker' in window)) {
+                    throw new Error('File System Access API not supported in this browser');
+                }
+                
                 // Utiliser l'API moderne de sélection de dossier
                 const directoryHandle = await window.showDirectoryPicker()
                     .catch(e => {
@@ -762,6 +769,11 @@ const app = createApp({
         },
 
         async toggleAgent(agentId) {
+            if (!agentId) {
+                this.addNotification('error', 'Invalid agent ID');
+                return;
+            }
+
             try {
                 // Convertir la première lettre en majuscule
                 const formattedAgentId = agentId.charAt(0).toUpperCase() + agentId.slice(1);
