@@ -88,7 +88,8 @@ class AiderAgent(KinOSAgent):
                     "aider",
                     "--model", "claude-3-5-haiku-20241022",
                     "--no-git",
-                    "--yes-always"
+                    "--yes-always",
+                    "--cache-prompts"
                 ]
                 
                 # Ajouter les fichiers (chemins relatifs)
@@ -102,6 +103,7 @@ class AiderAgent(KinOSAgent):
                 
                 # Logger la commande
                 self.logger(f"[{self.__class__.__name__}] 🤖 Commande Aider :")
+                self.logger(f"  Command: {' '.join(cmd)}")
                 
                 # Exécuter Aider
                 process = subprocess.Popen(
