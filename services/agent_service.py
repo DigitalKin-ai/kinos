@@ -113,27 +113,41 @@ class AgentService:
                         "prompt_file": prompt_path
                     }
                     
-                    self.agents[name] = agent_class(agent_config)
+                    self.agents[name.lower()] = agent_class(agent_config)
                     successful_inits += 1
                     self.web_instance.log_message(f"✓ Agent {name} initialized", level='success')
                     
                 except Exception as e:
                     self.web_instance.log_message(f"Failed to initialize {name} agent: {str(e)}", level='error')
+                    continue
 
             if successful_inits == 0:
                 raise ValueError("No agents were successfully initialized")
 
             self.web_instance.log_message(f"Successfully initialized {successful_inits} agents", level='success')
+            return self.agents  # Return initialized agents
 
         except Exception as e:
             self.web_instance.log_message(f"Error initializing agents: {str(e)}", level='error')
             raise
+
+    def get_available_agents(self) -> List[str]:
+        """Get list of available agent names"""
+        return list(self.agents.keys())
 
     def start_all_agents(self) -> None:
         """Start all agents"""
         try:
             self.web_instance.log_message("🚀 Starting agents...", level='info')
             
+            # Check available agents
+            available_agents = self.get_available_agents()
+            self.web_instance.log_message(f"Available agents: {available_agents}", level='debug')
+            
+            if not available_agents:
+                self.web_instance.log_message("No agents available to start", level='warning')
+                return
+                
             # Get current mission from FileManager
             current_mission = self.web_instance.file_manager.current_mission
             if not current_mission:
