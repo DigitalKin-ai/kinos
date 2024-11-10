@@ -1,6 +1,67 @@
 from flask import jsonify, request
 from utils.decorators import safe_operation
 
+def _validate_team_configuration(team_id: str) -> Dict[str, Any]:
+    """
+    Validate and return team configuration with enhanced checks
+    
+    Args:
+        team_id (str): Team identifier
+    
+    Returns:
+        Dict with validated team configuration
+    
+    Raises:
+        ValidationError if team is invalid
+    """
+    predefined_teams = {
+        "book_writing": {
+            "name": "Book Writing Team",
+            "required_agents": [
+                "SpecificationsAgent", 
+                "ManagementAgent", 
+                "EvaluationAgent"
+            ],
+            "optional_agents": [
+                "SuiviAgent", 
+                "DocumentalisteAgent", 
+                "DuplicationAgent"
+            ]
+        },
+        "literature_review": {
+            "name": "Literature Review Team",
+            "required_agents": [
+                "SpecificationsAgent", 
+                "ManagementAgent", 
+                "EvaluationAgent"
+            ],
+            "optional_agents": [
+                "SuiviAgent", 
+                "DocumentalisteAgent", 
+                "DuplicationAgent"
+            ]
+        },
+        "coding": {
+            "name": "Coding Team",
+            "required_agents": [
+                "SpecificationsAgent", 
+                "ManagementAgent", 
+                "EvaluationAgent"
+            ],
+            "optional_agents": [
+                "SuiviAgent", 
+                "DocumentalisteAgent", 
+                "ProductionAgent", 
+                "TesteurAgent"
+            ]
+        }
+    }
+    
+    if team_id not in predefined_teams:
+        raise ValidationError(f"Invalid team: {team_id}")
+    
+    return predefined_teams[team_id]
+
 def register_team_routes(app, web_instance):
     """Register all team-related routes"""
     

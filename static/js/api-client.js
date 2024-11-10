@@ -199,22 +199,31 @@ class ApiClient {
     }
 
     async handleResponse(response) {
-        console.log('Raw response:', response);
-    
         try {
+            // More comprehensive error parsing
             if (!response.ok) {
-                // Try to parse error even if response is not OK
                 const errorText = await response.text();
-                console.error('Error response text:', errorText);
-            
+                let errorDetails = {
+                    status: response.status,
+                    statusText: response.statusText,
+                    message: 'Unknown server error'
+                };
+
                 try {
+                    // Try to parse JSON error
                     const errorJson = JSON.parse(errorText);
-                    throw new Error(errorJson.error || 'Unknown server error');
+                    errorDetails = {
+                        ...errorDetails,
+                        ...errorJson
+                    };
                 } catch {
-                    throw new Error(errorText || 'Unknown server error');
+                    // Fallback to raw error text
+                    errorDetails.message = errorText || errorDetails.message;
                 }
+
+                throw new Error(JSON.stringify(errorDetails));
             }
-        
+
             // Check for empty response
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {

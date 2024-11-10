@@ -149,121 +149,125 @@ class AgentService:
 
     def init_agents(self, config: Dict[str, Any], team_agents: Optional[List[str]] = None) -> None:
         try:
-            self.agents = {}
-        
-            # If no team agents provided, use a default list or get from team service
-            if team_agents is None:
-                # Try to get agents from the current active team
+            # Validate configuration keys
+            required_keys = ['anthropic_api_key', 'openai_api_key']
+            for key in required_keys:
+                if key not in config or not config[key]:
+                    raise ValueError(f"Missing required configuration: {key}")
+            
+            # More robust agent initialization
+            initialized_agents = {}
+            for agent_name in (team_agents or []):
                 try:
-                    active_team = self.web_instance.team_service.active_team
-                    team_agents = active_team['agents'] if active_team else []
-                except Exception:
-                    # Fallback to a default list if team service fails
-                    team_agents = [
-                        'specifications',
-                        'management',
-                        'evaluation',
-                        'suivi',
-                        'documentaliste',
-                        'duplication',
-                        'redacteur',
-                        'validation'
-                    ]
-        
-            # Log the agents being initialized
-            self.web_instance.log_message(f"Initializing agents: {team_agents}", 'info')
-        
-            # Get current mission from FileManager if available
-            current_mission = None
-            if hasattr(self.web_instance.file_manager, 'current_mission'):
-                current_mission = self.web_instance.file_manager.current_mission or "_temp"
-        
-            # Base configuration for all agents
-            base_config = {
-                **config,
-                "web_instance": self.web_instance,
-                "mission_name": current_mission or "_temp",
-                "mission_dir": os.path.join(PathManager.get_project_root(), "missions", current_mission or "_temp")
-            }
-
-            # Create temp mission dir if needed
-            os.makedirs(base_config["mission_dir"], exist_ok=True)
-
-            # Dynamically import AiderAgent
-            from aider_agent import AiderAgent
-
-            # Initialize each agent
-            for agent_name in team_agents:
-                try:
-                    # Convert to lowercase for consistency
-                    agent_key = agent_name.lower()
-                
-                    # Prepare agent-specific configuration
                     agent_config = {
-                        **base_config,
-                        "name": agent_key,
-                        "prompt": f"Agent {agent_name} prompt",  # Minimal default prompt
-                        "prompt_file": self._find_prompt_file(agent_name)  # Try to find prompt file
+                        **config,
+                        "name": agent_name.lower(),
+                        "prompt": self._load_agent_prompt(agent_name)
                     }
-                
-                    # Create agent instance
-                    agent = AiderAgent(agent_config)
-                
-                    # Store agent in dictionary
-                    self.agents[agent_key] = agent
-                
-                    self.web_instance.log_message(f"✓ Agent {agent_name} initialized", 'success')
-                
-                except Exception as e:
-                    self.web_instance.log_message(f"Error initializing agent {agent_name}: {str(e)}", 'error')
-
-            if not self.agents:
-                self.web_instance.log_message("No agents were initialized", 'warning')
+                    
+                    # Validate prompt before agent creation
+                    if not agent_config["prompt"]:
+                        self.web_instance.log_message(
+                            f"No prompt found for agent {agent_name}. Skipping.", 
+                            'warning'
+                        )
+                        continue
+                    
+                    agent = self._create_agent(agent_config)
+                    if agent:
+                        initialized_agents[agent_name.lower()] = agent
+                    
+                except Exception as agent_error:
+                    self.web_instance.log_message(
+                        f"Error initializing agent {agent_name}: {str(agent_error)}", 
+                        'error'
+                    )
+            
+            self.agents = initialized_agents
             
         except Exception as e:
-            self.web_instance.log_message(f"Error in agent initialization: {str(e)}", 'error')
+            self.web_instance.log_message(f"Agent initialization failed: {str(e)}", 'critical')
             raise
 
     def _find_prompt_file(self, agent_name: str) -> Optional[str]:
-        """Find prompt file for a specific agent"""
+        """Find prompt file for a specific agent with enhanced search strategy"""
         try:
-            # Get prompts directory using PathManager
-            prompts_dir = PathManager.get_prompts_path()
-        
-            # Ensure prompts directory exists
-            os.makedirs(prompts_dir, exist_ok=True)
-        
+            # Normalize agent name (lowercase, remove 'Agent' suffix)
+            normalized_name = agent_name.lower().replace('agent', '').strip()
+            
             # Possible prompt file variations
             possible_filenames = [
-                f"{agent_name}.md",
-                f"{agent_name.lower()}.md",
-                f"{agent_name.replace('Agent', '')}.md",
-                f"{agent_name.replace('Agent', '').lower()}.md"
+                f"{normalized_name}.md",
+                f"{normalized_name}_agent.md",
+                f"{normalized_name}agent.md"
             ]
-        
-            # Search for prompt file
-            for filename in possible_filenames:
-                prompt_path = os.path.join(prompts_dir, filename)
             
-                # If prompt file doesn't exist, create a default one
-                if not os.path.exists(prompt_path):
-                    try:
-                        with open(prompt_path, 'w', encoding='utf-8') as f:
-                            f.write(f"# {agent_name} Default Prompt\n\nDefault instructions for {agent_name}")
-                        self.web_instance.log_message(f"Created default prompt file for {agent_name}: {prompt_path}", 'info')
-                    except Exception as create_error:
-                        self.web_instance.log_message(f"Error creating default prompt file: {create_error}", 'error')
-                        continue
+            # Search locations using PathManager
+            search_locations = [
+                PathManager.get_prompts_path(),  # Main prompts directory
+                PathManager.get_custom_prompts_path(),  # Custom prompts directory
+                os.path.join(PathManager.get_project_root(), 'prompts')  # Fallback project root prompts
+            ]
             
-                self.web_instance.log_message(f"Found prompt file for {agent_name}: {prompt_path}", 'debug')
-                return prompt_path
-        
-            # Log if no prompt file found
-            self.web_instance.log_message(f"No prompt file found for {agent_name}", 'warning')
-            return None
+            # Comprehensive search through locations and filename variations
+            for location in search_locations:
+                for filename in possible_filenames:
+                    prompt_path = os.path.join(location, filename)
+                    
+                    # Check if file exists
+                    if os.path.exists(prompt_path):
+                        self.web_instance.log_message(f"Found prompt file for {agent_name}: {prompt_path}", 'debug')
+                        return prompt_path
+            
+            # If no file found, create a default prompt file
+            default_prompt_path = self._create_default_prompt_file(normalized_name)
+            
+            return default_prompt_path
         
         except Exception as e:
             self.web_instance.log_message(f"Error finding prompt file for {agent_name}: {str(e)}", 'error')
+            return None
+
+    def _create_default_prompt_file(self, agent_name: str) -> Optional[str]:
+        """Create a default prompt file if no existing file is found"""
+        try:
+            # Use custom prompts directory for new files
+            custom_prompts_dir = PathManager.get_custom_prompts_path()
+            os.makedirs(custom_prompts_dir, exist_ok=True)
+            
+            # Construct prompt file path
+            prompt_path = os.path.join(custom_prompts_dir, f"{agent_name}.md")
+            
+            # Default prompt template
+            default_content = f"""# {agent_name.capitalize()} Agent Prompt
+
+## MISSION
+Define the core mission and purpose of the {agent_name} agent.
+
+## CONTEXT
+Provide background information and context for the agent's operations.
+
+## INSTRUCTIONS
+Detailed step-by-step instructions for the agent's workflow.
+
+## RULES
+- Rule 1: 
+- Rule 2: 
+- Rule 3: 
+
+## CONSTRAINTS
+List any specific constraints or limitations.
+"""
+            
+            # Write default prompt file
+            with open(prompt_path, 'w', encoding='utf-8') as f:
+                f.write(default_content)
+            
+            self.web_instance.log_message(f"Created default prompt file for {agent_name}: {prompt_path}", 'info')
+            return prompt_path
+        
+        except Exception as e:
+            self.web_instance.log_message(f"Error creating default prompt file for {agent_name}: {str(e)}", 'error')
             return None
 
     def get_available_agents(self) -> List[str]:

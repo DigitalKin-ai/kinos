@@ -175,7 +175,16 @@ RULES:
         },
 
         validateAgentName(name) {
-            return /^[a-zA-Z0-9_-]+$/.test(name);
+            // More robust name validation
+            return /^[a-zA-Z][a-zA-Z0-9_-]{2,29}$/.test(name);
+        },
+
+        validatePrompt(prompt) {
+            // Ensure prompt meets minimum requirements
+            return prompt && 
+                   prompt.trim().length >= 50 && 
+                   prompt.includes('MISSION:') && 
+                   prompt.includes('INSTRUCTIONS:');
         },
 
         async startAllAgents() {
@@ -249,18 +258,26 @@ RULES:
         },
 
         async toggleAgent(agent) {
-            if (agent.loading) return; // Prevent multiple clicks
+            if (agent.loading) return;
             
             try {
                 agent.loading = true;
                 const action = agent.running ? 'stop' : 'start';
                 
+                // Add timeout and more robust error handling
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
                 const response = await fetch(`/api/agents/${encodeURIComponent(agent.id)}/${action}`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
+                    signal: controller.signal,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
+
+                clearTimeout(timeoutId);
 
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -280,6 +297,12 @@ RULES:
             } catch (error) {
                 console.error('Failed to toggle agent:', error);
                 this.error = error.message;
+                
+                // Optional: show user-friendly notification
+                this.$emit('notification', {
+                    type: 'error',
+                    message: `Could not ${action} agent: ${error.message}`
+                });
             } finally {
                 agent.loading = false;
             }
