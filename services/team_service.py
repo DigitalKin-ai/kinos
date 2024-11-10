@@ -1,7 +1,8 @@
 from typing import Dict, Any, Optional, List
-from utils.exceptions import ServiceError
+from utils.exceptions import ServiceError, ValidationError, ResourceNotFoundError
 from services.base_service import BaseService
 from utils.path_manager import PathManager
+from utils.logger import Logger
 
 class TeamService(BaseService):
     """Service for managing teams and agent groupings"""
@@ -91,17 +92,17 @@ class TeamService(BaseService):
 
             # Stop current active team if exists
             if self.active_team:
-                await self.deactivate_team(self.active_team['id'])
+                self.deactivate_team(self.active_team['id'])
 
             # Stop all agents first
-            await self.web_instance.agent_service.stop_all_agents()
+            self.web_instance.agent_service.stop_all_agents()
 
             # Start team agents with validation
             activation_results = []
             for agent_name in team['agents']:
                 try:
                     self._validate_agent_name(agent_name)
-                    success = await self.web_instance.agent_service.toggle_agent(agent_name, 'start')
+                    success = self.web_instance.agent_service.toggle_agent(agent_name, 'start')
                     activation_results.append({
                         'agent': agent_name,
                         'success': success
@@ -120,7 +121,7 @@ class TeamService(BaseService):
             return {
                 'team': team,
                 'activation_results': activation_results,
-                'metrics': await self._calculate_team_metrics(team, self._get_agent_statuses(team))
+                'metrics': self._calculate_team_metrics(team, self._get_agent_statuses(team))
             }
 
         except Exception as e:
