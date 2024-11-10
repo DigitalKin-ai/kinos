@@ -636,22 +636,17 @@ export default {
                          @click="selectMission(missionData)">
                         <div class="mission-content">
                             <div v-if="sidebarCollapsed" class="mission-letter">
-                                ${ mission.name.charAt(0).toUpperCase() }
+                                ${ missionData.name.charAt(0).toUpperCase() }
                             </div>
-                            <span v-else class="mission-name">${ mission.name }</span>
-                        </div>
-                            <div v-if="sidebarCollapsed" class="mission-letter">
-                                ${ mission.name.charAt(0).toUpperCase() }
-                            </div>
-                            <span v-else class="mission-name">${ mission.name }</span>
+                            <span v-else class="mission-name">${ missionData.name }</span>
                         </div>
                         <div class="flex items-center">
                             <!-- Date tooltip -->
                             <transition name="fade">
-                                <span v-if="hoveredMissionId === mission.id"
+                                <span v-if="hoveredMissionId === missionData.id"
                                       class="absolute right-16 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
                                       style="top: 50%; transform: translateY(-50%)">
-                                    ${ formatDate(mission.updated_at || mission.created_at) }
+                                    ${ formatDate(missionData.updated_at || missionData.created_at) }
                                 </span>
                             </transition>
                         </div>
