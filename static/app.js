@@ -12,6 +12,14 @@ const app = createApp({
             missions: [],
             loading: true,
             error: null,
+            running: false,
+            updateInterval: null,
+            content: {},
+            previousContent: {},
+            isCreatingMission: false,
+            newMissionName: '',
+            missionSidebarCollapsed: false,
+            error: null,
             runningAgents: new Set(),
             notifications: [],
             activeTab: 'demande',
@@ -141,8 +149,11 @@ const app = createApp({
                     throw new Error(error.error || 'Failed to get directory path');
                 }
 
-                const { path } = await response.json();
-                console.log('Resolved path:', path);
+                const responseData = await response.json();
+                if (!responseData.path) {
+                    throw new Error('No path returned from server');
+                }
+                console.log('Resolved path:', responseData.path);
                 
                 // Créer le lien avec le chemin complet
                 const linkResponse = await fetch('/api/missions/link', {
@@ -196,34 +207,6 @@ const app = createApp({
             }
         },
 
-        async selectMission(mission) {
-            try {
-                // Store previous mission state
-                const wasRunning = this.running;
-                
-                // Stop agents if running
-                if (wasRunning) {
-                    await fetch('/api/stop', { method: 'POST' });
-                    this.running = false;
-                }
-                
-                this.currentMission = mission;
-                await this.loadMissionContent(mission.id);
-                
-                // Démarrer la surveillance du contenu dès la sélection de la mission
-                this.startContentMonitoring();
-                
-                // Restart agents if they were running
-                if (wasRunning) {
-                    await fetch('/api/start', { method: 'POST' });
-                    this.running = true;
-                }
-                
-            } catch (error) {
-                console.error('Error selecting mission:', error);
-                this.addNotification('error', `Error selecting mission: ${error.message}`);
-            }
-        },
 
         startContentMonitoring() {
             // Clear any existing interval
@@ -238,7 +221,9 @@ const app = createApp({
                 }
             }, 1000);
             
-            console.log('Content monitoring started for mission:', this.currentMission.name);
+            if (this.currentMission?.name) {
+                console.log('Content monitoring started for mission:', this.currentMission.name);
+            }
         },
 
         stopContentMonitoring() {
