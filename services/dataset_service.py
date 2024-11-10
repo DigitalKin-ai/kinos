@@ -100,9 +100,17 @@ class DatasetService(BaseService):
             self.logger.log(f"Error parsing Aider response: {str(e)}", 'error')
             return response  # Return original response if parsing fails
             
-    def _calculate_weight(self, original_content: Dict[str, str], aider_response: str) -> float:
-        """Calculate interaction weight based on changes made"""
+    def _calculate_weight(self, original_content: Dict[str, str], aider_response: str) -> Optional[float]:
+        """
+        Calculate interaction weight based on changes made.
+        Returns None if entry should not be saved.
+        """
         try:
+            # Check for required keywords
+            if not ("SEARCH" in aider_response and "REPLACE" in aider_response):
+                self.logger.log("Response missing required keywords - skipping entry", 'debug')
+                return None
+                
             # Base weight
             weight = 0.5
             
@@ -119,7 +127,7 @@ class DatasetService(BaseService):
             
         except Exception as e:
             self.logger.log(f"Error calculating weight: {str(e)}", 'error')
-            return 0.5  # Default weight on error
+            return None  # Skip on error
 
     def _start_cleanup_timer(self):
         """Start periodic dataset cleanup"""
