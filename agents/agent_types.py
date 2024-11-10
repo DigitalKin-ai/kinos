@@ -27,27 +27,38 @@ class ValidationAgent(AiderAgent):
         
         # Obtenir la mission actuelle depuis le FileManager
         current_mission = getattr(config['web_instance'].file_manager, 'current_mission', None)
-        if not current_mission:
-            raise ValueError("No mission currently selected")
-            
-        # Construire le chemin absolu vers la mission
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        mission_path = os.path.abspath(os.path.join(project_root, "missions", current_mission))
         
-        # Mettre à jour la config avec le bon chemin de mission
-        config["mission_dir"] = mission_path
+        # Permettre l'initialisation sans mission sélectionnée
+        if current_mission:
+            # Construire le chemin absolu vers la mission
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            mission_path = os.path.abspath(os.path.join(project_root, "missions", current_mission))
+            config["mission_dir"] = mission_path
+            self.mission_path = mission_path
+        else:
+            # Utiliser un chemin par défaut pour l'initialisation
+            config["mission_dir"] = os.path.join("missions", "default")
+            self.mission_path = None
         
         super().__init__(config)
         self.prompt_file = "prompts/validation.md"
         self.role = "validation"
         self.web_instance = config['web_instance']
-        self.mission_path = mission_path
         
     def start(self) -> None:
         """
         Démarre l'agent de validation en s'assurant qu'il travaille dans le bon répertoire.
         """
         try:
+            # Obtenir la mission actuelle
+            current_mission = getattr(self.web_instance.file_manager, 'current_mission', None)
+            if not current_mission:
+                raise ValueError("Cannot start validation agent: No mission selected")
+                
+            # Mettre à jour le chemin de mission
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            self.mission_path = os.path.abspath(os.path.join(project_root, "missions", current_mission))
+            
             # Vérifier que le dossier mission existe
             if not os.path.exists(self.mission_path):
                 raise ValueError(f"Mission directory not found: {self.mission_path}")
@@ -55,7 +66,7 @@ class ValidationAgent(AiderAgent):
             # Changer vers le répertoire de mission
             os.chdir(self.mission_path)
             
-            # Appeler le start parent avec le bon chemin
+            # Appeler le start parent
             super().start()
             
         except Exception as e:
