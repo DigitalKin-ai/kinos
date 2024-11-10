@@ -201,14 +201,22 @@ class CacheService(BaseService):
         thread = threading.Thread(target=cleanup, daemon=True)
         thread.start()
         
+    def _cleanup_cache(self, cache_type: str) -> None:
+        """Centralized cache cleanup"""
+        try:
+            cache = self._get_cache(cache_type)
+            now = time.time()
+            expired = [
+                key for key, (_, timestamp) in cache.items()
+                if now - timestamp > self.ttl
+            ]
+            for key in expired:
+                self._remove(key, cache_type)
+        except Exception as e:
+            self.logger.log(f"Cache cleanup error: {str(e)}", 'error')
+            
     def _cleanup_expired(self) -> None:
         """Remove all expired entries from all caches"""
         with self._lock:
             for cache_type in ['memory', 'file', 'prompt', 'metadata']:
-                cache = self._get_cache(cache_type)
-                expired = [
-                    key for key, (_, timestamp) in cache.items()
-                    if self._is_expired(timestamp)
-                ]
-                for key in expired:
-                    self._remove(key, cache_type)
+                self._cleanup_cache(cache_type)

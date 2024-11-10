@@ -52,6 +52,13 @@ def _validate_mission(mission_id: int, web_instance) -> dict:
         raise ResourceNotFoundError(f"Mission {mission_id} not found")
     return mission
 
+def _validate_mission(mission_id: int, web_instance) -> dict:
+    """Centralized mission validation"""
+    mission = web_instance.mission_service.get_mission(mission_id)
+    if not mission:
+        raise ResourceNotFoundError(f"Mission {mission_id} not found")
+    return mission
+
 def register_mission_routes(app, web_instance):
     """Register all mission-related routes"""
     

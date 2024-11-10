@@ -43,6 +43,27 @@ class FileManager:
         
         self._ensure_files_exist()
 
+    def _normalize_mission_name(self, mission_name: str) -> str:
+        """
+        Normalize mission name for filesystem use.
+        Uses PathManager for consistent path normalization.
+        """
+        # First do basic character replacement
+        invalid_chars = ["'", '"', ' ', '/', '\\', ':', '*', '?', '<', '>', '|']
+        normalized = mission_name
+        for char in invalid_chars:
+            normalized = normalized.replace(char, '_')
+            
+        # Remove multiple consecutive underscores
+        while '__' in normalized:
+            normalized = normalized.replace('__', '_')
+            
+        # Remove leading/trailing underscores
+        normalized = normalized.strip('_')
+        
+        # Use PathManager for final normalization
+        return PathManager.normalize_path(normalized)
+
     def get_mission_path(self, mission_name: str) -> str:
         """
         Returns absolute path to a mission directory.

@@ -8,6 +8,38 @@ class ApiClient {
         this.token = null; // For future authentication
     }
 
+    async handleResponse(response) {
+        if (!response.ok) {
+            const error = await response.json();
+            console.error('API Error:', error);
+            
+            // Create detailed error message with all available info
+            let errorMessage = `${error.type || 'Error'}: ${error.error}\n`;
+            if (error.details) {
+                if (error.details.traceback) {
+                    errorMessage += `\nTraceback:\n${error.details.traceback}`;
+                }
+                if (error.details.timestamp) {
+                    errorMessage += `\nTimestamp: ${error.details.timestamp}`;
+                }
+                if (error.details.additional_info) {
+                    errorMessage += `\nAdditional Info: ${JSON.stringify(error.details.additional_info)}`;
+                }
+            }
+            
+            // Display error in UI
+            if (this.onError) {
+                this.onError(errorMessage);
+            }
+            
+            // Log full error object for debugging
+            console.error('Full Error Details:', error);
+            
+            throw new Error(errorMessage);
+        }
+        return response.json();
+    }
+
     setToken(token) {
         this.token = token;
     }

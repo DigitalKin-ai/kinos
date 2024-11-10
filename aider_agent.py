@@ -33,6 +33,10 @@ class AiderAgent(KinOSAgent):
     def _handle_agent_error(self, operation: str, error: Exception) -> None:
         """Centralized error handling for agent operations"""
         self.logger(f"[{self.__class__.__name__}] ❌ Error in {operation}: {str(error)}")
+    
+    def _handle_agent_error(self, operation: str, error: Exception) -> None:
+        """Centralized error handling for agent operations"""
+        self.logger(f"[{self.__class__.__name__}] ❌ Error in {operation}: {str(error)}")
 
     def __init__(self, config: Dict):
         super().__init__(config)
