@@ -9,6 +9,7 @@ from datetime import datetime
 from utils.logger import Logger
 from utils.exceptions import FileOperationError
 from utils.decorators import safe_operation
+from utils.path_manager import PathManager
 
 class FileManager:
     """Manages file operations for the GUI"""
@@ -23,8 +24,8 @@ class FileManager:
         self._current_mission = None
         self.logger = Logger()
         
-        # Get absolute path to project root (parent of services directory)
-        self.project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # Get project root using PathManager
+        self.project_root = PathManager.get_project_root()
         
         # Initialize cache
         self.content_cache = {}
@@ -48,8 +49,7 @@ class FileManager:
         Returns:
             str: Absolute path to mission directory
         """
-        normalized_name = self._normalize_mission_name(mission_name)
-        return os.path.join(self.project_root, "missions", normalized_name)
+        return PathManager.get_mission_path(mission_name)
         
     def _normalize_mission_name(self, mission_name: str) -> str:
         """
@@ -92,8 +92,8 @@ class FileManager:
             
         self._current_mission = mission_name  # Store original name
         
-        # Use normalized name for filesystem operations
-        mission_dir = os.path.join("missions", normalized_name)
+        # Use PathManager for mission directory path
+        mission_dir = PathManager.get_mission_path(normalized_name)
         os.makedirs(mission_dir, exist_ok=True)
         
         # Verify directory exists
