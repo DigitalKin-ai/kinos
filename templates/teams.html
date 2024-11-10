@@ -30,8 +30,9 @@
         <div class="flex-1 flex flex-col">
             <div class="flex-1 p-6">
                 <teams-manager 
-                    :current-mission="currentMission || {}"
-                ></teams-manager>
+                    :mission-service="missionService"
+                    :current-mission="currentMission">
+                </teams-manager>
             </div>
         </div>
     </div>

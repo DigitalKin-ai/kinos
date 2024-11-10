@@ -1,6 +1,10 @@
 export default {
     name: 'TeamsManager',
     props: {
+        missionService: {
+            type: Object,
+            required: true
+        },
         currentMission: {
             type: Object,
             required: true
@@ -8,7 +12,6 @@ export default {
     },
     data() {
         return {
-            statusCache: new Map(),
             statusCacheTTL: 5000, // 5 seconds
             showAddAgentModal: false,
             availableAgents: [
@@ -87,7 +90,7 @@ export default {
         currentMission: {
             immediate: true,
             handler(newMission) {
-                if (newMission) {
+                if (newMission?.id) {
                     this.loadTeams();
                 }
             }

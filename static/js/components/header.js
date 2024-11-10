@@ -14,6 +14,7 @@ export default {
                     <div class="flex items-center">
                         <h1 class="text-2xl font-bold text-white flex items-center">
                             <span class="flex items-center">⚫ KinOS</span>
+                            <span class="text-sm text-gray-400 ml-4">${missionName}</span>
                         </h1>
                     </div>
                     <div class="flex items-center space-x-4">
