@@ -115,7 +115,7 @@ export default {
                 if (newMissions) {
                     newMissions.forEach(mission => {
                         if (!this.runningStates.has(mission.id)) {
-                            this.runningStates.set(mission.id, false);
+                            this.runningStates.set(missionData.id, false);
                         }
                     });
                 }
@@ -129,7 +129,7 @@ export default {
         // Initialize running states for existing missions
         if (this.missions) {
             this.missions.forEach(mission => {
-                this.runningStates.set(mission.id, false);
+                this.runningStates.set(missionData.id, false);
             });
         }
     },
