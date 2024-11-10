@@ -6944,3 +6944,75 @@ OSError: [WinError 10038] Une opération a été tentée sur autre chose qu’un
 [22:51:18] [ERROR] Erreur lors du lancement de l'équipe : Failed to activate team: 'Logger' object has no attribute 'agent_service'
 [22:52:26] [ERROR] Error activating team: 'NoneType' object has no attribute 'log_message'
 [22:52:26] [ERROR] Erreur lors du lancement de l'équipe : Failed to activate team: 'NoneType' object has no attribute 'log_message'
+[22:54:02] [ERROR] Error activating team: 'NoneType' object has no attribute 'log_message'
+[22:54:02] [ERROR] Erreur lors du lancement de l'équipe : Failed to activate team: 'NoneType' object has no attribute 'log_message'
+[22:54:22] [INFO] [22:54:22] [INFO] Agent chroniqueur stopped
+[22:54:22] [INFO] [22:54:22] [INFO] Agent documentaliste stopped
+[22:54:22] [INFO] [22:54:22] [INFO] Agent duplication stopped
+[22:54:22] [INFO] [22:54:22] [INFO] Agent evaluation stopped
+[22:54:22] [INFO] [22:54:22] [INFO] Agent management stopped
+[22:54:22] [INFO] [22:54:22] [INFO] Agent production stopped
+[22:54:22] [INFO] [22:54:22] [INFO] Agent redacteur stopped
+[22:54:22] [INFO] [22:54:22] [INFO] Agent redacteur2 stopped
+[22:54:22] [INFO] [22:54:22] [INFO] Agent redacteur3 stopped
+[22:54:22] [INFO] [22:54:22] [INFO] Agent specifications stopped
+[22:54:22] [INFO] [22:54:22] [INFO] Agent testeur stopped
+[22:54:22] [INFO] [22:54:22] [INFO] Agent validation stopped
+[22:54:22] [INFO] [22:54:22] [SUCCESS] All agents stopped
+[22:54:23] [DEBUG] Executing cleanup: 
+[22:54:24] [INFO] Application shutdown complete
+[22:54:28] [DEBUG] Project root: C:\Users\conta\parallagon
+[22:54:28] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[22:54:28] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[22:54:28] [SUCCESS] Flask app initialized
+[22:54:28] [SUCCESS] CORS configured
+[22:54:28] [INFO] [22:54:28] [INFO] Registered routes:
+[22:54:28] [INFO] [22:54:28] [INFO]   static: {'HEAD', 'OPTIONS', 'GET'} /static/<path:filename>
+[22:54:28] [INFO] [22:54:28] [INFO]   index: {'HEAD', 'OPTIONS', 'GET'} /
+[22:54:28] [INFO] [22:54:28] [INFO]   health_check: {'HEAD', 'OPTIONS', 'GET'} /health
+[22:54:28] [INFO] [22:54:28] [INFO]   get_status: {'HEAD', 'OPTIONS', 'GET'} /api/status
+[22:54:28] [INFO] [22:54:28] [INFO]   api_agents_start: {'POST', 'OPTIONS'} /api/agents/start
+[22:54:28] [INFO] [22:54:28] [INFO]   api_agents_stop: {'POST', 'OPTIONS'} /api/agents/stop
+[22:54:28] [INFO] [22:54:28] [INFO]   api_agents_list: {'HEAD', 'OPTIONS', 'GET'} /api/agents/list
+[22:54:28] [INFO] [22:54:28] [INFO]   api_agents_status: {'HEAD', 'OPTIONS', 'GET'} /api/agents/status
+[22:54:28] [INFO] [22:54:28] [INFO]   api_agent_get_prompt: {'HEAD', 'OPTIONS', 'GET'} /api/agent/<agent_id>/prompt
+[22:54:28] [INFO] [22:54:28] [INFO]   api_agent_save_prompt: {'POST', 'OPTIONS'} /api/agent/<agent_id>/prompt
+[22:54:28] [INFO] [22:54:28] [INFO]   api_agent_control: {'POST', 'OPTIONS'} /api/agent/<agent_id>/<action>
+[22:54:28] [INFO] [22:54:28] [INFO]   api_mission_path_by_name: {'HEAD', 'OPTIONS', 'GET'} /api/paths/mission/<mission_name>
+[22:54:28] [INFO] [22:54:28] [INFO]   api_mission_path: {'HEAD', 'OPTIONS', 'GET'} /api/missions/<int:mission_id>/path
+[22:54:28] [INFO] [22:54:28] [INFO]   api_missions_list: {'HEAD', 'OPTIONS', 'GET'} /api/missions
+[22:54:28] [INFO] [22:54:28] [INFO]   api_mission_files: {'HEAD', 'OPTIONS', 'GET'} /api/missions/<int:mission_id>/files
+[22:54:28] [INFO] [22:54:28] [INFO]   api_mission_select: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/select
+[22:54:28] [INFO] [22:54:28] [INFO]   api_mission_reset: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/reset
+[22:54:28] [INFO] [22:54:28] [INFO]   api_mission_file_content: {'HEAD', 'OPTIONS', 'GET'} /api/missions/<int:mission_id>/files/<path:file_path>
+[22:54:28] [INFO] [22:54:28] [INFO]   api_notifications_get: {'HEAD', 'OPTIONS', 'GET'} /api/notifications
+[22:54:28] [INFO] [22:54:28] [INFO]   api_notifications_post: {'POST', 'OPTIONS'} /api/notifications
+[22:54:28] [INFO] [22:54:28] [INFO]   home: {'HEAD', 'OPTIONS', 'GET'} /
+[22:54:28] [INFO] [22:54:28] [INFO]   editor_interface: {'HEAD', 'OPTIONS', 'GET'} /editor
+[22:54:28] [INFO] [22:54:28] [INFO]   agents_page: {'HEAD', 'OPTIONS', 'GET'} /agents
+[22:54:28] [INFO] [22:54:28] [INFO]   files_page: {'HEAD', 'OPTIONS', 'GET'} /files
+[22:54:28] [INFO] [22:54:28] [INFO]   teams_page: {'HEAD', 'OPTIONS', 'GET'} /teams
+[22:54:28] [INFO] [22:54:28] [INFO]   clean_interface: {'HEAD', 'OPTIONS', 'GET'} /clean
+[22:54:28] [INFO] [22:54:28] [INFO]   api_teams_list: {'HEAD', 'OPTIONS', 'GET'} /api/teams
+[22:54:28] [INFO] [22:54:28] [INFO]   api_team_start: {'POST', 'OPTIONS'} /api/teams/<team_id>/start
+[22:54:28] [INFO] [22:54:28] [INFO]   api_team_stop: {'POST', 'OPTIONS'} /api/teams/<team_id>/stop
+[22:54:28] [INFO] [22:54:28] [INFO]   api_team_agent_control: {'POST', 'OPTIONS'} /api/teams/<team_id>/agents/<agent_name>/<action>
+[22:54:28] [INFO] [22:54:28] [INFO]   api_team_status: {'HEAD', 'OPTIONS', 'GET'} /api/teams/<team_id>/status
+[22:54:28] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[22:54:28] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[22:54:28] [INFO] Initializing core components...
+[22:54:29] [INFO] [22:54:29] [SUCCESS] ✓ Agent chroniqueur initialized
+[22:54:29] [INFO] [22:54:29] [SUCCESS] ✓ Agent documentaliste initialized
+[22:54:30] [INFO] [22:54:30] [SUCCESS] ✓ Agent duplication initialized
+[22:54:30] [INFO] [22:54:30] [SUCCESS] ✓ Agent evaluation initialized
+[22:54:31] [INFO] [22:54:31] [SUCCESS] ✓ Agent management initialized
+[22:54:31] [INFO] [22:54:31] [SUCCESS] ✓ Agent production initialized
+[22:54:32] [INFO] [22:54:32] [SUCCESS] ✓ Agent redacteur initialized
+[22:54:32] [INFO] [22:54:32] [SUCCESS] ✓ Agent redacteur2 initialized
+[22:54:32] [INFO] [22:54:32] [SUCCESS] ✓ Agent redacteur3 initialized
+[22:54:33] [INFO] [22:54:33] [SUCCESS] ✓ Agent specifications initialized
+[22:54:33] [INFO] [22:54:33] [SUCCESS] ✓ Agent testeur initialized
+[22:54:34] [INFO] [22:54:34] [SUCCESS] ✓ Agent validation initialized
+[22:54:34] [SUCCESS] Agents initialized in inactive state
+[22:54:34] [SUCCESS] Core components initialized successfully
+[22:54:35] [INFO] Starting server on http://0.0.0.0:8000

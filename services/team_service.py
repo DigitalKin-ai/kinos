@@ -10,45 +10,42 @@ class TeamService(BaseService):
     """Service for managing teams and agent groupings"""
     
     def __init__(self, web_instance):
-        # Vérifier si web_instance est un logger ou None
-        if isinstance(web_instance, Logger):
-            # Créer un objet web_instance minimal
-            from types import SimpleNamespace
-            web_instance = SimpleNamespace(
-                logger=web_instance,
-                agent_service=AgentService(None),
-                file_manager=None,
-                cache_service=None
-            )
-        elif web_instance is None:
+        # Créer un logger par défaut si nécessaire
+        if web_instance is None:
             from types import SimpleNamespace
             web_instance = SimpleNamespace(
                 logger=Logger(),
                 agent_service=AgentService(None),
-                file_manager=None,
-                cache_service=None
+                log_message=lambda message, level='info': Logger().log(message, level)
             )
+        elif isinstance(web_instance, Logger):
+            from types import SimpleNamespace
+            web_instance = SimpleNamespace(
+                logger=web_instance,
+                agent_service=AgentService(None),
+                log_message=lambda message, level='info': web_instance.log(message, level)
+            )
+        
+        # S'assurer que web_instance a toujours un agent_service
+        if not hasattr(web_instance, 'agent_service'):
+            web_instance.agent_service = AgentService(None)
+        
+        # Initialiser le BaseService avec le logger
+        super().__init__(web_instance.logger if hasattr(web_instance, 'logger') else Logger())
 
-        # Ajouter explicitement une méthode log_message
-        def log_message(message, level='info'):
-            if hasattr(web_instance, 'logger'):
-                getattr(web_instance.logger, level)(message)
-            else:
-                print(f"[{level.upper()}] {message}")
-
-        web_instance.log_message = log_message
-
-        # Initialiser le BaseService avec le logger de web_instance
-        super().__init__(web_instance.logger)
-
-        # Utiliser les services de web_instance
+        # Stocker l'instance web
         self.web_instance = web_instance
+        
+        # Utiliser l'agent_service de web_instance
         self.agent_service = web_instance.agent_service
         
+        # Initialiser les attributs
         self.teams = {}
         self.active_team = None
         self.predefined_teams = self._load_predefined_teams()
-        self.logger = web_instance.logger
+        
+        # Utiliser le logger de web_instance ou un logger par défaut
+        self.logger = getattr(web_instance, 'logger', Logger())
 
     def _validate_team_id(self, team_id: str) -> None:
         """Validate team ID format and existence"""
