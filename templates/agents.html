@@ -12,23 +12,42 @@
     <header-component :current-mission="currentMission"></header-component>
     
     <div class="flex flex-1 overflow-hidden">
-    <!-- Mission Selector Component -->
-    <mission-selector
-        :mission-service="missionService"
-        v-model:current-mission="currentMission"
-        v-model:loading="loading"
-        v-model:missions="missions"
-        @select-mission="selectMission"
-        @create-mission="createMission"
-        @sidebar-toggle="handleSidebarToggle">
-    </mission-selector>
+        <!-- Mission Selector Component -->
+        <mission-selector
+            :mission-service="missionService"
+            v-model:current-mission="currentMission"
+            v-model:loading="loading"
+            v-model:missions="missions"
+            @select-mission="selectMission"
+            @create-mission="createMission"
+            @sidebar-toggle="handleSidebarToggle">
+        </mission-selector>
 
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col">
-        <div class="flex-1 p-6">
-            <agent-manager
-                :current-mission="currentMission">
-            </agent-manager>
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col">
+            <div class="flex-1 p-6">
+                <template id="agent-manager">
+                    <div class="agent-manager">
+                        <div v-if="error" class="error-message">{{ error }}</div>
+                        <div v-if="loading" class="loading">Loading...</div>
+                        
+                        <div v-for="team in teams" :key="team.id" class="team-section">
+                            <h3>{{ team.name }}</h3>
+                            <div class="team-metrics" v-if="getTeamMetrics(team.id)">
+                                <div>Total Agents: {{ getTeamMetrics(team.id).totalAgents }}</div>
+                                <div>Active Agents: {{ getTeamMetrics(team.id).activeAgents }}</div>
+                                <div>Health: {{ (getTeamMetrics(team.id).health * 100).toFixed(1) }}%</div>
+                            </div>
+                            <div class="agents-list">
+                                <div v-for="agent in team.agents" :key="agent.name" class="agent-item">
+                                    {{ agent.name }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <agent-manager :current-mission="currentMission"></agent-manager>
+            </div>
         </div>
     </div>
 </div>
@@ -41,36 +60,20 @@
     import MissionService from "{{ url_for('static', filename='js/mission-service.js') }}";
     import AgentManager from "{{ url_for('static', filename='js/agent-manager.js') }}";
     import HeaderComponent from "{{ url_for('static', filename='js/components/header.js') }}";
-    import TeamMetrics from "{{ url_for('static', filename='js/components/teams/TeamMetrics.js') }}";
 
     const app = createApp({
         components: {
             MissionSelector,
             AgentManager,
-            HeaderComponent,
-            TeamMetrics
-        },
-        provide() {
-            return {
-                teamMetrics: TeamMetrics
-            }
+            HeaderComponent
         },
         data() {
             return {
-                missionService: new MissionService(''),  // Initialize with empty base URL
+                missionService: new MissionService(''),
                 currentMission: null,
                 missions: [],
                 loading: true,
-                activeTeam: null,
-                teams: [],
-                error: null,
-                errorMessage: null,
-                showError: false,
-                connectionStatus: {
-                    connected: true,
-                    lastCheck: null,
-                    retryCount: 0
-                }
+                error: null
             }
         },
         async mounted() {
@@ -88,53 +91,18 @@
             
                 this.loading = false;
             } catch (error) {
-                this.handleError('Failed to load missions: ' + error.message);
+                this.error = 'Failed to load missions: ' + error.message;
                 this.loading = false;
             }
         },
         methods: {
-            async handleMissionOperation(operation, errorMessage) {
-                try {
-                    return await this.retryWithBackoff(operation);
-                } catch (error) {
-                    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                        this.connectionStatus.connected = false;
-                        throw new Error('Server connection lost. Please check your connection and try again.');
-                    }
-                    throw error;
-                }
-            },
-
-            async retryWithBackoff(operation, maxRetries = 3) {
-                let delay = 1000;
-                for (let i = 0; i < maxRetries; i++) {
-                    try {
-                        return await operation();
-                    } catch (error) {
-                        if (i === maxRetries - 1) throw error;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        delay *= 2;
-                    }
-                }
-            },
-
-            handleError(error) {
-                console.error('Error:', error);
-                this.error = typeof error === 'string' ? error : error.message || 'An unexpected error occurred';
-                this.showError = true;
-                setTimeout(() => {
-                    this.showError = false;
-                }, 5000);
-            },
-
             async selectMission(mission) {
                 try {
                     this.loading = true;
                     await this.missionService.selectMission(mission);
                     this.currentMission = mission;
-                    await this.loadTeams();
                 } catch (error) {
-                    this.handleError('Failed to select mission: ' + error.message);
+                    this.error = 'Failed to select mission: ' + error.message;
                 } finally {
                     this.loading = false;
                 }
@@ -144,8 +112,6 @@
                     const newMission = await this.missionService.createMission(name);
                     this.missions.push(newMission);
                     this.currentMission = newMission;
-                    this.teams = [];
-                    this.activeTeam = null;
                 } catch (error) {
                     console.error('Failed to create mission:', error);
                 }

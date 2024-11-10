@@ -1,96 +1,94 @@
 import ApiClient from './api-client.js';
-import TeamMetrics from './components/teams/TeamMetrics.js';
 
 export default {
-    name: 'AgentManager',
-    delimiters: ['[[', ']]'],
-    components: {
-        TeamMetrics
-    },
-    props: {
-        currentMission: Object
-    },
     data() {
         return {
-            apiClient: new ApiClient(),
+            teams: [],
             agents: [],
-            agentStates: {},
-            prompts: {},
-            editingPrompt: null,
+            currentMission: null,
             loading: false,
-            notifications: [],
-            stateUpdateQueue: [],
-            stateUpdateInProgress: false,
             error: null,
-            running: false,
-            updateInterval: null,
-            content: {},
-            previousContent: {},
-            isCreatingMission: false,
-            newMissionName: '',
-            missionSidebarCollapsed: false,
-            runningAgents: new Set(),
-            activeTab: 'demande',
-            content: {
-                demande: '',
-                specifications: '',
-                management: '',
-                production: '',
-                evaluation: '',
-                suivi: ''
-            },
-            promptChanged: false,
-            showPromptModal: false,
-            currentPromptAgent: null,
-            suiviUpdateInterval: null,
-            showCreateModal: false,
-            showEditModal: false,
-            currentEditAgent: null,
-            editLoading: false,
-            newAgent: {
-                name: '',
-                prompt: ''
-            },
-            creatingAgent: false,
-            errorMessage: null,
-            showError: false,
-            activeTeam: null,
-            teams: []
+            apiClient: new ApiClient()
+        }
+    },
+    props: {
+        currentMission: {
+            type: Object,
+            required: true
+        }
+    },
+    methods: {
+        async loadTeams() {
+            try {
+                if (!this.currentMission) {
+                    console.warn('No mission selected');
+                    return;
+                }
+                
+                const response = await this.apiClient.getMissionTeams(this.currentMission.id);
+                this.teams = response;
+                return response;
+            } catch (error) {
+                console.error('Error loading teams:', error);
+                throw error;
+            }
+        },
+        
+        getTeamMetrics(teamId) {
+            const team = this.teams.find(t => t.id === teamId);
+            if (!team) return null;
+            
+            return {
+                totalAgents: team.agents.length,
+                activeAgents: team.agents.filter(a => a.status === 'active').length,
+                health: this.calculateTeamHealth(team)
+            };
+        },
+        
+        calculateTeamHealth(team) {
+            if (!team || !team.agents || team.agents.length === 0) return 0;
+            const healthyAgents = team.agents.filter(a => a.health?.is_healthy).length;
+            return healthyAgents / team.agents.length;
+        },
+        
+        async selectMission(missionId) {
+            try {
+                this.loading = true;
+                const response = await this.apiClient.selectMission(missionId);
+                await this.loadTeams();
+                return response;
+            } catch (error) {
+                console.error('Failed to select mission:', error);
+                throw error;
+            } finally {
+                this.loading = false;
+            }
+        }
+    },
+    async mounted() {
+        try {
+            if (this.currentMission) {
+                await this.selectMission(this.currentMission.id);
+            }
+        } catch (error) {
+            console.error('Error in mounted:', error);
+            this.error = error.message;
         }
     },
     watch: {
         currentMission: {
-            immediate: true,
             async handler(newMission) {
-                try {
-                    if (!newMission?.id) {
-                        // Clear agents list but don't show error
-                        this.agents = [];
-                        this.teams = [];
-                        return;
-                    }
-
-                    this.loading = true;
-                    this.error = null;
-
-                    // Load agents first
-                    await this.loadAgents();
-                    
-                    // Then load teams if loadTeams exists
-                    if (typeof this.loadTeams === 'function') {
+                if (newMission) {
+                    try {
                         await this.loadTeams();
+                    } catch (error) {
+                        console.error('Error loading teams:', error);
+                        this.error = error.message;
                     }
-                } catch (error) {
-                    console.error('Error loading mission data:', error);
-                    this.error = 'Failed to load mission data. Please try again.';
-                    this.agents = [];
-                    this.teams = [];
-                } finally {
-                    this.loading = false;
                 }
-            }
+            },
+            immediate: true
         }
-    },
     methods: {
         async loadTeams() {
             try {
