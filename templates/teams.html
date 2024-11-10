@@ -17,9 +17,10 @@
     <div class="flex flex-1 overflow-hidden">
         <!-- Mission Selector Component -->
         <mission-selector
+            :mission-service="missionService"
             v-model:current-mission="currentMission"
             v-model:loading="loading"
-            v-model:missions="missions"
+            :missions="missions"
             @select-mission="selectMission"
             @create-mission="createMission"
             @sidebar-toggle="handleSidebarToggle">
