@@ -98,20 +98,34 @@ class AgentService:
     def init_agents(self, config: Dict[str, Any]) -> None:
         """Initialize all agents with configuration"""
         try:
-            # Get current mission
-            missions = self.web_instance.mission_service.get_all_missions()
-            mission_name = missions[0]['name'] if missions else None
-            
-            if not mission_name:
-                self.web_instance.log_message("No mission available for initialization")
+            # Get current mission from FileManager
+            current_mission = self.web_instance.file_manager.current_mission
+            if not current_mission:
+                self.web_instance.log_message("No current mission set", level='error')
                 return
 
-            # Normalize mission name using the same function as MissionService
-            normalized_name = self.web_instance.mission_service._normalize_mission_name(mission_name)
+            # Get absolute path to missions directory
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            missions_dir = os.path.join(project_root, "missions")
             
-            # Construct mission directory path with normalized name
-            mission_dir = os.path.join("missions", normalized_name)
+            # Normalize mission name
+            normalized_name = self.web_instance.mission_service._normalize_mission_name(current_mission)
             
+            # Construct absolute mission directory path
+            mission_dir = os.path.abspath(os.path.join(missions_dir, normalized_name))
+            
+            # Verify directory exists and is accessible
+            if not os.path.exists(mission_dir):
+                self.web_instance.log_message(f"Mission directory not found: {mission_dir}", level='error')
+                return
+                
+            if not os.access(mission_dir, os.R_OK | os.W_OK):
+                self.web_instance.log_message(f"Insufficient permissions on: {mission_dir}", level='error')
+                return
+
+            self.web_instance.log_message(f"Initializing agents for mission: {current_mission}", level='info')
+            self.web_instance.log_message(f"Using directory: {mission_dir}", level='debug')
+
             # Load prompts from files
             def load_prompt(file_path):
                 try:
