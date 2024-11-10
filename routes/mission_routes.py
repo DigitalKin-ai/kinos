@@ -47,6 +47,16 @@ def load_ignore_patterns(mission_dir: str, web_instance) -> list:
 def register_mission_routes(app, web_instance):
     """Register all mission-related routes"""
     
+    @app.route('/api/missions/<int:mission_id>/path')
+    @safe_operation()
+    def get_mission_path(mission_id):
+        mission = web_instance.mission_service.get_mission(mission_id)
+        if not mission:
+            return jsonify({'error': 'Mission not found'}), 404
+        return jsonify({
+            'path': PathManager.get_mission_path(mission['name'])
+        })
+
     @app.route('/api/missions', methods=['GET'])
     @safe_operation()
     def get_missions():

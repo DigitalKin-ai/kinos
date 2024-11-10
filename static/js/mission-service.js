@@ -123,6 +123,19 @@ class MissionService {
         }
     }
 
+    async getMissionPath(missionId) {
+        try {
+            const response = await fetch(`${this.baseUrl}/api/missions/${missionId}/path`);
+            if (!response.ok) {
+                throw new Error('Failed to get mission path');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error getting mission path:', error);
+            throw error;
+        }
+    }
+
     async selectMission(mission) {
         try {
             const response = await fetch(`/api/missions/${mission.id}/select`, {
