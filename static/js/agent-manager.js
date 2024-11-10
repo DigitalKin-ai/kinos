@@ -92,6 +92,34 @@ export default {
         }
     },
     methods: {
+        async loadTeams() {
+            try {
+                if (!this.currentMission?.id) {
+                    return;
+                }
+
+                const response = await fetch(`/api/missions/${this.currentMission.id}/teams`);
+                if (!response.ok) {
+                    throw new Error('Failed to load teams');
+                }
+                
+                const teams = await response.json();
+                this.teams = teams.map(team => ({
+                    ...team,
+                    agents: team.agents || [],
+                    status: team.status || 'available'
+                }));
+
+                // Set first team as active if no active team
+                if (this.teams.length > 0 && !this.activeTeam) {
+                    this.activeTeam = this.teams[0];
+                }
+            } catch (error) {
+                console.error('Error loading teams:', error);
+                this.error = error.message;
+            }
+        },
+
         openCreateModal() {
             this.showCreateModal = true;
             this.newAgent = {
@@ -506,30 +534,3 @@ RULES:
         </div>
     `
 };
-    async loadTeams() {
-        try {
-            if (!this.currentMission?.id) {
-                return;
-            }
-
-            const response = await fetch(`/api/missions/${this.currentMission.id}/teams`);
-            if (!response.ok) {
-                throw new Error('Failed to load teams');
-            }
-            
-            const teams = await response.json();
-            this.teams = teams.map(team => ({
-                ...team,
-                agents: team.agents || [],
-                status: team.status || 'available'
-            }));
-
-            // Set first team as active if no active team
-            if (this.teams.length > 0 && !this.activeTeam) {
-                this.activeTeam = this.teams[0];
-            }
-        } catch (error) {
-            console.error('Error loading teams:', error);
-            this.error = error.message;
-        }
-    },
