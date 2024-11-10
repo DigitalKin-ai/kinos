@@ -281,7 +281,7 @@ class KinOSAgent:
             return False
 
     def run(self) -> None:
-        """Boucle principale de l'agent."""
+        """Main agent loop"""
         self.running = True
         while self.running:
             try:
@@ -289,27 +289,27 @@ class KinOSAgent:
                     time.sleep(1)
                     continue
 
-                # Lister les fichiers à surveiller
+                # List files to watch
                 self.list_files()
                 
-                # Log détaillé pour debug
+                # Log detailed debug info
                 self.logger(f"[{self.__class__.__name__}] Starting execution cycle")
                 self.logger(f"[{self.__class__.__name__}] Current prompt: {self.prompt[:100]}...")
                 self.logger(f"[{self.__class__.__name__}] Watching files: {list(self.mission_files.keys())}")
                 
-                # Vérifier que nous avons des fichiers à surveiller
+                # Verify we have files to watch
                 if not self.mission_files:
                     self.logger(f"[{self.__class__.__name__}] No files to watch, waiting...")
                     time.sleep(self.check_interval)
                     continue
 
-                # Vérifier que nous avons un prompt valide
+                # Verify we have a valid prompt
                 if not self.prompt or not self.prompt.strip():
                     self.logger(f"[{self.__class__.__name__}] No valid prompt, waiting...")
                     time.sleep(self.check_interval) 
                     continue
 
-                # Exécuter Aider avec le prompt de l'agent
+                # Execute Aider with agent's prompt
                 if hasattr(self, '_run_aider'):
                     result = self._run_aider(self.prompt)
                     if result:
@@ -321,7 +321,7 @@ class KinOSAgent:
                         self.logger(f"[{self.__class__.__name__}] No changes made")
                 else:
                     self.logger(f"[{self.__class__.__name__}] _run_aider method not implemented")
-        
+    
                 # Update metrics
                 self.last_run = datetime.now()
                 
