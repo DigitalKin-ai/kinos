@@ -3,8 +3,8 @@ import time
 import threading
 import traceback
 from datetime import datetime
-
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, send_from_directory
+from werkzeug.serving import make_server
 from utils.path_manager import PathManager
 from flask_cors import CORS
 from flask_limiter import Limiter
@@ -1321,19 +1321,55 @@ class KinOSWeb:
         from werkzeug.serving import make_server
         import socket
         
-        # Create socket explicitly
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        
         try:
-            sock.bind((host, port))
-        except Exception as e:
-            sock.close()
-            raise ServiceError(f"Failed to bind to {host}:{port}: {str(e)}")
+            # Create socket explicitly
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             
-        # Create server with socket
-        self.server = make_server(host, port, self.app, **options)
-        self.server.socket = sock
+            try:
+                sock.bind((host, port))
+            except Exception as e:
+                sock.close()
+                raise ServiceError(f"Failed to bind to {host}:{port}: {str(e)}")
+                
+            # Configure static files
+            self.app.static_folder = os.path.join(self.project_root, 'static')
+            self.app.static_url_path = '/static'
+            
+            # Add favicon route
+            @self.app.route('/favicon.ico')
+            def favicon():
+                return self.app.send_from_directory(
+                    self.app.static_folder,
+                    'favicon.ico',
+                    mimetype='image/x-icon'
+                )
+                
+            # Add status route if not already registered
+            if not self.app.view_functions.get('get_status'):
+                @self.app.route('/api/status')
+                def get_status():
+                    """Get server status"""
+                    return jsonify({
+                        'server': {
+                            'running': True,
+                            'timestamp': datetime.now().isoformat()
+                        }
+                    })
+            
+            # Create server with socket
+            self.server = make_server(
+                host, 
+                port,
+                self.app,
+                threaded=options.get('threaded', True),
+                processes=options.get('processes', 1)
+            )
+            self.server.socket = sock
+
+        except Exception as e:
+            self.logger.log(f"Server initialization error: {str(e)}", 'error')
+            raise ServiceError(f"Failed to initialize server: {str(e)}")
 
     def get_app(self):
         """Return the Flask app instance"""
