@@ -123,9 +123,13 @@ class MissionService:
                 os.path.join(self.missions_dir, mission['name'])
             )
 
-            # Verify directory exists
+            # Verify directory exists and is accessible
             if not os.path.exists(mission['path']):
                 self.logger.log(f"Mission directory not found: {mission['path']}", level='warning')
+                return None
+                
+            if not os.access(mission['path'], os.R_OK | os.W_OK):
+                self.logger.log(f"Insufficient permissions on: {mission['path']}", level='warning')
                 return None
 
             # Only include demande.md initially
