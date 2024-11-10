@@ -12,8 +12,8 @@ class Logger:
         'redacteur': 'purple'
     }
     
-    @staticmethod
-    def log(message: str, level: str = 'info', file_path: str = None):
+    def log(self, message: str, level: str = 'info', file_path: str = None):
+        """Main logging method"""
         try:
             timestamp = datetime.now().strftime("%H:%M:%S")
             formatted_message = f"[{timestamp}] [{level.upper()}] {message}"
@@ -22,7 +22,6 @@ class Logger:
             
             if not file_path:
                 # Use PathManager for the log path
-                from utils.path_manager import PathManager
                 file_path = os.path.join(PathManager.get_logs_path(), 'agent_operations.log')
                 
             with open(file_path, 'a', encoding='utf-8') as f:
@@ -31,3 +30,7 @@ class Logger:
         except Exception as e:
             print(f"Logging error: {e}")
             print(f"Original message: {message}")
+            
+    def __call__(self, message: str, level: str = 'info', **kwargs):
+        """Alias for log method to maintain compatibility"""
+        self.log(message, level=level)
