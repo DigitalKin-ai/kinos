@@ -217,13 +217,7 @@ export default {
             try {
                 this.loading = true;
                 this.error = null;
-                
-                const response = await fetch('/api/teams');
-                if (!response.ok) {
-                    throw new Error('Failed to load teams');
-                }
-                
-                const teams = await response.json();
+                const teams = await this.missionService.getTeams(this.currentMission.id);
                 this.teams = teams.map(team => ({
                     ...team,
                     agents: team.agents || []
@@ -233,6 +227,16 @@ export default {
                 this.error = error.message;
             } finally {
                 this.loading = false;
+            }
+        },
+
+        async selectTeam(team) {
+            try {
+                await this.missionService.selectTeam(this.currentMission.id, team.id);
+                this.activeTeam = team;
+                await this.startTeamMonitoring(team);
+            } catch (error) {
+                this.handleError('Failed to select team', error);
             }
         },
 

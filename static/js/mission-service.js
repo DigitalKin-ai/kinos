@@ -95,6 +95,36 @@ class MissionService {
         return this.missions;
     }
 
+    async getTeams(missionId) {
+        try {
+            const response = await this.apiClient.get(`/missions/${missionId}/teams`);
+            return response;
+        } catch (error) {
+            console.error('Error getting teams:', error);
+            throw error;
+        }
+    }
+
+    async selectTeam(missionId, teamId) {
+        try {
+            const response = await this.apiClient.post(`/missions/${missionId}/teams/${teamId}/select`);
+            return response;
+        } catch (error) {
+            console.error('Error selecting team:', error);
+            throw error;
+        }
+    }
+
+    async getTeamStatus(missionId, teamId) {
+        try {
+            const response = await this.apiClient.get(`/missions/${missionId}/teams/${teamId}/status`);
+            return response;
+        } catch (error) {
+            console.error('Error getting team status:', error);
+            throw error;
+        }
+    }
+
     isRunning(missionId) {
         return this.runningStates.get(missionId) || false;
     }

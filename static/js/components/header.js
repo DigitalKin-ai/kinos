@@ -6,6 +6,11 @@ export default {
             default: () => null
         }
     },
+    computed: {
+        missionName() {
+            return this.currentMission?.name || 'No Mission Selected';
+        }
+    },
     delimiters: ['${', '}'],
     template: `
         <div class="bg-black shadow h-16 flex items-center justify-center">
