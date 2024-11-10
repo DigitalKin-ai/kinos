@@ -284,7 +284,10 @@ class KinOSWeb:
                         static_folder=self.static_dir,
                         static_url_path='/static')
                         
-        # Log Flask initialization
+        # Enhanced logging
+        self.logger.log("Initialisation du serveur web KinOS", 'info')
+        self.logger.log(f"Dossier statique: {self.static_dir}", 'debug')
+        self.logger.log(f"Dossier templates: {self.template_dir}", 'debug')
         self.logger.log("Flask app initialized", 'success')
         
         # Initialize CORS with specific origins
@@ -1368,15 +1371,6 @@ class KinOSWeb:
             self.app.static_folder = os.path.join(self.project_root, 'static')
             self.app.static_url_path = '/static'
         
-            # Add favicon route
-            @self.app.route('/favicon.ico')
-            def favicon():
-                return send_from_directory(
-                    self.app.static_folder,
-                    'favicon.ico',
-                    mimetype='image/x-icon'
-                )
-            
             # Add status route if not already registered
             if not self.app.view_functions.get('get_status'):
                 @self.app.route('/api/status', methods=['GET', 'OPTIONS'])
