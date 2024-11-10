@@ -73,11 +73,13 @@ export default {
                     this.loading = true;
                     this.error = null;
 
-                    // Parallel loading of agents and teams
-                    await Promise.all([
-                        this.loadAgents(),
-                        this.loadTeams()
-                    ]);
+                    // Load agents first
+                    await this.loadAgents();
+                    
+                    // Then load teams if loadTeams exists
+                    if (typeof this.loadTeams === 'function') {
+                        await this.loadTeams();
+                    }
                 } catch (error) {
                     console.error('Error loading mission data:', error);
                     this.error = 'Failed to load mission data. Please try again.';
@@ -504,3 +506,30 @@ RULES:
         </div>
     `
 };
+    async loadTeams() {
+        try {
+            if (!this.currentMission?.id) {
+                return;
+            }
+
+            const response = await fetch(`/api/missions/${this.currentMission.id}/teams`);
+            if (!response.ok) {
+                throw new Error('Failed to load teams');
+            }
+            
+            const teams = await response.json();
+            this.teams = teams.map(team => ({
+                ...team,
+                agents: team.agents || [],
+                status: team.status || 'available'
+            }));
+
+            // Set first team as active if no active team
+            if (this.teams.length > 0 && !this.activeTeam) {
+                this.activeTeam = this.teams[0];
+            }
+        } catch (error) {
+            console.error('Error loading teams:', error);
+            this.error = error.message;
+        }
+    },

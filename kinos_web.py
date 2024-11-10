@@ -1112,13 +1112,10 @@ class KinOSWeb:
             # Force socket cleanup before starting
             self._cleanup_sockets()
             
-            # Add small delay after cleanup
-            time.sleep(1)
-            
-            # Set Flask debug mode
+            # Configure Flask
             self.app.debug = debug
             
-            # Configure CORS properly
+            # Configure CORS
             CORS(self.app, resources={
                 r"/api/*": {
                     "origins": ["http://localhost:8000", "http://127.0.0.1:8000"],
@@ -1126,46 +1123,30 @@ class KinOSWeb:
                 }
             })
             
-            # Configure server options
-            server_options = {
-                'threaded': True,
-                'processes': 1,  # Single process for development
-                'use_reloader': debug
-            }
-            
             # Initialize server
-            try:
-                self._initialize_server(host, port, server_options)
-                self.logger.log(f"Starting server on http://{host}:{port}", 'info')
-                
-                # Add startup message
-                print(f"\nKinOS Web running on http://{host}:{port}")
-                print("Press CTRL+C to quit\n")
-                
-                # Run the Flask app directly instead of using serve_forever
-                self.app.run(
-                    host=host,
-                    port=port,
-                    debug=debug,
-                    threaded=server_options['threaded'],
-                    use_reloader=server_options['use_reloader']
-                )
-                
-            except Exception as server_error:
-                self.logger.log(f"Server error: {str(server_error)}", 'error')
-                raise
-                
+            self._initialize_server(host, port, {
+                'threaded': True,
+                'processes': 1
+            })
+            
+            # Log startup
+            self.logger.log(f"Starting server on http://{host}:{port}", 'info')
+            print(f"\nKinOS Web running on http://{host}:{port}")
+            print("Press CTRL+C to quit\n")
+            
+            # Run Flask app
+            self.app.run(
+                host=host,
+                port=port,
+                debug=debug,
+                use_reloader=False  # Disable reloader to prevent socket issues
+            )
+            
         except Exception as e:
             self.logger.log(f"Error running application: {str(e)}", 'error')
-            import traceback
-            self.logger.log(traceback.format_exc(), 'error')
             raise ServiceError(f"Failed to start application: {str(e)}")
         finally:
-            # Ensure cleanup on exit
-            try:
-                self.shutdown()
-            except Exception as shutdown_error:
-                self.logger.log(f"Error during shutdown: {str(shutdown_error)}", 'error')
+            self.shutdown()
             
     def reinitialize_agents(self):
         """Reinitialize agents with current mission configuration"""
@@ -1330,21 +1311,8 @@ class KinOSWeb:
 
     def _initialize_server(self, host, port, options):
         """Initialize the server with proper socket handling"""
-        from werkzeug.serving import make_server
-        import socket
-        
         try:
-            # Create socket explicitly
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            
-            try:
-                sock.bind((host, port))
-            except Exception as e:
-                sock.close()
-                raise ServiceError(f"Failed to bind to {host}:{port}: {str(e)}")
-                
-            # Configure static files
+            # Configure static files first
             self.app.static_folder = os.path.join(self.project_root, 'static')
             self.app.static_url_path = '/static'
             
@@ -1368,16 +1336,12 @@ class KinOSWeb:
                             'timestamp': datetime.now().isoformat()
                         }
                     })
-            
-            # Create server with socket
-            self.server = make_server(
-                host, 
-                port,
-                self.app,
-                threaded=options.get('threaded', True),
-                processes=options.get('processes', 1)
+
+            # Configure server options
+            self.app.config.update(
+                THREADED=options.get('threaded', True),
+                PROCESSES=options.get('processes', 1)
             )
-            self.server.socket = sock
 
         except Exception as e:
             self.logger.log(f"Server initialization error: {str(e)}", 'error')
