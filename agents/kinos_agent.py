@@ -281,29 +281,20 @@ class KinOSAgent:
             return False
 
     def run(self) -> None:
-        """
-        Boucle principale de l'agent.
-        """
+        """Boucle principale de l'agent."""
         self.running = True
         while self.running:
             try:
                 if not self.should_run():
                     time.sleep(1)
                     continue
-                    
-                # Construire le chemin du fichier principal de l'agent
-                main_file = f"{self.role}.md"  # Utilise le rôle pour le nom du fichier
-                main_file_path = os.path.join(self.mission_dir, main_file)
-                    
-                # Vérifier le contenu avant modification
-                current_content = None
-                if os.path.exists(main_file_path):
-                    with open(main_file_path, 'r', encoding='utf-8') as f:
-                        current_content = f.read()
-                    self.logger(f"[{self.__class__.__name__}] Current content size: {len(current_content) if current_content else 0}")
-            
-                # Save state before modifications
-                previous_content = self.current_content if hasattr(self, 'current_content') else None
+
+                # Lister les fichiers à surveiller
+                self.list_files()
+                
+                # Log pour debug
+                self.logger(f"[{self.__class__.__name__}] Running with prompt: {self.prompt[:100]}...")
+                self.logger(f"[{self.__class__.__name__}] Watching files: {list(self.mission_files.keys())}")
                 
                 # Exécuter Aider avec le prompt de l'agent
                 if hasattr(self, '_run_aider'):
@@ -311,14 +302,18 @@ class KinOSAgent:
                     if result:
                         self.last_change = datetime.now()
                         self.consecutive_no_changes = 0
+                        self.logger(f"[{self.__class__.__name__}] Changes made by Aider")
                     else:
                         self.consecutive_no_changes += 1
+                        self.logger(f"[{self.__class__.__name__}] No changes made")
             
                 # Update metrics
                 self.last_run = datetime.now()
                 
                 # Adaptive pause
-                time.sleep(self.calculate_dynamic_interval())
+                interval = self.calculate_dynamic_interval()
+                self.logger(f"[{self.__class__.__name__}] Sleeping for {interval} seconds")
+                time.sleep(interval)
                 
             except Exception as e:
                 self.logger(f"Error in agent loop: {e}")
