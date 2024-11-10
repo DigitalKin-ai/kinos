@@ -2,7 +2,10 @@ import os
 import time
 from typing import Optional, Any
 from utils.exceptions import ServiceError, ValidationError
-from utils.logger import Logger
+from utils.advanced_logger import AdvancedLogger
+from config.global_config import GlobalConfig
+import logging
+import os
 
 class BaseService:
     """Base class for all services providing common functionality"""
