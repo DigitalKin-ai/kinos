@@ -1,5 +1,10 @@
-const TeamsManager = {
+import TeamMetrics from './components/team-metrics.js';
+
+export default {
     name: 'TeamsManager',
+    components: {
+        TeamMetrics
+    },
     props: {
         missionService: {
             type: Object,
