@@ -84,6 +84,24 @@ export default {
     computed: {
         hasActiveTeam() {
             return this.activeTeam !== null;
+        },
+        getTeamMetrics() {
+            return (teamId) => {
+                const team = this.teams.find(t => t.id === teamId);
+                if (!team) return null;
+
+                const stats = this.teamStats.get(team.name);
+                if (!stats) return null;
+
+                return {
+                    efficiency: this.getTeamEfficiency(team),
+                    agentHealth: stats.agentStatus ? 
+                        Object.values(stats.agentStatus)
+                            .filter(agent => agent.health?.is_healthy).length / team.agents.length : 0,
+                    completedTasks: stats.metrics?.completed_tasks || 0,
+                    averageResponseTime: stats.metrics?.average_response_time || 0
+                };
+            };
         }
     },
     watch: {
@@ -106,6 +124,27 @@ export default {
         this.teamHistory.clear();
     },
     methods: {
+        getTeamEfficiency(team) {
+            const stats = this.teamStats.get(team.name);
+            if (!stats) return 0;
+
+            const successWeight = 0.4;
+            const speedWeight = 0.3;
+            const taskWeight = 0.3;
+
+            // Ensure values are numbers and clamp between 0-100
+            const successRate = Math.min(Math.max(stats.successRate || 0, 0), 100);
+            const responseTime = Math.min(Math.max(stats.averageResponseTime || 0, 0), 1000);
+            const tasks = Math.min(Math.max(stats.completedTasks || 0, 0), 100);
+
+            const successScore = successRate * successWeight;
+            const speedScore = (1000 - responseTime) / 1000 * speedWeight;
+            const taskScore = tasks / 100 * taskWeight;
+
+            // Ensure final score is between 0-100
+            return Math.min(Math.max((successScore + speedScore + taskScore) * 100, 0), 100);
+        },
+
         async getTeamStatus(team) {
             const now = Date.now();
             const cached = this.statusCache.get(team.id);
@@ -561,31 +600,12 @@ export default {
                         </div>
                     </div>
                     
-                    <div v-if="teamStats.has(team.name)" class="mb-4">
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div class="bg-gray-50 rounded p-3">
-                                <div class="text-sm text-gray-500">Success Rate</div>
-                                <div class="text-lg font-semibold">
-                                    ${formatMetric(teamStats.get(team.name).successRate, 'percentage')}
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 rounded p-3">
-                                <div class="text-sm text-gray-500">Response Time</div>
-                                <div class="text-lg font-semibold">
-                                    ${formatMetric(teamStats.get(team.name).averageResponseTime, 'time')}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="relative pt-1">
-                            <div class="text-sm text-gray-500 mb-1">Team Efficiency</div>
-                            <div class="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
-                                <div :style="{ width: getTeamEfficiency(team) + '%' }"
-                                     class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Team Metrics -->
+                    <team-metrics v-if="teamStats.has(team.name)"
+                        :team="team"
+                        :metrics="getTeamMetrics(team.id)"
+                        class="mb-4">
+                    </team-metrics>
                     
                     <!-- Agents Grid -->
                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
