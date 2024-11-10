@@ -217,63 +217,54 @@ class KinOSWeb:
                 "Specification": SpecificationsAgent({
                     **base_config,
                     "name": "Specification",
-                    "file_path": "specifications.md",
                     "prompt_file": "prompts/specifications.md",
                     "prompt": load_prompt("prompts/specifications.md")
                 }),
                 "Production": ProductionAgent({
                     **base_config,
-                    "name": "Production", 
-                    "file_path": os.path.join(mission_dir, "production.md"),
+                    "name": "Production",
                     "prompt_file": "prompts/production.md",
                     "prompt": load_prompt("prompts/production.md")
                 }),
                 "Management": ManagementAgent({
                     **base_config,
                     "name": "Management",
-                    "file_path": os.path.join(mission_dir, "management.md"),
                     "prompt_file": "prompts/management.md",
                     "prompt": load_prompt("prompts/management.md")
                 }),
                 "Evaluation": EvaluationAgent({
                     **base_config,
                     "name": "Evaluation",
-                    "file_path": os.path.join(mission_dir, "evaluation.md"),
                     "prompt_file": "prompts/evaluation.md",
                     "prompt": load_prompt("prompts/evaluation.md")
                 }),
                 "Suivi": SuiviAgent({
                     **base_config,
                     "name": "Suivi", 
-                    "file_path": os.path.join(mission_dir, "suivi.md"),
                     "prompt_file": "prompts/suivi.md",
                     "prompt": load_prompt("prompts/suivi.md")
                 }),
                 "Documentaliste": DocumentalisteAgent({
                     **base_config,
                     "name": "Documentaliste",
-                    "file_path": os.path.join(mission_dir, "documentation.md"),
                     "prompt_file": "prompts/documentaliste.md",
                     "prompt": load_prompt("prompts/documentaliste.md")
                 }),
                 "Duplication": DuplicationAgent({
                     **base_config,
                     "name": "Duplication",
-                    "file_path": os.path.join(mission_dir, "duplication.md"),
                     "prompt_file": "prompts/duplication.md",
                     "prompt": load_prompt("prompts/duplication.md")
                 }),
                 "Testeur": TesteurAgent({
                     **base_config,
                     "name": "Testeur",
-                    "file_path": os.path.join(mission_dir, "tests.md"),
                     "prompt": load_prompt("prompts/testeur.md"),
                     "prompt_file": "prompts/testeur.md"
                 }),
                 "Redacteur": RedacteurAgent({
                     **base_config,
                     "name": "Redacteur",
-                    "file_path": os.path.join(mission_dir, "redaction.md"),
                     "prompt": load_prompt("prompts/redacteur.md"),
                     "prompt_file": "prompts/redacteur.md"
                 })
