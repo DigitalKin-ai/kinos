@@ -76,8 +76,12 @@ class AiderAgent(KinOSAgent):
             current_dir = os.getcwd()
             
             # Get mission path using PathManager
-            mission_path = PathManager.get_mission_path(self.web_instance.file_manager.current_mission)
-            
+            try:
+                mission_path = PathManager.get_mission_path(self.web_instance.file_manager.current_mission)
+            except ValueError as e:
+                self.logger(f"[{self.__class__.__name__}] ❌ Error getting mission path: {str(e)}")
+                return None
+                
             if not os.path.exists(mission_path):
                 self.logger(f"[{self.__class__.__name__}] ❌ Mission directory not found: {mission_path}")
                 return None

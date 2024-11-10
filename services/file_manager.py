@@ -27,6 +27,9 @@ class FileManager:
         # Get project root using PathManager
         self.project_root = PathManager.get_project_root()
         
+        # Get project root using PathManager
+        self.project_root = PathManager.get_project_root()
+        
         # Initialize cache
         self.content_cache = {}
         self.cache_hits = 0
