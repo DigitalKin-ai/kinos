@@ -59,10 +59,10 @@ class MissionService:
         """Find and set the missions directory path"""
         try:
             self.missions_dir = PathManager.get_mission_path("")
-            self.logger.log(f"Found missions directory: {self.missions_dir}", level='info')
+            self.logger.log(f"Found missions directory: {self.missions_dir}", 'info')
             return True
         except Exception as e:
-            self.logger.log(f"Error finding missions directory: {e}", level='error')
+            self.logger.log(f"Error finding missions directory: {e}", 'error')
             raise
 
     def get_all_missions(self):
@@ -70,7 +70,7 @@ class MissionService:
         try:
             return self._scan_missions()
         except Exception as e:
-            self.logger.log(f"Error getting missions: {str(e)}", level='error')
+            self.logger.log(f"Error getting missions: {str(e)}", 'error')
             return []
 
     def mission_exists(self, mission_id: int) -> bool:
@@ -79,7 +79,7 @@ class MissionService:
             missions = self._scan_missions()
             return any(mission['id'] == mission_id for mission in missions)
         except Exception as e:
-            self.logger.log(f"Error checking mission existence: {str(e)}", level='error')
+            self.logger.log(f"Error checking mission existence: {str(e)}", 'error')
             return False
 
     def get_mission(self, mission_id: int) -> Optional[Dict]:
@@ -88,14 +88,14 @@ class MissionService:
             missions = self._scan_missions()
             
             if not missions:
-                self.logger.log("No missions found", level='warning')
+                self.logger.log("No missions found", 'warning')
                 return None
 
             # Find mission by ID
             mission = next((m for m in missions if m['id'] == mission_id), None)
             
             if not mission:
-                self.logger.log(f"Mission {mission_id} not found", level='warning')
+                self.logger.log(f"Mission {mission_id} not found", 'warning')
                 return None
 
             # Normalize path
@@ -105,11 +105,11 @@ class MissionService:
 
             # Verify directory exists and is accessible
             if not os.path.exists(mission['path']):
-                self.logger.log(f"Mission directory not found: {mission['path']}", level='warning')
+                self.logger.log(f"Mission directory not found: {mission['path']}", 'warning')
                 return None
                 
             if not os.access(mission['path'], os.R_OK | os.W_OK):
-                self.logger.log(f"Insufficient permissions on: {mission['path']}", level='warning')
+                self.logger.log(f"Insufficient permissions on: {mission['path']}", 'warning')
                 return None
 
             # Initialize empty files dictionary
@@ -118,7 +118,7 @@ class MissionService:
             return mission
             
         except Exception as e:
-            self.logger.log(f"Error getting mission: {str(e)}", level='error')
+            self.logger.log(f"Error getting mission: {str(e)}", 'error')
             return None
 
     def ensure_mission_directory(self, mission_name: str) -> bool:
@@ -172,7 +172,7 @@ class MissionService:
             }
             
         except Exception as e:
-            self.logger.log(f"Error creating mission: {e}", level='error')
+            self.logger.log(f"Error creating mission: {e}", 'error')
             return None
 
 
@@ -189,7 +189,7 @@ class MissionService:
             
             # Vérifier si le fichier existe
             if not os.path.exists(template_path):
-                self.logger.log(f"Template file not found: {template_path}", level='warning')
+                self.logger.log(f"Template file not found: {template_path}", 'warning')
                 # Retourner un contenu par défaut si le template n'existe pas
                 return f"# {file_type.capitalize()}\n\nInitial content for {file_type}"
                 
@@ -200,7 +200,7 @@ class MissionService:
             return content
             
         except Exception as e:
-            self.logger.log(f"Error loading template for {file_type}: {str(e)}", level='error')
+            self.logger.log(f"Error loading template for {file_type}: {str(e)}", 'error')
             # Retourner un contenu par défaut en cas d'erreur
             return f"# {file_type.capitalize()}\n\nInitial content for {file_type}"
 
@@ -241,5 +241,5 @@ class MissionService:
             return missions
             
         except Exception as e:
-            self.logger.log(f"Error scanning missions directory: {e}", level='error')
+            self.logger.log(f"Error scanning missions directory: {e}", 'error')
             return []
