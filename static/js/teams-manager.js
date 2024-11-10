@@ -273,14 +273,30 @@ export default {
                 const teams = await this.missionService.getTeams(this.currentMission.id);
                 this.teams = teams.map(team => ({
                     ...team,
-                    agents: team.agents || []
+                    agents: team.agents || [],
+                    status: team.status || 'available'
                 }));
+            
+                // Set first team as active if no active team
+                if (this.teams.length > 0 && !this.activeTeam) {
+                    this.activeTeam = this.teams[0];
+                }
             } catch (error) {
                 console.error('Error loading teams:', error);
-                this.error = error.message;
+                this.error = error.message || 'Failed to load teams';
+                // Optional: show user-friendly error notification
+                this.showErrorNotification('Could not load teams for this mission');
             } finally {
                 this.loading = false;
             }
+        },
+
+        showErrorNotification(message) {
+            this.errorMessage = message;
+            this.showError = true;
+            setTimeout(() => {
+                this.showError = false;
+            }, 5000);
         },
 
         async selectTeam(team) {

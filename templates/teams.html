@@ -29,7 +29,20 @@
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col">
             <div class="flex-1 p-6">
+                <div v-if="loading" class="flex items-center justify-center h-full">
+                    <div class="text-center">
+                        <i class="mdi mdi-loading mdi-spin text-4xl text-blue-500"></i>
+                        <p class="mt-2 text-gray-600">Loading teams...</p>
+                    </div>
+                </div>
+                <div v-else-if="error" class="flex items-center justify-center h-full">
+                    <div class="text-center text-red-500">
+                        <i class="mdi mdi-alert-circle text-4xl"></i>
+                        <p class="mt-2">{{ error }}</p>
+                    </div>
+                </div>
                 <teams-manager 
+                    v-else
                     :mission-service="missionService"
                     :current-mission="currentMission">
                 </teams-manager>

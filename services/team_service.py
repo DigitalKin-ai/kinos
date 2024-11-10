@@ -79,18 +79,22 @@ class TeamService(BaseService):
     def get_teams_for_mission(self, mission_id: int) -> List[Dict[str, Any]]:
         """Get available teams for a mission"""
         try:
-            # Add mission_id to each team for unique identification
+            # Predefined teams with mission-specific modifications
             teams = [
                 {
-                    **team, 
-                    'id': f"{mission_id}_{team['id']}", 
-                    'mission_id': mission_id
+                    'id': f"{mission_id}_{team['id']}",  # Unique ID
+                    'name': team['name'],
+                    'mission_id': mission_id,
+                    'agents': team['agents'],
+                    'status': 'available'  # Add a status field
                 } 
                 for team in self.predefined_teams
             ]
+            
+            self.logger.log(f"Retrieved {len(teams)} teams for mission {mission_id}", 'info')
             return teams
         except Exception as e:
-            self.logger.log(f"Error getting teams: {str(e)}", 'error')
+            self.logger.log(f"Error getting teams for mission {mission_id}: {str(e)}", 'error')
             raise ServiceError(f"Failed to get teams: {str(e)}")
 
     def activate_team(self, mission_id: int, team_id: str) -> Dict[str, Any]:
