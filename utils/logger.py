@@ -15,6 +15,10 @@ class Logger:
     def log(self, message: str, level: str = 'info', **kwargs):
         """Main logging method that handles all cases"""
         try:
+            # Normalize level handling - remove from kwargs if present
+            if 'level' in kwargs:
+                level = kwargs.pop('level')
+                
             # Extract file_path from kwargs if present
             file_path = kwargs.get('file_path')
             
@@ -36,11 +40,14 @@ class Logger:
             
     def __call__(self, message: str, level: str = 'info', **kwargs):
         """Unified call method that handles all logging patterns"""
-        # Remove any duplicate level parameter from kwargs
-        kwargs.pop('level', None)
+        # Ensure level is not duplicated
+        if 'level' in kwargs:
+            kwargs.pop('level')
         self.log(message, level=level, **kwargs)
 
-    # For backward compatibility
     def _log(self, message: str, level: str = 'info', **kwargs):
-        """Alias for log method"""
+        """Alias for log method with normalized parameters"""
+        # Ensure level is not duplicated
+        if 'level' in kwargs:
+            kwargs.pop('level')
         self.log(message, level=level, **kwargs)
