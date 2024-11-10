@@ -9,7 +9,6 @@ export default {
             type: Object,
             default: () => ({}),
             validator: (value) => {
-                // Optional validation to ensure mission has expected properties
                 return !value || (typeof value === 'object' && 
                     (value.id === undefined || typeof value.id === 'number'));
             }
@@ -17,11 +16,11 @@ export default {
     },
     data() {
         return {
-            statusCacheTTL: 5000, // 5 seconds
+            statusCacheTTL: 5000,
             showAddAgentModal: false,
-            loadingStates: new Map(), // Pour gérer les états de loading par équipe
-            errorMessages: new Map(), // Pour gérer les messages d'erreur par équipe 
-            retryAttempts: new Map(), // Pour gérer les tentatives de retry
+            loadingStates: new Map(),
+            errorMessages: new Map(),
+            retryAttempts: new Map(),
             maxRetries: 3,
             retryDelay: 1000,
             errorMessage: null,
@@ -32,59 +31,38 @@ export default {
                 retryCount: 0
             },
             availableAgents: [
-                "SpecificationsAgent",
-                "ManagementAgent", 
-                "EvaluationAgent",
-                "SuiviAgent",
-                "DocumentalisteAgent",
-                "DuplicationAgent",
-                "RedacteurAgent",
-                "ProductionAgent",
-                "TesteurAgent",
-                "ValidationAgent"
+                "SpecificationsAgent", "ManagementAgent", "EvaluationAgent",
+                "SuiviAgent", "DocumentalisteAgent", "DuplicationAgent",
+                "RedacteurAgent", "ProductionAgent", "TesteurAgent", "ValidationAgent"
             ],
             selectedTeamForEdit: null,
             selectedAgent: null,
-            teams: [{
-                name: "book writing",
-                agents: [
-                    "SpecificationsAgent",
-                    "ManagementAgent",
-                    "EvaluationAgent", 
-                    "SuiviAgent",
-                    "DocumentalisteAgent",
-                    "DuplicationAgent",
-                    "RedacteurAgent",
-                    "ValidationAgent"
-                ]
-            },
-            {
-                name: "literature review",
-                agents: [
-                    "SpecificationsAgent", 
-                    "ManagementAgent",
-                    "EvaluationAgent",
-                    "SuiviAgent",
-                    "DocumentalisteAgent", 
-                    "DuplicationAgent",
-                    "RedacteurAgent",
-                    "ValidationAgent"
-                ]
-            },
-            {
-                name: "coding team",
-                agents: [
-                    "SpecificationsAgent",
-                    "ManagementAgent", 
-                    "EvaluationAgent",
-                    "SuiviAgent",
-                    "DocumentalisteAgent",
-                    "DuplicationAgent",
-                    "ProductionAgent",
-                    "TesteurAgent",
-                    "ValidationAgent"
-                ]
-            }],
+            teams: [
+                {
+                    name: "book writing",
+                    agents: [
+                        "SpecificationsAgent", "ManagementAgent", "EvaluationAgent", 
+                        "SuiviAgent", "DocumentalisteAgent", "DuplicationAgent",
+                        "RedacteurAgent", "ValidationAgent"
+                    ]
+                },
+                {
+                    name: "literature review",
+                    agents: [
+                        "SpecificationsAgent", "ManagementAgent", "EvaluationAgent",
+                        "SuiviAgent", "DocumentalisteAgent", "DuplicationAgent",
+                        "RedacteurAgent", "ValidationAgent"
+                    ]
+                },
+                {
+                    name: "coding team",
+                    agents: [
+                        "SpecificationsAgent", "ManagementAgent", "EvaluationAgent",
+                        "SuiviAgent", "DocumentalisteAgent", "DuplicationAgent",
+                        "ProductionAgent", "TesteurAgent", "ValidationAgent"
+                    ]
+                }
+            ],
             loading: false,
             error: null,
             activeTeam: null,
@@ -92,43 +70,11 @@ export default {
             teamHistory: new Map(),
             loadingStats: false,
             statsInterval: null,
-            POLL_INTERVAL: 30000, // Make polling interval configurable
+            POLL_INTERVAL: 30000,
             loadingTeams: new Set(),
             loadingAgents: new Set()
         }
     },
-    created() {
-        // Initialize connection status and error handling
-        this.initializeErrorHandling();
-    },
-    methods: {
-        initializeErrorHandling() {
-            // Centralized error handling method
-            this.handleError = (message, error) => {
-                console.error(message, error);
-                this.errorMessage = typeof error === 'string' ? error : error.message;
-                this.showError = true;
-                setTimeout(() => {
-                    this.showError = false;
-                }, 5000);
-            };
-        },
-        async checkConnection() {
-            try {
-                const response = await fetch('/api/status');
-                if (!response.ok) {
-                    throw new Error('Server connection failed');
-                }
-                const data = await response.json();
-                this.connectionStatus.connected = data.server?.running === true;
-                this.connectionStatus.lastCheck = new Date();
-            } catch (error) {
-                this.connectionStatus.connected = false;
-                this.connectionStatus.retryCount++;
-                this.handleError('Connection check failed', error);
-            }
-        },
-
     computed: {
         hasActiveTeam() {
             return this.activeTeam !== null;
@@ -147,7 +93,8 @@ export default {
                         Object.values(stats.agentStatus)
                             .filter(agent => agent.health?.is_healthy).length / team.agents.length : 0,
                     completedTasks: stats.metrics?.completed_tasks || 0,
-                    averageResponseTime: stats.metrics?.average_response_time || 0
+                    averageResponseTime: stats.metrics?.average_response_time || 0,
+                    errorRate: stats.metrics?.error_rate || 0
                 };
             };
         }
@@ -162,24 +109,17 @@ export default {
             }
         }
     },
+    created() {
+        this.initializeErrorHandling();
+    },
     mounted() {
         if (this.currentMission) {
             this.loadTeams();
         }
     },
-    watch: {
-        currentMission: {
-            immediate: true,
-            async handler(newMission) {
-                if (newMission) {
-                    await this.loadTeams();
-                }
-            }
-        }
-    },
     beforeUnmount() {
         this.stopTeamMonitoring();
-        this.statusCache.clear();
+        // Use teamStats.clear() instead of non-existent statusCache
         this.teamStats.clear();
         this.teamHistory.clear();
     },
