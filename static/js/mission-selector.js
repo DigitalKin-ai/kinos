@@ -74,6 +74,9 @@ export default {
                 missions: this.missions,
                 loading: this.loading
             });
+            
+            // Start server status monitoring
+            this.startServerMonitoring();
 
             // Récupérer la liste des agents depuis l'API
             const agentsResponse = await fetch('/api/agents/list');
@@ -297,13 +300,13 @@ export default {
             try {
                 this.$emit('update:loading', true);
 
-                // Check server connection with retries
-                await this.retryWithBackoff(async () => {
-                    const isConnected = await this.checkServerConnection();
-                    if (!isConnected) {
-                        throw new Error('Server is not responding. Please check if it is running.');
+                // Check server status first
+                if (!this.serverStatus.connected) {
+                    await this.checkServerStatus();
+                    if (!this.serverStatus.connected) {
+                        throw new Error('Server is not available. Please try again later.');
                     }
-                });
+                }
 
                 const wasRunning = this.runningStates.get(mission.id) || false;
 
