@@ -62,7 +62,7 @@ class NotificationService(BaseService):
                     self.last_content[file_name] = content
 
         except Exception as e:
-            self.logger.log(f"Error checking content updates: {str(e)}", level='error')
+            self.logger.log(f"Error checking content updates: {str(e)}", 'error')
             raise ServiceError(f"Failed to check content updates: {str(e)}")
 
     @safe_operation()
@@ -130,7 +130,7 @@ class NotificationService(BaseService):
                     f"Cache performance - Hits: {self.cache_hits}, "
                     f"Misses: {self.cache_misses}, "
                     f"Hit rate: {hit_rate:.1f}%",
-                    level='info'
+                    'info'
                 )
             
             # Filter notifications from last 3 seconds
@@ -147,7 +147,7 @@ class NotificationService(BaseService):
                     if (current_time - notif_datetime).total_seconds() <= 3:
                         recent_notifications.append(n)
                 except ValueError as e:
-                    self.logger.log(f"Invalid timestamp format in notification: {e}", level='error')
+                    self.logger.log(f"Invalid timestamp format in notification: {e}", 'error')
                     continue
 
             # Clear the queue after filtering
@@ -180,7 +180,7 @@ class NotificationService(BaseService):
             return True
             
         except Exception as e:
-            self.logger.log(f"Error creating file {file_name}: {str(e)}", level='error')
+            self.logger.log(f"Error creating file {file_name}: {str(e)}", 'error')
             return False
 
     def cleanup(self):

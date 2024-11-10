@@ -95,7 +95,7 @@ class FileManager:
         if hasattr(self, '_current_mission'):
             self.logger.log(
                 f"Changing mission from {self._current_mission} to {normalized_name}",
-                level='info'
+                'info'
             )
             
         self._current_mission = mission_name  # Store original name
@@ -108,7 +108,7 @@ class FileManager:
         if not os.path.exists(mission_dir):
             raise ValueError(f"Mission directory not found: {mission_dir}")
             
-        self.logger.log(f"✓ Mission changed to: {mission_name}", level='success')
+        self.logger.log(f"✓ Mission changed to: {mission_name}", 'success')
         
         
     def _ensure_files_exist(self):
@@ -139,7 +139,7 @@ class FileManager:
             else:
                 file_path = os.path.join(self.project_root, file_name)
 
-            self.logger.log(f"Reading file: {file_path}", level='debug')
+            self.logger.log(f"Reading file: {file_path}", 'debug')
 
             # Check cache first
             cache_key = f"file:{file_path}"
@@ -147,7 +147,7 @@ class FileManager:
                 mtime = os.path.getmtime(file_path)
                 cached_time, cached_content = self.content_cache[cache_key]
                 if mtime == cached_time:
-                    self.logger.log(f"Cache hit for {file_path}", level='debug')
+                    self.logger.log(f"Cache hit for {file_path}", 'debug')
                     return cached_content
 
             # Ensure directory exists
@@ -165,7 +165,7 @@ class FileManager:
                 return content
                 
         except Exception as e:
-            self.logger.log(f"Erreur lecture {file_name}: {str(e)}", level='error')
+            self.logger.log(f"Erreur lecture {file_name}: {str(e)}", 'error')
             return None
             
     @safe_operation(max_retries=3, delay=1.0)
@@ -182,7 +182,7 @@ class FileManager:
         """
         try:
             # Log before writing
-            self.logger.log(f"Writing to {file_name}, content length: {len(content)}", level='info')
+            self.logger.log(f"Writing to {file_name}, content length: {len(content)}", 'info')
             
             # Get absolute path based on current mission using PathManager
             if self.current_mission:
@@ -190,12 +190,12 @@ class FileManager:
             else:
                 base_path = self.file_paths.get(file_name)
                 if not base_path:
-                    self.logger.log(f"FileManager: Path not found for {file_name}", level='error')
+                    self.logger.log(f"FileManager: Path not found for {file_name}", 'error')
                     return False
                 file_path = PathManager.normalize_path(base_path)
                 
             # Log full path
-            self.logger.log(f"Full path: {file_path}", level='debug')
+            self.logger.log(f"Full path: {file_path}", 'debug')
             
             # Only proceed if it's demande.md or file exists
             if file_name == 'demande' or os.path.exists(file_path):
@@ -204,7 +204,7 @@ class FileManager:
                 if os.path.exists(file_path):
                     current_content = self.read_file(file_name)
                     if current_content == content:
-                        self.logger.log(f"Content unchanged for {file_name}, skipping write", level='debug')
+                        self.logger.log(f"Content unchanged for {file_name}, skipping write", 'debug')
                         return True
                         
                 # Create parent directory if needed
@@ -232,10 +232,10 @@ class FileManager:
             return True
             
         except portalocker.LockException:
-            self.logger.log(f"FileManager: Fichier {file_name} verrouillé", level='error')
+            self.logger.log(f"FileManager: Fichier {file_name} verrouillé", 'error')
             return False
         except Exception as e:
-            self.logger.log(f"Erreur écriture fichier {file_name}: {e}", level='error')
+            self.logger.log(f"Erreur écriture fichier {file_name}: {e}", 'error')
             return False
             
     def reset_files(self) -> bool:
@@ -249,6 +249,6 @@ class FileManager:
                     return False
             return True
         except Exception as e:
-            self.logger.log(f"Error resetting files: {e}", level='error')
+            self.logger.log(f"Error resetting files: {e}", 'error')
             return False
             
