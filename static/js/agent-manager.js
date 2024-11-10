@@ -112,27 +112,6 @@ export default {
         </div>
     `
 }
-        // Removed duplicate method definitions
-            this.showCreateModal = true;
-            this.newAgent = {
-                name: '',
-                prompt: `# Agent Prompt Template
-
-MISSION:
-[Describe the agent's primary mission]
-
-CONTEXT:
-[Provide relevant context for the agent]
-
-INSTRUCTIONS:
-[List specific instructions for the agent]
-
-RULES:
-- [Rule 1]
-- [Rule 2]
-- [Add more rules as needed]`
-            };
-        },
 
         closeCreateModal() {
             if (this.newAgent.name || this.newAgent.prompt !== '') {
