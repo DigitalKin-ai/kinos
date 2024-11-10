@@ -12,12 +12,9 @@ class Logger:
         'redacteur': 'purple'
     }
     
-    def log(self, message: str, **kwargs):
+    def log(self, message: str, level: str = 'info', **kwargs):
         """Main logging method that handles all cases"""
         try:
-            # Extract level from kwargs or use default
-            level = kwargs.pop('level', 'info')
-            
             # Extract file_path from kwargs
             file_path = kwargs.pop('file_path', None)
             
@@ -36,10 +33,10 @@ class Logger:
             print(f"Logging error: {e}")
             print(f"Original message: {message}")
             
-    def __call__(self, message: str, **kwargs):
+    def __call__(self, message: str, level: str = 'info', **kwargs):
         """Unified call method that handles all logging patterns"""
-        self.log(message, **kwargs)
+        self.log(message, level=level, **kwargs)
 
-    def _log(self, message: str, **kwargs):
+    def _log(self, message: str, level: str = 'info', **kwargs):
         """Alias for log method"""
-        self.log(message, **kwargs)
+        self.log(message, level=level, **kwargs)
