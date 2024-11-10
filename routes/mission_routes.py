@@ -105,6 +105,9 @@ def load_ignore_patterns(mission_dir: str, web_instance) -> list:
                 
     return ignore_patterns
 
+def register_mission_routes(app, web_instance):
+    """Register all mission-related routes"""
+
     @app.route('/api/missions/<int:mission_id>/files')
     @safe_operation()
     @web_instance.limiter.limit("200 per minute")
@@ -208,7 +211,6 @@ def load_ignore_patterns(mission_dir: str, web_instance) -> list:
         except Exception as e:
             web_instance.logger.log(f"Error selecting mission {mission_id}: {str(e)}", level='error')
             return jsonify({'error': f"Failed to select mission: {str(e)}"}), 500
-
 
     @app.route('/api/missions/<int:mission_id>/reset', methods=['POST'])
     @safe_operation()
