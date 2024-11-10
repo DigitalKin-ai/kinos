@@ -50,7 +50,8 @@ class AgentService:
     def _discover_agents(self) -> List[Dict[str, str]]:
         """Discover available agents by scanning prompts directory"""
         discovered_agents = []
-        prompts_dir = "prompts"
+        # Get prompts directory using PathManager
+        prompts_dir = PathManager.get_prompts_path()
         
         try:
             # Create prompts directory if it doesn't exist

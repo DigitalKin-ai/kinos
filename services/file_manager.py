@@ -20,6 +20,8 @@ class FileManager:
         self.file_paths = {
             'demande': 'demande.md'  # Only track demande.md initially
         }
+        # Get project root using PathManager
+        self.project_root = PathManager.get_project_root()
         self.on_content_changed = on_content_changed
         self._current_mission = None
         self.logger = Logger()
@@ -128,11 +130,11 @@ class FileManager:
             if not file_name.endswith('.md'):
                 file_name = f"{file_name}.md"
 
-            # Construct absolute file path
+            # Construct absolute file path using PathManager
             if self.current_mission:
-                file_path = os.path.abspath(os.path.join("missions", self.current_mission, file_name))
+                file_path = os.path.join(PathManager.get_mission_path(self.current_mission), file_name)
             else:
-                file_path = os.path.abspath(file_name)
+                file_path = os.path.join(self.project_root, file_name)
 
             self.logger.log(f"Reading file: {file_path}", level='debug')
 

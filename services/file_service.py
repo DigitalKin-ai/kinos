@@ -18,6 +18,8 @@ class FileService(BaseService):
         super().__init__(web_instance)
         self.content_cache = {}
         self.last_modified = {}
+        # Use PathManager for project root
+        self.project_root = PathManager.get_project_root()
         # Use the file_manager from web_instance instead of creating a new one
         self.file_manager = web_instance.file_manager
         # Use PathManager for project root
