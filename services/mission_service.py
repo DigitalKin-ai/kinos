@@ -219,3 +219,16 @@ class MissionService:
         except Exception as e:
             self.logger.log(f"Error scanning missions directory: {e}", 'error')
             return []
+
+    def get_mission_by_name(self, mission_name):
+        """
+        Récupère une mission par son nom
+        
+        Args:
+            mission_name (str): Nom de la mission
+        
+        Returns:
+            dict: Informations de la mission ou None
+        """
+        missions = self._scan_missions()
+        return next((mission for mission in missions if mission['name'] == mission_name), None)

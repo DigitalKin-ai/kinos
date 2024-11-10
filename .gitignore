@@ -5,3 +5,18 @@ venv/*
 __pycache__
 
 missions/*
+
+venv/
+*.venv
+
+# Fichiers Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log

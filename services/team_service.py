@@ -1,4 +1,5 @@
 from typing import Dict, Any, Optional, List
+from datetime import datetime
 from utils.exceptions import ServiceError, ValidationError, ResourceNotFoundError
 from services.base_service import BaseService
 from utils.path_manager import PathManager
@@ -30,7 +31,7 @@ class TeamService(BaseService):
 
     def _load_predefined_teams(self):
         """Load predefined team configurations"""
-        self.predefined_teams = [
+        return [
             {
                 'id': 'book-writing',
                 'name': 'Book Writing Team',
@@ -75,6 +76,59 @@ class TeamService(BaseService):
                 ]
             }
         ]
+
+    def get_predefined_teams(self):
+        """
+        Retourne la liste des équipes prédéfinies
+    
+        Returns:
+            list: Liste des équipes disponibles
+        """
+        return self._load_predefined_teams()
+
+    def activate_team(self, mission_id, team_id):
+        """
+        Active une équipe pour une mission avec gestion des logs
+    
+        Args:
+            mission_id (int): ID de la mission
+            team_id (str): ID de l'équipe
+    
+        Returns:
+            dict: Résultat de l'activation avec informations de l'équipe
+        """
+        try:
+            # Récupérer l'équipe correspondante
+            team = next((t for t in self._load_predefined_teams() if t['id'] == team_id), None)
+            if not team:
+                raise ValueError(f"Équipe {team_id} non trouvée")
+
+            # Activation des agents de l'équipe
+            activation_results = []
+            for agent_name in team['agents']:
+                try:
+                    # Logique d'activation de l'agent
+                    success = self.web_instance.agent_service.toggle_agent(agent_name, 'start')
+                    activation_results.append({
+                        'agent': agent_name,
+                        'status': 'started' if success else 'failed'
+                    })
+                except Exception as agent_error:
+                    activation_results.append({
+                        'agent': agent_name,
+                        'status': 'error',
+                        'error': str(agent_error)
+                    })
+
+            return {
+                'team': team,
+                'activation_results': activation_results,
+                'timestamp': datetime.now().isoformat()
+            }
+
+        except Exception as e:
+            self.logger.log(f"Erreur lors de l'activation de l'équipe : {str(e)}", 'error')
+            raise
 
     def get_teams_for_mission(self, mission_id: int) -> List[Dict[str, Any]]:
         """Get available teams for a mission"""

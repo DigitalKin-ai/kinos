@@ -297,3 +297,61 @@ Les agents sont le cœur du système KinOS, chacun opérant de manière totaleme
 - Améliorations prévues
 - Corrections planifiées
 - Évolutions majeures
+
+## 7. Interface CLI
+
+### 7.1 Lancement d'Équipes
+
+#### Commande de Lancement d'Équipe
+```bash
+python kinos_cli.py team launch --mission <nom_mission> --team <nom_equipe>
+```
+
+#### Fonctionnalités
+- Lancement d'une équipe spécifique pour une mission
+- Streaming des logs en temps réel
+- Gestion des erreurs et états
+- Support de différents types d'équipes prédéfinies
+
+#### Modes de Lancement
+1. **Mode Standard**
+   - Activation séquentielle des agents
+   - Logs détaillés
+   - Gestion des dépendances entre agents
+
+2. **Mode Verbose**
+   - Informations de débogage complètes
+   - Métriques de performance
+   - Trace des appels système
+
+#### Exemple de Workflow
+```bash
+# Lancer l'équipe de développement pour la mission "projet-ia"
+python kinos_cli.py team launch --mission projet-ia --team coding
+
+# Mode verbose pour diagnostic
+python kinos_cli.py team launch --mission projet-ia --team coding --verbose
+```
+
+#### Gestion des Erreurs
+- Validation des noms de mission et d'équipe
+- Gestion des équipes non existantes
+- Détection des conflits de ressources
+- Mécanisme de rollback en cas d'échec
+
+#### Streaming de Logs
+- Affichage en temps réel
+- Formatage coloré
+- Filtrage par niveau de log
+- Sauvegarde optionnelle dans un fichier
+
+#### Options Avancées
+```bash
+python kinos_cli.py team launch 
+    --mission <nom>       # Mission cible
+    --team <nom>          # Équipe à lancer
+    --verbose             # Mode débogage
+    --dry-run             # Simulation sans exécution
+    --timeout <secondes>  # Limite de temps
+    --log-file <chemin>   # Fichier de log
+```
