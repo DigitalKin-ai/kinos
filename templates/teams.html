@@ -1,13 +1,114 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>KinOS - Teams</title>
-    <link rel="stylesheet" href="/static/css/teams.css">
-</head>
-<body>
-    <div id="app">
-        <teams-app></teams-app>
+{% extends "base.html" %}
+
+{% block title %}KinOS - Teams{% endblock %}
+
+{% block head %}
+<link href="{{ url_for('static', filename='css/sidebar.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/header.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/teams.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div id="app" class="flex flex-col h-screen">
+    <!-- Header Component -->
+    <header-component :current-mission="currentMission"></header-component>
+    
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Mission Selector Component -->
+        <mission-selector
+            v-model:current-mission="currentMission"
+            v-model:loading="loading"
+            v-model:missions="missions"
+            @select-mission="selectMission"
+            @create-mission="createMission"
+            @sidebar-toggle="handleSidebarToggle">
+        </mission-selector>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col">
+            <div class="flex-1 p-6">
+                <teams-manager 
+                    :current-mission="currentMission || {}"
+                ></teams-manager>
+            </div>
+        </div>
     </div>
-    <script type="module" src="/static/js/teams-app.js"></script>
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+    import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+    import MissionSelector from "{{ url_for('static', filename='js/mission-selector.js') }}";
+    import MissionService from "{{ url_for('static', filename='js/mission-service.js') }}";
+    import TeamsManager from "{{ url_for('static', filename='js/teams-manager.js') }}";
+    import HeaderComponent from "{{ url_for('static', filename='js/components/header.js') }}";
+
+    const app = createApp({
+        components: {
+            MissionSelector,
+            TeamsManager,
+            HeaderComponent
+        },
+        data() {
+            return {
+                missionService: new MissionService(),
+                currentMission: null,
+                missions: [],
+                loading: true
+            }
+        },
+        async mounted() {
+            try {
+                const response = await fetch('/api/missions');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch missions');
+                }
+                const missions = await response.json();
+                this.missions = missions;
+                
+                // Automatically select first mission if available
+                if (missions.length > 0) {
+                    await this.selectMission(missions[0]);
+                }
+                
+                this.loading = false;
+            } catch (error) {
+                console.error('Failed to load missions:', error);
+                this.loading = false;
+            }
+        },
+        methods: {
+            async selectMission(mission) {
+                try {
+                    // Update current mission directly
+                    this.currentMission = mission;
+                    
+                    // Force refresh components that depend on currentMission
+                    this.$nextTick(() => {
+                        this.$forceUpdate();
+                    });
+                    
+                } catch (error) {
+                    console.error('Failed to select mission:', error);
+                }
+            },
+            async createMission(name) {
+                try {
+                    const newMission = await this.missionService.createMission(name);
+                    this.missions.push(newMission);
+                    this.currentMission = newMission;
+                } catch (error) {
+                    console.error('Failed to create mission:', error);
+                }
+            },
+            handleSidebarToggle(collapsed) {
+                // Handle sidebar collapse/expand if needed
+            }
+        }
+    });
+
+    app.mount('#app');
+</script>
+{% endblock %}

@@ -471,7 +471,12 @@ export default {
                      @mouseleave="hoveredMissionId = null">
                     <div class="flex items-center justify-between w-full px-4 py-2"
                          @click="selectMission(mission)">
-                        <div class="flex items-center">
+                        <div class="mission-content">
+                            <div v-if="sidebarCollapsed" class="mission-letter">
+                                ${ mission.name.charAt(0).toUpperCase() }
+                            </div>
+                            <span v-else class="mission-name">${ mission.name }</span>
+                        </div>
                             <i class="mdi mdi-folder-outline"></i>
                             <span class="mission-name">\${ mission.name }</span>
                         </div>
