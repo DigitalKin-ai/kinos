@@ -63,6 +63,7 @@ class KinOSAgent:
                 - check_interval: Check interval
                 - logger: Logging function
                 - mission_dir: Mission directory path
+                - name: Agent name
         """
         # Configure default encoding
         import sys
@@ -73,14 +74,18 @@ class KinOSAgent:
         if sys.stderr.encoding != 'utf-8':
             sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
-        # Validate configuration
+        # Validate configuration first
         if not config.get("anthropic_api_key"):
             raise ValueError("anthropic_api_key missing in configuration")
         if not config.get("openai_api_key"):
             raise ValueError("openai_api_key missing in configuration")
         if not config.get("mission_dir"):
             raise ValueError("mission_dir missing in configuration")
-            
+        if "name" not in config:
+            raise ValueError("name missing in configuration")
+
+        # Set name first since it's used in logging
+        self.name = config["name"]
         self.config = config
         self.mission_dir = config["mission_dir"]
         
@@ -108,7 +113,7 @@ class KinOSAgent:
             # Sinon utiliser directement l'objet logger
             self.logger = logger_config
 
-        # Utiliser self.logger.log pour la première notification
+        # Now we can safely log since name is set
         self.logger.log(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
         
         # Use agent-specific rhythm or default value
