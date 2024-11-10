@@ -4,16 +4,33 @@ from utils.exceptions import ServiceError, ValidationError, ResourceNotFoundErro
 from services.base_service import BaseService
 from utils.path_manager import PathManager
 from utils.logger import Logger
+from services.agent_service import AgentService
 
 class TeamService(BaseService):
     """Service for managing teams and agent groupings"""
     
     def __init__(self, web_instance):
-        super().__init__(web_instance)
+        # Créer un logger par défaut si web_instance est None
+        logger = Logger() if web_instance is None else (
+            web_instance.logger if hasattr(web_instance, 'logger') else Logger()
+        )
+
+        # Créer une méthode log si elle n'existe pas
+        if not hasattr(logger, 'log'):
+            logger.log = logger.log if hasattr(logger, 'log') else print
+
+        # Initialiser le BaseService avec le logger
+        super().__init__(logger)
+
+        # Créer un service d'agents par défaut
+        self.agent_service = AgentService(None) if web_instance is None else (
+            web_instance.agent_service if hasattr(web_instance, 'agent_service') else AgentService(None)
+        )
+        
         self.teams = {}
         self.active_team = None
-        self._load_predefined_teams()
-        self.logger = Logger()
+        self.predefined_teams = self._load_predefined_teams()
+        self.logger = logger
 
     def _validate_team_id(self, team_id: str) -> None:
         """Validate team ID format and existence"""

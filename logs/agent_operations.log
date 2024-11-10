@@ -6585,3 +6585,358 @@ OSError: [WinError 10038] Une opération a été tentée sur autre chose qu’un
 [22:11:03] [SUCCESS] Successfully selected mission: raise-your-ai
 [22:11:04] [INFO] Cleaned up 2 socket(s)
 [22:11:04] [INFO] Application shutdown complete
+[22:28:49] [DEBUG] Project root: C:\Users\conta\parallagon
+[22:28:49] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[22:28:49] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[22:28:49] [SUCCESS] Flask app initialized
+[22:28:49] [SUCCESS] CORS configured
+[22:28:49] [INFO] [22:28:49] [INFO] Registered routes:
+[22:28:49] [INFO] [22:28:49] [INFO]   static: {'HEAD', 'OPTIONS', 'GET'} /static/<path:filename>
+[22:28:49] [INFO] [22:28:49] [INFO]   index: {'HEAD', 'OPTIONS', 'GET'} /
+[22:28:49] [INFO] [22:28:49] [INFO]   health_check: {'HEAD', 'OPTIONS', 'GET'} /health
+[22:28:49] [INFO] [22:28:49] [INFO]   get_status: {'HEAD', 'OPTIONS', 'GET'} /api/status
+[22:28:49] [INFO] [22:28:49] [INFO]   api_agents_start: {'OPTIONS', 'POST'} /api/agents/start
+[22:28:49] [INFO] [22:28:49] [INFO]   api_agents_stop: {'OPTIONS', 'POST'} /api/agents/stop
+[22:28:49] [INFO] [22:28:49] [INFO]   api_agents_list: {'HEAD', 'OPTIONS', 'GET'} /api/agents/list
+[22:28:49] [INFO] [22:28:49] [INFO]   api_agents_status: {'HEAD', 'OPTIONS', 'GET'} /api/agents/status
+[22:28:49] [INFO] [22:28:49] [INFO]   api_agent_get_prompt: {'HEAD', 'OPTIONS', 'GET'} /api/agent/<agent_id>/prompt
+[22:28:49] [INFO] [22:28:49] [INFO]   api_agent_save_prompt: {'OPTIONS', 'POST'} /api/agent/<agent_id>/prompt
+[22:28:49] [INFO] [22:28:49] [INFO]   api_agent_control: {'OPTIONS', 'POST'} /api/agent/<agent_id>/<action>
+[22:28:49] [INFO] [22:28:49] [INFO]   api_mission_path_by_name: {'HEAD', 'OPTIONS', 'GET'} /api/paths/mission/<mission_name>
+[22:28:49] [INFO] [22:28:49] [INFO]   api_mission_path: {'HEAD', 'OPTIONS', 'GET'} /api/missions/<int:mission_id>/path
+[22:28:49] [INFO] [22:28:49] [INFO]   api_missions_list: {'HEAD', 'OPTIONS', 'GET'} /api/missions
+[22:28:49] [INFO] [22:28:49] [INFO]   api_mission_files: {'HEAD', 'OPTIONS', 'GET'} /api/missions/<int:mission_id>/files
+[22:28:49] [INFO] [22:28:49] [INFO]   api_mission_select: {'OPTIONS', 'POST'} /api/missions/<int:mission_id>/select
+[22:28:49] [INFO] [22:28:49] [INFO]   api_mission_reset: {'OPTIONS', 'POST'} /api/missions/<int:mission_id>/reset
+[22:28:49] [INFO] [22:28:49] [INFO]   api_mission_file_content: {'HEAD', 'OPTIONS', 'GET'} /api/missions/<int:mission_id>/files/<path:file_path>
+[22:28:49] [INFO] [22:28:49] [INFO]   api_notifications_get: {'HEAD', 'OPTIONS', 'GET'} /api/notifications
+[22:28:49] [INFO] [22:28:49] [INFO]   api_notifications_post: {'OPTIONS', 'POST'} /api/notifications
+[22:28:49] [INFO] [22:28:49] [INFO]   home: {'HEAD', 'OPTIONS', 'GET'} /
+[22:28:49] [INFO] [22:28:49] [INFO]   editor_interface: {'HEAD', 'OPTIONS', 'GET'} /editor
+[22:28:49] [INFO] [22:28:49] [INFO]   agents_page: {'HEAD', 'OPTIONS', 'GET'} /agents
+[22:28:49] [INFO] [22:28:49] [INFO]   files_page: {'HEAD', 'OPTIONS', 'GET'} /files
+[22:28:49] [INFO] [22:28:49] [INFO]   teams_page: {'HEAD', 'OPTIONS', 'GET'} /teams
+[22:28:49] [INFO] [22:28:49] [INFO]   clean_interface: {'HEAD', 'OPTIONS', 'GET'} /clean
+[22:28:49] [INFO] [22:28:49] [INFO]   api_teams_list: {'HEAD', 'OPTIONS', 'GET'} /api/teams
+[22:28:49] [INFO] [22:28:49] [INFO]   api_team_start: {'OPTIONS', 'POST'} /api/teams/<team_id>/start
+[22:28:49] [INFO] [22:28:49] [INFO]   api_team_stop: {'OPTIONS', 'POST'} /api/teams/<team_id>/stop
+[22:28:49] [INFO] [22:28:49] [INFO]   api_team_agent_control: {'OPTIONS', 'POST'} /api/teams/<team_id>/agents/<agent_name>/<action>
+[22:28:49] [INFO] [22:28:49] [INFO]   api_team_status: {'HEAD', 'OPTIONS', 'GET'} /api/teams/<team_id>/status
+[22:28:49] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[22:28:49] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[22:28:49] [INFO] Initializing core components...
+[22:28:49] [INFO] [22:28:49] [SUCCESS] ✓ Agent chroniqueur initialized
+[22:28:49] [INFO] [22:28:49] [SUCCESS] ✓ Agent documentaliste initialized
+[22:28:50] [INFO] [22:28:50] [SUCCESS] ✓ Agent duplication initialized
+[22:28:50] [INFO] [22:28:50] [SUCCESS] ✓ Agent evaluation initialized
+[22:28:51] [INFO] [22:28:51] [SUCCESS] ✓ Agent management initialized
+[22:28:51] [INFO] [22:28:51] [SUCCESS] ✓ Agent production initialized
+[22:28:51] [INFO] [22:28:51] [SUCCESS] ✓ Agent redacteur initialized
+[22:28:52] [INFO] [22:28:52] [SUCCESS] ✓ Agent redacteur2 initialized
+[22:28:52] [INFO] [22:28:52] [SUCCESS] ✓ Agent redacteur3 initialized
+[22:28:53] [INFO] [22:28:53] [SUCCESS] ✓ Agent specifications initialized
+[22:28:53] [INFO] [22:28:53] [SUCCESS] ✓ Agent testeur initialized
+[22:28:53] [INFO] [22:28:53] [SUCCESS] ✓ Agent validation initialized
+[22:28:53] [SUCCESS] Agents initialized in inactive state
+[22:28:53] [SUCCESS] Core components initialized successfully
+[22:28:55] [INFO] Starting server on http://0.0.0.0:8000
+[22:28:57] [INFO] [22:28:57] [INFO] Agent chroniqueur stopped
+[22:28:57] [INFO] [22:28:57] [INFO] Agent documentaliste stopped
+[22:28:57] [INFO] [22:28:57] [INFO] Agent duplication stopped
+[22:28:57] [INFO] [22:28:57] [INFO] Agent evaluation stopped
+[22:28:57] [INFO] [22:28:57] [INFO] Agent management stopped
+[22:28:57] [INFO] [22:28:57] [INFO] Agent production stopped
+[22:28:57] [INFO] [22:28:57] [INFO] Agent redacteur stopped
+[22:28:57] [INFO] [22:28:57] [INFO] Agent redacteur2 stopped
+[22:28:57] [INFO] [22:28:57] [INFO] Agent redacteur3 stopped
+[22:28:57] [INFO] [22:28:57] [INFO] Agent specifications stopped
+[22:28:57] [INFO] [22:28:57] [INFO] Agent testeur stopped
+[22:28:57] [INFO] [22:28:57] [INFO] Agent validation stopped
+[22:28:57] [INFO] [22:28:57] [SUCCESS] All agents stopped
+[22:28:57] [ERROR] Error running application: [WinError 10038] Une opération a été tentée sur autre chose qu’un socket
+[22:28:57] [INFO] [22:28:57] [INFO] Agent chroniqueur stopped
+[22:28:57] [SUCCESS] All agents stopped successfully
+[22:28:58] [INFO] [22:28:58] [INFO] Agent documentaliste stopped
+[22:28:58] [INFO] [22:28:58] [INFO] Agent duplication stopped
+[22:28:58] [INFO] [22:28:58] [INFO] Agent evaluation stopped
+[22:28:58] [INFO] [22:28:58] [INFO] Agent management stopped
+[22:28:58] [INFO] [22:28:58] [INFO] Agent production stopped
+[22:28:58] [INFO] [22:28:58] [INFO] Agent redacteur stopped
+[22:28:58] [INFO] [22:28:58] [INFO] Agent redacteur2 stopped
+[22:28:58] [INFO] [22:28:58] [INFO] Agent redacteur3 stopped
+[22:28:58] [INFO] [22:28:58] [INFO] Agent specifications stopped
+[22:28:58] [INFO] [22:28:58] [INFO] Agent testeur stopped
+[22:28:58] [INFO] [22:28:58] [INFO] Agent validation stopped
+[22:28:58] [INFO] [22:28:58] [SUCCESS] All agents stopped
+[22:28:58] [DEBUG] Executing cleanup: 
+[22:28:59] [INFO] Cleaned up 2 socket(s)
+[22:28:59] [INFO] Changing mission from None to C:\Users\conta\parallagon\raise-your-ai
+[22:28:59] [SUCCESS] ✓ Mission changed to: raise-your-ai
+[22:28:59] [SUCCESS] Successfully selected mission: raise-your-ai
+[22:28:59] [INFO] Cleaned up 2 socket(s)
+[22:28:59] [INFO] Application shutdown complete
+[22:31:47] [DEBUG] Project root: C:\Users\conta\parallagon
+[22:31:47] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[22:31:47] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[22:31:47] [SUCCESS] Flask app initialized
+[22:31:47] [SUCCESS] CORS configured
+[22:31:47] [INFO] [22:31:47] [INFO] Registered routes:
+[22:31:47] [INFO] [22:31:47] [INFO]   static: {'OPTIONS', 'HEAD', 'GET'} /static/<path:filename>
+[22:31:47] [INFO] [22:31:47] [INFO]   index: {'OPTIONS', 'HEAD', 'GET'} /
+[22:31:47] [INFO] [22:31:47] [INFO]   health_check: {'OPTIONS', 'HEAD', 'GET'} /health
+[22:31:47] [INFO] [22:31:47] [INFO]   get_status: {'OPTIONS', 'HEAD', 'GET'} /api/status
+[22:31:47] [INFO] [22:31:47] [INFO]   api_agents_start: {'OPTIONS', 'POST'} /api/agents/start
+[22:31:47] [INFO] [22:31:47] [INFO]   api_agents_stop: {'OPTIONS', 'POST'} /api/agents/stop
+[22:31:47] [INFO] [22:31:47] [INFO]   api_agents_list: {'OPTIONS', 'HEAD', 'GET'} /api/agents/list
+[22:31:47] [INFO] [22:31:47] [INFO]   api_agents_status: {'OPTIONS', 'HEAD', 'GET'} /api/agents/status
+[22:31:47] [INFO] [22:31:47] [INFO]   api_agent_get_prompt: {'OPTIONS', 'HEAD', 'GET'} /api/agent/<agent_id>/prompt
+[22:31:47] [INFO] [22:31:47] [INFO]   api_agent_save_prompt: {'OPTIONS', 'POST'} /api/agent/<agent_id>/prompt
+[22:31:47] [INFO] [22:31:47] [INFO]   api_agent_control: {'OPTIONS', 'POST'} /api/agent/<agent_id>/<action>
+[22:31:47] [INFO] [22:31:47] [INFO]   api_mission_path_by_name: {'OPTIONS', 'HEAD', 'GET'} /api/paths/mission/<mission_name>
+[22:31:47] [INFO] [22:31:47] [INFO]   api_mission_path: {'OPTIONS', 'HEAD', 'GET'} /api/missions/<int:mission_id>/path
+[22:31:47] [INFO] [22:31:47] [INFO]   api_missions_list: {'OPTIONS', 'HEAD', 'GET'} /api/missions
+[22:31:47] [INFO] [22:31:47] [INFO]   api_mission_files: {'OPTIONS', 'HEAD', 'GET'} /api/missions/<int:mission_id>/files
+[22:31:47] [INFO] [22:31:47] [INFO]   api_mission_select: {'OPTIONS', 'POST'} /api/missions/<int:mission_id>/select
+[22:31:47] [INFO] [22:31:47] [INFO]   api_mission_reset: {'OPTIONS', 'POST'} /api/missions/<int:mission_id>/reset
+[22:31:47] [INFO] [22:31:47] [INFO]   api_mission_file_content: {'OPTIONS', 'HEAD', 'GET'} /api/missions/<int:mission_id>/files/<path:file_path>
+[22:31:47] [INFO] [22:31:47] [INFO]   api_notifications_get: {'OPTIONS', 'HEAD', 'GET'} /api/notifications
+[22:31:47] [INFO] [22:31:47] [INFO]   api_notifications_post: {'OPTIONS', 'POST'} /api/notifications
+[22:31:47] [INFO] [22:31:47] [INFO]   home: {'OPTIONS', 'HEAD', 'GET'} /
+[22:31:47] [INFO] [22:31:47] [INFO]   editor_interface: {'OPTIONS', 'HEAD', 'GET'} /editor
+[22:31:47] [INFO] [22:31:47] [INFO]   agents_page: {'OPTIONS', 'HEAD', 'GET'} /agents
+[22:31:47] [INFO] [22:31:47] [INFO]   files_page: {'OPTIONS', 'HEAD', 'GET'} /files
+[22:31:47] [INFO] [22:31:47] [INFO]   teams_page: {'OPTIONS', 'HEAD', 'GET'} /teams
+[22:31:47] [INFO] [22:31:47] [INFO]   clean_interface: {'OPTIONS', 'HEAD', 'GET'} /clean
+[22:31:47] [INFO] [22:31:47] [INFO]   api_teams_list: {'OPTIONS', 'HEAD', 'GET'} /api/teams
+[22:31:47] [INFO] [22:31:47] [INFO]   api_team_start: {'OPTIONS', 'POST'} /api/teams/<team_id>/start
+[22:31:47] [INFO] [22:31:47] [INFO]   api_team_stop: {'OPTIONS', 'POST'} /api/teams/<team_id>/stop
+[22:31:47] [INFO] [22:31:47] [INFO]   api_team_agent_control: {'OPTIONS', 'POST'} /api/teams/<team_id>/agents/<agent_name>/<action>
+[22:31:47] [INFO] [22:31:47] [INFO]   api_team_status: {'OPTIONS', 'HEAD', 'GET'} /api/teams/<team_id>/status
+[22:31:47] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[22:31:47] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[22:31:47] [INFO] Initializing core components...
+[22:31:48] [INFO] [22:31:48] [SUCCESS] ✓ Agent chroniqueur initialized
+[22:31:48] [INFO] [22:31:48] [SUCCESS] ✓ Agent documentaliste initialized
+[22:31:48] [INFO] [22:31:48] [SUCCESS] ✓ Agent duplication initialized
+[22:31:49] [INFO] [22:31:49] [SUCCESS] ✓ Agent evaluation initialized
+[22:31:49] [INFO] [22:31:49] [SUCCESS] ✓ Agent management initialized
+[22:31:50] [INFO] [22:31:50] [SUCCESS] ✓ Agent production initialized
+[22:31:50] [INFO] [22:31:50] [SUCCESS] ✓ Agent redacteur initialized
+[22:31:51] [INFO] [22:31:51] [SUCCESS] ✓ Agent redacteur2 initialized
+[22:31:51] [INFO] [22:31:51] [SUCCESS] ✓ Agent redacteur3 initialized
+[22:31:51] [INFO] [22:31:51] [SUCCESS] ✓ Agent specifications initialized
+[22:31:52] [INFO] [22:31:52] [SUCCESS] ✓ Agent testeur initialized
+[22:31:52] [INFO] [22:31:52] [SUCCESS] ✓ Agent validation initialized
+[22:31:52] [SUCCESS] Agents initialized in inactive state
+[22:31:52] [SUCCESS] Core components initialized successfully
+[22:31:53] [INFO] Starting server on http://0.0.0.0:8000
+[22:31:57] [INFO] [22:31:57] [INFO] Agent chroniqueur stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent documentaliste stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent duplication stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent evaluation stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent management stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent production stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent redacteur stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent redacteur2 stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent redacteur3 stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent specifications stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent testeur stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent validation stopped
+[22:31:57] [INFO] [22:31:57] [SUCCESS] All agents stopped
+[22:31:57] [ERROR] Error running application: [WinError 10038] Une opération a été tentée sur autre chose qu’un socket
+[22:31:57] [INFO] [22:31:57] [INFO] Agent chroniqueur stopped
+[22:31:57] [SUCCESS] All agents stopped successfully
+[22:31:57] [INFO] [22:31:57] [INFO] Agent documentaliste stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent duplication stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent evaluation stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent management stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent production stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent redacteur stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent redacteur2 stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent redacteur3 stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent specifications stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent testeur stopped
+[22:31:57] [INFO] [22:31:57] [INFO] Agent validation stopped
+[22:31:57] [INFO] [22:31:57] [SUCCESS] All agents stopped
+[22:31:57] [DEBUG] Executing cleanup: 
+[22:31:58] [INFO] Cleaned up 2 socket(s)
+[22:31:58] [INFO] Changing mission from None to C:\Users\conta\parallagon\raise-your-ai
+[22:31:58] [SUCCESS] ✓ Mission changed to: raise-your-ai
+[22:31:58] [SUCCESS] Successfully selected mission: raise-your-ai
+[22:31:58] [INFO] Cleaned up 2 socket(s)
+[22:31:58] [INFO] Application shutdown complete
+[22:37:05] [DEBUG] Project root: C:\Users\conta\parallagon
+[22:37:05] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[22:37:05] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[22:37:05] [SUCCESS] Flask app initialized
+[22:37:05] [SUCCESS] CORS configured
+[22:37:05] [INFO] [22:37:05] [INFO] Registered routes:
+[22:37:05] [INFO] [22:37:05] [INFO]   static: {'GET', 'HEAD', 'OPTIONS'} /static/<path:filename>
+[22:37:05] [INFO] [22:37:05] [INFO]   index: {'GET', 'HEAD', 'OPTIONS'} /
+[22:37:05] [INFO] [22:37:05] [INFO]   health_check: {'GET', 'HEAD', 'OPTIONS'} /health
+[22:37:05] [INFO] [22:37:05] [INFO]   get_status: {'GET', 'HEAD', 'OPTIONS'} /api/status
+[22:37:05] [INFO] [22:37:05] [INFO]   api_agents_start: {'OPTIONS', 'POST'} /api/agents/start
+[22:37:05] [INFO] [22:37:05] [INFO]   api_agents_stop: {'OPTIONS', 'POST'} /api/agents/stop
+[22:37:05] [INFO] [22:37:05] [INFO]   api_agents_list: {'GET', 'HEAD', 'OPTIONS'} /api/agents/list
+[22:37:05] [INFO] [22:37:05] [INFO]   api_agents_status: {'GET', 'HEAD', 'OPTIONS'} /api/agents/status
+[22:37:05] [INFO] [22:37:05] [INFO]   api_agent_get_prompt: {'GET', 'HEAD', 'OPTIONS'} /api/agent/<agent_id>/prompt
+[22:37:05] [INFO] [22:37:05] [INFO]   api_agent_save_prompt: {'OPTIONS', 'POST'} /api/agent/<agent_id>/prompt
+[22:37:05] [INFO] [22:37:05] [INFO]   api_agent_control: {'OPTIONS', 'POST'} /api/agent/<agent_id>/<action>
+[22:37:05] [INFO] [22:37:05] [INFO]   api_mission_path_by_name: {'GET', 'HEAD', 'OPTIONS'} /api/paths/mission/<mission_name>
+[22:37:05] [INFO] [22:37:05] [INFO]   api_mission_path: {'GET', 'HEAD', 'OPTIONS'} /api/missions/<int:mission_id>/path
+[22:37:05] [INFO] [22:37:05] [INFO]   api_missions_list: {'GET', 'HEAD', 'OPTIONS'} /api/missions
+[22:37:05] [INFO] [22:37:05] [INFO]   api_mission_files: {'GET', 'HEAD', 'OPTIONS'} /api/missions/<int:mission_id>/files
+[22:37:06] [INFO] [22:37:06] [INFO]   api_mission_select: {'OPTIONS', 'POST'} /api/missions/<int:mission_id>/select
+[22:37:06] [INFO] [22:37:06] [INFO]   api_mission_reset: {'OPTIONS', 'POST'} /api/missions/<int:mission_id>/reset
+[22:37:06] [INFO] [22:37:06] [INFO]   api_mission_file_content: {'GET', 'HEAD', 'OPTIONS'} /api/missions/<int:mission_id>/files/<path:file_path>
+[22:37:06] [INFO] [22:37:06] [INFO]   api_notifications_get: {'GET', 'HEAD', 'OPTIONS'} /api/notifications
+[22:37:06] [INFO] [22:37:06] [INFO]   api_notifications_post: {'OPTIONS', 'POST'} /api/notifications
+[22:37:06] [INFO] [22:37:06] [INFO]   home: {'GET', 'HEAD', 'OPTIONS'} /
+[22:37:06] [INFO] [22:37:06] [INFO]   editor_interface: {'GET', 'HEAD', 'OPTIONS'} /editor
+[22:37:06] [INFO] [22:37:06] [INFO]   agents_page: {'GET', 'HEAD', 'OPTIONS'} /agents
+[22:37:06] [INFO] [22:37:06] [INFO]   files_page: {'GET', 'HEAD', 'OPTIONS'} /files
+[22:37:06] [INFO] [22:37:06] [INFO]   teams_page: {'GET', 'HEAD', 'OPTIONS'} /teams
+[22:37:06] [INFO] [22:37:06] [INFO]   clean_interface: {'GET', 'HEAD', 'OPTIONS'} /clean
+[22:37:06] [INFO] [22:37:06] [INFO]   api_teams_list: {'GET', 'HEAD', 'OPTIONS'} /api/teams
+[22:37:06] [INFO] [22:37:06] [INFO]   api_team_start: {'OPTIONS', 'POST'} /api/teams/<team_id>/start
+[22:37:06] [INFO] [22:37:06] [INFO]   api_team_stop: {'OPTIONS', 'POST'} /api/teams/<team_id>/stop
+[22:37:06] [INFO] [22:37:06] [INFO]   api_team_agent_control: {'OPTIONS', 'POST'} /api/teams/<team_id>/agents/<agent_name>/<action>
+[22:37:06] [INFO] [22:37:06] [INFO]   api_team_status: {'GET', 'HEAD', 'OPTIONS'} /api/teams/<team_id>/status
+[22:37:06] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[22:37:06] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[22:37:06] [INFO] Initializing core components...
+[22:37:06] [INFO] [22:37:06] [SUCCESS] ✓ Agent chroniqueur initialized
+[22:37:06] [INFO] [22:37:06] [SUCCESS] ✓ Agent documentaliste initialized
+[22:37:07] [INFO] [22:37:07] [SUCCESS] ✓ Agent duplication initialized
+[22:37:07] [INFO] [22:37:07] [SUCCESS] ✓ Agent evaluation initialized
+[22:37:08] [INFO] [22:37:08] [SUCCESS] ✓ Agent management initialized
+[22:37:08] [INFO] [22:37:08] [SUCCESS] ✓ Agent production initialized
+[22:37:09] [INFO] [22:37:09] [SUCCESS] ✓ Agent redacteur initialized
+[22:37:09] [INFO] [22:37:09] [SUCCESS] ✓ Agent redacteur2 initialized
+[22:37:09] [INFO] [22:37:09] [SUCCESS] ✓ Agent redacteur3 initialized
+[22:37:10] [INFO] [22:37:10] [SUCCESS] ✓ Agent specifications initialized
+[22:37:10] [INFO] [22:37:10] [SUCCESS] ✓ Agent testeur initialized
+[22:37:11] [INFO] [22:37:11] [SUCCESS] ✓ Agent validation initialized
+[22:37:11] [SUCCESS] Agents initialized in inactive state
+[22:37:11] [SUCCESS] Core components initialized successfully
+[22:37:12] [INFO] Starting server on http://0.0.0.0:8000
+[22:37:39] [INFO] [22:37:39] [INFO] Agent chroniqueur stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent documentaliste stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent duplication stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent evaluation stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent management stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent production stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent redacteur stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent redacteur2 stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent redacteur3 stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent specifications stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent testeur stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent validation stopped
+[22:37:39] [INFO] [22:37:39] [SUCCESS] All agents stopped
+[22:37:39] [ERROR] Error running application: [WinError 10038] Une opération a été tentée sur autre chose qu’un socket
+[22:37:39] [INFO] [22:37:39] [INFO] Agent chroniqueur stopped
+[22:37:39] [SUCCESS] All agents stopped successfully
+[22:37:39] [INFO] [22:37:39] [INFO] Agent documentaliste stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent duplication stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent evaluation stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent management stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent production stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent redacteur stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent redacteur2 stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent redacteur3 stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent specifications stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent testeur stopped
+[22:37:39] [INFO] [22:37:39] [INFO] Agent validation stopped
+[22:37:39] [INFO] [22:37:39] [SUCCESS] All agents stopped
+[22:37:39] [DEBUG] Executing cleanup: 
+[22:37:40] [INFO] Cleaned up 2 socket(s)
+[22:37:40] [INFO] Changing mission from None to C:\Users\conta\parallagon\raise-your-ai
+[22:37:40] [SUCCESS] ✓ Mission changed to: raise-your-ai
+[22:37:40] [SUCCESS] Successfully selected mission: raise-your-ai
+[22:37:40] [INFO] Cleaned up 2 socket(s)
+[22:37:40] [INFO] Application shutdown complete
+[22:38:50] [INFO] Équipes disponibles :
+[22:38:50] [INFO] - ID: book-writing, Nom: Book Writing Team, Agents: SpecificationsAgent, ManagementAgent, EvaluationAgent, SuiviAgent, DocumentalisteAgent, DuplicationAgent, RedacteurAgent, ValidationAgent
+[22:38:50] [INFO] - ID: literature-review, Nom: Literature Review Team, Agents: SpecificationsAgent, ManagementAgent, EvaluationAgent, SuiviAgent, DocumentalisteAgent, DuplicationAgent, RedacteurAgent, ValidationAgent
+[22:38:50] [INFO] - ID: coding, Nom: Coding Team, Agents: SpecificationsAgent, ManagementAgent, EvaluationAgent, SuiviAgent, DocumentalisteAgent, DuplicationAgent, ProductionAgent, TesteurAgent, ValidationAgent
+[22:40:30] [INFO] Équipes disponibles :
+[22:40:30] [INFO] - ID: book-writing, Nom: Book Writing Team, Agents: SpecificationsAgent, ManagementAgent, EvaluationAgent, SuiviAgent, DocumentalisteAgent, DuplicationAgent, RedacteurAgent, ValidationAgent
+[22:40:30] [INFO] - ID: literature-review, Nom: Literature Review Team, Agents: SpecificationsAgent, ManagementAgent, EvaluationAgent, SuiviAgent, DocumentalisteAgent, DuplicationAgent, RedacteurAgent, ValidationAgent
+[22:40:30] [INFO] - ID: coding, Nom: Coding Team, Agents: SpecificationsAgent, ManagementAgent, EvaluationAgent, SuiviAgent, DocumentalisteAgent, DuplicationAgent, ProductionAgent, TesteurAgent, ValidationAgent
+[22:42:19] [WARNING] Aucun agent n'a été trouvé.
+[22:42:19] [INFO] Missions disponibles :
+[22:42:19] [INFO] - ID: 1, Nom: raise-your-ai, Statut: active, Créée le: 2024-10-29T18:27:59.903854
+[22:42:19] [INFO] - ID: 2, Nom: iot, Statut: active, Créée le: 2024-11-06T17:45:49.155503
+[22:42:19] [INFO] - ID: 3, Nom: super_gato, Statut: active, Créée le: 2024-11-08T20:50:06.859736
+[22:42:19] [INFO] - ID: 4, Nom: eveil, Statut: active, Créée le: 2024-11-08T22:39:31.907414
+[22:42:19] [INFO] - ID: 5, Nom: whitepaper, Statut: active, Créée le: 2024-11-10T06:16:10.847517
+[22:42:19] [INFO] - ID: 6, Nom: llm-consciousness, Statut: active, Créée le: 2024-11-10T06:22:20.136420
+[22:42:19] [INFO] - ID: 7, Nom: song1, Statut: active, Créée le: 2024-11-10T06:32:19.434537
+[22:42:19] [INFO] - ID: 8, Nom: _temp, Statut: active, Créée le: 2024-11-10T18:12:02.390635
+[22:42:19] [INFO] Équipes disponibles :
+[22:42:19] [INFO] - ID: book-writing, Nom: Book Writing Team, Agents: SpecificationsAgent, ManagementAgent, EvaluationAgent, SuiviAgent, DocumentalisteAgent, DuplicationAgent, RedacteurAgent, ValidationAgent
+[22:42:19] [INFO] - ID: literature-review, Nom: Literature Review Team, Agents: SpecificationsAgent, ManagementAgent, EvaluationAgent, SuiviAgent, DocumentalisteAgent, DuplicationAgent, RedacteurAgent, ValidationAgent
+[22:42:19] [INFO] - ID: coding, Nom: Coding Team, Agents: SpecificationsAgent, ManagementAgent, EvaluationAgent, SuiviAgent, DocumentalisteAgent, DuplicationAgent, ProductionAgent, TesteurAgent, ValidationAgent
+[22:43:46] [ERROR] Error activating team: 'TeamService' object has no attribute 'predefined_teams'
+[22:43:46] [ERROR] Erreur lors du lancement de l'équipe : Failed to activate team: 'TeamService' object has no attribute 'predefined_teams'
+[22:45:24] [ERROR] Error activating team: 'NoneType' object has no attribute 'log_message'
+[22:45:24] [ERROR] Erreur lors du lancement de l'équipe : Failed to activate team: 'NoneType' object has no attribute 'log_message'
+[22:48:02] [ERROR] Erreur lors du lancement de l'équipe : 'KinosCLI' object has no attribute 'log'
+[22:48:32] [DEBUG] Project root: C:\Users\conta\parallagon
+[22:48:32] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[22:48:32] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[22:48:32] [SUCCESS] Flask app initialized
+[22:48:32] [SUCCESS] CORS configured
+[22:48:32] [INFO] [22:48:32] [INFO] Registered routes:
+[22:48:32] [INFO] [22:48:32] [INFO]   static: {'GET', 'HEAD', 'OPTIONS'} /static/<path:filename>
+[22:48:32] [INFO] [22:48:32] [INFO]   index: {'GET', 'HEAD', 'OPTIONS'} /
+[22:48:32] [INFO] [22:48:32] [INFO]   health_check: {'GET', 'HEAD', 'OPTIONS'} /health
+[22:48:32] [INFO] [22:48:32] [INFO]   get_status: {'GET', 'HEAD', 'OPTIONS'} /api/status
+[22:48:32] [INFO] [22:48:32] [INFO]   api_agents_start: {'POST', 'OPTIONS'} /api/agents/start
+[22:48:32] [INFO] [22:48:32] [INFO]   api_agents_stop: {'POST', 'OPTIONS'} /api/agents/stop
+[22:48:32] [INFO] [22:48:32] [INFO]   api_agents_list: {'GET', 'HEAD', 'OPTIONS'} /api/agents/list
+[22:48:32] [INFO] [22:48:32] [INFO]   api_agents_status: {'GET', 'HEAD', 'OPTIONS'} /api/agents/status
+[22:48:32] [INFO] [22:48:32] [INFO]   api_agent_get_prompt: {'GET', 'HEAD', 'OPTIONS'} /api/agent/<agent_id>/prompt
+[22:48:32] [INFO] [22:48:32] [INFO]   api_agent_save_prompt: {'POST', 'OPTIONS'} /api/agent/<agent_id>/prompt
+[22:48:32] [INFO] [22:48:32] [INFO]   api_agent_control: {'POST', 'OPTIONS'} /api/agent/<agent_id>/<action>
+[22:48:32] [INFO] [22:48:32] [INFO]   api_mission_path_by_name: {'GET', 'HEAD', 'OPTIONS'} /api/paths/mission/<mission_name>
+[22:48:32] [INFO] [22:48:32] [INFO]   api_mission_path: {'GET', 'HEAD', 'OPTIONS'} /api/missions/<int:mission_id>/path
+[22:48:32] [INFO] [22:48:32] [INFO]   api_missions_list: {'GET', 'HEAD', 'OPTIONS'} /api/missions
+[22:48:32] [INFO] [22:48:32] [INFO]   api_mission_files: {'GET', 'HEAD', 'OPTIONS'} /api/missions/<int:mission_id>/files
+[22:48:32] [INFO] [22:48:32] [INFO]   api_mission_select: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/select
+[22:48:32] [INFO] [22:48:32] [INFO]   api_mission_reset: {'POST', 'OPTIONS'} /api/missions/<int:mission_id>/reset
+[22:48:32] [INFO] [22:48:32] [INFO]   api_mission_file_content: {'GET', 'HEAD', 'OPTIONS'} /api/missions/<int:mission_id>/files/<path:file_path>
+[22:48:32] [INFO] [22:48:32] [INFO]   api_notifications_get: {'GET', 'HEAD', 'OPTIONS'} /api/notifications
+[22:48:32] [INFO] [22:48:32] [INFO]   api_notifications_post: {'POST', 'OPTIONS'} /api/notifications
+[22:48:32] [INFO] [22:48:32] [INFO]   home: {'GET', 'HEAD', 'OPTIONS'} /
+[22:48:32] [INFO] [22:48:32] [INFO]   editor_interface: {'GET', 'HEAD', 'OPTIONS'} /editor
+[22:48:32] [INFO] [22:48:32] [INFO]   agents_page: {'GET', 'HEAD', 'OPTIONS'} /agents
+[22:48:32] [INFO] [22:48:32] [INFO]   files_page: {'GET', 'HEAD', 'OPTIONS'} /files
+[22:48:32] [INFO] [22:48:32] [INFO]   teams_page: {'GET', 'HEAD', 'OPTIONS'} /teams
+[22:48:32] [INFO] [22:48:32] [INFO]   clean_interface: {'GET', 'HEAD', 'OPTIONS'} /clean
+[22:48:32] [INFO] [22:48:32] [INFO]   api_teams_list: {'GET', 'HEAD', 'OPTIONS'} /api/teams
+[22:48:32] [INFO] [22:48:32] [INFO]   api_team_start: {'POST', 'OPTIONS'} /api/teams/<team_id>/start
+[22:48:32] [INFO] [22:48:32] [INFO]   api_team_stop: {'POST', 'OPTIONS'} /api/teams/<team_id>/stop
+[22:48:32] [INFO] [22:48:32] [INFO]   api_team_agent_control: {'POST', 'OPTIONS'} /api/teams/<team_id>/agents/<agent_name>/<action>
+[22:48:32] [INFO] [22:48:32] [INFO]   api_team_status: {'GET', 'HEAD', 'OPTIONS'} /api/teams/<team_id>/status
+[22:48:32] [DEBUG] Template directory: C:\Users\conta\parallagon\templates
+[22:48:32] [DEBUG] Static directory: C:\Users\conta\parallagon\static
+[22:48:32] [INFO] Initializing core components...
+[22:48:33] [INFO] [22:48:33] [SUCCESS] ✓ Agent chroniqueur initialized
+[22:48:33] [INFO] [22:48:33] [SUCCESS] ✓ Agent documentaliste initialized
+[22:48:34] [INFO] [22:48:34] [SUCCESS] ✓ Agent duplication initialized
+[22:48:34] [INFO] [22:48:34] [SUCCESS] ✓ Agent evaluation initialized
+[22:48:34] [INFO] [22:48:34] [SUCCESS] ✓ Agent management initialized
+[22:48:35] [INFO] [22:48:35] [SUCCESS] ✓ Agent production initialized
+[22:48:35] [INFO] [22:48:35] [SUCCESS] ✓ Agent redacteur initialized
+[22:48:36] [INFO] [22:48:36] [SUCCESS] ✓ Agent redacteur2 initialized
+[22:48:36] [INFO] [22:48:36] [SUCCESS] ✓ Agent redacteur3 initialized
+[22:48:36] [INFO] [22:48:36] [SUCCESS] ✓ Agent specifications initialized
+[22:48:37] [INFO] [22:48:37] [SUCCESS] ✓ Agent testeur initialized
+[22:48:37] [INFO] [22:48:37] [SUCCESS] ✓ Agent validation initialized
+[22:48:37] [SUCCESS] Agents initialized in inactive state
+[22:48:37] [SUCCESS] Core components initialized successfully
+[22:48:38] [INFO] Starting server on http://0.0.0.0:8000
+[22:49:13] [ERROR] Erreur lors du lancement de l'équipe : 'KinosCLI' object has no attribute 'log'
+[22:50:14] [ERROR] Error activating team: 'NoneType' object has no attribute 'log_message'
+[22:50:14] [ERROR] Erreur lors du lancement de l'équipe : Failed to activate team: 'NoneType' object has no attribute 'log_message'
