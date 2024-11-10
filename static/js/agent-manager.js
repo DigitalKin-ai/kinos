@@ -1,21 +1,35 @@
 import ApiClient from './api-client.js';
 
 export default {
+    props: {
+        currentMission: {
+            type: Object,
+            default: () => null
+        }
+    },
     data() {
         return {
             teams: [],
             agents: [],
-            currentMission: null,
             loading: false,
             error: null,
             apiClient: new ApiClient(),
-            activeTeam: null  // Track active team
+            activeTeam: null
         }
     },
-    props: {
+    watch: {
         currentMission: {
-            type: Object,
-            required: true
+            immediate: true,
+            async handler(newMission) {
+                if (newMission) {
+                    try {
+                        await this.loadTeams();
+                    } catch (error) {
+                        console.error('Error loading teams:', error);
+                        this.error = error.message;
+                    }
+                }
+            }
         }
     },
     methods: {
@@ -23,7 +37,7 @@ export default {
             try {
                 if (!this.currentMission) {
                     console.warn('No mission selected');
-                    this.teams = [];  // Initialize as empty array
+                    this.teams = [];
                     return [];
                 }
             
@@ -32,7 +46,7 @@ export default {
                 // Defensive programming: ensure response is an array
                 this.teams = Array.isArray(response) ? response.map(team => ({
                     ...team,
-                    agents: team.agents || [],  // Fallback to empty array
+                    agents: team.agents || [],
                     status: team.status || 'available'
                 })) : [];
 
@@ -44,11 +58,60 @@ export default {
                 return this.teams;
             } catch (error) {
                 console.error('Error loading teams:', error);
-                this.teams = [];  // Ensure teams is an empty array on error
+                this.teams = [];
                 this.error = error.message;
                 return [];
             }
         },
+        
+        getTeamMetrics(teamId) {
+            if (!teamId) return null;
+            
+            const team = this.teams.find(t => t.id === teamId);
+            if (!team) return null;
+            
+            return {
+                totalAgents: team.agents?.length || 0,
+                activeAgents: team.agents?.filter(a => a.status === 'active').length || 0,
+                health: this.calculateTeamHealth(team)
+            };
+        },
+        
+        calculateTeamHealth(team) {
+            if (!team || !team.agents || team.agents.length === 0) return 0;
+            const healthyAgents = team.agents.filter(a => a.health?.is_healthy).length;
+            return healthyAgents / team.agents.length;
+        }
+    },
+    template: `
+        <div class="agent-manager">
+            <div v-if="error" class="error-message">{{ error }}</div>
+            <div v-if="loading" class="loading">Loading...</div>
+            
+            <div v-if="teams && teams.length" class="teams-container">
+                <div v-for="team in teams" :key="team.id" class="team-section">
+                    <h3>{{ team.name || 'Unnamed Team' }}</h3>
+                    <div v-if="getTeamMetrics(team.id)" class="team-metrics">
+                        <div>Total Agents: {{ getTeamMetrics(team.id).totalAgents || 0 }}</div>
+                        <div>Active Agents: {{ getTeamMetrics(team.id).activeAgents || 0 }}</div>
+                        <div>Health: {{ getTeamMetrics(team.id).health ? (getTeamMetrics(team.id).health * 100).toFixed(1) + '%' : 'N/A' }}</div>
+                    </div>
+                    <div v-if="team.agents && team.agents.length" class="agents-list">
+                        <div v-for="agent in team.agents" :key="agent.name" class="agent-item">
+                            {{ agent.name || 'Unnamed Agent' }}
+                        </div>
+                    </div>
+                    <div v-else class="no-agents-message">
+                        No agents in this team.
+                    </div>
+                </div>
+            </div>
+            <div v-else class="no-teams-message">
+                No teams available for this mission.
+            </div>
+        </div>
+    `
+}
         
         getTeamMetrics(teamId) {
             if (!teamId) return null;
