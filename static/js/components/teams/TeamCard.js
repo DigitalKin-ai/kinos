@@ -1,5 +1,10 @@
+import TeamMetrics from './TeamMetrics.js';
+
 export default {
     name: 'TeamCard',
+    components: {
+        TeamMetrics
+    },
     props: {
         team: {
             type: Object,
