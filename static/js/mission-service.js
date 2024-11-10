@@ -10,6 +10,47 @@ class MissionService {
         this.runningStates = new Map();
     }
 
+    async handleMissionOperation(operation, errorMessage) {
+        try {
+            return await this.retryWithBackoff(operation);
+        } catch (error) {
+            // Check if it's a connection error
+            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                this.serverStatus.connected = false;
+                throw new Error('Server connection lost. Please check your connection and try again.');
+            }
+            throw error;
+        }
+    }
+
+    startServerMonitoring() {
+        // Check immediately
+        this.checkServerStatus();
+        // Then check every 30 seconds
+        this.serverStatus.checkInterval = setInterval(() => {
+            this.checkServerStatus();
+        }, 30000);
+    }
+
+    stopServerMonitoring() {
+        if (this.serverStatus.checkInterval) {
+            clearInterval(this.serverStatus.checkInterval);
+            this.serverStatus.checkInterval = null;
+        }
+    }
+
+    async checkServerStatus() {
+        try {
+            const isConnected = await this.checkServerConnection();
+            this.serverStatus.connected = isConnected;
+            this.serverStatus.lastCheck = new Date();
+        } catch (error) {
+            this.serverStatus.connected = false;
+            this.serverStatus.lastCheck = new Date();
+            console.warn('Server connection check failed:', error);
+        }
+    }
+
     async initialize() {
         try {
             // Initialize both missions and teams

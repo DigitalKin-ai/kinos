@@ -4,6 +4,11 @@ export default class TeamService {
         this.teams = new Map();
         this.activeTeam = null;
         this.teamStates = new Map();
+        this.connectionStatus = {
+            connected: true,
+            lastCheck: null,
+            retryCount: 0
+        };
     }
 
     async initialize() {
@@ -53,6 +58,40 @@ export default class TeamService {
                 ]
             }
         ];
+    }
+
+    async checkConnection() {
+        if (this.connectionCheckInProgress) return;
+        
+        try {
+            this.connectionCheckInProgress = true;
+            const isConnected = await this.apiClient.checkServerConnection();
+            
+            this.connectionStatus.connected = isConnected;
+            this.connectionStatus.lastCheck = new Date();
+            this.connectionStatus.retryCount = 0;
+            
+        } catch (error) {
+            this.connectionStatus.connected = false;
+            this.connectionStatus.retryCount++;
+            this.handleConnectionError(error);
+        } finally {
+            this.connectionCheckInProgress = false;
+        }
+    }
+
+    startConnectionMonitoring() {
+        this.checkConnection();
+        this.connectionInterval = setInterval(() => {
+            this.checkConnection();
+        }, 30000); // Check every 30 seconds
+    }
+
+    stopConnectionMonitoring() {
+        if (this.connectionInterval) {
+            clearInterval(this.connectionInterval);
+            this.connectionInterval = null;
+        }
     }
 
     async getTeamsForMission(missionId) {

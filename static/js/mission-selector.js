@@ -622,6 +622,20 @@ export default {
                     </div>
                 </div>
             </div>
+            <!-- Connection status indicator -->
+            <div v-if="!connectionStatus.connected" 
+                 class="connection-error bg-red-100 border-l-4 border-red-500 p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="mdi mdi-alert-circle text-red-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700">
+                            Server connection lost. Retrying...
+                        </p>
+                    </div>
+                </div>
+            </div>
             
             <!-- Error alert -->
             <div v-if="showError" 
