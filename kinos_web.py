@@ -289,9 +289,11 @@ class KinOSWeb:
         
         # Initialize CORS with specific origins
         CORS(self.app, resources={
-            r"/api/*": {
-                "origins": ["http://localhost:8000", "http://127.0.0.1:8000"],
-                "supports_credentials": True
+            r"/*": {  # More permissive for debugging
+                "origins": "*",
+                "supports_credentials": True,
+                "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
             }
         })
         self.logger.log("CORS configured", 'success')
@@ -1142,7 +1144,7 @@ class KinOSWeb:
             raise ServiceError(f"Failed to initialize components: {str(e)}")
             
     def run(self, host='0.0.0.0', port=8000, debug=False):
-        """Run the Flask application"""
+        """Run the Flask application with enhanced logging and error handling"""
         try:
             # Force socket cleanup before starting
             self._cleanup_sockets()
@@ -1152,9 +1154,11 @@ class KinOSWeb:
             
             # Configure CORS
             CORS(self.app, resources={
-                r"/api/*": {
-                    "origins": ["http://localhost:8000", "http://127.0.0.1:8000"],
-                    "supports_credentials": True
+                r"/*": {  # More permissive for debugging
+                    "origins": "*",
+                    "supports_credentials": True,
+                    "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+                    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
                 }
             })
             
@@ -1164,18 +1168,29 @@ class KinOSWeb:
                 'processes': 1
             })
             
-            # Log startup
-            self.logger.log(f"Starting server on http://{host}:{port}", 'info')
-            print(f"\nKinOS Web running on http://{host}:{port}")
+            # Detailed startup logging
+            self.logger.log(f"🚀 KinOS Web Server Startup", 'info')
+            self.logger.log(f"Host: {host}", 'info')
+            self.logger.log(f"Port: {port}", 'info')
+            self.logger.log(f"Debug Mode: {debug}", 'info')
+            self.logger.log(f"Static Directory: {self.static_dir}", 'info')
+            self.logger.log(f"Template Directory: {self.template_dir}", 'info')
+            
+            print(f"\n🌐 KinOS Web running on http://{host}:{port}")
             print("Press CTRL+C to quit\n")
             
-            # Run Flask app
-            self.app.run(
-                host=host,
-                port=port,
-                debug=debug,
-                use_reloader=False  # Disable reloader to prevent socket issues
-            )
+            # Run Flask app with error handling
+            try:
+                self.app.run(
+                    host=host,
+                    port=port,
+                    debug=debug,
+                    use_reloader=False  # Disable reloader to prevent socket issues
+                )
+            except Exception as run_error:
+                self.logger.log(f"Server startup failed: {str(run_error)}", 'critical')
+                print(f"❌ Server startup failed: {str(run_error)}")
+                raise
             
         except Exception as e:
             self.logger.log(f"Error running application: {str(e)}", 'error')

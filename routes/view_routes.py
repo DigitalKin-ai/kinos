@@ -6,9 +6,25 @@ from utils.exceptions import ResourceNotFoundError, ServiceError
 from utils.logger import Logger
 from utils.path_manager import PathManager
 
+import os
+from flask import send_from_directory
+
 def register_view_routes(app, web_instance):
     """Register all view-related routes"""
     logger = Logger()
+
+    @app.route('/favicon.ico')
+    def favicon():
+        """Serve favicon from static directory"""
+        try:
+            return send_from_directory(
+                os.path.join(PathManager.get_static_path()),
+                'favicon.ico', 
+                mimetype='image/x-icon'
+            )
+        except Exception as e:
+            logger.log(f"Favicon error: {str(e)}", 'error')
+            return '', 404
     @app.route('/', endpoint='home')
     def home():
         return redirect(url_for('editor_interface'))
