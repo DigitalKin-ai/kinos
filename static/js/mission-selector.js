@@ -1,3 +1,5 @@
+import MissionService from './mission-service.js';
+
 export default {
     name: 'MissionSelector',
     props: {
