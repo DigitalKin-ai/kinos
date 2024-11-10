@@ -15,6 +15,7 @@ GESTION DES CHEMINS:
    - Revient au dossier original après exécution
 """
 from agents.kinos_agent import KinOSAgent
+from utils.path_manager import PathManager
 import os
 import subprocess
 import time
