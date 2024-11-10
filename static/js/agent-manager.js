@@ -40,7 +40,7 @@ export default {
             promptChanged: false,
             showPromptModal: false,
             currentPromptAgent: null,
-            suiviUpdateInterval: null
+            suiviUpdateInterval: null,
             showCreateModal: false,
             showEditModal: false,
             currentEditAgent: null,
