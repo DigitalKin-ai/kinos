@@ -863,3 +863,5 @@ export default {
 };
 
 export default TeamsManager;
+
+export default TeamsManager;
