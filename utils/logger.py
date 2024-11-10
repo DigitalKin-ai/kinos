@@ -15,6 +15,9 @@ class Logger:
     def log(self, message: str, level: str = 'info', **kwargs):
         """Main logging method that handles all cases"""
         try:
+            # Remove level from kwargs to avoid duplicate
+            kwargs.pop('level', None)
+            
             # Extract file_path from kwargs
             file_path = kwargs.pop('file_path', None)
             
@@ -35,10 +38,12 @@ class Logger:
             
     def __call__(self, message: str, level: str = 'info', **kwargs):
         """Unified call method that handles all logging patterns"""
+        # Remove level from kwargs to avoid duplicate
+        kwargs.pop('level', None)
         self.log(message, level=level, **kwargs)
 
     def _log(self, message: str, level: str = 'info', **kwargs):
-        """Alias for log method"""
-        # Remove level from kwargs if present to avoid duplicate
+        """Internal logging method"""
+        # Remove level from kwargs to avoid duplicate
         kwargs.pop('level', None)
         self.log(message, level=level, **kwargs)
