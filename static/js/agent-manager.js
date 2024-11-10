@@ -81,6 +81,20 @@ export default {
             if (!team || !team.agents || team.agents.length === 0) return 0;
             const healthyAgents = team.agents.filter(a => a.health?.is_healthy).length;
             return healthyAgents / team.agents.length;
+        },
+        
+        async selectMission(missionId) {
+            try {
+                this.loading = true;
+                const response = await this.apiClient.selectMission(missionId);
+                await this.loadTeams();
+                return response;
+            } catch (error) {
+                console.error('Failed to select mission:', error);
+                throw error;
+            } finally {
+                this.loading = false;
+            }
         }
     },
     template: `
