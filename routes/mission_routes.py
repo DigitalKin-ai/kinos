@@ -66,7 +66,10 @@ def register_mission_routes(app, web_instance):
             return jsonify({'error': 'Failed to load test data'}), 500
         return jsonify({'status': 'success'})
 
-def should_ignore_file(file_path: str, ignore_patterns: list) -> bool:
+        # Register all routes
+        register_routes()
+
+def should_ignore_file(file_path: str, ignore_patterns: list, web_instance) -> bool:
     """Check if file should be ignored based on gitignore/aiderignore patterns"""
     # Convert path to forward slashes for consistent pattern matching
     file_path = str(Path(file_path)).replace('\\', '/')
@@ -81,7 +84,7 @@ def should_ignore_file(file_path: str, ignore_patterns: list) -> bool:
             return True
     return False
 
-def load_ignore_patterns(mission_dir: str) -> list:
+def load_ignore_patterns(mission_dir: str, web_instance) -> list:
     """Load patterns from .gitignore and .aiderignore files"""
     ignore_patterns = []
     ignore_files = ['.gitignore', '.aiderignore']
@@ -132,7 +135,7 @@ def load_ignore_patterns(mission_dir: str) -> list:
                 return jsonify({'error': 'Mission directory not found'}), 404
 
             # Load ignore patterns
-            ignore_patterns = load_ignore_patterns(mission_dir)
+            ignore_patterns = load_ignore_patterns(mission_dir, web_instance)
             web_instance.logger.log(f"Loaded ignore patterns: {ignore_patterns}", level='debug')
 
             files = []
@@ -149,7 +152,7 @@ def load_ignore_patterns(mission_dir: str) -> list:
                                 rel_path = rel_path.replace('\\', '/')
                                 
                                 # Skip if file matches ignore patterns
-                                if should_ignore_file(rel_path, ignore_patterns):
+                                if should_ignore_file(rel_path, ignore_patterns, web_instance):
                                     web_instance.logger.log(f"Ignoring file: {rel_path}", level='debug')
                                     continue
 
