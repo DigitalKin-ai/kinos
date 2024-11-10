@@ -28,38 +28,34 @@ class ValidationAgent(AiderAgent):
         # Obtenir la mission actuelle depuis le FileManager
         current_mission = getattr(config['web_instance'].file_manager, 'current_mission', None)
         if not current_mission:
-            # Utiliser une valeur par défaut mais ne pas créer le dossier
-            self.mission_path = os.path.abspath(os.path.join('missions', 'default'))
-        else:
-            # Utiliser la mission sélectionnée
-            self.mission_path = os.path.abspath(os.path.join('missions', current_mission))
+            raise ValueError("No mission currently selected")
+            
+        # Construire le chemin absolu vers la mission
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        mission_path = os.path.abspath(os.path.join(project_root, "missions", current_mission))
+        
+        # Mettre à jour la config avec le bon chemin de mission
+        config["mission_dir"] = mission_path
         
         super().__init__(config)
         self.prompt_file = "prompts/validation.md"
         self.role = "validation"
         self.web_instance = config['web_instance']
+        self.mission_path = mission_path
         
     def start(self) -> None:
         """
         Démarre l'agent de validation en s'assurant qu'il travaille dans le bon répertoire.
         """
         try:
-            # Obtenir la mission actuelle au moment du démarrage
-            current_mission = self.web_instance.file_manager.current_mission
-            if not current_mission:
-                raise ValueError("No mission currently selected")
-                
-            # Mettre à jour le chemin de mission avec la mission actuelle
-            self.mission_path = os.path.abspath(os.path.join('missions', current_mission))
-            
-            # Vérifier que le dossier existe
+            # Vérifier que le dossier mission existe
             if not os.path.exists(self.mission_path):
                 raise ValueError(f"Mission directory not found: {self.mission_path}")
                 
             # Changer vers le répertoire de mission
             os.chdir(self.mission_path)
             
-            # Appeler le start parent
+            # Appeler le start parent avec le bon chemin
             super().start()
             
         except Exception as e:
