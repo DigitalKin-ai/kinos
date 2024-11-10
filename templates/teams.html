@@ -80,8 +80,8 @@
             }
         },
         methods: {
-            async selectMission(missionData) {
-                if (!missionData?.id) {
+            async selectMission(mission) {
+                if (!mission?.id) {
                     this.handleError('Invalid mission selected');
                     return;
                 }
@@ -97,7 +97,7 @@
                         }
                     }
 
-                    const wasRunning = this.runningStates.get(missionData.id) || false;
+                    const wasRunning = this.runningStates.get(mission.id) || false;
 
                     // Stop agents if running
                     if (wasRunning) {
@@ -111,7 +111,7 @@
                                     });
                             
                                     if (!response.ok) throw new Error('Failed to stop agents');
-                                    this.runningStates.set(missionData.id, false);
+                                    this.runningStates.set(mission.id, false);
                                 },
                                 'Failed to stop agents'
                             );
@@ -124,7 +124,7 @@
                     // Select mission with retries
                     const result = await this.handleMissionOperation(
                         async () => {
-                            const response = await fetch(`/api/missions/${missionData.id}/select`, {
+                            const response = await fetch(`/api/missions/${mission.id}/select`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 signal: AbortSignal.timeout(5000)
@@ -156,7 +156,7 @@
                                     });
                                 
                                     if (!response.ok) throw new Error('Failed to restart agents');
-                                    this.runningStates.set(missionData.id, true);
+                                    this.runningStates.set(mission.id, true);
                                 },
                                 'Failed to restart agents'
                             );
@@ -170,7 +170,7 @@
 
                 } catch (error) {
                     console.error('Mission selection failed:', error);
-                    this.runningStates.set(missionData.id, false);
+                    this.runningStates.set(mission.id, false);
                 
                     // Determine if it's a connection issue
                     const isConnectionError = error.message.includes('Failed to fetch') || 
