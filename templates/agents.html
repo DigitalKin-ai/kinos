@@ -14,6 +14,7 @@
     <div class="flex flex-1 overflow-hidden">
     <!-- Mission Selector Component -->
     <mission-selector
+        :mission-service="missionService"
         v-model:current-mission="currentMission"
         v-model:loading="loading"
         v-model:missions="missions"
@@ -51,7 +52,8 @@
                 missionService: new MissionService(),
                 currentMission: null,
                 missions: [],
-                loading: true
+                loading: true,
+                activeTeam: null  // Added to resolve warning
             }
         },
         async mounted() {
