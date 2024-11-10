@@ -54,16 +54,15 @@ class AiderAgent(KinOSAgent):
     def _validate_mission_directory(self) -> bool:
         """Vérifie que le dossier de mission est valide et accessible"""
         try:
-            mission_dir = os.path.dirname(self.file_path)
-            if not os.path.exists(mission_dir):
-                self.logger(f"[{self.__class__.__name__}] ❌ Dossier mission non trouvé: {mission_dir}")
+            if not os.path.exists(self.mission_dir):
+                self.logger(f"[{self.__class__.__name__}] ❌ Dossier mission non trouvé: {self.mission_dir}")
                 return False
                 
-            if not os.access(mission_dir, os.R_OK | os.W_OK):
-                self.logger(f"[{self.__class__.__name__}] ❌ Permissions insuffisantes sur: {mission_dir}")
+            if not os.access(self.mission_dir, os.R_OK | os.W_OK):
+                self.logger(f"[{self.__class__.__name__}] ❌ Permissions insuffisantes sur: {self.mission_dir}")
                 return False
                 
-            self.logger(f"[{self.__class__.__name__}] ✓ Dossier mission valide: {mission_dir}")
+            self.logger(f"[{self.__class__.__name__}] ✓ Dossier mission valide: {self.mission_dir}")
             return True
             
         except Exception as e:
