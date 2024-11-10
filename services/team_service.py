@@ -11,6 +11,21 @@ class TeamService(BaseService):
         self.teams = {}
         self.active_team = None
         self._load_predefined_teams()
+        self.logger = Logger()
+
+    def _validate_team_id(self, team_id: str) -> None:
+        """Validate team ID format and existence"""
+        if not team_id or not isinstance(team_id, str):
+            raise ValidationError("Invalid team ID format")
+        if not any(t['id'] == team_id for t in self.predefined_teams):
+            raise ResourceNotFoundError(f"Team {team_id} not found")
+
+    def _validate_agent_name(self, agent_name: str) -> None:
+        """Validate agent name format and existence"""
+        if not agent_name or not isinstance(agent_name, str):
+            raise ValidationError("Invalid agent name format")
+        if agent_name.lower() not in self.web_instance.agent_service.agents:
+            raise ResourceNotFoundError(f"Agent {agent_name} not found")
 
     def _load_predefined_teams(self):
         """Load predefined team configurations"""
@@ -149,24 +164,70 @@ class TeamService(BaseService):
     def _calculate_team_metrics(self, team: Dict[str, Any], agent_status: Dict[str, Any]) -> Dict[str, Any]:
         """Calculate performance metrics for a team"""
         try:
-            total_agents = len(team['agents'])
-            active_agents = sum(1 for status in agent_status.values() if status['running'])
-            healthy_agents = sum(1 for status in agent_status.values() 
-                               if status['health']['is_healthy'])
+            if not agent_status:
+                return {}
 
-            return {
-                'efficiency': healthy_agents / total_agents if total_agents > 0 else 0,
-                'active_ratio': active_agents / total_agents if total_agents > 0 else 0,
-                'health_score': self._calculate_health_score(agent_status),
-                'average_interval': sum(
-                    status['health'].get('current_interval', 0) 
-                    for status in agent_status.values()
-                ) / total_agents if total_agents > 0 else 0
+            total_agents = len(team['agents'])
+            metrics = {
+                'efficiency': self._calculate_efficiency(agent_status),
+                'health': self._calculate_health_score(agent_status),
+                'resource_usage': self._calculate_resource_usage(agent_status),
+                'response_times': self._calculate_response_times(agent_status),
+                'agent_stats': {
+                    'total': total_agents,
+                    'active': sum(1 for status in agent_status.values() if status['running']),
+                    'healthy': sum(1 for status in agent_status.values() if status['health']['is_healthy'])
+                }
             }
+
+            # Add historical trends
+            metrics['trends'] = self._get_team_history(team['id'])
+            
+            return metrics
 
         except Exception as e:
             self.logger.log(f"Error calculating team metrics: {str(e)}", 'error')
             return {}
+
+    def _calculate_efficiency(self, agent_status: Dict[str, Any]) -> float:
+        """Calculate team efficiency score"""
+        if not agent_status:
+            return 0.0
+        
+        weights = {
+            'health': 0.4,
+            'activity': 0.3,
+            'response_time': 0.2,
+            'resource_usage': 0.1
+        }
+        
+        scores = {
+            'health': self._calculate_health_score(agent_status),
+            'activity': self._calculate_activity_score(agent_status),
+            'response_time': self._calculate_response_time_score(agent_status),
+            'resource_usage': self._calculate_resource_score(agent_status)
+        }
+        
+        return sum(score * weights[metric] for metric, score in scores.items())
+
+    def _calculate_resource_usage(self, agent_status: Dict[str, Any]) -> Dict[str, float]:
+        """Calculate resource usage metrics"""
+        return {
+            'cpu_usage': self._get_average_cpu_usage(agent_status),
+            'memory_usage': self._get_average_memory_usage(agent_status),
+            'file_operations': self._get_file_operation_stats(agent_status)
+        }
+
+    def cleanup(self) -> None:
+        """Cleanup team service resources"""
+        try:
+            if self.active_team:
+                self.deactivate_team(self.active_team['id'])
+            self.teams.clear()
+            self.active_team = None
+            self.logger.log("Team service cleanup completed", 'success')
+        except Exception as e:
+            self.logger.log(f"Error during team service cleanup: {str(e)}", 'error')
 
     def _calculate_health_score(self, agent_status: Dict[str, Any]) -> float:
         """Calculate overall health score for the team"""
