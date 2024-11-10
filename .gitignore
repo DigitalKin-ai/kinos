@@ -1,38 +1,82 @@
-.aider*
+# Environment and Secrets
 .env
+.aider*
+*.secret
+secrets.yaml
+config.local.yaml
 
-venv/*
-__pycache__
-
-missions/*
-
-
-# Logs
-*.log# Environnement virtuel
-venv/
-*.venv
-
-# Fichiers Python
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# IDE
-.vscode/
-.idea/
-
-# Logs
-*.log
-
-# Fichiers de build et distribution
+*.so
+.Python
 build/
+develop-eggs/
 dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
 *.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Fichiers de configuration locaux
-config.yaml
-config.json
+# Virtual Environments
+venv/
+env/
+.venv/
+.env/
+ENV/
 
-# Fichiers système
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.sublime-project
+.sublime-workspace
+
+# Logs and Databases
+*.log
+*.sqlite3
+*.db
+
+# Mission and Project Data
+missions/
+data/
+temp/
+cache/
+
+# Frontend
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# OS Generated Files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+
+# Backup Files
+*.bak
+*.gho
+*.ori
+*.orig
+*.tmp
+
+# Specific to KinOS
+config/secrets.yaml
+.kinos-cache/
