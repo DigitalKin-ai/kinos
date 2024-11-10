@@ -661,47 +661,7 @@ class KinOSWeb:
             except Exception as e:
                 self.log_message(f"Error updating mission: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
-
-
-
-        @self.app.route('/clean')
-        def clean_interface():
-            try:
-                # Get current mission from mission service
-                missions = self.mission_service.get_all_missions()
-                if not missions:
-                    return "No missions available. Please create a mission first.", 404
-                    
-                # Use first mission if no current mission set
-                current_mission = getattr(self, 'current_mission', missions[0]['name'])
-                if not current_mission:
-                    return "No mission selected.", 404
-
-                # Build correct file paths
-                mission_dir = os.path.join("missions", current_mission)
-                production_path = os.path.join(mission_dir, "production.md")
-                suivi_path = os.path.join(mission_dir, "suivi.md")
-                demande_path = os.path.join(mission_dir, "demande.md")
-
-                # Read files from correct paths
-                try:
-                    with open(production_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                    with open(suivi_path, 'r', encoding='utf-8') as f:
-                        suivi_content = f.read()
-                    with open(demande_path, 'r', encoding='utf-8') as f:
-                        demande_content = f.read()
-                except FileNotFoundError:
-                    self.log_message(f"Missing required files in mission {current_mission}", level='error')
-                    return "Missing required mission files.", 500
-
-                return render_template('clean.html', 
-                             content=content, 
-                             suivi_content=suivi_content,
-                             demande_content=demande_content)
-            except Exception as e:
-                self.log_message(f"Error loading clean interface: {str(e)}", level='error')
-                return f"Error loading content: {str(e)}", 500
+            
 
         @self.app.route('/api/missions/<int:mission_id>/test-data', methods=['POST'])
         def load_test_data(mission_id):
