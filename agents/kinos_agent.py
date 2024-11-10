@@ -60,8 +60,6 @@ class KinOSAgent:
             config: Dictionnaire contenant:
                 - anthropic_api_key: Clé API Anthropic
                 - openai_api_key: Clé API OpenAI 
-                - file_path: Chemin du fichier principal
-                - watch_files: Liste des fichiers à surveiller
                 - check_interval: Intervalle de vérification
                 - logger: Fonction de logging
         """
@@ -81,17 +79,14 @@ class KinOSAgent:
             
         self.config = config
         self.file_path = config["file_path"]
-        self.other_files = config.get("other_files", [])
-        # Make sure file_path is in other_files if not already
-        if self.file_path not in self.other_files:
-            self.other_files.append(self.file_path)
+        self.mission_files = config.get("mission_files", [])
         
         # Initialisation des clients API avec les clés validées
         self.client = anthropic.Client(api_key=config["anthropic_api_key"])
         self.openai_client = openai.OpenAI(api_key=config["openai_api_key"])
         
-        # Initialize other_files
-        self.other_files = {}
+        # Initialize mission_files
+        self.mission_files = {}
         
         # Use agent-specific rhythm or default value
         agent_type = self.__class__.__name__
@@ -165,27 +160,6 @@ class KinOSAgent:
             self.logger(f"[{self.__class__.__name__}] Recovery failed: {str(e)}")
             return False
 
-    def update_paths(self, file_path: str, other_files: List[str]) -> None:
-        """
-        Met à jour les chemins des fichiers quand la mission change.
-        
-        Args:
-            file_path: Nouveau chemin principal
-            other_files: Nouvelle liste de fichiers à surveiller
-            
-        - Met à jour les chemins
-        - Recharge les fichiers
-        """
-        try:
-            self.file_path = file_path
-            self.other_files = other_files
-            
-            # Re-initialize file monitoring with new paths
-            self.list_files()
-            
-        except Exception as e:
-            print(f"Error updating paths for {self.__class__.__name__}: {e}")
-
     def should_run(self) -> bool:
         """
         Détermine si l'agent doit s'exécuter.
@@ -254,11 +228,6 @@ class KinOSAgent:
                 if time_since_last_run > (self.check_interval * 2):
                     self.logger(f"[{self.__class__.__name__}] Inactif depuis {time_since_last_run}s", level='warning')
                     return False
-                    
-            # Vérifier les fichiers
-            if not os.path.exists(self.file_path):
-                self.logger(f"[{self.__class__.__name__}] Fichier principal non trouvé: {self.file_path}", level='error')
-                return False
                 
             # Vérifier le nombre d'erreurs consécutives
             if hasattr(self, 'consecutive_no_changes') and self.consecutive_no_changes > 5:

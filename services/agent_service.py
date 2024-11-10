@@ -49,88 +49,8 @@ class AgentService:
             
             self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
 
-            # Define agent file mappings
-            self.agent_files = {
-                "Specification": {
-                    "main": os.path.join(mission_dir, "specifications.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "demande.md"),
-                        os.path.join(mission_dir, "production.md")
-                    ]
-                },
-                "Production": {
-                    "main": os.path.join(mission_dir, "production.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ]
-                },
-                "Management": {
-                    "main": os.path.join(mission_dir, "management.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ]
-                },
-                "Evaluation": {
-                    "main": os.path.join(mission_dir, "evaluation.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md")
-                    ]
-                },
-                "Suivi": {
-                    "main": os.path.join(mission_dir, "suivi.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "management.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ]
-                },
-                "Duplication": {
-                    "main": os.path.join(mission_dir, "duplication.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "management.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ]
-                },
-                "Documentaliste": {
-                    "main": os.path.join(mission_dir, "documentation.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "management.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ]
-                },
-                "Testeur": {
-                    "main": os.path.join(mission_dir, "tests.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ]
-                }
-            }
-            
             # Track agent states
             was_running = any(agent.running for agent in self.agents.values())
-            
-            for name, agent in self.agents.items():
-                try:
-                    if name in self.agent_files:
-                        config = self.agent_files[name]
-                        agent.update_paths(
-                            config["main"],
-                            config["watch"]
-                        )
-                        self.web_instance.logger.log(f"✓ Agent {name} paths updated", level='success')
-                except Exception as e:
-                    self.web_instance.logger.log(f"Error updating paths for {name}: {str(e)}", level='error')
                     
             # Restart agents if they were running
             if was_running:
@@ -209,127 +129,6 @@ class AgentService:
         self.monitor_thread = None
         self.running = False
         self.pending_agents = []  # Track agents waiting for file creation
-        
-
-    def update_agent_paths(self, mission_name: str) -> None:
-        """Update file paths for all agents when mission changes without creating files"""
-        try:
-            # Explicit verification
-            if self.web_instance.file_manager.current_mission != mission_name:
-                self.web_instance.logger.log(
-                    f"Mission mismatch - FileManager: {self.web_instance.file_manager.current_mission}, "
-                    f"Requested: {mission_name}",
-                    level='error'
-                )
-                # Force update
-                self.web_instance.file_manager.current_mission = mission_name
-            
-            # Stop all agents
-            self.stop_all_agents()
-            
-            # Build mission path - only verify directory exists
-            mission_dir = os.path.abspath(os.path.join("missions", mission_name))
-            if not os.path.exists(mission_dir):
-                self.web_instance.logger.log(f"Mission directory not found: {mission_dir}", level='warning')
-            
-            self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
-
-            # Define agent file mappings
-            self.agent_files = {
-                "Specification": {
-                    "main": os.path.join(mission_dir, "specifications.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "demande.md"),
-                        os.path.join(mission_dir, "production.md")
-                    ]
-                },
-                "Production": {
-                    "main": os.path.join(mission_dir, "production.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ]
-                },
-                "Management": {
-                    "main": os.path.join(mission_dir, "management.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ]
-                },
-                "Evaluation": {
-                    "main": os.path.join(mission_dir, "evaluation.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md")
-                    ]
-                },
-                "Suivi": {
-                    "main": os.path.join(mission_dir, "suivi.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "management.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ]
-                },
-                "Duplication": {
-                    "main": os.path.join(mission_dir, "duplication.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "management.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ]
-                },
-                "Documentaliste": {
-                    "main": os.path.join(mission_dir, "documentation.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "management.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ]
-                },
-                "Testeur": {
-                    "main": os.path.join(mission_dir, "tests.md"),
-                    "watch": [
-                        os.path.join(mission_dir, "specifications.md"),
-                        os.path.join(mission_dir, "production.md"),
-                        os.path.join(mission_dir, "evaluation.md")
-                    ]
-                }
-            }
-            
-            # Track if agents were running
-            was_running = any(agent.running for agent in self.agents.values())
-            
-            for name, agent in self.agents.items():
-                try:
-                    if name in self.agent_files:
-                        config = self.agent_files[name]
-                        agent.update_paths(
-                            config["main"],
-                            config["watch"]
-                        )
-                        # Validate update
-                        if agent._validate_mission_directory():
-                            self.web_instance.logger.log(f"✓ Agent {name} updated successfully", level='success')
-                        else:
-                            raise ValueError(f"Failed to validate directory for agent {name}")
-                except Exception as e:
-                    self.web_instance.logger.log(f"Error updating paths for {name}: {str(e)}", level='error')
-                    
-            # Restart agents if they were running
-            if was_running:
-                self.start_all_agents()
-                
-            self.web_instance.logger.log(f"✓ Agent paths updated for mission: {mission_name}", level='success')
-            
-        except Exception as e:
-            self.web_instance.logger.log(f"❌ Error updating agent paths: {str(e)}", level='error')
-            raise
 
     def init_agents(self, config: Dict[str, Any]) -> None:
         """Initialize all agents with configuration"""
@@ -369,68 +168,54 @@ class AgentService:
                 "Specification": SpecificationsAgent({
                     **base_config,
                     "name": "Specification",
-                    "file_path": os.path.join(mission_dir, "specifications.md"),
                     "prompt": load_prompt("prompts/specifications.md"),
                     "prompt_file": "prompts/specifications.md"
                 }),
                 "Production": ProductionAgent({
                     **base_config,
                     "name": "Production",
-                    "file_path": os.path.join(mission_dir, "production.md"),
                     "prompt": load_prompt("prompts/production.md"),
                     "prompt_file": "prompts/production.md"
                 }),
                 "Management": ManagementAgent({
                     **base_config,
                     "name": "Management",
-                    "file_path": os.path.join(mission_dir, "management.md"),
                     "prompt": load_prompt("prompts/management.md"),
                     "prompt_file": "prompts/management.md"
                 }),
                 "Evaluation": EvaluationAgent({
                     **base_config,
                     "name": "Evaluation",
-                    "file_path": os.path.join(mission_dir, "evaluation.md"),
                     "prompt": load_prompt("prompts/evaluation.md"),
                     "prompt_file": "prompts/evaluation.md"
                 }),
                 "Suivi": SuiviAgent({
                     **base_config,
                     "name": "Suivi",
-                    "file_path": os.path.join(mission_dir, "suivi.md"),
                     "prompt": load_prompt("prompts/suivi.md"),
                     "prompt_file": "prompts/suivi.md"
                 }),
                 "Documentaliste": DocumentalisteAgent({
                     **base_config,
                     "name": "Documentaliste", 
-                    "file_path": os.path.join(mission_dir, "documentation.md"),
                     "prompt": load_prompt("prompts/documentaliste.md"),
                     "prompt_file": "prompts/documentaliste.md"
                 }),
                 "Duplication": DuplicationAgent({
                     **base_config,
                     "name": "Duplication",
-                    "file_path": os.path.join(mission_dir, "duplication.md"),
                     "prompt": load_prompt("prompts/duplication.md"),
-                    "prompt_file": "prompts/duplication.md",
-                    "watch_files": [  # Add files to watch for duplication
-                        os.path.join(mission_dir, "*.py"),
-                        os.path.join(mission_dir, "*.js"),
-                        os.path.join(mission_dir, "*.md")
-                    ]
+                    "prompt_file": "prompts/duplication.md"
                 }),
                 "Testeur": TesteurAgent({
                     **base_config,
                     "name": "Testeur",
-                    "file_path": os.path.join(mission_dir, "tests.md"),
                     "prompt": load_prompt("prompts/testeur.md"),
                     "prompt_file": "prompts/testeur.md"
                 }),
                 "Redacteur": RedacteurAgent({
                     **base_config,
                     "name": "Redacteur",
-                    "file_path": os.path.join(mission_dir, "redaction.md"),
                     "prompt": load_prompt("prompts/redacteur.md"),
                     "prompt_file": "prompts/redacteur.md"
                 })
