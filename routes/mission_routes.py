@@ -47,6 +47,13 @@ def load_ignore_patterns(mission_dir: str, web_instance) -> list:
 def register_mission_routes(app, web_instance):
     """Register all mission-related routes"""
     
+    @app.route('/api/paths/mission/<mission_name>')
+    @safe_operation()
+    def get_mission_path(mission_name):
+        return jsonify({
+            'path': PathManager.get_mission_path(mission_name)
+        })
+    
     @app.route('/api/missions/<int:mission_id>/path')
     @safe_operation()
     def get_mission_path(mission_id):
