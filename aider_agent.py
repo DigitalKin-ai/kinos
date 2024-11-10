@@ -126,7 +126,7 @@ class AiderAgent(KinOSAgent):
                 ]
                 
                 # Ajouter les autres fichiers (chemins relatifs)
-                for file_path in self.other_files:
+                for file_path in self.mission_files:
                     rel_path = os.path.relpath(file_path, mission_dir)
                     if os.path.exists(rel_path):  # Vérifier le chemin relatif
                         cmd.extend(["--file", rel_path])
@@ -226,7 +226,7 @@ class AiderAgent(KinOSAgent):
     def list_files(self) -> None:
         """
         Liste tous les fichiers textuels dans le dossier de la mission 
-        et initialise other_files en excluant le fichier principal.
+        et initialise mission_files en excluant le fichier principal.
         """
         try:
             # Obtenir le dossier de la mission
@@ -248,16 +248,16 @@ class AiderAgent(KinOSAgent):
             if self.file_path in text_files:
                 del text_files[self.file_path]
                 
-            # Mettre à jour other_files
-            self.other_files = text_files
+            # Mettre à jour mission_files
+            self.mission_files = text_files
             
-            self.logger(f"[{self.__class__.__name__}] 📁 Fichiers trouvés: {len(self.other_files)}")
-            for file in self.other_files:
+            self.logger(f"[{self.__class__.__name__}] 📁 Fichiers trouvés: {len(self.mission_files)}")
+            for file in self.mission_files:
                 self.logger(f"[{self.__class__.__name__}] 📄 {os.path.basename(file)}")
                 
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur listing fichiers: {str(e)}")
-            self.other_files = {}  # Reset en cas d'erreur
+            self.mission_files = {}  # Reset en cas d'erreur
 
     def get_prompt(self) -> str:
         """Get the current prompt content"""
@@ -336,7 +336,7 @@ class AiderAgent(KinOSAgent):
                 return super()._build_prompt(context)
                 
             return prompt_template.format(
-                context=self._format_other_files(context)
+                context=self._format_mission_files(context)
             )
         except Exception as e:
             self.logger(f"Erreur chargement prompt: {e}")
