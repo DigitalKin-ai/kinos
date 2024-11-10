@@ -297,6 +297,7 @@ Notification Types:
 - Status: Agent state changes
 - Content: File modifications
 - System: Infrastructure events
+- Validation: Validation results and metrics
 
 Smart Content Cache:
 - LRU memory cache
@@ -353,6 +354,7 @@ Cache Layers:
 - Agent state cache
 - Configuration cache
 - Route cache for API responses
+- Validation cache for metrics
 - Validation cache for metrics
 
 Invalidation Strategies:
