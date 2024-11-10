@@ -122,7 +122,19 @@ export default {
         }
     },
     mounted() {
-        this.loadTeams();
+        if (this.currentMission) {
+            await this.loadTeams();
+        }
+    },
+    watch: {
+        currentMission: {
+            immediate: true,
+            async handler(newMission) {
+                if (newMission) {
+                    await this.loadTeams();
+                }
+            }
+        }
     },
     beforeUnmount() {
         this.stopTeamMonitoring();
