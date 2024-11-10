@@ -97,7 +97,7 @@
                         }
                     }
 
-                    const wasRunning = this.runningStates.get(mission.id) || false;
+                    const wasRunning = this.runningStates.get(missionData.id) || false;
 
                     // Stop agents if running
                     if (wasRunning) {
@@ -109,9 +109,9 @@
                                         headers: { 'Content-Type': 'application/json' },
                                         signal: AbortSignal.timeout(5000)
                                     });
-                                
+                            
                                     if (!response.ok) throw new Error('Failed to stop agents');
-                                    this.runningStates.set(mission.id, false);
+                                    this.runningStates.set(missionData.id, false);
                                 },
                                 'Failed to stop agents'
                             );

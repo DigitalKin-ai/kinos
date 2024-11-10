@@ -105,7 +105,7 @@ export default {
                 if (newMissions) {
                     newMissions.forEach(mission => {
                         if (!this.runningStates.has(mission.id)) {
-                            this.runningStates.set(mission.id, false);
+                            this.runningStates.set(missionData.id, false);
                         }
                     });
                 }
@@ -359,8 +359,8 @@ export default {
             }
         },
 
-        async selectMission(mission) {
-            if (!mission?.id) {
+        async selectMission(missionData) {
+            if (!missionData?.id) {
                 this.handleError('Invalid mission selected');
                 return;
             }
@@ -369,9 +369,9 @@ export default {
                 this.$emit('update:loading', true);
 
                 // Check server status first
-                if (!this.serverStatus.connected) {
-                    await this.checkServerStatus();
-                    if (!this.serverStatus.connected) {
+                if (!this.connectionStatus.connected) {
+                    await this.checkConnection();
+                    if (!this.connectionStatus.connected) {
                         throw new Error('Server is not available. Please try again later.');
                     }
                 }
@@ -399,7 +399,7 @@ export default {
 
                 // Select mission with retries
                 const result = await this.retryWithBackoff(async () => {
-                    const response = await fetch(`/api/missions/${mission.id}/select`, {
+                    const response = await fetch(`/api/missions/${missionData.id}/select`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         signal: AbortSignal.timeout(5000)
@@ -428,7 +428,7 @@ export default {
                             });
                             
                             if (!response.ok) throw new Error('Failed to restart agents');
-                            this.runningStates.set(mission.id, true);
+                            this.runningStates.set(missionData.id, true);
                         });
                     } catch (startError) {
                         console.warn('Warning: Failed to restart agents', startError);
