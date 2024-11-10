@@ -216,17 +216,19 @@ class AgentService:
             
             # Verify we have agents initialized
             if not self.agents:
-                self.web_instance.log_message("No agents initialized. Running init_agents first...", level='warning')
+                self.web_instance.log_message("No agents initialized. Running init_agents first...", level='info')
                 # Get config from web_instance
                 config = {
-                    "anthropic_api_key": self.web_instance.config["anthropic_api_key"],
-                    "openai_api_key": self.web_instance.config["openai_api_key"]
+                    "anthropic_api_key": self.web_instance.config.get("anthropic_api_key"),
+                    "openai_api_key": self.web_instance.config.get("openai_api_key"),
+                    "mission_dir": os.path.join("missions", self.web_instance.file_manager.current_mission)
                 }
+                
+                # Initialize agents with proper config
                 self.init_agents(config)
                 
                 if not self.agents:
-                    self.web_instance.log_message("Failed to initialize agents", level='error')
-                    return
+                    raise AgentError("Failed to initialize agents")
 
             self.running = True
             
