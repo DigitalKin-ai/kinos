@@ -139,7 +139,7 @@ class ApiClient {
         try {
             // Always use relative paths starting with /api/
             const apiEndpoint = endpoint.startsWith('/') ? endpoint : `/api/${endpoint}`;
-            const response = await this.handleRequest(apiEndpoint, options);
+            const response = await fetch(`${this.baseUrl}${apiEndpoint}`, options);
             return this.handleResponse(response);
         } catch (error) {
             console.error('API request failed:', error);
