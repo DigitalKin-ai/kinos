@@ -49,7 +49,17 @@ def register_view_routes(app, web_instance):
 
     @app.route('/agents', endpoint='agents_page')
     def agents_page():
-        return render_template('agents.html')
+        try:
+            # If you have a mission service, you might want to get the current mission
+            current_mission = web_instance.mission_service.get_current_mission() if hasattr(web_instance, 'mission_service') else None
+            
+            return render_template('agents.html', 
+                                   current_mission=current_mission, 
+                                   teams=[])  # Pass an empty list of teams as a default
+        except Exception as e:
+            # Log the error
+            logger.log(f"Error rendering agents page: {str(e)}", 'error')
+            return render_template('agents.html', teams=[], error=str(e))
 
     @app.route('/files', endpoint='files_page')
     def files_page():
