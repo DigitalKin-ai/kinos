@@ -94,13 +94,13 @@ class KinOSAgent:
         # Handle logger configuration
         logger_config = config.get("logger", print)
         if callable(logger_config):
-            # Si c'est une fonction, créer un wrapper qui émule l'interface logger
+            # Create wrapper that properly handles level parameter
             self.logger = type('Logger', (), {
-                'log': logger_config,
+                'log': lambda message, level='info', **kwargs: logger_config(message, level=level),
                 '__call__': logger_config
             })()
         else:
-            # Sinon utiliser directement l'objet logger
+            # Use logger object directly
             self.logger = logger_config
 
         # Now we can safely log since name is set
