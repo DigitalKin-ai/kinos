@@ -175,6 +175,11 @@ class KinOSWeb:
         template_dir = PathManager.get_templates_path()
         static_dir = PathManager.get_static_path()
         
+        # Get project paths using PathManager
+        project_root = PathManager.get_project_root()
+        template_dir = PathManager.get_templates_path()
+        static_dir = PathManager.get_static_path()
+        
         # Initialize Flask with explicit template and static folders
         self.app = Flask(__name__,
                         template_folder=template_dir,

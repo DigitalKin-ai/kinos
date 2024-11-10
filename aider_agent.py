@@ -75,11 +75,12 @@ class AiderAgent(KinOSAgent):
         try:
             current_dir = os.getcwd()
             
-            # Get mission path using PathManager
+            # Get paths using PathManager
             try:
                 mission_path = PathManager.get_mission_path(self.web_instance.file_manager.current_mission)
+                work_dir = PathManager.get_project_root()
             except ValueError as e:
-                self.logger(f"[{self.__class__.__name__}] ❌ Error getting mission path: {str(e)}")
+                self.logger(f"[{self.__class__.__name__}] ❌ Error getting paths: {str(e)}")
                 return None
                 
             if not os.path.exists(mission_path):
@@ -97,7 +98,7 @@ class AiderAgent(KinOSAgent):
                     "--no-git",
                     "--yes-always",
                     "--cache-prompts",
-                    "--work-dir", PathManager.get_project_root()
+                    "--work-dir", work_dir
                 ]
                 
                 # Add files with detailed logging

@@ -29,6 +29,9 @@ class NotificationService(BaseService):
         
         # Use PathManager for log path
         self.log_path = PathManager.get_logs_path()
+        
+        # Use PathManager for log path
+        self.log_path = PathManager.get_logs_path()
 
     @safe_operation()
     def check_content_updates(self) -> None:

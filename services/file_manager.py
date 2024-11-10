@@ -22,6 +22,8 @@ class FileManager:
         }
         # Get project root using PathManager
         self.project_root = PathManager.get_project_root()
+        # Get project root using PathManager
+        self.project_root = PathManager.get_project_root()
         self.on_content_changed = on_content_changed
         self._current_mission = None
         self.logger = Logger()
