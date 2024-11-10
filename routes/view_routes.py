@@ -3,6 +3,7 @@ from utils.decorators import safe_operation
 from utils.error_handler import ErrorHandler
 from utils.exceptions import ResourceNotFoundError, ServiceError
 from utils.logger import Logger
+from utils.path_manager import PathManager
 
 def register_view_routes(app, web_instance):
     """Register all view-related routes"""
@@ -16,10 +17,13 @@ def register_view_routes(app, web_instance):
     def editor_interface():
         try:
             logger.log("Loading editor interface", level="info")
+            # Use FileManager which already uses PathManager
             content = web_instance.file_manager.read_file("production")
             suivi_content = web_instance.file_manager.read_file("suivi")
             
-            return render_template('editor.html',
+            # Use template path from PathManager
+            template_path = os.path.join(PathManager.get_templates_path(), 'editor.html')
+            return render_template(template_path,
                                  content=content or "",
                                  suivi_content=suivi_content or "")
         except Exception as e:
@@ -51,12 +55,15 @@ def register_view_routes(app, web_instance):
                 logger.log("No mission selected", level="warning")
                 raise ResourceNotFoundError("No mission selected")
                 
+            # Use FileManager which already uses PathManager
             content = web_instance.file_manager.read_file("production")
-            suivi_content = web_instance.file_manager.read_file("suivi")
+            suivi_content = web_instance.file_manager.read_file("suivi") 
             demande_content = web_instance.file_manager.read_file("demande")
-            
+
             logger.log("Clean interface loaded successfully", level="success")
-            return render_template('clean.html',
+            # Use template path from PathManager
+            template_path = os.path.join(PathManager.get_templates_path(), 'clean.html')
+            return render_template(template_path,
                                  content=content or "",
                                  suivi_content=suivi_content or "",
                                  demande_content=demande_content or "")
