@@ -26,7 +26,8 @@ class NotificationService(BaseService):
             'panel': panel,
             'timestamp': datetime.now().strftime("%H:%M:%S"),
             'flash': flash,
-            'id': len(self.notifications_queue)
+            'id': len(self.notifications_queue),
+            'websocket_url': '/ws/notifications'  # Use relative path
         }
         
     def _format_notification(self, message: str, panel: str, flash: bool = False) -> dict:

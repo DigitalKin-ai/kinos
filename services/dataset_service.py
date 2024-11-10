@@ -32,6 +32,8 @@ class DatasetService(BaseService):
                                   aider_response: str, weight: float = 0) -> None:
         """Asynchronously add an interaction to the dataset"""
         try:
+            # Use relative paths for any API endpoints
+            endpoint = "/api/dataset/interactions"
             # Calculate weight and check if entry should be saved
             weight = self._calculate_weight(files_context, aider_response)
             if weight is None:

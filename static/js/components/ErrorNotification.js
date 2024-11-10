@@ -11,6 +11,18 @@ export default {
         }
     },
     emits: ['close'],
+    methods: {
+        async retryOperation() {
+            try {
+                const response = await fetch('/api/retry', {
+                    method: 'POST'
+                });
+                if (!response.ok) throw new Error('Failed to retry operation');
+            } catch (error) {
+                console.error('Error retrying operation:', error);
+            }
+        }
+    },
     template: `
         <transition name="fade">
             <div v-if="show" 

@@ -17,11 +17,20 @@ export default {
     },
     emits: ['toggle', 'activate', 'add-agent', 'toggle-agent'],
     methods: {
-        handleAgentToggle(agent) {
-            this.$emit('toggle-agent', {
-                teamName: this.team.name,
-                agent: agent
-            });
+        async handleAgentToggle(agent) {
+            try {
+                const response = await fetch(`/api/teams/${this.team.id}/agents/${agent}/toggle`, {
+                    method: 'POST'
+                });
+                if (!response.ok) throw new Error('Failed to toggle agent');
+                this.$emit('toggle-agent', {
+                    teamName: this.team.name,
+                    agent: agent
+                });
+            } catch (error) {
+                console.error('Error toggling agent:', error);
+                throw error;
+            }
         },
 
         getTeamStatusClass() {

@@ -166,6 +166,7 @@ class CacheService(BaseService):
             
     def _get_cache_file_path(self, key: str) -> str:
         """Get full path for a cache file"""
+        # Use PathManager for consistent path handling
         return PathManager.get_temp_file(prefix=f"cache_{key}_", suffix=".tmp")
             
     def _is_expired(self, timestamp: float) -> bool:

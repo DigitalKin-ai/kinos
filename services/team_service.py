@@ -79,6 +79,8 @@ class TeamService(BaseService):
     def get_teams_for_mission(self, mission_id: int) -> List[Dict[str, Any]]:
         """Get available teams for a mission"""
         try:
+            # Use relative paths for any API endpoints
+            endpoint = f"/api/missions/{mission_id}/teams"
             # Predefined teams with mission-specific modifications
             teams = [
                 {

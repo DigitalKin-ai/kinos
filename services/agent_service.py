@@ -548,6 +548,9 @@ class AgentService:
             agent = self.agents.get(agent_name)
             if not agent:
                 return self._get_agent_status_details(None)
+                
+            # Use relative paths for any internal API calls
+            status_url = f"/api/agents/{agent_name}/status"
             return self._get_agent_status_details(agent)
             
         except Exception as e:
