@@ -6940,3 +6940,5 @@ OSError: [WinError 10038] Une opération a été tentée sur autre chose qu’un
 [22:49:13] [ERROR] Erreur lors du lancement de l'équipe : 'KinosCLI' object has no attribute 'log'
 [22:50:14] [ERROR] Error activating team: 'NoneType' object has no attribute 'log_message'
 [22:50:14] [ERROR] Erreur lors du lancement de l'équipe : Failed to activate team: 'NoneType' object has no attribute 'log_message'
+[22:51:18] [ERROR] Error activating team: 'Logger' object has no attribute 'agent_service'
+[22:51:18] [ERROR] Erreur lors du lancement de l'équipe : Failed to activate team: 'Logger' object has no attribute 'agent_service'
