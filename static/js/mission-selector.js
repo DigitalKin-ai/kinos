@@ -194,11 +194,30 @@ export default {
         async selectMission(mission) {
             if (!mission?.id) {
                 console.error('Invalid mission object:', mission);
+                this.handleError('Invalid mission selected');
                 return;
             }
 
             try {
                 this.$emit('update:loading', true);
+
+                // Check server connection first
+                try {
+                    const checkResponse = await fetch('/api/status', {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        signal: AbortSignal.timeout(5000)
+                    });
+                    
+                    if (!checkResponse.ok) {
+                        throw new Error('Server not responding');
+                    }
+                } catch (connectionError) {
+                    throw new Error('Cannot connect to server. Please ensure the server is running.');
+                }
 
                 // Use the runningStates Map
                 const wasRunning = this.runningStates.get(mission.id) || false;
@@ -208,7 +227,8 @@ export default {
                     try {
                         const stopResponse = await fetch('/api/agents/stop', { 
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' }
+                            headers: { 'Content-Type': 'application/json' },
+                            signal: AbortSignal.timeout(5000)
                         });
                         
                         if (!stopResponse.ok) {
@@ -218,13 +238,15 @@ export default {
                         this.runningStates.set(mission.id, false);
                     } catch (stopError) {
                         console.warn('Error stopping agents:', stopError);
+                        this.handleError('Warning: Failed to stop agents');
                     }
                 }
 
-                // Select new mission
+                // Select new mission with timeout
                 const response = await fetch(`/api/missions/${mission.id}/select`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: AbortSignal.timeout(5000)
                 });
 
                 if (!response.ok) {
@@ -243,7 +265,8 @@ export default {
                     try {
                         const startResponse = await fetch('/api/agents/start', { 
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' }
+                            headers: { 'Content-Type': 'application/json' },
+                            signal: AbortSignal.timeout(5000)
                         });
                         
                         if (!startResponse.ok) {
@@ -262,7 +285,7 @@ export default {
             } catch (error) {
                 console.error('Mission selection failed:', error);
                 this.runningStates.set(mission.id, false);
-                this.handleError(error.message);
+                this.handleError(error.message || 'Failed to select mission. Please try again.');
                 throw error;
             } finally {
                 this.$emit('update:loading', false);

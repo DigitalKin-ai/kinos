@@ -78,7 +78,8 @@ class KinOSWeb:
                     'type': e.__class__.__name__,
                     'details': {
                         'traceback': traceback.format_exc(),
-                        'timestamp': datetime.now().isoformat()
+                        'timestamp': datetime.now().isoformat(),
+                        'server_status': 'error'
                     }
                 }), 500
 
