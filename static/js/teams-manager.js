@@ -612,7 +612,7 @@ export default {
                         </div>
                     </div>
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold">${team.name}</h3>
+                        <h3 class="text-xl font-semibold">{{ team.name }}</h3>
                         <div class="flex items-center space-x-2">
                             <button @click="openAddAgentModal(team)"
                                     class="p-2 rounded-full hover:bg-gray-100"
@@ -628,14 +628,14 @@ export default {
                                 <span class="flex items-center">
                                     <i v-if="loadingTeams.has(team.name)" 
                                        class="mdi mdi-loading mdi-spin mr-1"></i>
-                                    ${loadingTeams.has(team.name) ? 'Processing...' : (isTeamRunning(team) ? 'Stop Team' : 'Start Team')}
+                                    {{ loadingTeams.has(team.name) ? 'Processing...' : (isTeamRunning(team) ? 'Stop Team' : 'Start Team') }}
                                 </span>
                             </button>
                             <button @click="activateTeam(team)"
                                     :class="{'bg-green-500': activeTeam?.name === team.name}"
                                     class="px-3 py-1 rounded text-white"
                                     :disabled="activeTeam?.name === team.name">
-                            ${activeTeam?.name === team.name ? 'Active' : 'Activate'}
+                            {{ activeTeam?.name === team.name ? 'Active' : 'Activate' }}
                             </button>
                         </div>
                     </div>
@@ -652,7 +652,7 @@ export default {
                         <div v-for="agent in team.agents"
                              :key="agent"
                              class="bg-gray-50 rounded p-3 flex flex-col justify-between">
-                            <span class="text-sm font-medium mb-2">${agent}</span>
+                            <span class="text-sm font-medium mb-2">{{ agent }}</span>
                             <button @click="toggleAgent(team.name, agent)"
                                     :class="[
                                         getAgentStatusClass(team.name, agent),
@@ -663,7 +663,7 @@ export default {
                                 <span class="flex items-center justify-center">
                                     <i v-if="loadingAgents.has(team.name + '-' + agent)" 
                                        class="mdi mdi-loading mdi-spin mr-1"></i>
-                                    ${getAgentStatusText(team.name, agent)}
+                                    {{ getAgentStatusText(team.name, agent) }}
                                 </span>
                             </button>
                         </div>
