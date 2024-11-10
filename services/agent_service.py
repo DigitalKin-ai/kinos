@@ -27,7 +27,7 @@ class AgentService:
             raise
 
     def update_agent_paths(self, mission_name: str) -> None:
-        """Update file paths for all agents when mission changes"""
+        """Update file paths for all agents when mission changes without creating files"""
         try:
             # Explicit verification
             if self.web_instance.file_manager.current_mission != mission_name:
@@ -45,21 +45,26 @@ class AgentService:
             # Build mission path - only verify directory exists
             mission_dir = os.path.abspath(os.path.join("missions", mission_name))
             if not os.path.exists(mission_dir):
-                os.makedirs(mission_dir)
-                self.web_instance.logger.log(f"Created mission directory: {mission_dir}", level='info')
+                self.web_instance.logger.log(f"Mission directory not found: {mission_dir}", level='warning')
+            
+            self.web_instance.logger.log(f"Updating agent paths for mission: {mission_name}", level='debug')
 
-            # Define agent file mappings without main file concept
+            # Define agent file mappings
             self.agent_files = {
-                "Specification": [
-                    os.path.join(mission_dir, "specifications.md"),
-                    os.path.join(mission_dir, "demande.md"),
-                    os.path.join(mission_dir, "production.md")
-                ],
-                "Production": [
-                    os.path.join(mission_dir, "production.md"),
-                    os.path.join(mission_dir, "specifications.md"),
-                    os.path.join(mission_dir, "evaluation.md")
-                ],
+                "Specification": {
+                    "main": os.path.join(mission_dir, "specifications.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "demande.md"),
+                        os.path.join(mission_dir, "production.md")
+                    ]
+                },
+                "Production": {
+                    "main": os.path.join(mission_dir, "production.md"),
+                    "watch": [
+                        os.path.join(mission_dir, "specifications.md"),
+                        os.path.join(mission_dir, "evaluation.md")
+                    ]
+                },
                 "Management": {
                     "main": os.path.join(mission_dir, "management.md"),
                     "watch": [
