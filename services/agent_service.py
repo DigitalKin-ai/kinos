@@ -1,7 +1,9 @@
 import os
 import time
 import threading
+import traceback
 from typing import Dict, Any
+from utils.exceptions import AgentError
 
 class AgentService:
     def __init__(self, web_instance):
