@@ -15,6 +15,17 @@ class MissionService {
         };
     }
 
+    async checkServerConnection() {
+        try {
+            const response = await fetch('/api/status');
+            return response.ok;
+        } catch (error) {
+            console.error('Server connection check failed:', error);
+            this.connectionStatus.connected = false;
+            return false;
+        }
+    }
+
     async handleMissionOperation(operation, errorMessage) {
         try {
             return await this.retryWithBackoff(operation);

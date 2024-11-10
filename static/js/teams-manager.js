@@ -7,17 +7,8 @@ export default {
         },
         currentMission: {
             type: Object,
-            default: () => ({}),
-            validator: (value) => {
-                return !value || (typeof value === 'object' && 
-                    (value.id === undefined || typeof value.id === 'number'));
-            }
+            default: () => null
         }
-    },
-    // Ensure the component has a render method as a fallback
-    render() {
-        // If no template is provided, return a default rendering
-        return this.$slots.default ? this.$slots.default() : null;
     },
     data() {
         return {
