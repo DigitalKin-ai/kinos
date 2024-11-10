@@ -647,7 +647,7 @@ class AgentService:
         except Exception as e:
             self.web_instance.log_message(f"Error restarting agent {name}: {str(e)}", 'error')
 
-    def _update_global_status(self, status_updates: Dict[str, Dict]) -> None:
+    def _update_global_status(self, status_updates: Dict[str, Dict], system_metrics: Dict, health_score: float) -> None:
         """Update global system status based on agent states"""
         try:
             total_agents = len(status_updates)
@@ -659,7 +659,8 @@ class AgentService:
                 'total_agents': total_agents,
                 'active_agents': active_agents,
                 'healthy_agents': healthy_agents,
-                'system_health': healthy_agents / total_agents if total_agents > 0 else 0,
+                'system_health': health_score,
+                'metrics': system_metrics,
                 'timestamp': datetime.now().isoformat(),
                 'agents': status_updates
             }
