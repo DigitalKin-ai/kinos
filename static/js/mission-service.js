@@ -135,23 +135,45 @@ class MissionService {
         try {
             const wasRunning = this.runningStates.get(mission.id) || false;
 
-            // Stop agents if running
-            if (wasRunning) {
-                await this.apiClient.controlAgent('stop');
-                this.runningStates.set(mission.id, false);
+            // Check connection first
+            if (!await this.checkServerConnection()) {
+                throw new Error('Server is not available. Please try again later.');
             }
 
-            // Select new mission
-            const result = await this.apiClient.selectMission(mission.id);
-            this.currentMission = result;
+            // Stop agents if running
+            if (wasRunning) {
+                try {
+                    await this.apiClient.controlAgent('stop');
+                    this.runningStates.set(mission.id, false);
+                } catch (stopError) {
+                    console.warn('Warning: Failed to stop agents', stopError);
+                }
+            }
 
+            // Select new mission with retry
+            const result = await this.retryWithBackoff(async () => {
+                const response = await fetch(`/api/missions/${mission.id}/select`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: AbortSignal.timeout(5000)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to select mission: ${response.statusText}`);
+                }
+
+                return response.json();
+            });
+
+            this.currentMission = result;
             return result;
+
         } catch (error) {
             console.error('Mission selection failed:', error);
             if (mission?.id) {
                 this.runningStates.set(mission.id, false);
             }
-            throw error;
+            throw new Error(`Failed to select mission: ${error.message}`);
         }
     }
 

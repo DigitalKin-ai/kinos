@@ -800,12 +800,22 @@ export default {
             </div>
             
             <div class="overflow-auto flex-1 pr-2">
-                <div v-if="loading" class="text-gray-600">
-                    Loading teams...
+                <div v-if="loading" class="flex items-center justify-center h-full">
+                    <div class="text-center">
+                        <i class="mdi mdi-loading mdi-spin text-4xl text-blue-500"></i>
+                        <p class="mt-2 text-gray-600">Loading...</p>
+                    </div>
                 </div>
-                
-                <div v-else-if="error" class="text-red-500">
-                    {{ error }}
+
+                <div v-else-if="error" class="flex items-center justify-center h-full">
+                    <div class="text-center text-red-500">
+                        <i class="mdi mdi-alert-circle text-4xl"></i>
+                        <p class="mt-2">{{ error }}</p>
+                        <button @click="retryLoading" 
+                                class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            Retry
+                        </button>
+                    </div>
                 </div>
                 
                 <div v-else class="grid grid-cols-1 gap-6">
