@@ -149,16 +149,21 @@ class AiderAgent(KinOSAgent):
         et initialise mission_files.
         """
         try:
-            # Obtenir le nom de la mission courante
+            # Get current mission name
             mission_name = self.web_instance.file_manager.current_mission
             if not mission_name:
-                self.logger(f"[{self.__class__.__name__}] ❌ Aucune mission sélectionnée")
+                self.logger(f"[{self.__class__.__name__}] ❌ No mission selected")
                 self.mission_files = {}
                 return
 
-            # Utiliser PathManager pour obtenir le chemin
+            # Get mission path using PathManager
             from utils.path_manager import PathManager
-            mission_path = PathManager.get_mission_path(mission_name)
+            try:
+                mission_path = PathManager.get_mission_path(mission_name)
+            except ValueError as e:
+                self.logger(f"[{self.__class__.__name__}] ❌ Error getting mission path: {str(e)}")
+                self.mission_files = {}
+                return
 
             if not os.path.exists(mission_path):
                 self.logger(f"[{self.__class__.__name__}] ❌ Dossier mission non trouvé: {mission_path}")
@@ -204,7 +209,9 @@ class AiderAgent(KinOSAgent):
 
             # Load from file if not in cache or cache invalid
             from utils.path_manager import PathManager
-            prompt_path = os.path.join(PathManager.get_prompts_path(), self.prompt_file)
+            try:
+                prompts_dir = PathManager.get_prompts_path()
+                prompt_path = os.path.join(prompts_dir, self.prompt_file)
             if os.path.exists(prompt_path):
                 with open(prompt_path, 'r', encoding='utf-8') as f:
                     content = f.read()
