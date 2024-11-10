@@ -7,7 +7,12 @@ export default {
         },
         currentMission: {
             type: Object,
-            required: true
+            default: () => ({}),
+            validator: (value) => {
+                // Optional validation to ensure mission has expected properties
+                return !value || (typeof value === 'object' && 
+                    (value.id === undefined || typeof value.id === 'number'));
+            }
         }
     },
     data() {
@@ -21,6 +26,11 @@ export default {
             retryDelay: 1000,
             errorMessage: null,
             showError: false,
+            connectionStatus: {
+                connected: true,
+                lastCheck: null,
+                retryCount: 0
+            },
             availableAgents: [
                 "SpecificationsAgent",
                 "ManagementAgent", 
@@ -87,6 +97,37 @@ export default {
             loadingAgents: new Set()
         }
     },
+    created() {
+        // Initialize connection status and error handling
+        this.initializeErrorHandling();
+    },
+    methods: {
+        initializeErrorHandling() {
+            // Centralized error handling method
+            this.handleError = (message, error) => {
+                console.error(message, error);
+                this.errorMessage = typeof error === 'string' ? error : error.message;
+                this.showError = true;
+                setTimeout(() => {
+                    this.showError = false;
+                }, 5000);
+            };
+        },
+        async checkConnection() {
+            try {
+                const response = await fetch('/api/status');
+                if (!response.ok) {
+                    throw new Error('Server connection failed');
+                }
+                const data = await response.json();
+                this.connectionStatus.connected = data.server?.running === true;
+                this.connectionStatus.lastCheck = new Date();
+            } catch (error) {
+                this.connectionStatus.connected = false;
+                this.connectionStatus.retryCount++;
+                this.handleError('Connection check failed', error);
+            }
+        },
 
     computed: {
         hasActiveTeam() {
