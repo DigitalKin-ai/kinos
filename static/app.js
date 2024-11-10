@@ -52,16 +52,27 @@ const app = createApp({
         }
     },
     methods: {
+        updateMissionState(mission, state) {
+            if (!mission?.id) {
+                console.warn('Attempted to update state for invalid mission');
+                return;
+            }
+            this.runningStates.set(mission.id, state);
+        },
+
         async selectMission(mission) {
             if (!mission?.id) {
                 console.error('Invalid mission selected');
-                this.error = 'Invalid mission selected';
+                this.handleError('Invalid mission selected');
                 return;
             }
 
             try {
                 this.loading = true;
-                const wasRunning = this.runningAgents.size > 0;
+                const wasRunning = this.runningStates.get(mission.id) || false;
+                
+                // Update state safely
+                this.updateMissionState(mission, false);
 
                 // Stop agents if running
                 if (wasRunning) {
