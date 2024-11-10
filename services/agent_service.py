@@ -472,3 +472,143 @@ class AgentService:
             
         except Exception as e:
             self.web_instance.log_message(f"Error updating global status: {str(e)}", level='error')
+
+    def get_agent_prompt(self, agent_id: str) -> Optional[str]:
+        """Get the current prompt for a specific agent"""
+        try:
+            agent_name = agent_id.lower()
+            if agent_name not in self.agents:
+                self.web_instance.log_message(f"Agent {agent_id} not found", level='error')
+                return None
+                
+            agent = self.agents[agent_name]
+            prompt = agent.get_prompt()
+            
+            # Log prompt access
+            self.web_instance.log_message(f"Retrieved prompt for agent {agent_name}", level='debug')
+            return prompt
+            
+        except Exception as e:
+            self.web_instance.log_message(f"Error getting agent prompt: {str(e)}", level='error')
+            return None
+
+    def save_agent_prompt(self, agent_id: str, prompt_content: str) -> bool:
+        """Save updated prompt for a specific agent"""
+        try:
+            agent_name = agent_id.lower()
+            if agent_name not in self.agents:
+                raise ValueError(f"Agent {agent_id} not found")
+                
+            if not prompt_content or not prompt_content.strip():
+                raise ValueError("Prompt content cannot be empty")
+                
+            agent = self.agents[agent_name]
+            
+            # Ensure prompts directory exists
+            os.makedirs("prompts", exist_ok=True)
+            
+            # Save prompt to file
+            prompt_file = f"prompts/{agent_name}.md"
+            success = agent.save_prompt(prompt_content)
+            
+            if success:
+                self.web_instance.log_message(f"Saved new prompt for agent {agent_name}", level='success')
+                
+                # Stop agent if running
+                if agent.running:
+                    agent.stop()
+                    self.web_instance.log_message(f"Stopped agent {agent_name} for prompt update", level='info')
+                    
+                    # Restart agent with new prompt
+                    agent.start()
+                    thread = threading.Thread(
+                        target=self._run_agent_wrapper,
+                        args=(agent_name, agent),
+                        daemon=True,
+                        name=f"Agent-{agent_name}"
+                    )
+                    thread.start()
+                    self.web_instance.log_message(f"Restarted agent {agent_name} with new prompt", level='success')
+                    
+            return success
+            
+        except Exception as e:
+            self.web_instance.log_message(f"Error saving agent prompt: {str(e)}", level='error')
+            return False
+
+    def _validate_prompt(self, prompt_content: str) -> bool:
+        """Validate prompt content format and requirements"""
+        try:
+            if not prompt_content or not prompt_content.strip():
+                return False
+                
+            # Vérifier la taille minimale
+            if len(prompt_content) < 10:
+                return False
+                
+            # Vérifier la présence d'instructions basiques
+            required_elements = [
+                "MISSION:",
+                "CONTEXT:",
+                "INSTRUCTIONS:",
+                "RULES:"
+            ]
+            
+            for element in required_elements:
+                if element not in prompt_content:
+                    self.web_instance.log_message(
+                        f"Missing required element in prompt: {element}", 
+                        level='warning'
+                    )
+                    return False
+                    
+            return True
+            
+        except Exception as e:
+            self.web_instance.log_message(f"Error validating prompt: {str(e)}", level='error')
+            return False
+
+    def _backup_prompt(self, agent_name: str) -> bool:
+        """Create backup of current prompt before updating"""
+        try:
+            prompt_file = f"prompts/{agent_name}.md"
+            if not os.path.exists(prompt_file):
+                return True  # No backup needed
+                
+            # Create backups directory
+            backup_dir = "prompts/backups"
+            os.makedirs(backup_dir, exist_ok=True)
+            
+            # Generate backup filename with timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_file = f"{backup_dir}/{agent_name}_{timestamp}.md"
+            
+            # Copy current prompt to backup
+            import shutil
+            shutil.copy2(prompt_file, backup_file)
+            
+            self.web_instance.log_message(
+                f"Created backup of {agent_name} prompt: {backup_file}", 
+                level='info'
+            )
+            return True
+            
+        except Exception as e:
+            self.web_instance.log_message(f"Error backing up prompt: {str(e)}", level='error')
+            return False
+
+    def _load_prompt_template(self, agent_type: str) -> Optional[str]:
+        """Load default prompt template for agent type"""
+        try:
+            template_file = f"templates/prompts/{agent_type}.md"
+            if not os.path.exists(template_file):
+                return None
+                
+            with open(template_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            return content
+            
+        except Exception as e:
+            self.web_instance.log_message(f"Error loading prompt template: {str(e)}", level='error')
+            return None
