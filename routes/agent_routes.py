@@ -123,25 +123,25 @@ def register_agent_routes(app, web_instance):
             
             try:
                 if action == 'start':
-                    agent = web_instance.agent_service.agents[actual_agent_name]
+                    agent = web_instance.agent_service.agents[agent_name]
                     agent.start()
                     thread = threading.Thread(
                         target=agent.run,
                         daemon=True,
-                        name=f"Agent-{actual_agent_name}"
+                        name=f"Agent-{agent_name}"
                     )
                     thread.start()
-                    web_instance.log_message(f"Successfully started agent {actual_agent_name}", level='success')
+                    web_instance.log_message(f"Successfully started agent {agent_name}", level='success')
                 else:  # stop
-                    agent = web_instance.agent_service.agents[actual_agent_name]
+                    agent = web_instance.agent_service.agents[agent_name]
                     agent.stop()
-                    web_instance.log_message(f"Successfully stopped agent {actual_agent_name}", level='success')
+                    web_instance.log_message(f"Successfully stopped agent {agent_name}", level='success')
                 
                 return jsonify({'status': 'success'})
                 
             except Exception as e:
                 web_instance.log_message(
-                    f"Error during {action} operation for {actual_agent_name}: {str(e)}\n"
+                    f"Error during {action} operation for {agent_name}: {str(e)}\n"
                     f"Stack trace: {traceback.format_exc()}", 
                     level='error'
                 )
