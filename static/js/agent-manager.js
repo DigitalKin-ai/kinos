@@ -23,15 +23,18 @@ export default {
             try {
                 if (!this.currentMission) {
                     console.warn('No mission selected');
+                    this.teams = [];  // Initialize as empty array
                     return [];
                 }
             
                 const response = await this.apiClient.getMissionTeams(this.currentMission.id);
-                this.teams = response.map(team => ({
+                
+                // Defensive programming: ensure response is an array
+                this.teams = Array.isArray(response) ? response.map(team => ({
                     ...team,
-                    agents: team.agents || [],
+                    agents: team.agents || [],  // Fallback to empty array
                     status: team.status || 'available'
-                }));
+                })) : [];
 
                 // Set first team as active if no active team
                 if (this.teams.length > 0 && !this.activeTeam) {
@@ -41,18 +44,21 @@ export default {
                 return this.teams;
             } catch (error) {
                 console.error('Error loading teams:', error);
+                this.teams = [];  // Ensure teams is an empty array on error
                 this.error = error.message;
-                throw error;
+                return [];
             }
         },
         
         getTeamMetrics(teamId) {
+            if (!teamId) return null;
+            
             const team = this.teams.find(t => t.id === teamId);
             if (!team) return null;
             
             return {
-                totalAgents: team.agents.length,
-                activeAgents: team.agents.filter(a => a.status === 'active').length,
+                totalAgents: team.agents?.length || 0,
+                activeAgents: team.agents?.filter(a => a.status === 'active').length || 0,
                 health: this.calculateTeamHealth(team)
             };
         },
