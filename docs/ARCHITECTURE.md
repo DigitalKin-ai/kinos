@@ -48,6 +48,12 @@ The KinOS system uses a modular architecture built around autonomous agents that
   - ManagementAgent - Activity coordination
   - EvaluationAgent - Testing and validation
   - SuiviAgent - Progress tracking
+  - ValidationAgent - Validation et conformité
+    * Validation des spécifications
+    * Vérification de la conformité
+    * Mesures quantitatives
+    * Validation des critères objectifs
+    * Contrôle qualité automatisé
 
 ### Services
 - `services/base_service.py` - Base class for all services
