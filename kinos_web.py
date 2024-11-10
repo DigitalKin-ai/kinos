@@ -51,6 +51,14 @@ class KinOSWeb:
             # Initialize agents in inactive state - don't raise error if no agents initialized
             try:
                 self.agent_service.init_agents(config)
+                self.logger.log("Agents initialized in inactive state", level='success')
+            except ValueError as e:
+                # Log warning but continue if it's just about missing mission
+                if "No mission currently selected" in str(e):
+                    self.logger.log("No mission selected - agents will be initialized when mission is selected", level='warning')
+                else:
+                    # Re-raise other ValueError exceptions
+                    raise
             except Exception as e:
                 self.logger.log(f"Warning: Agent initialization failed: {str(e)}", level='warning')
                 # Continue initialization even if agents fail
