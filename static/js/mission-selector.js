@@ -60,9 +60,9 @@ export default {
             });
         },
         missionStates() {
-            return this.missions.reduce((acc, mission) => {
-                acc[mission.id] = {
-                    running: this.runningStates.get(mission.id) || false,
+            return this.missions.reduce((acc, missionData) => {
+                acc[missionData.id] = {
+                    running: this.runningStates.get(missionData.id) || false,
                     loading: false
                 };
                 return acc;
