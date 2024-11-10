@@ -54,16 +54,17 @@ class KinOSAgent:
 
     def __init__(self, config: Dict[str, Any]):
         """
-        Initialise l'agent avec sa configuration.
+        Initialize agent with configuration.
         
         Args:
-            config: Dictionnaire contenant:
-                - anthropic_api_key: Clé API Anthropic
-                - openai_api_key: Clé API OpenAI 
-                - check_interval: Intervalle de vérification
-                - logger: Fonction de logging
+            config: Dictionary containing:
+                - anthropic_api_key: Anthropic API key
+                - openai_api_key: OpenAI API key
+                - check_interval: Check interval
+                - logger: Logging function
+                - mission_dir: Mission directory path
         """
-        # Configurer l'encodage par défaut
+        # Configure default encoding
         import sys
         import codecs
         
@@ -71,22 +72,22 @@ class KinOSAgent:
             sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
         if sys.stderr.encoding != 'utf-8':
             sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
-        # Validation de la configuration
+
+        # Validate configuration
         if not config.get("anthropic_api_key"):
-            raise ValueError("anthropic_api_key manquante dans la configuration")
+            raise ValueError("anthropic_api_key missing in configuration")
         if not config.get("openai_api_key"):
-            raise ValueError("openai_api_key manquante dans la configuration")
+            raise ValueError("openai_api_key missing in configuration")
+        if not config.get("mission_dir"):
+            raise ValueError("mission_dir missing in configuration")
             
         self.config = config
-        self.file_path = config["file_path"]
-        self.mission_files = config.get("mission_files", [])
+        self.mission_dir = config["mission_dir"]
+        self.mission_files = {}
         
-        # Initialisation des clients API avec les clés validées
+        # Initialize API clients
         self.client = anthropic.Client(api_key=config["anthropic_api_key"])
         self.openai_client = openai.OpenAI(api_key=config["openai_api_key"])
-        
-        # Initialize mission_files
-        self.mission_files = {}
         
         # Use agent-specific rhythm or default value
         agent_type = self.__class__.__name__

@@ -160,7 +160,8 @@ class AgentService:
                 "openai_api_key": config["openai_api_key"],
                 "mission_name": mission_name,
                 "logger": self.web_instance.log_message,
-                "web_instance": self.web_instance  # Add web_instance to base config
+                "web_instance": self.web_instance,  # Add web_instance to base config
+                "mission_dir": mission_dir  # Add mission directory instead of file_path
             }
 
             # Initialize each agent type with relative paths
