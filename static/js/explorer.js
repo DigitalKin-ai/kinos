@@ -180,8 +180,7 @@ export default {
             );
         }
     },
-
-
+    methods: {
         async checkFileModifications() {
             try {
                 if (!this.currentMission?.id) return;
@@ -315,8 +314,8 @@ export default {
     mounted() {
         this.loadMissions();
         this.startFileWatcher();
-    },
-    validateTeamState(team) {
+    }
+}
         if (!team?.id || !team?.name) {
             console.error('Invalid team state:', team);
             return false;
