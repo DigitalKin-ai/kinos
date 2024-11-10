@@ -28,6 +28,74 @@ The KinOS system uses a modular architecture built around autonomous agents that
   - Distributed cache with Redis
   - Configurable JWT authentication
 
+### Single Server Architecture
+
+KinOS uses a single server architecture where both frontend and backend are served from the same Flask application:
+
+#### Overview
+- No separate backend server
+- No traditional database
+- File system as primary storage
+- Single port (default: 8000)
+
+#### Key Design Choices
+
+1. **Unified Server**
+   - Flask serves both static files and API endpoints
+   - All requests handled by same process
+   - Relative API paths (/api/*) instead of absolute URLs
+   - Simplified deployment and configuration
+
+2. **File-Based Storage**
+   - File system as primary data store
+   - No traditional database required
+   - Directory structure:
+     ```
+     project_root/
+     ├── missions/           # Mission data and files
+     │   └── <mission_name>/
+     │       ├── demande.md
+     │       ├── specifications.md
+     │       └── ...
+     ├── prompts/           # Agent prompts
+     ├── config/           # Configuration files
+     ├── static/           # Frontend assets
+     ├── templates/        # HTML templates
+     └── logs/            # Application logs
+     ```
+
+3. **API Design**
+   - RESTful endpoints under /api prefix
+   - File operations handled synchronously
+   - Portalocker for thread-safe file access
+   - Caching for performance optimization
+
+4. **Frontend Integration**
+   - Vue.js components served from /static
+   - API calls use relative paths:
+     ```javascript
+     // Correct
+     fetch('/api/missions')
+     
+     // Incorrect - don't use absolute URLs
+     fetch('http://localhost:8000/api/missions')
+     ```
+
+#### Benefits
+- Simplified deployment (single process)
+- No database configuration needed
+- Easy backup (just copy files)
+- Reduced complexity
+- Direct file system access
+- Portable between systems
+
+#### Considerations
+- Scale limited by file system performance
+- Concurrent access managed via file locks
+- Regular backups recommended
+- Monitor disk space usage
+- Consider file system limitations
+
 ### Agents
 - `agents/kinos_agent.py` - Base agent class
   - Dynamic file management
