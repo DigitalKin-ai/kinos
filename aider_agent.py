@@ -180,20 +180,16 @@ class AiderAgent(KinOSAgent):
         et initialise mission_files.
         """
         try:
-            # Obtenir le dossier de la mission
-            mission_dir = os.path.dirname(self.file_path)
-            
             # Liste des extensions à inclure
-            text_extensions = {'.md', '.txt', '.json', '.yaml', '.yml', '.py', '.js', '.html' '.css', '.sh'}
+            text_extensions = {'.md', '.txt', '.json', '.yaml', '.yml', '.py', '.js', '.html', '.css', '.sh'}
             
             # Récupérer tous les fichiers textuels
             text_files = {}
-            for file in os.listdir(mission_dir):
-                file_path = os.path.join(mission_dir, file)
-                # Vérifier si c'est un fichier et si l'extension est supportée
-                if (os.path.isfile(file_path) and 
-                    os.path.splitext(file)[1].lower() in text_extensions):
-                    text_files[file_path] = os.path.getmtime(file_path)
+            for root, _, filenames in os.walk(self.mission_dir):
+                for filename in filenames:
+                    if os.path.splitext(filename)[1].lower() in text_extensions:
+                        file_path = os.path.join(root, filename)
+                        text_files[file_path] = os.path.getmtime(file_path)
                 
             # Mettre à jour mission_files
             self.mission_files = text_files
