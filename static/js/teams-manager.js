@@ -70,7 +70,9 @@ export default {
             statsInterval: null,
             POLL_INTERVAL: 30000,
             loadingTeams: new Set(),
-            loadingAgents: new Set()
+            loadingAgents: new Set(),
+            statusCache: new Map(),
+            statusCacheTTL: 5000 // 5 seconds
         }
     },
     computed: {

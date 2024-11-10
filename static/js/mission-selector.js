@@ -42,7 +42,8 @@ export default {
                 connected: true,
                 lastCheck: null,
                 retryCount: 0
-            }
+            },
+            connectionCheckInProgress: false
         }
     },
     computed: {
@@ -129,16 +130,48 @@ export default {
     },
     methods: {
         async checkConnection() {
+            if (this.connectionCheckInProgress) return;
+            
             try {
+                this.connectionCheckInProgress = true;
                 const isConnected = await this.missionService.checkServerConnection();
+                
                 this.connectionStatus.connected = isConnected;
                 this.connectionStatus.lastCheck = new Date();
                 this.connectionStatus.retryCount = 0;
+                
             } catch (error) {
                 this.connectionStatus.connected = false;
                 this.connectionStatus.retryCount++;
                 this.handleConnectionError(error);
+            } finally {
+                this.connectionCheckInProgress = false;
             }
+        },
+
+        handleConnectionError(error) {
+            const retryCount = this.connectionStatus.retryCount;
+            const message = retryCount > 1 
+                ? `Connection lost. Retry attempt ${retryCount}...`
+                : 'Connection lost. Retrying...';
+            
+            this.handleError({
+                title: 'Connection Error',
+                message: message,
+                type: 'connection',
+                retry: true,
+                details: error.message
+            });
+
+            const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 30000);
+            setTimeout(() => this.checkConnection(), delay);
+        },
+
+        beforeUnmount() {
+            if (this.connectionInterval) {
+                clearInterval(this.connectionInterval);
+            }
+            this.statusCache?.clear();
         },
 
         async updateRunningState(missionId, state) {
@@ -696,6 +729,13 @@ export default {
             }
             
             return `${date.toLocaleDateString('fr-FR')} ${time}`;
+        }
+    },
+    beforeUnmount() {
+        this.stopTeamMonitoring();
+        this.statusCache.clear();
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
         }
     },
     template: `

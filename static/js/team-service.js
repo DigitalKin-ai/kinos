@@ -9,6 +9,8 @@ export default class TeamService {
             lastCheck: null,
             retryCount: 0
         };
+        this.statusCache = new Map();
+        this.statusCacheTTL = 5000; // 5 seconds
     }
 
     async initialize() {
@@ -58,6 +60,38 @@ export default class TeamService {
                 ]
             }
         ];
+        
+        // Initialize connection monitoring
+        await this.checkConnection();
+        this.startConnectionMonitoring();
+    }
+
+    async checkConnection() {
+        try {
+            const response = await fetch('/api/status');
+            this.connectionStatus.connected = response.ok;
+            this.connectionStatus.lastCheck = new Date();
+            this.connectionStatus.retryCount = 0;
+            return response.ok;
+        } catch (error) {
+            this.connectionStatus.connected = false;
+            this.connectionStatus.retryCount++;
+            console.error('Connection check failed:', error);
+            return false;
+        }
+    }
+
+    startConnectionMonitoring() {
+        setInterval(() => this.checkConnection(), 30000); // Check every 30 seconds
+    }
+
+    cleanup() {
+        if (this.connectionInterval) {
+            clearInterval(this.connectionInterval);
+        }
+        this.teams.clear();
+        this.teamStates.clear();
+        this.statusCache?.clear();
     }
 
     async getTeamsForMission(missionId) {
