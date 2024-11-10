@@ -14,6 +14,11 @@ export default {
             }
         }
     },
+    // Ensure the component has a render method as a fallback
+    render() {
+        // If no template is provided, return a default rendering
+        return this.$slots.default ? this.$slots.default() : null;
+    },
     data() {
         return {
             statusCacheTTL: 5000,
@@ -722,4 +727,4 @@ export default {
             </div>
         </div>
     `
-}}
+}

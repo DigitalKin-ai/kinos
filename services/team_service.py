@@ -81,7 +81,11 @@ class TeamService(BaseService):
         try:
             # Add mission_id to each team for unique identification
             teams = [
-                {**team, 'id': f"{mission_id}_{team['id']}"} 
+                {
+                    **team, 
+                    'id': f"{mission_id}_{team['id']}", 
+                    'mission_id': mission_id
+                } 
                 for team in self.predefined_teams
             ]
             return teams
