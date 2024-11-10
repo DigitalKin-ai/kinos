@@ -52,7 +52,7 @@ class AgentService:
             # Create prompts directory if it doesn't exist
             if not os.path.exists(prompts_dir):
                 os.makedirs(prompts_dir)
-                self.web_instance.log_message("Created prompts directory", level='info')
+                self.web_instance.log_message("Created prompts directory", 'info')
                 return []
 
             # Get prompts directory using PathManager
@@ -70,12 +70,12 @@ class AgentService:
                             'class': agent_class,
                             'status': self._get_agent_status(agent_name)
                         })
-                        self.web_instance.log_message(f"Discovered agent: {agent_name}", level='debug')
+                        self.web_instance.log_message(f"Discovered agent: {agent_name}", 'debug')
 
             return discovered_agents
 
         except Exception as e:
-            self.web_instance.log_message(f"Error discovering agents: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error discovering agents: {str(e)}", 'error')
             return []
 
     def _get_agent_class(self, agent_name: str):
@@ -88,7 +88,7 @@ class AgentService:
             return AiderAgent
             
         except ImportError as e:
-            self.web_instance.log_message(f"Error importing agent class: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error importing agent class: {str(e)}", 'error')
             return None
 
     def init_agents(self, config: Dict[str, Any]) -> None:
@@ -130,17 +130,17 @@ class AgentService:
                         
                         # Create agent with AiderAgent
                         self.agents[agent_name] = AiderAgent(agent_config)
-                        self.web_instance.log_message(f"✓ Agent {agent_name} initialized", level='success')
+                        self.web_instance.log_message(f"✓ Agent {agent_name} initialized", 'success')
                         
                     except Exception as e:
-                        self.web_instance.log_message(f"Error initializing agent {agent_name}: {str(e)}", level='error')
+                        self.web_instance.log_message(f"Error initializing agent {agent_name}: {str(e)}", 'error')
                         continue
 
             if not self.agents:
-                self.web_instance.log_message("No agents were initialized", level='warning')
+                self.web_instance.log_message("No agents were initialized", 'warning')
                 
         except Exception as e:
-            self.web_instance.log_message(f"Error initializing agents: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error initializing agents: {str(e)}", 'error')
             raise
 
     def get_available_agents(self) -> List[str]:
@@ -150,14 +150,14 @@ class AgentService:
     def start_all_agents(self) -> None:
         """Start all agents"""
         try:
-            self.web_instance.log_message("🚀 Starting agents...", level='info')
+            self.web_instance.log_message("🚀 Starting agents...", 'info')
             
             # Check available agents
             available_agents = self.get_available_agents()
-            self.web_instance.log_message(f"Available agents: {available_agents}", level='debug')
+            self.web_instance.log_message(f"Available agents: {available_agents}", 'debug')
             
             if not available_agents:
-                self.web_instance.log_message("No agents available to start", level='warning')
+                self.web_instance.log_message("No agents available to start", 'warning')
                 return
                 
             # Get current mission from FileManager
@@ -167,7 +167,7 @@ class AgentService:
 
             # Initialize agents if not already done
             if not self.agents:
-                self.web_instance.log_message("Initializing agents...", level='info')
+                self.web_instance.log_message("Initializing agents...", 'info')
                 self.init_agents({
                     "anthropic_api_key": self.web_instance.config["anthropic_api_key"],
                     "openai_api_key": self.web_instance.config["openai_api_key"]
@@ -180,7 +180,7 @@ class AgentService:
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             mission_dir = os.path.abspath(os.path.join(project_root, "missions", current_mission))
             
-            self.web_instance.log_message(f"Using absolute mission path: {mission_dir}", level='debug')
+            self.web_instance.log_message(f"Using absolute mission path: {mission_dir}", 'debug')
                 
             # Verify directory exists and is accessible
             if not os.path.exists(mission_dir):
@@ -192,12 +192,12 @@ class AgentService:
             self.agent_threads = {}
 
             # Log agents to be started
-            self.web_instance.log_message(f"Agents to start: {list(self.agents.keys())}", level='debug')
+            self.web_instance.log_message(f"Agents to start: {list(self.agents.keys())}", 'debug')
 
             # Update mission directory for all agents
             for name, agent in self.agents.items():
                 agent.mission_dir = mission_dir
-                self.web_instance.log_message(f"Set mission dir for {name}: {mission_dir}", level='debug')
+                self.web_instance.log_message(f"Set mission dir for {name}: {mission_dir}", 'debug')
                 
             self.running = True
             
@@ -207,11 +207,11 @@ class AgentService:
             # Start each agent in a new thread
             for name, agent in self.agents.items():
                 try:
-                    self.web_instance.log_message(f"Starting agent {name}...", level='debug')
+                    self.web_instance.log_message(f"Starting agent {name}...", 'debug')
                     
                     # Initialize agent
                     agent.start()
-                    self.web_instance.log_message(f"Agent {name} initialized", level='debug')
+                    self.web_instance.log_message(f"Agent {name} initialized", 'debug')
                     
                     # Create thread
                     thread = threading.Thread(
@@ -226,33 +226,33 @@ class AgentService:
                     
                     # Start thread
                     thread.start()
-                    self.web_instance.log_message(f"Started thread for {name}", level='debug')
+                    self.web_instance.log_message(f"Started thread for {name}", 'debug')
 
                     # Verify thread started
                     if not thread.is_alive():
                         raise AgentError(f"Thread failed to start for agent {name}")
                         
-                    self.web_instance.log_message(f"✓ Agent {name} thread confirmed running", level='success')
+                    self.web_instance.log_message(f"✓ Agent {name} thread confirmed running", 'success')
                     
                 except Exception as e:
                     self.web_instance.log_message(
                         f"Error starting agent {name}: {str(e)}\n{traceback.format_exc()}", 
-                        level='error'
+                        'error'
                     )
 
             # Verify all threads are running
             running_threads = [name for name, thread in self.agent_threads.items() if thread.is_alive()]
-            self.web_instance.log_message(f"Running agent threads: {running_threads}", level='debug')
+            self.web_instance.log_message(f"Running agent threads: {running_threads}", 'debug')
 
             if len(running_threads) != len(self.agents):
                 raise AgentError(f"Only {len(running_threads)} of {len(self.agents)} agents started")
 
-            self.web_instance.log_message("✨ All agents active", level='success')
+            self.web_instance.log_message("✨ All agents active", 'success')
             
         except Exception as e:
             self.web_instance.log_message(
                 f"Error starting agents: {str(e)}\n{traceback.format_exc()}", 
-                level='error'
+                'error'
             )
             raise
 
@@ -265,18 +265,18 @@ class AgentService:
             for name, agent in self.agents.items():
                 try:
                     agent.stop()
-                    self.web_instance.log_message(f"Agent {name} stopped", level='info')
+                    self.web_instance.log_message(f"Agent {name} stopped", 'info')
                 except Exception as e:
-                    self.web_instance.log_message(f"Error stopping agent {name}: {str(e)}", level='error')
+                    self.web_instance.log_message(f"Error stopping agent {name}: {str(e)}", 'error')
             
             # Stop monitor thread
             if self.monitor_thread and self.monitor_thread.is_alive():
                 self.monitor_thread.join(timeout=2)
 
-            self.web_instance.log_message("All agents stopped", level='success')
+            self.web_instance.log_message("All agents stopped", 'success')
             
         except Exception as e:
-            self.web_instance.log_message(f"Error stopping agents: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error stopping agents: {str(e)}", 'error')
             raise
 
     def _start_monitor_thread(self) -> None:
@@ -335,7 +335,7 @@ class AgentService:
             return max(0.0, min(1.0, health_score))  # Clamp between 0 and 1
             
         except Exception as e:
-            self.web_instance.log_message(f"Error calculating system health: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error calculating system health: {str(e)}", 'error')
             return 0.0  # Return 0 on error
 
     def _monitor_agents(self) -> None:
@@ -398,7 +398,7 @@ class AgentService:
                     self._handle_system_degradation(system_metrics)
                     
             except Exception as e:
-                self.web_instance.log_message(f"Error in monitor loop: {str(e)}", level='error')
+                self.web_instance.log_message(f"Error in monitor loop: {str(e)}", 'error')
             finally:
                 time.sleep(30)  # Check every 30 seconds
 
@@ -446,7 +446,7 @@ class AgentService:
             }
             
         except Exception as e:
-            self.web_instance.log_message(f"Error getting agent status: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error getting agent status: {str(e)}", 'error')
             return {
                 'running': False,
                 'status': 'error',
@@ -459,12 +459,12 @@ class AgentService:
     def _run_agent_wrapper(self, name: str, agent: 'KinOSAgent') -> None:
         """Wrapper function to catch any exceptions from agent run method"""
         try:
-            self.web_instance.log_message(f"Agent {name} thread starting run method", level='debug')
+            self.web_instance.log_message(f"Agent {name} thread starting run method", 'debug')
             agent.run()
         except Exception as e:
             self.web_instance.log_message(
                 f"Agent {name} thread crashed: {str(e)}\n{traceback.format_exc()}", 
-                level='error'
+                'error'
             )
     def _get_detailed_agent_status(self, agent_name: str) -> Dict[str, Any]:
         """Get comprehensive agent status including performance metrics"""
@@ -510,7 +510,7 @@ class AgentService:
             return status
 
         except Exception as e:
-            self.web_instance.log_message(f"Error getting detailed status: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error getting detailed status: {str(e)}", 'error')
             return self._get_default_status()
 
     def _calculate_error_rate(self, agent) -> float:
@@ -524,13 +524,13 @@ class AgentService:
             return error_count / max(total_runs, 1)
             
         except Exception as e:
-            self.web_instance.log_message(f"Error calculating error rate: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error calculating error rate: {str(e)}", 'error')
             return 0.0
 
     def _handle_agent_error(self, agent_name: str, error: Exception) -> None:
         """Handle agent errors with recovery attempts"""
         try:
-            self.web_instance.log_message(f"Agent {agent_name} error: {str(error)}", level='error')
+            self.web_instance.log_message(f"Agent {agent_name} error: {str(error)}", 'error')
             
             # Get agent instance
             agent = self.agents.get(agent_name)
@@ -545,19 +545,19 @@ class AgentService:
                 try:
                     success = agent.recover_from_error()
                     if success:
-                        self.web_instance.log_message(f"Agent {agent_name} recovered successfully", level='info')
+                        self.web_instance.log_message(f"Agent {agent_name} recovered successfully", 'info')
                     else:
-                        self.web_instance.log_message(f"Agent {agent_name} recovery failed", level='warning')
+                        self.web_instance.log_message(f"Agent {agent_name} recovery failed", 'warning')
                 except Exception as recovery_error:
-                    self.web_instance.log_message(f"Error during agent recovery: {str(recovery_error)}", level='error')
+                    self.web_instance.log_message(f"Error during agent recovery: {str(recovery_error)}", 'error')
             
             # Stop agent if too many errors
             if agent.error_count > 5:  # Configurable threshold
-                self.web_instance.log_message(f"Stopping agent {agent_name} due to too many errors", level='warning')
+                self.web_instance.log_message(f"Stopping agent {agent_name} due to too many errors", 'warning')
                 agent.stop()
                 
         except Exception as e:
-            self.web_instance.log_message(f"Error handling agent error: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error handling agent error: {str(e)}", 'error')
 
     def _get_response_times(self, agent) -> Dict[str, float]:
         """Get agent response time metrics"""
@@ -642,10 +642,10 @@ class AgentService:
             )
             thread.start()
             
-            self.web_instance.log_message(f"Successfully restarted agent {name}", level='success')
+            self.web_instance.log_message(f"Successfully restarted agent {name}", 'success')
             
         except Exception as e:
-            self.web_instance.log_message(f"Error restarting agent {name}: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error restarting agent {name}: {str(e)}", 'error')
 
     def _update_global_status(self, status_updates: Dict[str, Dict]) -> None:
         """Update global system status based on agent states"""
@@ -668,32 +668,32 @@ class AgentService:
             if system_status['system_health'] < 0.8:  # Less than 80% healthy
                 self.web_instance.log_message(
                     f"System health degraded: {system_status['system_health']:.1%}", 
-                    level='warning'
+                    'warning'
                 )
                 
             # Store status for API access
             self._last_status = system_status
             
         except Exception as e:
-            self.web_instance.log_message(f"Error updating global status: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error updating global status: {str(e)}", 'error')
 
     def get_agent_prompt(self, agent_id: str) -> Optional[str]:
         """Get the current prompt for a specific agent"""
         try:
             agent_name = agent_id.lower()
             if agent_name not in self.agents:
-                self.web_instance.log_message(f"Agent {agent_id} not found", level='error')
+                self.web_instance.log_message(f"Agent {agent_id} not found", 'error')
                 return None
                 
             agent = self.agents[agent_name]
             prompt = agent.get_prompt()
             
             # Log prompt access
-            self.web_instance.log_message(f"Retrieved prompt for agent {agent_name}", level='debug')
+            self.web_instance.log_message(f"Retrieved prompt for agent {agent_name}", 'debug')
             return prompt
             
         except Exception as e:
-            self.web_instance.log_message(f"Error getting agent prompt: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error getting agent prompt: {str(e)}", 'error')
             return None
 
     def save_agent_prompt(self, agent_id: str, prompt_content: str) -> bool:
@@ -716,12 +716,12 @@ class AgentService:
             success = agent.save_prompt(prompt_content)
             
             if success:
-                self.web_instance.log_message(f"Saved new prompt for agent {agent_name}", level='success')
+                self.web_instance.log_message(f"Saved new prompt for agent {agent_name}", 'success')
                 
                 # Stop agent if running
                 if agent.running:
                     agent.stop()
-                    self.web_instance.log_message(f"Stopped agent {agent_name} for prompt update", level='info')
+                    self.web_instance.log_message(f"Stopped agent {agent_name} for prompt update", 'info')
                     
                     # Restart agent with new prompt
                     agent.start()
@@ -732,12 +732,12 @@ class AgentService:
                         name=f"Agent-{agent_name}"
                     )
                     thread.start()
-                    self.web_instance.log_message(f"Restarted agent {agent_name} with new prompt", level='success')
+                    self.web_instance.log_message(f"Restarted agent {agent_name} with new prompt", 'success')
                     
             return success
             
         except Exception as e:
-            self.web_instance.log_message(f"Error saving agent prompt: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error saving agent prompt: {str(e)}", 'error')
             return False
 
     def _validate_prompt(self, prompt_content: str) -> bool:
@@ -762,14 +762,14 @@ class AgentService:
                 if element not in prompt_content:
                     self.web_instance.log_message(
                         f"Missing required element in prompt: {element}", 
-                        level='warning'
+                        'warning'
                     )
                     return False
                     
             return True
             
         except Exception as e:
-            self.web_instance.log_message(f"Error validating prompt: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error validating prompt: {str(e)}", 'error')
             return False
 
     def _backup_prompt(self, agent_name: str) -> bool:
@@ -793,12 +793,12 @@ class AgentService:
             
             self.web_instance.log_message(
                 f"Created backup of {agent_name} prompt: {backup_file}", 
-                level='info'
+                'info'
             )
             return True
             
         except Exception as e:
-            self.web_instance.log_message(f"Error backing up prompt: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error backing up prompt: {str(e)}", 'error')
             return False
 
     def _load_prompt_template(self, agent_type: str) -> Optional[str]:
@@ -814,5 +814,5 @@ class AgentService:
             return content
             
         except Exception as e:
-            self.web_instance.log_message(f"Error loading prompt template: {str(e)}", level='error')
+            self.web_instance.log_message(f"Error loading prompt template: {str(e)}", 'error')
             return None
