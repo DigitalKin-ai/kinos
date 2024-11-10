@@ -216,12 +216,28 @@ class AgentService:
         try:
             self.web_instance.log_message("🚀 Starting agents...", level='info')
             
-            # Verify mission directory exists
-            mission_dir = os.path.join("missions", self.web_instance.file_manager.current_mission)
+            # Debug logs pour comprendre le problème de chemin
+            current_mission = self.web_instance.file_manager.current_mission
+            self.web_instance.log_message(f"Current mission name: {current_mission}", level='debug')
+            
+            # Vérifier le chemin actuel
+            cwd = os.getcwd()
+            self.web_instance.log_message(f"Current working directory: {cwd}", level='debug')
+            
+            # Vérifier le chemin missions
+            missions_base = os.path.join(cwd, "missions")
+            self.web_instance.log_message(f"Base missions path: {missions_base}", level='debug')
+            
+            # Vérifier le chemin complet de la mission
+            mission_dir = os.path.join(missions_base, current_mission)
+            self.web_instance.log_message(f"Full mission path: {mission_dir}", level='debug')
+            
+            # Vérifier si le dossier existe
             if not os.path.exists(mission_dir):
+                self.web_instance.log_message(f"❌ Mission directory not found: {mission_dir}", level='error')
                 raise AgentError(f"Mission directory not found: {mission_dir}")
 
-            # Verify we have agents initialized
+            # Vérifier les agents
             if not self.agents:
                 self.web_instance.log_message("No agents initialized. Running init_agents first...", level='info')
                 config = {
@@ -244,7 +260,10 @@ class AgentService:
             for name, agent in self.agents.items():
                 try:
                     self.web_instance.log_message(f"Starting agent {name}...", level='debug')
+                    self.web_instance.log_message(f"Agent {name} mission dir: {agent.mission_dir}", level='debug')
+                    
                     if not os.path.exists(agent.mission_dir):
+                        self.web_instance.log_message(f"❌ Agent directory not found: {agent.mission_dir}", level='error')
                         raise AgentError(f"Agent directory not found: {agent.mission_dir}")
                         
                     agent.start()
