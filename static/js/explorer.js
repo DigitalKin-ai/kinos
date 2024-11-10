@@ -32,7 +32,7 @@ export default {
         fileExists(file) {
             return file && file.size > 0;
         },
-    methods: {
+        
         getFileSize(file) {
             if (!file.content) return '0';
             return file.content.length.toString();
@@ -184,10 +184,7 @@ export default {
     beforeUnmount() {
         this.stopFileWatcher();
     }
-};
-
-export default {
-    name: 'ExplorerApp',
+}
     computed: {
         filteredFiles() {
             if (!this.searchQuery) {
