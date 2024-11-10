@@ -6,18 +6,18 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from utils.exceptions import AgentError
 from agents.kinos_agent import KinOSAgent
-from agents.agent_types import (
-    SpecificationsAgent,
-    ProductionAgent,
-    ManagementAgent,
-    EvaluationAgent,
-    SuiviAgent,
-    DocumentalisteAgent,
-    DuplicationAgent,
-    TesteurAgent,
-    ValidationAgent,
-    RedacteurAgent
-)
+import importlib
+import inspect
+from agents.kinos_agent import KinOSAgent
+
+# Import agent types dynamically
+agent_types_module = importlib.import_module('agents.agent_types')
+agent_classes = {
+    name: cls for name, cls in inspect.getmembers(agent_types_module)
+    if (inspect.isclass(cls) and 
+        issubclass(cls, KinOSAgent) and 
+        cls != KinOSAgent)
+}
 
 class AgentService:
     def __init__(self, web_instance):
