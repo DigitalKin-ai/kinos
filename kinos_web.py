@@ -1,5 +1,4 @@
 import os
-import os
 import time
 import threading
 import traceback
@@ -54,14 +53,6 @@ class KinOSWeb:
         self.log_message("Registered routes:", 'info')
         for rule in self.app.url_map.iter_rules():
             self.log_message(f"  {rule.endpoint}: {rule.methods} {rule}", 'info')
-                
-                # Add agent status if agent service is initialized
-                if hasattr(self, 'agent_service'):
-                    for name, agent in self.agent_service.agents.items():
-                        status['agents'][name] = {
-                            'running': agent.running if hasattr(agent, 'running') else False,
-                            'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
-                            'status': 'active' if getattr(agent, 'running', False) else 'inactive',
                             'health': {
                                 'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
                                 'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)

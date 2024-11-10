@@ -49,17 +49,6 @@ class AiderAgent(KinOSAgent):
         except Exception as e:
             self.logger(f"Error getting relative path: {str(e)}")
             return file_path
-        if "prompt" not in config:
-            raise ValueError("Le prompt de l'agent doit être spécifié")
-        if "mission_name" not in config:
-            raise ValueError("Le nom de la mission doit être spécifié")
-        if "web_instance" not in config:
-            raise ValueError("web_instance manquant dans la configuration")
-            
-        self.name = config["name"]
-        self.web_instance = config["web_instance"]
-        self.prompt = config["prompt"]
-        self.prompt_file = config.get("prompt_file")
         self._prompt_cache = {}
         
         # Initialize watched files list
