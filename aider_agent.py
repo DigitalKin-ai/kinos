@@ -103,10 +103,21 @@ class AiderAgent(KinOSAgent):
                 # Add files with detailed logging
                 files_added = []
                 for file_path in self.mission_files:
-                    rel_path = os.path.relpath(file_path, self.mission_dir)
-                    if os.path.exists(rel_path):
-                        cmd.extend(["--file", rel_path])
-                        files_added.append(rel_path)
+                    try:
+                        # Utiliser PathManager pour obtenir le chemin relatif
+                        mission_dir = PathManager.get_mission_path(self.web_instance.file_manager.current_mission)
+                        rel_path = os.path.relpath(file_path, mission_dir)
+                        
+                        # Normaliser le chemin avec PathManager
+                        normalized_path = PathManager.normalize_path(rel_path)
+                        
+                        if os.path.exists(normalized_path):
+                            cmd.extend(["--file", normalized_path])
+                            files_added.append(normalized_path)
+                            self.logger(f"[{self.__class__.__name__}] Added file to Aider command: {normalized_path}")
+                    except Exception as e:
+                        self.logger(f"[{self.__class__.__name__}] Error adding file {file_path}: {str(e)}")
+                        continue
                         
                 # Add the message/prompt
                 cmd.extend(["--message", prompt])
