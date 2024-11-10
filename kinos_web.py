@@ -329,6 +329,7 @@ class KinOSWeb:
         # Initialize other services that depend on web_instance
         self.file_service = FileService(self)
         self.notification_service = NotificationService(self)
+        self.team_service = TeamService(self)  # Add team service
         self.agent_service = AgentService(self)
         
         # Initialize rate limiter
