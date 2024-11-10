@@ -398,6 +398,43 @@ class AgentService:
                 }
             }
         return status
+
+    def _get_agent_status(self, agent_name: str) -> Dict[str, Any]:
+        """Get status for a specific agent"""
+        try:
+            agent = self.agents.get(agent_name)
+            if not agent:
+                return {
+                    'running': False,
+                    'status': 'inactive',
+                    'last_run': None,
+                    'health': {
+                        'is_healthy': True,
+                        'consecutive_no_changes': 0
+                    }
+                }
+                
+            return {
+                'running': agent.running,
+                'status': 'active' if agent.running else 'inactive',
+                'last_run': agent.last_run.isoformat() if agent.last_run else None,
+                'health': {
+                    'is_healthy': agent.is_healthy(),
+                    'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
+                }
+            }
+            
+        except Exception as e:
+            self.web_instance.log_message(f"Error getting agent status: {str(e)}", level='error')
+            return {
+                'running': False,
+                'status': 'error',
+                'last_run': None,
+                'health': {
+                    'is_healthy': False,
+                    'consecutive_no_changes': 0
+                }
+            }
     def _run_agent_wrapper(self, name: str, agent: 'KinOSAgent') -> None:
         """Wrapper function to catch any exceptions from agent run method"""
         try:
