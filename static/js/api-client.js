@@ -4,6 +4,7 @@
  */
 class ApiClient {
     constructor(baseUrl = '') {
+        this.baseUrl = baseUrl;
         this.connectionState = {
             isOnline: navigator.onLine,
             lastCheckTimestamp: null,
@@ -118,7 +119,8 @@ class ApiClient {
     }
 
     async get(endpoint) {
-        const response = await fetch(`${this.baseUrl}${endpoint}`);
+        const apiEndpoint = endpoint.startsWith('/') ? endpoint : `/api/${endpoint}`;
+        const response = await fetch(`${this.baseUrl}${apiEndpoint}`);
         return this.handleResponse(response);
     }
 
@@ -230,17 +232,17 @@ class ApiClient {
 
     // Agent endpoints
     async getAgentStatus() {
-        const response = await fetch('/api/agents/status');
+        const response = await fetch(`${this.baseUrl}/api/agents/status`);
         return this.handleResponse(response);
     }
 
     async getAgentPrompt(agentId) {
-        const response = await fetch(`/api/agent/${agentId}/prompt`);
+        const response = await fetch(`${this.baseUrl}/api/agent/${agentId}/prompt`);
         return this.handleResponse(response);
     }
 
     async saveAgentPrompt(agentId, prompt) {
-        const response = await fetch(`/api/agents/${encodeURIComponent(agentId)}/prompt`, {
+        const response = await fetch(`${this.baseUrl}/api/agents/${encodeURIComponent(agentId)}/prompt`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt })
@@ -249,7 +251,7 @@ class ApiClient {
     }
 
     async controlAgent(agentId, action) {
-        const response = await fetch(`/api/agent/${agentId}/${action}`, {
+        const response = await fetch(`${this.baseUrl}/api/agent/${agentId}/${action}`, {
             method: 'POST'
         });
         return this.handleResponse(response);
@@ -257,12 +259,12 @@ class ApiClient {
 
     // Mission endpoints
     async getAllMissions() {
-        const response = await fetch('/api/missions');
+        const response = await fetch(`${this.baseUrl}/api/missions`);
         return this.handleResponse(response);
     }
 
     async createMission(name, description = '') {
-        const response = await fetch('/api/missions', {
+        const response = await fetch(`${this.baseUrl}/api/missions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, description })
@@ -271,12 +273,12 @@ class ApiClient {
     }
 
     async getMissionContent(missionId) {
-        const response = await fetch(`/api/missions/${missionId}/content`);
+        const response = await fetch(`${this.baseUrl}/api/missions/${missionId}/content`);
         return this.handleResponse(response);
     }
 
     async updateMission(missionId, updates) {
-        const response = await fetch(`/api/missions/${missionId}`, {
+        const response = await fetch(`${this.baseUrl}/api/missions/${missionId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updates)
@@ -286,12 +288,12 @@ class ApiClient {
 
     // File operations
     async getFileContent(missionId, filePath) {
-        const response = await fetch(`/api/missions/${missionId}/files/${filePath}`);
+        const response = await fetch(`${this.baseUrl}/api/missions/${missionId}/files/${filePath}`);
         return this.handleResponse(response);
     }
 
     async saveFileContent(missionId, filePath, content) {
-        const response = await fetch(`/api/missions/${missionId}/files/${filePath}`, {
+        const response = await fetch(`${this.baseUrl}/api/missions/${missionId}/files/${filePath}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ content })
@@ -301,12 +303,12 @@ class ApiClient {
 
     // Agent operations
     async getAgentLogs(agentId) {
-        const response = await fetch(`/api/agent/${agentId}/logs`);
+        const response = await fetch(`${this.baseUrl}/api/agent/${agentId}/logs`);
         return this.handleResponse(response);
     }
 
     async updateAgentConfig(agentId, config) {
-        const response = await fetch(`/api/agent/${agentId}/config`, {
+        const response = await fetch(`${this.baseUrl}/api/agent/${agentId}/config`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(config)
@@ -315,7 +317,7 @@ class ApiClient {
     }
 
     async createAgent(name, prompt) {
-        const response = await fetch('/api/agents', {
+        const response = await fetch(`${this.baseUrl}/api/agents`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -328,12 +330,12 @@ class ApiClient {
 
     // Notification endpoints
     async getNotifications() {
-        const response = await fetch('/api/notifications');
+        const response = await fetch(`${this.baseUrl}/api/notifications`);
         return this.handleResponse(response);
     }
 
     async sendNotification(notification) {
-        const response = await fetch('/api/notifications', {
+        const response = await fetch(`${this.baseUrl}/api/notifications`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(notification)
