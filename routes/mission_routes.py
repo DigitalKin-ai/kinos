@@ -49,14 +49,8 @@ def register_mission_routes(app, web_instance):
             if not mission:
                 return jsonify({'error': 'Mission not found'}), 404
                 
-            # Only return demande.md content
-            content = {}
-            demande_path = os.path.join(mission['path'], "demande.md")
-            if os.path.exists(demande_path):
-                with open(demande_path, 'r', encoding='utf-8') as f:
-                    content['demande'] = f.read()
-                    
-            return jsonify(content)
+            # Return empty content object - no longer checking for demande.md
+            return jsonify({})
             
         except Exception as e:
             web_instance.logger.log(f"Error getting mission content: {str(e)}", level='error')

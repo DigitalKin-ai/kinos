@@ -88,23 +88,8 @@ class FileManager:
         
         
     def _ensure_files_exist(self):
-        """Create only demande.md if it doesn't exist in current mission folder"""
-        # Skip if no mission is selected
-        if not self.current_mission:
-            return
-            
-        try:
-            # Only ensure demande.md exists
-            mission_dir = os.path.join("missions", self.current_mission)
-            demande_path = os.path.join(mission_dir, "demande.md")
-            
-            if not os.path.exists(demande_path):
-                os.makedirs(os.path.dirname(demande_path), exist_ok=True)
-                with open(demande_path, 'w', encoding='utf-8') as f:
-                    f.write("# Demande\n\n[En attente de la demande...]")
-                    
-        except Exception as e:
-            self.logger.log(f"Error ensuring demande.md exists: {str(e)}", level='error')
+        """No longer needs to create any initial files"""
+        pass
 
 
 

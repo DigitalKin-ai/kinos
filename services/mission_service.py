@@ -7,9 +7,6 @@ from utils.logger import Logger
 from utils.exceptions import AgentError
 
 class MissionService:
-    REQUIRED_FILES = [
-        "demande.md"  # Seul fichier requis initialement
-    ]
 
     def __init__(self):
         """Initialize mission service with base directory"""
@@ -183,11 +180,6 @@ class MissionService:
             # Create directory
             os.makedirs(mission_dir, exist_ok=True)
             
-            # Create only demande.md initially
-            demande_path = os.path.join(mission_dir, "demande.md")
-            with open(demande_path, 'w', encoding='utf-8') as f:
-                f.write("# Demande\n\n[En attente de la demande...]")
-
             # Return mission data
             return {
                 'id': len(self.get_all_missions()) + 1,
@@ -267,11 +259,8 @@ class MissionService:
             
             # Process each mission directory
             for mission_name, mission_path in mission_dirs:
-                # Check if demande.md exists
-                demande_file = os.path.join(mission_path, "demande.md")
-                if os.path.exists(demande_file):
-                    # Create mission object with sequential ID
-                    mission = {
+                # Create mission object with sequential ID
+                mission = {
                         'id': mission_id,
                         'name': mission_name,
                         'path': mission_path,
