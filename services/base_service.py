@@ -5,6 +5,7 @@ from typing import Optional, Any, Tuple
 from utils.exceptions import ServiceError, ValidationError
 from utils.advanced_logger import AdvancedLogger
 from config.global_config import GlobalConfig
+from utils.logger import Logger  # Added import for Logger
 import logging
 import os
 
