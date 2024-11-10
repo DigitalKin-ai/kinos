@@ -93,6 +93,18 @@ export default {
         async loadMissions() {
             try {
                 this.loading = true;
+                const agentTypes = [
+                    'specification',
+                    'production', 
+                    'management',
+                    'evaluation',
+                    'suivi',
+                    'documentaliste',
+                    'duplication',
+                    'testeur',
+                    'validation',
+                    'redacteur'
+                ];
                 const missions = await this.missionService.getAllMissions();
                 this.missions = missions;
                 if (missions.length > 0) {
