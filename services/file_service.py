@@ -71,13 +71,11 @@ class FileService(BaseService):
             if not os.path.exists(file_path):
                 return None
 
-            # Check cache first
+            # Use centralized cache service
             cache_key = f"file:{file_path}"
-            if cache_key in self.content_cache:
-                mtime = os.path.getmtime(file_path)
-                cached_time, cached_content = self.content_cache[cache_key]
-                if mtime == cached_time:
-                    return cached_content
+            cached_content = self.web_instance.cache_service.get(cache_key)
+            if cached_content is not None:
+                return cached_content
 
             # Read with safe operation
             content = self._safe_file_operation('read', file_path)

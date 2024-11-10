@@ -151,11 +151,10 @@ class FileManager:
             if not file_name.endswith('.md'):
                 file_name = f"{file_name}.md"
 
-            # Construct absolute file path using PathManager
-            if self.current_mission:
-                file_path = os.path.join(PathManager.get_mission_path(self.current_mission), file_name)
-            else:
-                file_path = os.path.join(self.project_root, file_name)
+            # Get file path using PathManager
+            file_path = (PathManager.get_mission_path(self.current_mission) if self.current_mission 
+                        else PathManager.get_project_root())
+            file_path = os.path.join(file_path, file_name)
 
             self.logger.log(f"Reading file: {file_path}", 'debug')
 

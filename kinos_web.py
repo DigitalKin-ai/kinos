@@ -136,7 +136,7 @@ class KinOSWeb:
             formatted_message = f"[{timestamp}] [{level.upper()}] {message}"
             
             # Print to console
-            print(formatted_message)
+            self.logger.log(formatted_message)
             
             # Log to file if needed
             try:

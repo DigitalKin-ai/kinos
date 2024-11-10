@@ -251,5 +251,4 @@ def register_mission_routes(app, web_instance):
             return content, 200, {'Content-Type': 'text/plain'}
 
         except Exception as e:
-            web_instance.logger.log(f"Error reading file content: {str(e)}", 'error')
-            return jsonify({'error': str(e)}), 500
+            return ErrorHandler.handle_error(e)
