@@ -190,40 +190,31 @@ class AgentService:
             raise
 
     def _find_prompt_file(self, agent_name: str) -> Optional[str]:
-        """Find prompt file for a specific agent with enhanced search strategy"""
+        """Find prompt file for an agent using API route"""
         try:
             # Normalize agent name (lowercase, remove 'Agent' suffix)
             normalized_name = agent_name.lower().replace('agent', '').strip()
-            
-            # Possible prompt file variations
-            possible_filenames = [
-                f"{normalized_name}.md",
-                f"{normalized_name}_agent.md",
-                f"{normalized_name}agent.md"
-            ]
-            
-            # Search locations using PathManager
-            search_locations = [
-                PathManager.get_prompts_path(),  # Main prompts directory
-                PathManager.get_custom_prompts_path(),  # Custom prompts directory
-                os.path.join(PathManager.get_project_root(), 'prompts')  # Fallback project root prompts
-            ]
-            
-            # Comprehensive search through locations and filename variations
-            for location in search_locations:
-                for filename in possible_filenames:
-                    prompt_path = os.path.join(location, filename)
-                    
-                    # Check if file exists
-                    if os.path.exists(prompt_path):
-                        self.web_instance.log_message(f"Found prompt file for {agent_name}: {prompt_path}", 'debug')
-                        return prompt_path
-            
-            # If no file found, create a default prompt file
-            default_prompt_path = self._create_default_prompt_file(normalized_name)
-            
-            return default_prompt_path
         
+            # Use the existing API route for agent prompt retrieval
+            try:
+                # Attempt to get prompt via API route
+                response = self.web_instance.agent_service.get_agent_prompt(normalized_name)
+            
+                # If prompt exists, return a temporary file path
+                if response:
+                    temp_path = PathManager.get_temp_file(prefix=f"{normalized_name}_prompt_", suffix=".md")
+                    with open(temp_path, 'w', encoding='utf-8') as f:
+                        f.write(response)
+                
+                    self.web_instance.log_message(f"Retrieved prompt for {agent_name} via API", 'debug')
+                    return temp_path
+        
+            except Exception as api_error:
+                self.web_instance.log_message(f"API prompt retrieval error: {str(api_error)}", 'warning')
+        
+            # Fallback to creating a default prompt file
+            return self._create_default_prompt_file(normalized_name)
+    
         except Exception as e:
             self.web_instance.log_message(f"Error finding prompt file for {agent_name}: {str(e)}", 'error')
             return None
@@ -1010,42 +1001,86 @@ List any specific constraints or limitations.
             if not validate_agent_name(name):
                 raise ValueError("Invalid agent name format")
 
-            # Get prompts directory using PathManager
-            prompts_dir = PathManager.get_prompts_path()
+            # Validate prompt
+            if not self._validate_prompt(prompt):
+                raise ValueError("Invalid prompt content")
+
+            # Use PathManager for custom prompts
+            custom_prompts_dir = PathManager.get_custom_prompts_path()
+            os.makedirs(custom_prompts_dir, exist_ok=True)
             
             # Check if agent already exists
-            prompt_file = os.path.join(prompts_dir, f'{name}.md')
+            prompt_file = os.path.join(custom_prompts_dir, f'{name}.md')
             if os.path.exists(prompt_file):
                 raise ValueError(f"Agent {name} already exists")
+
+            # Backup existing prompts if any
+            self._backup_prompt(name)
 
             # Save prompt file
             with open(prompt_file, 'w', encoding='utf-8') as f:
                 f.write(prompt)
 
             # Reinitialize agent
-            self.init_agent(name, prompt)
+            self.init_agents({
+                "anthropic_api_key": self.web_instance.config.get("anthropic_api_key", ""),
+                "openai_api_key": self.web_instance.config.get("openai_api_key", "")
+            }, [name])
 
-            self.web_instance.log_message(f"Created new agent: {name}", 'success')
+            # Log agent creation
+            self.log_agent_creation(name, True)
             return True
 
         except Exception as e:
+            # Log agent creation failure
+            self.log_agent_creation(name, False)
             self.web_instance.log_message(f"Error creating agent: {str(e)}", 'error')
             raise
 
     def get_agent_prompt(self, agent_id: str) -> Optional[str]:
         """Get the current prompt for a specific agent"""
         try:
+            # Normalize agent name
             agent_name = agent_id.lower()
-            if agent_name not in self.agents:
-                self.web_instance.log_message(f"Agent {agent_id} not found", 'error')
-                return None
-                
-            agent = self.agents[agent_name]
-            prompt = agent.get_prompt()
             
-            # Log prompt access
-            self.web_instance.log_message(f"Retrieved prompt for agent {agent_name}", 'debug')
-            return prompt
+            # Use PathManager for prompts directory
+            prompts_dir = PathManager.get_prompts_path()
+            
+            # Multiple possible prompt file locations
+            possible_paths = [
+                os.path.join(prompts_dir, f"{agent_name}.md"),
+                os.path.join(prompts_dir, "custom", f"{agent_name}.md"),
+                os.path.join(prompts_dir, f"{agent_name}_agent.md")
+            ]
+            
+            # Try each possible path
+            for prompt_path in possible_paths:
+                if os.path.exists(prompt_path):
+                    try:
+                        with open(prompt_path, 'r', encoding='utf-8') as f:
+                            prompt = f.read()
+                        
+                        # Validate prompt content
+                        if prompt and prompt.strip():
+                            self.web_instance.log_message(f"Retrieved prompt from {prompt_path}", 'debug')
+                            return prompt
+                    except Exception as read_error:
+                        self.web_instance.log_message(f"Error reading prompt file {prompt_path}: {str(read_error)}", 'error')
+            
+            # If no prompt found, return a default
+            default_prompt = f"""# {agent_name.capitalize()} Agent Default Prompt
+
+## MISSION
+Provide a default mission for the {agent_name} agent.
+
+## CONTEXT
+Default context for agent operations.
+
+## INSTRUCTIONS
+Default operational instructions.
+"""
+            self.web_instance.log_message(f"Using default prompt for {agent_name}", 'warning')
+            return default_prompt
             
         except Exception as e:
             self.web_instance.log_message(f"Error getting agent prompt: {str(e)}", 'error')
@@ -1054,42 +1089,30 @@ List any specific constraints or limitations.
     def save_agent_prompt(self, agent_id: str, prompt_content: str) -> bool:
         """Save updated prompt for a specific agent"""
         try:
-            agent_name = agent_id.lower()
-            if agent_name not in self.agents:
-                raise ValueError(f"Agent {agent_id} not found")
-                
+            # Validate input
             if not prompt_content or not prompt_content.strip():
                 raise ValueError("Prompt content cannot be empty")
-                
-            agent = self.agents[agent_name]
             
-            # Ensure prompts directory exists
-            os.makedirs("prompts", exist_ok=True)
+            # Normalize agent name
+            agent_name = agent_id.lower()
             
-            # Save prompt to file
-            prompt_file = f"prompts/{agent_name}.md"
-            success = agent.save_prompt(prompt_content)
+            # Use PathManager for custom prompts
+            custom_prompts_dir = PathManager.get_custom_prompts_path()
+            os.makedirs(custom_prompts_dir, exist_ok=True)
             
-            if success:
-                self.web_instance.log_message(f"Saved new prompt for agent {agent_name}", 'success')
-                
-                # Stop agent if running
-                if agent.running:
-                    agent.stop()
-                    self.web_instance.log_message(f"Stopped agent {agent_name} for prompt update", 'info')
-                    
-                    # Restart agent with new prompt
-                    agent.start()
-                    thread = threading.Thread(
-                        target=self._run_agent_wrapper,
-                        args=(agent_name, agent),
-                        daemon=True,
-                        name=f"Agent-{agent_name}"
-                    )
-                    thread.start()
-                    self.web_instance.log_message(f"Restarted agent {agent_name} with new prompt", 'success')
-                    
-            return success
+            # Construct prompt file path
+            prompt_path = os.path.join(custom_prompts_dir, f"{agent_name}.md")
+            
+            # Write prompt file
+            with open(prompt_path, 'w', encoding='utf-8') as f:
+                f.write(prompt_content)
+            
+            # Reload agent if it exists
+            if agent_name in self.agents:
+                self.reload_agent(agent_name)
+            
+            self.web_instance.log_message(f"Saved new prompt for agent {agent_name}", 'success')
+            return True
             
         except Exception as e:
             self.web_instance.log_message(f"Error saving agent prompt: {str(e)}", 'error')

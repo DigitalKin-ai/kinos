@@ -10,39 +10,47 @@ class TeamService(BaseService):
     """Service for managing teams and agent groupings"""
     
     def __init__(self, web_instance):
-        # Créer un objet web_instance minimal s'il est None ou un logger
-        if web_instance is None or isinstance(web_instance, Logger):
-            from types import SimpleNamespace
-            from services.agent_service import AgentService
-            
-            logger = web_instance if isinstance(web_instance, Logger) else Logger()
-            
+        # Importer les classes nécessaires au début
+        from services.agent_service import AgentService
+        from services.mission_service import MissionService
+        from services.file_manager import FileManager
+        from utils.logger import Logger
+        from types import SimpleNamespace
+
+        # Créer un web_instance par défaut s'il est None
+        if web_instance is None:
+            logger = Logger()
             web_instance = SimpleNamespace(
                 logger=logger,
-                agent_service=AgentService(None),
                 log_message=lambda message, level='info': logger.log(message, level),
-                file_manager=None,
-                cache_service=None
+                agent_service=AgentService(None),
+                mission_service=MissionService(),
+                file_manager=FileManager(None, on_content_changed=None),
+                config={},
+                log=lambda message, level='info': logger.log(message, level)
             )
-        
-        # Vérifier et ajouter les attributs manquants
+
+        # Vérification et ajout des attributs manquants
         if not hasattr(web_instance, 'logger'):
             web_instance.logger = Logger()
+        
+        if not hasattr(web_instance, 'log_message'):
+            web_instance.log_message = lambda message, level='info': web_instance.logger.log(message, level)
         
         if not hasattr(web_instance, 'agent_service'):
             web_instance.agent_service = AgentService(None)
         
-        if not hasattr(web_instance, 'log_message'):
-            web_instance.log_message = lambda message, level='info': web_instance.logger.log(message, level)
+        if not hasattr(web_instance, 'mission_service'):
+            web_instance.mission_service = MissionService()
+        
+        if not hasattr(web_instance, 'file_manager'):
+            web_instance.file_manager = FileManager(web_instance, on_content_changed=None)
 
         # Initialiser le BaseService avec le logger
         super().__init__(web_instance.logger)
 
         # Stocker l'instance web
         self.web_instance = web_instance
-        
-        # Utiliser l'agent_service de web_instance
-        self.agent_service = web_instance.agent_service
         
         # Initialiser les attributs
         self.teams = {}
@@ -73,43 +81,43 @@ class TeamService(BaseService):
                 'id': 'book-writing',
                 'name': 'Book Writing Team',
                 'agents': [
-                    'SpecificationsAgent',
-                    'ManagementAgent',
-                    'EvaluationAgent',
-                    'SuiviAgent',
-                    'DocumentalisteAgent',
-                    'DuplicationAgent',
-                    'RedacteurAgent',
-                    'ValidationAgent'
+                    'specifications',
+                    'management',
+                    'evaluation',
+                    'suivi',
+                    'documentaliste',
+                    'duplication',
+                    'redacteur',
+                    'validation'
                 ]
             },
             {
                 'id': 'literature-review',
                 'name': 'Literature Review Team',
                 'agents': [
-                    'SpecificationsAgent',
-                    'ManagementAgent',
-                    'EvaluationAgent',
-                    'SuiviAgent',
-                    'DocumentalisteAgent',
-                    'DuplicationAgent',
-                    'RedacteurAgent',
-                    'ValidationAgent'
+                    'specifications',
+                    'management',
+                    'evaluation',
+                    'suivi',
+                    'documentaliste',
+                    'duplication',
+                    'redacteur',
+                    'validation'
                 ]
             },
             {
                 'id': 'coding',
                 'name': 'Coding Team',
                 'agents': [
-                    'SpecificationsAgent',
-                    'ManagementAgent',
-                    'EvaluationAgent',
-                    'SuiviAgent',
-                    'DocumentalisteAgent',
-                    'DuplicationAgent',
-                    'ProductionAgent',
-                    'TesteurAgent',
-                    'ValidationAgent'
+                    'specifications',
+                    'management',
+                    'evaluation',
+                    'suivi',
+                    'documentaliste',
+                    'duplication',
+                    'production',
+                    'testeur',
+                    'validation'
                 ]
             }
         ]
@@ -233,6 +241,22 @@ class TeamService(BaseService):
         except Exception as e:
             self.logger.log(f"Error activating team: {str(e)}", 'error')
             raise ServiceError(f"Failed to activate team: {str(e)}")
+
+    def _get_agent_statuses(self, team: Dict[str, Any]) -> Dict[str, Any]:
+        """Get status for all agents in a team"""
+        agent_statuses = {}
+        for agent_name in team['agents']:
+            try:
+                agent_status = self.web_instance.agent_service.get_agent_status(agent_name)
+                agent_statuses[agent_name] = agent_status
+            except Exception as e:
+                self.web_instance.log_message(f"Error getting status for {agent_name}: {str(e)}", 'error')
+                agent_statuses[agent_name] = {
+                    'running': False,
+                    'status': 'error',
+                    'error': str(e)
+                }
+        return agent_statuses
 
     def deactivate_team(self, team_id: str) -> bool:
         """Deactivate a team"""

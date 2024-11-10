@@ -248,25 +248,66 @@ def setup_logging(config):
         ]
     )
 
-def launch_team(args):
+def create_robust_web_instance(config=None):
     """
-    Lancer une équipe pour une mission spécifique
+    Crée une instance web robuste avec des services par défaut
     
     Args:
-        args (Namespace): Arguments de ligne de commande
+        config (dict, optional): Configuration à utiliser
+    
+    Returns:
+        SimpleNamespace: Instance web complète
     """
+    from services.file_manager import FileManager
+    from services.mission_service import MissionService
+    from services.agent_service import AgentService
+    from services.team_service import TeamService
+    from utils.logger import Logger
+    from types import SimpleNamespace
+
+    # Utiliser la configuration par défaut si non fournie
+    config = config or load_default_config()
+
+    # Créer un logger
+    log_instance = Logger()
+
+    # Créer l'instance web
+    web_instance = SimpleNamespace(
+        logger=log_instance,
+        log_message=lambda message, level='info': log_instance.log(message, level),
+        log=lambda message, level='info': log_instance.log(message, level),
+        config=config,
+        
+        # Créer des services
+        mission_service=MissionService(),
+        agent_service=AgentService(None),
+        file_manager=FileManager(None, on_content_changed=None),
+        team_service=None,  # Sera initialisé après
+        
+        # Méthodes de log par défaut
+        log_error=lambda message: log_instance.log(message, 'error'),
+        log_info=lambda message: log_instance.log(message, 'info')
+    )
+
+    # Créer le TeamService avec l'instance web
+    web_instance.team_service = TeamService(web_instance)
+
+    return web_instance
+
+def launch_team(args):
     try:
         # Essayez de charger la configuration, sinon utilisez une configuration par défaut
-        config = GlobalConfig.load_config(args.config) if hasattr(GlobalConfig, 'load_config') else load_default_config()
-    except Exception:
-        config = load_default_config()
+        try:
+            current_config = GlobalConfig.load_config() if hasattr(GlobalConfig, 'load_config') else load_default_config()
+        except Exception:
+            current_config = load_default_config()
 
-    setup_logging(config)
-    
-    logger = logging.getLogger('kinos_cli.launch_team')
-    
-    try:
-        team_service = TeamService(config)
+        # Créer une instance web robuste
+        web_instance = create_robust_web_instance(current_config)
+        
+        setup_logging(current_config)
+        
+        logger = logging.getLogger('kinos_cli.launch_team')
         
         # Validation des arguments
         if not args.mission:
@@ -285,19 +326,45 @@ def launch_team(args):
             logger.info("Mode dry-run : simulation sans exécution")
             return
         
-        # Lancement de l'équipe avec gestion des erreurs
-        result = team_service.launch_team(args.mission, args.team, verbose=args.verbose)
+        # Récupérer l'ID de la mission
+        mission = web_instance.mission_service.get_mission_by_name(args.mission)
+        if not mission:
+            logger.error(f"Mission {args.mission} non trouvée")
+            sys.exit(1)
         
-        if result:
-            logger.info(f"Équipe {args.team} lancée avec succès")
-        else:
-            logger.error(f"Échec du lancement de l'équipe {args.team}")
+        # Lancement de l'équipe avec gestion des erreurs détaillée
+        try:
+            result = web_instance.team_service.activate_team(mission['id'], args.team)
+            
+            if result:
+                logger.info(f"Équipe {args.team} lancée avec succès")
+                
+                # Log detailed activation results
+                for agent_result in result.get('activation_results', []):
+                    if agent_result['success']:
+                        logger.info(f"Agent {agent_result['agent']} activé avec succès")
+                    else:
+                        logger.error(f"Échec de l'activation de l'agent {agent_result['agent']}: {agent_result.get('error', 'Erreur inconnue')}")
+                
+                # Log team metrics if available
+                if 'metrics' in result:
+                    logger.info(f"Métriques de l'équipe : {result['metrics']}")
+            else:
+                logger.error(f"Échec du lancement de l'équipe {args.team}")
+                sys.exit(1)
+        
+        except Exception as e:
+            logger.error(f"Erreur lors du lancement de l'équipe : {e}")
+            import traceback
+            logger.error("Trace complète de l'erreur :")
+            logger.error(traceback.format_exc())
             sys.exit(1)
     
     except Exception as e:
-        logger.error(f"Erreur lors du lancement de l'équipe : {e}")
-        if args.verbose:
-            logger.exception("Trace complète de l'erreur")
+        logger.error(f"Erreur système lors du lancement de l'équipe : {e}")
+        import traceback
+        logger.error("Trace complète de l'erreur système :")
+        logger.error(traceback.format_exc())
         sys.exit(1)
 
 def main():

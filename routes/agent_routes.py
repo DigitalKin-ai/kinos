@@ -239,17 +239,42 @@ def register_agent_routes(app, web_instance):
     @app.route('/api/agent/<agent_id>/prompt', methods=['POST'], endpoint='api_agent_save_prompt')
     @safe_operation()
     def save_agent_prompt(agent_id):
+        """Save a new prompt for a specific agent"""
         try:
+            # Get JSON data
             data = request.get_json()
+        
+            # Validate input
             if not data or 'prompt' not in data:
-                raise ValidationError("Prompt is required")
-                
-            success = web_instance.agent_service.save_agent_prompt(agent_id, data['prompt'])
-            if not success:
-                raise ServiceError("Failed to save prompt")
-            return jsonify({'status': 'success'})
+                return jsonify({'error': 'Prompt content is required'}), 400
+        
+            # Normalize agent name
+            agent_name = agent_id.lower()
+        
+            # Use PathManager for custom prompts
+            custom_prompts_dir = PathManager.get_custom_prompts_path()
+            os.makedirs(custom_prompts_dir, exist_ok=True)
+        
+            # Construct prompt file path
+            prompt_path = os.path.join(custom_prompts_dir, f"{agent_name}.md")
+        
+            # Write prompt file
+            try:
+                with open(prompt_path, 'w', encoding='utf-8') as f:
+                    f.write(data['prompt'])
+            
+                # Optional: Trigger agent reload/restart
+                web_instance.agent_service.reload_agent(agent_name)
+            
+                return jsonify({'status': 'success', 'path': prompt_path})
+        
+            except Exception as write_error:
+                web_instance.log_message(f"Error saving prompt for {agent_name}: {str(write_error)}", 'error')
+                return jsonify({'error': 'Failed to save prompt'}), 500
+        
         except Exception as e:
-            return ErrorHandler.handle_error(e)
+            web_instance.log_message(f"Error in save_agent_prompt: {str(e)}", 'error')
+            return jsonify({'error': str(e)}), 500
 
     @app.route('/api/agent/<agent_id>/<action>', methods=['POST'], endpoint='api_agent_control')
     @safe_operation()
