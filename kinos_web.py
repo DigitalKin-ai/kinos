@@ -1091,13 +1091,32 @@ class KinOSWeb:
             return ErrorHandler.service_error(str(error))
             
     def _initialize_components(self, config):
-        """Initialize all components with configuration"""
+        """Initialize all required components"""
         try:
-            # Initialize agents
-            self.agent_service.init_agents(config)
+            # Initialize basic services first
+            self.logger.log("Initializing core components...", 'info')
             
-            # Initialize other components as needed
-            self.logger.log("All components initialized successfully", 'success')
+            # Get prompts directory using PathManager
+            prompts_dir = PathManager.get_prompts_path()
+            
+            if not os.path.exists(prompts_dir):
+                os.makedirs(prompts_dir)
+                self.log_message("Created prompts directory", 'info')
+                return
+
+            # Initialize agents in inactive state
+            try:
+                self.agent_service.init_agents(config)
+                self.logger.log("Agents initialized in inactive state", 'success')
+            except ValueError as e:
+                if "No mission selected" in str(e):
+                    self.logger.log("No mission selected - agents will be initialized when mission is selected", 'warning')
+                else:
+                    raise
+            except Exception as e:
+                self.logger.log(f"Warning: Agent initialization failed: {str(e)}", 'warning')
+                
+            self.logger.log("Core components initialized successfully", 'success')
             
         except Exception as e:
             self.logger.log(f"Error initializing components: {str(e)}", 'error')

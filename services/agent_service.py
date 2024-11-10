@@ -513,30 +513,25 @@ class AgentService:
             }
         return status
 
+    def _get_agent_status_details(self, agent) -> dict:
+        """Get standardized agent status details"""
+        return {
+            'running': getattr(agent, 'running', False),
+            'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
+            'status': 'active' if getattr(agent, 'running', False) else 'inactive',
+            'health': {
+                'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
+                'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
+            }
+        }
+
     def _get_agent_status(self, agent_name: str) -> Dict[str, Any]:
         """Get status for a specific agent"""
         try:
             agent = self.agents.get(agent_name)
             if not agent:
-                return {
-                    'running': False,
-                    'status': 'inactive',
-                    'last_run': None,
-                    'health': {
-                        'is_healthy': True,
-                        'consecutive_no_changes': 0
-                    }
-                }
-                
-            return {
-                'running': agent.running,
-                'status': 'active' if agent.running else 'inactive',
-                'last_run': agent.last_run.isoformat() if agent.last_run else None,
-                'health': {
-                    'is_healthy': agent.is_healthy(),
-                    'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
-                }
-            }
+                return self._get_agent_status_details(None)
+            return self._get_agent_status_details(agent)
             
         except Exception as e:
             self.web_instance.log_message(f"Error getting agent status: {str(e)}", 'error')

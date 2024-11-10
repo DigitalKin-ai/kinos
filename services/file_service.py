@@ -40,6 +40,19 @@ class FileService(BaseService):
             self.logger.log(f"Error in {operation} operation: {str(e)}", 'error')
             return None
 
+    def _safe_file_operation(self, operation: str, file_path: str, content: str = None) -> Optional[str]:
+        """Centralized safe file operations with locking"""
+        try:
+            with portalocker.Lock(file_path, 'r' if operation == 'read' else 'w', timeout=10) as lock:
+                if operation == 'read':
+                    return lock.read()
+                else:
+                    lock.write(content)
+                    return None
+        except Exception as e:
+            self.logger.log(f"Error in {operation} operation: {str(e)}", 'error')
+            return None
+
     @safe_operation()
     def read_file(self, file_name: str) -> Optional[str]:
         """Read content from a file with caching and locking"""
