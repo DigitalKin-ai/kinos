@@ -283,7 +283,7 @@ class KinOSAgent:
             return base_interval * multiplier
             
         # Add minimum delay to prevent rate limiting
-        return max(base_interval, 60)  # At least 60 seconds between calls
+        return max(base_interval, 80)  # At least 80 seconds between calls
 
     def is_healthy(self) -> bool:
         """

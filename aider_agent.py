@@ -124,7 +124,7 @@ class AiderAgent(KinOSAgent):
                 
                 # Log complete command
                 self.logger(f"[{self.__class__.__name__}] 🤖 Running Aider command:")
-                self.logger(f"[{self.__class__.__name__}] Command: {' '.join(cmd)}")
+                #self.logger(f"[{self.__class__.__name__}] Command: {' '.join(cmd)}")
                 
                 # Set environment variables for encoding
                 env = os.environ.copy()

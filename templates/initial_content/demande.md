@@ -11,7 +11,6 @@
 - Qui va lire/utiliser ce document ? 
 - Dans quel but sera-t-il utilisé ?
 - Quel impact cherchez-vous à avoir ?
-- Pour quand en avez-vous besoin ?
 
 ### Quelles attentes qualitatives ?
 - Quelle est la qualité la plus importante pour ce document ?
@@ -71,5 +70,3 @@ Conseils d'utilisation :
 - Ajoutez tout contexte utile
 - Incluez des exemples si possible
 - N'hésitez pas à développer les points importants
-
-# Historique des Demandes
