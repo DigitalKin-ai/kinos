@@ -338,6 +338,57 @@ class AgentService:
             self.web_instance.log_message(f"Error calculating system health: {str(e)}", 'error')
             return 0.0  # Return 0 on error
 
+    def _handle_system_degradation(self, system_metrics: Dict) -> None:
+        """Handle system-wide performance degradation"""
+        try:
+            # Log detailed metrics
+            self.web_instance.log_message(
+                f"System health degraded. Metrics:\n"
+                f"- Active agents: {system_metrics['active_agents']}/{system_metrics['total_agents']}\n"
+                f"- Healthy agents: {system_metrics['healthy_agents']}/{system_metrics['total_agents']}\n"
+                f"- Error count: {system_metrics['error_count']}\n"
+                f"- Cache performance: {system_metrics['cache_hits']}/{system_metrics['cache_hits'] + system_metrics['cache_misses']} hits",
+                'warning'
+            )
+
+            # Attempt recovery actions
+            recovery_actions = []
+
+            # Check for unhealthy agents
+            if system_metrics['healthy_agents'] < system_metrics['total_agents']:
+                recovery_actions.append("Restarting unhealthy agents")
+                for name, agent in self.agents.items():
+                    if hasattr(agent, 'is_healthy') and not agent.is_healthy():
+                        self._restart_agent(name, agent)
+
+            # Check cache performance
+            total_cache_ops = system_metrics['cache_hits'] + system_metrics['cache_misses']
+            if total_cache_ops > 0:
+                hit_rate = system_metrics['cache_hits'] / total_cache_ops
+                if hit_rate < 0.7:  # Less than 70% hit rate
+                    recovery_actions.append("Clearing and rebuilding caches")
+                    for agent in self.agents.values():
+                        if hasattr(agent, '_prompt_cache'):
+                            agent._prompt_cache.clear()
+
+            # Log recovery actions
+            if recovery_actions:
+                self.web_instance.log_message(
+                    f"Recovery actions taken:\n- " + "\n- ".join(recovery_actions),
+                    'info'
+                )
+            else:
+                self.web_instance.log_message(
+                    "No automatic recovery actions available for current degradation",
+                    'warning'
+                )
+
+        except Exception as e:
+            self.web_instance.log_message(
+                f"Error handling system degradation: {str(e)}",
+                'error'
+            )
+
     def _monitor_agents(self) -> None:
         """Monitor agent status and health with enhanced metrics"""
         while self.running:
