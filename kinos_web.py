@@ -53,18 +53,6 @@ class KinOSWeb:
         self.log_message("Registered routes:", 'info')
         for rule in self.app.url_map.iter_rules():
             self.log_message(f"  {rule.endpoint}: {rule.methods} {rule}", 'info')
-                            'health': {
-                                'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
-                                'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
-                            }
-                        }
-                        
-                return jsonify(status)
-                
-            except Exception as e:
-                self.log_message(f"Error getting status: {str(e)}", 'error')
-                return jsonify({
-                    'error': str(e),
                     'type': e.__class__.__name__,
                     'details': {
                         'traceback': traceback.format_exc(),
