@@ -234,6 +234,9 @@ class AgentService:
                         
                     self.web_instance.log_message(f"✓ Agent {name} thread confirmed running", 'success')
                     
+                    # Add 6 second delay between agent starts
+                    time.sleep(6)
+                    
                 except Exception as e:
                     self.web_instance.log_message(
                         f"Error starting agent {name}: {str(e)}\n{traceback.format_exc()}", 
