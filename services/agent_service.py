@@ -98,80 +98,33 @@ class AgentService:
             return None
 
     def init_agents(self, config: Dict[str, Any]) -> None:
-        """Initialize all agents with configuration"""
         try:
-            # Verify config contains required API keys
-            if not config.get("anthropic_api_key") or not config.get("openai_api_key"):
-                raise ValueError("Missing required API keys in configuration")
-
-            # Get current mission from FileManager - allow None initially
-            current_mission = getattr(self.web_instance.file_manager, 'current_mission', None)
-
-            # Base configuration for all agents
-            base_config = {
-                "check_interval": 100,
-                "anthropic_api_key": config["anthropic_api_key"],
-                "openai_api_key": config["openai_api_key"],
-                "logger": self.web_instance.log_message,
-                "web_instance": self.web_instance,
-                "mission_dir": "missions",  # Default to missions directory
-                "mission_name": "default"   # Default mission name
-            }
-
-            # Update config if mission is selected
-            if current_mission:
-                mission_dir = os.path.abspath(os.path.join("missions", current_mission))
-                if os.path.exists(mission_dir) and os.access(mission_dir, os.R_OK | os.W_OK):
-                    base_config.update({
-                        "mission_dir": mission_dir,
-                        "mission_name": current_mission
-                    })
-
-            self.web_instance.log_message(f"Initializing agents for mission: {current_mission}", level='info')
-
-            # Discover available agents
-            discovered_agents = self._discover_agents()
-            if not discovered_agents:
-                self.web_instance.log_message("No agents discovered in prompts directory", level='warning')
-                return
-
-            # Initialize each discovered agent
+            # Initialiser le dictionnaire des agents
             self.agents = {}
-            successful_inits = 0
-
+            
+            # Découvrir les agents disponibles
+            discovered_agents = self._discover_agents()
+            
             for agent_info in discovered_agents:
                 try:
-                    name = agent_info['name']
-                    prompt_path = os.path.join("prompts", agent_info['prompt_file'])
+                    name = agent_info['name'].lower()  # Normaliser en minuscules
                     agent_class = agent_info['class']
-
-                    # Read prompt content
-                    with open(prompt_path, 'r', encoding='utf-8') as f:
-                        prompt = f.read()
-
+                    
+                    # Configurer l'agent
                     agent_config = {
-                        **base_config,
+                        **config,
                         "name": name,
-                        "prompt": prompt,
-                        "prompt_file": prompt_path,
-                        "is_active": False  # Agents start inactive without mission
+                        "web_instance": self.web_instance
                     }
                     
+                    # Créer l'instance
                     self.agents[name] = agent_class(agent_config)
-                    successful_inits += 1
-                    self.web_instance.log_message(f"✓ Agent {name} initialized (inactive)", level='success')
+                    self.web_instance.log_message(f"Agent {name} initialized", level='success')
                     
                 except Exception as e:
-                    self.web_instance.log_message(f"Failed to initialize {name} agent: {str(e)}", level='error')
+                    self.web_instance.log_message(f"Error initializing agent {name}: {str(e)}", level='error')
                     continue
-
-            if successful_inits == 0:
-                self.web_instance.log_message("Warning: No agents were successfully initialized", level='warning')
-                return {}
-
-            self.web_instance.log_message(f"Successfully initialized {successful_inits} agents", level='success')
-            return self.agents
-
+                    
         except Exception as e:
             self.web_instance.log_message(f"Error initializing agents: {str(e)}", level='error')
             raise

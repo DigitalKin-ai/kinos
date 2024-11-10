@@ -151,10 +151,27 @@ def register_agent_routes(app, web_instance):
     @safe_operation()
     def get_agents_status():
         try:
-            status = web_instance.agent_service.get_agent_status()
+            # Vérifier que agent_service est initialisé
+            if not hasattr(web_instance, 'agent_service'):
+                return jsonify({'error': 'Agent service not initialized'}), 500
+                
+            # Récupérer le statut de tous les agents
+            status = {}
+            for name, agent in web_instance.agent_service.agents.items():
+                status[name] = {
+                    'running': getattr(agent, 'running', False),
+                    'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
+                    'status': 'active' if getattr(agent, 'running', False) else 'inactive',
+                    'health': {
+                        'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
+                        'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
+                    }
+                }
             return jsonify(status)
+            
         except Exception as e:
-            return ErrorHandler.handle_error(e)
+            web_instance.log_message(f"Error getting agent status: {str(e)}", level='error')
+            return jsonify({'error': str(e)}), 500
 
     @app.route('/api/agent/<agent_id>/prompt', methods=['GET'])
     @safe_operation()
@@ -187,36 +204,19 @@ def register_agent_routes(app, web_instance):
     def control_agent(agent_id, action):
         try:
             if action not in ['start', 'stop']:
-                web_instance.log_message(f"Invalid action attempted: {action}", level='error')
                 raise ValidationError(f"Invalid action: {action}")
                 
-            # Log initial state
-            web_instance.log_message(f"Attempting to {action} agent {agent_id}", level='debug')
-            
-            # Convert agent ID to lowercase for case-insensitive matching
+            # Convertir l'ID en minuscules pour la correspondance
             agent_name = agent_id.lower()
             
-            # Check if prompt file exists
-            prompt_file = f"{agent_name}.md"
-            prompt_path = os.path.join("prompts", prompt_file)
-            
-            if not os.path.exists(prompt_path):
-                web_instance.log_message(f"Agent prompt file not found: {prompt_path}", level='error')
+            # Vérifier que l'agent existe
+            if agent_name not in web_instance.agent_service.agents:
                 raise ResourceNotFoundError(f"Agent {agent_id} not found")
-            
-            # Get or create agent instance
-            agent = web_instance.agent_service.agents.get(agent_name)
-            if not agent:
-                # Initialize agent if needed
-                web_instance.agent_service.init_agents(web_instance.config)
-                agent = web_instance.agent_service.agents.get(agent_name)
                 
-            if not agent:
-                raise ResourceNotFoundError(f"Failed to initialize agent {agent_id}")
+            agent = web_instance.agent_service.agents[agent_name]
             
-            try:
-                if action == 'start':
-                    agent = web_instance.agent_service.agents[agent_name]
+            if action == 'start':
+                if not agent.running:
                     agent.start()
                     thread = threading.Thread(
                         target=agent.run,
@@ -224,26 +224,12 @@ def register_agent_routes(app, web_instance):
                         name=f"Agent-{agent_name}"
                     )
                     thread.start()
-                    web_instance.log_message(f"Successfully started agent {agent_name}", level='success')
-                else:  # stop
-                    agent = web_instance.agent_service.agents[agent_name]
+            else:  # stop
+                if agent.running:
                     agent.stop()
-                    web_instance.log_message(f"Successfully stopped agent {agent_name}", level='success')
-                
-                return jsonify({'status': 'success'})
-                
-            except Exception as e:
-                web_instance.log_message(
-                    f"Error during {action} operation for {agent_name}: {str(e)}\n"
-                    f"Stack trace: {traceback.format_exc()}", 
-                    level='error'
-                )
-                raise
-                
+                    
+            return jsonify({'status': 'success'})
+            
         except Exception as e:
-            web_instance.log_message(
-                f"Failed to {action} agent {agent_id}: {str(e)}\n"
-                f"Stack trace: {traceback.format_exc()}", 
-                level='error'
-            )
+            web_instance.log_message(f"Error controlling agent {agent_id}: {str(e)}", level='error')
             return ErrorHandler.handle_error(e)
