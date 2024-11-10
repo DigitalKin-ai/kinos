@@ -57,7 +57,7 @@
         },
         data() {
             return {
-                missionService: new MissionService(),
+                missionService: new MissionService(''),  // Initialize with empty base URL
                 currentMission: null,
                 missions: [],
                 loading: true,
