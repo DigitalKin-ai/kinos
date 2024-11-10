@@ -931,6 +931,40 @@ class KinOSWeb:
 
     def _register_error_handlers(self):
         """Register error handlers for different types of exceptions"""
+        
+        @self.app.errorhandler(Exception)
+        def handle_exception(error):
+            """Handle any uncaught exception"""
+            self.logger.log(f"Unhandled Exception: {str(error)}", level='error')
+            
+            error_details = {
+                'error': str(error),
+                'type': error.__class__.__name__,
+                'traceback': traceback.format_exc(),
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            # Log the full error details
+            self.logger.log(f"Detailed error info:", level='error')
+            self.logger.log(f"Type: {error_details['type']}", level='error')
+            self.logger.log(f"Traceback:\n{error_details['traceback']}", level='error')
+            
+            return jsonify(error_details), 500
+
+        @self.app.errorhandler(500)
+        def internal_error(error):
+            """Handle internal server errors"""
+            self.logger.log(f"500 Error: {str(error)}", level='error')
+            
+            error_details = {
+                'error': str(error),
+                'type': '500 Internal Server Error',
+                'traceback': traceback.format_exc(),
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            return jsonify(error_details), 500
+
         @self.app.errorhandler(ValidationError)
         def handle_validation_error(error):
             return ErrorHandler.validation_error(str(error))
@@ -942,10 +976,6 @@ class KinOSWeb:
         @self.app.errorhandler(ServiceError)
         def handle_service_error(error):
             return ErrorHandler.service_error(str(error))
-            
-        @self.app.errorhandler(Exception)
-        def handle_generic_error(error):
-            return ErrorHandler.handle_error(error)
             
     def _initialize_components(self, config):
         """Initialize all components with configuration"""
