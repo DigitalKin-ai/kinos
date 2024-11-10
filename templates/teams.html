@@ -42,7 +42,7 @@
                     </div>
                 </div>
                 <teams-manager 
-                    v-else
+                    v-if="!loading && !error"
                     :mission-service="missionService"
                     :current-mission="currentMission">
                 </teams-manager>
