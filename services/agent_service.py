@@ -32,9 +32,10 @@ class AgentService:
         self.running = False
         self.pending_agents = []  # Track agents waiting for file creation
         self.agent_threads = {}
+        self._cleanup_lock = threading.Lock()
         
-        # Add socket cleanup on init
-        self._cleanup_sockets()
+        # Force cleanup on init
+        self._cleanup_resources()
 
         # Set UTF-8 encoding for stdout/stderr
         import sys
@@ -161,21 +162,35 @@ class AgentService:
         """Get list of available agent names"""
         return list(self.agents.keys())
 
-    def _cleanup_sockets(self):
-        """Force cleanup of lingering sockets"""
-        import socket
-        import gc
-        
-        # Force garbage collection
-        gc.collect()
-        
-        # Close any lingering sockets
-        for obj in gc.get_objects():
-            if isinstance(obj, socket.socket):
-                try:
-                    obj.close()
-                except:
-                    pass
+    def _cleanup_resources(self):
+        """Clean up sockets and other resources"""
+        try:
+            with self._cleanup_lock:
+                # Force garbage collection
+                import gc
+                gc.collect()
+                
+                # Close any lingering sockets
+                for obj in gc.get_objects():
+                    if isinstance(obj, socket.socket):
+                        try:
+                            obj.close()
+                        except:
+                            pass
+                            
+                # Clear any remaining threads
+                if hasattr(self, 'agent_threads'):
+                    for thread in self.agent_threads.values():
+                        if thread and thread.is_alive():
+                            try:
+                                thread.join(timeout=1)
+                            except:
+                                pass
+                                
+                self.agent_threads.clear()
+                
+        except Exception as e:
+            self.web_instance.log_message(f"Error cleaning up resources: {str(e)}", 'error')
 
     def start_all_agents(self) -> None:
         """Start all agents with better resource management"""
@@ -294,7 +309,7 @@ class AgentService:
             raise
 
     def stop_all_agents(self) -> None:
-        """Stop all agents and monitor thread with cleanup"""
+        """Stop all agents with improved cleanup"""
         try:
             self.running = False
             
@@ -308,11 +323,14 @@ class AgentService:
             
             # Stop monitor thread
             if self.monitor_thread and self.monitor_thread.is_alive():
-                self.monitor_thread.join(timeout=2)
+                try:
+                    self.monitor_thread.join(timeout=2)
+                except:
+                    pass
 
-            # Cleanup resources
-            self._cleanup_sockets()
-
+            # Clean up resources
+            self._cleanup_resources()
+            
             self.web_instance.log_message("All agents stopped", 'success')
             
         except Exception as e:

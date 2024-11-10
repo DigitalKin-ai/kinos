@@ -57,3 +57,20 @@ class BaseService:
             duration = time.time() - start_time
             self.logger.log(f"File operation {operation} failed after {duration:.3f}s", 'error')
             raise ServiceError(f"Failed to {operation} file {file_path}: {str(e)}")
+
+    def cleanup(self):
+        """Base cleanup method for services"""
+        try:
+            # Implement basic cleanup
+            if hasattr(self, '_cleanup_resources'):
+                self._cleanup_resources()
+                
+            # Clear any caches or resources
+            for attr in dir(self):
+                if attr.endswith('_cache'):
+                    cache = getattr(self, attr)
+                    if isinstance(cache, dict):
+                        cache.clear()
+                        
+        except Exception as e:
+            self.logger.log(f"Error in base cleanup: {str(e)}", 'error')
