@@ -94,20 +94,32 @@ export default {
         },
 
         async toggleAgent(agent) {
+            if (agent.loading) return; // Prevent multiple clicks
+            
             try {
+                agent.loading = true;
                 const action = agent.running ? 'stop' : 'start';
                 console.log(`Attempting to ${action} agent: ${agent.id}`);
                 
                 const response = await fetch(`/api/agent/${agent.id}/${action}`, {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Failed to ${action} agent`);
+                }
+
                 const result = await response.json();
                 
                 if (result.status === 'success') {
                     agent.running = !agent.running;
                     console.log(`Successfully ${action}ed agent: ${agent.id}`);
                 } else if (result.status === 'pending') {
-                    // Gérer le cas où le fichier n'existe pas encore
+                    // Handle pending state (waiting for file creation)
                     this.showNotification({
                         type: 'info',
                         message: result.message || 'Agent waiting for file creation'
@@ -116,8 +128,15 @@ export default {
                     throw new Error(result.error || `Failed to ${action} agent`);
                 }
             } catch (error) {
-                console.error(`Failed to ${action} agent:`, error);
-                alert(`Error ${action}ing agent: ${error.message}`);
+                console.error('Failed to toggle agent:', error);
+                // Show error to user
+                if (this.$root.$emit) {
+                    this.$root.$emit('show-error', `Error controlling agent: ${error.message}`);
+                } else {
+                    alert(`Error controlling agent: ${error.message}`);
+                }
+            } finally {
+                agent.loading = false;
             }
         },
 
