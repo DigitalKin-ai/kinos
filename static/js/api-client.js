@@ -283,6 +283,11 @@ class ApiClient {
         return this.handleResponse(response);
     }
 
+    async getMissionTeams(missionId) {
+        const response = await fetch(`${this.baseUrl}/api/missions/${missionId}/teams`);
+        return this.handleResponse(response);
+    }
+
     async updateMission(missionId, updates) {
         const response = await fetch(`${this.baseUrl}/api/missions/${missionId}`, {
             method: 'PUT',

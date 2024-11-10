@@ -227,6 +227,23 @@ def register_mission_routes(app, web_instance):
             return jsonify({'error': 'Failed to reset files'}), 500
         return jsonify({'status': 'success'})
 
+    @app.route('/api/missions/<int:mission_id>/teams', methods=['GET'], endpoint='api_mission_teams')
+    @safe_operation()
+    def get_mission_teams(mission_id):
+        """Get teams available for a mission"""
+        try:
+            # Validate mission exists
+            mission = _validate_mission(mission_id, web_instance)
+            
+            # Get teams from team service
+            teams = web_instance.team_service.get_teams_for_mission(mission_id)
+            
+            return jsonify(teams)
+            
+        except Exception as e:
+            web_instance.logger.log(f"Error getting teams for mission {mission_id}: {str(e)}", 'error')
+            return ErrorHandler.handle_error(e)
+
     @app.route('/api/missions/<int:mission_id>/files/<path:file_path>', methods=['GET'], endpoint='api_mission_file_content')
     @safe_operation()
     def get_mission_file_content(mission_id, file_path):
