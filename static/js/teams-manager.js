@@ -192,45 +192,54 @@ export default {
             }
         },
 
-        async toggleTeam(team) {
-            if (this.loadingTeams.has(team.name)) return;
+        async handleOperationWithRetry(operation, teamId, errorMessage) {
+            const attempts = this.retryAttempts.get(teamId) || 0;
             
             try {
-                this.loadingTeams.add(team.name);
-                const allRunning = this.isTeamRunning(team);
-                const action = allRunning ? 'stop' : 'start';
-
-                const response = await fetch(`/api/teams/${encodeURIComponent(team.id)}/${action}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to ${action} team`);
-                }
-
-                const result = await response.json();
+                this.loadingStates.set(teamId, true);
+                this.errorMessages.delete(teamId);
                 
-                // Update team status based on response
-                const stats = this.teamStats.get(team.name) || {};
-                if (!stats.agentStatus) stats.agentStatus = {};
+                return await operation();
                 
-                // Update agent statuses from response
-                if (result.agents) {
-                    Object.entries(result.agents).forEach(([agent, status]) => {
-                        stats.agentStatus[agent] = status.running;
-                    });
-                }
-            
-                this.teamStats.set(team.name, stats);
-                this.updateTeamHistory(team, `Team ${action}ed`);
-
             } catch (error) {
-                this.handleError(`Failed to ${action} team`, error);
+                console.error(`Operation failed for team ${teamId}:`, error);
+                
+                if (attempts < this.maxRetries) {
+                    this.retryAttempts.set(teamId, attempts + 1);
+                    await new Promise(resolve => setTimeout(resolve, this.retryDelay * Math.pow(2, attempts)));
+                    return this.handleOperationWithRetry(operation, teamId, errorMessage);
+                }
+                
+                this.errorMessages.set(teamId, errorMessage);
+                throw error;
+                
             } finally {
-                this.loadingTeams.delete(team.name);
+                this.loadingStates.set(teamId, false);
+            }
+        },
+
+        async toggleTeam(team) {
+            if (this.loadingStates.get(team.id)) return;
+            
+            try {
+                await this.handleOperationWithRetry(
+                    async () => {
+                        const action = this.isTeamRunning(team) ? 'stop' : 'start';
+                        const response = await fetch(`/api/teams/${team.id}/${action}`, {
+                            method: 'POST'
+                        });
+                        
+                        if (!response.ok) throw new Error(`Failed to ${action} team`);
+                        
+                        const result = await response.json();
+                        this.updateTeamState(team, result);
+                    },
+                    team.id,
+                    `Failed to toggle team ${team.name}`
+                );
+            } catch (error) {
+                // Error already handled by handleOperationWithRetry
+                console.error('Team toggle failed:', error);
             }
         },
 
@@ -553,6 +562,12 @@ export default {
     },
     template: /* html */`
         <div class="p-6 relative h-full flex flex-col">
+            <!-- Error notification -->
+            <div v-if="showError" 
+                 class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                {{ errorMessage }}
+            </div>
+
             <div v-if="loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
                 <div class="text-center">
                     <i class="mdi mdi-loading mdi-spin text-4xl text-blue-500"></i>
@@ -575,7 +590,27 @@ export default {
                 <div v-else class="grid grid-cols-1 gap-6">
                 <div v-for="team in teams" 
                      :key="team.name"
-                     class="bg-white rounded-lg shadow-md p-6 team-card">
+                     class="bg-white rounded-lg shadow-md p-6 team-card relative">
+                    <!-- Loading indicator -->
+                    <div v-if="loadingStates.get(team.id)" 
+                         class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+                        <i class="mdi mdi-loading mdi-spin text-2xl text-blue-500"></i>
+                    </div>
+                    
+                    <!-- Error message -->
+                    <div v-if="errorMessages.get(team.id)"
+                         class="bg-red-100 border-l-4 border-red-500 p-4 mb-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="mdi mdi-alert text-red-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-red-700">
+                                    [[ errorMessages.get(team.id) ]]
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-semibold">${team.name}</h3>
                         <div class="flex items-center space-x-2">
