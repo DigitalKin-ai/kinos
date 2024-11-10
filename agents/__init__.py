@@ -15,7 +15,7 @@ __all__ = [
     'ValidationAgent',
     'SpecificationsAgent',
     'ProductionAgent',
-    'ManagementAgent',
+    'ManagementAgent', 
     'EvaluationAgent',
     'SuiviAgent',
     'DocumentalisteAgent',
