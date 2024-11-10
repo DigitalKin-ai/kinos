@@ -33,7 +33,8 @@ export default {
             sidebarCollapsed: false,
             localMissions: [],
             runningMissions: new Set(),
-            missionService: new MissionService()
+            missionService: new MissionService(),
+            hoveredMissionId: null
         }
     },
     computed: {
@@ -263,8 +264,10 @@ export default {
                 </div>
                 <div v-else v-for="mission in sortedMissions" 
                      :key="mission.id"
-                     class="mission-item"
-                     :class="{ active: currentMission?.id === mission.id }">
+                     class="mission-item relative"
+                     :class="{ active: currentMission?.id === mission.id }"
+                     @mouseenter="hoveredMissionId = mission.id"
+                     @mouseleave="hoveredMissionId = null">
                     <div class="flex items-center justify-between w-full px-4 py-2"
                          @click="selectMission(mission)">
                         <div class="flex items-center">
@@ -272,9 +275,14 @@ export default {
                             <span class="mission-name">\${ mission.name }</span>
                         </div>
                         <div class="flex items-center">
-                            <span class="text-xs text-gray-500 mr-2">
-                                \${ formatDate(mission.updated_at || mission.created_at) }
-                            </span>
+                            <!-- Date tooltip -->
+                            <transition name="fade">
+                                <span v-if="hoveredMissionId === mission.id"
+                                      class="absolute right-16 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
+                                      style="top: 50%; transform: translateY(-50%)">
+                                    \${ formatDate(mission.updated_at || mission.created_at) }
+                                </span>
+                            </transition>
                             <button @click="toggleMissionAgents(mission, $event)"
                                     class="control-button"
                                     :class="{ 'running': runningMissions.has(mission.id) }"
@@ -286,5 +294,22 @@ export default {
                 </div>
             </div>
         </div>
+    `,
+    style: `
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.2s ease;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+        
+        .mission-item {
+            position: relative;
+        }
+        
+        .mission-item .absolute {
+            z-index: 10;
+            white-space: nowrap;
+        }
     `
 };
