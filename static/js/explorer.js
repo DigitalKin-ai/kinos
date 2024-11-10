@@ -309,5 +309,7 @@ export default {
         if (this.fileCheckInterval) {
             clearInterval(this.fileCheckInterval);
         }
+        // Clean up monitoring
+        this.stopServerMonitoring();
     }
 }
