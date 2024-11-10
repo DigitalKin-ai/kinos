@@ -168,6 +168,7 @@ class AgentService:
             with self._cleanup_lock:
                 # Force garbage collection
                 import gc
+                import socket
                 gc.collect()
                 
                 # Close any lingering sockets
