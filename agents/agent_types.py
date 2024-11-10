@@ -131,14 +131,6 @@ class DuplicationAgent(AiderAgent):
         self.prompt_file = "prompts/duplication.md"
         self.role = "duplication"
         self.web_instance = config['web_instance']
-        
-    def _build_prompt(self, context: dict) -> str:
-        """
-        Surcharge pour ajouter des informations spécifiques à la détection de duplication
-        """
-        base_prompt = super()._build_prompt(context)
-        # Add any duplication-specific context here
-        return base_prompt
 
 class DocumentalisteAgent(AiderAgent):
     """
@@ -217,33 +209,5 @@ class RedacteurAgent(AiderAgent):
         self.prompt_file = "prompts/redacteur.md"
         self.role = "redacteur"
         self.web_instance = config['web_instance']
-        
-    def _build_prompt(self, context: dict) -> str:
-        """
-        Surcharge pour ajouter des informations spécifiques à la rédaction
-        et mise à jour du contenu textuel.
-        
-        Args:
-            context: Dictionnaire contenant le contexte d'exécution
-            
-        Returns:
-            str: Prompt enrichi avec le contexte de rédaction
-        """
-        base_prompt = super()._build_prompt(context)
-        
-        # Add redaction-specific context
-        redaction_context = {
-            'file_type': context.get('file_type', 'unknown'),
-            'existing_content': context.get('existing_content', ''),
-            'style_guide': context.get('style_guide', 'standard'),
-            'target_audience': context.get('target_audience', 'technical')
-        }
-        
-        # Extend base prompt with redaction context
-        extended_prompt = f"{base_prompt}\n\nContexte de rédaction:\n"
-        for key, value in redaction_context.items():
-            extended_prompt += f"- {key}: {value}\n"
-            
-        return extended_prompt
 
 
