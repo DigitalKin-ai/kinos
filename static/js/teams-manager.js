@@ -1,7 +1,7 @@
 import TeamCard from './components/teams/TeamCard.js';
 import AgentList from './components/teams/AgentList.js';
 import AddAgentModal from './components/teams/AddAgentModal.js';
-import TeamMetrics from './components/teams/TeamMetrics.js';
+import TeamMetrics from './teams/TeamMetrics.js';
 
 export default {
     name: 'TeamsManager',
