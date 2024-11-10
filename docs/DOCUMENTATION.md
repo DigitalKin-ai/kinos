@@ -2,6 +2,119 @@
 
 ## Architecture
 
+### Agents
+
+#### Architecture des Agents
+- **Autonomie des fichiers**
+  - Chaque agent gère ses propres fichiers de manière autonome
+  - Pas de création automatique de fichiers au démarrage
+  - Liberté de créer/modifier plusieurs fichiers selon les besoins
+  - Surveillance dynamique des fichiers pertinents
+
+- **Gestion des chemins**
+  - Utilisation des chemins relatifs pour les opérations
+  - Normalisation des noms de mission via FileManager
+  - Validation stricte des permissions d'accès
+  - Respect de la structure de dossiers existante
+
+- **Cycle de vie**
+  1. Initialisation
+     - Vérification du dossier mission
+     - Chargement des prompts
+     - Configuration des chemins relatifs
+     - Validation des permissions
+
+  2. Exécution
+     - Surveillance autonome des fichiers pertinents
+     - Création/modification de fichiers selon besoins
+     - Adaptation dynamique aux changements
+     - Gestion indépendante des ressources
+
+  3. Communication
+     - Notifications de changements
+     - Coordination via système de fichiers
+     - Logging détaillé des opérations
+     - Gestion des erreurs autonome
+
+#### Types d'Agents
+Chaque agent peut maintenant :
+- Gérer plusieurs fichiers simultanément
+- Créer ses fichiers à la demande
+- Définir sa propre stratégie de surveillance
+- Adapter son comportement selon le contexte
+
+1. **SpecificationsAgent**
+   - Analyse des demandes et définition des spécifications
+   - Gestion flexible des documents de spécifications
+   - Création de sous-spécifications si nécessaire
+   - Maintien de la cohérence entre documents
+
+2. **ProductionAgent**
+   - Génération et optimisation du code/contenu
+   - Organisation libre des fichiers de production
+   - Création de modules/composants selon besoins
+   - Gestion des dépendances entre fichiers
+
+3. **ManagementAgent**
+   - Coordination et suivi du projet
+   - Organisation flexible des tâches
+   - Création de rapports et tableaux de bord
+   - Gestion des priorités et ressources
+
+4. **EvaluationAgent**
+   - Tests et validation qualité
+   - Organisation des suites de tests
+   - Rapports de couverture
+   - Analyse des performances
+
+5. **SuiviAgent**
+   - Documentation des activités
+   - Historique des modifications
+   - Rapports d'avancement
+   - Métriques de projet
+
+6. **DocumentalisteAgent**
+   - Maintien de la documentation
+   - Organisation des références
+   - Validation de la cohérence
+   - Génération de documentation
+
+7. **DuplicationAgent**
+   - Analyse du code et contenu
+   - Détection des duplications
+   - Suggestions d'optimisation
+   - Refactoring automatique
+
+8. **TesteurAgent**
+   - Création et exécution des tests
+   - Validation des fonctionnalités
+   - Rapports de couverture
+   - Tests de régression
+
+9. **RedacteurAgent**
+   - Rédaction et mise à jour du contenu
+   - Organisation des documents
+   - Validation du style
+   - Gestion des versions
+
+#### Configuration des Agents
+```python
+base_config = {
+    "check_interval": 100,
+    "mission_name": "nom_mission",
+    "logger": log_function,
+    "web_instance": web_instance,
+    "mission_dir": "chemin/relatif/mission"
+}
+```
+
+#### Système de Fichiers
+- Structure flexible par mission
+- Pas de structure imposée aux agents
+- Validation des permissions d'accès
+- Utilisation de chemins relatifs
+- Normalisation des noms de fichiers
+
 ### Service Layer
 
 #### BaseService
