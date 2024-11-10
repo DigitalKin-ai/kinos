@@ -171,18 +171,6 @@ class KinOSAgent:
             self.logger.log(f"Error loading intervals config: {str(e)}", 'error')
             return {"default": 60, "intervals": {}}
 
-    def _load_intervals_config(self) -> Dict:
-        """Load agent intervals from config file"""
-        try:
-            config_path = os.path.join("config", "agent_intervals.json")
-            if os.path.exists(config_path):
-                with open(config_path, 'r') as f:
-                    return json.load(f)
-            return {"default": 60, "intervals": {}}
-        except Exception as e:
-            self.logger.log(f"Error loading intervals config: {str(e)}", 'error')
-            return {"default": 60, "intervals": {}}
-
     def _get_agent_interval(self) -> int:
         """Get interval for this agent type"""
         agent_type = self.__class__.__name__.lower().replace('agent', '')

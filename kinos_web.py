@@ -106,12 +106,6 @@ class KinOSWeb:
                 'timestamp': datetime.now().isoformat()
             }), 500
 
-        # Register blueprint routes
-        register_agent_routes(self.app, self)
-        register_mission_routes(self.app, self)
-        register_notification_routes(self.app, self)
-        register_view_routes(self.app, self)
-
         # Mark routes as registered
         self._routes_registered = True
 

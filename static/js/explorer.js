@@ -13,21 +13,6 @@ export default {
             fileCheckInterval: null
         }
     },
-    computed: {
-        filteredFiles() {
-            if (!this.searchQuery) {
-                // Only return files that exist
-                return this.files.filter(file => this.fileExists(file));
-            }
-            const query = this.searchQuery.toLowerCase();
-            return this.files.filter(file => 
-                this.fileExists(file) && (
-                    file.name.toLowerCase().includes(query) ||
-                    file.relativePath.toLowerCase().includes(query)
-                )
-            );
-        }
-    },
     methods: {
         fileExists(file) {
             return file && file.size > 0;
