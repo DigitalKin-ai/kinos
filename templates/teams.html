@@ -171,7 +171,9 @@
                             throw new Error(error.error || 'Failed to select mission');
                         }
 
-                        return response.json();
+                        const result = await response.json();
+                        this.currentMission = result;
+                        return result;
                     });
 
                     // Update state

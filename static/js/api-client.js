@@ -3,7 +3,8 @@
  * Centralizes all API calls and error handling
  */
 class ApiClient {
-    constructor() {
+    constructor(baseUrl = '') {
+        this.baseUrl = baseUrl;
         this.token = null; // For future authentication
     }
 
@@ -234,12 +235,12 @@ class ApiClient {
     }
 
     async getMissionContent(missionId) {
-        const response = await fetch(`${this.baseUrl}/api/missions/${missionId}/content`);
+        const response = await fetch(`/api/missions/${missionId}/content`);
         return this.handleResponse(response);
     }
 
     async createMission(name, description = '') {
-        const response = await fetch(`${this.baseUrl}/api/missions`, {
+        const response = await fetch(`/api/missions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, description })
