@@ -1113,16 +1113,32 @@ class KinOSWeb:
             # Set Flask debug mode
             self.app.debug = debug
             
+            # Configure CORS properly
+            from flask_cors import CORS
+            CORS(self.app, resources={
+                r"/api/*": {
+                    "origins": ["http://localhost:8000", "http://127.0.0.1:8000"],
+                    "supports_credentials": True
+                }
+            })
+            
             # Configure server options (separate from Flask options)
             server_options = {
-                'threaded': True  # Only pass valid make_server options
+                'threaded': True,
+                'processes': 1  # Single process for development
             }
             
             # Create server explicitly
             try:
                 self._initialize_server(host, port, server_options)
-                self.logger.log(f"Starting server on {host}:{port}", 'info')
+                self.logger.log(f"Starting server on http://{host}:{port}", 'info')
+                
+                # Add startup message
+                print(f"\nKinOS Web running on http://{host}:{port}")
+                print("Press CTRL+C to quit\n")
+                
                 self.server.serve_forever()
+                
             except Exception as server_error:
                 self.logger.log(f"Server error: {str(server_error)}", 'error')
                 raise
@@ -1337,10 +1353,10 @@ if __name__ == "__main__":
             "openai_api_key": Config.OPENAI_API_KEY
         })
         
-        # Run app
+        # Run app with explicit host/port
         app.run(
-            host=Config.HOST,
-            port=Config.PORT,
+            host='0.0.0.0',  # Listen on all interfaces
+            port=8000,       # Use port 8000
             debug=Config.DEBUG
         )
         
