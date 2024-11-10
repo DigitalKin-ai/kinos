@@ -340,4 +340,6 @@ class ApiClient {
         });
         return this.handleResponse(response);
     }
+}
+
 export default ApiClient;
