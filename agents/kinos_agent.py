@@ -94,19 +94,28 @@ class KinOSAgent:
         # Handle logger configuration
         logger_config = config.get("logger", print)
         if callable(logger_config):
-            # Create wrapper that ensures level is only passed once
+            # Create wrapper that handles both Logger instances and simple callables
             def create_log_wrapper(func):
-                def wrapper(message, level='info'):
-                    # Convert message to string and format it
+                def wrapper(*args, **kwargs):
+                    # Extract message and level
+                    if len(args) >= 2:
+                        message, level = args[0], args[1]
+                    else:
+                        message = args[0] if args else kwargs.get('message', '')
+                        level = kwargs.get('level', 'info')
+
+                    # Convert message to string
                     msg = str(message)
-                    
+
                     # If logger_config is a logging.Logger instance
                     if hasattr(logger_config, 'log'):
-                        return logger_config.log(level.upper(), msg)
+                        # Remove level from kwargs if present to avoid duplication
+                        kwargs.pop('level', None)
+                        return logger_config.log(msg, level)
                     
                     # If logger_config is a simple callable (like print)
                     return func(msg)
-                    
+
                 return wrapper
                 
             base_logger = create_log_wrapper(logger_config)
