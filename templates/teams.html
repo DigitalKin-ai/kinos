@@ -112,7 +112,14 @@
 
             handleError(message, error) {
                 console.error(message, error);
-                this.error = typeof error === 'string' ? error : error.message;
+                this.error = typeof error === 'string' ? error : error.message || 'An unexpected error occurred';
+            
+                // Show error in UI
+                this.errorMessage = this.error;
+                this.showError = true;
+                setTimeout(() => {
+                    this.showError = false;
+                }, 5000);
             },
 
             async selectMission(mission) {
@@ -371,3 +378,27 @@
     app.mount('#app');
 </script>
 {% endblock %}
+        async handleMissionOperation(operation, errorMessage) {
+            try {
+                return await this.retryWithBackoff(operation);
+            } catch (error) {
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    this.connectionStatus.connected = false;
+                    throw new Error('Server connection lost. Please check your connection and try again.');
+                }
+                throw error;
+            }
+        },
+
+        async retryWithBackoff(operation, maxRetries = 3) {
+            let delay = 1000;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+            }
+        },
