@@ -36,6 +36,15 @@ export default {
             missionService: new MissionService()
         }
     },
+    computed: {
+        sortedMissions() {
+            return [...this.localMissions].sort((a, b) => {
+                const dateA = new Date(a.updated_at || a.created_at);
+                const dateB = new Date(b.updated_at || b.created_at);
+                return dateB - dateA;
+            });
+        }
+    },
     async mounted() {
         console.log('MissionSelector mounted');
         try {
@@ -199,6 +208,23 @@ export default {
             } catch (error) {
                 console.error('Error toggling agents:', error);
             }
+        },
+        formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const today = new Date();
+            const isToday = date.toDateString() === today.toDateString();
+            
+            const time = date.toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            if (isToday) {
+                return `Today ${time}`;
+            }
+            
+            return `${date.toLocaleDateString('fr-FR')} ${time}`;
         }
     },
     template: `
@@ -235,7 +261,7 @@ export default {
                 <div v-else-if="missions.length === 0" class="mission-empty">
                     Aucune mission disponible
                 </div>
-                <div v-else v-for="mission in localMissions" 
+                <div v-else v-for="mission in sortedMissions" 
                      :key="mission.id"
                      class="mission-item"
                      :class="{ active: currentMission?.id === mission.id }">
@@ -245,12 +271,17 @@ export default {
                             <i class="mdi mdi-folder-outline"></i>
                             <span class="mission-name">\${ mission.name }</span>
                         </div>
-                        <button @click="toggleMissionAgents(mission, $event)"
-                                class="control-button"
-                                :class="{ 'running': runningMissions.has(mission.id) }"
-                                :title="runningMissions.has(mission.id) ? 'Stop agents' : 'Start agents'">
-                            <i class="mdi" :class="runningMissions.has(mission.id) ? 'mdi-stop' : 'mdi-play'"></i>
-                        </button>
+                        <div class="flex items-center">
+                            <span class="text-xs text-gray-500 mr-2">
+                                \${ formatDate(mission.updated_at || mission.created_at) }
+                            </span>
+                            <button @click="toggleMissionAgents(mission, $event)"
+                                    class="control-button"
+                                    :class="{ 'running': runningMissions.has(mission.id) }"
+                                    :title="runningMissions.has(mission.id) ? 'Stop agents' : 'Start agents'">
+                                <i class="mdi" :class="runningMissions.has(mission.id) ? 'mdi-stop' : 'mdi-play'"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
