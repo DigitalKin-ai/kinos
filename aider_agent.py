@@ -153,12 +153,19 @@ class AiderAgent(KinOSAgent):
                 self.mission_files = {}
                 return
 
-            # Obtenir le chemin absolu du dossier mission
+            # Obtenir le chemin absolu du dossier mission et le nom de la mission
             mission_dir = os.path.abspath(self.mission_dir)
+            mission_name = os.path.basename(mission_dir)
             
-            # Vérifier que nous sommes dans le bon sous-dossier de mission
-            if os.path.basename(os.path.dirname(mission_dir)) != "missions":
-                self.logger(f"[{self.__class__.__name__}] ❌ Invalid mission path structure: {mission_dir}")
+            # Construire le chemin complet correct
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            correct_mission_path = os.path.join(project_root, "missions", mission_name)
+            
+            # Utiliser le chemin correct
+            mission_dir = correct_mission_path
+            
+            if not os.path.exists(mission_dir):
+                self.logger(f"[{self.__class__.__name__}] ❌ Mission directory not found: {mission_dir}")
                 self.mission_files = {}
                 return
 
@@ -168,22 +175,16 @@ class AiderAgent(KinOSAgent):
             # Récupérer tous les fichiers textuels UNIQUEMENT dans le dossier de la mission courante
             text_files = {}
             for root, _, filenames in os.walk(mission_dir):
-                # Vérifier que nous sommes toujours dans le dossier de la mission courante
-                if not os.path.commonpath([root, mission_dir]) == mission_dir:
-                    continue
-                    
                 for filename in filenames:
                     if os.path.splitext(filename)[1].lower() in text_extensions:
                         file_path = os.path.join(root, filename)
-                        # Vérifier que le fichier est bien dans le dossier de la mission courante
-                        if os.path.commonpath([file_path, mission_dir]) == mission_dir:
-                            text_files[file_path] = os.path.getmtime(file_path)
+                        text_files[file_path] = os.path.getmtime(file_path)
             
             # Mettre à jour mission_files
             self.mission_files = text_files
             
             # Log avec chemins relatifs pour plus de clarté
-            self.logger(f"[{self.__class__.__name__}] 📁 Fichiers trouvés dans {os.path.basename(mission_dir)}: {len(self.mission_files)}")
+            self.logger(f"[{self.__class__.__name__}] 📁 Fichiers trouvés dans {mission_name}: {len(self.mission_files)}")
             for file in self.mission_files:
                 rel_path = os.path.relpath(file, mission_dir)
                 self.logger(f"[{self.__class__.__name__}] 📄 {rel_path}")
