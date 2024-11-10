@@ -131,9 +131,14 @@ export default {
                 // Store previous mission state
                 const wasRunning = this.runningMissions.has(mission.id);
                 
-                // Stop agents first
+                // Stop agents first with better error handling
                 try {
-                    const stopResponse = await fetch('/api/agents/stop', { method: 'POST' });
+                    const stopResponse = await fetch('/api/agents/stop', { 
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
                     if (!stopResponse.ok) {
                         console.warn('Warning: Failed to stop agents cleanly');
                     }
@@ -142,34 +147,52 @@ export default {
                     // Continue with mission selection even if stop fails
                 }
                 
-                // Select new mission
-                const response = await fetch(`/api/missions/${mission.id}/select`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'}
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `Failed to select mission (${response.status})`);
-                }
-
-                const result = await response.json();
+                // Select new mission with retry logic
+                let retryCount = 0;
+                const maxRetries = 3;
                 
-                // Update current mission
-                this.$emit('select-mission', result);
-                this.$emit('update:current-mission', result);
-                
-                // Restore previous running state if needed
-                if (wasRunning) {
+                while (retryCount < maxRetries) {
                     try {
-                        await fetch('/api/agents/start', { method: 'POST' });
-                        this.runningMissions.add(mission.id);
-                    } catch (startError) {
-                        console.warn('Error restarting agents:', startError);
+                        const response = await fetch(`/api/missions/${mission.id}/select`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || `Failed to select mission (${response.status})`);
+                        }
+
+                        const result = await response.json();
+                        
+                        // Update current mission
+                        this.$emit('select-mission', result);
+                        this.$emit('update:current-mission', result);
+                        
+                        // Restore previous running state if needed
+                        if (wasRunning) {
+                            try {
+                                await fetch('/api/agents/start', { method: 'POST' });
+                                this.runningMissions.add(mission.id);
+                            } catch (startError) {
+                                console.warn('Error restarting agents:', startError);
+                            }
+                        }
+                        
+                        return result;
+                        
+                    } catch (error) {
+                        retryCount++;
+                        if (retryCount < maxRetries) {
+                            // Wait before retrying (exponential backoff)
+                            await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+                            continue;
+                        }
+                        throw error; // Throw if all retries failed
                     }
                 }
-                
-                return result;
                 
             } catch (error) {
                 console.error('Failed to select mission:', error);
