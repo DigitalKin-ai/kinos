@@ -33,10 +33,6 @@ export default {
             return file && file.size > 0;
         },
         
-        getFileSize(file) {
-            if (!file.content) return '0';
-            return file.content.length.toString();
-        },
 
         startFileWatcher() {
             this.fileCheckInterval = setInterval(() => {
@@ -200,37 +196,7 @@ export default {
             );
         }
     },
-        },
 
-        async loadMissionFiles() {
-            try {
-                if (!this.currentMission?.id) return;
-                
-                // Get mission path first
-                const pathData = await this.getMissionPath(this.currentMission.id);
-                const missionPath = pathData.path;
-                
-                const response = await fetch(`/api/missions/${this.currentMission.id}/files`);
-                if (!response.ok) throw new Error('Failed to fetch files');
-                
-                const currentFiles = await response.json();
-                
-                // Only return files that physically exist with size > 0
-                this.files = currentFiles.filter(file => {
-                    try {
-                        return file && file.size > 0;
-                    } catch {
-                        return false; 
-                    }
-                }).map(file => ({
-                    ...file,
-                    displayPath: file.relativePath || file.path,
-                    fullPath: `${missionPath}/${file.relativePath || file.path}`
-                }));
-            } catch (error) {
-                console.error('Error loading files:', error);
-            }
-        },
 
         async checkFileModifications() {
             try {
