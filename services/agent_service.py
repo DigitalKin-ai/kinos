@@ -178,11 +178,12 @@ class AgentService:
                 os.path.join(PathManager.get_project_root(), 'prompts')
             ]
 
-            # Log des chemins de recherche
+            # Log des chemins de recherche avec vérification détaillée
             for path in prompt_search_paths:
                 self.web_instance.log_message(
                     f"Searching agent prompts in: {path}\n"
                     f"Path exists: {os.path.exists(path)}\n"
+                    f"Path is readable: {os.access(path, os.R_OK)}\n"
                     f"Path contents: {os.listdir(path) if os.path.exists(path) else 'N/A'}", 
                     'debug'
                 )
@@ -250,7 +251,7 @@ class AgentService:
             raise
 
     def _find_agent_prompt(self, agent_name: str, search_paths: List[str]) -> Optional[str]:
-        """Diagnostic avancé pour trouver les fichiers de prompt"""
+        """Diagnostic avancé pour trouver les fichiers de prompt avec logging détaillé"""
         normalized_name = agent_name.lower()
         
         potential_filenames = [
@@ -259,6 +260,8 @@ class AgentService:
             f"agent_{normalized_name}.md",
             f"{normalized_name}.txt"
         ]
+
+        searched_paths = []  # Track all paths searched
 
         for search_path in search_paths:
             if not os.path.exists(search_path):
@@ -270,6 +273,7 @@ class AgentService:
 
             for filename in potential_filenames:
                 full_path = os.path.join(search_path, filename)
+                searched_paths.append(full_path)
                 
                 self.web_instance.log_message(
                     f"Checking potential prompt file: {full_path}\n"
@@ -283,7 +287,7 @@ class AgentService:
         # Log détaillé si aucun fichier n'est trouvé
         self.web_instance.log_message(
             f"No prompt file found for agent: {agent_name}\n"
-            f"Searched paths: {search_paths}\n"
+            f"Searched paths: {searched_paths}\n"
             f"Potential filenames: {potential_filenames}", 
             'error'
         )

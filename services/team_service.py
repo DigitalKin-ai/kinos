@@ -231,7 +231,8 @@ class TeamService(BaseService):
             for agent_name in team['agents']:
                 try:
                     self._validate_agent_name(agent_name)
-                    success = self.web_instance.agent_service.toggle_agent(agent_name, 'start')
+                    #todo : initialize agent ?
+                    success = self.web_instance.agent_service.toggle_agent(agent_name, 'start') # TODO: takes 3 args : def toggle_agent(self, agent_name: str, action: str) -> bool:
                     activation_results.append({
                         'agent': agent_name,
                         'success': success

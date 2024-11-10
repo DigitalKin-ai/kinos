@@ -8625,3 +8625,116 @@ Error: Agent validation not found
 [00:00:39] [SUCCESS] Team Book Writing Team activated with results: [{'agent': 'specifications', 'success': False, 'error': 'Agent specifications not found'}, {'agent': 'management', 'success': False, 'error': 'Agent management not found'}, {'agent': 'evaluation', 'success': False, 'error': 'Agent evaluation not found'}, {'agent': 'suivi', 'success': False, 'error': 'Agent suivi not found'}, {'agent': 'documentaliste', 'success': False, 'error': 'Agent documentaliste not found'}, {'agent': 'duplication', 'success': False, 'error': 'Agent duplication not found'}, {'agent': 'redacteur', 'success': False, 'error': 'Agent redacteur not found'}, {'agent': 'validation', 'success': False, 'error': 'Agent validation not found'}]
 [00:00:39] [ERROR] Error calculating health score: 'health'
 [00:00:39] [ERROR] Error calculating team metrics: 'TeamService' object has no attribute '_calculate_activity_score'
+[00:03:46] [INFO] Attempting to activate team:
+Mission ID: 4
+Team ID: book-writing
+[00:03:46] [DEBUG] Team agents: ['specifications', 'management', 'evaluation', 'suivi', 'documentaliste', 'duplication', 'redacteur', 'validation']
+[00:03:46] [SUCCESS] All agents stopped
+[00:03:46] [ERROR] Agent activation failed:
+Agent: specifications
+Error: Agent specifications not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: management
+Error: Agent management not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: evaluation
+Error: Agent evaluation not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: suivi
+Error: Agent suivi not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: documentaliste
+Error: Agent documentaliste not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: duplication
+Error: Agent duplication not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: redacteur
+Error: Agent redacteur not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: validation
+Error: Agent validation not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: specifications
+Error: Agent specifications not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: management
+Error: Agent management not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: evaluation
+Error: Agent evaluation not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: suivi
+Error: Agent suivi not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: documentaliste
+Error: Agent documentaliste not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: duplication
+Error: Agent duplication not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: redacteur
+Error: Agent redacteur not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: validation
+Error: Agent validation not found
+[00:03:46] [SUCCESS] Team Book Writing Team activated with results: [{'agent': 'specifications', 'success': False, 'error': 'Agent specifications not found'}, {'agent': 'management', 'success': False, 'error': 'Agent management not found'}, {'agent': 'evaluation', 'success': False, 'error': 'Agent evaluation not found'}, {'agent': 'suivi', 'success': False, 'error': 'Agent suivi not found'}, {'agent': 'documentaliste', 'success': False, 'error': 'Agent documentaliste not found'}, {'agent': 'duplication', 'success': False, 'error': 'Agent duplication not found'}, {'agent': 'redacteur', 'success': False, 'error': 'Agent redacteur not found'}, {'agent': 'validation', 'success': False, 'error': 'Agent validation not found'}]
+[00:03:46] [ERROR] Error calculating health score: 'health'
+[00:03:46] [ERROR] Error calculating team metrics: 'TeamService' object has no attribute '_calculate_activity_score'
+[00:03:46] [SUCCESS] ✓ Équipe book-writing lancée avec succès pour la mission eveil
+[00:03:46] [INFO] Attempting to activate team:
+Mission ID: 4
+Team ID: book-writing
+[00:03:46] [DEBUG] Team agents: ['specifications', 'management', 'evaluation', 'suivi', 'documentaliste', 'duplication', 'redacteur', 'validation']
+[00:03:46] [SUCCESS] All agents stopped
+[00:03:46] [ERROR] Agent activation failed:
+Agent: specifications
+Error: Agent specifications not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: management
+Error: Agent management not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: evaluation
+Error: Agent evaluation not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: suivi
+Error: Agent suivi not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: documentaliste
+Error: Agent documentaliste not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: duplication
+Error: Agent duplication not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: redacteur
+Error: Agent redacteur not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: validation
+Error: Agent validation not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: specifications
+Error: Agent specifications not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: management
+Error: Agent management not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: evaluation
+Error: Agent evaluation not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: suivi
+Error: Agent suivi not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: documentaliste
+Error: Agent documentaliste not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: duplication
+Error: Agent duplication not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: redacteur
+Error: Agent redacteur not found
+[00:03:46] [ERROR] Agent activation failed:
+Agent: validation
+Error: Agent validation not found
+[00:03:46] [SUCCESS] Team Book Writing Team activated with results: [{'agent': 'specifications', 'success': False, 'error': 'Agent specifications not found'}, {'agent': 'management', 'success': False, 'error': 'Agent management not found'}, {'agent': 'evaluation', 'success': False, 'error': 'Agent evaluation not found'}, {'agent': 'suivi', 'success': False, 'error': 'Agent suivi not found'}, {'agent': 'documentaliste', 'success': False, 'error': 'Agent documentaliste not found'}, {'agent': 'duplication', 'success': False, 'error': 'Agent duplication not found'}, {'agent': 'redacteur', 'success': False, 'error': 'Agent redacteur not found'}, {'agent': 'validation', 'success': False, 'error': 'Agent validation not found'}]
+[00:03:46] [ERROR] Error calculating health score: 'health'
+[00:03:46] [ERROR] Error calculating team metrics: 'TeamService' object has no attribute '_calculate_activity_score'
