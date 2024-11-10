@@ -48,10 +48,14 @@ class KinOSWeb:
             # Initialize basic services first
             self.logger.log("Initializing core components...", level='info')
             
-            # Initialize agents in inactive state
-            self.agent_service.init_agents(config)
+            # Initialize agents in inactive state - don't raise error if no agents initialized
+            try:
+                self.agent_service.init_agents(config)
+            except Exception as e:
+                self.logger.log(f"Warning: Agent initialization failed: {str(e)}", level='warning')
+                # Continue initialization even if agents fail
             
-            # Log success even without active mission
+            # Log success
             self.logger.log("Core components initialized successfully", level='success')
             
         except Exception as e:
