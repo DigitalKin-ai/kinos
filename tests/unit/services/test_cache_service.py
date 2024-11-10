@@ -1,6 +1,8 @@
+import os
 import pytest
 import time
 from services.cache_service import CacheService
+from utils.path_manager import PathManager
 
 def test_cache_set_get():
     """Test basic cache set/get operations"""
@@ -56,3 +58,17 @@ def test_cache_clear():
     cache.clear()
     assert cache.get("key1") is None
     assert cache.get("key2") is None
+
+def test_cache_file_path():
+    """Test cache file path generation"""
+    cache = CacheService(None)
+    path = cache._get_cache_file_path("test_key")
+    assert path.startswith(PathManager.get_temp_path())
+    assert path.endswith(".tmp")
+    assert "cache_test_key_" in path
+
+def test_cache_dir_creation():
+    """Test cache directory is created"""
+    cache = CacheService(None)
+    assert os.path.exists(cache.cache_dir)
+    assert cache.cache_dir == PathManager.get_temp_path()
