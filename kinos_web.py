@@ -380,32 +380,42 @@ class KinOSWeb:
                 if not os.path.exists(mission_dir):
                     return jsonify({'error': 'Mission directory not found'}), 404
                     
+                # Get all files
                 files = []
+                try:
+                    for root, _, filenames in os.walk(mission_dir):
+                        for filename in filenames:
+                            if filename.endswith(('.md', '.txt', '.py', '.js', '.json', '.yaml', '.yml')):
+                                try:
+                                    full_path = os.path.join(root, filename)
+                                    relative_path = os.path.relpath(full_path, mission_dir)
+                                
+                                    file_info = {
+                                        'name': filename,
+                                        'path': relative_path,
+                                        'relativePath': relative_path,
+                                        'size': os.path.getsize(full_path),
+                                        'modified': os.path.getmtime(full_path)
+                                    }
+                                    files.append(file_info)
+                                    web_instance.logger.log(f"Added file: {filename}", level='debug')
+                                
+                                except (OSError, IOError) as e:
+                                    web_instance.logger.log(f"Error processing file {filename}: {str(e)}", level='error')
+                                    continue
 
-                # Parcourir récursivement le dossier de la mission
-                for root, _, filenames in os.walk(mission_dir):
-                    for filename in filenames:
-                        if os.path.splitext(filename)[1].lower() in text_extensions:
-                            full_path = os.path.join(root, filename)
-                            # Calculer le chemin relatif par rapport au dossier de la mission
-                            relative_path = os.path.relpath(full_path, mission_dir)
-                            
-                            files.append({
-                                'name': filename,
-                                'path': full_path,
-                                'relativePath': relative_path,
-                                'size': os.path.getsize(full_path),
-                                'modified': os.path.getmtime(full_path)
-                            })
-
-                # Trier les fichiers par chemin relatif pour une meilleure organisation
-                files.sort(key=lambda x: x['relativePath'])
+                    # Sort files by path
+                    files.sort(key=lambda x: x['path'])
                 
-                self.log_message(f"Found {len(files)} files in mission {mission['name']}", level='debug')
-                return jsonify(files)
+                    web_instance.logger.log(f"Found {len(files)} files in mission {mission['name']}", level='info')
+                    return jsonify(files)
+
+                except Exception as e:
+                    web_instance.logger.log(f"Error listing files: {str(e)}", level='error')
+                    return jsonify({'error': f'Error listing files: {str(e)}'}), 500
 
             except Exception as e:
-                self.log_message(f"Error getting mission files: {str(e)}", level='error')
+                web_instance.logger.log(f"Unexpected error in get_mission_files: {str(e)}", level='error')
                 return jsonify({'error': str(e)}), 500
 
         @self.app.route('/api/missions/<int:mission_id>/content', methods=['GET'])
