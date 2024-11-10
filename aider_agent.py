@@ -133,14 +133,6 @@ class AiderAgent(KinOSAgent):
                     # Add exponential backoff delay on timeout
                     time.sleep(min(300, 2 ** self.consecutive_no_changes * 30))
                     return None
-            
-                if stderr and "SearchReplaceNoExactMatch" in stderr:
-                    # Log l'erreur de façon plus détaillée
-                    self.logger(f"[{self.__class__.__name__}] ⚠️ Erreur de correspondance SEARCH/REPLACE")
-                    self.logger(f"Détails: {stderr}")
-            
-                    # Tenter une approche alternative
-                    return self._handle_search_replace_error(main_file, prompt)
                 
                 # Logger la sortie
                 if stdout:
@@ -181,36 +173,18 @@ class AiderAgent(KinOSAgent):
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] ❌ Erreur exécution Aider: {str(e)}")
             return None
-            
-    def _handle_search_replace_error(self, file_path: str, prompt: str) -> Optional[str]:
-        """Gestion alternative quand SEARCH/REPLACE échoue"""
-        try:
-            # Lire le contenu actuel
-            with open(file_path, 'r', encoding='utf-8') as f:
-                current_content = f.read()
-                
-            # Utiliser une approche plus simple de modification
-            # TODO: Implémenter une logique de modification plus robuste
-            # Pour l'instant, on log juste l'erreur et on continue
-            self.logger(f"[{self.__class__.__name__}] ℹ️ Tentative alternative de modification")
-            
-            return None
-            
-        except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] ❌ Erreur traitement alternatif: {str(e)}")
-            return None
 
     def list_files(self) -> None:
         """
         Liste tous les fichiers textuels dans le dossier de la mission 
-        et initialise mission_files en excluant le fichier principal.
+        et initialise mission_files.
         """
         try:
             # Obtenir le dossier de la mission
             mission_dir = os.path.dirname(self.file_path)
             
             # Liste des extensions à inclure
-            text_extensions = {'.md', '.txt', '.json', '.yaml', '.yml'}
+            text_extensions = {'.md', '.txt', '.json', '.yaml', '.yml', '.py', '.js', '.html' '.css', '.sh'}
             
             # Récupérer tous les fichiers textuels
             text_files = {}
@@ -220,10 +194,6 @@ class AiderAgent(KinOSAgent):
                 if (os.path.isfile(file_path) and 
                     os.path.splitext(file)[1].lower() in text_extensions):
                     text_files[file_path] = os.path.getmtime(file_path)
-            
-            # Supprimer le fichier principal de la liste
-            if self.file_path in text_files:
-                del text_files[self.file_path]
                 
             # Mettre à jour mission_files
             self.mission_files = text_files
