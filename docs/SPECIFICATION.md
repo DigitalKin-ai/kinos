@@ -117,7 +117,7 @@ Les agents sont le cœur du système KinOS, chacun ayant un rôle spécifique et
 #### Intégration avec Aider
 1. **Format d'appel standardisé**
    ```bash
-   aider --model anthropic/claude-3-5-haiku-20241022 --no-git --yes-always --file [fichier_principal] --file [autres_fichiers] --message [prompt]
+   aider --model anthropic/claude-3-5-haiku-20241022 --no-git --yes-always --file [fichiers_de_la_mission] --message [prompt]
    ```
 
 2. **Choix techniques**
@@ -139,20 +139,6 @@ Les agents sont le cœur du système KinOS, chacun ayant un rôle spécifique et
    - Gestion des erreurs de chemins
 
 ### 2.2 Système de Fichiers
-
-#### Structure des dossiers
-```
-missions/
-├── Mission_1/
-│   ├── demande.md
-│   ├── specifications.md
-│   ├── production.md
-│   ├── management.md
-│   ├── evaluation.md
-│   └── suivi.md
-└── Mission_2/
-    └── ...
-```
 
 #### Gestion des fichiers
 - **Format Markdown standardisé**

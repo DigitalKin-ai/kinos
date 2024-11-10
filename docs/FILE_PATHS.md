@@ -7,21 +7,6 @@ KinOS utilise une stratégie de gestion des chemins de fichiers qui combine:
 - Chemins relatifs pour les opérations Aider
 - Structure de dossiers standardisée
 
-## Structure des Dossiers
-
-```
-missions/
-├── Mission_1/
-│   ├── demande.md
-│   ├── specifications.md
-│   ├── production.md
-│   ├── management.md
-│   ├── evaluation.md
-│   └── suivi.md
-└── Mission_2/
-    └── ...
-```
-
 ## Stratégies par Contexte
 
 ### 1. Création de Fichiers
