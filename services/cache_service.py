@@ -72,7 +72,7 @@ class CacheService(BaseService):
                 return value
                 
         except Exception as e:
-            self.logger.log(f"Cache get error: {str(e)}", level='error')
+            self.logger.log(f"Cache get error: {str(e)}", 'error')
             return None
             
     def set(self, key: str, value: Any, cache_type: str = 'memory') -> bool:
@@ -92,7 +92,7 @@ class CacheService(BaseService):
                 return True
                 
         except Exception as e:
-            self.logger.log(f"Cache set error: {str(e)}", level='error')
+            self.logger.log(f"Cache set error: {str(e)}", 'error')
             return False
             
     def invalidate(self, key: str, cache_type: str = 'memory') -> bool:
@@ -101,7 +101,7 @@ class CacheService(BaseService):
             with self._lock:
                 return self._remove(key, cache_type)
         except Exception as e:
-            self.logger.log(f"Cache invalidate error: {str(e)}", level='error')
+            self.logger.log(f"Cache invalidate error: {str(e)}", 'error')
             return False
             
     def clear(self, cache_type: Optional[str] = None) -> bool:
@@ -118,7 +118,7 @@ class CacheService(BaseService):
                     self._metadata_cache.clear()
                 return True
         except Exception as e:
-            self.logger.log(f"Cache clear error: {str(e)}", level='error')
+            self.logger.log(f"Cache clear error: {str(e)}", 'error')
             return False
             
     def get_metrics(self) -> Dict:
@@ -182,7 +182,7 @@ class CacheService(BaseService):
                     time.sleep(self.cleanup_interval)
                     self._cleanup_expired()
                 except Exception as e:
-                    self.logger.log(f"Cache cleanup error: {str(e)}", level='error')
+                    self.logger.log(f"Cache cleanup error: {str(e)}", 'error')
                     
         thread = threading.Thread(target=cleanup, daemon=True)
         thread.start()
