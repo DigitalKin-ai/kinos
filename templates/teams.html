@@ -81,43 +81,112 @@
         },
         methods: {
             async selectMission(mission) {
-                const TIMEOUT_MS = 5000;
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+                if (!mission?.id) {
+                    this.handleError('Invalid mission selected');
+                    return;
+                }
 
                 try {
-                    // Stop agents first with timeout
-                    const stopResponse = await fetch('/api/agents/stop', { 
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        signal: controller.signal
-                    });
-            
-                    if (!stopResponse.ok) {
-                        throw new Error('Failed to stop agents');
-                    }
-            
-                    // Select new mission with timeout
-                    const response = await fetch(`/api/missions/${mission.id}/select`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        signal: controller.signal
-                    });
+                    this.$emit('update:loading', true);
 
-                    if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.error || 'Failed to select mission');
+                    // Check server status first
+                    if (!this.connectionStatus.connected) {
+                        await this.checkConnection();
+                        if (!this.connectionStatus.connected) {
+                            throw new Error('Server is not available. Please try again later.');
+                        }
                     }
 
-                    return await response.json();
-            
+                    const wasRunning = this.runningStates.get(mission.id) || false;
+
+                    // Stop agents if running
+                    if (wasRunning) {
+                        try {
+                            await this.handleMissionOperation(
+                                async () => {
+                                    const response = await fetch('/api/agents/stop', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        signal: AbortSignal.timeout(5000)
+                                    });
+                                
+                                    if (!response.ok) throw new Error('Failed to stop agents');
+                                    this.runningStates.set(mission.id, false);
+                                },
+                                'Failed to stop agents'
+                            );
+                        } catch (stopError) {
+                            console.warn('Warning: Failed to stop agents', stopError);
+                            this.handleError('Warning: Failed to stop agents, but continuing mission selection');
+                        }
+                    }
+
+                    // Select mission with retries
+                    const result = await this.handleMissionOperation(
+                        async () => {
+                            const response = await fetch(`/api/missions/${mission.id}/select`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                signal: AbortSignal.timeout(5000)
+                            });
+
+                            if (!response.ok) {
+                                const error = await response.json();
+                                throw new Error(error.error || 'Failed to select mission');
+                            }
+
+                            return response.json();
+                        },
+                        'Failed to select mission'
+                    );
+
+                    // Update state
+                    this.$emit('select-mission', result);
+                    this.$emit('update:current-mission', result);
+
+                    // Restore previous state if needed
+                    if (wasRunning) {
+                        try {
+                            await this.handleMissionOperation(
+                                async () => {
+                                    const response = await fetch('/api/agents/start', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        signal: AbortSignal.timeout(5000)
+                                    });
+                                
+                                    if (!response.ok) throw new Error('Failed to restart agents');
+                                    this.runningStates.set(mission.id, true);
+                                },
+                                'Failed to restart agents'
+                            );
+                        } catch (startError) {
+                            console.warn('Warning: Failed to restart agents', startError);
+                            this.handleError('Warning: Failed to restart agents after mission selection');
+                        }
+                    }
+
+                    return result;
+
                 } catch (error) {
-                    if (error.name === 'AbortError') {
-                        throw new Error('Request timed out. Please try again.');
-                    }
+                    console.error('Mission selection failed:', error);
+                    this.runningStates.set(mission.id, false);
+                
+                    // Determine if it's a connection issue
+                    const isConnectionError = error.message.includes('Failed to fetch') || 
+                                           error.message.includes('connection') || 
+                                           error.message.includes('Server');
+                
+                    this.handleError({
+                        title: isConnectionError ? 'Connection Error' : 'Mission Selection Failed',
+                        message: error.message,
+                        type: isConnectionError ? 'connection' : 'error',
+                        retry: isConnectionError
+                    });
+                
                     throw error;
                 } finally {
-                    clearTimeout(timeoutId);
+                    this.$emit('update:loading', false);
                 }
             },
             async createMission(name) {
