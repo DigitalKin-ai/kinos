@@ -98,16 +98,21 @@ class AgentService:
             # Get prompts directory using PathManager
             prompts_dir = PathManager.get_prompts_path()
             
-            # Create a temporary mission directory if none exists
-            temp_mission_dir = os.path.join(PathManager.get_project_root(), "missions", "_temp")
-            os.makedirs(temp_mission_dir, exist_ok=True)
+            # Get current mission from FileManager if available
+            current_mission = None
+            if hasattr(self.web_instance.file_manager, 'current_mission'):
+                current_mission = self.web_instance.file_manager.current_mission
             
             # Base configuration for all agents
             base_config = {
                 **config,
                 "web_instance": self.web_instance,
-                "mission_dir": temp_mission_dir  # Use temporary directory initially
+                "mission_name": current_mission or "_temp",  # Use _temp if no mission selected
+                "mission_dir": os.path.join(PathManager.get_project_root(), "missions", current_mission or "_temp")
             }
+
+            # Create temp mission dir if needed
+            os.makedirs(base_config["mission_dir"], exist_ok=True)
 
             for file in os.listdir(prompts_dir):
                 if file.endswith('.md'):
