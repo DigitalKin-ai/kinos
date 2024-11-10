@@ -996,16 +996,12 @@ CSRF_PROTECTION=True
 
 - `routes/view_routes.py`
   - `/` : Redirection vers l'éditeur
-  - `/editor` : Interface principale
   - `/agents` : Gestion des agents
-  - `/clean` : Vue épurée
 
 ### 5. Interface Utilisateur
 - `templates/`
   - `base.html` : Template parent
   - `agents.html` : Vue des agents
-  - `clean.html` : Interface épurée
-  - `editor.html` : Éditeur principal
 
 - `static/js/`
   - `agent-manager.js` : Gestion UI des agents
