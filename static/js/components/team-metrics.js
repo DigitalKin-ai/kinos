@@ -93,4 +93,4 @@ export default {
             </div>
         </div>
     `
-};
+}
