@@ -93,38 +93,47 @@ class AgentService:
 
     def init_agents(self, config: Dict[str, Any]) -> None:
         try:
-            # Initialiser le dictionnaire des agents
             self.agents = {}
             
-            # Get current mission path if available
-            mission_dir = None
-            if hasattr(self.web_instance.file_manager, 'current_mission') and self.web_instance.file_manager.current_mission:
-                mission_dir = PathManager.get_mission_path(self.web_instance.file_manager.current_mission)
+            # Get prompts directory using PathManager
+            prompts_dir = PathManager.get_prompts_path()
             
-            # Découvrir les agents disponibles
-            discovered_agents = self._discover_agents()
+            # Create a temporary mission directory if none exists
+            temp_mission_dir = os.path.join(PathManager.get_project_root(), "missions", "_temp")
+            os.makedirs(temp_mission_dir, exist_ok=True)
             
-            for agent_info in discovered_agents:
-                try:
-                    name = agent_info['name'].lower()  # Normaliser en minuscules
-                    agent_class = agent_info['class']
-                    
-                    # Configurer l'agent avec mission_dir
-                    agent_config = {
-                        **config,
-                        "name": name,
-                        "web_instance": self.web_instance,
-                        "mission_dir": mission_dir  # Add mission_dir to config
-                    }
-                    
-                    # Créer l'instance
-                    self.agents[name] = agent_class(agent_config)
-                    self.web_instance.log_message(f"Agent {name} initialized", level='success')
-                    
-                except Exception as e:
-                    self.web_instance.log_message(f"Error initializing agent {name}: {str(e)}", level='error')
-                    continue
-                    
+            # Base configuration for all agents
+            base_config = {
+                **config,
+                "web_instance": self.web_instance,
+                "mission_dir": temp_mission_dir  # Use temporary directory initially
+            }
+
+            for file in os.listdir(prompts_dir):
+                if file.endswith('.md'):
+                    agent_name = file[:-3].lower()  # Remove .md extension
+                    try:
+                        with open(os.path.join(prompts_dir, file), 'r', encoding='utf-8') as f:
+                            prompt_content = f.read()
+                            
+                        agent_config = {
+                            **base_config,
+                            "name": agent_name,
+                            "prompt": prompt_content,
+                            "prompt_file": os.path.join(prompts_dir, file)
+                        }
+                        
+                        # Create agent with AiderAgent
+                        self.agents[agent_name] = AiderAgent(agent_config)
+                        self.web_instance.log_message(f"✓ Agent {agent_name} initialized", level='success')
+                        
+                    except Exception as e:
+                        self.web_instance.log_message(f"Error initializing agent {agent_name}: {str(e)}", level='error')
+                        continue
+
+            if not self.agents:
+                self.web_instance.log_message("No agents were initialized", level='warning')
+                
         except Exception as e:
             self.web_instance.log_message(f"Error initializing agents: {str(e)}", level='error')
             raise
