@@ -7016,3 +7016,9 @@ OSError: [WinError 10038] Une opération a été tentée sur autre chose qu’un
 [22:54:34] [SUCCESS] Agents initialized in inactive state
 [22:54:34] [SUCCESS] Core components initialized successfully
 [22:54:35] [INFO] Starting server on http://0.0.0.0:8000
+[22:55:52] [ERROR] Error activating team: 'NoneType' object has no attribute 'log_message'
+[22:55:52] [ERROR] Erreur lors du lancement de l'équipe : Failed to activate team: 'NoneType' object has no attribute 'log_message'
+[22:56:53] [ERROR] Error activating team: 'NoneType' object has no attribute 'log_message'
+[22:56:53] [ERROR] Erreur lors du lancement de l'équipe : Failed to activate team: 'NoneType' object has no attribute 'log_message'
+[22:57:33] [ERROR] Error activating team: 'NoneType' object has no attribute 'log_message'
+[22:57:33] [ERROR] Erreur lors du lancement de l'équipe : Failed to activate team: 'NoneType' object has no attribute 'log_message'
