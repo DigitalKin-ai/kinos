@@ -206,12 +206,12 @@ export default {
                 
                 const currentFiles = await response.json();
                 
-                // Filter to only show files that physically exist
+                // Only return files that physically exist with size > 0
                 this.files = currentFiles.filter(file => {
                     try {
-                        return file.size > 0; // A file with size > 0 exists
+                        return file && file.size > 0;
                     } catch {
-                        return false;
+                        return false; 
                     }
                 }).map(file => ({
                     ...file,
