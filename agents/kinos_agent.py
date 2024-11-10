@@ -64,6 +64,13 @@ class KinOSAgent:
         if sys.stderr.encoding != 'utf-8':
             sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
+        # Initialize timing and state attributes
+        self.last_run = None
+        self.last_change = None
+        self.consecutive_no_changes = 0
+        self.running = False
+        self.error_count = 0
+
         # Validate configuration first
         if not config.get("anthropic_api_key"):
             raise ValueError("anthropic_api_key missing in configuration")

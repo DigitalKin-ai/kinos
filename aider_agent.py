@@ -50,6 +50,11 @@ class AiderAgent(KinOSAgent):
         # Initialize watched files list
         self.watched_files = []
 
+        # Ensure timing attributes are initialized
+        self.last_run = None
+        self.last_change = None
+        self.consecutive_no_changes = 0
+
         self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
 
     def _validate_mission_directory(self) -> bool:
