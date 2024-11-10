@@ -40,6 +40,15 @@ class AiderAgent(KinOSAgent):
         # Validation de la configuration
         if "name" not in config:
             raise ValueError("Le nom de l'agent doit être spécifié")
+            
+    def _get_relative_file_path(self, file_path: str) -> str:
+        """Get relative path from mission directory"""
+        try:
+            mission_dir = PathManager.get_mission_path(self.web_instance.file_manager.current_mission)
+            return os.path.relpath(file_path, mission_dir)
+        except Exception as e:
+            self.logger(f"Error getting relative path: {str(e)}")
+            return file_path
         if "prompt" not in config:
             raise ValueError("Le prompt de l'agent doit être spécifié")
         if "mission_name" not in config:

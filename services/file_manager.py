@@ -20,6 +20,18 @@ class FileManager:
         self.file_paths = {
             'demande': 'demande.md'  # Only track demande.md initially
         }
+        
+    def _validate_file_path(self, file_path: str) -> bool:
+        """Centralized file path validation"""
+        try:
+            normalized = PathManager.normalize_path(file_path)
+            if not normalized.startswith(self.project_root):
+                self.logger.log(f"Invalid path: {file_path}", 'error')
+                return False
+            return True
+        except Exception as e:
+            self.logger.log(f"Path validation error: {str(e)}", 'error')
+            return False
         # Get project root using PathManager
         self.project_root = PathManager.get_project_root()
         self.on_content_changed = on_content_changed

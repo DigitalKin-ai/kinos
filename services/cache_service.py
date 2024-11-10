@@ -26,6 +26,20 @@ class CacheService(BaseService):
         # Use PathManager for cache directory
         self.cache_dir = PathManager.get_temp_path()
         
+    def _cleanup_cache(self, cache_type: str) -> None:
+        """Centralized cache cleanup"""
+        try:
+            cache = self._get_cache(cache_type)
+            now = time.time()
+            expired = [
+                key for key, (_, timestamp) in cache.items()
+                if now - timestamp > self.ttl
+            ]
+            for key in expired:
+                self._remove(key, cache_type)
+        except Exception as e:
+            self.logger.log(f"Cache cleanup error: {str(e)}", 'error')
+        
         # Cache settings
         self.max_size = self.config.get('CACHE_SIZE', 1000)
         self.ttl = self.config.get('CACHE_TTL', 3600)  # 1 hour default

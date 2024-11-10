@@ -44,6 +44,13 @@ def load_ignore_patterns(mission_dir: str, web_instance) -> list:
                 
     return ignore_patterns
 
+def _validate_mission(mission_id: int, web_instance) -> dict:
+    """Centralized mission validation"""
+    mission = web_instance.mission_service.get_mission(mission_id)
+    if not mission:
+        raise ResourceNotFoundError(f"Mission {mission_id} not found")
+    return mission
+
 def register_mission_routes(app, web_instance):
     """Register all mission-related routes"""
     

@@ -18,6 +18,17 @@ class NotificationService(BaseService):
         self.cache_misses = 0
         self.total_notifications = 0
         
+    def _format_notification(self, message: str, panel: str, flash: bool = False) -> dict:
+        """Centralized notification formatting"""
+        return {
+            'type': 'info',
+            'message': message,
+            'panel': panel,
+            'timestamp': datetime.now().strftime("%H:%M:%S"),
+            'flash': flash,
+            'id': len(self.notifications_queue)
+        }
+        
         # Use PathManager for log path
         self.log_path = PathManager.get_logs_path()
 
