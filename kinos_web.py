@@ -784,6 +784,37 @@ class KinOSWeb:
                 self.log_message(f"Error getting mission: {str(e)}", 'error')
                 return jsonify({'error': str(e)}), 500
 
+        @self.app.route('/api/missions/<int:mission_id>/select', methods=['POST'])
+        def select_mission(mission_id):
+            """Select a specific mission"""
+            try:
+                # Validate mission exists
+                mission = self.mission_service.get_mission(mission_id)
+                if not mission:
+                    return jsonify({'error': 'Mission not found'}), 404
+
+                # Update current mission in FileManager
+                self.file_manager.current_mission = mission['name']
+
+                # Reinitialize agents for this mission
+                self.reinitialize_agents()
+
+                # Return mission details
+                return jsonify({
+                    'id': mission_id,
+                    'name': mission['name'],
+                    'path': mission['path'],
+                    'status': mission.get('status', 'active'),
+                    'selected_at': datetime.now().isoformat()
+                }), 200
+
+            except Exception as e:
+                self.log_message(f"Error selecting mission: {str(e)}", 'error')
+                return jsonify({
+                    'error': 'Failed to select mission',
+                    'details': str(e)
+                }), 500
+
         @self.app.route('/api/missions/<int:mission_id>', methods=['PUT'])
         def update_mission(mission_id):
             try:
