@@ -1,49 +1,20 @@
 import MissionSelector from './js/mission-selector.js';
 import MissionService from './js/mission-service.js';
 
-// Debounce utility function
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func.apply(this, args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-const KinOSApp = {
+const app = createApp({
     components: {
         MissionSelector
     },
-    delimiters: ['${', '}'],  // Use different delimiters to avoid Jinja2 conflicts
-    setup() {
-        const missionService = new MissionService();
-        return {
-            missionService
-        };
-    },
     data() {
         return {
-            running: false,
-            loading: false,
-            error: null,
-            previousContent: {},
-            missionSidebarCollapsed: false,
+            missionService: new MissionService(),
             currentMission: null,
-            missions: [], // Will be loaded from API
-            isCreatingMission: false,
-            newMissionName: '',
-            missionIdCounter: 3, // Start after existing missions
-            runningAgents: new Set(), // Track which agents are running
+            missions: [],
+            loading: true,
+            error: null,
+            runningAgents: new Set(),
             notifications: [],
             activeTab: 'demande',
-            showPromptModal: false,
-            currentPromptAgent: null,
-            currentPrompt: '',
-            promptChanged: false,
             content: {
                 demande: '',
                 specifications: '',
@@ -51,43 +22,62 @@ const KinOSApp = {
                 production: '',
                 evaluation: '',
                 suivi: ''
-            },
-            previousContent: {},
-            suiviUpdateInterval: null,
-            demandeChanged: false,
-            updateInterval: null,
-            ws: null
-        }
-    },
-    
-    watch: {
-        'content': {
-            deep: true,
-            handler(newContent, oldContent) {
-                Object.keys(newContent).forEach(panelId => {
-                    if (newContent[panelId] !== oldContent[panelId]) {
-                        console.log('Content changed for panel:', panelId);
-                        this.refreshPanel(panelId);
-                    }
-                });
             }
         }
     },
+    async mounted() {
+        try {
+            // Initialize mission service first
+            await this.missionService.initialize();
+            this.missions = this.missionService.getMissions();
+            this.currentMission = this.missionService.getCurrentMission();
+            
+            // Load initial content if we have a mission
+            if (this.currentMission) {
+                await this.loadMissionContent(this.currentMission.id);
+            }
+        } catch (error) {
+            console.error('Failed to initialize:', error);
+            this.error = error.message;
+        } finally {
+            this.loading = false;
+        }
+    },
     methods: {
-        forceContentRefresh(panelId) {
-            this.$nextTick(() => {
-                const panel = document.querySelector(`.panel[data-panel="${panelId}"] .content-display`);
-                if (panel) {
-                    const content = this.formatMarkdown(this.highlightContent(panelId));
-                    panel.innerHTML = content;
-                }
-            });
+        async selectMission(mission) {
+            try {
+                this.loading = true;
+                await this.missionService.selectMission(mission);
+                this.currentMission = this.missionService.getCurrentMission();
+                await this.loadMissionContent(mission.id);
+            } catch (error) {
+                console.error('Mission selection failed:', error);
+                this.error = error.message;
+            } finally {
+                this.loading = false;
+            }
         },
-        
-        refreshPanel(panelId) {
-            console.log('Refreshing panel:', panelId);
-            this.forceContentRefresh(panelId);
+
+        async loadMissionContent(missionId) {
+            try {
+                const content = await this.missionService.getMissionContent(missionId);
+                this.content = content;
+            } catch (error) {
+                console.error('Failed to load mission content:', error);
+                this.error = error.message;
+            }
         },
+
+        async createMission(name) {
+            try {
+                const mission = await this.missionService.createMission(name);
+                this.missions = this.missionService.getMissions();
+                await this.selectMission(mission);
+            } catch (error) {
+                console.error('Failed to create mission:', error);
+                this.error = error.message;
+            }
+        }
 
         async linkExternalMission() {
             try {
@@ -900,6 +890,6 @@ const KinOSApp = {
             clearInterval(this.suiviUpdateInterval);
         }
     }
-};
+});
 
-Vue.createApp(KinOSApp).mount('#app');
+app.mount('#app');
