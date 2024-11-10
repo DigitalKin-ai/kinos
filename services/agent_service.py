@@ -323,40 +323,64 @@ class AgentService:
             self.monitor_thread.start()
 
     def _monitor_agents(self) -> None:
-        """Monitor agent status and health"""
+        """Monitor agent status and health with enhanced metrics"""
         while self.running:
             try:
                 status_updates = {}
+                system_metrics = {
+                    'total_agents': len(self.agents),
+                    'active_agents': 0,
+                    'healthy_agents': 0,
+                    'error_count': 0,
+                    'cache_hits': 0,
+                    'cache_misses': 0,
+                    'average_response_time': 0.0,
+                    'memory_usage': {},
+                    'file_operations': {
+                        'reads': 0,
+                        'writes': 0,
+                        'errors': 0
+                    }
+                }
+
+                # Monitor each agent
                 for name, agent in self.agents.items():
                     try:
-                        current_status = self._get_agent_status(name)
+                        # Get detailed agent status
+                        current_status = self._get_detailed_agent_status(name)
+                        
+                        # Update system metrics
+                        if current_status['running']:
+                            system_metrics['active_agents'] += 1
+                        if current_status['health']['is_healthy']:
+                            system_metrics['healthy_agents'] += 1
+                            
+                        # Aggregate performance metrics
+                        system_metrics['cache_hits'] += current_status['metrics']['cache_hits']
+                        system_metrics['cache_misses'] += current_status['metrics']['cache_misses']
+                        system_metrics['file_operations']['reads'] += current_status['metrics']['file_reads']
+                        system_metrics['file_operations']['writes'] += current_status['metrics']['file_writes']
                         
                         # Check for health issues
                         if not current_status['health']['is_healthy']:
-                            self.web_instance.log_message(
-                                f"Agent {name} health check failed", 
-                                level='warning'
-                            )
+                            self._handle_unhealthy_agent(name, current_status)
                             
-                            # Attempt recovery if needed
-                            if agent.running and not agent.recover_from_error():
-                                self.web_instance.log_message(
-                                    f"Agent {name} recovery failed - restarting", 
-                                    level='warning'
-                                )
-                                self._restart_agent(name, agent)
-                                
                         status_updates[name] = current_status
                         
                     except Exception as agent_error:
-                        self.web_instance.log_message(
-                            f"Error monitoring agent {name}: {str(agent_error)}", 
-                            level='error'
-                        )
-                        
-                # Update global status
-                self._update_global_status(status_updates)
+                        system_metrics['error_count'] += 1
+                        self._handle_agent_error(name, agent_error)
+
+                # Calculate system health score
+                health_score = self._calculate_system_health(system_metrics)
                 
+                # Update global status with metrics
+                self._update_global_status(status_updates, system_metrics, health_score)
+                
+                # Handle system-wide issues
+                if health_score < 0.7:  # Below 70% health
+                    self._handle_system_degradation(system_metrics)
+                    
             except Exception as e:
                 self.web_instance.log_message(f"Error in monitor loop: {str(e)}", level='error')
             finally:
@@ -389,37 +413,52 @@ class AgentService:
                 f"Agent {name} thread crashed: {str(e)}\n{traceback.format_exc()}", 
                 level='error'
             )
-    def _get_agent_status(self, agent_name: str) -> Dict[str, Any]:
-        """Get detailed status information for an agent"""
+    def _get_detailed_agent_status(self, agent_name: str) -> Dict[str, Any]:
+        """Get comprehensive agent status including performance metrics"""
         try:
             agent = self.agents.get(agent_name)
             if not agent:
-                return {
-                    'running': False,
-                    'status': 'not_initialized',
-                    'last_run': None,
-                    'health': {
-                        'is_healthy': False,
-                        'consecutive_no_changes': 0,
-                        'current_interval': None
-                    }
-                }
+                return self._get_default_status()
 
-            return {
+            # Basic status
+            status = {
                 'running': agent.running,
                 'status': 'active' if agent.running else 'inactive',
                 'last_run': agent.last_run.isoformat() if agent.last_run else None,
                 'last_change': agent.last_change.isoformat() if agent.last_change else None,
+                
+                # Health metrics
                 'health': {
                     'is_healthy': agent.is_healthy(),
                     'consecutive_no_changes': agent.consecutive_no_changes,
-                    'current_interval': agent.calculate_dynamic_interval()
+                    'current_interval': agent.calculate_dynamic_interval(),
+                    'error_rate': self._calculate_error_rate(agent),
+                    'response_times': self._get_response_times(agent)
+                },
+                
+                # Performance metrics
+                'metrics': {
+                    'cache_hits': getattr(agent, 'cache_hits', 0),
+                    'cache_misses': getattr(agent, 'cache_misses', 0),
+                    'file_reads': getattr(agent, 'file_reads', 0),
+                    'file_writes': getattr(agent, 'file_writes', 0),
+                    'average_processing_time': self._get_average_processing_time(agent),
+                    'memory_usage': self._get_agent_memory_usage(agent)
+                },
+                
+                # Resource utilization
+                'resources': {
+                    'cpu_usage': self._get_agent_cpu_usage(agent),
+                    'memory_usage': self._get_agent_memory_usage(agent),
+                    'file_handles': self._get_open_file_handles(agent)
                 }
             }
 
+            return status
+
         except Exception as e:
-            self.web_instance.log_message(f"Error getting agent status: {str(e)}", level='error')
-            return {'running': False, 'status': 'error', 'error': str(e)}
+            self.web_instance.log_message(f"Error getting detailed status: {str(e)}", level='error')
+            return self._get_default_status()
 
     def _restart_agent(self, name: str, agent: 'KinOSAgent') -> None:
         """Safely restart a single agent"""
