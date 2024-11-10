@@ -68,7 +68,8 @@ class AgentService:
                         discovered_agents.append({
                             'name': agent_name,
                             'prompt_file': file,
-                            'class': agent_class
+                            'class': agent_class,
+                            'status': self._get_agent_status(agent_name)
                         })
                         self.web_instance.log_message(f"Discovered agent: {agent_name}", level='debug')
 
@@ -325,12 +326,39 @@ class AgentService:
         """Monitor agent status and health"""
         while self.running:
             try:
+                status_updates = {}
                 for name, agent in self.agents.items():
-                    if not agent.is_healthy():
-                        self.web_instance.log_message(f"Agent {name} appears unhealthy", level='warning')
-                        # Implement recovery logic here
+                    try:
+                        current_status = self._get_agent_status(name)
+                        
+                        # Check for health issues
+                        if not current_status['health']['is_healthy']:
+                            self.web_instance.log_message(
+                                f"Agent {name} health check failed", 
+                                level='warning'
+                            )
+                            
+                            # Attempt recovery if needed
+                            if agent.running and not agent.recover_from_error():
+                                self.web_instance.log_message(
+                                    f"Agent {name} recovery failed - restarting", 
+                                    level='warning'
+                                )
+                                self._restart_agent(name, agent)
+                                
+                        status_updates[name] = current_status
+                        
+                    except Exception as agent_error:
+                        self.web_instance.log_message(
+                            f"Error monitoring agent {name}: {str(agent_error)}", 
+                            level='error'
+                        )
+                        
+                # Update global status
+                self._update_global_status(status_updates)
+                
             except Exception as e:
-                self.web_instance.log_message(f"Error monitoring agents: {str(e)}", level='error')
+                self.web_instance.log_message(f"Error in monitor loop: {str(e)}", level='error')
             finally:
                 time.sleep(30)  # Check every 30 seconds
 
@@ -361,3 +389,86 @@ class AgentService:
                 f"Agent {name} thread crashed: {str(e)}\n{traceback.format_exc()}", 
                 level='error'
             )
+    def _get_agent_status(self, agent_name: str) -> Dict[str, Any]:
+        """Get detailed status information for an agent"""
+        try:
+            agent = self.agents.get(agent_name)
+            if not agent:
+                return {
+                    'running': False,
+                    'status': 'not_initialized',
+                    'last_run': None,
+                    'health': {
+                        'is_healthy': False,
+                        'consecutive_no_changes': 0,
+                        'current_interval': None
+                    }
+                }
+
+            return {
+                'running': agent.running,
+                'status': 'active' if agent.running else 'inactive',
+                'last_run': agent.last_run.isoformat() if agent.last_run else None,
+                'last_change': agent.last_change.isoformat() if agent.last_change else None,
+                'health': {
+                    'is_healthy': agent.is_healthy(),
+                    'consecutive_no_changes': agent.consecutive_no_changes,
+                    'current_interval': agent.calculate_dynamic_interval()
+                }
+            }
+
+        except Exception as e:
+            self.web_instance.log_message(f"Error getting agent status: {str(e)}", level='error')
+            return {'running': False, 'status': 'error', 'error': str(e)}
+
+    def _restart_agent(self, name: str, agent: 'KinOSAgent') -> None:
+        """Safely restart a single agent"""
+        try:
+            # Stop the agent
+            agent.stop()
+            time.sleep(1)  # Brief pause
+            
+            # Start the agent
+            agent.start()
+            thread = threading.Thread(
+                target=self._run_agent_wrapper,
+                args=(name, agent),
+                daemon=True,
+                name=f"Agent-{name}"
+            )
+            thread.start()
+            
+            self.web_instance.log_message(f"Successfully restarted agent {name}", level='success')
+            
+        except Exception as e:
+            self.web_instance.log_message(f"Error restarting agent {name}: {str(e)}", level='error')
+
+    def _update_global_status(self, status_updates: Dict[str, Dict]) -> None:
+        """Update global system status based on agent states"""
+        try:
+            total_agents = len(status_updates)
+            active_agents = sum(1 for status in status_updates.values() if status['running'])
+            healthy_agents = sum(1 for status in status_updates.values() 
+                               if status['health']['is_healthy'])
+            
+            system_status = {
+                'total_agents': total_agents,
+                'active_agents': active_agents,
+                'healthy_agents': healthy_agents,
+                'system_health': healthy_agents / total_agents if total_agents > 0 else 0,
+                'timestamp': datetime.now().isoformat(),
+                'agents': status_updates
+            }
+            
+            # Log significant changes
+            if system_status['system_health'] < 0.8:  # Less than 80% healthy
+                self.web_instance.log_message(
+                    f"System health degraded: {system_status['system_health']:.1%}", 
+                    level='warning'
+                )
+                
+            # Store status for API access
+            self._last_status = system_status
+            
+        except Exception as e:
+            self.web_instance.log_message(f"Error updating global status: {str(e)}", level='error')
