@@ -43,6 +43,12 @@ class KinOSWeb:
         if hasattr(self, '_routes_registered'):
             return
 
+        # Add root route
+        @self.app.route('/')
+        def index():
+            """Serve the main application page"""
+            return render_template('base.html')
+
         # Add health check endpoint
         @self.app.route('/health')
         def health_check():
@@ -1107,14 +1113,12 @@ class KinOSWeb:
             self._cleanup_sockets()
             
             # Add small delay after cleanup
-            import time
             time.sleep(1)
             
             # Set Flask debug mode
             self.app.debug = debug
             
             # Configure CORS properly
-            from flask_cors import CORS
             CORS(self.app, resources={
                 r"/api/*": {
                     "origins": ["http://localhost:8000", "http://127.0.0.1:8000"],
@@ -1122,13 +1126,14 @@ class KinOSWeb:
                 }
             })
             
-            # Configure server options (separate from Flask options)
+            # Configure server options
             server_options = {
                 'threaded': True,
-                'processes': 1  # Single process for development
+                'processes': 1,  # Single process for development
+                'use_reloader': debug
             }
             
-            # Create server explicitly
+            # Initialize server
             try:
                 self._initialize_server(host, port, server_options)
                 self.logger.log(f"Starting server on http://{host}:{port}", 'info')
@@ -1137,7 +1142,14 @@ class KinOSWeb:
                 print(f"\nKinOS Web running on http://{host}:{port}")
                 print("Press CTRL+C to quit\n")
                 
-                self.server.serve_forever()
+                # Run the Flask app directly instead of using serve_forever
+                self.app.run(
+                    host=host,
+                    port=port,
+                    debug=debug,
+                    threaded=server_options['threaded'],
+                    use_reloader=server_options['use_reloader']
+                )
                 
             except Exception as server_error:
                 self.logger.log(f"Server error: {str(server_error)}", 'error')
