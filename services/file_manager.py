@@ -61,9 +61,9 @@ class FileManager:
     def _normalize_mission_name(self, mission_name: str) -> str:
         """
         Normalize mission name for filesystem use.
-        Handles special characters and spaces to create valid paths.
+        Uses PathManager for consistent path normalization.
         """
-        # Replace invalid characters
+        # First do basic character replacement
         invalid_chars = ["'", '"', ' ', '/', '\\', ':', '*', '?', '<', '>', '|']
         normalized = mission_name
         for char in invalid_chars:
@@ -76,7 +76,8 @@ class FileManager:
         # Remove leading/trailing underscores
         normalized = normalized.strip('_')
         
-        return normalized
+        # Use PathManager for final normalization
+        return PathManager.normalize_path(normalized)
 
     @property
     def current_mission(self):
