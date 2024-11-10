@@ -118,10 +118,8 @@ class KinOSWeb:
         # Initialize logger first
         self.logger = Logger()
         
-        # Get absolute path to project root (same directory as kinos_web.py)
-        project_root = os.path.dirname(os.path.abspath(__file__))
-        
-        # Configure template and static paths relative to project root
+        # Get project paths using PathManager
+        project_root = PathManager.get_project_root()
         template_dir = os.path.join(project_root, 'templates')
         static_dir = os.path.join(project_root, 'static')
         

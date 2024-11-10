@@ -9,10 +9,9 @@ from utils.exceptions import AgentError
 class MissionService:
 
     def __init__(self):
-        """Initialize mission service with base directory"""
-        self.missions_dir = "missions" 
+        """Initialize mission service"""
+        self.missions_dir = PathManager.get_mission_path("")  # Get root missions dir
         self.logger = Logger()  # Initialize logger
-        self._ensure_missions_dir()
         self._missions_cache = None
         self._last_scan = 0
         self.scan_interval = 5  # Seconds between directory scans
@@ -58,29 +57,9 @@ class MissionService:
     def _ensure_missions_dir(self):
         """Find and set the missions directory path"""
         try:
-            # Chercher d'abord dans le répertoire courant
-            if os.path.exists("missions"):
-                self.missions_dir = self._normalize_mission_path("missions")
-                self.logger.log(f"Found missions directory: {self.missions_dir}", level='info')
-                return True
-
-            # Si non trouvé, chercher dans le répertoire parent
-            parent_missions = self._normalize_mission_path(os.path.join(os.path.dirname(__file__), "..", "missions"))
-            if os.path.exists(parent_missions):
-                self.missions_dir = parent_missions
-                self.logger.log(f"Found missions directory: {self.missions_dir}", level='info')
-                return True
-
-            # Si toujours pas trouvé, chercher dans le répertoire utilisateur
-            user_missions = self._normalize_mission_path(os.path.expanduser(os.path.join("~", "parallagon", "missions")))
-            if os.path.exists(user_missions):
-                self.missions_dir = user_missions
-                self.logger.log(f"Found missions directory: {self.missions_dir}", level='info')
-                return True
-
-            # Si aucun dossier missions n'est trouvé, lever une exception
-            raise ValueError("No missions directory found")
-
+            self.missions_dir = PathManager.get_mission_path("")
+            self.logger.log(f"Found missions directory: {self.missions_dir}", level='info')
+            return True
         except Exception as e:
             self.logger.log(f"Error finding missions directory: {e}", level='error')
             raise

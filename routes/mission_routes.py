@@ -70,9 +70,8 @@ def register_mission_routes(app, web_instance):
             # Log mission trouvée
             web_instance.logger.log(f"Found mission: {mission['name']}", level='debug')
 
-            # Build mission path with normalized name
-            normalized_name = web_instance.mission_service._normalize_mission_name(mission['name'])
-            mission_dir = os.path.join("missions", normalized_name)
+            # Get mission path using PathManager
+            mission_dir = PathManager.get_mission_path(mission['name'])
             web_instance.logger.log(f"Mission directory: {mission_dir}", level='debug')
 
             # Vérifier que le dossier existe

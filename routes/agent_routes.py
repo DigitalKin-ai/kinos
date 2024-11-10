@@ -24,9 +24,8 @@ def register_agent_routes(app, web_instance):
     @safe_operation()
     def list_agents():
         try:
-            # Get absolute path to prompts directory
-            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            prompts_dir = os.path.join(project_root, "prompts")
+            # Get prompts directory using PathManager
+            prompts_dir = PathManager.get_prompts_path()
             
             # Validate prompts directory exists
             if not os.path.exists(prompts_dir):
