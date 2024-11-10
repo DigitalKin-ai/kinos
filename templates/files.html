@@ -96,8 +96,8 @@
         },
         // Add this method to ensure missionService is passed
         created() {
-            // Ensure missionService is initialized before mounting
-            this.missionService = new MissionService();
+            // Initialize with empty base URL for relative paths
+            this.missionService = new MissionService('');
         },
         async mounted() {
             try {

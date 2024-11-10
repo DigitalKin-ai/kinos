@@ -4,7 +4,7 @@
  */
 class ApiClient {
     constructor(baseUrl = '') {
-        this.baseUrl = baseUrl;
+        this.baseUrl = ''; // Always use relative paths
         this.token = null; // For future authentication
     }
 
