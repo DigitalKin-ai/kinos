@@ -221,10 +221,8 @@ class AgentService:
             if not current_mission:
                 raise AgentError("No current mission set")
 
-            # Get absolute path to project root (where missions directory is)
+            # Get absolute path to project root
             project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            
-            # Build absolute mission path
             mission_dir = os.path.abspath(os.path.join(project_root, "missions", current_mission))
             
             self.web_instance.log_message(f"Using absolute mission path: {mission_dir}", level='debug')
@@ -235,7 +233,13 @@ class AgentService:
             if not os.access(mission_dir, os.R_OK | os.W_OK):
                 raise AgentError(f"Insufficient permissions on: {mission_dir}")
 
-            # Update mission directory for all agents with absolute path
+            # Store thread references
+            self.agent_threads = {}
+
+            # Log agents to be started
+            self.web_instance.log_message(f"Agents to start: {list(self.agents.keys())}", level='debug')
+
+            # Update mission directory for all agents
             for name, agent in self.agents.items():
                 agent.mission_dir = mission_dir
                 self.web_instance.log_message(f"Set mission dir for {name}: {mission_dir}", level='debug')
@@ -245,36 +249,48 @@ class AgentService:
             # Start monitor thread
             self._start_monitor_thread()
             
-            # Start each agent in a new thread with detailed logging
+            # Start each agent in a new thread
             for name, agent in self.agents.items():
                 try:
                     self.web_instance.log_message(f"Starting agent {name}...", level='debug')
-                    self.web_instance.log_message(f"Agent {name} mission dir: {agent.mission_dir}", level='debug')
                     
                     # Initialize agent
                     agent.start()
                     self.web_instance.log_message(f"Agent {name} initialized", level='debug')
                     
-                    # Create and start thread for agent
+                    # Create thread
                     thread = threading.Thread(
-                        target=agent.run,
+                        target=self._run_agent_wrapper,  # Use wrapper function
+                        args=(name, agent),
                         daemon=True,
                         name=f"Agent-{name}"
                     )
+                    
+                    # Store thread reference
+                    self.agent_threads[name] = thread
+                    
+                    # Start thread
                     thread.start()
-                    self.web_instance.log_message(f"Thread started for agent {name}", level='debug')
+                    self.web_instance.log_message(f"Started thread for {name}", level='debug')
 
                     # Verify thread started
                     if not thread.is_alive():
-                        raise AgentError(f"Failed to start thread for agent {name}")
+                        raise AgentError(f"Thread failed to start for agent {name}")
                         
-                    self.web_instance.log_message(f"✓ Agent {name} started and running", level='success')
+                    self.web_instance.log_message(f"✓ Agent {name} thread confirmed running", level='success')
                     
                 except Exception as e:
                     self.web_instance.log_message(
                         f"Error starting agent {name}: {str(e)}\n{traceback.format_exc()}", 
                         level='error'
                     )
+
+            # Verify all threads are running
+            running_threads = [name for name, thread in self.agent_threads.items() if thread.is_alive()]
+            self.web_instance.log_message(f"Running agent threads: {running_threads}", level='debug')
+
+            if len(running_threads) != len(self.agents):
+                raise AgentError(f"Only {len(running_threads)} of {len(self.agents)} agents started")
 
             self.web_instance.log_message("✨ All agents active", level='success')
             
