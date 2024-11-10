@@ -1105,17 +1105,28 @@ class KinOSWeb:
         """Force cleanup of lingering sockets"""
         import socket
         import gc
+        import time
         
         # Force garbage collection
         gc.collect()
         
         # Close any lingering sockets
+        closed = 0
         for obj in gc.get_objects():
             if isinstance(obj, socket.socket):
                 try:
                     obj.close()
+                    closed += 1
                 except:
                     pass
+                    
+        # Add delay after cleanup
+        if closed > 0:
+            time.sleep(0.5)
+            
+        # Log cleanup results
+        if closed > 0:
+            self.logger.log(f"Cleaned up {closed} socket(s)", 'info')
 
     def shutdown(self):
         """Graceful shutdown of the application"""
