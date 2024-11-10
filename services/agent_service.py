@@ -96,6 +96,11 @@ class AgentService:
             # Initialiser le dictionnaire des agents
             self.agents = {}
             
+            # Get current mission path if available
+            mission_dir = None
+            if hasattr(self.web_instance.file_manager, 'current_mission') and self.web_instance.file_manager.current_mission:
+                mission_dir = PathManager.get_mission_path(self.web_instance.file_manager.current_mission)
+            
             # Découvrir les agents disponibles
             discovered_agents = self._discover_agents()
             
@@ -104,11 +109,12 @@ class AgentService:
                     name = agent_info['name'].lower()  # Normaliser en minuscules
                     agent_class = agent_info['class']
                     
-                    # Configurer l'agent
+                    # Configurer l'agent avec mission_dir
                     agent_config = {
                         **config,
                         "name": name,
-                        "web_instance": self.web_instance
+                        "web_instance": self.web_instance,
+                        "mission_dir": mission_dir  # Add mission_dir to config
                     }
                     
                     # Créer l'instance
