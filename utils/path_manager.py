@@ -108,3 +108,71 @@ class PathManager:
     def normalize_path(path: str) -> str:
         """Normalise un chemin de fichier"""
         return os.path.normpath(os.path.abspath(path))
+
+    @staticmethod
+    def get_agents_path() -> str:
+        """Retourne le chemin vers le dossier des agents"""
+        return os.path.join(PathManager.get_project_root(), "agents")
+
+    @staticmethod
+    def get_services_path() -> str:
+        """Retourne le chemin vers le dossier des services"""
+        return os.path.join(PathManager.get_project_root(), "services")
+
+    @staticmethod
+    def get_routes_path() -> str:
+        """Retourne le chemin vers le dossier des routes"""
+        return os.path.join(PathManager.get_project_root(), "routes")
+
+    @staticmethod
+    def get_docs_path() -> str:
+        """Retourne le chemin vers le dossier de documentation"""
+        docs_dir = os.path.join(PathManager.get_project_root(), "docs")
+        os.makedirs(docs_dir, exist_ok=True)
+        return docs_dir
+
+    @staticmethod
+    def get_tests_path() -> str:
+        """Retourne le chemin vers le dossier des tests"""
+        tests_dir = os.path.join(PathManager.get_project_root(), "tests")
+        os.makedirs(tests_dir, exist_ok=True)
+        return tests_dir
+
+    @staticmethod
+    def get_config_file(filename: str) -> str:
+        """Retourne le chemin vers un fichier de configuration spécifique"""
+        return os.path.join(PathManager.get_config_path(), filename)
+
+    @staticmethod
+    def get_prompt_file(agent_name: str) -> str:
+        """Retourne le chemin vers le fichier prompt d'un agent"""
+        return os.path.join(PathManager.get_prompts_path(), f"{agent_name}.md")
+
+    @staticmethod
+    def get_log_file(service_name: str) -> str:
+        """Retourne le chemin vers un fichier de log spécifique"""
+        return os.path.join(PathManager.get_logs_path(), f"{service_name}.log")
+
+    @staticmethod
+    def validate_path(path: str) -> bool:
+        """Valide qu'un chemin est sécurisé et dans le projet"""
+        try:
+            normalized = PathManager.normalize_path(path)
+            return normalized.startswith(PathManager.get_project_root())
+        except Exception:
+            return False
+
+    @staticmethod
+    def ensure_directory(path: str) -> None:
+        """Crée un dossier s'il n'existe pas"""
+        os.makedirs(path, exist_ok=True)
+
+    @staticmethod
+    def get_relative_path(path: str) -> str:
+        """Retourne le chemin relatif par rapport à la racine du projet"""
+        return os.path.relpath(path, PathManager.get_project_root())
+
+    @staticmethod
+    def join_paths(*paths: str) -> str:
+        """Joint les chemins et normalise le résultat"""
+        return PathManager.normalize_path(os.path.join(*paths))
