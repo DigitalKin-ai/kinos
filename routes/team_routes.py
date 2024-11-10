@@ -1,5 +1,7 @@
 from flask import jsonify, request
+from typing import Dict, Any
 from utils.decorators import safe_operation
+from utils.exceptions import ValidationError
 
 def _validate_team_configuration(team_id: str) -> Dict[str, Any]:
     """
