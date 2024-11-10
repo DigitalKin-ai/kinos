@@ -21,6 +21,10 @@ class AgentService:
         self.monitor_thread = None
         self.running = False
         self.pending_agents = []  # Track agents waiting for file creation
+        self.agent_threads = {}
+        
+        # Add socket cleanup on init
+        self._cleanup_sockets()
 
         # Set UTF-8 encoding for stdout/stderr
         import sys
@@ -147,10 +151,29 @@ class AgentService:
         """Get list of available agent names"""
         return list(self.agents.keys())
 
+    def _cleanup_sockets(self):
+        """Force cleanup of lingering sockets"""
+        import socket
+        import gc
+        
+        # Force garbage collection
+        gc.collect()
+        
+        # Close any lingering sockets
+        for obj in gc.get_objects():
+            if isinstance(obj, socket.socket):
+                try:
+                    obj.close()
+                except:
+                    pass
+
     def start_all_agents(self) -> None:
-        """Start all agents"""
+        """Start all agents with better resource management"""
         try:
             self.web_instance.log_message("🚀 Starting agents...", 'info')
+            
+            # Cleanup before starting
+            self._cleanup_sockets()
             
             # Check available agents
             available_agents = self.get_available_agents()
@@ -234,8 +257,9 @@ class AgentService:
                         
                     self.web_instance.log_message(f"✓ Agent {name} thread confirmed running", 'success')
                     
-                    # Add 6 second delay between agent starts
+                    # Add delay and cleanup between agent starts
                     time.sleep(6)
+                    self._cleanup_sockets()
                     
                 except Exception as e:
                     self.web_instance.log_message(
@@ -260,7 +284,7 @@ class AgentService:
             raise
 
     def stop_all_agents(self) -> None:
-        """Stop all agents and monitor thread"""
+        """Stop all agents and monitor thread with cleanup"""
         try:
             self.running = False
             
@@ -275,6 +299,9 @@ class AgentService:
             # Stop monitor thread
             if self.monitor_thread and self.monitor_thread.is_alive():
                 self.monitor_thread.join(timeout=2)
+
+            # Cleanup resources
+            self._cleanup_sockets()
 
             self.web_instance.log_message("All agents stopped", 'success')
             
