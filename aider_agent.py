@@ -70,41 +70,40 @@ class AiderAgent(KinOSAgent):
             return False
 
     def _run_aider(self, prompt: str) -> Optional[str]:
-        """
-        Execute Aider with given prompt.
-        Only works with existing files, doesn't create new ones.
-        """
+        """Execute Aider with given prompt."""
         try:
-            # Obtenir le dossier de mission
             current_dir = os.getcwd()
             
-            try:
-                # Changer vers le dossier de la mission
-                os.chdir(self.mission_dir)
-                self.logger(f"[{self.__class__.__name__}] 📂 Changement vers le dossier: {self.mission_dir}")
+            # Verify mission directory exists
+            if not os.path.exists(self.mission_dir):
+                self.logger(f"[{self.__class__.__name__}] ❌ Mission directory not found: {self.mission_dir}")
+                return None
 
+            try:
+                os.chdir(self.mission_dir)
+                self.logger(f"[{self.__class__.__name__}] 📂 Changed to directory: {self.mission_dir}")
 
                 # Construire la commande avec chemins relatifs
                 cmd = [
                     "aider",
                     "--model", "claude-3-5-haiku-20241022",
                     "--no-git",
-                    "--yes-always"  # Utiliser juste le nom du fichier
+                    "--yes-always"
                 ]
                 
-                # Ajouter les autres fichiers (chemins relatifs)
+                # Ajouter les fichiers (chemins relatifs)
                 for file_path in self.mission_files:
                     rel_path = os.path.relpath(file_path, self.mission_dir)
-                    if os.path.exists(rel_path):  # Vérifier le chemin relatif
+                    if os.path.exists(rel_path):
                         cmd.extend(["--file", rel_path])
                         
                 # Ajouter le message
-                cmd.extend(["--message", self.prompt])
+                cmd.extend(["--message", prompt])
                 
                 # Logger la commande
                 self.logger(f"[{self.__class__.__name__}] 🤖 Commande Aider :")
-        
-                # Exécuter Aider avec timeout et gestion d'encodage
+                
+                # Exécuter Aider
                 process = subprocess.Popen(
                     cmd,
                     stdout=subprocess.PIPE,
@@ -113,30 +112,17 @@ class AiderAgent(KinOSAgent):
                     encoding='utf-8',
                     errors='replace'
                 )
-        
-                try:
-                    stdout, stderr = process.communicate(timeout=600)
-                except subprocess.TimeoutExpired:
-                    process.kill()
-                    self.logger(f"[{self.__class__.__name__}] ❌ Timeout exécution Aider")
-                    time.sleep(min(300, 2 ** self.consecutive_no_changes * 30))
-                    return None
                 
-                # Logger la sortie
+                stdout, stderr = process.communicate(timeout=600)
+                
                 if stdout:
                     self.logger(f"[{self.__class__.__name__}] ✅ Sortie Aider:\n{stdout}")
                 if stderr:
                     self.logger(f"[{self.__class__.__name__}] ⚠️ Erreurs Aider:\n{stderr}")
                 
-                if process.returncode == 0:
-                    
-                    return stdout
-                else:
-                    self.logger(f"[{self.__class__.__name__}] ❌ Échec (code {process.returncode})")
-                    return None
-                    
+                return stdout if process.returncode == 0 else None
+                
             finally:
-                # Toujours revenir au dossier original
                 os.chdir(current_dir)
                     
         except Exception as e:

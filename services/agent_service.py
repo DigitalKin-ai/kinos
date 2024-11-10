@@ -216,17 +216,20 @@ class AgentService:
         try:
             self.web_instance.log_message("🚀 Starting agents...", level='info')
             
+            # Verify mission directory exists
+            mission_dir = os.path.join("missions", self.web_instance.file_manager.current_mission)
+            if not os.path.exists(mission_dir):
+                raise AgentError(f"Mission directory not found: {mission_dir}")
+
             # Verify we have agents initialized
             if not self.agents:
                 self.web_instance.log_message("No agents initialized. Running init_agents first...", level='info')
-                # Get config from web_instance
                 config = {
                     "anthropic_api_key": self.web_instance.config.get("anthropic_api_key"),
                     "openai_api_key": self.web_instance.config.get("openai_api_key"),
-                    "mission_dir": os.path.join("missions", self.web_instance.file_manager.current_mission)
+                    "mission_dir": mission_dir
                 }
                 
-                # Initialize agents with proper config
                 self.init_agents(config)
                 
                 if not self.agents:
@@ -237,10 +240,13 @@ class AgentService:
             # Start monitor thread
             self._start_monitor_thread()
             
-            # Start each agent
+            # Start each agent with directory verification
             for name, agent in self.agents.items():
                 try:
                     self.web_instance.log_message(f"Starting agent {name}...", level='debug')
+                    if not os.path.exists(agent.mission_dir):
+                        raise AgentError(f"Agent directory not found: {agent.mission_dir}")
+                        
                     agent.start()
                     thread = threading.Thread(
                         target=agent.run,
