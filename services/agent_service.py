@@ -64,7 +64,8 @@ class AgentService:
                 "openai_api_key": config["openai_api_key"],
                 "logger": self.web_instance.log_message,
                 "web_instance": self.web_instance,
-                "mission_dir": "missions"  # Default missions directory
+                "mission_dir": "missions",  # Default missions directory
+                "mission_name": "default"   # Default mission name for initialization
             }
 
             # Add mission-specific config if a mission is set
@@ -125,7 +126,9 @@ class AgentService:
                     continue
 
             if successful_inits == 0:
-                raise ValueError("No agents were successfully initialized")
+                self.web_instance.log_message("Warning: No agents were successfully initialized", level='warning')
+                # Don't raise an error, just return empty dict
+                return {}
 
             self.web_instance.log_message(f"Successfully initialized {successful_inits} agents", level='success')
             return self.agents  # Return initialized agents
