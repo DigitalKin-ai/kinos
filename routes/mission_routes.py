@@ -99,7 +99,6 @@ def register_mission_routes(app, web_instance):
                                 
                                 # Skip if file matches ignore patterns
                                 if should_ignore_file(rel_path, ignore_patterns, web_instance):
-                                    web_instance.logger.log(f"Ignoring file: {rel_path}", level='debug')
                                     continue
 
                                 full_path = os.path.join(root, filename)
@@ -111,7 +110,7 @@ def register_mission_routes(app, web_instance):
                                     'modified': os.path.getmtime(full_path)
                                 }
                                 files.append(file_info)
-                                web_instance.logger.log(f"Added file: {rel_path}", level='debug')
+                                #web_instance.logger.log(f"Added file: {rel_path}", level='debug')
                                 
                             except (OSError, IOError) as e:
                                 web_instance.logger.log(f"Error processing file {filename}: {str(e)}", level='error')
