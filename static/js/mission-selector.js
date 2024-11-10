@@ -27,7 +27,6 @@ export default {
             newMissionName: '',
             sidebarCollapsed: false,
             localMissions: [],
-            missionService: new MissionService(),
             hoveredMissionId: null,
             errorMessage: null,
             showError: false,
@@ -129,6 +128,19 @@ export default {
         }
     },
     methods: {
+        async checkConnection() {
+            try {
+                const isConnected = await this.missionService.checkServerConnection();
+                this.connectionStatus.connected = isConnected;
+                this.connectionStatus.lastCheck = new Date();
+                this.connectionStatus.retryCount = 0;
+            } catch (error) {
+                this.connectionStatus.connected = false;
+                this.connectionStatus.retryCount++;
+                this.handleConnectionError(error);
+            }
+        },
+
         async updateRunningState(missionId, state) {
             try {
                 if (!missionId) return;
@@ -779,7 +791,7 @@ export default {
                         <div class="flex items-center">
                             <!-- Date tooltip -->
                             <transition name="fade">
-                                <span v-if="hoveredMissionId === missionData.id"
+                                <span v-if="hoveredMissionId === mission.id"
                                       class="absolute right-16 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
                                       style="top: 50%; transform: translateY(-50%)">
                                     {{ formatDate(missionData.updated_at || missionData.created_at) }}

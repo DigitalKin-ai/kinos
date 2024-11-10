@@ -60,7 +60,8 @@
                 missionService: new MissionService(),
                 currentMission: null,
                 missions: [],
-                loading: true
+                loading: true,
+                runningStates: new Map()
             }
         },
         async mounted() {
