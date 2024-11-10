@@ -5,6 +5,7 @@ from typing import Dict, Any, List, Optional
 from utils.decorators import safe_operation
 from utils.exceptions import ServiceError
 from services.base_service import BaseService
+from utils.path_manager import PathManager
 
 class NotificationService(BaseService):
     def __init__(self, web_instance):
@@ -16,6 +17,9 @@ class NotificationService(BaseService):
         self.cache_hits = 0
         self.cache_misses = 0
         self.total_notifications = 0
+        
+        # Use PathManager for log path
+        self.log_path = PathManager.get_logs_path()
 
     @safe_operation()
     def check_content_updates(self) -> None:
@@ -144,7 +148,11 @@ class NotificationService(BaseService):
             if not self.current_mission:
                 return False
                 
-            file_path = os.path.join("missions", self.current_mission, file_name)
+            # Use PathManager for mission path
+            file_path = os.path.join(
+                PathManager.get_mission_path(self.current_mission),
+                file_name
+            )
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
             
             with open(file_path, 'w', encoding='utf-8') as f:
