@@ -1021,6 +1021,18 @@ class KinOSWeb:
             self.logger.log(f"Error running application: {str(e)}", level='error')
             raise ServiceError(f"Failed to start application: {str(e)}")
             
+    def reinitialize_agents(self):
+        """Reinitialize agents with current mission configuration"""
+        try:
+            if hasattr(self, 'agent_service'):
+                self.agent_service.init_agents({
+                    "anthropic_api_key": self.config["anthropic_api_key"],
+                    "openai_api_key": self.config["openai_api_key"]
+                })
+                self.logger.log("Agents reinitialized with new mission", level='success')
+        except Exception as e:
+            self.logger.log(f"Error reinitializing agents: {str(e)}", level='error')
+
     def shutdown(self):
         """Graceful shutdown of the application"""
         try:

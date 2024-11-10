@@ -54,31 +54,32 @@ class AgentService:
             if not config.get("anthropic_api_key") or not config.get("openai_api_key"):
                 raise ValueError("Missing required API keys in configuration")
 
-            # Get current mission from FileManager
-            current_mission = self.web_instance.file_manager.current_mission
-            if not current_mission:
-                raise ValueError("No current mission set")
-
-            # Setup mission directory
-            mission_dir = os.path.join("missions", current_mission)
-            if not os.path.exists(mission_dir) or not os.access(mission_dir, os.R_OK | os.W_OK):
-                raise ValueError(f"Mission directory not accessible: {mission_dir}")
-
-            if not os.path.exists("prompts"):
-                raise ValueError("Prompts directory not found")
-
-            self.web_instance.log_message(f"Initializing agents for mission: {current_mission}", level='info')
-
+            # Get current mission from FileManager - make it optional
+            current_mission = getattr(self.web_instance.file_manager, 'current_mission', None)
+            
             # Base configuration for all agents
             base_config = {
                 "check_interval": 100,
                 "anthropic_api_key": config["anthropic_api_key"],
                 "openai_api_key": config["openai_api_key"],
-                "mission_name": current_mission,
                 "logger": self.web_instance.log_message,
                 "web_instance": self.web_instance,
-                "mission_dir": mission_dir
             }
+
+            # Add mission-specific config if a mission is set
+            if current_mission:
+                mission_dir = os.path.join("missions", current_mission)
+                if os.path.exists(mission_dir) and os.access(mission_dir, os.R_OK | os.W_OK):
+                    base_config.update({
+                        "mission_name": current_mission,
+                        "mission_dir": mission_dir
+                    })
+                    self.web_instance.log_message(f"Initializing agents for mission: {current_mission}", level='info')
+            else:
+                self.web_instance.log_message("Initializing agents without active mission", level='info')
+
+            if not os.path.exists("prompts"):
+                raise ValueError("Prompts directory not found")
 
             # Initialize each agent type
             self.agents = {}
