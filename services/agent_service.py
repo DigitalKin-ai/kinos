@@ -88,16 +88,16 @@ class AgentService:
             # Initialize each agent type
             self.agents = {}
             agent_configs = [
-                ("Specification", SpecificationsAgent, "specifications.md"),
-                ("Production", ProductionAgent, "production.md"),
-                ("Management", ManagementAgent, "management.md"),
-                ("Evaluation", EvaluationAgent, "evaluation.md"),
-                ("Suivi", SuiviAgent, "suivi.md"),
-                ("Documentaliste", DocumentalisteAgent, "documentaliste.md"),
-                ("Duplication", DuplicationAgent, "duplication.md"),
-                ("Testeur", TesteurAgent, "testeur.md"),
-                ("Validation", ValidationAgent, "validation.md"),
-                ("Redacteur", RedacteurAgent, "redacteur.md")
+                ("specification", SpecificationsAgent, "specifications.md"),
+                ("production", ProductionAgent, "production.md"),
+                ("management", ManagementAgent, "management.md"),
+                ("evaluation", EvaluationAgent, "evaluation.md"),
+                ("suivi", SuiviAgent, "suivi.md"),
+                ("documentaliste", DocumentalisteAgent, "documentaliste.md"),
+                ("duplication", DuplicationAgent, "duplication.md"),
+                ("testeur", TesteurAgent, "testeur.md"),
+                ("validation", ValidationAgent, "validation.md"),
+                ("redacteur", RedacteurAgent, "redacteur.md")
             ]
 
             successful_inits = 0
