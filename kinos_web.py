@@ -2,6 +2,7 @@ import os
 import os
 import time
 import threading
+import traceback
 from datetime import datetime
 
 from flask import Flask
@@ -359,6 +360,45 @@ class KinOSWeb:
 
     def setup_routes(self):
         """Configure all application routes"""
+        @self.app.route('/api/status')
+        @safe_operation()
+        def get_status():
+            """Get server and agents status"""
+            try:
+                status = {
+                    'server': {
+                        'running': True,
+                        'timestamp': datetime.now().isoformat()
+                    },
+                    'agents': {}
+                }
+                
+                # Add agent status if agent service is initialized
+                if hasattr(self, 'agent_service'):
+                    for name, agent in self.agent_service.agents.items():
+                        status['agents'][name] = {
+                            'running': agent.running if hasattr(agent, 'running') else False,
+                            'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
+                            'status': 'active' if getattr(agent, 'running', False) else 'inactive',
+                            'health': {
+                                'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
+                                'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
+                            }
+                        }
+                        
+                return jsonify(status)
+                
+            except Exception as e:
+                self.log_message(f"Error getting status: {str(e)}", 'error')
+                return jsonify({
+                    'error': str(e),
+                    'type': e.__class__.__name__,
+                    'details': {
+                        'traceback': traceback.format_exc(),
+                        'timestamp': datetime.now().isoformat()
+                    }
+                }), 500
+
         @self.app.route('/explorer')
         def explorer():
             """Explorer interface"""
