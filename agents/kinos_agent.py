@@ -244,17 +244,6 @@ class KinOSAgent:
     def run(self) -> None:
         """
         Boucle principale de l'agent.
-        
-        Cycle d'exécution:
-        1. Vérifie si doit s'exécuter
-        2. Sauvegarde état précédent
-        3. Execute aider
-        4. Pause adaptative
-        
-        Gère:
-        - Arrêts propres
-        - Récupération d'erreurs
-        - Métriques d'exécution
         """
         self.running = True
         while self.running:
@@ -263,10 +252,14 @@ class KinOSAgent:
                     time.sleep(1)
                     continue
                     
+                # Construire le chemin du fichier principal de l'agent
+                main_file = f"{self.role}.md"  # Utilise le rôle pour le nom du fichier
+                main_file_path = os.path.join(self.mission_dir, main_file)
+                    
                 # Vérifier le contenu avant modification
                 current_content = None
-                if os.path.exists(self.file_path):
-                    with open(self.file_path, 'r', encoding='utf-8') as f:
+                if os.path.exists(main_file_path):
+                    with open(main_file_path, 'r', encoding='utf-8') as f:
                         current_content = f.read()
                     self.logger(f"[{self.__class__.__name__}] Current content size: {len(current_content) if current_content else 0}")
                 
