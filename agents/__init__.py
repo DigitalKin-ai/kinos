@@ -1,5 +1,5 @@
 from .agent_types import (
-    ValidationAgent,
+    ValidationAgent,  # Added here
     SpecificationsAgent,
     ProductionAgent,
     ManagementAgent,
@@ -12,7 +12,7 @@ from .agent_types import (
 )
 
 __all__ = [
-    'ValidationAgent',
+    'ValidationAgent',  # Added here too
     'SpecificationsAgent',
     'ProductionAgent',
     'ManagementAgent', 
