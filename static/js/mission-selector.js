@@ -36,7 +36,7 @@ export default {
             hoveredMissionId: null,
             errorMessage: null,
             showError: false,
-            runningMissions: new Set()  // Add Set to track running missions
+            runningStates: new Map()     // Use Map to track running states
         }
     },
     computed: {
@@ -79,10 +79,27 @@ export default {
     },
     watch: {
         missions: {
-            immediate: true,
             handler(newMissions) {
                 this.localMissions = newMissions;
-            }
+                if (newMissions) {
+                    newMissions.forEach(mission => {
+                        if (!this.runningStates.has(mission.id)) {
+                            this.runningStates.set(mission.id, false);
+                        }
+                    });
+                }
+            },
+            immediate: true,
+            deep: true
+        }
+    },
+
+    created() {
+        // Initialize running states for existing missions
+        if (this.missions) {
+            this.missions.forEach(mission => {
+                this.runningStates.set(mission.id, false);
+            });
         }
     },
     methods: {
