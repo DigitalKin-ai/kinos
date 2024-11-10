@@ -95,3 +95,79 @@ class GlobalConfig:
                 GlobalConfig._deep_merge(base[key], value)
             else:
                 base[key] = value
+from pathlib import Path
+import os
+import yaml
+import logging
+
+class GlobalConfig:
+    """Configuration globale centralisée pour KinOS"""
+    
+    # Chemins de base
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    
+    # Configuration par défaut minimale
+    DEFAULT_CONFIG = {
+        'core': {
+            'verbose': False,
+            'log_level': 'INFO',
+            'timeout': 3600,
+            'max_retries': 3
+        },
+        'agents': {
+            'default_model': 'anthropic/claude-3-5-haiku-20241022',
+            'default_timeout': 300
+        },
+        'paths': {
+            'missions_dir': BASE_DIR / 'missions',
+            'prompts_dir': BASE_DIR / 'prompts',
+            'logs_dir': BASE_DIR / 'logs'
+        }
+    }
+    
+    @classmethod
+    def load_config(cls, config_path=None):
+        """
+        Charger la configuration
+        
+        Args:
+            config_path (str, optional): Chemin vers un fichier de configuration personnalisé
+        
+        Returns:
+            dict: Configuration
+        """
+        # Si un chemin de configuration personnalisé est fourni, essayez de le charger
+        if config_path and os.path.exists(config_path):
+            try:
+                with open(config_path, 'r') as f:
+                    custom_config = yaml.safe_load(f)
+                    # Fusionner la configuration personnalisée avec la configuration par défaut
+                    cls.DEFAULT_CONFIG.update(custom_config)
+            except Exception as e:
+                logging.warning(f"Erreur lors du chargement de la configuration personnalisée : {e}")
+        
+        return cls.DEFAULT_CONFIG
+    
+    @classmethod
+    def get_log_level(cls, config=None):
+        """
+        Obtenir le niveau de log à partir de la configuration
+        
+        Args:
+            config (dict, optional): Configuration à utiliser. Si None, utilise la configuration par défaut.
+        
+        Returns:
+            int: Niveau de log pour logging
+        """
+        config = config or cls.load_config()
+        log_level_str = config['core'].get('log_level', 'INFO').upper()
+        
+        log_levels = {
+            'DEBUG': logging.DEBUG,
+            'INFO': logging.INFO,
+            'WARNING': logging.WARNING,
+            'ERROR': logging.ERROR,
+            'CRITICAL': logging.CRITICAL
+        }
+        
+        return log_levels.get(log_level_str, logging.INFO)
