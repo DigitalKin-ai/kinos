@@ -89,14 +89,16 @@ export default {
             },
             immediate: true
         }
+    },
     methods: {
         async loadTeams() {
             try {
-                if (!this.currentMission?.id) {
+                if (!this.currentMission) {
+                    console.warn('No mission selected');
                     return;
                 }
-
-                const response = await fetch(`/api/missions/${this.currentMission.id}/teams`);
+                
+                const response = await this.apiClient.getMissionTeams(this.currentMission.id);
                 if (!response.ok) {
                     throw new Error('Failed to load teams');
                 }
