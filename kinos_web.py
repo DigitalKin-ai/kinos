@@ -40,8 +40,12 @@ class KinOSWeb:
     def _register_routes(self):
         """Register all route blueprints"""
         
-        # First register core routes directly on the app
-        @self.app.route('/api/status', methods=['GET'])
+        # Only register routes once
+        if hasattr(self, '_routes_registered'):
+            return
+            
+        # Register core routes
+        @self.app.route('/api/status', methods=['GET'], endpoint='api_status')  # Add unique endpoint
         def get_status():
             """Get server and agents status"""
             try:
@@ -102,11 +106,14 @@ class KinOSWeb:
                 'timestamp': datetime.now().isoformat()
             }), 500
 
-        # Then register blueprint routes
+        # Register blueprint routes
         register_agent_routes(self.app, self)
         register_mission_routes(self.app, self)
         register_notification_routes(self.app, self)
         register_view_routes(self.app, self)
+
+        # Mark routes as registered
+        self._routes_registered = True
 
         # Log registered routes for debugging
         self.log_message("Registered routes:", 'info')
