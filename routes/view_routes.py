@@ -22,7 +22,7 @@ def register_view_routes(app, web_instance):
             content = web_instance.file_manager.read_file("production")
             suivi_content = web_instance.file_manager.read_file("suivi")
             
-            # Use template path from PathManager
+            # Use template path from PathManager 
             template_path = os.path.join(PathManager.get_templates_path(), 'editor.html')
             return render_template(template_path,
                                  content=content or "",
