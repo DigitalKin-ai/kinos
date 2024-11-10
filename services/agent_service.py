@@ -450,6 +450,118 @@ class AgentService:
             self.web_instance.log_message(f"Error getting detailed status: {str(e)}", level='error')
             return self._get_default_status()
 
+    def _calculate_error_rate(self, agent) -> float:
+        """Calculate error rate for an agent over the last period"""
+        try:
+            # Get error count from last period (default to 0)
+            error_count = getattr(agent, 'error_count', 0)
+            total_runs = getattr(agent, 'total_runs', 1)  # Avoid division by zero
+            
+            # Calculate rate (0.0 to 1.0)
+            return error_count / max(total_runs, 1)
+            
+        except Exception as e:
+            self.web_instance.log_message(f"Error calculating error rate: {str(e)}", level='error')
+            return 0.0
+
+    def _handle_agent_error(self, agent_name: str, error: Exception) -> None:
+        """Handle agent errors with recovery attempts"""
+        try:
+            self.web_instance.log_message(f"Agent {agent_name} error: {str(error)}", level='error')
+            
+            # Get agent instance
+            agent = self.agents.get(agent_name)
+            if not agent:
+                return
+                
+            # Increment error count
+            agent.error_count = getattr(agent, 'error_count', 0) + 1
+            
+            # Try to recover agent
+            if hasattr(agent, 'recover_from_error'):
+                try:
+                    success = agent.recover_from_error()
+                    if success:
+                        self.web_instance.log_message(f"Agent {agent_name} recovered successfully", level='info')
+                    else:
+                        self.web_instance.log_message(f"Agent {agent_name} recovery failed", level='warning')
+                except Exception as recovery_error:
+                    self.web_instance.log_message(f"Error during agent recovery: {str(recovery_error)}", level='error')
+            
+            # Stop agent if too many errors
+            if agent.error_count > 5:  # Configurable threshold
+                self.web_instance.log_message(f"Stopping agent {agent_name} due to too many errors", level='warning')
+                agent.stop()
+                
+        except Exception as e:
+            self.web_instance.log_message(f"Error handling agent error: {str(e)}", level='error')
+
+    def _get_response_times(self, agent) -> Dict[str, float]:
+        """Get agent response time metrics"""
+        return {
+            'average': getattr(agent, 'avg_response_time', 0.0),
+            'min': getattr(agent, 'min_response_time', 0.0),
+            'max': getattr(agent, 'max_response_time', 0.0)
+        }
+
+    def _get_average_processing_time(self, agent) -> float:
+        """Get average processing time for agent operations"""
+        return getattr(agent, 'avg_processing_time', 0.0)
+
+    def _get_agent_memory_usage(self, agent) -> Dict[str, int]:
+        """Get memory usage metrics for an agent"""
+        return {
+            'current': getattr(agent, 'current_memory', 0),
+            'peak': getattr(agent, 'peak_memory', 0)
+        }
+
+    def _get_agent_cpu_usage(self, agent) -> float:
+        """Get CPU usage percentage for an agent"""
+        return getattr(agent, 'cpu_usage', 0.0)
+
+    def _get_open_file_handles(self, agent) -> int:
+        """Get number of open file handles for an agent"""
+        return getattr(agent, 'open_files', 0)
+
+    def _get_default_status(self) -> Dict[str, Any]:
+        """Get default status structure for agents"""
+        return {
+            'running': False,
+            'status': 'inactive',
+            'last_run': None,
+            'last_change': None,
+            'health': {
+                'is_healthy': True,
+                'consecutive_no_changes': 0,
+                'current_interval': 60,
+                'error_rate': 0.0,
+                'response_times': {
+                    'average': 0.0,
+                    'min': 0.0,
+                    'max': 0.0
+                }
+            },
+            'metrics': {
+                'cache_hits': 0,
+                'cache_misses': 0,
+                'file_reads': 0,
+                'file_writes': 0,
+                'average_processing_time': 0.0,
+                'memory_usage': {
+                    'current': 0,
+                    'peak': 0
+                }
+            },
+            'resources': {
+                'cpu_usage': 0.0,
+                'memory_usage': {
+                    'current': 0,
+                    'peak': 0
+                },
+                'file_handles': 0
+            }
+        }
+
     def _restart_agent(self, name: str, agent: 'KinOSAgent') -> None:
         """Safely restart a single agent"""
         try:
