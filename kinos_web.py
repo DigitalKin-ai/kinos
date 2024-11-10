@@ -227,69 +227,40 @@ class KinOSWeb:
                     self.log_message(f"Error loading prompt from {file_path}: {e}", level='error')
                     return ""
 
-            # Créer les agents avec leurs prompts dédiés ET leurs rôles
-            self.agents = {
-                "Specification": SpecificationsAgent({
-                    **base_config,
-                    "name": "Specification",
-                    "prompt_file": "prompts/specifications.md",
-                    "prompt": load_prompt("prompts/specifications.md")
-                }),
-                "Production": ProductionAgent({
-                    **base_config,
-                    "name": "Production",
-                    "prompt_file": "prompts/production.md",
-                    "prompt": load_prompt("prompts/production.md")
-                }),
-                "Management": ManagementAgent({
-                    **base_config,
-                    "name": "Management",
-                    "prompt_file": "prompts/management.md",
-                    "prompt": load_prompt("prompts/management.md")
-                }),
-                "Evaluation": EvaluationAgent({
-                    **base_config,
-                    "name": "Evaluation",
-                    "prompt_file": "prompts/evaluation.md",
-                    "prompt": load_prompt("prompts/evaluation.md")
-                }),
-                "Suivi": SuiviAgent({
-                    **base_config,
-                    "name": "Suivi", 
-                    "prompt_file": "prompts/suivi.md",
-                    "prompt": load_prompt("prompts/suivi.md")
-                }),
-                "Documentaliste": DocumentalisteAgent({
-                    **base_config,
-                    "name": "Documentaliste",
-                    "prompt_file": "prompts/documentaliste.md",
-                    "prompt": load_prompt("prompts/documentaliste.md")
-                }),
-                "Duplication": DuplicationAgent({
-                    **base_config,
-                    "name": "Duplication",
-                    "prompt_file": "prompts/duplication.md",
-                    "prompt": load_prompt("prompts/duplication.md")
-                }),
-                "Testeur": TesteurAgent({
-                    **base_config,
-                    "name": "Testeur",
-                    "prompt": load_prompt("prompts/testeur.md"),
-                    "prompt_file": "prompts/testeur.md"
-                }),
-                "Validation": ValidationAgent({
-                    **base_config,
-                    "name": "Validation",
-                    "prompt": load_prompt("prompts/validation.md"),
-                    "prompt_file": "prompts/validation.md"
-                }),
-                "Redacteur": RedacteurAgent({
-                    **base_config,
-                    "name": "Redacteur",
-                    "prompt": load_prompt("prompts/redacteur.md"),
-                    "prompt_file": "prompts/redacteur.md"
-                })
-            }
+            # Découvrir les agents à partir des fichiers prompts
+            self.agents = {}
+            prompts_dir = "prompts"
+            
+            if not os.path.exists(prompts_dir):
+                os.makedirs(prompts_dir)
+                self.log_message("Created prompts directory", level='info')
+                return
+
+            for file in os.listdir(prompts_dir):
+                if file.endswith('.md'):
+                    agent_name = file[:-3].lower()  # Remove .md extension
+                    try:
+                        with open(os.path.join(prompts_dir, file), 'r', encoding='utf-8') as f:
+                            prompt_content = f.read()
+                            
+                        agent_config = {
+                            **base_config,
+                            "name": agent_name,
+                            "prompt": prompt_content,
+                            "prompt_file": os.path.join(prompts_dir, file)
+                        }
+                        
+                        # Créer l'agent avec AiderAgent
+                        self.agents[agent_name] = AiderAgent(agent_config)
+                        self.log_message(f"✓ Agent {agent_name} initialized", level='success')
+                        
+                    except Exception as e:
+                        self.log_message(f"Error initializing agent {agent_name}: {str(e)}", level='error')
+                        continue
+
+            if not self.agents:
+                self.log_message("No agents were initialized", level='warning')
+                return
 
             # Vérifier que tous les agents sont correctement initialisés
             for name, agent in self.agents.items():

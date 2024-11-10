@@ -44,18 +44,12 @@ export default {
                 loading: this.loading
             });
 
-            const agentTypes = [
-                'specification',
-                'production', 
-                'management',
-                'evaluation',
-                'suivi',
-                'documentaliste',
-                'duplication',
-                'testeur',
-                'validation',
-                'redacteur'
-            ];
+            // Récupérer la liste des agents depuis l'API
+            const agentsResponse = await fetch('/api/agents/list');
+            if (!agentsResponse.ok) {
+                throw new Error(`Failed to fetch agents: ${agentsResponse.statusText}`);
+            }
+            const agents = await agentsResponse.json();
             
             const response = await fetch('/api/missions');
             if (!response.ok) {
