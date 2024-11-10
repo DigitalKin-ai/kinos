@@ -6,6 +6,27 @@ class ApiClient {
     constructor(baseUrl = '') {
         this.baseUrl = ''; // Always use relative paths
         this.token = null; // For future authentication
+        this.retryCount = 0;
+        this.maxRetries = 3;
+    }
+
+    async handleRequest(endpoint, options = {}) {
+        let delay = 1000;
+        for (let i = 0; i < this.maxRetries; i++) {
+            try {
+                const response = await fetch(endpoint, options);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || `Server returned ${response.status}`);
+                }
+                return response;
+            } catch (error) {
+                if (i === this.maxRetries - 1) throw error;
+                console.warn(`Attempt ${i + 1} failed, retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2; // Exponential backoff
+            }
+        }
     }
 
     async get(endpoint) {
@@ -25,8 +46,13 @@ class ApiClient {
             options.body = JSON.stringify(data);
         }
         
-        const response = await fetch(`${this.baseUrl}${endpoint}`, options);
-        return this.handleResponse(response);
+        try {
+            const response = await this.handleRequest(`${this.baseUrl}${endpoint}`, options);
+            return this.handleResponse(response);
+        } catch (error) {
+            console.error('API request failed:', error);
+            throw new Error(`Failed to connect to server: ${error.message}`);
+        }
     }
 
     async put(endpoint, data) {

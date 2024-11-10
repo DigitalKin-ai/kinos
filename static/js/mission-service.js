@@ -155,7 +155,7 @@ class MissionService {
         try {
             const wasRunning = this.runningStates.get(mission.id) || false;
 
-            // Check connection first
+            // Check server connection first
             if (!await this.checkServerConnection()) {
                 throw new Error('Server is not available. Please try again later.');
             }
@@ -163,23 +163,16 @@ class MissionService {
             // Stop agents if running
             if (wasRunning) {
                 try {
-                    await this.apiClient.post('/api/agents/stop');  // Use apiClient
+                    await this.apiClient.post('/api/agents/stop');
                     this.runningStates.set(mission.id, false);
                 } catch (stopError) {
                     console.warn('Warning: Failed to stop agents', stopError);
                 }
             }
 
-            // Select new mission with retry
-            const result = await this.retryWithBackoff(async () => {
-                // Use apiClient instead of direct fetch
-                const response = await this.apiClient.post(`/api/missions/${mission.id}/select`);
-                if (!response) {
-                    throw new Error('Failed to select mission');
-                }
-                return response;
-            });
-
+            // Select mission with retry
+            const result = await this.apiClient.post(`/api/missions/${mission.id}/select`);
+            
             this.currentMission = result;
             return result;
 
@@ -189,6 +182,16 @@ class MissionService {
                 this.runningStates.set(mission.id, false);
             }
             throw new Error(`Failed to select mission: ${error.message}`);
+        }
+    }
+
+    async checkServerConnection() {
+        try {
+            const response = await fetch('/api/status');
+            return response.ok;
+        } catch (error) {
+            console.error('Server connection check failed:', error);
+            return false;
         }
     }
 
