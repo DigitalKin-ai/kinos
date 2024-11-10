@@ -413,7 +413,10 @@
                 try {
                     return await operation();
                 } catch (error) {
-                    if (i === maxRetries - 1) throw error;
+                    if (i === maxRetries - 1) {
+                        throw error;
+                    }
+                    // Add exponential backoff delay before retrying
                     await new Promise(resolve => setTimeout(resolve, delay));
                     delay *= 2;
                 }
