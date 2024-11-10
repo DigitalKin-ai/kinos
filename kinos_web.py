@@ -304,65 +304,6 @@ class KinOSWeb:
         # Initialize components with config
         self._initialize_components(config)
 
-    def _register_routes(self):
-        """Register all route blueprints"""
-        
-        # Check if routes are already registered to prevent duplicates
-        if hasattr(self, '_routes_registered'):
-            return
-
-        # Register core status route
-        @self.app.route('/api/status', methods=['GET'])
-        def get_status():
-            """Get server and agents status"""
-            try:
-                status = {
-                    'server': {
-                        'running': True,
-                        'timestamp': datetime.now().isoformat()
-                    },
-                    'agents': {}
-                }
-                
-                # Add agent status if agent service is initialized
-                if hasattr(self, 'agent_service'):
-                    for name, agent in self.agent_service.agents.items():
-                        status['agents'][name] = {
-                            'running': agent.running if hasattr(agent, 'running') else False,
-                            'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
-                            'status': 'active' if getattr(agent, 'running', False) else 'inactive',
-                            'health': {
-                                'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
-                                'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
-                            }
-                        }
-                    
-                return jsonify(status)
-                
-            except Exception as e:
-                self.log_message(f"Error getting status: {str(e)}", 'error')
-                return jsonify({
-                    'error': str(e),
-                    'type': e.__class__.__name__,
-                    'details': {
-                        'traceback': traceback.format_exc(),
-                        'timestamp': datetime.now().isoformat()
-                    }
-                }), 500
-
-        # Register all blueprint routes
-        register_agent_routes(self.app, self)
-        register_mission_routes(self.app, self)
-        register_notification_routes(self.app, self)
-        register_view_routes(self.app, self)
-
-        # Mark routes as registered
-        self._routes_registered = True
-
-        # Log registered routes for debugging
-        self.log_message("Registered routes:", 'info')
-        for rule in self.app.url_map.iter_rules():
-            self.log_message(f"  {rule.endpoint}: {rule.methods} {rule}", 'info')
 
     def init_agents(self, config):
         """Initialisation des agents avec configuration standard"""
