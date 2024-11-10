@@ -78,33 +78,100 @@
                 runningStates: new Map(),
                 connectionStatus: {
                     connected: true,
-                    lastCheck: null,
-                    retryCount: 0
+                    lastCheck: null, 
+                    retryCount: 0,
+                    checkInterval: null
                 }
             }
         },
         methods: {
+            async handleMissionOperation(operation, errorMessage) {
+                try {
+                    return await this.retryWithBackoff(operation);
+                } catch (error) {
+                    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                        this.connectionStatus.connected = false;
+                        throw new Error('Server connection lost. Please check your connection and try again.');
+                    }
+                    throw error;
+                }
+            },
+
+            async retryWithBackoff(operation, maxRetries = 3) {
+                let delay = 1000;
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        return await operation();
+                    } catch (error) {
+                        if (i === maxRetries - 1) throw error;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2;
+                    }
+                }
+            },
+
             handleError(message, error) {
                 console.error(message, error);
                 this.error = typeof error === 'string' ? error : error.message;
             },
 
             async selectMission(mission) {
+                if (!mission?.id) {
+                    throw new Error('Invalid mission selected');
+                }
+
                 try {
-                    if (!mission?.id) {
-                        throw new Error('Invalid mission selected');
-                    }
                     this.loading = true;
-                    
+
                     // Check connection status first
                     if (!this.connectionStatus.connected) {
-                        throw new Error('Server connection lost');
+                        await this.checkConnection();
+                        if (!this.connectionStatus.connected) {
+                            throw new Error('Server is not available. Please try again later.');
+                        }
                     }
 
-                    await this.missionService.selectMission(mission);
-                    this.currentMission = mission;
-                    
-                    // Fetch team information for the mission
+                    const wasRunning = this.runningStates.get(mission.id) || false;
+
+                    // Stop agents if running
+                    if (wasRunning) {
+                        try {
+                            await this.handleMissionOperation(async () => {
+                                const response = await fetch('/api/agents/stop', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    signal: AbortSignal.timeout(5000)
+                                });
+                                
+                                if (!response.ok) throw new Error('Failed to stop agents');
+                                this.runningStates.set(mission.id, false);
+                            });
+                        } catch (stopError) {
+                            console.warn('Warning: Failed to stop agents', stopError);
+                            this.handleError('Warning: Failed to stop agents, but continuing mission selection');
+                        }
+                    }
+
+                    // Select mission with retries
+                    const result = await this.handleMissionOperation(async () => {
+                        const response = await fetch(`/api/missions/${mission.id}/select`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            signal: AbortSignal.timeout(5000)
+                        });
+
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.error || 'Failed to select mission');
+                        }
+
+                        return response.json();
+                    });
+
+                    // Update state
+                    this.currentMission = result;
+
+                    // Fetch team information
                     try {
                         const teamResponse = await fetch(`/api/missions/${mission.id}/teams`);
                         if (teamResponse.ok) {
@@ -119,8 +186,31 @@
                         this.teams = [];
                         this.activeTeam = null;
                     }
+
+                    // Restore previous state if needed
+                    if (wasRunning) {
+                        try {
+                            await this.handleMissionOperation(async () => {
+                                const response = await fetch('/api/agents/start', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    signal: AbortSignal.timeout(5000)
+                                });
+                                
+                                if (!response.ok) throw new Error('Failed to restart agents');
+                                this.runningStates.set(mission.id, true);
+                            });
+                        } catch (startError) {
+                            console.warn('Warning: Failed to restart agents', startError);
+                            this.handleError('Warning: Failed to restart agents after mission selection');
+                        }
+                    }
+
                 } catch (error) {
                     this.handleError('Failed to select mission', error);
+                    if (mission?.id) {
+                        this.runningStates.set(mission.id, false);
+                    }
                 } finally {
                     this.loading = false;
                 }
