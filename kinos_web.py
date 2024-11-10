@@ -53,12 +53,6 @@ class KinOSWeb:
         self.log_message("Registered routes:", 'info')
         for rule in self.app.url_map.iter_rules():
             self.log_message(f"  {rule.endpoint}: {rule.methods} {rule}", 'info')
-                    'type': e.__class__.__name__,
-                    'details': {
-                        'traceback': traceback.format_exc(),
-                        'timestamp': datetime.now().isoformat()
-                    }
-                }), 500
 
         # Add error handlers
         @self.app.errorhandler(404)
