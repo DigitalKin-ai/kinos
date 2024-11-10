@@ -17,7 +17,7 @@ export default {
             agentStates: {},
             prompts: {},
             editingPrompt: null,
-            loading: true,
+            loading: false,
             notifications: [],
             stateUpdateQueue: [],
             stateUpdateInProgress: false,
@@ -61,10 +61,32 @@ export default {
     watch: {
         currentMission: {
             immediate: true,
-            handler(newMission) {
-                if (newMission?.id) {
-                    this.loadTeams();
-                    this.loadAgents();
+            async handler(newMission) {
+                try {
+                    // Validate mission object
+                    if (!newMission || !newMission.id) {
+                        console.warn('Invalid or empty mission object');
+                        this.agents = [];
+                        this.teams = [];
+                        return;
+                    }
+
+                    // Reset loading and error states
+                    this.loading = true;
+                    this.error = null;
+
+                    // Parallel loading of agents and teams
+                    await Promise.all([
+                        this.loadAgents(),
+                        this.loadTeams()
+                    ]);
+                } catch (error) {
+                    console.error('Error loading mission data:', error);
+                    this.error = error.message || 'Failed to load mission data';
+                    this.agents = [];
+                    this.teams = [];
+                } finally {
+                    this.loading = false;
                 }
             }
         }

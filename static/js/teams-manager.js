@@ -174,16 +174,6 @@ const TeamsManager = {
             }
         },
 
-    methods: {
-        startServerMonitoring() {
-            // Check immediately
-            this.checkServerStatus();
-            // Then check every 30 seconds
-            this.serverStatus.checkInterval = setInterval(() => {
-                this.checkServerStatus();
-            }, 30000);
-        },
-
         stopServerMonitoring() {
             if (this.serverStatus.checkInterval) {
                 clearInterval(this.serverStatus.checkInterval);

@@ -861,5 +861,3 @@ export default {
         }
     `
 };
-
-export default TeamsManager;
