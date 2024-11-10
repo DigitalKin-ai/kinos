@@ -6,6 +6,9 @@ __pycache__
 
 missions/*
 
+
+# Logs
+*.log# Environnement virtuel
 venv/
 *.venv
 
@@ -20,3 +23,16 @@ __pycache__/
 
 # Logs
 *.log
+
+# Fichiers de build et distribution
+build/
+dist/
+*.egg-info/
+
+# Fichiers de configuration locaux
+config.yaml
+config.json
+
+# Fichiers système
+.DS_Store
+Thumbs.db
