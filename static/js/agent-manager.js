@@ -112,67 +112,7 @@ export default {
         </div>
     `
 }
-        
-        getTeamMetrics(teamId) {
-            if (!teamId) return null;
-            
-            const team = this.teams.find(t => t.id === teamId);
-            if (!team) return null;
-            
-            return {
-                totalAgents: team.agents?.length || 0,
-                activeAgents: team.agents?.filter(a => a.status === 'active').length || 0,
-                health: this.calculateTeamHealth(team)
-            };
-        },
-        
-        calculateTeamHealth(team) {
-            if (!team || !team.agents || team.agents.length === 0) return 0;
-            const healthyAgents = team.agents.filter(a => a.health?.is_healthy).length;
-            return healthyAgents / team.agents.length;
-        },
-        
-        async selectMission(missionId) {
-            try {
-                this.loading = true;
-                const response = await this.apiClient.selectMission(missionId);
-                await this.loadTeams();
-                return response;
-            } catch (error) {
-                console.error('Failed to select mission:', error);
-                throw error;
-            } finally {
-                this.loading = false;
-            }
-        }
-    },
-    async mounted() {
-        try {
-            if (this.currentMission) {
-                await this.selectMission(this.currentMission.id);
-            }
-        } catch (error) {
-            console.error('Error in mounted:', error);
-            this.error = error.message;
-        }
-    },
-    watch: {
-        currentMission: {
-            async handler(newMission) {
-                if (newMission) {
-                    try {
-                        await this.loadTeams();
-                    } catch (error) {
-                        console.error('Error loading teams:', error);
-                        this.error = error.message;
-                    }
-                }
-            },
-            immediate: true
-        }
-    },
-    methods: {
-        openCreateModal() {
+        // Removed duplicate method definitions
             this.showCreateModal = true;
             this.newAgent = {
                 name: '',
