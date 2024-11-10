@@ -218,32 +218,15 @@ export default {
             }
         },
 
-        async checkConnection() {
-            if (this.connectionCheckInProgress) return;
-        
+        async handleMissionOperation(operation, errorMessage) {
             try {
-                this.connectionCheckInProgress = true;
-                const isConnected = await this.missionService.apiClient.checkServerConnection();
-            
-                if (this.connectionStatus.connected !== isConnected) {
-                    this.connectionStatus.connected = isConnected;
-                    this.connectionStatus.lastCheck = new Date();
-                
-                    if (isConnected && this.connectionStatus.retryCount > 0) {
-                        this.handleError({
-                            title: 'Connection Restored',
-                            message: 'Server connection has been restored',
-                            type: 'success'
-                        });
-                        this.connectionStatus.retryCount = 0;
-                    }
-                }
+                return await this.retryWithBackoff(operation);
             } catch (error) {
-                this.connectionStatus.connected = false;
-                this.connectionStatus.retryCount++;
-                this.handleConnectionError(error);
-            } finally {
-                this.connectionCheckInProgress = false;
+                // Check if it's a connection error
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    throw new Error('Server connection lost. Please check your connection and try again.');
+                }
+                throw error;
             }
         },
 
