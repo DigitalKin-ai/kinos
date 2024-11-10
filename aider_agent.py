@@ -212,13 +212,17 @@ class AiderAgent(KinOSAgent):
             try:
                 prompts_dir = PathManager.get_prompts_path()
                 prompt_path = os.path.join(prompts_dir, self.prompt_file)
-            if os.path.exists(prompt_path):
-                with open(prompt_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    self._prompt_cache[self.prompt_file] = (mtime, content)
-                    return content
-            else:
-                self.logger(f"Prompt file not found: {self.prompt_file}")
+                
+                if os.path.exists(prompt_path):
+                    with open(prompt_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        self._prompt_cache[self.prompt_file] = (mtime, content)
+                        return content
+                else:
+                    self.logger(f"Prompt file not found: {self.prompt_file}")
+                    return self.prompt  # Fallback to default prompt
+            except Exception as e:
+                self.logger(f"Error accessing prompt file: {str(e)}")
                 return self.prompt  # Fallback to default prompt
                 
         except Exception as e:
