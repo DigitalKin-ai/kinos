@@ -9,11 +9,11 @@ from utils.path_manager import PathManager
 def register_view_routes(app, web_instance):
     """Register all view-related routes"""
     logger = Logger()
-    @app.route('/')
+    @app.route('/', endpoint='home')
     def home():
         return redirect(url_for('editor_interface'))
 
-    @app.route('/editor')
+    @app.route('/editor', endpoint='editor_interface')
     @safe_operation()
     def editor_interface():
         try:
@@ -31,11 +31,11 @@ def register_view_routes(app, web_instance):
             logger.log(f"Error loading editor: {str(e)}", "error")
             return ErrorHandler.handle_error(e)
 
-    @app.route('/agents')
+    @app.route('/agents', endpoint='agents_page')
     def agents_page():
         return render_template('agents.html')
 
-    @app.route('/files')
+    @app.route('/files', endpoint='files_page')
     def files_page():
         """Render the files interface"""
         try:
@@ -45,7 +45,7 @@ def register_view_routes(app, web_instance):
             logger.log(f"Error loading files interface: {str(e)}", "error")
             return ErrorHandler.handle_error(e)
 
-    @app.route('/clean')
+    @app.route('/clean', endpoint='clean_interface')
     @safe_operation()
     def clean_interface():
         try:

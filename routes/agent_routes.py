@@ -22,7 +22,7 @@ def register_agent_routes(app, web_instance):
     def stop_all_agents():
         web_instance.agent_service.stop_all_agents()
         return jsonify({'status': 'stopped'})
-    @app.route('/api/agents/list', methods=['GET'])
+    @app.route('/api/agents/list', methods=['GET'], endpoint='api_agents_list')
     @safe_operation()
     def list_agents():
         try:
@@ -148,7 +148,7 @@ def register_agent_routes(app, web_instance):
             web_instance.log_message(f"Error listing agents: {str(e)}", 'error')
             return jsonify({'error': str(e)}), 500
 
-    @app.route('/api/agents/status', methods=['GET'])
+    @app.route('/api/agents/status', methods=['GET'], endpoint='api_agents_status')
     @safe_operation()
     def get_agents_status():
         try:
@@ -214,7 +214,7 @@ def register_agent_routes(app, web_instance):
             web_instance.log_message(f"Unhandled error in get_agents_status: {str(e)}", 'error')
             return jsonify(error_details), 500
 
-    @app.route('/api/agent/<agent_id>/prompt', methods=['GET'])
+    @app.route('/api/agent/<agent_id>/prompt', methods=['GET'], endpoint='api_agent_get_prompt')
     @safe_operation()
     def get_agent_prompt(agent_id):
         try:
@@ -225,7 +225,7 @@ def register_agent_routes(app, web_instance):
         except Exception as e:
             return ErrorHandler.handle_error(e)
 
-    @app.route('/api/agent/<agent_id>/prompt', methods=['POST'])
+    @app.route('/api/agent/<agent_id>/prompt', methods=['POST'], endpoint='api_agent_save_prompt')
     @safe_operation()
     def save_agent_prompt(agent_id):
         try:
@@ -240,7 +240,7 @@ def register_agent_routes(app, web_instance):
         except Exception as e:
             return ErrorHandler.handle_error(e)
 
-    @app.route('/api/agent/<agent_id>/<action>', methods=['POST'])
+    @app.route('/api/agent/<agent_id>/<action>', methods=['POST'], endpoint='api_agent_control')
     @safe_operation()
     def control_agent(agent_id, action):
         try:

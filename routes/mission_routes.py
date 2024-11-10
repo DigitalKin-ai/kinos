@@ -47,14 +47,14 @@ def load_ignore_patterns(mission_dir: str, web_instance) -> list:
 def register_mission_routes(app, web_instance):
     """Register all mission-related routes"""
     
-    @app.route('/api/paths/mission/<mission_name>')
+    @app.route('/api/paths/mission/<mission_name>', endpoint='api_mission_path_by_name')
     @safe_operation()
     def get_mission_path_by_name(mission_name):
         return jsonify({
             'path': PathManager.get_mission_path(mission_name)
         })
 
-    @app.route('/api/missions/<int:mission_id>/path')
+    @app.route('/api/missions/<int:mission_id>/path', endpoint='api_mission_path')
     @safe_operation()
     def get_mission_path(mission_id):
         mission = web_instance.mission_service.get_mission(mission_id)
@@ -64,13 +64,13 @@ def register_mission_routes(app, web_instance):
             'path': PathManager.get_mission_path(mission['name'])
         })
 
-    @app.route('/api/missions', methods=['GET'])
+    @app.route('/api/missions', methods=['GET'], endpoint='api_missions_list')
     @safe_operation()
     def get_missions():
         missions = web_instance.mission_service.get_all_missions()
         return jsonify(missions)
 
-    @app.route('/api/missions/<int:mission_id>/files')
+    @app.route('/api/missions/<int:mission_id>/files', endpoint='api_mission_files')
     @safe_operation()
     @web_instance.limiter.limit("200 per minute")
     def get_mission_files(mission_id):
@@ -147,7 +147,7 @@ def register_mission_routes(app, web_instance):
             web_instance.logger.log(f"Unexpected error in get_mission_files: {str(e)}", 'error')
             return jsonify({'error': str(e)}), 500
 
-    @app.route('/api/missions/<int:mission_id>/select', methods=['POST'])
+    @app.route('/api/missions/<int:mission_id>/select', methods=['POST'], endpoint='api_mission_select')
     @safe_operation()
     def select_mission(mission_id):
         try:
@@ -185,7 +185,7 @@ def register_mission_routes(app, web_instance):
             web_instance.logger.log(f"Error selecting mission {mission_id}: {str(e)}", 'error')
             return jsonify({'error': f"Failed to select mission: {str(e)}"}), 500
 
-    @app.route('/api/missions/<int:mission_id>/reset', methods=['POST'])
+    @app.route('/api/missions/<int:mission_id>/reset', methods=['POST'], endpoint='api_mission_reset')
     @safe_operation()
     def reset_mission_files(mission_id):
         success = web_instance.mission_service.reset_mission_files(mission_id)
