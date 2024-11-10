@@ -1,11 +1,12 @@
-# Gestion des Chemins de Fichiers dans KinOS
+# Gestion Dynamique des Chemins de Fichiers dans KinOS
 
 ## Vue d'Ensemble
 
-KinOS utilise une stratégie de gestion des chemins de fichiers qui combine:
-- Chemins absolus pour la création et l'initialisation
-- Chemins relatifs pour les opérations Aider
-- Structure de dossiers standardisée
+KinOS implémente une gestion flexible et sécurisée des chemins de fichiers:
+- Création dynamique à la demande par les agents
+- Normalisation intelligente via FileManager
+- Validation stricte des permissions
+- Optimisation des accès fichiers
 
 ## Stratégies par Contexte
 

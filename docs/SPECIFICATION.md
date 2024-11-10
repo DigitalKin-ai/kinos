@@ -63,56 +63,64 @@ Le système s'articule autour de trois couches principales :
 ## 2. Composants Principaux
 
 ### 2.1 Agents
-Les agents sont le cœur du système KinOS, chacun ayant un rôle spécifique et des responsabilités définies.
+Les agents sont le cœur du système KinOS, chacun opérant de manière totalement autonome avec une gestion flexible des ressources.
 
 #### Types d'agents
 1. **Agent de Spécifications (SpecificationsAgent)**
-   - Analyse des demandes initiales
-   - Définition des exigences techniques
-   - Validation de la cohérence des spécifications
-   - Mise à jour continue des spécifications
+   - Analyse autonome des demandes et définition des spécifications
+   - Gestion flexible des documents de spécifications
+   - Création de sous-spécifications selon les besoins
+   - Maintien proactif de la cohérence entre documents
+   - Validation continue des exigences
 
 2. **Agent de Production (ProductionAgent)**
-   - Génération de code
-   - Implémentation des fonctionnalités
-   - Respect des standards de codage
-   - Optimisation du code
+   - Génération et optimisation autonome du code/contenu
+   - Organisation libre des fichiers de production
+   - Création dynamique de modules/composants
+   - Gestion intelligente des dépendances
+   - Optimisation continue du code
 
 3. **Agent de Management (ManagementAgent)**
-   - Coordination des activités
-   - Gestion des priorités
-   - Suivi de l'avancement
-   - Résolution des conflits
+   - Coordination autonome des activités
+   - Organisation flexible des tâches et priorités
+   - Création dynamique de rapports et tableaux de bord
+   - Gestion adaptative des ressources
+   - Résolution proactive des conflits
 
 4. **Agent d'Évaluation (EvaluationAgent)**
-   - Tests et validation
-   - Contrôle qualité
-   - Mesure des performances
-   - Identification des améliorations
+   - Tests et validation autonomes
+   - Organisation dynamique des suites de tests
+   - Génération de rapports de couverture
+   - Analyse continue des performances
+   - Identification proactive des améliorations
 
 5. **Agent de Suivi (SuiviAgent)**
-   - Journalisation des activités
-   - Traçabilité des modifications
-   - Génération de rapports
-   - Historique des décisions
+   - Documentation autonome des activités
+   - Gestion flexible de l'historique
+   - Génération dynamique de rapports
+   - Suivi adaptatif des métriques
+   - Alertes proactives
 
 #### Cycle de vie des agents
 1. **Initialisation**
-   - Chargement de la configuration
-   - Établissement des connexions
-   - Vérification des dépendances
+   - Validation autonome du contexte d'exécution
+   - Vérification dynamique des permissions
+   - Configuration adaptative des ressources
+   - Établissement flexible des connexions
 
 2. **Exécution**
-   - Surveillance continue
-   - Traitement des événements
-   - Prise de décision
-   - Actions autonomes
+   - Surveillance autonome des ressources
+   - Adaptation dynamique du rythme d'exécution
+   - Prise de décision indépendante
+   - Gestion proactive des erreurs
+   - Optimisation continue des performances
 
 3. **Communication**
-   - Échange d'informations
-   - Synchronisation
-   - Notifications
-   - Résolution des conflits
+   - Échange asynchrone d'informations
+   - Synchronisation adaptative
+   - Notifications temps réel
+   - Résolution autonome des conflits
+   - Coordination flexible des ressources
 
 #### Intégration avec Aider
 1. **Format d'appel standardisé**
