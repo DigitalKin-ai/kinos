@@ -5,6 +5,7 @@ from flask import jsonify, request
 from utils.decorators import safe_operation
 from utils.exceptions import ValidationError, ResourceNotFoundError, ServiceError
 from utils.error_handler import ErrorHandler
+from utils.path_manager import PathManager
 
 def register_agent_routes(app, web_instance):
     """Register all agent-related routes"""
