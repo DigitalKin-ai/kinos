@@ -101,7 +101,7 @@ class KinOSAgent:
                 # If there are positional args, first one is message
                 message = args[0] if args else kwargs.pop('message', '')
                 # Call with explicit parameters, no kwargs for level
-                return logger_config(message, level=level, **kwargs)
+                return logger_config(message, level, **kwargs)
             
             # Create logger object with consistent interface
             self.logger = type('Logger', (), {
@@ -136,7 +136,7 @@ class KinOSAgent:
                     return json.load(f)
             return {"default": 60, "intervals": {}}
         except Exception as e:
-            self.logger.log(f"Error loading intervals config: {str(e)}", level='error')
+            self.logger.log(f"Error loading intervals config: {str(e)}", 'error')
             return {"default": 60, "intervals": {}}
 
     def _load_intervals_config(self) -> Dict:
@@ -148,7 +148,7 @@ class KinOSAgent:
                     return json.load(f)
             return {"default": 60, "intervals": {}}
         except Exception as e:
-            self.logger.log(f"Error loading intervals config: {str(e)}", level='error')
+            self.logger.log(f"Error loading intervals config: {str(e)}", 'error')
             return {"default": 60, "intervals": {}}
 
     def _get_agent_interval(self) -> int:
@@ -164,11 +164,11 @@ class KinOSAgent:
         if callable(logger_config):
             # Create wrapper that ensures level is only passed once
             def create_log_wrapper(func):
-                def wrapper(message, level='info', **kwargs):
+                def wrapper(message, 'info', **kwargs):
                     # Ensure we only pass level once by removing it from kwargs
                     kwargs.pop('level', None)
                     # Call the underlying function with explicit level parameter
-                    return func(message, level=level, **kwargs)
+                    return func(message, level, **kwargs)
                 return wrapper
                 
             base_logger = create_log_wrapper(logger_config)
