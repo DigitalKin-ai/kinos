@@ -12,9 +12,8 @@ from agents.kinos_agent import KinOSAgent
 from utils.path_manager import PathManager
 
 # Import agent types dynamically
-agent_types_module = importlib.import_module('agents.agent_types')
 agent_classes = {
-    name: cls for name, cls in inspect.getmembers(agent_types_module)
+    name: cls for name, cls in inspect.getmembers()
     if (inspect.isclass(cls) and 
         issubclass(cls, KinOSAgent) and 
         cls != KinOSAgent)
