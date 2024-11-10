@@ -23,6 +23,9 @@ class FileManager:
         self._current_mission = None
         self.logger = Logger()
         
+        # Get absolute path to project root (parent of services directory)
+        self.project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
         # Initialize cache
         self.content_cache = {}
         self.cache_hits = 0
@@ -35,6 +38,19 @@ class FileManager:
         
         self._ensure_files_exist()
 
+    def get_mission_path(self, mission_name: str) -> str:
+        """
+        Returns absolute path to a mission directory.
+        
+        Args:
+            mission_name: Name of the mission
+            
+        Returns:
+            str: Absolute path to mission directory
+        """
+        normalized_name = self._normalize_mission_name(mission_name)
+        return os.path.join(self.project_root, "missions", normalized_name)
+        
     def _normalize_mission_name(self, mission_name: str) -> str:
         """
         Normalize mission name for filesystem use.
@@ -162,7 +178,7 @@ class FileManager:
             
             # Get absolute path based on current mission
             if self.current_mission:
-                file_path = os.path.abspath(os.path.join("missions", self.current_mission, f"{file_name}.md"))
+                file_path = os.path.join(self.get_mission_path(self.current_mission), f"{file_name}.md")
             else:
                 base_path = self.file_paths.get(file_name)
                 if not base_path:
