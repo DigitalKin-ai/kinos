@@ -96,10 +96,15 @@ class KinOSAgent:
         if callable(logger_config):
             # Create wrapper that ensures level is only passed once
             def wrapper(message, level='info', **kwargs):
-                # Extract level from kwargs if present
-                level = kwargs.pop('level', level)  # Use passed level or default
-                # Call with explicit parameters, no kwargs for level
-                return logger_config(message, level, **kwargs)
+                # Remove level from kwargs to avoid duplicates
+                kwargs.pop('level', None)
+                
+                # If logger_config is a logging.Logger instance
+                if hasattr(logger_config, 'log'):
+                    return logger_config.log(level.upper(), message)
+                
+                # If logger_config is a callable (like print)
+                return logger_config(message, level)
             
             # Create logger object with consistent interface
             self.logger = type('Logger', (), {
