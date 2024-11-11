@@ -49,10 +49,18 @@
 
                 <!-- Teams Display -->
                 <div v-else-if="teams && teams.length > 0" class="grid grid-cols-1 gap-6">
-                    <div v-for="team in teams" 
-                         :key="team.id" 
-                         class="bg-white rounded-lg shadow p-6"
-                         v-if="team">
+                    <team-card
+                        v-for="team in teams"
+                        v-if="team && team.id"
+                        :key="team.id" 
+                        :team="team"
+                        :loading="loadingStates.get(team.id)"
+                        :error="errorMessages.get(team.id)"
+                        :is-active="activeTeam?.name === team.name"
+                        @toggle="toggleTeam(team)"
+                        @activate="activateTeam(team)"
+                        @add-agent="openAddAgentModal(team)">
+                    </team-card>
                         <h3 class="text-xl font-semibold mb-4">
                             {% raw %}{{ team.name || 'Unnamed Team' }}{% endraw %}
                         </h3>
