@@ -4,7 +4,6 @@ import TeamUtils from './teams/TeamUtils.js';
 import TeamMethods from './teams/TeamMethods.js';
 import TeamConnectionHandling from './teams/TeamConnectionHandling.js';
 import TeamErrorHandling from './teams/TeamErrorHandling.js';
-import TeamConstants from './teams/TeamConstants.js';
 
 import TeamCard from './components/teams/TeamCard.js';
 import AddAgentModal from './components/teams/AddAgentModal.js';
