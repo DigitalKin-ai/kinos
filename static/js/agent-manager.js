@@ -29,13 +29,16 @@ export default {
             showError: false,
             agentStates: {},
             agents: [],
+            teams: [], // Add teams to data
             prompts: {},
             searchTimeout: null,
             showEditModal: false,
         };
     },
     computed: {
-        ...AgentManagerData.computed,
+        areAnyAgentsRunning() {
+            return this.agents.some(agent => agent.running);
+        },
         
         filteredAgents() {
             if (!this.agents) return [];
