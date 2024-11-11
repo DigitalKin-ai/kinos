@@ -15,6 +15,40 @@ class MissionService {
         };
     }
 
+    getCurrentMission() {
+        return this.currentMission;
+    }
+
+    getMissions() {
+        return this.missions;
+    }
+
+    async _loadMissions() {
+        try {
+            const response = await this.apiClient.get('/missions');
+            this.missions = response;
+            return this.missions;
+        } catch (error) {
+            console.error('Error loading missions:', error);
+            throw error;
+        }
+    }
+
+    async selectMission(mission) {
+        try {
+            if (!mission?.id) {
+                throw new Error('Invalid mission selected');
+            }
+
+            const response = await this.apiClient.post(`/missions/${mission.id}/select`);
+            this.currentMission = response;
+            return response;
+        } catch (error) {
+            console.error('Error selecting mission:', error);
+            throw error;
+        }
+    }
+
     async initialize() {
         try {
             // Initialize both missions and teams
