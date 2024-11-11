@@ -100,6 +100,31 @@
             }
         },
         methods: {
+            async loadTeams() {
+                try {
+                    if (!this.currentMission?.id) {
+                        this.teams = [];
+                        this.team = null;
+                        return;
+                    }
+
+                    const response = await fetch(`/api/missions/${this.currentMission.id}/teams`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch teams: ' + response.statusText);
+                    }
+                    
+                    const teams = await response.json();
+                    this.teams = teams;
+                    this.team = teams.length > 0 ? teams[0] : null;
+                    this.activeTeam = teams.length > 0 ? teams[0] : null;
+                } catch (error) {
+                    console.error('Failed to load teams:', error);
+                    this.teams = [];
+                    this.team = null;
+                    this.activeTeam = null;
+                    this.handleError('Failed to load teams', error);
+                }
+            },
             async handleMissionOperation(operation, errorMessage) {
                 try {
                     return await this.retryWithBackoff(operation);
