@@ -154,7 +154,7 @@
                     const data = await response.json();
                     this.teams = Array.isArray(data) ? data.map(team => ({
                         ...team,
-                        id: team.id || team.name?.toLowerCase().replace(/\s+/g, '-') || Date.now(),
+                        id: team.id || (team.name ? team.name.toLowerCase().replace(/\s+/g, '-') : Date.now()),
                         name: team.name || 'Unnamed Team',
                         agents: Array.isArray(team.agents) ? team.agents : []
                     })) : [];
@@ -181,10 +181,11 @@
                     try {
                         const response = await fetch('/api/status');
                         const data = await response.json();
-                        
-                        this.isConnected = response.ok && data.server?.running === true;
+                
+                        // Vérification plus robuste sans l'opérateur optionnel
+                        this.isConnected = response.ok && data.server && data.server.running === true;
                         this.lastCheck = new Date();
-                        
+                
                         if (this.isConnected) {
                             this.retryCount = 0;
                             // Recharger les données si on était déconnecté
