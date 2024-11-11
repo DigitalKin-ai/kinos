@@ -67,14 +67,20 @@ export default {
         },
         getTeamMetrics() {
             return (teamId) => {
-                // Null checks and fallback values
+                // Comprehensive null checks and fallback values
                 if (!teamId) return null;
 
                 const team = this.teams.find(t => t && t.id === teamId);
                 if (!team) return null;
 
                 const stats = this.teamStats.get(team.name);
-                if (!stats) return null;
+                if (!stats) return {
+                    efficiency: 0,
+                    agentHealth: 0,
+                    completedTasks: 0,
+                    averageResponseTime: 0,
+                    errorRate: 0
+                };
 
                 return {
                     efficiency: this.getTeamEfficiency(team) || 0,
@@ -86,11 +92,8 @@ export default {
                     errorRate: stats.metrics?.error_rate || 0
                 };
             };
-        },
-        getTeamMetrics() {
-            return (teamId) => {
-                const team = this.teams.find(t => t.id === teamId);
-                if (!team) return null;
+        }
+    },
 
                 const stats = this.teamStats.get(team.name);
                 if (!stats) return null;
@@ -268,28 +271,31 @@ export default {
 
         async loadTeams() {
             try {
-                this.loading = true;
-                this.error = null;
-                
+                // Ensure currentMission exists before fetching teams
                 if (!this.currentMission?.id) {
-                    throw new Error('No mission selected');
+                    this.teams = [];
+                    return;
                 }
 
-                const teams = await this.missionService.getTeams(this.currentMission.id);
+                // Use missionService to get teams
+                const teams = await this.missionService.teamService.getTeamsForMission(this.currentMission.id);
+                
+                // Validate and set teams
                 this.teams = teams.map(team => ({
                     ...team,
+                    id: team.id || team.name.toLowerCase().replace(/\s+/g, '-'),
                     agents: team.agents || [],
                     status: team.status || 'available'
                 }));
-            
+
                 // Set first team as active if no active team
                 if (this.teams.length > 0 && !this.activeTeam) {
                     this.activeTeam = this.teams[0];
                 }
             } catch (error) {
+                console.error('Failed to load teams:', error);
+                this.teams = [];
                 this.handleError('Failed to load teams', error);
-            } finally {
-                this.loading = false;
             }
         },
     },
