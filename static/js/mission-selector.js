@@ -841,7 +841,7 @@ export default {
                                 <span v-if="hoveredMissionId === mission.id"
                                       class="absolute right-16 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg"
                                       style="top: 50%; transform: translateY(-50%)">
-                                    {{ formatDate(missionData.updated_at || missionData.created_at) }}
+                                    {{ formatDate(mission.updated_at || mission.created_at) }}
                                 </span>
                             </transition>
                         </div>
