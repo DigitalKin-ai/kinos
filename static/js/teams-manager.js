@@ -335,9 +335,6 @@ export default {
             clearInterval(this.updateInterval);
         }
     },
-    created() {
-        this.initializeErrorHandling();
-    },
     methods: {
         getTeamEfficiency(team) {
             const stats = this.teamStats.get(team.name);
