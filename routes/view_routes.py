@@ -50,8 +50,8 @@ def register_view_routes(app, web_instance):
     @app.route('/agents', endpoint='agents_page')
     def agents_page():
         try:
-            # If you have a mission service, you might want to get the current mission
-            current_mission = web_instance.mission_service.get_current_mission() if hasattr(web_instance, 'mission_service') else None
+            # Access currentMission property directly
+            current_mission = web_instance.mission_service.currentMission if hasattr(web_instance, 'mission_service') else None
             
             return render_template('agents.html', 
                                    current_mission=current_mission, 
