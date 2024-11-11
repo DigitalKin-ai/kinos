@@ -4,21 +4,35 @@ export default {
             connectionStatus: {
                 connected: true,
                 lastCheck: null,
-                retryCount: 0
-            },
-            connectionCheckInProgress: false,
-            connectionInterval: null
+                retryCount: 0,
+                checkInterval: null,
+                maxRetries: 3,
+                retryDelay: 1000,
+                checkInProgress: false
+            }
         }
     },
     methods: {
         async checkConnection() {
-            if (this.connectionCheckInProgress) return;
+            if (this.connectionStatus.checkInProgress) return;
             
             try {
-                this.connectionCheckInProgress = true;
-                const response = await fetch('/api/status');
+                this.connectionStatus.checkInProgress = true;
+                const response = await fetch('/api/status', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    signal: AbortSignal.timeout(5000)
+                });
                 
-                this.connectionStatus.connected = response.ok;
+                if (response.ok) {
+                    const data = await response.json();
+                    this.connectionStatus.connected = data.server?.running === true;
+                } else {
+                    this.connectionStatus.connected = false;
+                }
+                
                 this.connectionStatus.lastCheck = new Date();
                 this.connectionStatus.retryCount = 0;
                 
@@ -27,31 +41,34 @@ export default {
                 this.connectionStatus.retryCount++;
                 this.handleConnectionError(error);
             } finally {
-                this.connectionCheckInProgress = false;
+                this.connectionStatus.checkInProgress = false;
             }
         },
 
         startConnectionMonitoring() {
+            this.stopConnectionMonitoring();
+            
             this.checkConnection();
-            this.connectionInterval = setInterval(() => {
+            
+            this.connectionStatus.checkInterval = setInterval(() => {
                 this.checkConnection();
-            }, 30000); // Check every 30 seconds
+            }, 30000);
         },
 
         stopConnectionMonitoring() {
-            if (this.connectionInterval) {
-                clearInterval(this.connectionInterval);
-                this.connectionInterval = null;
+            if (this.connectionStatus.checkInterval) {
+                clearInterval(this.connectionStatus.checkInterval);
+                this.connectionStatus.checkInterval = null;
             }
         },
 
         handleConnectionError(error) {
             const retryCount = this.connectionStatus.retryCount;
             const message = retryCount > 1 
-                ? `Connection lost. Retry attempt ${retryCount}...`
-                : 'Connection lost. Retrying...';
+                ? `Server connection lost. Retry attempt ${retryCount}...`
+                : 'Server connection lost. Retrying...';
             
-            this.handleError({
+            this.$emit('connection-error', {
                 title: 'Connection Error',
                 message: message,
                 type: 'connection',
@@ -59,8 +76,21 @@ export default {
                 details: error.message
             });
 
-            const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 30000);
-            setTimeout(() => this.checkConnection(), delay);
+            const delay = Math.min(
+                this.connectionStatus.retryDelay * Math.pow(2, retryCount - 1), 
+                30000
+            );
+
+            if (retryCount < this.connectionStatus.maxRetries) {
+                setTimeout(() => this.checkConnection(), delay);
+            } else {
+                this.$emit('connection-failed', {
+                    message: 'Maximum retry attempts reached. Please check your connection.'
+                });
+            }
         }
+    },
+    beforeUnmount() {
+        this.stopConnectionMonitoring();
     }
 }
