@@ -854,6 +854,51 @@ export default {
                 </div>
             </div>
             
+            <!-- Connection status indicator -->
+            <div v-if="!connectionStatus.connected" 
+                 class="connection-error bg-red-100 border-l-4 border-red-500 p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="mdi mdi-alert-circle text-red-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <div class="text-sm text-red-700">
+                            <p class="font-medium">Connection Lost</p>
+                            <p>
+                                Server connection lost. 
+                                <span v-if="connectionStatus.retryCount > 0">
+                                    Retry attempt {{ connectionStatus.retryCount }} of {{ connectionStatus.maxRetries }}
+                                </span>
+                                <span v-else>
+                                    Attempting to reconnect...
+                                </span>
+                            </p>
+                            <p v-if="connectionStatus.lastCheck" class="mt-1 text-xs">
+                                Last successful connection: {{ new Date(connectionStatus.lastCheck).toLocaleTimeString() }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Server status indicator (when connected) -->
+            <div v-if="connectionStatus.connected && serverStatus.running" 
+                 class="server-status bg-green-100 border-l-4 border-green-500 p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="mdi mdi-server-network text-green-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <div class="text-sm text-green-700">
+                            <p class="font-medium">Server Connected</p>
+                            <p v-if="serverStatus.health.uptime">
+                                Uptime: {{ serverStatus.health.uptime }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Error alert -->
             <div v-if="showError" 
                  class="error-alert bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
