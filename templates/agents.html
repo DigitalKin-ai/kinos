@@ -142,7 +142,12 @@
                 this.missions = await response.json();
             
                 if (this.missions.length > 0) {
-                    await this.selectMission(this.missions[0]);
+                    try {
+                        await this.selectMission(this.missions[0]);
+                    } catch (error) {
+                        console.error('Failed to select initial mission:', error);
+                        // Continue même si la sélection échoue
+                    }
                 }
             
                 this.loading = false;

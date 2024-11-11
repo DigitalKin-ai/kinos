@@ -40,7 +40,7 @@ class MissionService {
                 throw new Error('Invalid mission selected');
             }
 
-            const response = await this.apiClient.post(`/missions/${mission.id}/select`);
+            const response = await this.apiClient.post(`/api/missions/${mission.id}/select`);
             this.currentMission = response;
             return response;
         } catch (error) {

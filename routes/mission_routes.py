@@ -182,6 +182,11 @@ def register_mission_routes(app, web_instance):
 
             # Mise à jour de la mission courante
             try:
+                # Utiliser la méthode select_mission
+                selected_mission = web_instance.mission_service.select_mission(mission_id)
+                if not selected_mission:
+                    raise ValueError("Failed to select mission")
+                
                 web_instance.file_manager.current_mission = mission['name']
                 web_instance.logger.log(f"Mission courante mise à jour: {mission['name']}", 'info')
             except Exception as e:
@@ -193,8 +198,7 @@ def register_mission_routes(app, web_instance):
 
             # Réinitialisation des agents
             try:
-                web_instance.agent_service.init_agents({
-                })
+                web_instance.agent_service.init_agents({})
                 web_instance.logger.log("Agents réinitialisés avec succès", 'success')
             except Exception as e:
                 web_instance.logger.log(f"Erreur initialisation agents: {str(e)}", 'error')
