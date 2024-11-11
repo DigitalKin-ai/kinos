@@ -553,28 +553,49 @@ export default {
 
         async checkServerConnection() {
             try {
-                const response = await Promise.race([
-                    fetch('/api/status', {
+                console.log("Checking server connection...");
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                try {
+                    const response = await fetch('/api/status', {
                         method: 'GET',
                         headers: {
                             'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    }),
-                    new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('Request timeout')), 5000)
-                    )
-                ]);
+                            'Content-Type': 'application/json',
+                            'X-Client-Timestamp': Date.now()
+                        },
+                        signal: controller.signal
+                    });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `Server returned ${response.status}`);
+                    console.log("Server response received:", response.status);
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error("Server error:", errorData);
+                        throw new Error(errorData.error || `Server returned ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    console.log("Server status:", data);
+                
+                    const isRunning = data.server?.running === true;
+                    console.log("Server running:", isRunning);
+                
+                    if (data.server?.health) {
+                        console.log("Server health:", data.server.health);
+                    }
+                
+                    return isRunning;
+
+                } finally {
+                    clearTimeout(timeoutId);
                 }
-
-                const data = await response.json();
-                return data.server?.running === true;
             } catch (error) {
                 console.error('Server connection check failed:', error);
+                if (error.name === 'AbortError') {
+                    throw new Error('Connection timeout');
+                }
                 throw error;
             }
         },

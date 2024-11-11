@@ -11,6 +11,30 @@ from utils.path_manager import PathManager
 def register_agent_routes(app, web_instance):
     """Register all agent-related routes"""
     
+    @app.route('/api/status', methods=['GET'])
+    @safe_operation()
+    def get_server_status():
+        """Get server status and health information"""
+        return jsonify({
+            'server': {
+                'running': True,
+                'timestamp': datetime.now().isoformat(),
+                'version': '1.0.0',
+                'health': {
+                    'memory_usage': web_instance.get_memory_usage() if hasattr(web_instance, 'get_memory_usage') else None,
+                    'uptime': web_instance.get_uptime() if hasattr(web_instance, 'get_uptime') else None
+                }
+            }
+        })
+
+    @app.before_request
+    def log_request():
+        web_instance.log_message(f"Request: {request.method} {request.path}", 'debug')
+
+    @app.after_request
+    def log_response(response):
+        web_instance.log_message(f"Response: {response.status_code}", 'debug')
+        return response
     @app.route('/api/agents/start', methods=['POST'], endpoint='api_agents_start')
     @safe_operation()
     def start_all_agents():
