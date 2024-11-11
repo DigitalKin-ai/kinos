@@ -908,8 +908,7 @@ class KinOSWeb:
                     'specifications': 'specifications.md', 
                     'management': 'management.md',
                     'production': 'production.md',
-                    'evaluation': 'evaluation.md',
-                    'suivi': 'suivi.md'
+                    'evaluation': 'evaluation.md'
                 }
 
                 # Check each file
