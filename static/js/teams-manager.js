@@ -280,23 +280,6 @@ export default {
             }
         },
 
-        initializeErrorHandling() {
-            // Basic error handling initialization
-            this.errorMessage = null;
-            this.showError = false;
-        },
-
-        handleError(message, error) {
-            console.error(message, error);
-            this.errorMessage = typeof error === 'string' 
-                ? error 
-                : (error.message || 'An unexpected error occurred');
-            this.showError = true;
-
-            setTimeout(() => {
-                this.showError = false;
-            }, 5000);
-        },
 
         async loadTeams() {
             try {
