@@ -5,40 +5,6 @@
 class ApiClient {
     constructor(baseUrl = '') {
         this.baseUrl = baseUrl;
-        this.connectionState = {
-            isOnline: navigator.onLine,
-            lastCheckTimestamp: null,
-            connectionErrors: 0
-        };
-
-        // Add connection event listeners
-        window.addEventListener('online', this.handleOnline.bind(this));
-        window.addEventListener('offline', this.handleOffline.bind(this));
-
-        // Écouteurs d'événements de connexion
-        window.addEventListener('online', this.handleOnline.bind(this));
-        window.addEventListener('offline', this.handleOffline.bind(this));
-    }
-
-    handleOnline() {
-        this.connectionState.isOnline = true;
-        this.connectionState.connectionErrors = 0;
-        this.notifyConnectionChange('online');
-    }
-
-    handleOffline() {
-        this.connectionState.isOnline = false;
-        this.notifyConnectionChange('offline');
-    }
-
-    notifyConnectionChange(status) {
-        const event = new CustomEvent('connection-status-change', {
-            detail: { 
-                status, 
-                timestamp: new Date() 
-            }
-        });
-        window.dispatchEvent(event);
     }
 
     async selectMission(missionId) {

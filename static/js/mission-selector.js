@@ -32,21 +32,7 @@ export default {
             showError: false,
             runningStates: new Map(),
             stateUpdateQueue: [],
-            stateUpdateInProgress: false,
-            connectionCheckInProgress: false,
-            serverRetries: 0,
-            maxRetries: 3,
-            retryDelay: 1000,
-            serverCheckInterval: null,
-            connectionStatus: {
-                connected: true,
-                lastCheck: null,
-                retryCount: 0,
-                checkInterval: null,
-                maxRetries: 3,
-                retryDelay: 1000,
-                checkInProgress: false
-            }
+            stateUpdateInProgress: false
         }
     },
     computed: {
@@ -70,9 +56,6 @@ export default {
     async mounted() {
         console.log('MissionSelector mounted');
         try {
-            await this.checkConnection();
-            this.startConnectionMonitoring();
-
             await this.retryWithBackoff(async () => {
                 try {
                     const missionsResponse = await fetch('/api/missions');
