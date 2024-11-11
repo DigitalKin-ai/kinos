@@ -1,4 +1,15 @@
 export default {
+    data() {
+        return {
+            connectionStatus: {
+                connected: true,
+                lastCheck: null,
+                retryCount: 0
+            },
+            connectionCheckInProgress: false,
+            connectionInterval: null
+        }
+    },
     methods: {
         async checkConnection() {
             if (this.connectionCheckInProgress) return;
