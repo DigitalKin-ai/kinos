@@ -92,15 +92,15 @@ def register_mission_routes(app, web_instance):
         """Get all files in mission directory respecting ignore patterns"""
         try:
             # Use color-coded logging with more context
-            logger.log(f"Getting files for mission {mission_id}", 'info')
+            web_instance.logger.log(f"Getting files for mission {mission_id}", 'info')
         
             # Get mission
             mission = web_instance.mission_service.get_mission(mission_id)
             if not mission:
-                logger.log(f"Mission {mission_id} not found", 'error')
+                web_instance.logger.log(f"Mission {mission_id} not found", 'error')
                 return jsonify({'error': 'Mission not found'}), 404
 
-            logger.log(f"Found mission: {mission['name']}", 'debug')
+            web_instance.logger.log(f"Found mission: {mission['name']}", 'debug')
 
             # Get mission path using PathManager
             mission_dir = PathManager.get_mission_path(mission['name'])
@@ -158,7 +158,7 @@ def register_mission_routes(app, web_instance):
                 return jsonify({'error': f'Error listing files: {str(e)}'}), 500
 
         except Exception as e:
-            logger.log(
+            web_instance.logger.log(
                 f"Unexpected error in get_mission_files: {str(e)}\n"
                 f"Traceback: {traceback.format_exc()}", 
                 'critical'
