@@ -9,6 +9,8 @@ from utils.decorators import safe_operation
 from utils.path_manager import PathManager
 from utils.exceptions import ResourceNotFoundError
 from utils.error_handler import ErrorHandler
+from utils.logger import Logger
+import traceback
 
 
 
@@ -49,12 +51,6 @@ def load_ignore_patterns(mission_dir: str, web_instance) -> list:
                 
     return ignore_patterns
 
-def _validate_mission(mission_id: int, web_instance) -> dict:
-    """Centralized mission validation"""
-    mission = web_instance.mission_service.get_mission(mission_id)
-    if not mission:
-        raise ResourceNotFoundError(f"Mission {mission_id} not found")
-    return mission
 
 def _validate_mission(mission_id: int, web_instance) -> dict:
     """Centralized mission validation"""
@@ -95,17 +91,16 @@ def register_mission_routes(app, web_instance):
     def get_mission_files(mission_id):
         """Get all files in mission directory respecting ignore patterns"""
         try:
-            # Log début de la requête
-            web_instance.logger.log(f"Getting files for mission {mission_id}", 'debug')
-            
+            # Use color-coded logging with more context
+            logger.log(f"Getting files for mission {mission_id}", 'info')
+        
             # Get mission
             mission = web_instance.mission_service.get_mission(mission_id)
             if not mission:
-                web_instance.logger.log(f"Mission {mission_id} not found", 'error')
+                logger.log(f"Mission {mission_id} not found", 'error')
                 return jsonify({'error': 'Mission not found'}), 404
 
-            # Log mission trouvée
-            web_instance.logger.log(f"Found mission: {mission['name']}", 'debug')
+            logger.log(f"Found mission: {mission['name']}", 'debug')
 
             # Get mission path using PathManager
             mission_dir = PathManager.get_mission_path(mission['name'])
@@ -163,7 +158,11 @@ def register_mission_routes(app, web_instance):
                 return jsonify({'error': f'Error listing files: {str(e)}'}), 500
 
         except Exception as e:
-            web_instance.logger.log(f"Unexpected error in get_mission_files: {str(e)}", 'error')
+            logger.log(
+                f"Unexpected error in get_mission_files: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}", 
+                'critical'
+            )
             return jsonify({'error': str(e)}), 500
 
     @app.route('/api/missions/<int:mission_id>/select', methods=['POST'], endpoint='api_mission_select')
@@ -195,8 +194,6 @@ def register_mission_routes(app, web_instance):
             # Réinitialisation des agents
             try:
                 web_instance.agent_service.init_agents({
-                    "anthropic_api_key": web_instance.config.get("anthropic_api_key"),
-                    "openai_api_key": web_instance.config.get("openai_api_key")
                 })
                 web_instance.logger.log("Agents réinitialisés avec succès", 'success')
             except Exception as e:
