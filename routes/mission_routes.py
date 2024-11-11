@@ -181,22 +181,27 @@ def register_mission_routes(app, web_instance):
             # Log the request
             web_instance.logger.log(f"Mission selection requested: {mission_id}", 'info')
             
-            # Select the mission
-            selected_mission = web_instance.mission_service.select_mission(mission_id)
-            
-            if not selected_mission:
+            # Validate mission exists first
+            mission = web_instance.mission_service.get_mission(mission_id)
+            if not mission:
                 web_instance.logger.log(f"Mission {mission_id} not found", 'error')
                 return jsonify({
                     'error': 'Mission not found',
                     'details': f'No mission with id {mission_id}'
                 }), 404
 
+            # Update current mission in service
+            web_instance.mission_service.currentMission = mission
+            
+            # Add selection timestamp
+            selected_mission = {
+                **mission,
+                'selected_at': datetime.now().isoformat(),
+                'status': 'active'
+            }
+
             # Return success response
-            return jsonify({
-                'status': 'success',
-                'mission': selected_mission,
-                'selected_at': datetime.now().isoformat()
-            })
+            return jsonify(selected_mission)
 
         except Exception as e:
             # Log the error

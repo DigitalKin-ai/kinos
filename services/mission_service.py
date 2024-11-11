@@ -41,14 +41,17 @@ class MissionService:
             # Update current mission
             self.currentMission = mission
             
-            # Log success
-            self.logger.log(f"Selected mission: {mission.get('name', mission_id)}", "info")
-            
-            return {
+            # Add selection metadata
+            selected_mission = {
                 **mission,
                 'selected_at': datetime.now().isoformat(),
                 'status': 'active'
             }
+            
+            # Log success
+            self.logger.log(f"Selected mission: {mission.get('name', mission_id)}", "info")
+            
+            return selected_mission
             
         except Exception as e:
             self.logger.log(f"Error selecting mission: {str(e)}", "error")
