@@ -103,12 +103,6 @@ export default {
             }
         },
         
-        handleError(error) {
-            console.error('Agent Manager Error:', error);
-            this.error = error.message || 'An unexpected error occurred';
-            this.$emit('error', error);
-        },
-        
         validateAgentName(name) {
             const nameRegex = /^[a-zA-Z][a-zA-Z0-9_-]{2,29}$/;
             return nameRegex.test(name);
