@@ -41,11 +41,6 @@ export default {
             maxRetries: 3,
             retryDelay: 1000,
             loading: false,
-            connectionStatus: {
-                connected: true,
-                lastCheck: null,
-                retryCount: 0
-            },
             availableAgents: [
                 "SpecificationsAgent", "ManagementAgent", "EvaluationAgent",
                 "SuiviAgent", "DocumentalisteAgent", "DuplicationAgent",
@@ -53,34 +48,7 @@ export default {
             ],
             selectedTeamForEdit: null,
             selectedAgent: null,
-            teams: [
-                {
-                    name: "book writing",
-                    agents: [
-                        "SpecificationsAgent", "ManagementAgent", "EvaluationAgent", 
-                        "SuiviAgent", "DocumentalisteAgent", "DuplicationAgent",
-                        "RedacteurAgent", "ValidationAgent"
-                    ]
-                },
-                {
-                    name: "literature review",
-                    agents: [
-                        "SpecificationsAgent", "ManagementAgent", "EvaluationAgent",
-                        "SuiviAgent", "DocumentalisteAgent", "DuplicationAgent",
-                        "RedacteurAgent", "ValidationAgent"
-                    ]
-                },
-                {
-                    name: "coding team",
-                    agents: [
-                        "SpecificationsAgent", "ManagementAgent", "EvaluationAgent",
-                        "SuiviAgent", "DocumentalisteAgent", "DuplicationAgent",
-                        "ProductionAgent", "TesteurAgent", "ValidationAgent"
-                    ]
-                }
-            ],
-            loading: false,
-            error: null,
+            teams: [], // Initialize as empty array
             activeTeam: null,
             teamStats: new Map(),
             teamHistory: new Map(),
@@ -144,7 +112,15 @@ export default {
             immediate: true,
             async handler(newMission) {
                 if (newMission?.id) {
-                    await this.loadTeams();
+                    try {
+                        this.loading = true;
+                        await this.loadTeams();
+                    } catch (error) {
+                        console.error('Failed to load teams:', error);
+                        this.handleError('Failed to load teams', error);
+                    } finally {
+                        this.loading = false;
+                    }
                 }
             }
         }
