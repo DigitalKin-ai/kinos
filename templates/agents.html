@@ -26,32 +26,54 @@
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col">
             <div class="flex-1 p-6">
-                <template id="agent-manager">
-                    <div class="agent-manager">
-                        <div v-if="error" class="error-message">{{ error }}</div>
-                        <div v-if="loading" class="loading">Loading...</div>
-                            
-                        {% raw %}
-                        <div v-if="teams && teams.length" class="teams-container">
-                            <div v-for="team in teams" :key="team.id" class="team-section">
-                                <h3>{{ team.name || 'Unnamed Team' }}</h3>
-                                <div v-if="team.agents && team.agents.length" class="agents-list">
-                                    <div v-for="agent in team.agents" :key="agent.name" class="agent-item">
-                                        {{ agent.name || 'Unnamed Agent' }}
-                                    </div>
-                                </div>
-                                <div v-else class="no-agents-message">
-                                    No agents in this team.
-                                </div>
+                <div v-if="error" class="bg-red-100 border-l-4 border-red-500 p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="mdi mdi-alert-circle text-red-500"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700">{{ error }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="!connectionStatus.connected" 
+                     class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="mdi mdi-wifi-off text-yellow-500"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                Server connection lost. Retrying... 
+                                <span v-if="connectionStatus.retryCount > 1">
+                                    (Attempt {{ connectionStatus.retryCount }})
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="loading" class="flex items-center justify-center h-full">
+                    <div class="text-center">
+                        <i class="mdi mdi-loading mdi-spin text-4xl text-blue-500"></i>
+                        <p class="mt-2 text-gray-600">Loading teams...</p>
+                    </div>
+                </div>
+
+                <div v-else class="grid grid-cols-1 gap-6">
+                    <div v-for="team in teams" :key="team.id" class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-xl font-semibold mb-4">{{ team.name }}</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <div v-for="agent in team.agents" 
+                                 :key="agent.id"
+                                 class="bg-gray-50 rounded p-3">
+                                <div class="text-sm font-medium">{{ agent.name }}</div>
+                                <div class="text-xs text-gray-500 mt-1">{{ agent.status }}</div>
                             </div>
                         </div>
-                        <div v-else class="no-teams-message">
-                            No teams available for this mission.
-                        </div>
-                        {% endraw %}
                     </div>
-                </template>
-                <agent-manager :current-mission="currentMission"></agent-manager>
+                </div>
             </div>
         </div>
     </div>
@@ -60,96 +82,92 @@
 
 {% block scripts %}
 <script type="module">
-    import { createApp, ref } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+    import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
     import MissionSelector from "{{ url_for('static', filename='js/mission-selector.js') }}";
     import MissionService from "{{ url_for('static', filename='js/mission-service.js') }}";
-    import AgentManager from "{{ url_for('static', filename='js/agent-manager.js') }}";
     import HeaderComponent from "{{ url_for('static', filename='js/components/header.js') }}";
 
     const app = createApp({
         components: {
             MissionSelector,
-            AgentManager,
             HeaderComponent
         },
-        setup() {
-            const missionService = new MissionService('');
-            const currentMission = ref(null);
-            const missions = ref([]);
-            const loading = ref(true);
-            const error = ref(null);
-            const teams = ref([]); // Add teams ref
-
+        data() {
             return {
-                missionService,
-                currentMission,
-                missions,
-                loading,
-                error,
-                teams // Include teams in the returned object
-            };
+                missionService: new MissionService(''),
+                currentMission: null,
+                missions: [],
+                teams: [],
+                loading: true,
+                error: null,
+                connectionStatus: {
+                    connected: true,
+                    retryCount: 0,
+                    lastCheck: null
+                }
+            }
+        },
+        async mounted() {
+            try {
+                await this.loadTeams();
+                this.startConnectionMonitoring();
+            } catch (error) {
+                this.error = error.message;
+            } finally {
+                this.loading = false;
+            }
         },
         methods: {
+            async loadTeams() {
+                try {
+                    const response = await fetch('/api/teams');
+                    if (!response.ok) throw new Error('Failed to load teams');
+                    this.teams = await response.json();
+                } catch (error) {
+                    console.error('Failed to load teams:', error);
+                    throw error;
+                }
+            },
+
+            startConnectionMonitoring() {
+                setInterval(async () => {
+                    try {
+                        const response = await fetch('/api/status');
+                        this.connectionStatus.connected = response.ok;
+                        this.connectionStatus.lastCheck = new Date();
+                        if (response.ok) this.connectionStatus.retryCount = 0;
+                    } catch (error) {
+                        this.connectionStatus.connected = false;
+                        this.connectionStatus.retryCount++;
+                    }
+                }, 5000);
+            },
+
             async selectMission(mission) {
                 try {
                     this.loading = true;
                     await this.missionService.selectMission(mission);
                     this.currentMission = mission;
-                    
-                    // Load teams for the selected mission
-                    try {
-                        const teamResponse = await fetch(`/api/missions/${mission.id}/teams`);
-                        if (teamResponse.ok) {
-                            this.teams = await teamResponse.json();
-                        } else {
-                            this.teams = []; // Reset teams if fetch fails
-                        }
-                    } catch (teamError) {
-                        console.error('Failed to load teams:', teamError);
-                        this.teams = [];
-                    }
+                    await this.loadTeams();
                 } catch (error) {
                     this.error = error.message;
                 } finally {
                     this.loading = false;
                 }
             },
+
             async createMission(name) {
                 try {
                     const newMission = await this.missionService.createMission(name);
                     this.missions.push(newMission);
                     this.currentMission = newMission;
-                    this.teams = []; // Reset teams for new mission
                 } catch (error) {
-                    console.error('Failed to create mission:', error);
+                    this.error = error.message;
                 }
             },
+
             handleSidebarToggle(collapsed) {
                 // Handle sidebar collapse/expand if needed
-            }
-        },
-        async mounted() {
-            try {
-                const response = await fetch('/api/missions');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch missions');
-                }
-                this.missions = await response.json();
-            
-                if (this.missions.length > 0) {
-                    try {
-                        await this.selectMission(this.missions[0]);
-                    } catch (error) {
-                        console.error('Failed to select initial mission:', error);
-                        // Continue même si la sélection échoue
-                    }
-                }
-            
-                this.loading = false;
-            } catch (error) {
-                this.error = 'Failed to load missions: ' + error.message;
-                this.loading = false;
-                console.error(error);
             }
         }
     });
