@@ -137,6 +137,9 @@
                 this.loading = false;
             }
         },
+        beforeUnmount() {
+            this.stopConnectionMonitoring();
+        },
         methods: {
             async loadTeams() {
                 try {
