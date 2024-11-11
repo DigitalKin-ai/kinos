@@ -65,15 +65,22 @@
                 </div>
 
                 <!-- Teams Display -->
-                <div v-else-if="teams.length > 0" class="grid grid-cols-1 gap-6">
-                    <div v-for="teamItem in teams" :key="teamItem.id" class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-xl font-semibold mb-4">{{ teamItem.name }}</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div v-else-if="teams && teams.length > 0" class="grid grid-cols-1 gap-6">
+                    <div v-for="teamItem in teams" 
+                         :key="teamItem?.id || index" 
+                         class="bg-white rounded-lg shadow p-6"
+                         v-if="teamItem">
+                        <h3 class="text-xl font-semibold mb-4">{{ teamItem?.name || 'Unnamed Team' }}</h3>
+                        <div v-if="teamItem?.agents && teamItem.agents.length" 
+                             class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             <div v-for="agent in teamItem.agents" 
                                  :key="agent"
                                  class="bg-gray-50 rounded p-3">
                                 <div class="text-sm font-medium">{{ agent }}</div>
                             </div>
+                        </div>
+                        <div v-else class="text-gray-500 text-sm">
+                            No agents in this team
                         </div>
                     </div>
                 </div>
@@ -105,7 +112,7 @@
                 missionService: new MissionService(''),
                 currentMission: null,
                 missions: [],
-                teams: [],
+                teams: [], // Initialize as empty array
                 loading: true,
                 error: null,
                 isConnected: true,
@@ -115,10 +122,15 @@
         },
         async mounted() {
             try {
+                this.loading = true;
+                // Initialize teams as empty array first
+                this.teams = [];
                 await this.loadTeams();
                 this.startConnectionMonitoring();
             } catch (error) {
+                console.error('Error in mounted:', error);
                 this.error = error.message;
+                this.teams = []; // Ensure teams is an array even on error
             } finally {
                 this.loading = false;
             }
@@ -128,9 +140,17 @@
                 try {
                     const response = await fetch('/api/teams');
                     if (!response.ok) throw new Error('Failed to load teams');
-                    this.teams = await response.json();
+                    const data = await response.json();
+                    // Ensure we have valid team data
+                    this.teams = Array.isArray(data) ? data.map(team => ({
+                        ...team,
+                        id: team.id || team.name?.toLowerCase().replace(/\s+/g, '-') || Date.now(),
+                        name: team.name || 'Unnamed Team',
+                        agents: Array.isArray(team.agents) ? team.agents : []
+                    })) : [];
                 } catch (error) {
                     console.error('Failed to load teams:', error);
+                    this.teams = []; // Reset to empty array on error
                     throw error;
                 }
             },
