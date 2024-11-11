@@ -844,37 +844,20 @@ export default {
                         <i class="mdi mdi-alert-circle text-red-500"></i>
                     </div>
                     <div class="ml-3">
-                        <p class="text-sm text-red-700">
-                            Server connection lost. Retrying...
-                            <span v-if="connectionStatus.retryCount > 1">
-                                (Attempt {{ connectionStatus.retryCount }})
-                            </span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Connection status indicator -->
-            <div v-if="!connectionStatus.connected" 
-                 class="connection-error bg-red-100 border-l-4 border-red-500 p-4 mb-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <i class="mdi mdi-alert-circle text-red-500"></i>
-                    </div>
-                    <div class="ml-3">
                         <div class="text-sm text-red-700">
-                            <p class="font-medium">Connection Lost</p>
+                            <p class="font-medium">Connection Status</p>
                             <p>
-                                Server connection lost. 
+                                <span class="text-red-600 font-medium">Disconnected</span>
                                 <span v-if="connectionStatus.retryCount > 0">
-                                    Retry attempt {{ connectionStatus.retryCount }} of {{ connectionStatus.maxRetries }}
-                                </span>
-                                <span v-else>
-                                    Attempting to reconnect...
+                                    - Attempt {{ connectionStatus.retryCount }}/{{ connectionStatus.maxRetries }}
                                 </span>
                             </p>
-                            <p v-if="connectionStatus.lastCheck" class="mt-1 text-xs">
-                                Last successful connection: {{ new Date(connectionStatus.lastCheck).toLocaleTimeString() }}
+                            <p class="mt-1 text-xs flex items-center gap-1">
+                                <i class="mdi mdi-clock-outline"></i>
+                                Last connected: {{ connectionStatus.lastCheck ? new Date(connectionStatus.lastCheck).toLocaleTimeString() : 'Never' }}
+                            </p>
+                            <p v-if="connectionStatus.retryCount > 0" class="mt-1 text-xs">
+                                Next retry in {{ Math.round(connectionStatus.retryDelay/1000) }}s
                             </p>
                         </div>
                     </div>
@@ -890,10 +873,17 @@ export default {
                     </div>
                     <div class="ml-3">
                         <div class="text-sm text-green-700">
-                            <p class="font-medium">Server Connected</p>
-                            <p v-if="serverStatus.health.uptime">
-                                Uptime: {{ serverStatus.health.uptime }}
-                            </p>
+                            <p class="font-medium">Server Status: <span class="text-green-600">Connected</span></p>
+                            <div class="grid grid-cols-2 gap-2 mt-1 text-xs">
+                                <p v-if="serverStatus.health.uptime">
+                                    <i class="mdi mdi-clock-outline mr-1"></i>
+                                    Uptime: {{ serverStatus.health.uptime }}
+                                </p>
+                                <p v-if="serverStatus.health.memory_usage">
+                                    <i class="mdi mdi-memory mr-1"></i>
+                                    Memory: {{ serverStatus.health.memory_usage }}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
