@@ -68,20 +68,23 @@
 
                 <!-- Teams Display -->
                 <div v-else-if="teams && teams.length > 0" class="grid grid-cols-1 gap-6">
-                    <div v-for="teamItem in teams" 
-                         :key="teamItem.id" 
+                    <div v-for="team in teams" 
+                         :key="team.id" 
                          class="bg-white rounded-lg shadow p-6"
-                         v-if="teamItem">
+                         v-if="team">
                         <h3 class="text-xl font-semibold mb-4">
-                            {% raw %}{{ teamItem.name || 'Unnamed Team' }}{% endraw %}
+                            {% raw %}{{ team.name || 'Unnamed Team' }}{% endraw %}
                         </h3>
-                        <div v-if="teamItem.agents && teamItem.agents.length" 
+                        <div v-if="team.agents && team.agents.length" 
                              class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            <div v-for="agent in teamItem.agents" 
+                            <div v-for="agent in team.agents" 
                                  :key="agent"
                                  class="bg-gray-50 rounded p-3">
                                 <div class="text-sm font-medium">{% raw %}{{ agent }}{% endraw %}</div>
                             </div>
+                        </div>
+                        <div v-else class="text-gray-500 text-sm">
+                            No agents in this team
                         </div>
                         <div v-else class="text-gray-500 text-sm">
                             No agents in this team
