@@ -232,3 +232,121 @@ class MissionService:
         """
         missions = self._scan_missions()
         return next((mission for mission in missions if mission['name'] == mission_name), None)
+from datetime import datetime
+from typing import Optional, Dict, List, Any
+from utils.logger import Logger
+
+class MissionService:
+    """Service for managing missions"""
+    
+    def __init__(self):
+        self.currentMission = None
+        self.missions = []
+        self.logger = Logger()
+
+    def get_mission(self, mission_id: int) -> Optional[Dict[str, Any]]:
+        """Get a mission by ID"""
+        try:
+            mission_id = int(mission_id)
+            return next((m for m in self.missions if m['id'] == mission_id), None)
+        except (ValueError, TypeError):
+            return None
+
+    def select_mission(self, mission_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Select a mission as current
+        
+        Args:
+            mission_id: ID of the mission to select
+            
+        Returns:
+            dict: Selected mission data or None if not found
+            
+        Raises:
+            ValueError: If mission_id is invalid
+            Exception: For other errors
+        """
+        try:
+            # Validate mission_id
+            if not isinstance(mission_id, (int, str)):
+                raise ValueError("Invalid mission ID type")
+            
+            # Get the mission
+            mission = self.get_mission(mission_id)
+            if not mission:
+                self.logger.log(f"Mission not found: {mission_id}", "error")
+                return None
+                
+            # Update current mission
+            self.currentMission = mission
+            
+            # Log success
+            self.logger.log(f"Selected mission: {mission.get('name', mission_id)}", "info")
+            
+            return {
+                **mission,
+                'selected_at': datetime.now().isoformat(),
+                'status': 'active'
+            }
+            
+        except Exception as e:
+            self.logger.log(f"Error selecting mission: {str(e)}", "error")
+            raise
+
+    def get_current_mission(self) -> Optional[Dict[str, Any]]:
+        """Get the currently selected mission"""
+        return self.currentMission
+
+    def get_all_missions(self) -> List[Dict[str, Any]]:
+        """Get list of all missions"""
+        return self.missions
+
+    def create_mission(self, name: str, description: str = "") -> Dict[str, Any]:
+        """Create a new mission"""
+        try:
+            mission_id = len(self.missions) + 1
+            mission = {
+                'id': mission_id,
+                'name': name,
+                'description': description,
+                'created_at': datetime.now().isoformat(),
+                'status': 'active'
+            }
+            self.missions.append(mission)
+            return mission
+        except Exception as e:
+            self.logger.log(f"Error creating mission: {str(e)}", "error")
+            raise
+
+    def update_mission(self, mission_id: int, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Update a mission"""
+        try:
+            mission = self.get_mission(mission_id)
+            if not mission:
+                return None
+                
+            for key, value in updates.items():
+                if key in mission:
+                    mission[key] = value
+                    
+            mission['updated_at'] = datetime.now().isoformat()
+            return mission
+        except Exception as e:
+            self.logger.log(f"Error updating mission: {str(e)}", "error")
+            raise
+
+    def delete_mission(self, mission_id: int) -> bool:
+        """Delete a mission"""
+        try:
+            mission = self.get_mission(mission_id)
+            if not mission:
+                return False
+                
+            self.missions = [m for m in self.missions if m['id'] != mission_id]
+            if self.currentMission and self.currentMission['id'] == mission_id:
+                self.currentMission = None
+                
+            return True
+        except Exception as e:
+            self.logger.log(f"Error deleting mission: {str(e)}", "error")
+            raise

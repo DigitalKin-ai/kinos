@@ -60,7 +60,15 @@ def _validate_mission(mission_id: int, web_instance) -> dict:
     return mission
 
 def register_mission_routes(app, web_instance):
-    """Register all mission-related routes"""
+    """
+    Register all mission-related routes
+    
+    Args:
+        app: Flask application instance
+        web_instance: WebInterface instance with initialized services
+    """
+    if not hasattr(web_instance, 'mission_service'):
+        raise AttributeError("WebInterface instance missing mission_service")
     
     @app.route('/api/paths/mission/<mission_name>', endpoint='api_mission_path_by_name')
     @safe_operation()
