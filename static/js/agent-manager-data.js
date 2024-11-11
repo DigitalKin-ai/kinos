@@ -20,10 +20,5 @@ export default {
             searchTerm: '',
             searchTimeout: null
         };
-    },
-    computed: {
-        areAnyAgentsRunning() {
-            return this.agents.some(agent => agent.running);
-        }
     }
 };
