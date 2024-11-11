@@ -168,55 +168,33 @@ def register_mission_routes(app, web_instance):
     @app.route('/api/missions/<int:mission_id>/select', methods=['POST'], endpoint='api_mission_select')
     @safe_operation()
     def select_mission(mission_id):
+        """Select a mission as current"""
         try:
-            web_instance.logger.log(f"Sélection de mission demandée: {mission_id}", 'info')
+            # Log the request
+            web_instance.logger.log(f"Mission selection requested: {mission_id}", 'info')
             
-            # Validation de la mission
-            mission = web_instance.mission_service.get_mission(mission_id)
-            if not mission:
-                web_instance.logger.log(f"Mission {mission_id} non trouvée", 'error')
+            # Select the mission
+            selected_mission = web_instance.mission_service.select_mission(mission_id)
+            
+            if not selected_mission:
+                web_instance.logger.log(f"Mission {mission_id} not found", 'error')
                 return jsonify({
                     'error': 'Mission not found',
                     'details': f'No mission with id {mission_id}'
                 }), 404
 
-            # Mise à jour de la mission courante
-            try:
-                # Utiliser la méthode select_mission
-                selected_mission = web_instance.mission_service.select_mission(mission_id)
-                if not selected_mission:
-                    raise ValueError("Failed to select mission")
-                
-                web_instance.file_manager.current_mission = mission['name']
-                web_instance.logger.log(f"Mission courante mise à jour: {mission['name']}", 'info')
-            except Exception as e:
-                web_instance.logger.log(f"Erreur mise à jour mission: {str(e)}", 'error')
-                return jsonify({
-                    'error': 'Failed to update current mission',
-                    'details': str(e)
-                }), 500
-
-            # Réinitialisation des agents
-            try:
-                web_instance.agent_service.init_agents({})
-                web_instance.logger.log("Agents réinitialisés avec succès", 'success')
-            except Exception as e:
-                web_instance.logger.log(f"Erreur initialisation agents: {str(e)}", 'error')
-                return jsonify({
-                    'error': 'Failed to initialize agents',
-                    'details': str(e)
-                }), 500
-
+            # Return success response
             return jsonify({
                 'status': 'success',
-                'mission': mission,
+                'mission': selected_mission,
                 'selected_at': datetime.now().isoformat()
             })
 
         except Exception as e:
-            web_instance.logger.log(f"Erreur inattendue: {str(e)}", 'error')
+            # Log the error
+            web_instance.logger.log(f"Error selecting mission: {str(e)}", 'error')
             return jsonify({
-                'error': 'Unexpected error',
+                'error': 'Failed to update current mission',
                 'details': str(e)
             }), 500
 
