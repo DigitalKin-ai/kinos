@@ -67,11 +67,11 @@
                 <!-- Teams Display -->
                 <div v-else-if="teams && teams.length > 0" class="grid grid-cols-1 gap-6">
                     <div v-for="teamItem in teams" 
-                         :key="teamItem?.id || index" 
+                         :key="teamItem.id || index" 
                          class="bg-white rounded-lg shadow p-6"
                          v-if="teamItem">
-                        <h3 class="text-xl font-semibold mb-4">{{ teamItem?.name || 'Unnamed Team' }}</h3>
-                        <div v-if="teamItem?.agents && teamItem.agents.length" 
+                        <h3 class="text-xl font-semibold mb-4">{{ teamItem.name || 'Unnamed Team' }}</h3>
+                        <div v-if="teamItem.agents && teamItem.agents.length" 
                              class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             <div v-for="agent in teamItem.agents" 
                                  :key="agent"
