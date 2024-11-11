@@ -167,13 +167,24 @@ class AgentService:
                     'suivi', 'documentaliste', 'duplication', 
                     'redacteur', 'validation', 'production', 'testeur'
                 ]
-            
+        
             # Normalize agent names
             normalized_agents = [
                 agent.lower().replace('agent', '').strip() 
                 for agent in team_agents
             ]
-            
+        
+            # Determine mission directory
+            try:
+                current_mission = self.web_instance.file_manager.current_mission
+                mission_dir = PathManager.get_mission_path(current_mission) if current_mission else None
+            except Exception as mission_dir_error:
+                self.web_instance.log_message(
+                    f"Error getting mission directory: {str(mission_dir_error)}", 
+                    'warning'
+                )
+                mission_dir = None
+        
             # Initialize agents with comprehensive logging
             initialized_agents = {}
             for agent_name in normalized_agents:
@@ -181,10 +192,13 @@ class AgentService:
                     # Prepare agent-specific configuration
                     agent_config = {
                         'config': {
-                            'name': agent_name
+                            'name': agent_name,
+                            'anthropic_api_key': config.get('anthropic_api_key'),
+                            'openai_api_key': config.get('openai_api_key'),
+                            'mission_dir': mission_dir or PathManager.get_project_root()
                         }
                     }
-                    
+                
                     # Attempt to find and load prompt
                     prompt_file = self._find_agent_prompt(
                         agent_name, 
@@ -193,15 +207,15 @@ class AgentService:
                             PathManager.get_custom_prompts_path()
                         ]
                     )
-                    
+                
                     if prompt_file:
                         prompt_content = self._read_prompt_file(prompt_file)
                         if prompt_content:
                             agent_config['config']['prompt'] = prompt_content
-                    
+                
                     # Create dynamic agent
                     agent = self._create_dynamic_agent(agent_config)
-                    
+                
                     if agent:
                         initialized_agents[agent_name] = agent
                         self.web_instance.log_message(
@@ -213,25 +227,26 @@ class AgentService:
                             f"Failed to create agent: {agent_name}", 
                             'error'
                         )
-                
+            
                 except Exception as agent_error:
                     self.web_instance.log_message(
                         f"Error initializing agent {agent_name}: {str(agent_error)}", 
                         'error'
                     )
-            
+        
             # Update agents dictionary
             self.agents = initialized_agents
-            
+        
             # Log initialization summary
             self.web_instance.log_message(
                 f"Agent Initialization Summary:\n"
                 f"Total Agents Attempted: {len(normalized_agents)}\n"
                 f"Successfully Initialized: {len(initialized_agents)}\n"
-                f"Failed Agents: {set(normalized_agents) - set(initialized_agents.keys())}", 
+                f"Failed Agents: {set(normalized_agents) - set(initialized_agents.keys())}\n"
+                f"Mission Directory: {mission_dir or 'Not set'}", 
                 'info'
             )
-        
+    
         except Exception as e:
             self.web_instance.log_message(
                 f"Critical Agent Initialization Failure:\n"
@@ -1629,6 +1644,12 @@ Describe the operational context and key responsibilities.
             # Extract configuration, with fallback to empty dict
             agent_config = config.get('config', {})
 
+            # Debug logging of initial configuration
+            self.web_instance.log_message(
+                f"Initial agent configuration:\n{json.dumps(agent_config, indent=2)}", 
+                'debug'
+            )
+
             # Ensure name is present
             if 'name' not in agent_config:
                 # Try to extract name from various possible sources
@@ -1674,8 +1695,33 @@ Describe the operational context and key responsibilities.
                     # Create a default prompt if no file found
                     agent_config['prompt'] = self._create_default_prompt(agent_config['name'])
 
+            # Determine mission directory
+            try:
+                # Try to get current mission from file manager
+                current_mission = self.web_instance.file_manager.current_mission
+                if current_mission:
+                    mission_dir = PathManager.get_mission_path(current_mission)
+                else:
+                    # Fallback to project root if no mission selected
+                    mission_dir = PathManager.get_project_root()
+            
+                # Add mission directory to configuration
+                agent_config['mission_dir'] = mission_dir
+            
+                self.web_instance.log_message(
+                    f"Using mission directory for {agent_config['name']}: {mission_dir}", 
+                    'debug'
+                )
+            except Exception as mission_dir_error:
+                self.web_instance.log_message(
+                    f"Error determining mission directory: {str(mission_dir_error)}", 
+                    'error'
+                )
+                # If we can't determine mission directory, use project root
+                agent_config['mission_dir'] = PathManager.get_project_root()
+
             # Validate configuration again
-            required_fields = ['name', 'prompt']
+            required_fields = ['name', 'prompt', 'mission_dir']
             missing_fields = [field for field in required_fields if field not in agent_config]
         
             if missing_fields:
@@ -1685,13 +1731,22 @@ Describe the operational context and key responsibilities.
                 )
                 return None
 
+            # Debug logging of final configuration
+            self.web_instance.log_message(
+                f"Final agent configuration for {agent_config['name']}:\n"
+                f"{json.dumps(agent_config, indent=2)}", 
+                'debug'
+            )
+
             # Create the agent
             try:
                 from aider_agent import AiderAgent
             
                 # Merge all configuration
                 full_config = {
-                    **agent_config
+                    **agent_config,
+                    'anthropic_api_key': config.get('anthropic_api_key'),
+                    'openai_api_key': config.get('openai_api_key')
                 }
             
                 # Create agent
