@@ -8,33 +8,78 @@ export default {
         show: {
             type: Boolean,
             default: false
+        },
+        type: {
+            type: String,
+            default: 'error',
+            validator: value => ['error', 'connection', 'warning'].includes(value)
         }
     },
-    emits: ['close'],
+    emits: ['close', 'retry'],
+    data() {
+        return {
+            retrying: false
+        }
+    },
+    computed: {
+        notificationClass() {
+            return {
+                'bg-red-100 border-red-400 text-red-700': this.type === 'error',
+                'bg-yellow-100 border-yellow-400 text-yellow-700': this.type === 'warning',
+                'bg-blue-100 border-blue-400 text-blue-700': this.type === 'connection'
+            }
+        },
+        showRetry() {
+            return this.type === 'connection' || this.type === 'error'
+        }
+    },
     methods: {
         async retryOperation() {
+            if (this.retrying) return;
+            
             try {
-                const response = await fetch('/api/retry', {
-                    method: 'POST'
-                });
-                if (!response.ok) throw new Error('Failed to retry operation');
+                this.retrying = true;
+                await this.$emit('retry');
             } catch (error) {
                 console.error('Error retrying operation:', error);
+            } finally {
+                this.retrying = false;
             }
         }
     },
     template: `
         <transition name="fade">
             <div v-if="show" 
-                 class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-                <strong class="font-bold">Error!</strong>
-                <span class="block sm:inline">{{ message }}</span>
-                <span class="absolute top-0 bottom-0 right-0 px-4 py-3" @click="$emit('close')">
-                    <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                        <title>Close</title>
-                        <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
-                    </svg>
-                </span>
+                 class="fixed top-4 right-4 border px-4 py-3 rounded relative"
+                 :class="notificationClass">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i :class="{
+                            'mdi mdi-alert-circle': type === 'error',
+                            'mdi mdi-wifi-off': type === 'connection',
+                            'mdi mdi-alert': type === 'warning'
+                        }" class="mr-2"></i>
+                    </div>
+                    <div>
+                        <strong class="font-bold mr-2">
+                            {{ type === 'connection' ? 'Connection Error' : 'Error!' }}
+                        </strong>
+                        <span class="block sm:inline">{{ message }}</span>
+                    </div>
+                </div>
+                
+                <div v-if="showRetry" class="mt-2 flex justify-end">
+                    <button @click="retryOperation"
+                            :disabled="retrying"
+                            class="text-sm underline hover:no-underline focus:outline-none">
+                        {{ retrying ? 'Retrying...' : 'Retry' }}
+                    </button>
+                </div>
+
+                <button @click="$emit('close')"
+                        class="absolute top-0 right-0 p-4">
+                    <i class="mdi mdi-close"></i>
+                </button>
             </div>
         </transition>
     `

@@ -11,6 +11,10 @@ class ApiClient {
             connectionErrors: 0
         };
 
+        // Add connection event listeners
+        window.addEventListener('online', this.handleOnline.bind(this));
+        window.addEventListener('offline', this.handleOffline.bind(this));
+
         // Écouteurs d'événements de connexion
         window.addEventListener('online', this.handleOnline.bind(this));
         window.addEventListener('offline', this.handleOffline.bind(this));
