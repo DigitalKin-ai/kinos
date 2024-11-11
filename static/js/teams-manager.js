@@ -337,6 +337,9 @@ export default {
     },
     methods: {
         getTeamEfficiency(team) {
+            // Null checks
+            if (!team || !team.name) return 0;
+
             const stats = this.teamStats.get(team.name);
             if (!stats) return 0;
 
@@ -881,12 +884,13 @@ export default {
                 <div v-else class="grid grid-cols-1 gap-6">
                     <team-card
                         v-for="team in teams"
-                        :key="team.name" 
+                        v-if="team && team.id"
+                        :key="team.id" 
                         :team="team"
                         :loading="loadingStates.get(team.id)"
                         :error="errorMessages.get(team.id)"
                         :is-active="activeTeam?.name === team.name"
-                        :metrics="getTeamMetrics(team.id)"
+                        :metrics="team.id ? getTeamMetrics(team.id) : null"
                         @toggle="toggleTeam(team)"
                         @activate="activateTeam(team)"
                         @add-agent="openAddAgentModal(team)">
