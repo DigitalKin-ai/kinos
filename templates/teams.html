@@ -87,16 +87,16 @@
                 missions: [],
                 loading: true,
                 error: null,
-                activeTeam: null,
+                showError: false,
+                team: null,
                 teams: [],
+                activeTeam: null,
                 runningStates: new Map(),
                 connectionStatus: {
                     connected: true,
                     lastCheck: null,
                     retryCount: 0
-                },
-                showError: false,
-                errorMessage: ''
+                }
             }
         },
         methods: {
@@ -189,26 +189,26 @@
 
                         const result = await response.json();
                         this.currentMission = result;
-                        return result;
-                    });
 
-                    // Update state
-                    this.currentMission = result;
-
-                    // Fetch team information
-                    try {
+                        // Fetch team information
                         const teamResponse = await fetch(`/api/missions/${mission.id}/teams`);
                         if (teamResponse.ok) {
                             const teams = await teamResponse.json();
                             this.teams = teams;
+                            this.team = teams.length > 0 ? teams[0] : null;
                             this.activeTeam = teams.length > 0 ? teams[0] : null;
                         } else {
                             throw new Error('Failed to fetch teams: ' + teamResponse.statusText);
                         }
-                    } catch (teamError) {
-                        this.handleError('Error fetching teams', teamError);
-                        this.teams = [];
-                        this.activeTeam = null;
+
+                        return result;
+                    });
+
+                } catch (error) {
+                    this.handleError('Failed to select mission', error);
+                    this.teams = [];
+                    this.team = null;
+                    this.activeTeam = null;
                     }
 
                     // Restore previous state if needed
@@ -392,6 +392,7 @@
                     this.missions.push(newMission);
                     this.currentMission = newMission;
                     this.teams = [];
+                    this.team = null;
                     this.activeTeam = null;
                 } catch (error) {
                     this.handleError('Failed to create mission: ' + error.message);
