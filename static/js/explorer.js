@@ -150,21 +150,6 @@ export default {
         this.startFileWatcher();
     },
 
-    beforeUnmount() {
-        if (this.fileCheckInterval) {
-            clearInterval(this.fileCheckInterval);
-        }
-        if (this.cleanupInterval) {
-            clearInterval(this.cleanupInterval);
-        }
-        this.cleanup();
-        this.stopServerMonitoring();
-    },
-
-    beforeUnmount() {
-        this.stopFileWatcher();
-    }
-}
     computed: {
         filteredFiles() {
             if (!this.searchQuery) {
@@ -194,6 +179,31 @@ export default {
         }
     },
     methods: {
+        startContentMonitoring() {
+            // Implementation needed
+            console.log('Content monitoring started');
+        },
+        
+        stopContentMonitoring() {
+            // Implementation needed
+            console.log('Content monitoring stopped');
+        },
+
+        cleanup() {
+            // Implementation needed
+            console.log('Cleanup performed');
+        },
+
+        stopServerMonitoring() {
+            // Implementation needed
+            console.log('Server monitoring stopped');
+        },
+
+        refreshPanel(panelId) {
+            // Implementation needed
+            console.log('Refreshing panel:', panelId);
+        },
+
         async checkFileModifications() {
             try {
                 if (!this.currentMission?.id) return;
@@ -327,13 +337,9 @@ export default {
     mounted() {
         this.loadMissions();
         this.startFileWatcher();
-        
-        // Start content monitoring
         this.startContentMonitoring();
     },
-    
     beforeUnmount() {
-        // Clear all intervals
         if (this.fileCheckInterval) {
             clearInterval(this.fileCheckInterval);
             this.fileCheckInterval = null;
@@ -343,10 +349,9 @@ export default {
             this.cleanupInterval = null;
         }
         
-        // Stop monitoring
         this.stopContentMonitoring();
+        this.stopFileWatcher();
         
-        // Cleanup resources
         if (typeof this.cleanup === 'function') {
             this.cleanup();
         }
