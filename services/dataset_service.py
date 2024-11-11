@@ -16,28 +16,50 @@ class DatasetService(BaseService):
     """Manages dataset creation for fine-tuning"""
 
     def __init__(self, web_instance):
+        """Initialize dataset service with explicit configuration"""
         super().__init__(web_instance)
         try:
             # Get data directory path using PathManager
-            data_dir = os.path.join(PathManager.get_project_root(), "data")
-            os.makedirs(data_dir, exist_ok=True)
+            self.data_dir = os.path.join(PathManager.get_project_root(), "data")
+            os.makedirs(self.data_dir, exist_ok=True)
             
-            self.dataset_file = os.path.join(data_dir, "fine-tuning.jsonl")
+            self.dataset_file = os.path.join(self.data_dir, "fine-tuning.jsonl")
+            
+            # Log initialization details
+            self.logger.log(
+                f"Initializing dataset service:\n"
+                f"Data directory: {self.data_dir}\n"
+                f"Dataset file: {self.dataset_file}", 
+                'info'
+            )
+            
+            # Create dataset file if it doesn't exist
+            if not os.path.exists(self.dataset_file):
+                try:
+                    with open(self.dataset_file, 'w', encoding='utf-8') as f:
+                        pass  # Create empty file
+                    self.logger.log(f"Created new dataset file: {self.dataset_file}", 'info')
+                except Exception as e:
+                    self.logger.log(f"Error creating dataset file: {str(e)}", 'error')
+                    raise
             
             # Verify service availability immediately
             if not self.is_available():
-                self.logger.log("Dataset service initialization failed - service may be unreliable", 'warning')
+                self.logger.log(
+                    "Dataset service initialization failed - service may be unreliable", 
+                    'warning'
+                )
                 return
                 
-            # Log initial stats
+            # Log successful initialization with stats
             stats = self.get_dataset_stats()
             self.logger.log(
-                f"Dataset service initialized:\n"
+                f"Dataset service initialized successfully:\n"
                 f"- File: {self.dataset_file}\n"
                 f"- Entries: {stats['total_entries']}\n"
                 f"- Total files: {stats['total_files']}\n"
                 f"- Size: {stats['size_bytes']} bytes", 
-                'info'
+                'success'
             )
             
             # Start cleanup timer
