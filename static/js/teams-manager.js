@@ -34,9 +34,6 @@ export default {
             retryAttempts: new Map(),
             maxRetries: 3,
             retryDelay: 1000,
-            error: null,
-            errorMessage: null,
-            showError: false,
             loading: false,
             connectionStatus: {
                 connected: true,
@@ -144,13 +141,18 @@ export default {
         }
     },
     created() {
-        // Initialize component state
+        // Initialize error handling state
         this.error = null;
         this.errorMessage = null;
         this.showError = false;
+        this.errorMessages.clear();
+        this.retryAttempts.clear();
         
+        // Load teams if mission is available
         if (this.currentMission?.id) {
-            this.loadTeams();
+            this.loadTeams().catch(error => {
+                this.handleError('Failed to load teams', error);
+            });
         }
     },
 
@@ -496,33 +498,66 @@ export default {
             try {
                 this.loading = true;
                 this.error = null;
+            
+                if (!this.currentMission?.id) {
+                    throw new Error('No mission selected');
+                }
+
                 const teams = await this.missionService.getTeams(this.currentMission.id);
                 this.teams = teams.map(team => ({
                     ...team,
                     agents: team.agents || [],
                     status: team.status || 'available'
                 }));
-            
+        
                 // Set first team as active if no active team
                 if (this.teams.length > 0 && !this.activeTeam) {
                     this.activeTeam = this.teams[0];
                 }
             } catch (error) {
-                console.error('Error loading teams:', error);
-                this.error = error.message || 'Failed to load teams';
-                // Optional: show user-friendly error notification
-                this.showErrorNotification('Could not load teams for this mission');
+                this.handleError('Failed to load teams', error);
+                throw error; // Re-throw to allow caller to handle if needed
             } finally {
                 this.loading = false;
             }
         },
 
-        showErrorNotification(message) {
-            this.errorMessage = message;
+        handleError(message, error = null) {
+            console.error(message, error);
+            this.errorMessage = typeof error === 'string' ? 
+                error : (error?.message || message);
             this.showError = true;
+        
+            // Auto-hide error after 5 seconds
             setTimeout(() => {
                 this.showError = false;
             }, 5000);
+        },
+
+        async handleOperationWithRetry(operation, teamId, errorMessage) {
+            const attempts = this.retryAttempts.get(teamId) || 0;
+        
+            try {
+                this.loadingStates.set(teamId, true);
+                this.errorMessages.delete(teamId);
+            
+                return await operation();
+            
+            } catch (error) {
+                console.error(`Operation failed for team ${teamId}:`, error);
+            
+                if (attempts < this.maxRetries) {
+                    this.retryAttempts.set(teamId, attempts + 1);
+                    await new Promise(resolve => setTimeout(resolve, this.retryDelay * Math.pow(2, attempts)));
+                    return this.handleOperationWithRetry(operation, teamId, errorMessage);
+                }
+            
+                this.errorMessages.set(teamId, errorMessage);
+                throw error;
+            
+            } finally {
+                this.loadingStates.set(teamId, false);
+            }
         },
 
         async selectTeam(team) {
