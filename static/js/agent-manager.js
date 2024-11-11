@@ -29,7 +29,7 @@ export default {
             showError: false,
             agentStates: {},
             agents: [],
-            teams: [], // Add teams to data
+            teams: [], // Ensure teams is initialized as an empty array
             prompts: {},
             searchTimeout: null,
             showEditModal: false,
