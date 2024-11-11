@@ -150,37 +150,6 @@
                 }
             },
 
-            startConnectionMonitoring() {
-                this.connectionCheckInterval = setInterval(async () => {
-                    try {
-                        const response = await fetch('/api/status');
-                        const data = await response.json();
-                
-                        // Vérification plus robuste sans l'opérateur optionnel
-                        this.isConnected = response.ok && data.server && data.server.running === true;
-                        this.lastCheck = new Date();
-                
-                        if (this.isConnected) {
-                            this.retryCount = 0;
-                            // Recharger les données si on était déconnecté
-                            if (!this.isConnected) {
-                                await this.loadTeams();
-                            }
-                        }
-                    } catch (error) {
-                        this.isConnected = false;
-                        this.retryCount++;
-                        console.error('Connection check failed:', error);
-                    }
-                }, 5000); // Vérifier toutes les 5 secondes
-            },
-
-            stopConnectionMonitoring() {
-                if (this.connectionCheckInterval) {
-                    clearInterval(this.connectionCheckInterval);
-                    this.connectionCheckInterval = null;
-                }
-            },
 
             async selectMission(mission) {
                 try {
