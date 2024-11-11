@@ -8,12 +8,26 @@ export default {
     props: {
         team: {
             type: Object,
-            required: true
+            required: true,
+            validator: function(value) {
+                return value && typeof value === 'object' && 
+                       'id' in value && 
+                       'name' in value && 
+                       Array.isArray(value.agents);
+            }
         },
         loading: Boolean,
         error: String,
         isActive: Boolean,
-        metrics: Object
+        metrics: {
+            type: Object,
+            default: () => ({
+                totalAgents: 0,
+                runningAgents: 0,
+                healthyAgents: 0,
+                efficiency: 0
+            })
+        }
     },
     emits: ['toggle', 'activate', 'add-agent', 'toggle-agent'],
     methods: {

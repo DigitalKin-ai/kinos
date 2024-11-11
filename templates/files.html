@@ -84,14 +84,40 @@
         },
         data() {
             return {
-                missionService: null,
-                currentMission: null,
-                missions: [],
-                loading: true,
-                files: [],
-                error: null,
-                fileCount: 0,
-                activeTab: 'files'
+                teams: {
+                    list: [],
+                    active: null,
+                    stats: new Map(),
+                    history: new Map(),
+                    statusCache: new Map(),
+                    statusCacheTTL: 5000
+                },
+                loading: {
+                    teams: false,
+                    agents: new Set(),
+                    states: new Map()
+                },
+                errors: {
+                    messages: new Map(),
+                    retryAttempts: new Map(),
+                    maxRetries: 3,
+                    retryDelay: 1000,
+                    current: null,
+                    show: false
+                },
+                selectedTeamForEdit: null,
+                showAddAgentModal: false,
+                selectedAgent: null,
+                availableAgents: [
+                    "SpecificationsAgent",
+                    "ManagementAgent", 
+                    "EvaluationAgent",
+                    "ChroniqueurAgent",
+                    "DocumentalisteAgent",
+                    "DuplicationAgent",
+                    "RedacteurAgent",
+                    "ValidationAgent"
+                ]
             }
         },
         // Add this method to ensure missionService is passed
