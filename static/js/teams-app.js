@@ -1,45 +1,86 @@
-import MissionSelector from './mission-selector.js';
-import TeamsManager from './teams-manager.js';
+import TeamState from './teams/TeamState.js';
+import TeamComputed from './teams/TeamComputed.js';
+import TeamUtils from './teams/TeamUtils.js';
+import TeamMethods from './teams/TeamMethods.js';
+import TeamTemplate from './teams/TeamTemplate.js';
+
+import TeamCard from './components/teams/TeamCard.js';
+import AddAgentModal from './components/teams/AddAgentModal.js';
 
 export default {
-    name: 'TeamsApp',
+    name: 'TeamsManager',
     components: {
-        MissionSelector,
-        TeamsManager
+        TeamCard,
+        AddAgentModal
     },
-    data() {
-        return {
-            currentMission: null,
-            missions: [],
-            loading: false
-        }
-    },
-    template: `
-        <div class="flex h-screen">
-            <mission-selector
-                :current-mission="currentMission"
-                :missions="missions"
-                :loading="loading"
-                @select-mission="handleMissionSelect"
-                @sidebar-toggle="handleSidebarToggle">
-            </mission-selector>
-            
-            <teams-manager
-                :current-mission="currentMission"
-                class="flex-1">
-            </teams-manager>
-        </div>
-    `,
-    methods: {
-        async handleMissionSelect(mission) {
-            this.currentMission = mission;
+    props: {
+        missionService: {
+            type: Object,
+            required: true
         },
-        handleSidebarToggle(collapsed) {
-            // Handle sidebar collapse if needed
+        currentMission: {
+            type: Object,
+            default: () => null
         }
-    }
-};
+    },
+    data: TeamState,
+    computed: {
+        ...TeamComputed
+    },
+    methods: {
+        ...TeamUtils.methods,
+        ...TeamMethods.methods,
+        
+        getAvailableAgents() {
+            if (!this.selectedTeamForEdit) return [];
+            return this.availableAgents.filter(agent => 
+                !this.selectedTeamForEdit.agents.includes(agent)
+            );
+        },
 
-// Mount the app
-const app = Vue.createApp(TeamsApp);
-app.mount('#app');
+        closeAddAgentModal() {
+            this.showAddAgentModal = false;
+            this.selectedTeamForEdit = null;
+            this.selectedAgent = null;
+        },
+
+        async addAgentToTeam() {
+            if (!this.selectedTeamForEdit || !this.selectedAgent) return;
+
+            try {
+                const updatedAgents = [...this.selectedTeamForEdit.agents, this.selectedAgent];
+                
+                const teamIndex = this.teams.findIndex(t => t.name === this.selectedTeamForEdit.name);
+                if (teamIndex !== -1) {
+                    this.teams[teamIndex] = {
+                        ...this.teams[teamIndex],
+                        agents: updatedAgents
+                    };
+                }
+
+                this.closeAddAgentModal();
+            } catch (error) {
+                console.error('Error adding agent to team:', error);
+            }
+        }
+    },
+    watch: {
+        currentMission: {
+            immediate: true,
+            async handler(newMission) {
+                if (newMission?.id) {
+                    try {
+                        this.loading = true;
+                        await this.loadTeams();
+                    } catch (error) {
+                        console.error('Failed to load teams:', error);
+                        this.handleError('Failed to load teams', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }
+    },
+    template: TeamTemplate
+}
