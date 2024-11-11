@@ -194,10 +194,6 @@ export default {
             }
         },
 
-        areAnyAgentsRunning() {
-            return this.agents.some(agent => agent.running);
-        },
-
         async loadAgents() {
             try {
                 this.loading = true;
