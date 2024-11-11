@@ -225,6 +225,18 @@ class ApiClient {
                     errorDetails.message = errorText || errorDetails.message;
                 }
 
+                // Emit connection error event if appropriate
+                if (response.status === 0 || response.status >= 500) {
+                    this.connectionState.connectionErrors++;
+                    this.connectionState.lastCheckTimestamp = Date.now();
+                    window.dispatchEvent(new CustomEvent('connection-error', {
+                        detail: {
+                            error: errorDetails,
+                            connectionState: this.connectionState
+                        }
+                    }));
+                }
+
                 throw new Error(JSON.stringify(errorDetails));
             }
 
@@ -237,7 +249,13 @@ class ApiClient {
             }
         
             const data = await response.json();
-            console.log('Parsed response data:', data);
+            
+            // Reset connection errors on successful response
+            if (this.connectionState.connectionErrors > 0) {
+                this.connectionState.connectionErrors = 0;
+                this.notifyConnectionChange('online');
+            }
+            
             return data;
         } catch (error) {
             console.error('Response handling error:', error);
