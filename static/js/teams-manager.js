@@ -2,8 +2,7 @@ import TeamState from './teams/TeamState.js';
 import TeamComputed from './teams/TeamComputed.js';
 import TeamUtils from './teams/TeamUtils.js';
 import TeamMethods from './teams/TeamMethods.js';
-import TeamConnectionHandling from './teams/TeamConnectionHandling.js';
-import TeamErrorHandling from './teams/TeamErrorHandling.js';
+import TeamTemplate from './teams/TeamTemplate.js';
 
 import TeamCard from './components/teams/TeamCard.js';
 import AddAgentModal from './components/teams/AddAgentModal.js';
@@ -31,10 +30,7 @@ export default {
     methods: {
         ...TeamUtils.methods,
         ...TeamMethods.methods,
-        ...TeamConnectionHandling.methods,
-        ...TeamErrorHandling.methods,
         
-        // Uniquement les méthodes spécifiques à ce composant
         getAvailableAgents() {
             if (!this.selectedTeamForEdit) return [];
             return this.availableAgents.filter(agent => 
@@ -50,8 +46,10 @@ export default {
 
         async addAgentToTeam() {
             if (!this.selectedTeamForEdit || !this.selectedAgent) return;
+
             try {
                 const updatedAgents = [...this.selectedTeamForEdit.agents, this.selectedAgent];
+                
                 const teamIndex = this.teams.findIndex(t => t.name === this.selectedTeamForEdit.name);
                 if (teamIndex !== -1) {
                     this.teams[teamIndex] = {
@@ -59,6 +57,7 @@ export default {
                         agents: updatedAgents
                     };
                 }
+
                 this.closeAddAgentModal();
             } catch (error) {
                 console.error('Error adding agent to team:', error);
@@ -74,6 +73,7 @@ export default {
                         this.loading = true;
                         await this.loadTeams();
                     } catch (error) {
+                        console.error('Failed to load teams:', error);
                         this.handleError('Failed to load teams', error);
                     } finally {
                         this.loading = false;
@@ -82,10 +82,5 @@ export default {
             }
         }
     },
-    mounted() {
-        this.startConnectionMonitoring();
-    },
-    beforeUnmount() {
-        this.stopConnectionMonitoring(); 
-    }
+    template: TeamTemplate
 }
