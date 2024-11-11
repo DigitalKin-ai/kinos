@@ -157,17 +157,6 @@ export default {
     },
 
     methods: {
-        handleError(message, error = null) {
-            console.error(message, error);
-            this.errorMessage = typeof error === 'string' ? 
-                error : (error?.message || message);
-            this.showError = true;
-            
-            // Auto-hide error after 5 seconds
-            setTimeout(() => {
-                this.showError = false;
-            }, 5000);
-        },
 
         async checkConnection() {
             if (this.connectionCheckInProgress) return;
