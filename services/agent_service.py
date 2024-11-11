@@ -181,9 +181,7 @@ class AgentService:
                     # Prepare agent-specific configuration
                     agent_config = {
                         'config': {
-                            'name': agent_name,
-                            'anthropic_api_key': config.get('anthropic_api_key'),
-                            'openai_api_key': config.get('openai_api_key')
+                            'name': agent_name
                         }
                     }
                     
@@ -471,8 +469,6 @@ List any specific constraints or limitations.
                     ]
             
                 self.init_agents({
-                    "anthropic_api_key": self.web_instance.config.get("anthropic_api_key", ""),
-                    "openai_api_key": self.web_instance.config.get("openai_api_key", "")
                 }, team_agents)
             except Exception as e:
                 self.web_instance.log_message(f"Failed to initialize agents: {str(e)}", 'error')
@@ -545,8 +541,6 @@ List any specific constraints or limitations.
                 try:
                     # Initialize with current configuration
                     self.init_agents({
-                        "anthropic_api_key": self.web_instance.config.get("anthropic_api_key", ""),
-                        "openai_api_key": self.web_instance.config.get("openai_api_key", "")
                     }, [agent_key])
                 except Exception as init_error:
                     self.web_instance.log_message(
@@ -691,8 +685,6 @@ List any specific constraints or limitations.
             if not self.agents:
                 self.web_instance.log_message("Initializing agents...", 'info')
                 config = {
-                    "anthropic_api_key": self.web_instance.config["anthropic_api_key"],
-                    "openai_api_key": self.web_instance.config["openai_api_key"]
                 }
                 
                 # Validate config before initialization
@@ -1342,8 +1334,6 @@ List any specific constraints or limitations.
 
             # Reinitialize agent
             self.init_agents({
-                "anthropic_api_key": self.web_instance.config.get("anthropic_api_key", ""),
-                "openai_api_key": self.web_instance.config.get("openai_api_key", "")
             }, [name])
 
             # Log agent creation
@@ -1560,7 +1550,6 @@ Describe the operational context and key responsibilities.
             'agent_name': agent_name,
             'timestamp': datetime.now().isoformat(),
             'config_status': {
-                'has_api_keys': bool(config.get('anthropic_api_key') or config.get('openai_api_key')),
                 'has_mission_dir': bool(config.get('mission_dir')),
                 'mission_dir_exists': os.path.exists(config.get('mission_dir', '')),
                 'mission_dir_writable': os.access(config.get('mission_dir', ''), os.W_OK)
@@ -1596,7 +1585,7 @@ Describe the operational context and key responsibilities.
     def _validate_agent_config(self, config: Dict[str, Any]) -> bool:
         """Valide la configuration d'un agent"""
         required_fields = ['name', 'prompt']
-        optional_fields = ['mission_dir', 'anthropic_api_key', 'openai_api_key']
+        optional_fields = ['mission_dir']
         
         # Vérifier les champs requis
         missing_fields = [field for field in required_fields if field not in config]
@@ -1615,13 +1604,6 @@ Describe the operational context and key responsibilities.
                     'error'
                 )
                 return False
-                
-        # Vérifier qu'au moins une clé API est présente
-        if not (config.get('anthropic_api_key') or config.get('openai_api_key')):
-            self.web_instance.log_message(
-                "No API keys provided in configuration", 
-                'warning'
-            )
             
         return True
 
@@ -1646,12 +1628,6 @@ Describe the operational context and key responsibilities.
 
             # Extract configuration, with fallback to empty dict
             agent_config = config.get('config', {})
-
-            # Debug logging of initial configuration
-            self.web_instance.log_message(
-                f"Initial agent configuration:\n{json.dumps(agent_config, indent=2)}", 
-                'debug'
-            )
 
             # Ensure name is present
             if 'name' not in agent_config:
@@ -1709,22 +1685,13 @@ Describe the operational context and key responsibilities.
                 )
                 return None
 
-            # Debug logging of final configuration
-            self.web_instance.log_message(
-                f"Final agent configuration for {agent_config['name']}:\n"
-                f"{json.dumps(agent_config, indent=2)}", 
-                'debug'
-            )
-
             # Create the agent
             try:
                 from aider_agent import AiderAgent
             
                 # Merge all configuration
                 full_config = {
-                    **agent_config,
-                    'anthropic_api_key': config.get('anthropic_api_key'),
-                    'openai_api_key': config.get('openai_api_key')
+                    **agent_config
                 }
             
                 # Create agent
