@@ -214,8 +214,11 @@
 
                         const result = await response.json();
                         this.currentMission = result;
+                        return result;
+                    });
 
-                        // Fetch team information
+                    // Fetch team information
+                    try {
                         const teamResponse = await fetch(`/api/missions/${mission.id}/teams`);
                         if (teamResponse.ok) {
                             const teams = await teamResponse.json();
@@ -225,15 +228,11 @@
                         } else {
                             throw new Error('Failed to fetch teams: ' + teamResponse.statusText);
                         }
-
-                        return result;
-                    });
-
-                } catch (error) {
-                    this.handleError('Failed to select mission', error);
-                    this.teams = [];
-                    this.team = null;
-                    this.activeTeam = null;
+                    } catch (teamError) {
+                        this.handleError('Error fetching teams', teamError);
+                        this.teams = [];
+                        this.team = null;
+                        this.activeTeam = null;
                     }
 
                     // Restore previous state if needed
@@ -245,7 +244,7 @@
                                     headers: { 'Content-Type': 'application/json' },
                                     signal: AbortSignal.timeout(5000)
                                 });
-                                
+                                    
                                 if (!response.ok) throw new Error('Failed to restart agents');
                                 this.runningStates.set(mission.id, true);
                             });
