@@ -94,7 +94,7 @@ Les agents sont le cœur du système KinOS, chacun opérant de manière totaleme
    - Analyse continue des performances
    - Identification proactive des améliorations
 
-5. **Agent de Suivi (SuiviAgent)**
+5. **Agent chroniqueur (ChroniqueurAgent)**
    - Documentation autonome des activités
    - Gestion flexible de l'historique
    - Génération dynamique de rapports

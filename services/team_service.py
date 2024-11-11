@@ -1,20 +1,24 @@
+import threading
+import json
+import os
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 import traceback
+import time
 from utils.exceptions import ServiceError, ValidationError, ResourceNotFoundError
 from services.base_service import BaseService
 from utils.path_manager import PathManager
 from utils.logger import Logger
 from services.agent_service import AgentService
+from services.mission_service import MissionService
+from services.file_manager import FileManager
+from agents.kinos_agent import KinOSAgent
 
 class TeamService(BaseService):
     """Service for managing teams and agent groupings"""
     
     def __init__(self, web_instance):
-        # Importer les classes nécessaires au début
-        from services.agent_service import AgentService
-        from services.mission_service import MissionService
-        from services.file_manager import FileManager
+        # Import only what's needed
         from utils.logger import Logger
         from types import SimpleNamespace
 
@@ -61,6 +65,23 @@ class TeamService(BaseService):
         # Utiliser le logger de web_instance
         self.logger = web_instance.logger
 
+    def _normalize_agent_names(self, team_agents: List[str]) -> List[str]:
+        """
+        Normalise les noms d'agents pour correspondre aux conventions
+        
+        Args:
+            team_agents: Liste des noms d'agents à normaliser
+            
+        Returns:
+            Liste des noms d'agents normalisés
+        """
+        normalized = []
+        for agent in team_agents:
+            # Supprimer 'Agent' et normaliser
+            norm_name = agent.lower().replace('agent', '').strip()
+            normalized.append(norm_name)
+        return normalized
+
     def _validate_team_id(self, team_id: str) -> None:
         """Validate team ID format and existence"""
         if not team_id or not isinstance(team_id, str):
@@ -75,53 +96,33 @@ class TeamService(BaseService):
         if agent_name.lower() not in self.web_instance.agent_service.agents:
             raise ResourceNotFoundError(f"Agent {agent_name} not found")
 
-    def _load_predefined_teams(self):
-        """Load predefined team configurations"""
-        return [
-            {
-                'id': 'book-writing',
-                'name': 'Book Writing Team',
-                'agents': [
-                    'specifications',
-                    'management',
-                    'evaluation',
-                    'suivi',
-                    'documentaliste',
-                    'duplication',
-                    'redacteur',
-                    'validation'
-                ]
-            },
-            {
-                'id': 'literature-review',
-                'name': 'Literature Review Team',
-                'agents': [
-                    'specifications',
-                    'management',
-                    'evaluation',
-                    'suivi',
-                    'documentaliste',
-                    'duplication',
-                    'redacteur',
-                    'validation'
-                ]
-            },
-            {
-                'id': 'coding',
-                'name': 'Coding Team',
-                'agents': [
-                    'specifications',
-                    'management',
-                    'evaluation',
-                    'suivi',
-                    'documentaliste',
-                    'duplication',
-                    'production',
-                    'testeur',
-                    'validation'
-                ]
-            }
-        ]
+    def _load_predefined_teams(self) -> List[Dict]:
+        """Load team configurations from files"""
+        try:
+            teams = []
+            teams_dir = os.path.join(PathManager.get_project_root(), 'teams')
+            
+            if not os.path.exists(teams_dir):
+                self.logger.log("Teams directory not found", 'warning')
+                return []
+                
+            # Scan team directories
+            for team_dir in os.listdir(teams_dir):
+                config_path = os.path.join(teams_dir, team_dir, 'config.json')
+                if os.path.exists(config_path):
+                    try:
+                        with open(config_path, 'r', encoding='utf-8') as f:
+                            team_config = json.load(f)
+                            teams.append(team_config)
+                    except Exception as e:
+                        self.logger.log(f"Error loading team config {team_dir}: {str(e)}", 'error')
+                        continue
+                        
+            return teams
+            
+        except Exception as e:
+            self.logger.log(f"Error loading predefined teams: {str(e)}", 'error')
+            return []
 
     def get_predefined_teams(self):
         """
@@ -199,47 +200,144 @@ class TeamService(BaseService):
             self.logger.log(f"Error getting teams for mission {mission_id}: {str(e)}", 'error')
             raise ServiceError(f"Failed to get teams: {str(e)}")
 
-    def activate_team(self, mission_id: int, team_id: str) -> Dict[str, Any]:
-        """Activate a team for a mission with enhanced error handling"""
+    def launch_team(self, mission_id: int, team_id: str) -> Dict[str, Any]:
+        """
+        Lance une équipe complète pour une mission
+        
+        Args:
+            mission_id: ID de la mission
+            team_id: ID de l'équipe
+            
+        Returns:
+            Dict avec les résultats du lancement
+        """
         try:
-            # Log détaillé de l'activation
+            # 1. Activer l'équipe (initialisation)
+            activation_result = self.activate_team(mission_id, team_id)
+            
+            # 2. Démarrer effectivement les agents
+            start_result = self.start_team(mission_id, team_id)
+            
+            return {
+                'activation': activation_result,
+                'start': start_result,
+                'status': 'running',
+                'timestamp': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
             self.web_instance.log_message(
-                f"Attempting to activate team:\n"
+                f"Failed to launch team {team_id} for mission {mission_id}: {str(e)}", 
+                'error'
+            )
+            raise ServiceError(f"Team launch failed: {str(e)}")
+
+    def activate_team(self, mission_id: int, team_id: str) -> Dict[str, Any]:
+        """Activate a team for a mission with enhanced error handling and agent initialization"""
+        try:
+            # Log initial activation attempt
+            self.web_instance.log_message(
+                f"\n=== TEAM ACTIVATION START ===\n"
                 f"Mission ID: {mission_id}\n"
-                f"Team ID: {team_id}", 
+                f"Team ID: {team_id}\n"
+                f"Timestamp: {datetime.now().isoformat()}", 
                 'info'
             )
 
+            # Get mission details
+            mission = self.web_instance.mission_service.get_mission(mission_id)
+            if not mission:
+                self.web_instance.log_message(f"❌ Mission {mission_id} not found", 'error')
+                raise ValueError(f"Mission {mission_id} not found")
+
+            # Get mission directory
+            mission_dir = PathManager.get_mission_path(mission['name'])
+            self.web_instance.log_message(f"📂 Mission directory: {mission_dir}", 'debug')
+
+            # Validate and get team
             self._validate_team_id(team_id)
             team = next(t for t in self.predefined_teams if t['id'] == team_id)
+            normalized_agents = self._normalize_agent_names(team['agents'])
+            team['agents'] = normalized_agents
 
-            # Log des agents de l'équipe
             self.web_instance.log_message(
-                f"Team agents: {team['agents']}", 
+                f"\n=== TEAM CONFIGURATION ===\n"
+                f"Team Name: {team['name']}\n"
+                f"Normalized Agents: {normalized_agents}", 
                 'debug'
             )
 
             # Stop current active team if exists
             if self.active_team:
+                self.web_instance.log_message(f"🔄 Stopping current active team: {self.active_team['id']}", 'info')
                 self.deactivate_team(self.active_team['id'])
 
             # Stop all agents first
-            self.web_instance.agent_service.stop_all_agents()
+            if hasattr(self.web_instance.agent_service, 'stop_all_agents'):
+                self.web_instance.log_message("🛑 Stopping all agents before initialization", 'info')
+                self.web_instance.agent_service.stop_all_agents()
+
+            # Initialize configuration
+            config = {
+                "openai_api_key": self.web_instance.config.get("openai_api_key", ""),
+                "mission_dir": mission_dir
+            }
+
+            self.web_instance.log_message(
+                f"\n=== AGENT INITIALIZATION START ===\n"
+                f"Config prepared with mission_dir: {mission_dir}", 
+                'debug'
+            )
+
+            # Initialize agents for this team
+            try:
+                if hasattr(self.web_instance.agent_service, 'init_agents'):
+                    self.web_instance.log_message("🚀 Initializing agents...", 'info')
+                    self.web_instance.agent_service.init_agents(
+                        config=config,
+                        team_agents=team['agents']
+                    )
+                    self.web_instance.log_message("✅ Agents initialized successfully", 'success')
+                else:
+                    raise AttributeError("AgentService missing init_agents method")
+            except Exception as init_error:
+                self.web_instance.log_message(
+                    f"\n=== AGENT INITIALIZATION FAILED ===\n"
+                    f"Error: {str(init_error)}\n"
+                    f"Traceback: {traceback.format_exc()}", 
+                    'critical'
+                )
+                raise
 
             # Start team agents with validation
             activation_results = []
+            self.web_instance.log_message("\n=== STARTING INDIVIDUAL AGENTS ===", 'info')
+            
             for agent_name in team['agents']:
                 try:
+                    self.web_instance.log_message(f"▶️ Starting agent: {agent_name}", 'info')
                     self._validate_agent_name(agent_name)
-                    #todo : initialize agent ?
-                    success = self.web_instance.agent_service.toggle_agent(agent_name, 'start') # TODO: takes 3 args : def toggle_agent(self, agent_name: str, action: str) -> bool:
-                    activation_results.append({
-                        'agent': agent_name,
-                        'success': success
-                    })
+                    
+                    if hasattr(self.web_instance.agent_service, 'toggle_agent'):
+                        success = self.web_instance.agent_service.toggle_agent(
+                            agent_name=agent_name,
+                            action='start',
+                            mission_dir=mission_dir
+                        )
+                        result = {
+                            'agent': agent_name,
+                            'success': success,
+                            'error': None if success else f"Failed to start {agent_name}"
+                        }
+                        activation_results.append(result)
+                        
+                        status = "✅ Success" if success else "❌ Failed"
+                        self.web_instance.log_message(f"{status} - Agent: {agent_name}", 
+                                                    'success' if success else 'error')
+                        
                 except Exception as e:
                     self.web_instance.log_message(
-                        f"Agent activation failed:\n"
+                        f"❌ Agent activation failed:\n"
                         f"Agent: {agent_name}\n"
                         f"Error: {str(e)}", 
                         'error'
@@ -250,19 +348,18 @@ class TeamService(BaseService):
                         'error': str(e)
                     })
 
-            # Log détaillé des résultats d'activation
-            for result in activation_results:
-                if not result['success']:
-                    self.web_instance.log_message(
-                        f"Agent activation failed:\n"
-                        f"Agent: {result['agent']}\n"
-                        f"Error: {result.get('error', 'Unknown error')}", 
-                        'error'
-                    )
+            # Log final activation summary
+            success_count = sum(1 for r in activation_results if r['success'])
+            self.web_instance.log_message(
+                f"\n=== TEAM ACTIVATION SUMMARY ===\n"
+                f"Total Agents: {len(team['agents'])}\n"
+                f"Successfully Started: {success_count}\n"
+                f"Failed: {len(team['agents']) - success_count}", 
+                'info'
+            )
 
             self.active_team = team
-            self.web_instance.log_message(f"Team {team['name']} activated with results: {activation_results}", 'success')
-
+            
             return {
                 'team': team,
                 'activation_results': activation_results,
@@ -271,7 +368,7 @@ class TeamService(BaseService):
 
         except Exception as e:
             self.web_instance.log_message(
-                f"Team activation error:\n"
+                f"\n=== TEAM ACTIVATION FAILED ===\n"
                 f"Team: {team_id}\n"
                 f"Error: {str(e)}\n"
                 f"Traceback: {traceback.format_exc()}", 
@@ -353,8 +450,6 @@ class TeamService(BaseService):
             metrics = {
                 'efficiency': self._calculate_efficiency(agent_status),
                 'health': self._calculate_health_score(agent_status),
-                'resource_usage': self._calculate_resource_usage(agent_status),
-                'response_times': self._calculate_response_times(agent_status),
                 'agent_stats': {
                     'total': total_agents,
                     'active': sum(1 for status in agent_status.values() if status['running']),
@@ -362,9 +457,6 @@ class TeamService(BaseService):
                 }
             }
 
-            # Add historical trends
-            metrics['trends'] = self._get_team_history(team['id'])
-            
             return metrics
 
         except Exception as e:
@@ -385,20 +477,9 @@ class TeamService(BaseService):
         
         scores = {
             'health': self._calculate_health_score(agent_status),
-            'activity': self._calculate_activity_score(agent_status),
-            'response_time': self._calculate_response_time_score(agent_status),
-            'resource_usage': self._calculate_resource_score(agent_status)
         }
         
         return sum(score * weights[metric] for metric, score in scores.items())
-
-    def _calculate_resource_usage(self, agent_status: Dict[str, Any]) -> Dict[str, float]:
-        """Calculate resource usage metrics"""
-        return {
-            'cpu_usage': self._get_average_cpu_usage(agent_status),
-            'memory_usage': self._get_average_memory_usage(agent_status),
-            'file_operations': self._get_file_operation_stats(agent_status)
-        }
 
     def cleanup(self) -> None:
         """Cleanup team service resources"""
@@ -410,6 +491,129 @@ class TeamService(BaseService):
             self.logger.log("Team service cleanup completed", 'success')
         except Exception as e:
             self.logger.log(f"Error during team service cleanup: {str(e)}", 'error')
+
+    def start_team(self, mission_id: int, team_id: str) -> Dict[str, Any]:
+        """
+        Lance effectivement les agents d'une équipe en appelant leur méthode run()
+        
+        Args:
+            mission_id: ID de la mission
+            team_id: ID de l'équipe
+            
+        Returns:
+            Dict avec les résultats du lancement
+        """
+        try:
+            self.web_instance.log_message(
+                f"\n=== TEAM START SEQUENCE ===\n"
+                f"Mission ID: {mission_id}\n"
+                f"Team ID: {team_id}\n"
+                f"Timestamp: {datetime.now().isoformat()}", 
+                'info'
+            )
+
+            # Vérifier que l'équipe est active
+            if not self.active_team or self.active_team['id'] != team_id:
+                raise ValueError(f"Team {team_id} must be activated first")
+
+            # Récupérer les agents de l'équipe
+            team_agents = self.active_team['agents']
+            self.web_instance.log_message(f"Starting {len(team_agents)} agents...", 'info')
+
+            # Créer un thread pour chaque agent
+            agent_threads = {}
+            start_results = []
+
+            for agent_name in team_agents:
+                try:
+                    # Récupérer l'instance de l'agent
+                    agent = self.web_instance.agent_service.agents.get(agent_name.lower())
+                    if not agent:
+                        raise ValueError(f"Agent {agent_name} not found")
+
+                    self.web_instance.log_message(f"🚀 Starting agent thread: {agent_name}", 'info')
+                    
+                    # Créer et démarrer le thread
+                    thread = threading.Thread(
+                        target=self._run_agent_wrapper,
+                        args=(agent_name, agent),
+                        daemon=True,
+                        name=f"Agent-{agent_name}"
+                    )
+                    thread.start()
+                    
+                    agent_threads[agent_name] = thread
+                    start_results.append({
+                        'agent': agent_name,
+                        'status': 'started',
+                        'thread_id': thread.ident
+                    })
+                    
+                    self.web_instance.log_message(
+                        f"✅ Agent {agent_name} thread started successfully", 
+                        'success'
+                    )
+
+                    time.sleep(8) # Echelonner les lancements
+
+                except Exception as e:
+                    self.web_instance.log_message(
+                        f"❌ Failed to start agent {agent_name}: {str(e)}", 
+                        'error'
+                    )
+                    start_results.append({
+                        'agent': agent_name,
+                        'status': 'failed',
+                        'error': str(e)
+                    })
+
+            # Stocker les threads dans le service
+            self.agent_threads = agent_threads
+
+            # Log résumé final
+            success_count = sum(1 for r in start_results if r['status'] == 'started')
+            self.web_instance.log_message(
+                f"\n=== TEAM START SUMMARY ===\n"
+                f"Total Agents: {len(team_agents)}\n"
+                f"Successfully Started: {success_count}\n"
+                f"Failed: {len(team_agents) - success_count}", 
+                'info'
+            )
+
+            return {
+                'team_id': team_id,
+                'mission_id': mission_id,
+                'start_results': start_results,
+                'active_threads': len(agent_threads)
+            }
+
+        except Exception as e:
+            self.web_instance.log_message(
+                f"\n=== TEAM START FAILED ===\n"
+                f"Error: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}", 
+                'critical'
+            )
+            raise ServiceError(f"Failed to start team: {str(e)}")
+
+    def _run_agent_wrapper(self, agent_name: str, agent: 'KinOSAgent') -> None:
+        """
+        Wrapper pour exécuter un agent dans un thread avec gestion des erreurs
+        
+        Args:
+            agent_name: Nom de l'agent
+            agent: Instance de l'agent
+        """
+        try:
+            self.web_instance.log_message(f"🔄 Agent {agent_name} starting run loop", 'info')
+            agent.run()  # Appel effectif de la méthode run()
+        except Exception as e:
+            self.web_instance.log_message(
+                f"💥 Agent {agent_name} crashed:\n"
+                f"Error: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}", 
+                'error'
+            )
 
     def _calculate_health_score(self, agent_status: Dict[str, Any]) -> float:
         """Calculate overall health score for the team"""

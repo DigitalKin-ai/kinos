@@ -30,20 +30,6 @@ class NotificationService(BaseService):
             'websocket_url': '/ws/notifications'  # Use relative path
         }
         
-    def _format_notification(self, message: str, panel: str, flash: bool = False) -> dict:
-        """Centralized notification formatting"""
-        return {
-            'type': 'info',
-            'message': message,
-            'panel': panel,
-            'timestamp': datetime.now().strftime("%H:%M:%S"),
-            'flash': flash,
-            'id': len(self.notifications_queue)
-        }
-        
-        # Use PathManager for log path
-        self.log_path = PathManager.get_logs_path()
-
     @safe_operation()
     def check_content_updates(self) -> None:
         """Check for content updates in all monitored files"""
@@ -74,14 +60,25 @@ class NotificationService(BaseService):
             raise ServiceError(f"Failed to check content updates: {str(e)}")
 
     @safe_operation()
+    def _handle_file_change(self, file_path: str, content: str) -> None:
+        """Gestion centralisée des changements de fichiers"""
+        try:
+            if not self._validate_path(file_path):
+                return
+                
+            if content and content.strip():
+                self.content_cache[file_path] = content
+                self.last_modified[file_path] = time.time()
+                
+            self._notify_change(file_path)
+            
+        except Exception as e:
+            self.logger.log(f"Error handling file change: {str(e)}", 'error')
+
     def handle_content_change(self, file_path: str, content: str, 
                             panel_name: str = None, flash: bool = False) -> bool:
         """Handle content change notifications with cache metrics"""
         try:
-            # Vérifier que le fichier existe avant de traiter le changement
-            if not os.path.exists(file_path):
-                return False
-                
             start_time = time.time()
             self._validate_input(file_path=file_path, content=content)
             self._log_operation('handle_content_change', 
@@ -95,15 +92,17 @@ class NotificationService(BaseService):
             else:
                 self.cache_misses += 1
             
-            timestamp = datetime.now().strftime("%H:%M:%S")
+            # Handle file change using centralized method
+            self._handle_file_change(file_path, content)
             
+            # Create notification
             if not panel_name:
                 panel_name = os.path.splitext(os.path.basename(file_path))[0].capitalize()
             
             notification = {
                 'type': 'info',
                 'message': f'Content updated in {panel_name}',
-                'timestamp': timestamp,
+                'timestamp': datetime.now().strftime("%H:%M:%S"),
                 'panel': panel_name,
                 'status': os.path.basename(file_path),
                 'operation': 'flash_tab' if flash else 'update',
@@ -112,11 +111,6 @@ class NotificationService(BaseService):
             }
             
             self.notifications_queue.append(notification)
-            
-            if content and content.strip():
-                self.content_cache[file_path] = content
-                self.last_modified[file_path] = time.time()
-                
             return True
             
         except Exception as e:

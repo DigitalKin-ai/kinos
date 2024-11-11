@@ -4,16 +4,18 @@ from flask import jsonify, request
 from utils.decorators import safe_operation
 
 def register_notification_routes(app, web_instance):
-    def _format_notification(message: str, panel: str, flash: bool = False) -> dict:
-        """Format notification with standard fields"""
-        return {
-            'type': 'info',
+    def _format_notification(message: str, panel: str = None, level: str = 'info', flash: bool = False) -> dict:
+        """Centralized notification formatting"""
+        notification = {
+            'type': level,
             'message': message,
-            'panel': panel,
             'timestamp': datetime.now().strftime("%H:%M:%S"),
-            'flash': flash,
-            'id': len(web_instance.notification_service.notifications_queue)
+            'id': len(web_instance.notification_service.notifications_queue),
+            'flash': flash
         }
+        if panel:
+            notification['panel'] = panel
+        return notification
 
     def _handle_notification(data: dict) -> bool:
         """Centralized notification handling"""

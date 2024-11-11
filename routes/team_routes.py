@@ -3,19 +3,16 @@ from typing import Dict, Any
 from utils.decorators import safe_operation
 from utils.exceptions import ValidationError
 
+def _validate_team_request(team_id: str, action: str = None) -> bool:
+    """Centralized validation of team requests"""
+    if not team_id or not isinstance(team_id, str):
+        return False
+    if action and action not in ['start', 'stop', 'status']:
+        return False
+    return True
+
 def _validate_team_configuration(team_id: str) -> Dict[str, Any]:
-    """
-    Validate and return team configuration with enhanced checks
-    
-    Args:
-        team_id (str): Team identifier
-    
-    Returns:
-        Dict with validated team configuration
-    
-    Raises:
-        ValidationError if team is invalid
-    """
+    """Validate and return team configuration with enhanced checks"""
     predefined_teams = {
         "book_writing": {
             "name": "Book Writing Team",
@@ -25,7 +22,7 @@ def _validate_team_configuration(team_id: str) -> Dict[str, Any]:
                 "EvaluationAgent"
             ],
             "optional_agents": [
-                "SuiviAgent", 
+                "ChroniqueurAgent", 
                 "DocumentalisteAgent", 
                 "DuplicationAgent"
             ]
@@ -38,7 +35,7 @@ def _validate_team_configuration(team_id: str) -> Dict[str, Any]:
                 "EvaluationAgent"
             ],
             "optional_agents": [
-                "SuiviAgent", 
+                "ChroniqueurAgent", 
                 "DocumentalisteAgent", 
                 "DuplicationAgent"
             ]
@@ -51,7 +48,7 @@ def _validate_team_configuration(team_id: str) -> Dict[str, Any]:
                 "EvaluationAgent"
             ],
             "optional_agents": [
-                "SuiviAgent", 
+                "ChroniqueurAgent", 
                 "DocumentalisteAgent", 
                 "ProductionAgent", 
                 "TesteurAgent"
@@ -95,7 +92,7 @@ def register_team_routes(app, web_instance):
                         "SpecificationsAgent",
                         "ManagementAgent", 
                         "EvaluationAgent",
-                        "SuiviAgent",
+                        "ChroniqueurAgent",
                         "DocumentalisteAgent",
                         "DuplicationAgent",
                         "RedacteurAgent",
@@ -110,7 +107,7 @@ def register_team_routes(app, web_instance):
                         "SpecificationsAgent",
                         "ManagementAgent",
                         "EvaluationAgent", 
-                        "SuiviAgent",
+                        "ChroniqueurAgent",
                         "DocumentalisteAgent",
                         "DuplicationAgent",
                         "RedacteurAgent",
@@ -125,7 +122,7 @@ def register_team_routes(app, web_instance):
                         "SpecificationsAgent",
                         "ManagementAgent",
                         "EvaluationAgent",
-                        "SuiviAgent", 
+                        "ChroniqueurAgent", 
                         "DocumentalisteAgent",
                         "DuplicationAgent",
                         "ProductionAgent",
@@ -146,11 +143,11 @@ def register_team_routes(app, web_instance):
         try:
             # Get team configuration
             teams = {
-                "book_writing": ["specifications", "management", "evaluation", "suivi", 
+                "book_writing": ["specifications", "management", "evaluation", "chroniqueur", 
                                "documentaliste", "duplication", "redacteur", "validation"],
-                "literature_review": ["specifications", "management", "evaluation", "suivi",
+                "literature_review": ["specifications", "management", "evaluation", "chroniqueur",
                                     "documentaliste", "duplication", "redacteur", "validation"],
-                "coding": ["specifications", "management", "evaluation", "suivi",
+                "coding": ["specifications", "management", "evaluation", "chroniqueur",
                           "documentaliste", "duplication", "production", "testeur", "validation"]
             }
             
@@ -184,11 +181,11 @@ def register_team_routes(app, web_instance):
         try:
             # Get team configuration
             teams = {
-                "book_writing": ["specifications", "management", "evaluation", "suivi", 
+                "book_writing": ["specifications", "management", "evaluation", "chroniqueur", 
                                "documentaliste", "duplication", "redacteur", "validation"],
-                "literature_review": ["specifications", "management", "evaluation", "suivi",
+                "literature_review": ["specifications", "management", "evaluation", "chroniqueur",
                                     "documentaliste", "duplication", "redacteur", "validation"],
-                "coding": ["specifications", "management", "evaluation", "suivi",
+                "coding": ["specifications", "management", "evaluation", "chroniqueur",
                           "documentaliste", "duplication", "production", "testeur", "validation"]
             }
             
@@ -222,11 +219,11 @@ def register_team_routes(app, web_instance):
         try:
             # Validate team exists
             teams = {
-                "book_writing": ["specifications", "management", "evaluation", "suivi", 
+                "book_writing": ["specifications", "management", "evaluation", "chroniqueur", 
                                "documentaliste", "duplication", "redacteur", "validation"],
-                "literature_review": ["specifications", "management", "evaluation", "suivi",
+                "literature_review": ["specifications", "management", "evaluation", "chroniqueur",
                                     "documentaliste", "duplication", "redacteur", "validation"],
-                "coding": ["specifications", "management", "evaluation", "suivi",
+                "coding": ["specifications", "management", "evaluation", "chroniqueur",
                           "documentaliste", "duplication", "production", "testeur", "validation"]
             }
             
@@ -262,11 +259,11 @@ def register_team_routes(app, web_instance):
         try:
             # Get team configuration
             teams = {
-                "book_writing": ["specifications", "management", "evaluation", "suivi", 
+                "book_writing": ["specifications", "management", "evaluation", "chroniqueur", 
                                "documentaliste", "duplication", "redacteur", "validation"],
-                "literature_review": ["specifications", "management", "evaluation", "suivi",
+                "literature_review": ["specifications", "management", "evaluation", "chroniqueur",
                                     "documentaliste", "duplication", "redacteur", "validation"],
-                "coding": ["specifications", "management", "evaluation", "suivi",
+                "coding": ["specifications", "management", "evaluation", "chroniqueur",
                           "documentaliste", "duplication", "production", "testeur", "validation"]
             }
             

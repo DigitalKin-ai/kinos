@@ -164,89 +164,113 @@ class AgentService:
             if not team_agents:
                 team_agents = [
                     'specifications', 'management', 'evaluation', 
-                    'suivi', 'documentaliste', 'duplication', 
+                    'chroniqueur', 'documentaliste', 'duplication', 
                     'redacteur', 'validation', 'production', 'testeur'
                 ]
-        
+
             # Normalize agent names
             normalized_agents = [
                 agent.lower().replace('agent', '').strip() 
                 for agent in team_agents
             ]
-        
-            # Determine mission directory
+
+            # Determine mission directory using PathManager
+            mission_dir = None
+            
+            # First try to get from config
+            if config and 'mission_dir' in config:
+                try:
+                    mission_dir = PathManager.normalize_path(config['mission_dir'])
+                    self.web_instance.log_message(f"Using mission directory from config: {mission_dir}", 'debug')
+                except Exception as e:
+                    self.web_instance.log_message(f"Invalid mission path in config: {str(e)}", 'error')
+            
+            # If not in config, try to get from file_manager
+            if not mission_dir:
+                try:
+                    current_mission = self.web_instance.file_manager.current_mission
+                    if current_mission:
+                        mission_dir = PathManager.get_mission_path(current_mission)
+                        self.web_instance.log_message(f"Using mission directory from file_manager: {mission_dir}", 'debug')
+                except Exception as e:
+                    self.web_instance.log_message(f"Error getting mission path: {str(e)}", 'error')
+
+            # Validate mission directory using PathManager
             try:
-                current_mission = self.web_instance.file_manager.current_mission
-                mission_dir = PathManager.get_mission_path(current_mission) if current_mission else None
-            except Exception as mission_dir_error:
-                self.web_instance.log_message(
-                    f"Error getting mission directory: {str(mission_dir_error)}", 
-                    'warning'
-                )
-                mission_dir = None
-        
+                if not mission_dir:
+                    raise ValueError("No mission directory available")
+                    
+                # Normalize and validate path
+                mission_dir = PathManager.normalize_path(mission_dir)
+                
+                # Verify directory exists and is accessible
+                if not os.path.exists(mission_dir):
+                    raise ValueError(f"Mission directory not found: {mission_dir}")
+                    
+                if not os.access(mission_dir, os.R_OK | os.W_OK):
+                    raise ValueError(f"Insufficient permissions on: {mission_dir}")
+                    
+                self.web_instance.log_message(f"Using validated mission directory: {mission_dir}", 'info')
+                
+            except Exception as e:
+                self.web_instance.log_message(f"Mission directory validation failed: {str(e)}", 'error')
+                return
+
+            # Update config with validated mission directory
+            if not config:
+                config = {}
+            config['mission_dir'] = mission_dir
+
             # Initialize agents with comprehensive logging
             initialized_agents = {}
             for agent_name in normalized_agents:
                 try:
+                    # Get prompt file path using PathManager
+                    prompt_file = PathManager.get_prompt_file(agent_name)
+                    
                     # Prepare agent-specific configuration
                     agent_config = {
-                        'config': {
-                            'name': agent_name,
-                            'anthropic_api_key': config.get('anthropic_api_key'),
-                            'openai_api_key': config.get('openai_api_key'),
-                            'mission_dir': mission_dir or PathManager.get_project_root()
-                        }
+                        'name': agent_name,
+                        'mission_dir': mission_dir,
+                        'web_instance': self.web_instance,
+                        'prompt_file': prompt_file,
+                        'anthropic_api_key': config.get('anthropic_api_key'),
+                        'openai_api_key': config.get('openai_api_key')
                     }
-                
-                    # Attempt to find and load prompt
-                    prompt_file = self._find_agent_prompt(
-                        agent_name, 
-                        [
-                            PathManager.get_prompts_path(),
-                            PathManager.get_custom_prompts_path()
-                        ]
-                    )
-                
-                    if prompt_file:
-                        prompt_content = self._read_prompt_file(prompt_file)
-                        if prompt_content:
-                            agent_config['config']['prompt'] = prompt_content
-                
-                    # Create dynamic agent
+
+                    # Create agent
                     agent = self._create_dynamic_agent(agent_config)
-                
+                    
                     if agent:
                         initialized_agents[agent_name] = agent
                         self.web_instance.log_message(
-                            f"Successfully initialized agent: {agent_name}", 
+                            f"Successfully initialized agent: {agent_name}\n"
+                            f"Prompt file: {prompt_file}\n"
+                            f"Mission dir: {mission_dir}", 
                             'success'
                         )
                     else:
-                        self.web_instance.log_message(
-                            f"Failed to create agent: {agent_name}", 
-                            'error'
-                        )
-            
+                        self.web_instance.log_message(f"Failed to create agent: {agent_name}", 'error')
+
                 except Exception as agent_error:
                     self.web_instance.log_message(
-                        f"Error initializing agent {agent_name}: {str(agent_error)}", 
+                        f"Error initializing agent {agent_name}:\n"
+                        f"Error: {str(agent_error)}\n"
+                        f"Traceback: {traceback.format_exc()}", 
                         'error'
                     )
-        
+
             # Update agents dictionary
             self.agents = initialized_agents
-        
-            # Log initialization summary
+            
             self.web_instance.log_message(
-                f"Agent Initialization Summary:\n"
-                f"Total Agents Attempted: {len(normalized_agents)}\n"
-                f"Successfully Initialized: {len(initialized_agents)}\n"
-                f"Failed Agents: {set(normalized_agents) - set(initialized_agents.keys())}\n"
-                f"Mission Directory: {mission_dir or 'Not set'}", 
-                'info'
+                f"Initialization complete:\n"
+                f"Total agents: {len(normalized_agents)}\n"
+                f"Successfully initialized: {len(initialized_agents)}\n"
+                f"Mission directory: {mission_dir}", 
+                'success'
             )
-    
+
         except Exception as e:
             self.web_instance.log_message(
                 f"Critical Agent Initialization Failure:\n"
@@ -474,7 +498,7 @@ List any specific constraints or limitations.
                         'specifications',
                         'management',
                         'evaluation',
-                        'suivi',
+                        'chroniqueur',
                         'documentaliste',
                         'duplication',
                         'redacteur',
@@ -588,13 +612,27 @@ List any specific constraints or limitations.
                 'debug'
             )
 
-            # Set mission directory if provided
+            # Set mission directory if provided or get from FileManager
             if mission_dir:
                 agent.mission_dir = mission_dir
+            else:
+                # Get mission directory from FileManager
+                current_mission = self.web_instance.file_manager.current_mission
+                if current_mission:
+                    mission_dir = PathManager.get_mission_path(current_mission)
+                    agent.mission_dir = mission_dir
+                    self.web_instance.log_message(
+                        f"Set mission directory for {agent_name} from FileManager: {mission_dir}", 
+                        'info'
+                    )
+
+            # Verify mission directory is set correctly
+            if not agent.mission_dir or not os.path.exists(agent.mission_dir):
                 self.web_instance.log_message(
-                    f"Set mission directory for {agent_name}: {mission_dir}", 
-                    'info'
+                    f"Invalid mission directory for {agent_name}: {agent.mission_dir}", 
+                    'error'
                 )
+                return False
 
             # Perform action with detailed logging
             try:
@@ -644,8 +682,22 @@ List any specific constraints or limitations.
             )
             return False
 
+    def _cleanup_cache(self, cache_type: str) -> None:
+        """Centralized cache cleanup"""
+        try:
+            cache = self._get_cache(cache_type)
+            now = time.time()
+            expired = [
+                key for key, (_, timestamp) in cache.items()
+                if now - timestamp > self.ttl
+            ]
+            for key in expired:
+                self._remove(key, cache_type)
+        except Exception as e:
+            self.logger.log(f"Cache cleanup error: {str(e)}", 'error')
+
     def _cleanup_resources(self):
-        """Nettoie les ressources des agents"""
+        """Clean up service resources"""
         try:
             with self._cleanup_lock:
                 # Forcer le garbage collection
@@ -680,9 +732,6 @@ List any specific constraints or limitations.
         try:
             self.web_instance.log_message("🚀 Starting agents...", 'info')
             
-            # Cleanup before starting
-            self._cleanup_sockets()
-            
             # Check available agents
             available_agents = self.get_available_agents()
             self.web_instance.log_message(f"Available agents: {available_agents}", 'debug')
@@ -691,15 +740,32 @@ List any specific constraints or limitations.
                 self.web_instance.log_message("No agents available to start", 'warning')
                 return
                 
-            # Get current mission from FileManager
+            # Get current mission from FileManager and validate
             current_mission = self.web_instance.file_manager.current_mission
             if not current_mission:
-                raise AgentError("No current mission set")
+                self.web_instance.log_message("❌ No mission selected - cannot start agents", 'error')
+                return
+
+            # Get mission directory using PathManager
+            try:
+                mission_dir = PathManager.get_mission_path(current_mission)
+                self.web_instance.log_message(f"Using mission directory: {mission_dir}", 'info')
+                
+                # Validate mission directory
+                if not os.path.exists(mission_dir):
+                    raise ValueError(f"Mission directory not found: {mission_dir}")
+                if not os.access(mission_dir, os.R_OK | os.W_OK):
+                    raise ValueError(f"Insufficient permissions on: {mission_dir}")
+                    
+            except Exception as e:
+                self.web_instance.log_message(f"❌ Invalid mission configuration: {str(e)}", 'error')
+                return
 
             # Initialize agents if not already done
             if not self.agents:
                 self.web_instance.log_message("Initializing agents...", 'info')
                 config = {
+                    'mission_dir': mission_dir
                 }
                 
                 # Validate config before initialization
@@ -708,94 +774,70 @@ List any specific constraints or limitations.
                         "Invalid configuration for agents, skipping initialization",
                         'error'
                     )
-                    raise AgentError("Invalid agent configuration")
+                    return
                     
                 self.init_agents(config)
                 
                 if not self.agents:
-                    raise AgentError("Failed to initialize agents")
-
-            # Get absolute path to project root
-            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            mission_dir = os.path.abspath(os.path.join(project_root, "missions", current_mission))
-            
-            self.web_instance.log_message(f"Using absolute mission path: {mission_dir}", 'debug')
-                
-            # Verify directory exists and is accessible
-            if not os.path.exists(mission_dir):
-                raise AgentError(f"Mission directory not found: {mission_dir}")
-            if not os.access(mission_dir, os.R_OK | os.W_OK):
-                raise AgentError(f"Insufficient permissions on: {mission_dir}")
-
-            # Store thread references
-            self.agent_threads = {}
-
-            # Log agents to be started
-            self.web_instance.log_message(f"Agents to start: {list(self.agents.keys())}", 'debug')
+                    self.web_instance.log_message("❌ Failed to initialize agents", 'error')
+                    return
 
             # Update mission directory for all agents
             for name, agent in self.agents.items():
                 agent.mission_dir = mission_dir
                 self.web_instance.log_message(f"Set mission dir for {name}: {mission_dir}", 'debug')
-                
+
+            # Store thread references
+            self.agent_threads = {}
+            
             self.running = True
             
             # Start monitor thread
             self._start_monitor_thread()
             
-            # Start each agent in a new thread
+            # Start agent threads
             for name, agent in self.agents.items():
                 try:
-                    self.web_instance.log_message(f"Starting agent {name}...", 'debug')
-                    
-                    # Initialize agent
+                    self.web_instance.log_message(f"Starting agent: {name}", 'info')
                     agent.start()
-                    self.web_instance.log_message(f"Agent {name} initialized", 'debug')
                     
-                    # Create thread
+                    # Create and start thread
                     thread = threading.Thread(
-                        target=self._run_agent_wrapper,  # Use wrapper function
+                        target=self._run_agent_wrapper,
                         args=(name, agent),
                         daemon=True,
                         name=f"Agent-{name}"
                     )
                     
-                    # Store thread reference
                     self.agent_threads[name] = thread
-                    
-                    # Start thread
                     thread.start()
-                    self.web_instance.log_message(f"Started thread for {name}", 'debug')
-
-                    # Verify thread started
-                    if not thread.is_alive():
-                        raise AgentError(f"Thread failed to start for agent {name}")
-                        
-                    self.web_instance.log_message(f"✓ Agent {name} thread confirmed running", 'success')
                     
-                    # Add delay and cleanup between agent starts
-                    time.sleep(6)
-                    self._cleanup_sockets()
+                    self.web_instance.log_message(f"✅ Agent {name} started successfully", 'success')
                     
-                except Exception as e:
+                except Exception as agent_error:
                     self.web_instance.log_message(
-                        f"Error starting agent {name}: {str(e)}\n{traceback.format_exc()}", 
+                        f"Failed to start agent {name}: {str(agent_error)}", 
                         'error'
                     )
 
             # Verify all threads are running
             running_threads = [name for name, thread in self.agent_threads.items() if thread.is_alive()]
-            self.web_instance.log_message(f"Running agent threads: {running_threads}", 'debug')
+            self.web_instance.log_message(f"Running agent threads: {running_threads}", 'info')
 
             if len(running_threads) != len(self.agents):
-                raise AgentError(f"Only {len(running_threads)} of {len(self.agents)} agents started")
+                self.web_instance.log_message(
+                    f"⚠️ Only {len(running_threads)} of {len(self.agents)} agents started",
+                    'warning'
+                )
+            else:
+                self.web_instance.log_message("✨ All agents started successfully", 'success')
 
-            self.web_instance.log_message("✨ All agents active", 'success')
-            
         except Exception as e:
             self.web_instance.log_message(
-                f"Error starting agents: {str(e)}\n{traceback.format_exc()}", 
-                'error'
+                f"Critical error starting agents:\n"
+                f"Error: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}", 
+                'critical'
             )
             raise
 
@@ -1270,6 +1312,7 @@ List any specific constraints or limitations.
         except Exception as e:
             self.web_instance.log_message(f"Error restarting agent {name}: {str(e)}", 'error')
 
+
     def _verify_team_agents(self, team_agents: List[str]) -> bool:
         """Vérifie que tous les agents requis sont disponibles"""
         try:
@@ -1641,32 +1684,20 @@ Describe the operational context and key responsibilities.
             if 'config' not in config:
                 config = {'config': config}
 
-            # Extract configuration, with fallback to empty dict
+            # Extract configuration
             agent_config = config.get('config', {})
-
-            # Debug logging of initial configuration
-            self.web_instance.log_message(
-                f"Initial agent configuration:\n{json.dumps(agent_config, indent=2)}", 
-                'debug'
-            )
 
             # Ensure name is present
             if 'name' not in agent_config:
-                # Try to extract name from various possible sources
                 name_sources = [
                     config.get('name'),
                     agent_config.get('agent_name'),
                     agent_config.get('id')
                 ]
                 name = next((n for n in name_sources if n), None)
-            
                 if not name:
-                    self.web_instance.log_message(
-                        "Could not determine agent name", 
-                        'error'
-                    )
+                    self.web_instance.log_message("Could not determine agent name", 'error')
                     return None
-            
                 agent_config['name'] = name.lower().replace('agent', '').strip()
 
             # Ensure prompt is present
@@ -1695,77 +1726,92 @@ Describe the operational context and key responsibilities.
                     # Create a default prompt if no file found
                     agent_config['prompt'] = self._create_default_prompt(agent_config['name'])
 
-            # Determine mission directory
+            # Determine mission directory - prioritize config mission_dir
             try:
-                # Try to get current mission from file manager
-                current_mission = self.web_instance.file_manager.current_mission
-                if current_mission:
-                    mission_dir = PathManager.get_mission_path(current_mission)
-                else:
-                    # Fallback to project root if no mission selected
-                    mission_dir = PathManager.get_project_root()
-            
-                # Add mission directory to configuration
+                mission_dir = agent_config.get('mission_dir')
+                
+                # If no mission_dir in config, try to get from file_manager
+                if not mission_dir:
+                    current_mission = self.web_instance.file_manager.current_mission
+                    if current_mission:
+                        mission_dir = PathManager.get_mission_path(current_mission)
+                    else:
+                        self.web_instance.log_message(
+                            f"No mission directory available for agent {agent_config['name']}", 
+                            'warning'
+                        )
+                        return None
+
+                # Validate mission directory
+                if not os.path.exists(mission_dir):
+                    self.web_instance.log_message(
+                        f"Mission directory not found: {mission_dir}", 
+                        'error'
+                    )
+                    return None
+
+                if not os.access(mission_dir, os.R_OK | os.W_OK):
+                    self.web_instance.log_message(
+                        f"Insufficient permissions on: {mission_dir}", 
+                        'error'
+                    )
+                    return None
+
+                # Update agent config with validated mission directory
                 agent_config['mission_dir'] = mission_dir
-            
+                
                 self.web_instance.log_message(
                     f"Using mission directory for {agent_config['name']}: {mission_dir}", 
                     'debug'
                 )
+
             except Exception as mission_dir_error:
                 self.web_instance.log_message(
                     f"Error determining mission directory: {str(mission_dir_error)}", 
                     'error'
                 )
-                # If we can't determine mission directory, use project root
-                agent_config['mission_dir'] = PathManager.get_project_root()
+                return None
 
-            # Validate configuration again
+            # Validate configuration
             required_fields = ['name', 'prompt', 'mission_dir']
             missing_fields = [field for field in required_fields if field not in agent_config]
         
             if missing_fields:
                 self.web_instance.log_message(
-                    f"Still missing required fields: {missing_fields}", 
+                    f"Missing required fields: {missing_fields}", 
                     'error'
                 )
                 return None
 
-            # Debug logging of final configuration
-            self.web_instance.log_message(
-                f"Final agent configuration for {agent_config['name']}:\n"
-                f"{json.dumps(agent_config, indent=2)}", 
-                'debug'
-            )
-
             # Create the agent
             try:
                 from aider_agent import AiderAgent
-            
+                
                 # Merge all configuration
                 full_config = {
                     **agent_config,
+                    'web_instance': self.web_instance,
                     'anthropic_api_key': config.get('anthropic_api_key'),
                     'openai_api_key': config.get('openai_api_key')
                 }
-            
+                
                 # Create agent
                 agent = AiderAgent(full_config)
-            
+                
                 self.web_instance.log_message(
                     f"Successfully created agent {agent_config['name']}", 
                     'success'
                 )
-            
+                
                 return agent
-            
+                
             except ImportError as e:
                 self.web_instance.log_message(
                     f"Error importing AiderAgent: {str(e)}", 
                     'error'
                 )
                 return None
-            
+                
         except Exception as e:
             self.web_instance.log_message(
                 f"Error creating agent: {str(e)}\n"

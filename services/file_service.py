@@ -22,10 +22,6 @@ class FileService(BaseService):
         self.project_root = PathManager.get_project_root()
         # Use the file_manager from web_instance instead of creating a new one
         self.file_manager = web_instance.file_manager
-        # Use PathManager for project root
-        self.project_root = PathManager.get_project_root()
-        # Use PathManager for project root
-        self.project_root = PathManager.get_project_root()
         
 
     def _safe_file_operation(self, operation: str, file_path: str, content: str = None) -> Optional[str]:

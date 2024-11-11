@@ -1,13 +1,11 @@
 import os
 import time
 import functools
-from typing import Optional, Any, Tuple
+from typing import Optional, Any
+import traceback
+from typing import Optional, Any
 from utils.exceptions import ServiceError, ValidationError
-from utils.advanced_logger import AdvancedLogger
-from config.global_config import GlobalConfig
-from utils.logger import Logger  # Added import for Logger
-import logging
-import os
+from utils.logger import Logger
 
 def retry(max_attempts=3, delay=1, backoff=2, exceptions=(Exception,)):
     """
@@ -112,6 +110,16 @@ class BaseService:
             duration = time.time() - start_time
             self.logger.log(f"File operation {operation} failed after {duration:.3f}s", 'error')
             raise ServiceError(f"Failed to {operation} file {file_path}: {str(e)}")
+
+    def _validate_path(self, path: str) -> bool:
+        """Validation centralisée des chemins"""
+        if not path or not isinstance(path, str):
+            return False
+        return os.path.exists(path) and os.access(path, os.R_OK | os.W_OK)
+
+    def _validate_content(self, content: str) -> bool:
+        """Validation centralisée du contenu"""
+        return bool(content and content.strip())
 
     def cleanup(self):
         """Base cleanup method for services"""

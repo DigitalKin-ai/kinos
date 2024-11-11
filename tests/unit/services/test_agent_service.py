@@ -16,8 +16,6 @@ def agent_service():
 def test_agent_initialization(agent_service):
     """Test agent initialization with config"""
     config = {
-        "anthropic_api_key": "test_key",
-        "openai_api_key": "test_key"
     }
     agent_service.init_agents(config)
     assert len(agent_service.agents) > 0
@@ -27,8 +25,6 @@ def test_agent_initialization(agent_service):
 def test_agent_lifecycle(agent_service):
     """Test agent start/stop cycle"""
     config = {
-        "anthropic_api_key": "test_key",
-        "openai_api_key": "test_key"
     }
     agent_service.init_agents(config)
     
@@ -41,8 +37,6 @@ def test_agent_lifecycle(agent_service):
 def test_get_agent_status(agent_service):
     """Test getting agent status"""
     config = {
-        "anthropic_api_key": "test_key",
-        "openai_api_key": "test_key"
     }
     agent_service.init_agents(config)
     
@@ -60,8 +54,6 @@ def test_invalid_config():
 def test_monitor_thread(agent_service):
     """Test monitor thread management"""
     config = {
-        "anthropic_api_key": "test_key",
-        "openai_api_key": "test_key"
     }
     agent_service.init_agents(config)
     

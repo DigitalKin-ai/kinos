@@ -104,7 +104,7 @@ python kinos_cli.py teams list
    - Adapté à la création de documentation ou de contenu
 
 3. **Équipe Revue Littéraire (literature-review)**
-   - Agents: DocumentalisteAgent, EvaluationAgent, SuiviAgent, etc.
+   - Agents: DocumentalisteAgent, EvaluationAgent, ChroniqueurAgent, etc.
    - Pour l'analyse et la revue de documents
 
 ## Gestion des Erreurs

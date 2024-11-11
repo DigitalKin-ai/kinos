@@ -36,13 +36,13 @@ def register_view_routes(app, web_instance):
             logger.log("Loading editor interface", "info")
             # Use FileManager which already uses PathManager
             content = web_instance.file_manager.read_file("production")
-            suivi_content = web_instance.file_manager.read_file("suivi")
+            chroniqueur_content = web_instance.file_manager.read_file("chroniqueur")
             
             # Use template path from PathManager 
             template_path = os.path.join(PathManager.get_templates_path(), 'editor.html')
             return render_template(template_path,
                                  content=content or "",
-                                 suivi_content=suivi_content or "")
+                                 chroniqueur_content=chroniqueur_content or "")
         except Exception as e:
             logger.log(f"Error loading editor: {str(e)}", "error")
             return ErrorHandler.handle_error(e)
@@ -94,7 +94,7 @@ def register_view_routes(app, web_instance):
                 
             # Use FileManager which already uses PathManager
             content = web_instance.file_manager.read_file("production")
-            suivi_content = web_instance.file_manager.read_file("suivi") 
+            chroniqueur_content = web_instance.file_manager.read_file("chroniqueur") 
             demande_content = web_instance.file_manager.read_file("demande")
 
             logger.log("Clean interface loaded successfully", "success")
@@ -102,7 +102,7 @@ def register_view_routes(app, web_instance):
             template_path = os.path.join(PathManager.get_templates_path(), 'clean.html')
             return render_template(template_path,
                                  content=content or "",
-                                 suivi_content=suivi_content or "",
+                                 chroniqueur_content=chroniqueur_content or "",
                                  demande_content=demande_content or "")
                                  
         except Exception as e:

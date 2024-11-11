@@ -4,15 +4,13 @@ from agents import (
     ProductionAgent,
     ManagementAgent,
     EvaluationAgent,
-    SuiviAgent,
+    ChroniqueurAgent,
     DuplicationAgent
 )
 
 @pytest.fixture
 def agent_config():
     return {
-        "anthropic_api_key": "test_key",
-        "openai_api_key": "test_key",
         "file_path": "tests.md",
         "mission_name": "test_mission",
         "name": "test_agent",
@@ -52,7 +50,7 @@ def test_agent_error_recovery(agent_config):
 
 def test_agent_prompt_management(agent_config):
     """Test la gestion des prompts"""
-    agent = SuiviAgent(agent_config)
+    agent = ChroniqueurAgent(agent_config)
     
     # Test sauvegarde prompt
     assert agent.save_prompt("new prompt")

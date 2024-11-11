@@ -116,7 +116,7 @@ KinOS uses a single server architecture where both frontend and backend are serv
   - ProductionAgent - Code generation and optimization
   - ManagementAgent - Activity coordination
   - EvaluationAgent - Testing and validation
-  - SuiviAgent - Progress tracking
+  - ChroniqueurAgent - Progress tracking
   - ValidationAgent - Validation et conformité
     * Validation des spécifications
     * Vérification de la conformité

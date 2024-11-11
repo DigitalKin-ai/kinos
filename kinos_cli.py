@@ -1,36 +1,43 @@
 import argparse
+import os
 import sys
+import time
 from datetime import datetime
 from services.team_service import TeamService
 from services.mission_service import MissionService
 from services.agent_service import AgentService
-from utils.logger import Logger
+from utils.logger import configure_cli_logger
 
 class KinosCLI:
-    def __init__(self):
-        self.logger = Logger()
+    def __init__(self, force_color=None):
+        # Use the new configure_cli_logger method
+        self.logger = configure_cli_logger(force_color)
+        
         self.mission_service = MissionService()
         
+        # Existing configuration remains the same
+        self.config = {
+            "anthropic_api_key": os.environ.get("ANTHROPIC_API_KEY", ""),
+            "openai_api_key": os.environ.get("OPENAI_API_KEY", ""),
+            "paths": {
+                "missions_dir": os.path.join(os.path.dirname(__file__), "missions"),
+                "prompts_dir": os.path.join(os.path.dirname(__file__), "prompts"),
+                "logs_dir": os.path.join(os.path.dirname(__file__), "logs")
+            }
+        }
+        
         # Créer explicitement un AgentService
-        self.agent_service = AgentService(None)
+        self.agent_service = AgentService(self)
         
         # Ajouter une méthode log directement à l'instance
         self.log = self.logger.log
         
-        # Passer self avec l'agent_service ajouté
+        # Passer self avec l'agent_service et config ajoutés
         self.team_service = TeamService(self)
 
     def launch_team(self, mission_name, team_name, verbose=False, dry_run=False, timeout=None, log_file=None):
         """
-        Lance une équipe pour une mission spécifique
-        
-        Args:
-            mission_name (str): Nom de la mission
-            team_name (str): Nom de l'équipe
-            verbose (bool): Mode débogage détaillé
-            dry_run (bool): Simulation sans exécution
-            timeout (int): Limite de temps en secondes
-            log_file (str): Chemin du fichier de log
+        Lance une équipe pour une mission spécifique et affiche les logs en continu
         """
         try:
             # Validation des paramètres
@@ -50,16 +57,54 @@ class KinosCLI:
                 return
 
             # Lancement de l'équipe
+            self.logger.log(f"Lancement de l'équipe {team_name} pour la mission {mission_name}...", 'info')
             result = self.team_service.activate_team(mission['id'], team_name)
             
-            # Gestion des logs
-            if verbose:
-                self._stream_logs(result, log_file)
+            if not result:
+                self.logger.log("Échec de l'activation de l'équipe", 'error')
+                sys.exit(1)
+
+            self.team_service.start_team(mission['id'], team_name) 
+
+            self.logger.log(f"✓ Équipe {team_name} activée et démarée. Démarrage des agents...", 'success')
+            self.logger.log("Appuyez sur CTRL+C pour arrêter les agents", 'info')
             
-            self.logger.log(f"✓ Équipe {team_name} lancée avec succès pour la mission {mission_name}", 'success')
+            # Boucle principale d'affichage des logs
+            try:
+                while True:
+                    # Obtenir le statut de tous les agents
+                    status = self.agent_service.get_agent_status()
+                    
+                    # Afficher le statut de chaque agent
+                    for agent_name, agent_status in status.items():
+                        running = agent_status.get('running', False)
+                        health = agent_status.get('health', {})
+                        last_run = agent_status.get('last_run', 'Jamais')
+                        
+                        status_str = "🟢 Actif" if running else "🔴 Inactif"
+                        health_str = "✅ OK" if health.get('is_healthy', True) else "❌ Dégradé"
+                        
+                        self.logger.log(
+                            f"Agent {agent_name}: {status_str} | Santé: {health_str} | "
+                            f"Dernière exécution: {last_run}",
+                            'info' if running else 'warning'
+                        )
+                    
+                    # Afficher une ligne de séparation
+                    self.logger.log("-" * 80, 'info')
+                    
+                    # Attendre avant la prochaine mise à jour
+                    time.sleep(60)
+
+            except KeyboardInterrupt:
+                self.logger.log("\nArrêt demandé. Arrêt des agents...", 'warning')
+                self.agent_service.stop_all_agents()
+                self.logger.log("Tous les agents ont été arrêtés.", 'success')
+                sys.exit(0)
 
         except Exception as e:
             self.logger.log(f"Erreur lors du lancement de l'équipe : {e}", 'error')
+            self.agent_service.stop_all_agents()  # S'assurer que les agents sont arrêtés en cas d'erreur
             sys.exit(1)
 
     def list_agents(self):
@@ -146,8 +191,16 @@ class KinosCLI:
                 self.logger.log(f"Erreur pour l'agent {agent}: {error}", 'error')
 
 def main():
+    # Parse arguments with color support
     parser = argparse.ArgumentParser(description="KinOS CLI - Gestion des équipes d'agents")
     
+    # Add color control arguments
+    parser.add_argument('--color', 
+                        choices=['auto', 'always', 'never'], 
+                        default='auto', 
+                        help='Control color output')
+    
+    # Rest of the existing argument parsing...
     subparsers = parser.add_subparsers(dest='command', help='Commandes disponibles')
     
     # Nouvelle commande list globale
@@ -182,9 +235,18 @@ def main():
     teams_subparsers = teams_parser.add_subparsers(dest='teams_command')
     teams_list_parser = teams_subparsers.add_parser('list', help='Lister toutes les équipes')
 
+    # Parse arguments
     args = parser.parse_args()
 
-    cli = KinosCLI()
+    # Determine color configuration
+    force_color = None
+    if args.color == 'always':
+        force_color = True
+    elif args.color == 'never':
+        force_color = False
+
+    # Create CLI instance with color configuration
+    cli = KinosCLI(force_color=force_color)
 
     # Dispatch des commandes
     if args.command == 'list':
@@ -212,8 +274,6 @@ def main():
 
 if __name__ == '__main__':
     main()
-import argparse
-import sys
 import logging
 from services.team_service import TeamService
 from config.global_config import GlobalConfig  # Assurez-vous que cette importation est correcte

@@ -33,7 +33,6 @@ export default `
                     :loading="loadingStates.get(team.id)"
                     :error="errorMessages.get(team.id)"
                     :is-active="activeTeam?.name === team.name"
-                    :metrics="team.id ? getTeamMetrics(team.id) : null"
                     @toggle="toggleTeam(team)"
                     @activate="activateTeam(team)"
                     @add-agent="openAddAgentModal(team)">

@@ -68,12 +68,6 @@ Chaque agent peut maintenant :
    - Rapports de couverture
    - Analyse des performances
 
-5. **SuiviAgent**
-   - Documentation des activités
-   - Historique des modifications
-   - Rapports d'avancement
-   - Métriques de projet
-
 6. **DocumentalisteAgent**
    - Maintien de la documentation
    - Organisation des références
@@ -127,7 +121,7 @@ Teams are predefined agent groupings optimized for specific tasks:
      * SpecificationsAgent - Content requirements
      * ManagementAgent - Project coordination
      * EvaluationAgent - Content evaluation
-     * SuiviAgent - Progress tracking
+     * ChroniqueurAgent - Progress tracking
      * DocumentalisteAgent - Documentation structure
      * DuplicationAgent - Content redundancy check
      * RedacteurAgent - Content writing
@@ -139,7 +133,7 @@ Teams are predefined agent groupings optimized for specific tasks:
      * SpecificationsAgent - Review scope
      * ManagementAgent - Review coordination
      * EvaluationAgent - Analysis evaluation
-     * SuiviAgent - Progress monitoring
+     * ChroniqueurAgent - Progress monitoring
      * DocumentalisteAgent - Source organization
      * DuplicationAgent - Duplicate detection
      * RedacteurAgent - Review writing
@@ -151,7 +145,7 @@ Teams are predefined agent groupings optimized for specific tasks:
      * SpecificationsAgent - Technical requirements
      * ManagementAgent - Project management
      * EvaluationAgent - Code evaluation
-     * SuiviAgent - Development tracking
+     * ChroniqueurAgent - Development tracking
      * DocumentalisteAgent - Technical documentation
      * DuplicationAgent - Code duplication check
      * ProductionAgent - Code generation
@@ -1421,7 +1415,7 @@ CSRF_PROTECTION=True
       - Rapports de bugs
       - Suggestions d'amélioration
 
-    * SuiviAgent
+    * ChroniqueurAgent
       - Documentation temps réel
       - Historique des changements
       - Rapports de progression

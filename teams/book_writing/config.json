@@ -1,0 +1,15 @@
+{
+    "id": "book-writing",
+    "name": "Book Writing Team",
+    "description": "Content creation and documentation",
+    "agents": [
+        "specifications",
+        "management", 
+        "evaluation",
+        "chroniqueur",
+        "documentaliste",
+        "duplication",
+        "redacteur","redacteur2","redacteur3",
+        "validation"
+    ]
+}

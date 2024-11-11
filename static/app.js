@@ -24,15 +24,7 @@ const app = createApp({
             error: null,
             runningAgents: new Set(),
             notifications: [],
-            activeTab: 'demande',
-            content: {
-                demande: '',
-                specifications: '',
-                management: '',
-                production: '',
-                evaluation: '',
-                suivi: ''
-            }
+            activeTab: 'demande'
         }
     },
     async mounted() {
@@ -499,7 +491,6 @@ const app = createApp({
                 await fetch('/api/start', { method: 'POST' });
                 this.running = true;
                 this.startUpdateLoop();
-                this.activeTab = 'suivi';
                 this.addNotification('success', 'Agents started successfully');
             } catch (error) {
                 this.error = error.message;
@@ -779,7 +770,7 @@ const app = createApp({
         },
 
         isAgentTab(tabId) {
-            return ['specifications', 'management', 'production', 'evaluation', 'suivi'].includes(tabId);
+            return ['specifications', 'management', 'production', 'evaluation', 'chroniqueur'].includes(tabId);
         },
 
         isAgentRunning(tabId) {
@@ -1000,9 +991,7 @@ const app = createApp({
         // Cleanup all intervals
         this.stopContentMonitoring();
         this.stopUpdateLoop();
-        if (this.suiviUpdateInterval) {
-            clearInterval(this.suiviUpdateInterval);
-        }
+
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
         }

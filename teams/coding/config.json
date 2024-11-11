@@ -1,0 +1,16 @@
+{
+    "id": "coding",
+    "name": "Coding Team",
+    "description": "Software development",
+    "agents": [
+        "specifications",
+        "management",
+        "evaluation",
+        "chroniqueur",
+        "documentaliste",
+        "duplication",
+        "production",
+        "testeur",
+        "validation"
+    ]
+}

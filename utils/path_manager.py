@@ -155,10 +155,20 @@ class PathManager:
 
     @staticmethod
     def validate_path(path: str) -> bool:
-        """Valide qu'un chemin est sécurisé et dans le projet"""
+        """Validate that a path is secure and within project"""
         try:
             normalized = PathManager.normalize_path(path)
-            return normalized.startswith(PathManager.get_project_root())
+            return (normalized.startswith(PathManager.get_project_root()) and 
+                   PathManager._validate_path_safety(normalized))
+        except Exception:
+            return False
+
+    @staticmethod
+    def _validate_path_safety(path: str) -> bool:
+        """Centralized validation of path safety"""
+        try:
+            normalized = os.path.normpath(path)
+            return not any(part in ['..', '.'] for part in normalized.split(os.sep))
         except Exception:
             return False
 

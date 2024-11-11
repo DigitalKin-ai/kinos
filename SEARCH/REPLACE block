@@ -23,7 +23,7 @@ export default class TeamService {
                     "SpecificationsAgent",
                     "ManagementAgent",
                     "EvaluationAgent",
-                    "SuiviAgent",
+                    "ChroniqueurAgent",
                     "DocumentalisteAgent",
                     "DuplicationAgent",
                     "RedacteurAgent",
@@ -37,7 +37,7 @@ export default class TeamService {
                     "SpecificationsAgent",
                     "ManagementAgent",
                     "EvaluationAgent",
-                    "SuiviAgent",
+                    "ChroniqueurAgent",
                     "DocumentalisteAgent",
                     "DuplicationAgent",
                     "RedacteurAgent",
@@ -51,7 +51,7 @@ export default class TeamService {
                     "SpecificationsAgent",
                     "ManagementAgent",
                     "EvaluationAgent",
-                    "SuiviAgent",
+                    "ChroniqueurAgent",
                     "DocumentalisteAgent",
                     "DuplicationAgent",
                     "ProductionAgent",
@@ -296,10 +296,6 @@ export default class TeamMetrics {
         });
 
         return efficiency;
-    }
-
-    getTeamMetrics(teamId) {
-        return this.metrics.get(teamId);
     }
 
     _calculateAgentHealth(team, status) {

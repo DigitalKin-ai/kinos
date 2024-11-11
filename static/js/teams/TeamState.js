@@ -32,7 +32,7 @@ export default function() {
         agents: {
             available: [
                 "SpecificationsAgent", "ManagementAgent", "EvaluationAgent",
-                "SuiviAgent", "DocumentalisteAgent", "DuplicationAgent",
+                "ChroniqueurAgent", "DocumentalisteAgent", "DuplicationAgent",
                 "RedacteurAgent", "ProductionAgent", "TesteurAgent", "ValidationAgent"
             ],
             selected: null

@@ -47,8 +47,6 @@ class KinOSAgent:
         
         Args:
             config: Dictionary containing:
-                - anthropic_api_key: Anthropic API key
-                - openai_api_key: OpenAI API key
                 - check_interval: Check interval
                 - logger: Logging function
                 - mission_dir: Mission directory path
@@ -72,10 +70,6 @@ class KinOSAgent:
         self.error_count = 0
 
         # Validate configuration first
-        if not config.get("anthropic_api_key"):
-            raise ValueError("anthropic_api_key missing in configuration")
-        if not config.get("openai_api_key"):
-            raise ValueError("openai_api_key missing in configuration")
         if not config.get("mission_dir"):
             raise ValueError("mission_dir missing in configuration")
         if "name" not in config:
@@ -93,10 +87,6 @@ class KinOSAgent:
             raise ValueError(f"Insufficient permissions on mission directory: {self.mission_dir}")
             
         self.mission_files = {}
-        
-        # Initialize API clients
-        self.client = anthropic.Client(api_key=config["anthropic_api_key"])
-        self.openai_client = openai.OpenAI(api_key=config["openai_api_key"])
 
         # Handle logger configuration
         logger_config = config.get("logger", print)

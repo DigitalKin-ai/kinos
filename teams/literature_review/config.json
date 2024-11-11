@@ -1,0 +1,15 @@
+{
+    "id": "literature-review",
+    "name": "Literature Review Team", 
+    "description": "Research and analysis",
+    "agents": [
+        "specifications",
+        "management",
+        "evaluation",
+        "chroniqueur",
+        "documentaliste",
+        "duplication",
+        "redacteur",
+        "validation"
+    ]
+}

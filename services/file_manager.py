@@ -38,26 +38,6 @@ class FileManager:
         
         self._ensure_files_exist()
 
-    def _normalize_mission_name(self, mission_name: str) -> str:
-        """
-        Normalize mission name for filesystem use.
-        Uses PathManager for consistent path normalization.
-        """
-        # First do basic character replacement
-        invalid_chars = ["'", '"', ' ', '/', '\\', ':', '*', '?', '<', '>', '|']
-        normalized = mission_name
-        for char in invalid_chars:
-            normalized = normalized.replace(char, '_')
-            
-        # Remove multiple consecutive underscores
-        while '__' in normalized:
-            normalized = normalized.replace('__', '_')
-            
-        # Remove leading/trailing underscores
-        normalized = normalized.strip('_')
-        
-        # Use PathManager for final normalization
-        return PathManager.normalize_path(normalized)
 
     def get_mission_path(self, mission_name: str) -> str:
         """
@@ -98,29 +78,34 @@ class FileManager:
 
     @current_mission.setter 
     def current_mission(self, mission_name: str):
-        """Setter with validation and normalization for current_mission"""
+        """Setter with validation for current_mission"""
         if not mission_name:
             raise ValueError("Mission name cannot be empty")
             
         # Normalize mission name for filesystem
         normalized_name = self._normalize_mission_name(mission_name)
         
-        if hasattr(self, '_current_mission'):
-            self.logger.log(
-                f"Changing mission from {self._current_mission} to {normalized_name}",
-                'info'
-            )
-            
-        self._current_mission = mission_name  # Store original name
+        self.logger.log(f"Setting current mission to: {mission_name} (normalized: {normalized_name})", 'info')
         
         # Use PathManager for mission directory path
         mission_dir = PathManager.get_mission_path(normalized_name)
-        os.makedirs(mission_dir, exist_ok=True)
         
-        # Verify directory exists
+        # Verify directory exists and is accessible
         if not os.path.exists(mission_dir):
+            self.logger.log(f"❌ Mission directory not found: {mission_dir}", 'error')
+            # Log parent directory contents for debugging
+            parent_dir = os.path.dirname(mission_dir)
+            if os.path.exists(parent_dir):
+                self.logger.log(f"📂 Contents of parent directory {parent_dir}:", 'info')
+                for item in os.listdir(parent_dir):
+                    self.logger.log(f"- {item}", 'info')
             raise ValueError(f"Mission directory not found: {mission_dir}")
             
+        if not os.access(mission_dir, os.R_OK | os.W_OK):
+            self.logger.log(f"❌ Insufficient permissions on: {mission_dir}", 'error')
+            raise ValueError(f"Insufficient permissions on: {mission_dir}")
+            
+        self._current_mission = mission_name  # Store original name
         self.logger.log(f"✓ Mission changed to: {mission_name}", 'success')
         
         

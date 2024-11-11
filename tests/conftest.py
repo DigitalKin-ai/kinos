@@ -6,8 +6,6 @@ from config import Config
 def test_config():
     """Configuration de test"""
     return {
-        "ANTHROPIC_API_KEY": "test_key",
-        "OPENAI_API_KEY": "test_key",
         "DEBUG": True,
         "PORT": 5000,
         "HOST": "localhost"
