@@ -251,34 +251,6 @@ class KinOSWeb:
         if not os.path.exists(self.static_dir):
             raise RuntimeError(f"Static directory not found: {self.static_dir}")
         
-        # Add teams template to template paths
-        teams_template_path = os.path.join(self.template_dir, 'teams.html')
-        if not os.path.exists(teams_template_path):
-            self.logger.log(f"Creating teams template at: {teams_template_path}", 'info')
-            with open(teams_template_path, 'w', encoding='utf-8') as f:
-                f.write("""<!DOCTYPE html>
-<html>
-<head>
-    <title>KinOS - Teams</title>
-    <link rel="stylesheet" href="/static/css/main.css">
-    <link rel="stylesheet" href="/static/css/teams.css">
-    <script src="https://unpkg.com/vue@3"></script>
-</head>
-<body>
-    <div id="app">
-        <teams-manager></teams-manager>
-    </div>
-    <script type="module" src="/static/js/teams-manager.js"></script>
-</body>
-</html>""")
-        
-        # Verify paths exist
-        if not os.path.exists(self.template_dir):
-            raise RuntimeError(f"Template directory not found: {self.template_dir}")
-        if not os.path.exists(self.static_dir):
-            raise RuntimeError(f"Static directory not found: {self.static_dir}")
-            
-        
         # Initialize Flask with explicit template and static folders
         self.app = Flask(__name__,
                         template_folder=self.template_dir,
@@ -293,7 +265,7 @@ class KinOSWeb:
         
         # Initialize CORS with specific origins
         CORS(self.app, resources={
-            r"/*": {  # More permissive for debugging
+            r"/*": {
                 "origins": "*",
                 "supports_credentials": True,
                 "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
@@ -308,37 +280,34 @@ class KinOSWeb:
             key_func=get_remote_address,
             default_limits=["1000 per minute"]
         )
-        
-        # Register routes and handlers
-        self._register_routes()
-        self._register_error_handlers()
-        
-        # Add debug logging for paths
-        self.logger.log(f"Template directory: {self.template_dir}", 'debug')
-        self.logger.log(f"Static directory: {self.static_dir}", 'debug')
-        
-        # Import dataset service
-        from services.dataset_service import DatasetService
-        
-        # Initialize services in correct order without circular dependencies
-        self.mission_service = MissionService()  # No dependencies
-        self.dataset_service = DatasetService(self)  # Initialize dataset service
-        
-        # Initialize file manager directly
-        self.file_manager = FileManager(web_instance=self)
-        
-        # Initialize other services that depend on web_instance
-        self.file_service = FileService(self)
-        self.notification_service = NotificationService(self)
-        self.team_service = TeamService(self)  # Add team service
-        self.agent_service = AgentService(self)
-        
-        # Initialize rate limiter
-        self.limiter = Limiter(
-            app=self.app,
-            key_func=get_remote_address,
-            default_limits=["1000 per minute"]
-        )
+
+        # Initialize services in correct order
+        try:
+            # Initialize MissionService first as other services depend on it
+            self.mission_service = MissionService()
+            self.logger.log("Mission service initialized", 'success')
+
+            # Initialize other services that depend on mission_service
+            self.file_manager = FileManager(web_instance=self)
+            self.logger.log("File manager initialized", 'success')
+
+            self.notification_service = NotificationService(self)
+            self.logger.log("Notification service initialized", 'success')
+
+            self.team_service = TeamService(self)
+            self.logger.log("Team service initialized", 'success')
+
+            self.agent_service = AgentService(self)
+            self.logger.log("Agent service initialized", 'success')
+
+            # Initialize dataset service last
+            from services.dataset_service import DatasetService
+            self.dataset_service = DatasetService(self)
+            self.logger.log("Dataset service initialized", 'success')
+
+        except Exception as e:
+            self.logger.log(f"Error initializing services: {str(e)}", 'error')
+            raise RuntimeError(f"Failed to initialize services: {str(e)}")
         
         # Register routes and handlers
         self._register_routes()
