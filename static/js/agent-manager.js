@@ -77,6 +77,32 @@ export default {
     methods: {
         ...AgentManagerMethods.methods,
         
+        async loadTeams() {
+            try {
+                if (!this.currentMission) {
+                    this.teams = [];
+                    return [];
+                }
+            
+                const apiClient = new ApiClient();
+                const response = await apiClient.getMissionTeams(this.currentMission.id);
+                
+                this.teams = (response || []).map(team => ({
+                    ...team,
+                    agents: team.agents || [],
+                    status: team.status || 'available',
+                    metrics: this.calculateTeamMetrics(team)
+                }));
+
+                return this.teams;
+            } catch (error) {
+                console.error('Error loading teams:', error);
+                this.teams = [];
+                this.error = error.message || 'Failed to load teams';
+                return [];
+            }
+        },
+        
         handleError(error) {
             console.error('Agent Manager Error:', error);
             this.error = error.message || 'An unexpected error occurred';

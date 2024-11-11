@@ -83,13 +83,15 @@
             const missions = ref([]);
             const loading = ref(true);
             const error = ref(null);
+            const teams = ref([]); // Add teams ref
 
             return {
                 missionService,
                 currentMission,
                 missions,
                 loading,
-                error
+                error,
+                teams // Include teams in the returned object
             };
         },
         methods: {
@@ -98,6 +100,19 @@
                     this.loading = true;
                     await this.missionService.selectMission(mission);
                     this.currentMission = mission;
+                    
+                    // Load teams for the selected mission
+                    try {
+                        const teamResponse = await fetch(`/api/missions/${mission.id}/teams`);
+                        if (teamResponse.ok) {
+                            this.teams = await teamResponse.json();
+                        } else {
+                            this.teams = []; // Reset teams if fetch fails
+                        }
+                    } catch (teamError) {
+                        console.error('Failed to load teams:', teamError);
+                        this.teams = [];
+                    }
                 } catch (error) {
                     this.error = error.message;
                 } finally {
@@ -109,6 +124,7 @@
                     const newMission = await this.missionService.createMission(name);
                     this.missions.push(newMission);
                     this.currentMission = newMission;
+                    this.teams = []; // Reset teams for new mission
                 } catch (error) {
                     console.error('Failed to create mission:', error);
                 }
