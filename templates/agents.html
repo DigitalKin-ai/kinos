@@ -38,25 +38,6 @@
                     </div>
                 </div>
 
-                <!-- Connection Status -->
-                <div v-if="!isConnected" 
-                     class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <i class="mdi mdi-wifi-off text-yellow-500"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-yellow-700">
-                                <template v-if="retryCount > 0">
-                                    Connection lost. Attempting to reconnect... (Attempt {{ retryCount }})
-                                </template>
-                                <template v-else>
-                                    Checking connection...
-                                </template>
-                            </p>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Loading State -->
                 <div v-if="loading" class="flex items-center justify-center h-full">
@@ -122,10 +103,6 @@
                 teams: [], 
                 loading: true,
                 error: null,
-                isConnected: true,
-                retryCount: 0,
-                lastCheck: null,
-                connectionCheckInterval: null
             }
         },
         async mounted() {
@@ -134,7 +111,6 @@
                 // Initialize teams as empty array first
                 this.teams = [];
                 await this.loadTeams();
-                this.startConnectionMonitoring();
             } catch (error) {
                 console.error('Error in mounted:', error);
                 this.error = error.message;
@@ -142,9 +118,6 @@
             } finally {
                 this.loading = false;
             }
-        },
-        beforeUnmount() {
-            this.stopConnectionMonitoring();
         },
         methods: {
             async loadTeams() {
@@ -172,10 +145,6 @@
                     this.teams = [];
                     this.error = error.message;
                     
-                    // Ne pas marquer comme déconnecté pour les autres types d'erreurs
-                    if (error.message.includes('Failed to fetch')) {
-                        this.isConnected = false;
-                    }
                 } finally {
                     this.loading = false;
                 }
