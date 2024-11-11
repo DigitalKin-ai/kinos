@@ -30,6 +30,12 @@ export default {
             error: null,
             errorMessage: null,
             showError: false,
+            connectionStatus: {
+                connected: true,
+                lastCheck: null,
+                retryCount: 0
+            },
+            connectionCheckInProgress: false,
             errorMessages: new Map(),
             retryAttempts: new Map(),
             maxRetries: 3,
@@ -309,6 +315,10 @@ export default {
         },
     },
     mounted() {
+        // Initialize connection monitoring
+        this.checkConnection();
+        this.startConnectionMonitoring();
+        
         if (this.currentMission) {
             this.loadTeams();
         }
@@ -494,16 +504,49 @@ export default {
             }
         },
 
-        handleError(message, error = null) {
-            console.error(message, error);
-            this.errorMessage = typeof error === 'string' ? 
-                error : (error?.message || message);
+        handleError(error) {
+            let message, title;
+            
+            if (typeof error === 'string') {
+                message = error;
+                title = 'Error';
+            } else if (typeof error === 'object') {
+                message = error.message || 'An unexpected error occurred';
+                title = error.title || 'Error';
+            } else {
+                message = 'An unexpected error occurred';
+                title = 'Error';
+            }
+
+            console.error(title, message);
+            this.errorMessage = message;
             this.showError = true;
-        
+
             // Auto-hide error after 5 seconds
             setTimeout(() => {
                 this.showError = false;
             }, 5000);
+
+            // Emit error event for parent components
+            this.$emit('error', { title, message });
+        },
+
+        handleConnectionError(error) {
+            const retryCount = this.connectionStatus.retryCount;
+            const message = retryCount > 1 
+                ? `Connection lost. Retry attempt ${retryCount}...`
+                : 'Connection lost. Retrying...';
+            
+            this.handleError({
+                title: 'Connection Error',
+                message: message,
+                type: 'connection',
+                retry: true,
+                details: error.message
+            });
+
+            const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 30000);
+            setTimeout(() => this.checkConnection(), delay);
         },
 
         async handleOperationWithRetry(operation, teamId, errorMessage) {

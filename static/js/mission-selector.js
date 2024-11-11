@@ -125,6 +125,20 @@ export default {
         }
     },
     methods: {
+        startConnectionMonitoring() {
+            this.checkConnection();
+            this.connectionInterval = setInterval(() => {
+                this.checkConnection();
+            }, 30000); // Check every 30 seconds
+        },
+
+        stopConnectionMonitoring() {
+            if (this.connectionInterval) {
+                clearInterval(this.connectionInterval);
+                this.connectionInterval = null;
+            }
+        },
+
         async checkConnection() {
             if (this.connectionCheckInProgress) return;
             
@@ -729,6 +743,7 @@ export default {
     },
     beforeUnmount() {
         this.stopTeamMonitoring();
+        this.stopConnectionMonitoring();
         this.statusCache.clear();
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
