@@ -7,8 +7,9 @@ export default {
                     return;
                 }
 
+                this.loading = true;
                 const teams = await this.missionService.teamService.getTeamsForMission(this.currentMission.id);
-                
+            
                 this.teams.list = teams.map(team => ({
                     ...team,
                     id: team.id || team.name.toLowerCase().replace(/\s+/g, '-'),

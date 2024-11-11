@@ -1,25 +1,14 @@
 export default {
     methods: {
-        handleError(error, context = {}) {
-            const errorMessage = typeof error === 'string' 
-                ? error 
-                : error.message || 'An unexpected error occurred';
-
-            console.error(context.title || 'Error', errorMessage, context);
-
-            this.errorMessage = errorMessage;
+        handleError(message, error = null) {
+            console.error(message, error);
+            this.error = typeof error === 'string' ? error : 
+                         error?.message || message || 'An unexpected error occurred';
+            this.errorMessage = this.error;
             this.showError = true;
-
-            // Auto-hide error after 5 seconds
             setTimeout(() => {
                 this.showError = false;
             }, 5000);
-
-            // Optional: emit error for parent components
-            this.$emit('error', { 
-                title: context.title || 'Error', 
-                message: errorMessage 
-            });
         },
 
         async handleOperationWithRetry(operation, teamId, errorMessage, maxRetries = 3) {
