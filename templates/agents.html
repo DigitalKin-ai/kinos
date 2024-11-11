@@ -26,6 +26,7 @@
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col">
             <div class="flex-1 p-6">
+                <!-- Error Display -->
                 <div v-if="error" class="bg-red-100 border-l-4 border-red-500 p-4 mb-4">
                     <div class="flex">
                         <div class="flex-shrink-0">
@@ -37,7 +38,8 @@
                     </div>
                 </div>
 
-                <div v-if="!connectionStatus.connected" 
+                <!-- Connection Status -->
+                <div v-if="!isConnected" 
                      class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4">
                     <div class="flex">
                         <div class="flex-shrink-0">
@@ -46,14 +48,15 @@
                         <div class="ml-3">
                             <p class="text-sm text-yellow-700">
                                 Server connection lost. Retrying... 
-                                <span v-if="connectionStatus.retryCount > 1">
-                                    (Attempt {{ connectionStatus.retryCount }})
+                                <span v-if="retryCount > 1">
+                                    (Attempt {{ retryCount }})
                                 </span>
                             </p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Loading State -->
                 <div v-if="loading" class="flex items-center justify-center h-full">
                     <div class="text-center">
                         <i class="mdi mdi-loading mdi-spin text-4xl text-blue-500"></i>
@@ -61,15 +64,15 @@
                     </div>
                 </div>
 
+                <!-- Teams Display -->
                 <div v-else class="grid grid-cols-1 gap-6">
                     <div v-for="team in teams" :key="team.id" class="bg-white rounded-lg shadow p-6">
                         <h3 class="text-xl font-semibold mb-4">{{ team.name }}</h3>
                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             <div v-for="agent in team.agents" 
-                                 :key="agent.id"
+                                 :key="agent"
                                  class="bg-gray-50 rounded p-3">
-                                <div class="text-sm font-medium">{{ agent.name }}</div>
-                                <div class="text-xs text-gray-500 mt-1">{{ agent.status }}</div>
+                                <div class="text-sm font-medium">{{ agent }}</div>
                             </div>
                         </div>
                     </div>
@@ -100,11 +103,9 @@
                 teams: [],
                 loading: true,
                 error: null,
-                connectionStatus: {
-                    connected: true,
-                    retryCount: 0,
-                    lastCheck: null
-                }
+                isConnected: true,
+                retryCount: 0,
+                lastCheck: null
             }
         },
         async mounted() {
@@ -133,12 +134,12 @@
                 setInterval(async () => {
                     try {
                         const response = await fetch('/api/status');
-                        this.connectionStatus.connected = response.ok;
-                        this.connectionStatus.lastCheck = new Date();
-                        if (response.ok) this.connectionStatus.retryCount = 0;
+                        this.isConnected = response.ok;
+                        this.lastCheck = new Date();
+                        if (response.ok) this.retryCount = 0;
                     } catch (error) {
-                        this.connectionStatus.connected = false;
-                        this.connectionStatus.retryCount++;
+                        this.isConnected = false;
+                        this.retryCount++;
                     }
                 }, 5000);
             },
