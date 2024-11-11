@@ -68,6 +68,45 @@ class DatasetService(BaseService):
             self.logger.log(f"Error initializing dataset service: {str(e)}", 'error')
             raise ServiceError(f"Failed to initialize dataset service: {str(e)}")
 
+    def is_available(self) -> bool:
+        """Check if dataset service is properly initialized and available"""
+        try:
+            # Verify essential components
+            if not hasattr(self, 'dataset_file'):
+                self.logger.log("Dataset file path not configured", 'warning')
+                return False
+                
+            # Check if data directory exists
+            data_dir = os.path.dirname(self.dataset_file)
+            if not os.path.exists(data_dir):
+                try:
+                    os.makedirs(data_dir, exist_ok=True)
+                    self.logger.log(f"Created data directory: {data_dir}", 'info')
+                except Exception as e:
+                    self.logger.log(f"Cannot create data directory: {str(e)}", 'error')
+                    return False
+                    
+            # Verify file permissions
+            if os.path.exists(self.dataset_file):
+                if not os.access(self.dataset_file, os.W_OK):
+                    self.logger.log("Dataset file not writable", 'error')
+                    return False
+            else:
+                # Try to create the file
+                try:
+                    with open(self.dataset_file, 'a', encoding='utf-8') as f:
+                        pass
+                    self.logger.log(f"Created dataset file: {self.dataset_file}", 'info')
+                except Exception as e:
+                    self.logger.log(f"Cannot create dataset file: {str(e)}", 'error')
+                    return False
+                    
+            return True
+            
+        except Exception as e:
+            self.logger.log(f"Error checking dataset service availability: {str(e)}", 'error')
+            return False
+
     def _format_files_context(self, files_context: Dict[str, str]) -> str:
         """Format files context into a readable string with clear file boundaries"""
         formatted = []
