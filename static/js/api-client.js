@@ -177,11 +177,12 @@ class ApiClient {
     async checkServerConnection() {
         try {
             const response = await Promise.race([
-                fetch(`${this.baseUrl}/api/status`, {
+                fetch('/api/status', {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-Client-Timestamp': Date.now()
                     }
                 }),
                 new Promise((_, reject) => 
@@ -195,10 +196,11 @@ class ApiClient {
             }
 
             const data = await response.json();
+            // Vérifier spécifiquement le statut du serveur
             return data.server?.running === true;
         } catch (error) {
             console.error('Server connection check failed:', error);
-            throw error;
+            return false;
         }
     }
 

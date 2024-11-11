@@ -47,10 +47,9 @@
                         </div>
                         <div class="ml-3">
                             <p class="text-sm text-yellow-700">
-                                Server connection lost. Retrying... 
-                                <span v-if="retryCount > 1">
-                                    (Attempt {{ retryCount }})
-                                </span>
+                                {{ retryCount > 0 ? 
+                                    `Connection lost. Attempting to reconnect... (Attempt ${retryCount})` : 
+                                    'Checking connection...' }}
                             </p>
                         </div>
                     </div>
@@ -114,12 +113,13 @@
                 missionService: new MissionService(''),
                 currentMission: null,
                 missions: [],
-                teams: [], // Initialize as empty array
+                teams: [], 
                 loading: true,
                 error: null,
                 isConnected: true,
                 retryCount: 0,
-                lastCheck: null
+                lastCheck: null,
+                connectionCheckInterval: null
             }
         },
         async mounted() {
@@ -140,35 +140,67 @@
         methods: {
             async loadTeams() {
                 try {
+                    this.loading = true;
                     const response = await fetch('/api/teams');
-                    if (!response.ok) throw new Error('Failed to load teams');
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to load teams');
+                    }
+                    
                     const data = await response.json();
-                    // Ensure we have valid team data
                     this.teams = Array.isArray(data) ? data.map(team => ({
                         ...team,
                         id: team.id || team.name?.toLowerCase().replace(/\s+/g, '-') || Date.now(),
                         name: team.name || 'Unnamed Team',
                         agents: Array.isArray(team.agents) ? team.agents : []
                     })) : [];
+                    
+                    this.error = null;
+                    this.isConnected = true;
+                    this.retryCount = 0;
                 } catch (error) {
                     console.error('Failed to load teams:', error);
-                    this.teams = []; // Reset to empty array on error
-                    throw error;
+                    this.teams = [];
+                    this.error = error.message;
+                    
+                    // Ne pas marquer comme déconnecté pour les autres types d'erreurs
+                    if (error.message.includes('Failed to fetch')) {
+                        this.isConnected = false;
+                    }
+                } finally {
+                    this.loading = false;
                 }
             },
 
             startConnectionMonitoring() {
-                setInterval(async () => {
+                this.connectionCheckInterval = setInterval(async () => {
                     try {
                         const response = await fetch('/api/status');
-                        this.isConnected = response.ok;
+                        const data = await response.json();
+                        
+                        this.isConnected = response.ok && data.server?.running === true;
                         this.lastCheck = new Date();
-                        if (response.ok) this.retryCount = 0;
+                        
+                        if (this.isConnected) {
+                            this.retryCount = 0;
+                            // Recharger les données si on était déconnecté
+                            if (!this.isConnected) {
+                                await this.loadTeams();
+                            }
+                        }
                     } catch (error) {
                         this.isConnected = false;
                         this.retryCount++;
+                        console.error('Connection check failed:', error);
                     }
-                }, 5000);
+                }, 5000); // Vérifier toutes les 5 secondes
+            },
+
+            stopConnectionMonitoring() {
+                if (this.connectionCheckInterval) {
+                    clearInterval(this.connectionCheckInterval);
+                    this.connectionCheckInterval = null;
+                }
             },
 
             async selectMission(mission) {
