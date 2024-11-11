@@ -1,16 +1,18 @@
+import TeamState from './teams/TeamState.js';
+import TeamComputed from './teams/TeamComputed.js';
+import TeamUtils from './teams/TeamUtils.js';
+import TeamMethods from './teams/TeamMethods.js';
+import TeamConnectionHandling from './teams/TeamConnectionHandling.js';
+import TeamErrorHandling from './teams/TeamErrorHandling.js';
+
 import TeamCard from './components/teams/TeamCard.js';
-import AgentList from './components/teams/AgentList.js';
 import AddAgentModal from './components/teams/AddAgentModal.js';
-import TeamMetrics from './components/teams/TeamMetrics.js';
 
 export default {
     name: 'TeamsManager',
-    delimiters: ['[[', ']]'],
     components: {
         TeamCard,
-        AgentList,
-        AddAgentModal,
-        TeamMetrics
+        AddAgentModal
     },
     props: {
         missionService: {
@@ -22,77 +24,9 @@ export default {
             default: () => null
         }
     },
-    data() {
-        return {
-            statusCacheTTL: 5000,
-            showAddAgentModal: false,
-            loadingStates: new Map(),
-            error: null,
-            errorMessage: null,
-            showError: false,
-            connectionStatus: {
-                connected: true,
-                lastCheck: null,
-                retryCount: 0
-            },
-            connectionCheckInProgress: false,
-            errorMessages: new Map(),
-            retryAttempts: new Map(),
-            maxRetries: 3,
-            retryDelay: 1000,
-            loading: false,
-            availableAgents: [
-                "SpecificationsAgent", "ManagementAgent", "EvaluationAgent",
-                "SuiviAgent", "DocumentalisteAgent", "DuplicationAgent",
-                "RedacteurAgent", "ProductionAgent", "TesteurAgent", "ValidationAgent"
-            ],
-            selectedTeamForEdit: null,
-            selectedAgent: null,
-            teams: [], // Initialize as empty array
-            activeTeam: null,
-            teamStats: new Map(),
-            teamHistory: new Map(),
-            loadingStats: false,
-            statsInterval: null,
-            POLL_INTERVAL: 30000,
-            loadingTeams: new Set(),
-            loadingAgents: new Set(),
-            statusCache: new Map(),
-            statusCacheTTL: 5000 // 5 seconds
-        }
-    },
+    data: TeamState,
     computed: {
-        hasActiveTeam() {
-            return this.activeTeam !== null;
-        },
-        getTeamMetrics() {
-            return (teamId) => {
-                // Comprehensive null checks and fallback values
-                if (!teamId) return null;
-
-                const team = this.teams.find(t => t && t.id === teamId);
-                if (!team) return null;
-
-                const stats = this.teamStats.get(team.name);
-                if (!stats) return {
-                    efficiency: 0,
-                    agentHealth: 0,
-                    completedTasks: 0,
-                    averageResponseTime: 0,
-                    errorRate: 0
-                };
-
-                return {
-                    efficiency: this.getTeamEfficiency(team) || 0,
-                    agentHealth: stats.agentStatus ? 
-                        Object.values(stats.agentStatus)
-                            .filter(agent => agent?.health?.is_healthy).length / (team.agents?.length || 1) : 0,
-                    completedTasks: stats.metrics?.completed_tasks || 0,
-                    averageResponseTime: stats.metrics?.average_response_time || 0,
-                    errorRate: stats.metrics?.error_rate || 0
-                };
-            };
-        }
+        ...TeamComputed
     },
 
                 const stats = this.teamStats.get(team.name);
@@ -145,180 +79,47 @@ export default {
     },
 
     methods: {
+        ...TeamUtils.methods,
+        ...TeamMethods.methods,
+        ...TeamConnectionHandling.methods,
+        ...TeamErrorHandling.methods,
+        
+        // Uniquement les méthodes spécifiques à ce composant
+        getAvailableAgents() {
+            if (!this.selectedTeamForEdit) return [];
+            return this.availableAgents.filter(agent => 
+                !this.selectedTeamForEdit.agents.includes(agent)
+            );
+        },
 
-        async checkConnection() {
-            if (this.connectionCheckInProgress) return;
-            
+        closeAddAgentModal() {
+            this.showAddAgentModal = false;
+            this.selectedTeamForEdit = null;
+            this.selectedAgent = null;
+        },
+
+        async addAgentToTeam() {
+            if (!this.selectedTeamForEdit || !this.selectedAgent) return;
             try {
-                this.connectionCheckInProgress = true;
-                const response = await fetch('/api/status');
-                
-                this.connectionStatus.connected = response.ok;
-                this.connectionStatus.lastCheck = new Date();
-                this.connectionStatus.retryCount = 0;
-                
-            } catch (error) {
-                this.connectionStatus.connected = false;
-                this.connectionStatus.retryCount++;
-                this.handleConnectionError(error);
-            } finally {
-                this.connectionCheckInProgress = false;
-            }
-        },
-
-        startConnectionMonitoring() {
-            this.checkConnection();
-            this.connectionInterval = setInterval(() => {
-                this.checkConnection();
-            }, 30000); // Check every 30 seconds
-        },
-
-        stopConnectionMonitoring() {
-            if (this.connectionInterval) {
-                clearInterval(this.connectionInterval);
-                this.connectionInterval = null;
-            }
-        },
-
-        handleConnectionError(error) {
-            const retryCount = this.connectionStatus.retryCount;
-            const message = retryCount > 1 
-                ? `Connection lost. Retry attempt ${retryCount}...`
-                : 'Connection lost. Retrying...';
-            
-            this.handleError({
-                title: 'Connection Error',
-                message: message,
-                type: 'connection',
-                retry: true,
-                details: error.message
-            });
-
-            const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 30000);
-            setTimeout(() => this.checkConnection(), delay);
-        },
-
-        async handleOperationWithRetry(operation, teamId, errorMessage) {
-            const attempts = this.retryAttempts.get(teamId) || 0;
-            
-            try {
-                this.loadingStates.set(teamId, true);
-                this.errorMessages.delete(teamId);
-                
-                return await operation();
-                
-            } catch (error) {
-                console.error(`Operation failed for team ${teamId}:`, error);
-                
-                if (attempts < this.maxRetries) {
-                    this.retryAttempts.set(teamId, attempts + 1);
-                    await new Promise(resolve => setTimeout(resolve, this.retryDelay * Math.pow(2, attempts)));
-                    return this.handleOperationWithRetry(operation, teamId, errorMessage);
+                const updatedAgents = [...this.selectedTeamForEdit.agents, this.selectedAgent];
+                const teamIndex = this.teams.findIndex(t => t.name === this.selectedTeamForEdit.name);
+                if (teamIndex !== -1) {
+                    this.teams[teamIndex] = {
+                        ...this.teams[teamIndex],
+                        agents: updatedAgents
+                    };
                 }
-                
-                this.errorMessages.set(teamId, errorMessage);
-                throw error;
-                
-            } finally {
-                this.loadingStates.set(teamId, false);
-            }
-        },
-
-        async toggleTeam(team) {
-            if (this.loadingStates.get(team.id)) return;
-            
-            try {
-                await this.handleOperationWithRetry(
-                    async () => {
-                        const action = this.isTeamRunning(team) ? 'stop' : 'start';
-                        const response = await fetch(`/api/teams/${team.id}/${action}`, {
-                            method: 'POST'
-                        });
-                        
-                        if (!response.ok) throw new Error(`Failed to ${action} team`);
-                        
-                        const result = await response.json();
-                        this.updateTeamState(team, result);
-                    },
-                    team.id,
-                    `Failed to toggle team ${team.name}`
-                );
+                this.closeAddAgentModal();
             } catch (error) {
-                // Error already handled by handleOperationWithRetry
-                console.error('Team toggle failed:', error);
+                console.error('Error adding agent to team:', error);
             }
-        },
-
-        stopServerMonitoring() {
-            if (this.serverStatus.checkInterval) {
-                clearInterval(this.serverStatus.checkInterval);
-                this.serverStatus.checkInterval = null;
-            }
-        },
-
-        async checkServerStatus() {
-            try {
-                const isConnected = await this.checkServerConnection();
-                this.serverStatus.connected = isConnected;
-                this.serverStatus.lastCheck = new Date();
-            } catch (error) {
-                this.serverStatus.connected = false;
-                this.serverStatus.lastCheck = new Date();
-                console.warn('Server connection check failed:', error);
-            }
-        },
-
-
-        async loadTeams() {
-            try {
-                // Ensure currentMission exists before fetching teams
-                if (!this.currentMission?.id) {
-                    this.teams = [];
-                    return;
-                }
-
-                // Use missionService to get teams
-                const teams = await this.missionService.teamService.getTeamsForMission(this.currentMission.id);
-                
-                // Validate and set teams
-                this.teams = teams.map(team => ({
-                    ...team,
-                    id: team.id || team.name.toLowerCase().replace(/\s+/g, '-'),
-                    agents: team.agents || [],
-                    status: team.status || 'available'
-                }));
-
-                // Set first team as active if no active team
-                if (this.teams.length > 0 && !this.activeTeam) {
-                    this.activeTeam = this.teams[0];
-                }
-            } catch (error) {
-                console.error('Failed to load teams:', error);
-                this.teams = [];
-                this.handleError('Failed to load teams', error);
-            }
-        },
+        }
     },
     mounted() {
-        // Initialize connection monitoring
-        this.checkConnection();
         this.startConnectionMonitoring();
-        
-        if (this.currentMission) {
-            this.loadTeams();
-        }
     },
     beforeUnmount() {
-        this.stopTeamMonitoring();
-        this.stopConnectionMonitoring();
-        this.teamStats.clear();
-        this.teamHistory.clear();
-        if (this.statsInterval) {
-            clearInterval(this.statsInterval);
-        }
-        if (this.updateInterval) {
-            clearInterval(this.updateInterval);
-        }
+        this.stopConnectionMonitoring(); 
     },
     methods: {
         getTeamEfficiency(team) {
