@@ -84,6 +84,14 @@
         },
         data() {
             return {
+                missionService: new MissionService(''),
+                currentMission: null,
+                missions: [],
+                loading: false,
+                error: null,
+                activeTab: 'files',
+                files: [],
+                fileCount: 0,
                 teams: {
                     list: [],
                     active: null,
@@ -92,7 +100,7 @@
                     statusCache: new Map(),
                     statusCacheTTL: 5000
                 },
-                loading: {
+                loadingStates: {
                     teams: false,
                     agents: new Set(),
                     states: new Map()
@@ -104,53 +112,58 @@
                     retryDelay: 1000,
                     current: null,
                     show: false
-                },
-                selectedTeamForEdit: null,
-                showAddAgentModal: false,
-                selectedAgent: null,
-                availableAgents: [
-                    "SpecificationsAgent",
-                    "ManagementAgent", 
-                    "EvaluationAgent",
-                    "ChroniqueurAgent",
-                    "DocumentalisteAgent",
-                    "DuplicationAgent",
-                    "RedacteurAgent",
-                    "ValidationAgent"
-                ]
+                }
             }
-        },
-        // Add this method to ensure missionService is passed
-        created() {
-            // Initialize with empty base URL for relative paths
-            this.missionService = new MissionService('');
         },
         async mounted() {
             try {
+                this.loading = true;
                 const response = await fetch('/api/missions');
                 if (!response.ok) {
                     throw new Error('Failed to fetch missions');
                 }
-                const missions = await response.json();
-                this.missions = missions;
+                this.missions = await response.json();
                 
-                if (missions.length > 0) {
-                    await this.selectMission(missions[0]);
+                if (this.missions.length > 0) {
+                    await this.selectMission(this.missions[0]);
                     await this.loadFiles();
                 }
-                
-                this.loading = false;
             } catch (error) {
                 console.error('Failed to load missions:', error);
                 this.error = error.message || 'An unexpected error occurred';
+            } finally {
                 this.loading = false;
             }
         },
         methods: {
             async selectMission(mission) {
-                this.currentMission = mission;
-                await this.loadFiles();
+                if (!mission?.id) {
+                    throw new Error('Invalid mission selected');
+                }
+
+                try {
+                    this.loading = true;
+                    const response = await fetch(`/api/missions/${mission.id}/select`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to select mission');
+                    }
+
+                    const result = await response.json();
+                    this.currentMission = result;
+                    await this.loadFiles();
+                } catch (error) {
+                    console.error('Failed to select mission:', error);
+                    this.handleError('Failed to select mission', error);
+                } finally {
+                    this.loading = false;
+                }
             },
+
             async loadFiles() {
                 try {
                     if (!this.currentMission?.id) return;
@@ -167,16 +180,30 @@
                     this.error = error.message;
                 }
             },
+
+            setActiveTab(tab) {
+                this.activeTab = tab;
+            },
+
+            handleError(message, error) {
+                console.error(message, error);
+                this.error = typeof error === 'string' ? error : error.message || 'An unexpected error occurred';
+                this.showError = true;
+                setTimeout(() => {
+                    this.showError = false;
+                }, 5000);
+            },
+
             async createMission(name) {
                 try {
                     const newMission = await this.missionService.createMission(name);
                     this.missions.push(newMission);
                     this.currentMission = newMission;
                 } catch (error) {
-                    console.error('Failed to create mission:', error);
-                    this.error = error.message;
+                    this.handleError('Failed to create mission: ' + error.message);
                 }
             },
+
             handleSidebarToggle(collapsed) {
                 // Handle sidebar collapse/expand if needed
             }
