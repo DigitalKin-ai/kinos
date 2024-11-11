@@ -32,7 +32,24 @@ export default {
             showError: false,
             runningStates: new Map(),
             stateUpdateQueue: [],
-            stateUpdateInProgress: false
+            stateUpdateInProgress: false,
+            connectionStatus: {
+                connected: true,
+                lastCheck: null,
+                retryCount: 0,
+                checkInterval: null,
+                maxRetries: 3,
+                retryDelay: 1000,
+                checkInProgress: false
+            },
+            serverStatus: {
+                running: false,
+                lastCheck: null,
+                health: {
+                    memory_usage: null,
+                    uptime: null
+                }
+            }
         }
     },
     computed: {
@@ -99,6 +116,14 @@ export default {
             },
             immediate: true,
             deep: true
+        },
+        'connectionStatus.connected'(newValue) {
+            // Emit connection status change event
+            this.$emit('connection-status-change', {
+                connected: newValue,
+                timestamp: new Date(),
+                retryCount: this.connectionStatus.retryCount
+            });
         }
     },
 
@@ -111,37 +136,47 @@ export default {
         }
     },
     methods: {
-        startConnectionMonitoring() {
-            this.checkConnection();
-            this.connectionInterval = setInterval(() => {
-                this.checkConnection();
-            }, 30000); // Check every 30 seconds
-        },
-
-        stopConnectionMonitoring() {
-            if (this.connectionInterval) {
-                clearInterval(this.connectionInterval);
-                this.connectionInterval = null;
-            }
-        },
-
         async checkConnection() {
-            if (this.connectionCheckInProgress) return;
+            if (this.connectionStatus.checkInProgress) return;
             
             try {
-                this.connectionCheckInProgress = true;
-                const isConnected = await this.missionService.checkServerConnection();
+                this.connectionStatus.checkInProgress = true;
+                const response = await fetch('/api/status', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Client-Timestamp': Date.now()
+                    },
+                    signal: AbortSignal.timeout(5000)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
+
+                const data = await response.json();
                 
-                this.connectionStatus.connected = isConnected;
+                this.connectionStatus.connected = true;
                 this.connectionStatus.lastCheck = new Date();
                 this.connectionStatus.retryCount = 0;
                 
+                // Update server status
+                this.serverStatus = {
+                    running: data.server?.running || false,
+                    lastCheck: new Date(),
+                    health: data.server?.health || {
+                        memory_usage: null,
+                        uptime: null
+                    }
+                };
+
             } catch (error) {
                 this.connectionStatus.connected = false;
                 this.connectionStatus.retryCount++;
                 this.handleConnectionError(error);
             } finally {
-                this.connectionCheckInProgress = false;
+                this.connectionStatus.checkInProgress = false;
             }
         },
 
@@ -159,8 +194,37 @@ export default {
                 details: error.message
             });
 
-            const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 30000);
-            setTimeout(() => this.checkConnection(), delay);
+            const delay = Math.min(
+                this.connectionStatus.retryDelay * Math.pow(2, retryCount - 1), 
+                30000
+            );
+
+            if (retryCount < this.connectionStatus.maxRetries) {
+                setTimeout(() => this.checkConnection(), delay);
+            } else {
+                this.handleError({
+                    title: 'Connection Failed',
+                    message: 'Maximum retry attempts reached. Please check your connection.',
+                    type: 'error'
+                });
+            }
+        },
+
+        startConnectionMonitoring() {
+            this.stopConnectionMonitoring();
+            
+            this.checkConnection();
+            
+            this.connectionStatus.checkInterval = setInterval(() => {
+                this.checkConnection();
+            }, 30000);
+        },
+
+        stopConnectionMonitoring() {
+            if (this.connectionStatus.checkInterval) {
+                clearInterval(this.connectionStatus.checkInterval);
+                this.connectionStatus.checkInterval = null;
+            }
         },
 
         beforeUnmount() {
@@ -489,14 +553,28 @@ export default {
         },
 
         handleError(error) {
-            const message = typeof error === 'string' ? error : (
+            const errorMessage = typeof error === 'string' ? error : (
                 error.message || 'An unexpected error occurred'
             );
-            this.errorMessage = message;
+            
+            this.errorMessage = errorMessage;
             this.showError = true;
-            setTimeout(() => {
-                this.showError = false;
-            }, 5000);
+            
+            // Auto-hide error after 5 seconds unless it's a connection error
+            if (error.type !== 'connection') {
+                setTimeout(() => {
+                    this.showError = false;
+                }, 5000);
+            }
+
+            // Emit error event to parent
+            this.$emit('error', {
+                title: error.title || 'Error',
+                message: errorMessage,
+                type: error.type || 'error',
+                retry: error.retry || false,
+                details: error.details || null
+            });
         },
 
         toggleSidebar() {
