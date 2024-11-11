@@ -49,6 +49,12 @@ class AiderAgent(KinOSAgent):
             
         # Add original_dir tracking
         self.original_dir = None
+        
+        # Add rate limit tracking
+        self._last_request_time = 0
+        self._requests_this_minute = 0
+        self._rate_limit_window = 60  # 1 minute
+        self._max_requests_per_minute = 50  # Adjust based on your rate limit
             
         # Initialize logger properly
         if hasattr(self.web_instance, 'logger'):
@@ -162,9 +168,70 @@ class AiderAgent(KinOSAgent):
             )
             return None
 
+    def _handle_rate_limit_error(self, attempt: int, max_attempts: int = 5) -> bool:
+        """
+        Handle rate limit errors with aggressive exponential backoff
+        
+        Args:
+            attempt: Current attempt number
+            max_attempts: Maximum number of retry attempts
+            
+        Returns:
+            bool: True if should retry, False if max attempts exceeded
+        """
+        if attempt >= max_attempts:
+            self._log(
+                f"[{self.__class__.__name__}] ❌ Max retry attempts ({max_attempts}) exceeded for rate limit",
+                'error'
+            )
+            return False
+            
+        # More aggressive backoff: 5s, 15s, 45s, 135s, 405s
+        wait_time = 5 * (3 ** (attempt - 1))
+        
+        self._log(
+            f"[{self.__class__.__name__}] ⏳ Rate limit hit (attempt {attempt}/{max_attempts}). "
+            f"Waiting {wait_time} seconds before retry...",
+            'warning'
+        )
+        
+        time.sleep(wait_time)
+        return True
+
+    def _check_rate_limit(self) -> bool:
+        """
+        Check if we should wait before making another request
+        Returns: True if ok to proceed, False if should wait
+        """
+        current_time = time.time()
+        
+        # Reset counter if we're in a new minute
+        if current_time - self._last_request_time > self._rate_limit_window:
+            self._requests_this_minute = 0
+            
+        # Check if we're approaching the limit
+        if self._requests_this_minute >= self._max_requests_per_minute:
+            wait_time = self._rate_limit_window - (current_time - self._last_request_time)
+            if wait_time > 0:
+                self._log(
+                    f"[{self.__class__.__name__}] ⏳ Approaching rate limit. "
+                    f"Waiting {wait_time:.1f}s before next request.",
+                    'warning'
+                )
+                time.sleep(wait_time)
+                self._requests_this_minute = 0
+                
+        self._last_request_time = current_time
+        self._requests_this_minute += 1
+        return True
+
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Execute Aider with given prompt and stream output."""
         try:
+            # Check rate limit before proceeding
+            if not self._check_rate_limit():
+                return None
+                
             # Store original directory before changing
             self.original_dir = os.getcwd()
             
@@ -202,9 +269,7 @@ class AiderAgent(KinOSAgent):
                     "--no-git",
                     "--yes-always",
                     "--cache-prompts",
-                    "--restore-chat-history", "true",
                     "--no-pretty",
-                    "--fancy-input", "false",
                     "--architect"
                 ]
                 
@@ -240,11 +305,36 @@ class AiderAgent(KinOSAgent):
                 
                 self._log(f"[{self.__class__.__name__}] 🚀 Lancement Aider...")
             
+                # Validate command before execution
+                try:
+                    import shutil
+                    aider_path = shutil.which('aider')
+                    if not aider_path:
+                        self._log(f"[{self.__class__.__name__}] ❌ Aider command not found in PATH", 'error')
+                        return None
+                        
+                    self._log(f"[{self.__class__.__name__}] ✓ Found Aider at: {aider_path}", 'debug')
+                    
+                    # Test if we can access the mission directory
+                    if not os.access(self.mission_dir, os.R_OK | os.W_OK):
+                        self._log(
+                            f"[{self.__class__.__name__}] ❌ Cannot access mission directory: {self.mission_dir}", 
+                            'error'
+                        )
+                        return None
+                        
+                except Exception as e:
+                    self._log(f"[{self.__class__.__name__}] ❌ Command validation failed: {str(e)}", 'error')
+                    return None
+
+                # Set timeout duration (5 minutes)
+                TIMEOUT_SECONDS = 300
+
                 # Execute Aider with output streaming
                 process = subprocess.Popen(
                     cmd,
                     stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,  # Redirect stderr to stdout
                     text=True,
                     encoding='utf-8',
                     errors='replace',
@@ -254,36 +344,56 @@ class AiderAgent(KinOSAgent):
 
                 # Initialize output collection
                 output_lines = []
+                error_detected = False
                 
                 # Read output while process is running
                 while True:
                     try:
-                        # Check if process has finished
-                        if process.poll() is not None:
+                        line = process.stdout.readline()
+                        if not line and process.poll() is not None:
                             break
                             
-                        # Read stdout
-                        stdout_line = process.stdout.readline()
-                        if stdout_line:
-                            line = stdout_line.strip()
-                            if line:
-                                print(f"[{self.name}] {line}")
-                                output_lines.append(line)
-                                
-                        # Read stderr
-                        stderr_line = process.stderr.readline()
-                        if stderr_line:
-                            line = stderr_line.strip()
-                            if line:
-                                print(f"[{self.name}] ⚠️ {line}")
-                                output_lines.append(f"ERROR: {line}")
-                                
+                        line = line.rstrip()
+                        if line:
+                            # Handle Windows console warning
+                            if "No Windows console found" in line:
+                                self._log(
+                                    f"[{self.__class__.__name__}] ⚠️ Windows console initialization warning:\n"
+                                    f"This is a known issue and doesn't affect functionality.\n"
+                                    f"Original message: {line}",
+                                    'warning'
+                                )
+                                continue
+
+                            # Check for error indicators
+                            lower_line = line.lower()
+                            is_error = any(err in lower_line for err in [
+                                'error', 'exception', 'failed', 'can\'t initialize'
+                            ])
+                            
+                            # Log with appropriate level
+                            if is_error:
+                                self._log(f"[{self.__class__.__name__}] ❌ {line}", 'error')
+                                error_detected = True
+                            else:
+                                self._log(f"[{self.__class__.__name__}] 📝 {line}", 'info')
+                            
+                            output_lines.append(line)
+                            
                     except Exception as e:
                         self._log(f"[{self.__class__.__name__}] Error reading output: {str(e)}")
                         continue
 
-                # Get final return code
-                return_code = process.poll()
+                # Get return code and check timeout
+                try:
+                    return_code = process.wait(timeout=TIMEOUT_SECONDS)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    self._log(
+                        f"[{self.__class__.__name__}] ⚠️ Process timed out after {TIMEOUT_SECONDS} seconds", 
+                        'warning'
+                    )
+                    return None
                 
                 # Get any remaining output
                 try:
@@ -347,36 +457,33 @@ class AiderAgent(KinOSAgent):
                                 loop = asyncio.new_event_loop()
                                 asyncio.set_event_loop(loop)
 
-                            # Check dataset service availability
-                            if hasattr(self.web_instance, 'dataset_service'):
-                                dataset_service = self.web_instance.dataset_service
-                                if dataset_service and dataset_service.is_available():
+                            # Check dataset service availability silently
+                            if (hasattr(self.web_instance, 'dataset_service') and 
+                                self.web_instance.dataset_service and 
+                                hasattr(self.web_instance.dataset_service, 'is_available') and 
+                                self.web_instance.dataset_service.is_available()):
+                                try:
+                                    # Create event loop if needed
                                     try:
-                                        # Create event loop if needed
-                                        try:
-                                            loop = asyncio.get_event_loop()
-                                        except RuntimeError:
-                                            loop = asyncio.new_event_loop()
-                                            asyncio.set_event_loop(loop)
+                                        loop = asyncio.get_event_loop()
+                                    except RuntimeError:
+                                        loop = asyncio.new_event_loop()
+                                        asyncio.set_event_loop(loop)
 
-                                        # Add to dataset asynchronously
-                                        loop.create_task(
-                                            dataset_service.add_interaction_async(
-                                                prompt=prompt,
-                                                files_context=files_context,
-                                                aider_response=full_output
-                                            )
+                                    # Add to dataset asynchronously
+                                    loop.create_task(
+                                        self.web_instance.dataset_service.add_interaction_async(
+                                            prompt=prompt,
+                                            files_context=files_context,
+                                            aider_response=full_output
                                         )
-                                        self.logger.log(
-                                            f"Added interaction to dataset with {len(files_context)} files", 
-                                            'success'
-                                        )
-                                    except Exception as e:
-                                        self.logger.log(f"Error adding to dataset: {str(e)}", 'error')
-                                else:
-                                    self.logger.log("Dataset service not available or properly initialized", 'warning')
-                            else:
-                                self.logger.log("Dataset service not found on web instance", 'warning')
+                                    )
+                                    self.logger.log(
+                                        f"Added interaction to dataset with {len(files_context)} files", 
+                                        'success'
+                                    )
+                                except Exception as e:
+                                    self.logger.log(f"Error adding to dataset: {str(e)}", 'error')
 
                     except Exception as e:
                         self._log(f"[{self.__class__.__name__}] Error saving to dataset: {str(e)}")
@@ -420,22 +527,26 @@ class AiderAgent(KinOSAgent):
                     if process.poll() is not None:
                         break
                 
-                # Get any remaining output
-                stdout, stderr = process.communicate()
-                if stdout:
-                    for line in stdout.splitlines():
-                        print(f"[{self.name}] {line}")
-                        aider_output_buffer.append(line)
-                if stderr:
-                    for line in stderr.splitlines():
-                        print(f"[{self.name}] ⚠️ {line}")
-                        aider_output_buffer.append(f"ERROR: {line}")
+                # Log completion status
+                if return_code != 0 or error_detected:
+                    self._log(
+                        f"[{self.__class__.__name__}] ❌ Aider process failed (code: {return_code})\n"
+                        f"Last few lines of output:\n" + 
+                        "\n".join(output_lines[-5:]),  # Show last 5 lines
+                        'error'
+                    )
+                    return None
                 
-                # Combine all output
-                full_output = "\n".join(aider_output_buffer)
+                # Combine output
+                full_output = "\n".join(output_lines)
+                if not full_output.strip():
+                    self._log(f"[{self.__class__.__name__}] ⚠️ No output from Aider", 'warning')
+                    return None
+                    
+                self._log(f"[{self.__class__.__name__}] ✅ Aider completed successfully", 'success')
                 
                 # If execution was successful, save for fine-tuning
-                if process.returncode == 0 and full_output:
+                if full_output:
                     try:
                         # Read modified files content
                         files_context = {}
@@ -497,13 +608,72 @@ class AiderAgent(KinOSAgent):
                     except Exception as e:
                         self.logger.log(f"Error processing files for dataset: {str(e)}", 'error')
 
-                    # Continue with normal operation
-                    return full_output
+                    # If execution was successful, save for fine-tuning
+                    if full_output:
+                        try:
+                            if hasattr(self.web_instance, 'dataset_service'):
+                                dataset_service = self.web_instance.dataset_service
+                                if dataset_service and dataset_service.is_available():
+                                    # Prepare the files context
+                                    files_context = {}
+                                    
+                                    # Add modified files
+                                    for file_path in modified_files:
+                                        try:
+                                            full_path = os.path.join(self.mission_dir, file_path)
+                                            if os.path.exists(full_path):
+                                                with open(full_path, 'r', encoding='utf-8') as f:
+                                                    files_context[file_path] = f.read()
+                                        except Exception as e:
+                                            self._log(f"Error reading modified file {file_path}: {str(e)}")
 
+                                    # Add original files if not already included
+                                    for file_path in self.mission_files:
+                                        rel_path = os.path.relpath(file_path, self.mission_dir)
+                                        if rel_path not in files_context:
+                                            try:
+                                                with open(file_path, 'r', encoding='utf-8') as f:
+                                                    files_context[rel_path] = f.read()
+                                            except Exception as e:
+                                                self._log(f"Error reading original file {file_path}: {str(e)}")
+
+                                    # Only proceed if we have files to save
+                                    if files_context:
+                                        try:
+                                            # Create event loop if needed
+                                            try:
+                                                loop = asyncio.get_event_loop()
+                                            except RuntimeError:
+                                                loop = asyncio.new_event_loop()
+                                                asyncio.set_event_loop(loop)
+
+                                            # Add to dataset with explicit await
+                                            future = dataset_service.add_interaction_async(
+                                                prompt=prompt,
+                                                files_context=files_context,
+                                                aider_response=full_output
+                                            )
+                                            
+                                            # Run the coroutine
+                                            loop.run_until_complete(future)
+                                            
+                                            self._log(f"✅ Successfully saved interaction to dataset with {len(files_context)} files")
+                                        except Exception as e:
+                                            self._log(f"❌ Error saving to dataset: {str(e)}")
+                                    else:
+                                        self._log("⚠️ No file contents to save to dataset")
+                                else:
+                                    self._log("⚠️ Dataset service not available", 'debug')
+                            else:
+                                self._log("⚠️ Dataset service not configured", 'debug')
+                        except Exception as e:
+                            self._log(f"❌ Error in dataset handling: {str(e)}")
+
+                    return full_output
                 else:
                     self.logger.log(f"Aider process failed with code {process.returncode}", 'error')
                     return None
-                
+
             finally:
                 # Restore original directory in finally block
                 try:
@@ -743,8 +913,47 @@ class AiderAgent(KinOSAgent):
                     time.sleep(60)  # Wait before retrying
                     
         except Exception as e:
-            self._log(f"[{self.__class__.__name__}] 🔥 Critical error in run: {str(e)}")
-            self.running = False
+            error_str = str(e)
+            
+            # Check for rate limit errors
+            if "rate_limit_error" in error_str.lower():
+                attempt = 1
+                while attempt <= 5:  # Max 5 attempts
+                    if not self._handle_rate_limit_error(attempt):
+                        break
+                        
+                    try:
+                        # Retry the Aider command
+                        self._log(
+                            f"[{self.__class__.__name__}] 🔄 Retry attempt {attempt}/5...",
+                            'info'
+                        )
+                        return self._run_aider(prompt)  # Recursive retry
+                        
+                    except Exception as retry_error:
+                        if "rate_limit_error" not in str(retry_error).lower():
+                            # If it's a different error, stop retrying
+                            self._log(
+                                f"[{self.__class__.__name__}] ❌ Different error on retry: {str(retry_error)}",
+                                'error'
+                            )
+                            break
+                            
+                    attempt += 1
+                    
+                self._log(
+                    f"[{self.__class__.__name__}] 🛑 Rate limit retries exhausted. "
+                    "Consider reducing prompt length or request frequency.",
+                    'error'
+                )
+                return None
+                
+            else:
+                # Handle non-rate-limit errors as before
+                self._log(
+                    f"[{self.__class__.__name__}] 🔥 Critical error in run: {str(e)}"
+                )
+                self.running = False
 
     def _validate_run_conditions(self, prompt: str) -> bool:
         """Validate conditions before running Aider"""

@@ -4,12 +4,12 @@
     "description": "Research and analysis",
     "agents": [
         "specifications",
-        "management",
+        "management", 
         "evaluation",
         "chroniqueur",
         "documentaliste",
-        "duplication",
-        "redacteur",
+        "duplication", "redondance",
+        "redacteur", "redacteur2", "redacteur3",
         "validation"
     ]
 }

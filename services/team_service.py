@@ -554,7 +554,7 @@ class TeamService(BaseService):
                         'success'
                     )
 
-                    time.sleep(8) # Echelonner les lancements
+                    time.sleep(10) # Echelonner les lancements
 
                 except Exception as e:
                     self.web_instance.log_message(

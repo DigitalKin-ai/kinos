@@ -63,44 +63,36 @@ class DatasetService(BaseService):
             if not prompt or not files_context or not aider_response:
                 raise ValueError("Missing required interaction data")
 
-            # Calculate weight and check if entry should be saved
-            weight = self._calculate_weight(files_context, aider_response)
-            if weight is None:
-                self.logger.log("Interaction skipped due to weight calculation", 'debug')
-                return
-
             # Format files context
             formatted_context = self._format_files_context(files_context)
             
             # Format user message with context
             user_message = f"Context:\n{formatted_context}\n\nTask:\n{prompt}"
             
-            # Parse Aider response
-            parsed_response = self._parse_aider_response(aider_response)
-            
             # Create dataset entry
             entry = {
                 "messages": [
                     {"role": "system", "content": prompt},
                     {"role": "user", "content": user_message},
-                    {"role": "assistant", "content": parsed_response, "weight": weight}
+                    {"role": "assistant", "content": aider_response}
                 ],
                 "metadata": {
                     "timestamp": datetime.now().isoformat(),
                     "num_files": len(files_context),
-                    "weight": weight
+                    "files": list(files_context.keys())
                 }
             }
             
-            # Append to file with error handling
+            # Append to file with explicit error handling
             try:
                 with open(self.dataset_file, 'a', encoding='utf-8') as f:
                     json_str = json.dumps(entry, ensure_ascii=False)
                     f.write(json_str + '\n')
+                    f.flush()  # Force write to disk
+                    os.fsync(f.fileno())  # Ensure it's written to disk
                     
                 self.logger.log(
-                    f"Added interaction to dataset (weight: {weight:.2f}, "
-                    f"files: {len(files_context)})", 
+                    f"Added interaction to dataset (files: {len(files_context)})", 
                     'success'
                 )
                 
