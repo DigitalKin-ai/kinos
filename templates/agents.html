@@ -65,17 +65,22 @@
                 </div>
 
                 <!-- Teams Display -->
-                <div v-else class="grid grid-cols-1 gap-6">
-                    <div v-for="team in teams" :key="team.id" class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-xl font-semibold mb-4">{{ team.name }}</h3>
+                <div v-else-if="teams.length > 0" class="grid grid-cols-1 gap-6">
+                    <div v-for="teamItem in teams" :key="teamItem.id" class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-xl font-semibold mb-4">{{ teamItem.name }}</h3>
                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            <div v-for="agent in team.agents" 
+                            <div v-for="agent in teamItem.agents" 
                                  :key="agent"
                                  class="bg-gray-50 rounded p-3">
                                 <div class="text-sm font-medium">{{ agent }}</div>
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- No Teams Message -->
+                <div v-else class="flex items-center justify-center h-full">
+                    <p class="text-gray-500">No teams available</p>
                 </div>
             </div>
         </div>
