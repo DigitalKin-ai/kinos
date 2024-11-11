@@ -1,39 +1,65 @@
 export default function() {
     return {
-        statusCacheTTL: 5000,
-        showAddAgentModal: false,
-        loadingStates: new Map(),
-        error: null,
-        errorMessage: null,
-        showError: false,
-        connectionStatus: {
-            connected: true,
-            lastCheck: null,
-            retryCount: 0
+        // États de connexion
+        connection: {
+            status: {
+                connected: true,
+                lastCheck: null,
+                retryCount: 0
+            },
+            checkInProgress: false,
+            interval: null
         },
-        connectionCheckInProgress: false,
-        errorMessages: new Map(),
-        retryAttempts: new Map(),
-        maxRetries: 3,
-        retryDelay: 1000,
-        loading: false,
-        availableAgents: [
-            "SpecificationsAgent", "ManagementAgent", "EvaluationAgent",
-            "SuiviAgent", "DocumentalisteAgent", "DuplicationAgent",
-            "RedacteurAgent", "ProductionAgent", "TesteurAgent", "ValidationAgent"
-        ],
-        selectedTeamForEdit: null,
-        selectedAgent: null,
-        teams: [], 
-        activeTeam: null,
-        teamStats: new Map(),
-        teamHistory: new Map(),
-        loadingStats: false,
-        statsInterval: null,
-        POLL_INTERVAL: 30000,
-        loadingTeams: new Set(),
-        loadingAgents: new Set(),
-        statusCache: new Map(),
-        statusCacheTTL: 5000
+
+        // États de chargement
+        loading: {
+            teams: false,
+            agents: new Set(),
+            states: new Map()
+        },
+
+        // États des équipes
+        teams: {
+            list: [],
+            active: null,
+            stats: new Map(),
+            history: new Map(),
+            statusCache: new Map(),
+            statusCacheTTL: 5000
+        },
+
+        // États des agents
+        agents: {
+            available: [
+                "SpecificationsAgent", "ManagementAgent", "EvaluationAgent",
+                "SuiviAgent", "DocumentalisteAgent", "DuplicationAgent",
+                "RedacteurAgent", "ProductionAgent", "TesteurAgent", "ValidationAgent"
+            ],
+            selected: null
+        },
+
+        // États des modales
+        modals: {
+            addAgent: {
+                show: false,
+                selectedTeam: null
+            }
+        },
+
+        // États des erreurs
+        errors: {
+            messages: new Map(),
+            retryAttempts: new Map(),
+            maxRetries: 3,
+            retryDelay: 1000,
+            current: null,
+            show: false
+        },
+
+        // États de monitoring
+        monitoring: {
+            pollInterval: 30000,
+            statsInterval: null
+        }
     }
 }
