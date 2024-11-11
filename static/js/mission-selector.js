@@ -20,7 +20,7 @@ export default {
         'sidebar-toggle',
         'error'
     ],
-    delimiters: ['${', '}'],
+    delimiters: ['{{', '}}'],
     data() {
         return {
             isCreatingMission: false,
