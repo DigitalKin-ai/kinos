@@ -27,6 +27,9 @@ export default {
             statusCacheTTL: 5000,
             showAddAgentModal: false,
             loadingStates: new Map(),
+            error: null,
+            errorMessage: null,
+            showError: false,
             errorMessages: new Map(),
             retryAttempts: new Map(),
             maxRetries: 3,
@@ -141,10 +144,29 @@ export default {
         }
     },
     created() {
-        this.initializeComponent();
+        // Initialize component state
+        this.error = null;
+        this.errorMessage = null;
+        this.showError = false;
+        
+        if (this.currentMission?.id) {
+            this.loadTeams();
+        }
     },
 
     methods: {
+        handleError(message, error = null) {
+            console.error(message, error);
+            this.errorMessage = typeof error === 'string' ? 
+                error : (error?.message || message);
+            this.showError = true;
+            
+            // Auto-hide error after 5 seconds
+            setTimeout(() => {
+                this.showError = false;
+            }, 5000);
+        },
+
         async checkConnection() {
             if (this.connectionCheckInProgress) return;
             
@@ -245,15 +267,6 @@ export default {
             } catch (error) {
                 // Error already handled by handleOperationWithRetry
                 console.error('Team toggle failed:', error);
-            }
-        },
-
-        initializeComponent() {
-            this.error = null;
-            this.loading = false;
-            
-            if (this.currentMission?.id) {
-                this.loadTeams();
             }
         },
 
