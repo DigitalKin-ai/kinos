@@ -3,10 +3,9 @@
 ## Nouveau Modèle de Gestion des Chemins de Mission
 
 ### Changement Fondamental
-- Le répertoire de travail actuel devient le contexte de mission par défaut
-- Aucune configuration de mission complexe requise
-- Flexibilité maximale pour les développeurs
-- Activation immédiate dans n'importe quel dossier de projet
+- Le répertoire de travail actuel devient le contexte de mission
+- Aucuna configuration complexa requise
+- Lancement immédiat dans n'importe quel dossier de projet
 
 ### Principes Clés
 
@@ -16,7 +15,7 @@
 - L'agent s'adapte automatiquement à l'environnement courant
 
 #### 2. Résolution de Chemin
-- Utilisation du répertoire courant (`os.getcwd()`) comme racine
+- Utilisation du répertoire courant comme racine de mission
 - Support optionnel de chemins personnalisés
 - Validation dynamique des permissions
 - Normalisation intelligente des chemins
