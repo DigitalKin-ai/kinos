@@ -464,6 +464,33 @@ Generated: 2024-03-21 15:30:45
 
 ### Teams Management
 
+#### Phase-Based Agent Execution
+Each team's agents are activated or deactivated based on the current project phase:
+
+1. **EXPANSION Phase** (< 60% tokens)
+   - Focus on content creation and development
+   - Active agents prioritize:
+     * Specifications and planning
+     * Content production
+     * Initial documentation
+     * Progress tracking
+   - Example: In coding team, ProductionAgent and TesteurAgent are most active
+
+2. **CONVERGENCE Phase** (> 60% tokens)
+   - Focus on optimization and refinement
+   - Active agents prioritize:
+     * Code/content optimization
+     * Duplication detection
+     * Quality validation
+     * Documentation consolidation
+   - Example: In coding team, DuplicationAgent and ValidationAgent take priority
+
+The phase system automatically manages which agents run based on token usage:
+- Each team defines phase-specific agent lists in its config
+- Agents check their activation status before each run
+- Smooth transitions as phases change
+- Automatic workload optimization
+
 #### Predefined Teams
 Teams are simple agent groupings optimized for specific tasks:
 
