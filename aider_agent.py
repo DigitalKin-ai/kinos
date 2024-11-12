@@ -255,10 +255,6 @@ class AiderAgent(KinOSAgent):
                 
             # Store original directory
             original_dir = os.getcwd()
-                
-            except Exception as e:
-                self.logger.log(f"[{self.__class__.__name__}] ❌ Error getting paths: {str(e)}")
-                return None
 
             try:
                 # Change to mission directory
@@ -648,6 +644,7 @@ class AiderAgent(KinOSAgent):
 
     def get_prompt(self) -> str:
         """Get the current prompt content with caching"""
+        self._prompt_cache = {}
         try:
             if not self.prompt_file:
                 return self.prompt  # Return default prompt if no file specified
