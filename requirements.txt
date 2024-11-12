@@ -1,22 +1,22 @@
 # Core Dependencies
-aider-chat==0.62.1
-python-dotenv==1.0.0
+aider-chat>=0.62.0,<0.63.0
+python-dotenv>=1.0.0,<1.1.0
 
 # File Operations
-portalocker==2.8.2
+portalocker>=2.8.0,<2.9.0
 
 # Utilities
-colorama==0.4.6
-pyyaml==6.0.1
+colorama>=0.4.6,<0.5.0
+pyyaml>=6.0.1,<7.0.0
 
-# These versions are required by aider-chat
-litellm==1.51.2
-openai==1.53.0
-anthropic==0.18.0
-httpx==0.27.2
-aiohttp==3.10.10
+# Development Dependencies
+pytest>=7.4.0,<7.5.0
+black>=24.1.0,<24.2.0
+flake8>=7.1.0,<7.2.0
 
-# Development Dependencies - Updated versions
-pytest==7.4.4
-black==24.1.1
-flake8==7.1.1  # Changed to match aider-chat's requirement
+# Let pip resolve these versions as needed by aider-chat
+litellm
+openai
+anthropic
+httpx
+aiohttp
