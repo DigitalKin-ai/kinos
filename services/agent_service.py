@@ -26,18 +26,10 @@ class AgentService:
 
 
     def __init__(self, web_instance):
-        # Valider et compléter l'instance web
-        self.web_instance = self.validate_web_instance(web_instance)
-        
+        self.logger = Logger()
         self.agents = {}
-        self.monitor_thread = None
-        self.running = False
-        self.pending_agents = []  # Track agents waiting for file creation
         self.agent_threads = {}
         self._cleanup_lock = threading.Lock()
-        
-        # Force cleanup on init
-        self._cleanup_resources()
 
         # Set UTF-8 encoding for stdout/stderr
         import sys
