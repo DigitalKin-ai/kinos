@@ -27,9 +27,17 @@ class TeamService:
             kinos_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             teams_dir = os.path.join(kinos_root, "teams")
             
+            self.logger.log(f"Looking for teams in:\n- KinOS root: {kinos_root}\n- Teams dir: {teams_dir}", 'debug')
+            
             # Scan teams directory
             if not os.path.exists(teams_dir):
                 self.logger.log(f"Teams directory not found: {teams_dir}", 'warning')
+                # List directory contents to help debug
+                parent_dir = os.path.dirname(teams_dir)
+                if os.path.exists(parent_dir):
+                    self.logger.log(f"Contents of {parent_dir}:", 'debug')
+                    for item in os.listdir(parent_dir):
+                        self.logger.log(f"  - {item}", 'debug')
                 return []
                 
             for team_dir in os.listdir(teams_dir):
