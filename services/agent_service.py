@@ -292,7 +292,7 @@ List any specific constraints or limitations.
             # Try to find an existing prompt file
             for location in prompt_locations:
                 if os.path.exists(location):
-                    self.web_instance.log_message(f"Found prompt for {normalized_name}: {location}", 'debug')
+                    self.logger.log(f"Found prompt for {normalized_name}: {location}", 'debug')
                     return location
         
             # If no prompt found, create a default
@@ -301,7 +301,7 @@ List any specific constraints or limitations.
             return default_prompt_path
     
         except Exception as e:
-            self.web_instance.log_message(f"Error finding prompt for {agent_name}: {str(e)}", 'error')
+            self.logger.log(f"Error finding prompt for {agent_name}: {str(e)}", 'error')
             return None
 
     def _create_default_prompt_file(self, agent_name: str) -> Optional[str]:
