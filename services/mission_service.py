@@ -61,34 +61,25 @@ class MissionService:
         """Get a specific mission by ID with better error handling"""
         try:
             missions = self._scan_missions()
-            
-            if not missions:
-                self.logger.log("No missions found", 'warning')
-                return None
-
-            # Find mission by ID
+        
             mission = next((m for m in missions if m['id'] == mission_id), None)
-            
             if not mission:
-                self.logger.log(f"Mission {mission_id} not found", 'warning')
                 return None
 
-            # Normalize path
-            mission['path'] = self._normalize_mission_path(
-                os.path.join(self.missions_dir, mission['name'])
-            )
+            # Use PathManager to get mission path
+            mission['path'] = PathManager.get_mission_path(mission['name'])
 
             # Verify directory exists and is accessible
             if not os.path.exists(mission['path']):
                 self.logger.log(f"Mission directory not found: {mission['path']}", 'warning')
                 return None
-                
+            
             if not os.access(mission['path'], os.R_OK | os.W_OK):
                 self.logger.log(f"Insufficient permissions on: {mission['path']}", 'warning')
                 return None
 
             return mission
-            
+        
         except Exception as e:
             self.logger.log(f"Error getting mission: {str(e)}", 'error')
             return None
