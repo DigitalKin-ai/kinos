@@ -238,11 +238,8 @@ def create_robust_web_instance(config=None):
         log_info=lambda message: log_instance.log(message, 'info')
     )
 
-    # Update dataset_service with web_instance
-    self.dataset_service.web_instance = web_instance
-    
-    # Créer le TeamService avec l'instance web
-    self.team_service = TeamService(web_instance)
+    # Create the TeamService
+    self.team_service = TeamService(None)
 
     return web_instance
 

@@ -474,12 +474,11 @@ class AiderAgent(KinOSAgent):
                 # Combine all output
                 full_output = "\n".join(output_lines)
 
-                # Add debug log for dataset processing start
+                # Log processing results
                 self._log(
-                    f"[{self.__class__.__name__}] 🔄 Starting dataset processing:\n"
+                    f"[{self.__class__.__name__}] 🔄 Processing complete:\n"
                     f"Return code: {return_code}\n"
                     f"Output length: {len(full_output) if full_output else 0} chars\n"
-                    f"Dataset service available: {hasattr(self.web_instance, 'dataset_service')}\n"
                     f"Current directory: {os.getcwd()}",
                     'debug'
                 )
@@ -494,7 +493,7 @@ class AiderAgent(KinOSAgent):
                         except:
                             pass
 
-                # If execution was successful, save for fine-tuning
+                # If execution was successful, log the changes
                 if return_code == 0 and full_output:
                     try:
                         # Read modified files content
@@ -523,7 +522,11 @@ class AiderAgent(KinOSAgent):
 
                         # Only proceed if we have files to save
                         if files_context:
-                            pass  # No dataset operations needed anymore
+                            # Log the changes
+                            self.logger.log(
+                                f"Files modified:\n" + "\n".join(files_context.keys()),
+                                'info'
+                            )
                             
                     except Exception as e:
                         self._log(f"[{self.__class__.__name__}] Error reading files: {str(e)}")
@@ -788,13 +791,7 @@ class AiderAgent(KinOSAgent):
             
             while self.running:
                 try:
-                    # Check for shutdown signal
-                    if hasattr(self.web_instance, 'agent_service') and \
-                       self.agent_service._shutting_down.is_set():
-                        self._log(f"[{self.__class__.__name__}] Shutdown signal received")
-                        break
-
-                    # Use configured mission directory instead of checking current_mission
+                    # Use configured mission directory
                     if not self.mission_dir:
                         self._log(f"[{self.__class__.__name__}] ❌ No mission directory configured")
                         time.sleep(60)
