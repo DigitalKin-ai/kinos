@@ -7,23 +7,61 @@ from services.agent_service import AgentService
 from utils.logger import configure_cli_logger, Logger
 from config.global_config import GlobalConfig
 
+
 def launch_team(args):
     """Launch a team from CLI arguments"""
     try:
         # Create team service instance
         team_service = TeamService(None)
+        agent_service = AgentService(None)
         
         # Launch the team
-        result = team_service.launch_team(
+        result = team_service.start_team(
             team_id=args.name,
             base_path=args.base_path
         )
         
+        if result:
+            print(f"✓ Team {args.name} started. Starting agents...")
+            print(f"Working directory: {args.base_path or os.getcwd()}")
+            
+            if args.verbose:
+                print("Press CTRL+C to stop agents")
+            
+            # Main monitoring loop
+            try:
+                while True:
+                    # Get status of all agents
+                    status = agent_service.get_agent_status()
+                    
+                    # Display status if verbose
+                    if args.verbose:
+                        for agent_name, agent_status in status.items():
+                            running = agent_status.get('running', False)
+                            health = agent_status.get('health', {})
+                            last_run = agent_status.get('last_run', 'Never')
+                            
+                            status_str = "🟢 Active" if running else "🔴 Inactive"
+                            health_str = "✅ OK" if health.get('is_healthy', True) else "❌ Degraded"
+                            
+                            print(
+                                f"Agent {agent_name}: {status_str} | Health: {health_str} | "
+                                f"Last run: {last_run}"
+                            )
+                        print("-" * 80)
+                    
+                    time.sleep(60)  # Update every minute
+                    
+            except KeyboardInterrupt:
+                print("\nShutdown requested. Stopping agents...")
+                agent_service.stop_all_agents()
+                print("All agents stopped.")
+                sys.exit(0)
+                
         return result
         
     except Exception as e:
-        logger = Logger()
-        logger.log(f"Error launching team: {str(e)}", 'error')
+        print(f"Error launching team: {str(e)}")
         raise
 
 def main():
@@ -87,78 +125,6 @@ def main():
 if __name__ == '__main__':
     main()
 
-def launch_team(self, team_name: str, base_path: str = None, verbose: bool = False):
-    """
-    Launch a team in current directory or specified path
-    
-    Args:
-        team_name: Name of the team to launch
-        base_path: Optional custom base path (defaults to current directory)
-        verbose: Enable verbose logging
-    """
-    try:
-        # Use current directory if no base path specified
-        mission_dir = base_path or os.getcwd()
-        
-        # Validate team exists
-        available_teams = self.team_service._load_predefined_teams()
-        team_ids = [team['id'] for team in available_teams]
-        
-        if team_name not in team_ids:
-            self.logger.log(f"Équipe '{team_name}' non trouvée.", 'error')
-            self.logger.log(f"Équipes disponibles : {', '.join(team_ids)}", 'info')
-            sys.exit(1)
-
-        # Launch team in specified/current directory
-        result = self.team_service.start_team(
-            mission_id=None,  # No longer needed
-            team_id=team_name, 
-            base_path=mission_dir
-        )
-        
-        self.logger.log(f"✓ Équipe {team_name} démarrée. Démarrage des agents...", 'success')
-        self.logger.log(f"Dossier de travail : {mission_dir}", 'info')
-        
-        if verbose:
-            self.logger.log("Appuyez sur CTRL+C pour arrêter les agents", 'info')
-        
-        # Main log display loop
-        try:
-            while True:
-                # Get status of all agents
-                status = self.agent_service.get_agent_status()
-                
-                # Display status for each agent if verbose
-                if verbose:
-                    for agent_name, agent_status in status.items():
-                        running = agent_status.get('running', False)
-                        health = agent_status.get('health', {})
-                        last_run = agent_status.get('last_run', 'Jamais')
-                        
-                        status_str = "🟢 Actif" if running else "🔴 Inactif"
-                        health_str = "✅ OK" if health.get('is_healthy', True) else "❌ Dégradé"
-                        
-                        self.logger.log(
-                            f"Agent {agent_name}: {status_str} | Santé: {health_str} | "
-                            f"Dernière exécution: {last_run}",
-                            'info' if running else 'warning'
-                        )
-                    
-                    # Display separator
-                    self.logger.log("-" * 80, 'info')
-                
-                # Wait before next update
-                time.sleep(60)
-
-        except KeyboardInterrupt:
-            self.logger.log("\nArrêt demandé. Arrêt des agents...", 'warning')
-            self.agent_service.stop_all_agents()
-            self.logger.log("Tous les agents ont été arrêtés.", 'success')
-            sys.exit(0)
-
-    except Exception as e:
-        self.logger.log(f"Erreur lors du lancement de l'équipe : {e}", 'error')
-        sys.exit(1)
 import logging
 from services.team_service import TeamService
 from config.global_config import GlobalConfig  # Assurez-vous que cette importation est correcte
