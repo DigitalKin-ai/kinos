@@ -19,17 +19,6 @@ from utils.exceptions import ServiceError
 from agents.kinos_agent import KinOSAgent
 from utils.path_manager import PathManager
 from utils.logger import Logger
-
-GESTION DES CHEMINS:
-1. Création des fichiers:
-   - Utilise des chemins absolus pour garantir la création au bon endroit
-   - Structure: missions/<nom_mission>/<fichier>.md
-   - Exemple: missions/Mission_1/specifications.md
-
-2. Appel à Aider:
-   - Change le dossier courant vers le dossier mission
-   - Utilise des chemins relatifs pour tous les fichiers
-   - Revient au dossier original après exécution
 """
 import traceback
 from utils.exceptions import ServiceError
