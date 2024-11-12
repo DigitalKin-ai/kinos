@@ -139,8 +139,8 @@ class TeamService:
             self.logger.log(f"Error starting team: {str(e)}", 'error')
             raise
 
-    def activate_team(self, mission_id: int, team_id: str) -> Dict[str, Any]:
-        """Activate a team for a mission with enhanced error handling and agent initialization"""
+    def activate_team(self, team_id: str) -> Dict[str, Any]:
+        """Activate a team in current directory with enhanced error handling and agent initialization"""
         try:
             # Centralized logging and error handling
             def log_and_validate(message: str, level: str = 'info'):
@@ -155,11 +155,13 @@ class TeamService:
 
             # Use current directory as mission directory
             mission_dir = os.getcwd()
-            log_and_validate(f"📂 Mission directory: {mission_dir}", 'debug')
+            self.logger.log(f"📂 Mission directory: {mission_dir}", 'debug')
 
             # Validate and get team configuration
-            self._validate_team_id(team_id)
-            team = next(t for t in self.predefined_teams if t['id'] == team_id)
+            team = next((t for t in self.predefined_teams if t['id'] == team_id), None)
+            if not team:
+                raise ValueError(f"Team {team_id} not found")
+                
             normalized_agents = self._normalize_agent_names(team['agents'])
             team['agents'] = normalized_agents
 

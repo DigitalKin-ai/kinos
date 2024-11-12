@@ -63,7 +63,6 @@ class AgentService:
             Instance web complétée
         """
         from utils.logger import Logger
-        from services.mission_service import MissionService
         from services.file_manager import FileManager
         from types import SimpleNamespace
 
@@ -72,7 +71,6 @@ class AgentService:
             web_instance = SimpleNamespace(
                 logger=Logger(),
                 config={},
-                mission_service=MissionService(),
                 file_manager=FileManager(None)
             )
 
@@ -82,9 +80,6 @@ class AgentService:
         
         if not hasattr(web_instance, 'log_message'):
             web_instance.log_message = lambda msg, level='info': web_instance.logger.log(msg, level)
-        
-        if not hasattr(web_instance, 'mission_service'):
-            web_instance.mission_service = MissionService()
         
         if not hasattr(web_instance, 'file_manager'):
             web_instance.file_manager = FileManager(web_instance)

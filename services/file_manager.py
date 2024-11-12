@@ -228,8 +228,12 @@ class FileManager:
     def reset_files(self) -> bool:
         """Reset all files to their initial state"""
         try:
-            # Get initial contents from MissionService
-            initial_contents = self.web_instance.mission_service._get_initial_contents()
+            # Contenu initial par défaut
+            initial_contents = {
+                'demande': '# Mission Request\n\nDescribe the mission request here.',
+                'specifications': '# Specifications\n\nDefine specifications here.',
+                'evaluation': '# Evaluation\n\nEvaluation criteria and results.'
+            }
             
             for file_name, content in initial_contents.items():
                 if not self.write_file(file_name, content):
