@@ -179,13 +179,14 @@ class KinosCLI:
             self.logger.log(f"Erreur lors de la récupération des équipes : {e}", 'error')
             sys.exit(1)
 
-    def start_specific_agent(self, mission_name: str, agent_name: str):
+    def start_specific_agent(self, mission_name: str, agent_name: str, verbose: bool = False):
         """
         Start a specific agent for a given mission
         
         Args:
             mission_name (str): Name of the mission
             agent_name (str): Name of the agent to start
+            verbose (bool): Enable detailed logging
         """
         try:
             # Validate mission exists
@@ -248,14 +249,16 @@ class KinosCLI:
                             status_str = "🟢 Active" if running else "🔴 Inactive"
                             health_str = "✅ Healthy" if health.get('is_healthy', True) else "❌ Degraded"
                             
-                            self.logger.log(
-                                f"Agent {normalized_agent_name} Status:\n"
-                                f"  Running: {status_str}\n"
-                                f"  Health: {health_str}\n"
-                                f"  Last Run: {last_run}\n"
-                                f"  Consecutive No Changes: {health.get('consecutive_no_changes', 0)}",
-                                'info'
-                            )
+                            # Only log if verbose is True
+                            if verbose:
+                                self.logger.log(
+                                    f"Agent {normalized_agent_name} Status:\n"
+                                    f"  Running: {status_str}\n"
+                                    f"  Health: {health_str}\n"
+                                    f"  Last Run: {last_run}\n"
+                                    f"  Consecutive No Changes: {health.get('consecutive_no_changes', 0)}",
+                                    'info'
+                                )
                             
                             # Wait before next status check
                             time.sleep(60)
@@ -263,6 +266,7 @@ class KinosCLI:
                     except KeyboardInterrupt:
                         self.logger.log(f"\nStopping monitoring for agent {normalized_agent_name}", 'warning')
                     except Exception as e:
+                        # Always log critical errors
                         self.logger.log(f"Error monitoring agent: {str(e)}", 'error')
 
                 # Start monitoring thread
@@ -385,7 +389,8 @@ def main():
     elif args.command == 'agent' and args.agent_command == 'start':
         cli.start_specific_agent(
             mission_name=args.mission, 
-            agent_name=args.name
+            agent_name=args.name,
+            verbose=args.verbose
         )
     elif args.command == 'missions' and args.missions_command == 'list':
         cli.list_missions()
