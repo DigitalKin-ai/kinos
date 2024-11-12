@@ -347,6 +347,7 @@ def main():
     start_parser = agent_subparsers.add_parser('start', help='Démarrer un agent spécifique')
     start_parser.add_argument('--mission', required=True, help='Nom de la mission')
     start_parser.add_argument('--name', required=True, help='Nom de l\'agent à démarrer')
+    start_parser.add_argument('-v', '--verbose', action='store_true', help='Activer la journalisation détaillée')
 
     # Sous-commande pour lister les missions
     missions_parser = subparsers.add_parser('missions', help='Commandes liées aux missions')
