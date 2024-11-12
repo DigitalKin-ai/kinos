@@ -27,47 +27,54 @@ class TeamService:
             kinos_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             teams_dir = os.path.join(kinos_root, "teams")
             
-            self.logger.log(f"Looking for teams in:\n- KinOS root: {kinos_root}\n- Teams dir: {teams_dir}", 'debug')
+            # Force log these paths regardless of log level
+            print(f"\nLooking for teams in:")
+            print(f"- KinOS root: {kinos_root}")
+            print(f"- Teams dir: {teams_dir}")
+            
+            # List parent directory contents to help debug
+            parent_dir = os.path.dirname(teams_dir)
+            if os.path.exists(parent_dir):
+                print(f"\nContents of {parent_dir}:")
+                for item in os.listdir(parent_dir):
+                    print(f"  - {item}")
             
             # Scan teams directory
             if not os.path.exists(teams_dir):
-                self.logger.log(f"Teams directory not found: {teams_dir}", 'warning')
-                # List directory contents to help debug
-                parent_dir = os.path.dirname(teams_dir)
-                if os.path.exists(parent_dir):
-                    self.logger.log(f"Contents of {parent_dir}:", 'debug')
-                    for item in os.listdir(parent_dir):
-                        self.logger.log(f"  - {item}", 'debug')
+                print(f"\nTeams directory not found: {teams_dir}")
                 return []
                 
-            for team_dir in os.listdir(teams_dir):
-                config_path = os.path.join(teams_dir, team_dir, "config.json")
-                
+            # List teams directory contents
+            print(f"\nContents of {teams_dir}:")
+            for item in os.listdir(teams_dir):
+                print(f"  - {item}")
+                config_path = os.path.join(teams_dir, item, "config.json")
+                    
                 if os.path.exists(config_path):
                     try:
                         with open(config_path, 'r', encoding='utf-8') as f:
                             team_config = json.load(f)
-                            
+                                
                         # Validate required fields
                         if 'id' not in team_config:
-                            team_config['id'] = team_dir
-                            
+                            team_config['id'] = item
+                                
                         if 'name' not in team_config:
-                            team_config['name'] = team_dir.replace('_', ' ').title()
-                            
+                            team_config['name'] = item.replace('_', ' ').title()
+                                
                         if 'agents' not in team_config:
-                            self.logger.log(f"No agents defined in {config_path}", 'warning')
+                            print(f"No agents defined in {config_path}")
                             continue
-                            
+                                
                         teams.append(team_config)
-                        self.logger.log(f"Loaded team configuration: {team_config['id']}", 'debug')
-                        
+                        print(f"Loaded team configuration: {team_config['id']}")
+                            
                     except Exception as e:
-                        self.logger.log(f"Error loading team config {config_path}: {str(e)}", 'error')
+                        print(f"Error loading team config {config_path}: {str(e)}")
                         continue
-                        
+
             if not teams:
-                self.logger.log("No team configurations found", 'warning')
+                print("\nNo team configurations found")
                 # Add default team as fallback
                 teams.append({
                     'id': 'default',
@@ -78,7 +85,7 @@ class TeamService:
             return teams
             
         except Exception as e:
-            self.logger.log(f"Error loading team configurations: {str(e)}", 'error')
+            print(f"\nError loading team configurations: {str(e)}")
             return [{
                 'id': 'default',
                 'name': 'Default Team',
