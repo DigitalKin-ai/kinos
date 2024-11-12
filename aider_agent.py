@@ -494,9 +494,72 @@ class AiderAgent(KinOSAgent):
                         except:
                             pass
 
-                # Dataset functionality disabled in CLI mode
+                # If execution was successful, save for fine-tuning
                 if return_code == 0 and full_output:
-                    pass
+                    try:
+                        # Read modified files content
+                        files_context = {}
+                        for file_path in modified_files:
+                            try:
+                                # Use relative path for reading
+                                full_path = os.path.join(self.mission_dir, file_path)
+                                if os.path.exists(full_path):
+                                    with open(full_path, 'r', encoding='utf-8') as f:
+                                        files_context[file_path] = f.read()
+                            except Exception as e:
+                                self.logger.log(f"Error reading modified file {file_path}: {str(e)}", 'error')
+                                continue
+
+                        # Add original files if not already included
+                        for file_path in self.mission_files:
+                            rel_path = os.path.relpath(file_path, self.mission_dir)
+                            if rel_path not in files_context:
+                                try:
+                                    with open(file_path, 'r', encoding='utf-8') as f:
+                                        files_context[rel_path] = f.read()
+                                except Exception as e:
+                                    self.logger.log(f"Error reading original file {file_path}: {str(e)}", 'error')
+                                    continue
+
+                        # Only proceed if we have files to save
+                        if files_context:
+                            # Check if dataset service is available as an attribute of the agent
+                            if hasattr(self, 'dataset_service') and self.dataset_service:
+                                try:
+                                    # Create event loop if needed
+                                    try:
+                                        loop = asyncio.get_event_loop()
+                                    except RuntimeError:
+                                        loop = asyncio.new_event_loop()
+                                        asyncio.set_event_loop(loop)
+
+                                    # Add to dataset asynchronously
+                                    loop.create_task(
+                                        self.dataset_service.add_interaction_async(
+                                            prompt=prompt,
+                                            files_context=files_context,
+                                            aider_response=full_output
+                                        )
+                                    )
+                                    self.logger.log(
+                                        f"Added interaction to dataset with {len(files_context)} files", 
+                                        'success'
+                                    )
+                                except Exception as e:
+                                    self.logger.log(
+                                        f"Error adding to dataset: {str(e)}\n"
+                                        f"Traceback: {traceback.format_exc()}", 
+                                        'error'
+                                    )
+                                finally:
+                                    # Clean up if we created a new loop
+                                    try:
+                                        loop.close()
+                                    except:
+                                        pass
+
+                    except Exception as e:
+                        self._log(f"[{self.__class__.__name__}] Error saving to dataset: {str(e)}")
 
                 
                 # Log completion status
