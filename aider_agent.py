@@ -273,6 +273,9 @@ class AiderAgent(KinOSAgent):
 
         while attempt <= max_attempts:
             try:
+                # Store original directory
+                original_dir = os.getcwd()
+
                 # Validate input
                 if not prompt or not prompt.strip():
                     self._log(f"[{self.name}] ❌ Empty prompt")
@@ -290,9 +293,6 @@ class AiderAgent(KinOSAgent):
                 if not os.access(self.mission_dir, os.R_OK | os.W_OK):
                     self._log(f"[{self.name}] ❌ Insufficient permissions for: {self.mission_dir}")
                     return None
-
-                # Store original directory
-            original_dir = os.getcwd()
 
             try:
                 # Change to mission directory
