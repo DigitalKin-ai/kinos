@@ -1,6 +1,7 @@
 import os
 import sys
 from datetime import datetime
+from typing import Optional
 from utils.path_manager import PathManager
 
 class Logger:
@@ -174,6 +175,88 @@ def configure_cli_logger(force_color=None):
         # Remove level from kwargs to avoid duplicate
         kwargs.pop('level', None)
         self.log(message, level, **kwargs)
+
+    def log_path_operation(self, operation: str, path: str, success: bool, error: Optional[str] = None):
+        """
+        Log file/path operations with consistent formatting
+        
+        Args:
+            operation: Type of operation (read/write/create/etc)
+            path: Path being operated on
+            success: Whether operation succeeded
+            error: Optional error message
+        """
+        try:
+            # Format relative path for cleaner output
+            rel_path = os.path.relpath(path, os.getcwd())
+            
+            if success:
+                self.log(f"✓ {operation}: {rel_path}", 'success')
+            else:
+                error_msg = f" ({error})" if error else ""
+                self.log(f"❌ {operation} failed: {rel_path}{error_msg}", 'error')
+                
+        except Exception as e:
+            # Fallback to full path if relative path fails
+            if success:
+                self.log(f"✓ {operation}: {path}", 'success')
+            else:
+                error_msg = f" ({error})" if error else ""
+                self.log(f"❌ {operation} failed: {path}{error_msg}", 'error')
+
+    def log_path_validation(self, path: str, valid: bool, reason: Optional[str] = None):
+        """
+        Log path validation results
+        
+        Args:
+            path: Path being validated
+            valid: Whether path is valid
+            reason: Optional reason for invalid path
+        """
+        try:
+            rel_path = os.path.relpath(path, os.getcwd())
+            
+            if valid:
+                self.log(f"✓ Valid path: {rel_path}", 'success')
+            else:
+                reason_msg = f" ({reason})" if reason else ""
+                self.log(f"❌ Invalid path: {rel_path}{reason_msg}", 'error')
+                
+        except Exception as e:
+            # Fallback to full path
+            if valid:
+                self.log(f"✓ Valid path: {path}", 'success')
+            else:
+                reason_msg = f" ({reason})" if reason else ""
+                self.log(f"❌ Invalid path: {path}{reason_msg}", 'error')
+
+    def log_path_change(self, old_path: str, new_path: str, success: bool, error: Optional[str] = None):
+        """
+        Log path change operations
+        
+        Args:
+            old_path: Original path
+            new_path: New path
+            success: Whether change succeeded
+            error: Optional error message
+        """
+        try:
+            rel_old = os.path.relpath(old_path, os.getcwd())
+            rel_new = os.path.relpath(new_path, os.getcwd())
+            
+            if success:
+                self.log(f"✓ Path changed: {rel_old} → {rel_new}", 'success')
+            else:
+                error_msg = f" ({error})" if error else ""
+                self.log(f"❌ Path change failed: {rel_old} → {rel_new}{error_msg}", 'error')
+                
+        except Exception as e:
+            # Fallback to full paths
+            if success:
+                self.log(f"✓ Path changed: {old_path} → {new_path}", 'success')
+            else:
+                error_msg = f" ({error})" if error else ""
+                self.log(f"❌ Path change failed: {old_path} → {new_path}{error_msg}", 'error')
 
     def _log(self, message: str, level: str = 'info', **kwargs):
         """Internal logging method"""
