@@ -21,6 +21,13 @@ class FileService(BaseService):
         self.project_root = os.getcwd()
         
 
+    def _get_relative_path(self, file_path: str) -> str:
+        """Get path relative to project root"""
+        try:
+            return os.path.relpath(file_path, self.project_root)
+        except ValueError:
+            return file_path
+
     def _safe_file_operation(self, operation: str, file_path: str, content: str = None) -> Optional[str]:
         """Centralized safe file operations with locking"""
         try:

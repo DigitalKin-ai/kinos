@@ -97,6 +97,23 @@ class MapService(BaseService):
         except Exception:
             return 0
 
+    def _should_ignore_file(self, file_path: str) -> bool:
+        """Check if file should be ignored in map"""
+        ignore_patterns = [
+            '.git/',
+            '__pycache__/',
+            'node_modules/',
+            '.env',
+            '.aider*',
+            '*.pyc',
+            '*.log'
+        ]
+        
+        for pattern in ignore_patterns:
+            if pattern in file_path:
+                return True
+        return False
+
     def _get_status_icon(self, token_count: int) -> str:
         """Get status icon based on token count"""
         if token_count > self.size_limits['error']:

@@ -614,6 +614,7 @@ class AiderAgent(KinOSAgent):
                         from services import init_services
                         services = init_services(None)
                         services['map_service'].update_map()
+                        self._log(f"[{self.__class__.__name__}] Map updated successfully")
                     except Exception as e:
                         self._log(f"[{self.__class__.__name__}] Error updating map: {str(e)}")
                     return full_output
