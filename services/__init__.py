@@ -8,6 +8,7 @@ from services.file_service import FileService
 from services.team_service import TeamService
 from services.agent_service import AgentService
 from services.map_service import MapService
+from services.phase_service import PhaseService
 from utils.exceptions import ServiceError
 
 def init_services(web_instance):

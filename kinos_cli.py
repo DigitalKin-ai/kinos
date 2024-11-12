@@ -81,6 +81,12 @@ def main():
 
     args = parser.parse_args()
     
+    # Create web instance with phase service
+    from types import SimpleNamespace
+    from services.phase_service import PhaseService
+    web_instance = SimpleNamespace()
+    web_instance.phase_service = PhaseService(web_instance)
+    
     try:
         # Configure logging
         logger = configure_cli_logger()
@@ -102,15 +108,17 @@ def main():
 
         elif args.command == 'phase':
             if args.subcommand == 'status':
-                status = web_instance.phase_service.get_status_info()
+                phase_service = PhaseService(None)  # Create standalone service
+                status = phase_service.get_status_info()
                 print(f"\nCurrent Phase: {status['phase']}")
-                print(f"Token Usage: {status['total_tokens']/1000:.1f}k/{web_instance.phase_service.MODEL_TOKEN_LIMIT/1000:.0f}k ({status['usage_percent']:.1f}%)")
+                print(f"Token Usage: {status['total_tokens']/1000:.1f}k/{phase_service.MODEL_TOKEN_LIMIT/1000:.0f}k ({status['usage_percent']:.1f}%)")
                 print(f"Status: {status['status_icon']} {status['status_message']}")
                 print(f"Headroom: {status['headroom']/1000:.1f}k tokens")
                 print(f"Last Transition: {status['last_transition']}")
             
             elif args.subcommand == 'force':
-                if web_instance.phase_service.force_phase(args.phase):
+                phase_service = PhaseService(None)  # Create standalone service
+                if phase_service.force_phase(args.phase):
                     print(f"Phase manually set to: {args.phase.upper()}")
                 else:
                     print(f"Error: Invalid phase '{args.phase}'")
