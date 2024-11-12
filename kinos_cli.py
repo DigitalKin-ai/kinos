@@ -1,92 +1,76 @@
-import argparse
-import os
-import sys
-import time
-import threading
-from datetime import datetime
-from services.team_service import TeamService
-from services.mission_service import MissionService
-from services.agent_service import AgentService
-from utils.logger import configure_cli_logger
-from utils.path_manager import PathManager
+def main():
+    parser = argparse.ArgumentParser(description="KinOS CLI - Simplified Team Launch")
+    
+    # Positional argument for team name
+    parser.add_argument('team', nargs='?', default='book-writing', 
+                        help='Team to launch (default: book-writing)')
+    parser.add_argument('-v', '--verbose', action='store_true', 
+                        help='Enable verbose logging')
+    
+    # Parse arguments
+    args = parser.parse_args()
 
-class KinosCLI:
-    def __init__(self, force_color=None):
-        # Use the new configure_cli_logger method
-        self.logger = configure_cli_logger(force_color)
-        
-        # Initialize dataset service first
-        from services.dataset_service import DatasetService
-        self.dataset_service = DatasetService(self)
-        
-        # Verify dataset service is available
-        if not self.dataset_service.is_available():
-            self.logger.log("Warning: Dataset service not available", 'warning')
-        
-        self.mission_service = MissionService()
-        
-        # Update mission path configuration using PathManager
-        self.config = {
-            "anthropic_api_key": os.environ.get("ANTHROPIC_API_KEY", ""),
-            "openai_api_key": os.environ.get("OPENAI_API_KEY", ""),
-            "paths": {
-                "missions_dir": PathManager.get_mission_path(""),
-                "prompts_dir": PathManager.get_prompts_path(),
-                "logs_dir": PathManager.get_logs_path()
-            }
-        }
-        
-        # Créer explicitement un AgentService
-        self.agent_service = AgentService(self)
-        
-        # Ajouter une méthode log directement à l'instance
-        self.log = self.logger.log
-        
-        # Passer self avec l'agent_service et config ajoutés
-        self.team_service = TeamService(self)
+    # Create CLI instance
+    cli = KinosCLI()
 
-    def launch_team(self, team_name, base_path=None, verbose=False, dry_run=False):
-        """
-        Launch a team in current directory or specified path
+    # Use current directory as mission path
+    current_mission_dir = os.getcwd()
+
+    try:
+        # Launch team in current directory
+        cli.launch_team(
+            team_name=args.team, 
+            base_path=current_mission_dir, 
+            verbose=args.verbose
+        )
+
+    except Exception as e:
+        cli.logger.log(f"Error launching team: {str(e)}", 'error')
+        sys.exit(1)
+
+def launch_team(self, team_name: str, base_path: str = None, verbose: bool = False):
+    """
+    Launch a team in current directory or specified path
+    
+    Args:
+        team_name: Name of the team to launch
+        base_path: Optional custom base path (defaults to current directory)
+        verbose: Enable verbose logging
+    """
+    try:
+        # Use current directory if no base path specified
+        mission_dir = base_path or os.getcwd()
         
-        Args:
-            team_name: Name of the team to launch
-            base_path: Optional custom base path
-            verbose: Enable verbose logging
-            dry_run: Simulate launch without executing
-        """
-        try:
-            # Use current directory if no base path specified
-            mission_dir = base_path or os.getcwd()
-            
-            # Validate team exists
-            available_teams = self.team_service._load_predefined_teams()
-            if team_name not in [team['id'] for team in available_teams]:
-                self.logger.log(f"Équipe '{team_name}' non trouvée.", 'error')
-                sys.exit(1)
+        # Validate team exists
+        available_teams = self.team_service._load_predefined_teams()
+        team_ids = [team['id'] for team in available_teams]
+        
+        if team_name not in team_ids:
+            self.logger.log(f"Équipe '{team_name}' non trouvée.", 'error')
+            self.logger.log(f"Équipes disponibles : {', '.join(team_ids)}", 'info')
+            sys.exit(1)
 
-            if dry_run:
-                self.logger.log(f"Mode simulation : Lancement de l'équipe {team_name}", 'info')
-                return
-
-            # Launch team in specified/current directory
-            result = self.team_service.start_team(
-                mission_id=None,  # No longer needed
-                team_id=team_name, 
-                base_path=mission_dir
-            )
-            
-            self.logger.log(f"✓ Équipe {team_name} démarrée. Démarrage des agents...", 'success')
-            self.logger.log(f"Dossier de travail : {mission_dir}", 'info')
+        # Launch team in specified/current directory
+        result = self.team_service.start_team(
+            mission_id=None,  # No longer needed
+            team_id=team_name, 
+            base_path=mission_dir
+        )
+        
+        self.logger.log(f"✓ Équipe {team_name} démarrée. Démarrage des agents...", 'success')
+        self.logger.log(f"Dossier de travail : {mission_dir}", 'info')
+        
+        if verbose:
             self.logger.log("Appuyez sur CTRL+C pour arrêter les agents", 'info')
-            
-            # Main log display loop
-            try:
-                while True:
-                    # Get status of all agents
-                    status = self.agent_service.get_agent_status()
-                    
-                    # Display status for each agent
+        
+        # Main log display loop
+        try:
+            while True:
+                # Get status of all agents
+                status = self.agent_service.get_agent_status()
+                
+                # Display status for each agent if verbose
+                if verbose:
                     for agent_name, agent_status in status.items():
                         running = agent_status.get('running', False)
                         health = agent_status.get('health', {})
@@ -103,305 +87,19 @@ class KinosCLI:
                     
                     # Display separator
                     self.logger.log("-" * 80, 'info')
-                    
-                    # Wait before next update
-                    time.sleep(60)
-
-            except KeyboardInterrupt:
-                self.logger.log("\nArrêt demandé. Arrêt des agents...", 'warning')
-                self.agent_service.stop_all_agents()
-                self.logger.log("Tous les agents ont été arrêtés.", 'success')
-                sys.exit(0)
-
-        except Exception as e:
-            self.logger.log(f"Erreur lors du lancement de l'équipe : {e}", 'error')
-            sys.exit(1)
-
-    def list_agents(self):
-        """Liste tous les agents disponibles"""
-        try:
-            # Récupérer la liste des agents
-            agents = self.agent_service.get_available_agents()
-            
-            if not agents:
-                self.logger.log("Aucun agent n'a été trouvé.", 'warning')
-                return
-
-            self.logger.log("Agents disponibles :", 'info')
-            for agent in agents:
-                self.logger.log(f"- {agent}", 'info')
-
-        except Exception as e:
-            self.logger.log(f"Erreur lors de la récupération des agents : {e}", 'error')
-            sys.exit(1)
-
-    def list_missions(self):
-        """Liste toutes les missions disponibles"""
-        try:
-            missions = self.mission_service.get_all_missions()
-            
-            if not missions:
-                self.logger.log("Aucune mission n'a été trouvée.", 'warning')
-                return
-
-            self.logger.log("Missions disponibles :", 'info')
-            for mission in missions:
-                self.logger.log(
-                    f"- ID: {mission['id']}, Nom: {mission['name']}, "
-                    f"Statut: {mission['status']}, "
-                    f"Créée le: {mission['created_at']}", 
-                    'info'
-                )
-
-        except Exception as e:
-            self.logger.log(f"Erreur lors de la récupération des missions : {e}", 'error')
-            sys.exit(1)
-
-    def list_teams(self):
-        """Liste toutes les équipes prédéfinies"""
-        try:
-            # Utiliser TeamService pour obtenir les équipes prédéfinies
-            teams = self.team_service.get_predefined_teams()
-            
-            if not teams:
-                self.logger.log("Aucune équipe n'a été trouvée.", 'warning')
-                return
-
-            self.logger.log("Équipes disponibles :", 'info')
-            for team in teams:
-                self.logger.log(
-                    f"- ID: {team['id']}, Nom: {team['name']}, "
-                    f"Agents: {', '.join(team['agents'])}", 
-                    'info'
-                )
-
-        except Exception as e:
-            self.logger.log(f"Erreur lors de la récupération des équipes : {e}", 'error')
-            sys.exit(1)
-
-    def start_specific_agent(self, mission_name: str, agent_name: str, verbose: bool = False):
-        """
-        Start a specific agent for a given mission
-        
-        Args:
-            mission_name (str): Name of the mission
-            agent_name (str): Name of the agent to start
-            verbose (bool): Enable detailed logging
-        """
-        try:
-            # Validate mission exists
-            mission = self.mission_service.get_mission_by_name(mission_name)
-            if not mission:
-                self.logger.log(f"Mission '{mission_name}' not found.", 'error')
-                sys.exit(1)
-
-            # Resolve mission path using PathManager
-            try:
-                mission_path = PathManager.get_mission_path(mission_name)
                 
-                # Validate mission directory
-                if not os.path.exists(mission_path):
-                    self.logger.log(f"Mission directory not found: {mission_path}", 'error')
-                    sys.exit(1)
-                
-                if not os.access(mission_path, os.R_OK | os.W_OK):
-                    self.logger.log(f"Insufficient permissions on: {mission_path}", 'error')
-                    sys.exit(1)
-                    
-            except Exception as path_error:
-                self.logger.log(f"Error resolving mission path: {str(path_error)}", 'error')
-                sys.exit(1)
+                # Wait before next update
+                time.sleep(60)
 
-            # Normalize agent name
-            normalized_agent_name = agent_name.lower().replace('agent', '').strip()
-            
-            # Verify agent exists
-            available_agents = self.agent_service.get_available_agents()
-            if normalized_agent_name not in available_agents:
-                self.logger.log(f"Agent '{normalized_agent_name}' not found.", 'error')
-                self.logger.log(f"Available agents: {', '.join(available_agents)}", 'info')
-                sys.exit(1)
+        except KeyboardInterrupt:
+            self.logger.log("\nArrêt demandé. Arrêt des agents...", 'warning')
+            self.agent_service.stop_all_agents()
+            self.logger.log("Tous les agents ont été arrêtés.", 'success')
+            sys.exit(0)
 
-            # Attempt to start the agent
-            success = self.agent_service.toggle_agent(
-                agent_name=normalized_agent_name, 
-                action='start', 
-                mission_dir=mission_path
-            )
-
-            if success:
-                self.logger.log(
-                    f"✅ Agent {normalized_agent_name} started successfully for mission {mission_name}", 
-                    'success'
-                )
-                
-                # Start a thread to monitor the agent
-                def monitor_agent():
-                    try:
-                        while True:
-                            status = self.agent_service.get_agent_status(normalized_agent_name)
-                            
-                            # Display agent status
-                            running = status.get('running', False)
-                            health = status.get('health', {})
-                            last_run = status.get('last_run', 'Never')
-                            
-                            status_str = "🟢 Active" if running else "🔴 Inactive"
-                            health_str = "✅ Healthy" if health.get('is_healthy', True) else "❌ Degraded"
-                            
-                            # Only log if verbose is True
-                            if verbose:
-                                self.logger.log(
-                                    f"Agent {normalized_agent_name} Status:\n"
-                                    f"  Running: {status_str}\n"
-                                    f"  Health: {health_str}\n"
-                                    f"  Last Run: {last_run}\n"
-                                    f"  Consecutive No Changes: {health.get('consecutive_no_changes', 0)}",
-                                    'info'
-                                )
-                            
-                            # Wait before next status check
-                            time.sleep(60)
-                            
-                    except KeyboardInterrupt:
-                        self.logger.log(f"\nStopping monitoring for agent {normalized_agent_name}", 'warning')
-                    except Exception as e:
-                        # Always log critical errors
-                        self.logger.log(f"Error monitoring agent: {str(e)}", 'error')
-
-                # Start monitoring thread
-                monitor_thread = threading.Thread(target=monitor_agent, daemon=True)
-                monitor_thread.start()
-
-                # Keep main thread running
-                try:
-                    monitor_thread.join()
-                except KeyboardInterrupt:
-                    self.logger.log("\nAgent monitoring stopped by user.", 'warning')
-                    self.agent_service.toggle_agent(normalized_agent_name, 'stop')
-                    sys.exit(0)
-
-            else:
-                self.logger.log(f"Failed to start agent {normalized_agent_name}", 'error')
-                sys.exit(1)
-
-        except Exception as e:
-            self.logger.log(f"Error starting agent: {str(e)}", 'error')
-            sys.exit(1)
-
-    def _stream_logs(self, team_result, log_file=None):
-        """
-        Affiche les logs de l'équipe en temps réel
-        
-        Args:
-            team_result (dict): Résultat de l'activation de l'équipe
-            log_file (str, optional): Chemin du fichier de log
-        """
-        # Affichage des résultats d'activation
-        for agent_result in team_result.get('activation_results', []):
-            status = agent_result.get('status', 'unknown')
-            agent = agent_result.get('agent', 'Unknown Agent')
-            
-            if status == 'started':
-                self.logger.log(f"Agent {agent} démarré avec succès", 'success')
-            elif status == 'failed':
-                self.logger.log(f"Échec du démarrage de l'agent {agent}", 'error')
-            elif status == 'error':
-                error = agent_result.get('error', 'Erreur inconnue')
-                self.logger.log(f"Erreur pour l'agent {agent}: {error}", 'error')
-
-def main():
-    # Parse arguments with color support
-    parser = argparse.ArgumentParser(description="KinOS CLI - Gestion des équipes d'agents")
-    
-    # Add color control arguments
-    parser.add_argument('--color', 
-                        choices=['auto', 'always', 'never'], 
-                        default='auto', 
-                        help='Control color output')
-    
-    # Rest of the existing argument parsing...
-    subparsers = parser.add_subparsers(dest='command', help='Commandes disponibles')
-    
-    # Nouvelle commande list globale
-    list_parser = subparsers.add_parser('list', help='Lister tous les éléments')
-    
-    # Sous-commande pour lancer une équipe
-    team_parser = subparsers.add_parser('team', help='Commandes liées aux équipes')
-    team_subparsers = team_parser.add_subparsers(dest='team_command')
-    
-    launch_parser = team_subparsers.add_parser('launch', help='Lancer une équipe pour une mission')
-    launch_parser.add_argument('--team', required=True, help='Nom de l\'équipe')
-    launch_parser.add_argument('--verbose', action='store_true', help='Mode débogage détaillé')
-    launch_parser.add_argument('--dry-run', action='store_true', help='Simulation sans exécution')
-    launch_parser.add_argument('--base-path', help='Chemin de base personnalisé', default=None)
-
-    # Sous-commande pour les agents
-    agent_parser = subparsers.add_parser('agent', help='Commandes liées aux agents')
-    agent_subparsers = agent_parser.add_subparsers(dest='agent_command')
-
-    # Commande list pour les agents
-    list_parser = agent_subparsers.add_parser('list', help='Lister tous les agents disponibles')
-
-    # Commande start pour démarrer un agent spécifique
-    start_parser = agent_subparsers.add_parser('start', help='Démarrer un agent spécifique')
-    start_parser.add_argument('--mission', required=True, help='Nom de la mission')
-    start_parser.add_argument('--name', required=True, help='Nom de l\'agent à démarrer')
-    start_parser.add_argument('-v', '--verbose', action='store_true', help='Activer la journalisation détaillée')
-
-    # Sous-commande pour lister les missions
-    missions_parser = subparsers.add_parser('missions', help='Commandes liées aux missions')
-    missions_subparsers = missions_parser.add_subparsers(dest='missions_command')
-    missions_list_parser = missions_subparsers.add_parser('list', help='Lister toutes les missions')
-
-    # Sous-commande pour lister les équipes
-    teams_parser = subparsers.add_parser('teams', help='Commandes liées aux équipes')
-    teams_subparsers = teams_parser.add_subparsers(dest='teams_command')
-    teams_list_parser = teams_subparsers.add_parser('list', help='Lister toutes les équipes')
-
-    # Parse arguments
-    args = parser.parse_args()
-
-    # Determine color configuration
-    force_color = None
-    if args.color == 'always':
-        force_color = True
-    elif args.color == 'never':
-        force_color = False
-
-    # Create CLI instance with color configuration
-    cli = KinosCLI(force_color=force_color)
-
-    # Dispatch des commandes
-    if args.command == 'list':
-        # Lister tous les éléments
-        cli.list_agents()
-        cli.list_missions()
-        cli.list_teams()
-    elif args.command == 'team' and args.team_command == 'launch':
-        cli.launch_team(
-            team_name=args.team, 
-            base_path=args.base_path,
-            verbose=args.verbose,
-            dry_run=args.dry_run
-        )
-    elif args.command == 'agent' and args.agent_command == 'list':
-        cli.list_agents()
-    elif args.command == 'agent' and args.agent_command == 'start':
-        cli.start_specific_agent(
-            mission_name=args.mission, 
-            agent_name=args.name,
-            verbose=args.verbose
-        )
-    elif args.command == 'missions' and args.missions_command == 'list':
-        cli.list_missions()
-    elif args.command == 'teams' and args.teams_command == 'list':
-        cli.list_teams()
-    else:
-        parser.print_help()
-
-if __name__ == '__main__':
-    main()
+    except Exception as e:
+        self.logger.log(f"Erreur lors du lancement de l'équipe : {e}", 'error')
+        sys.exit(1)
 import logging
 from services.team_service import TeamService
 from config.global_config import GlobalConfig  # Assurez-vous que cette importation est correcte
@@ -600,4 +298,31 @@ def main():
         parser.print_help()
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description="KinOS CLI - Simplified Team Launch")
+    
+    # Positional argument for team name
+    parser.add_argument('team', nargs='?', default='book-writing', 
+                        help='Team to launch (default: book-writing)')
+    parser.add_argument('-v', '--verbose', action='store_true', 
+                        help='Enable verbose logging')
+    
+    # Parse arguments
+    args = parser.parse_args()
+
+    # Create CLI instance
+    cli = KinosCLI()
+
+    # Use current directory as mission path
+    current_mission_dir = os.getcwd()
+
+    try:
+        # Launch team in current directory
+        cli.launch_team(
+            team_name=args.team, 
+            base_path=current_mission_dir, 
+            verbose=args.verbose
+        )
+
+    except Exception as e:
+        cli.logger.log(f"Error launching team: {str(e)}", 'error')
+        sys.exit(1)
