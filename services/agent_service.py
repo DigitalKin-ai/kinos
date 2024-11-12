@@ -148,125 +148,49 @@ class AgentService:
             return None
 
     def init_agents(self, config: Dict[str, Any], team_agents: Optional[List[str]] = None) -> None:
+        """Initialise les agents pour une équipe"""
         try:
-            # Normalize team agents if not provided
+            # Normaliser les noms d'agents
             if not team_agents:
                 team_agents = [
                     'specifications', 'management', 'evaluation', 
-                    'chroniqueur', 'documentaliste', 'duplication', 
-                    'redacteur', 'validation', 'production', 'testeur'
+                    'chroniqueur', 'documentaliste', 'production', 'testeur'
                 ]
 
-            # Normalize agent names
             normalized_agents = [
                 agent.lower().replace('agent', '').strip() 
                 for agent in team_agents
             ]
 
-            # Determine mission directory using PathManager
-            mission_dir = None
-            
-            # First try to get from config
-            if config and 'mission_dir' in config:
-                try:
-                    mission_dir = PathManager.normalize_path(config['mission_dir'])
-                    self.web_instance.log_message(f"Using mission directory from config: {mission_dir}", 'debug')
-                except Exception as e:
-                    self.web_instance.log_message(f"Invalid mission path in config: {str(e)}", 'error')
-            
-            # If not in config, try to get from file_manager
-            if not mission_dir:
-                try:
-                    current_mission = self.web_instance.file_manager.current_mission
-                    if current_mission:
-                        mission_dir = PathManager.get_mission_path(current_mission)
-                        self.web_instance.log_message(f"Using mission directory from file_manager: {mission_dir}", 'debug')
-                except Exception as e:
-                    self.web_instance.log_message(f"Error getting mission path: {str(e)}", 'error')
+            # Valider le répertoire de mission
+            mission_dir = config.get('mission_dir')
+            if not mission_dir or not os.path.exists(mission_dir):
+                raise ValueError(f"Invalid mission directory: {mission_dir}")
 
-            # Validate mission directory using PathManager
-            try:
-                if not mission_dir:
-                    raise ValueError("No mission directory available")
-                    
-                # Normalize and validate path
-                mission_dir = PathManager.normalize_path(mission_dir)
-                
-                # Verify directory exists and is accessible
-                if not os.path.exists(mission_dir):
-                    raise ValueError(f"Mission directory not found: {mission_dir}")
-                    
-                if not os.access(mission_dir, os.R_OK | os.W_OK):
-                    raise ValueError(f"Insufficient permissions on: {mission_dir}")
-                    
-                self.web_instance.log_message(f"Using validated mission directory: {mission_dir}", 'info')
-                
-            except Exception as e:
-                self.web_instance.log_message(f"Mission directory validation failed: {str(e)}", 'error')
-                return
-
-            # Update config with validated mission directory
-            if not config:
-                config = {}
-            config['mission_dir'] = mission_dir
-
-            # Initialize agents with comprehensive logging
+            # Initialiser chaque agent
             initialized_agents = {}
             for agent_name in normalized_agents:
                 try:
-                    # Get prompt file path using PathManager
-                    prompt_file = PathManager.get_prompt_file(agent_name)
-                    
-                    # Prepare agent-specific configuration
+                    # Configuration de l'agent
                     agent_config = {
                         'name': agent_name,
                         'mission_dir': mission_dir,
-                        'web_instance': self.web_instance,
-                        'prompt_file': prompt_file,
-                        'anthropic_api_key': config.get('anthropic_api_key'),
-                        'openai_api_key': config.get('openai_api_key')
+                        'prompt_file': os.path.join('prompts', f"{agent_name}.md")
                     }
 
-                    # Create agent
+                    # Créer l'agent
                     agent = self._create_dynamic_agent(agent_config)
-                    
                     if agent:
                         initialized_agents[agent_name] = agent
-                        self.web_instance.log_message(
-                            f"Successfully initialized agent: {agent_name}\n"
-                            f"Prompt file: {prompt_file}\n"
-                            f"Mission dir: {mission_dir}", 
-                            'success'
-                        )
-                    else:
-                        self.web_instance.log_message(f"Failed to create agent: {agent_name}", 'error')
+                        self.logger.log(f"Initialized agent: {agent_name}")
 
-                except Exception as agent_error:
-                    self.web_instance.log_message(
-                        f"Error initializing agent {agent_name}:\n"
-                        f"Error: {str(agent_error)}\n"
-                        f"Traceback: {traceback.format_exc()}", 
-                        'error'
-                    )
+                except Exception as e:
+                    self.logger.log(f"Error initializing agent {agent_name}: {str(e)}", 'error')
 
-            # Update agents dictionary
             self.agents = initialized_agents
-            
-            self.web_instance.log_message(
-                f"Initialization complete:\n"
-                f"Total agents: {len(normalized_agents)}\n"
-                f"Successfully initialized: {len(initialized_agents)}\n"
-                f"Mission directory: {mission_dir}", 
-                'success'
-            )
 
         except Exception as e:
-            self.web_instance.log_message(
-                f"Critical Agent Initialization Failure:\n"
-                f"Error: {str(e)}\n"
-                f"Traceback: {traceback.format_exc()}", 
-                'critical'
-            )
+            self.logger.log(f"Critical error in agent initialization: {str(e)}", 'error')
             raise
 
     def _find_agent_prompt(self, agent_name: str, search_paths: List[str]) -> Optional[str]:
@@ -504,171 +428,43 @@ List any specific constraints or limitations.
         return list(self.agents.keys())
 
     def toggle_agent(self, agent_name: str, action: str, mission_dir: Optional[str] = None) -> bool:
-        """
-        Toggle agent state with comprehensive validation and logging
-        
-        Args:
-            agent_name (str): Name of the agent
-            action (str): 'start' or 'stop'
-            mission_dir (Optional[str]): Mission directory for the agent
-        
-        Returns:
-            bool: Whether the action was successful
-        """
+        """Démarre ou arrête un agent"""
         try:
-            # Validate input arguments
-            if not agent_name or not isinstance(agent_name, str):
-                self.web_instance.log_message(
-                    f"Invalid agent name: {agent_name}. Must be a non-empty string.", 
-                    'error'
-                )
-                return False
-
-            if action not in ['start', 'stop']:
-                self.web_instance.log_message(
-                    f"Invalid action for agent {agent_name}: {action}. Must be 'start' or 'stop'.", 
-                    'error'
-                )
-                return False
-
-            # Validate mission directory if provided
-            if mission_dir is not None:
-                if not isinstance(mission_dir, str):
-                    self.web_instance.log_message(
-                        f"Invalid mission directory type for {agent_name}: {type(mission_dir)}. Must be a string.", 
-                        'error'
-                    )
-                    return False
-                
-                if not os.path.exists(mission_dir):
-                    self.web_instance.log_message(
-                        f"Mission directory does not exist for {agent_name}: {mission_dir}", 
-                        'warning'
-                    )
-                    # Optionally, you could choose to continue or return False here
-            
-            # Normalize agent name
             agent_key = agent_name.lower().replace('agent', '').strip()
             
-            # Detailed logging of initial state
-            self.web_instance.log_message(
-                f"Attempting to {action} agent:\n"
-                f"Agent Name: {agent_name}\n"
-                f"Normalized Key: {agent_key}\n"
-                f"Mission Directory: {mission_dir or 'Not specified'}", 
-                'debug'
-            )
-
-            # Check if agent exists, if not, initialize
-            if agent_key not in self.agents:
-                self.web_instance.log_message(
-                    f"Agent {agent_name} not found. Attempting to initialize...", 
-                    'info'
-                )
-            
-                try:
-                    # Initialize with current configuration
-                    self.init_agents({
-                    }, [agent_key])
-                except Exception as init_error:
-                    self.web_instance.log_message(
-                        f"Failed to initialize agent {agent_name}:\n"
-                        f"Error: {str(init_error)}\n"
-                        f"Traceback: {traceback.format_exc()}", 
-                        'critical'
-                    )
-                    return False
-
-            # Get agent instance with enhanced error checking
+            # Obtenir l'agent
             agent = self.agents.get(agent_key)
             if not agent:
-                self.web_instance.log_message(
-                    f"Critical error: Failed to retrieve agent instance for {agent_name} "
-                    f"despite successful initialization", 
-                    'error'
-                )
+                self.logger.log(f"Agent {agent_name} not found", 'error')
                 return False
 
-            # Log pre-action agent state
-            pre_action_state = {
-                'running': getattr(agent, 'running', False),
-                'last_run': getattr(agent, 'last_run', None),
-                'mission_dir': getattr(agent, 'mission_dir', None)
-            }
-            self.web_instance.log_message(
-                f"Pre-action agent state for {agent_name}:\n"
-                f"{json.dumps(pre_action_state, indent=2)}", 
-                'debug'
-            )
-
-            # Set mission directory if provided or get from FileManager
+            # Mettre à jour le répertoire de mission si fourni
             if mission_dir:
                 agent.mission_dir = mission_dir
-            else:
-                # Get mission directory from FileManager
-                current_mission = self.web_instance.file_manager.current_mission
-                if current_mission:
-                    mission_dir = PathManager.get_mission_path(current_mission)
-                    agent.mission_dir = mission_dir
-                    self.web_instance.log_message(
-                        f"Set mission directory for {agent_name} from FileManager: {mission_dir}", 
-                        'info'
+
+            # Exécuter l'action
+            if action == 'start':
+                if not agent.running:
+                    agent.start()
+                    # Créer et démarrer le thread
+                    thread = threading.Thread(
+                        target=self._run_agent_wrapper,
+                        args=(agent_name, agent),
+                        daemon=True
                     )
-
-            # Verify mission directory is set correctly
-            if not agent.mission_dir or not os.path.exists(agent.mission_dir):
-                self.web_instance.log_message(
-                    f"Invalid mission directory for {agent_name}: {agent.mission_dir}", 
-                    'error'
-                )
-                return False
-
-            # Perform action with detailed logging
-            try:
-                if action == 'start':
-                    if not agent.running:
-                        agent.start()
-                        self.web_instance.log_message(
-                            f"Successfully started agent {agent_name}", 
-                            'success'
-                        )
-                    else:
-                        self.web_instance.log_message(
-                            f"Agent {agent_name} already running. No action taken.", 
-                            'info'
-                        )
-                    return agent.running
+                    self.agent_threads[agent_name] = thread
+                    thread.start()
+                return agent.running
                 
-                elif action == 'stop':
-                    if agent.running:
-                        agent.stop()
-                        self.web_instance.log_message(
-                            f"Successfully stopped agent {agent_name}", 
-                            'success'
-                        )
-                    else:
-                        self.web_instance.log_message(
-                            f"Agent {agent_name} already stopped. No action taken.", 
-                            'info'
-                        )
-                    return not agent.running
+            elif action == 'stop':
+                if agent.running:
+                    agent.stop()
+                return not agent.running
 
-            except Exception as action_error:
-                self.web_instance.log_message(
-                    f"Error performing {action} action on agent {agent_name}:\n"
-                    f"Error: {str(action_error)}\n"
-                    f"Traceback: {traceback.format_exc()}", 
-                    'critical'
-                )
-                return False
+            return False
 
         except Exception as e:
-            self.web_instance.log_message(
-                f"Unexpected error in toggle_agent for {agent_name}:\n"
-                f"Error: {str(e)}\n"
-                f"Traceback: {traceback.format_exc()}", 
-                'critical'
-            )
+            self.logger.log(f"Error in toggle_agent: {str(e)}", 'error')
             return False
 
     def _cleanup_cache(self, cache_type: str) -> None:
@@ -686,35 +482,21 @@ List any specific constraints or limitations.
             self.logger.log(f"Cache cleanup error: {str(e)}", 'error')
 
     def _cleanup_resources(self):
-        """Clean up service resources"""
+        """Nettoie les ressources"""
         try:
             with self._cleanup_lock:
-                # Forcer le garbage collection
-                import gc
-                import socket
-                gc.collect()
-                
-                # Fermer les sockets
-                for obj in gc.get_objects():
-                    if isinstance(obj, socket.socket):
+                # Nettoyer les threads
+                for thread in self.agent_threads.values():
+                    if thread and thread.is_alive():
                         try:
-                            obj.close()
+                            thread.join(timeout=1)
                         except:
                             pass
                             
-                # Nettoyer les threads
-                if hasattr(self, 'agent_threads'):
-                    for thread in self.agent_threads.values():
-                        if thread and thread.is_alive():
-                            try:
-                                thread.join(timeout=1)
-                            except:
-                                pass
-                                
                 self.agent_threads.clear()
                 
         except Exception as e:
-            self.web_instance.log_message(f"Error cleaning up resources: {str(e)}", 'error')
+            self.logger.log(f"Error cleaning up resources: {str(e)}", 'error')
 
     def start_all_agents(self) -> None:
         """Start all agents with better resource management"""
@@ -831,32 +613,19 @@ List any specific constraints or limitations.
             raise
 
     def stop_all_agents(self) -> None:
-        """Stop all agents with improved cleanup"""
+        """Arrête tous les agents"""
         try:
-            self.running = False
-            
-            # Stop each agent
             for name, agent in self.agents.items():
                 try:
                     agent.stop()
-                    self.web_instance.log_message(f"Agent {name} stopped", 'info')
+                    self.logger.log(f"Stopped agent {name}")
                 except Exception as e:
-                    self.web_instance.log_message(f"Error stopping agent {name}: {str(e)}", 'error')
-            
-            # Stop monitor thread
-            if self.monitor_thread and self.monitor_thread.is_alive():
-                try:
-                    self.monitor_thread.join(timeout=2)
-                except:
-                    pass
+                    self.logger.log(f"Error stopping agent {name}: {str(e)}", 'error')
 
-            # Clean up resources
             self._cleanup_resources()
             
-            self.web_instance.log_message("All agents stopped", 'success')
-            
         except Exception as e:
-            self.web_instance.log_message(f"Error stopping agents: {str(e)}", 'error')
+            self.logger.log(f"Error stopping agents: {str(e)}", 'error')
             raise
 
     def _start_monitor_thread(self) -> None:
@@ -1111,15 +880,12 @@ List any specific constraints or limitations.
                 }
             }
     def _run_agent_wrapper(self, name: str, agent: 'KinOSAgent') -> None:
-        """Wrapper function to catch any exceptions from agent run method"""
+        """Wrapper pour exécuter un agent dans un thread"""
         try:
-            self.web_instance.log_message(f"Agent {name} thread starting run method", 'debug')
+            self.logger.log(f"Starting agent {name}")
             agent.run()
         except Exception as e:
-            self.web_instance.log_message(
-                f"Agent {name} thread crashed: {str(e)}\n{traceback.format_exc()}", 
-                'error'
-            )
+            self.logger.log(f"Agent {name} crashed: {str(e)}", 'error')
     def _get_detailed_agent_status(self, agent_name: str) -> Dict[str, Any]:
         """Get comprehensive agent status including performance metrics"""
         try:
@@ -1655,156 +1421,10 @@ Describe the operational context and key responsibilities.
         return True
 
     def _create_dynamic_agent(self, config: Dict[str, Any]) -> Optional['KinOSAgent']:
-        """
-        Crée dynamiquement un agent à partir de sa configuration
-    
-        Args:
-            config: Configuration de l'agent incluant prompt et clés API
-        
-        Returns:
-            KinOSAgent: Instance de l'agent ou None si erreur
-        """
+        """Crée un agent à partir de sa configuration"""
         try:
-            # Normalize configuration
-            if not isinstance(config, dict):
-                config = {'config': config} if config else {}
-
-            # Ensure we have a nested config structure
-            if 'config' not in config:
-                config = {'config': config}
-
-            # Extract configuration
-            agent_config = config.get('config', {})
-
-            # Ensure name is present
-            if 'name' not in agent_config:
-                name_sources = [
-                    config.get('name'),
-                    agent_config.get('agent_name'),
-                    agent_config.get('id')
-                ]
-                name = next((n for n in name_sources if n), None)
-                if not name:
-                    self.web_instance.log_message("Could not determine agent name", 'error')
-                    return None
-                agent_config['name'] = name.lower().replace('agent', '').strip()
-
-            # Ensure prompt is present
-            if 'prompt' not in agent_config:
-                # Try to find prompt file
-                prompt_file = self._find_agent_prompt(
-                    agent_config['name'], 
-                    [
-                        PathManager.get_prompts_path(),
-                        PathManager.get_custom_prompts_path()
-                    ]
-                )
-            
-                if prompt_file:
-                    prompt_content = self._read_prompt_file(prompt_file)
-                    if prompt_content:
-                        agent_config['prompt'] = prompt_content
-                    else:
-                        self.web_instance.log_message(
-                            f"Empty prompt file for {agent_config['name']}", 
-                            'warning'
-                        )
-                        # Create a default prompt if no content found
-                        agent_config['prompt'] = self._create_default_prompt(agent_config['name'])
-                else:
-                    # Create a default prompt if no file found
-                    agent_config['prompt'] = self._create_default_prompt(agent_config['name'])
-
-            # Determine mission directory - prioritize config mission_dir
-            try:
-                mission_dir = agent_config.get('mission_dir')
-                
-                # If no mission_dir in config, try to get from file_manager
-                if not mission_dir:
-                    current_mission = self.web_instance.file_manager.current_mission
-                    if current_mission:
-                        mission_dir = PathManager.get_mission_path(current_mission)
-                    else:
-                        self.web_instance.log_message(
-                            f"No mission directory available for agent {agent_config['name']}", 
-                            'warning'
-                        )
-                        return None
-
-                # Validate mission directory
-                if not os.path.exists(mission_dir):
-                    self.web_instance.log_message(
-                        f"Mission directory not found: {mission_dir}", 
-                        'error'
-                    )
-                    return None
-
-                if not os.access(mission_dir, os.R_OK | os.W_OK):
-                    self.web_instance.log_message(
-                        f"Insufficient permissions on: {mission_dir}", 
-                        'error'
-                    )
-                    return None
-
-                # Update agent config with validated mission directory
-                agent_config['mission_dir'] = mission_dir
-                
-                self.web_instance.log_message(
-                    f"Using mission directory for {agent_config['name']}: {mission_dir}", 
-                    'debug'
-                )
-
-            except Exception as mission_dir_error:
-                self.web_instance.log_message(
-                    f"Error determining mission directory: {str(mission_dir_error)}", 
-                    'error'
-                )
-                return None
-
-            # Validate configuration
-            required_fields = ['name', 'prompt', 'mission_dir']
-            missing_fields = [field for field in required_fields if field not in agent_config]
-        
-            if missing_fields:
-                self.web_instance.log_message(
-                    f"Missing required fields: {missing_fields}", 
-                    'error'
-                )
-                return None
-
-            # Create the agent
-            try:
-                from aider_agent import AiderAgent
-                
-                # Merge all configuration
-                full_config = {
-                    **agent_config,
-                    'web_instance': self.web_instance,
-                    'anthropic_api_key': config.get('anthropic_api_key'),
-                    'openai_api_key': config.get('openai_api_key')
-                }
-                
-                # Create agent
-                agent = AiderAgent(full_config)
-                
-                self.web_instance.log_message(
-                    f"Successfully created agent {agent_config['name']}", 
-                    'success'
-                )
-                
-                return agent
-                
-            except ImportError as e:
-                self.web_instance.log_message(
-                    f"Error importing AiderAgent: {str(e)}", 
-                    'error'
-                )
-                return None
-                
+            from aider_agent import AiderAgent
+            return AiderAgent(config)
         except Exception as e:
-            self.web_instance.log_message(
-                f"Error creating agent: {str(e)}\n"
-                f"Traceback: {traceback.format_exc()}", 
-                'error'
-            )
+            self.logger.log(f"Error creating agent: {str(e)}", 'error')
             return None
