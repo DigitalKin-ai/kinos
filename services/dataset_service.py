@@ -59,22 +59,6 @@ class DatasetService(BaseService):
             
             # Start cleanup timer
             self._start_cleanup_timer()
-        except Exception as e:
-            # Create logger if it doesn't exist yet
-            if not hasattr(self, 'logger'):
-                self.logger = Logger()
-            self.logger.log(f"Error initializing dataset service: {str(e)}", 'error')
-            raise ServiceError(f"Failed to initialize dataset service: {str(e)}")
-            
-            # Create dataset file if it doesn't exist
-            if not os.path.exists(self.dataset_file):
-                try:
-                    with open(self.dataset_file, 'w', encoding='utf-8') as f:
-                        pass  # Create empty file
-                    self.logger.log(f"Created new dataset file: {self.dataset_file}", 'info')
-                except Exception as e:
-                    self.logger.log(f"Error creating dataset file: {str(e)}", 'error')
-                    raise
             
             # Verify service availability immediately
             if not self.is_available():

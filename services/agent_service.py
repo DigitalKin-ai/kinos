@@ -750,15 +750,24 @@ List any specific constraints or limitations.
 
     def _get_agent_status_details(self, agent) -> dict:
         """Get standardized agent status details"""
-        return {
-            'running': getattr(agent, 'running', False),
-            'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
-            'status': 'active' if getattr(agent, 'running', False) else 'inactive',
-            'health': {
-                'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
-                'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
+        try:
+            return {
+                'running': getattr(agent, 'running', False),
+                'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
+                'status': 'active' if getattr(agent, 'running', False) else 'inactive',
+                'health': {
+                    'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
+                    'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
+                }
             }
-        }
+        except Exception as e:
+            self.logger.log(f"Error getting agent status details: {str(e)}", 'error')
+            return {
+                'running': False,
+                'status': 'error',
+                'last_run': None,
+                'health': {'is_healthy': False, 'consecutive_no_changes': 0}
+            }
 
     def _get_agent_status(self, agent_name: str) -> Dict[str, Any]:
         """Get status for a specific agent"""

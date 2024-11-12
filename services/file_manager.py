@@ -40,17 +40,33 @@ class FileManager:
             file_path = os.path.join(os.getcwd(), file_name)
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
             
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(content)
+            # Write to temporary file first
+            temp_path = f"{file_path}.tmp"
+            try:
+                with open(temp_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                    f.flush()
+                    os.fsync(f.fileno())
                 
-            # Update map after any file change except map.md itself
-            if file_name != 'map.md':
-                # Get services and update map
-                from services import init_services
-                services = init_services(None)
-                services['map_service'].update_map()
+                # Atomic rename
+                os.replace(temp_path, file_path)
                 
-            return True
+                # Update map after any file change except map.md itself
+                if file_name != 'map.md':
+                    from services import init_services
+                    services = init_services(None)
+                    services['map_service'].update_map()
+                    
+                return True
+                
+            finally:
+                # Clean up temp file if it exists
+                if os.path.exists(temp_path):
+                    try:
+                        os.remove(temp_path)
+                    except:
+                        pass
+                        
         except Exception as e:
             self.logger.log(f"Error writing {file_name}: {str(e)}", 'error')
             return False
