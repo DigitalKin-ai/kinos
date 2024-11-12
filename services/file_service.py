@@ -18,10 +18,7 @@ class FileService(BaseService):
         super().__init__(web_instance)
         self.content_cache = {}
         self.last_modified = {}
-        # Use PathManager for project root
-        self.project_root = PathManager.get_project_root()
-        # Use the file_manager from web_instance instead of creating a new one
-        self.file_manager = web_instance.file_manager
+        self.project_root = os.getcwd()
         
 
     def _safe_file_operation(self, operation: str, file_path: str, content: str = None) -> Optional[str]:
@@ -45,11 +42,8 @@ class FileService(BaseService):
             if not file_name.endswith('.md'):
                 file_name = f"{file_name}.md"
 
-            # Construct absolute file path using PathManager
-            if self.current_mission:
-                file_path = os.path.join(PathManager.get_mission_path(self.current_mission), file_name)
-            else:
-                file_path = os.path.join(self.project_root, file_name)
+            # Construct absolute file path
+            file_path = os.path.join(self.project_root, file_name)
 
             # Ne pas créer le fichier s'il n'existe pas
             if not os.path.exists(file_path):
