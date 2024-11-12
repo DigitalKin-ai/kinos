@@ -482,46 +482,7 @@ class AiderAgent(KinOSAgent):
                                 loop = asyncio.new_event_loop()
                                 asyncio.set_event_loop(loop)
 
-                            # Check dataset service availability silently
-                            if (hasattr(self.web_instance, 'dataset_service') and 
-                                self.web_instance.dataset_service and 
-                                hasattr(self.web_instance.dataset_service, 'is_available') and 
-                                self.web_instance.dataset_service.is_available()):
-                                try:
-                                    # Create and manage event loop properly
-                                    try:
-                                        loop = asyncio.get_event_loop()
-                                    except RuntimeError:
-                                        # If no loop exists, create a new one
-                                        loop = asyncio.new_event_loop()
-                                        asyncio.set_event_loop(loop)
-
-                                    # Run coroutine in the event loop
-                                    loop.run_until_complete(
-                                        self.web_instance.dataset_service.add_interaction_async(
-                                            prompt=prompt,
-                                            files_context=files_context,
-                                            aider_response=full_output
-                                        )
-                                    )
-                                
-                                    self._log(
-                                        f"[{self.__class__.__name__}] ✅ Added interaction to dataset "
-                                        f"with {len(files_context)} files", 
-                                        'success'
-                                    )
-                                except Exception as e:
-                                    self._log(
-                                        f"[{self.__class__.__name__}] ❌ Error adding to dataset: {str(e)}\n"
-                                        f"Traceback: {traceback.format_exc()}", 
-                                        'error'
-                                    )
-                            else:
-                                self._log(
-                                    f"[{self.__class__.__name__}] ⚠️ Dataset service not available - "
-                                    f"skipping interaction save", 
-                                    'warning'
-                                )
+                            # Dataset functionality disabled in CLI mode
 
                     except Exception as e:
                         self._log(
