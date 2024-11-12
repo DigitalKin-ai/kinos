@@ -644,38 +644,62 @@ class AiderAgent(KinOSAgent):
 
     def get_prompt(self) -> str:
         """Get the current prompt content with caching"""
-        self._prompt_cache = {}
         try:
             if not self.prompt_file:
                 return self.prompt  # Return default prompt if no file specified
                 
+            # Normalize agent name
+            agent_name = self.name.lower().replace('agent', '').strip()
+            
+            # Use PathManager to get prompts directory
+            prompts_dir = PathManager.get_prompts_path()
+            prompt_path = os.path.join(prompts_dir, f"{agent_name}.md")
+            
+            # Log search path for debugging
+            self.logger.log(f"Looking for prompt at: {prompt_path}", 'debug')
+            
+            # Check if prompt exists
+            if not os.path.exists(prompt_path):
+                self.logger.log(f"Prompt file not found: {prompt_path}", 'warning')
+                
+                # Try custom prompts directory
+                custom_prompts_dir = PathManager.get_custom_prompts_path()
+                custom_path = os.path.join(custom_prompts_dir, f"{agent_name}.md")
+                
+                if os.path.exists(custom_path):
+                    prompt_path = custom_path
+                    self.logger.log(f"Found custom prompt at: {custom_path}", 'debug')
+                else:
+                    # Create default prompt
+                    os.makedirs(os.path.dirname(prompt_path), exist_ok=True)
+                    default_content = self._create_default_prompt(agent_name)
+                    try:
+                        with open(prompt_path, 'w', encoding='utf-8') as f:
+                            f.write(default_content)
+                        self.logger.log(f"Created default prompt at: {prompt_path}", 'info')
+                    except Exception as write_error:
+                        self.logger.log(f"Error creating default prompt: {str(write_error)}", 'error')
+                        return self.prompt
+
             # Check cache first
-            mtime = os.path.getmtime(self.prompt_file)
-            if self.prompt_file in self._prompt_cache:
-                cached_time, cached_content = self._prompt_cache[self.prompt_file]
+            mtime = os.path.getmtime(prompt_path)
+            if prompt_path in self._prompt_cache:
+                cached_time, cached_content = self._prompt_cache[prompt_path]
                 if cached_time == mtime:
                     return cached_content
 
             # Load from file if not in cache or cache invalid
-            from utils.path_manager import PathManager
             try:
-                prompts_dir = PathManager.get_prompts_path()
-                prompt_path = os.path.join(prompts_dir, self.prompt_file)
-                
-                if os.path.exists(prompt_path):
-                    with open(prompt_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                        self._prompt_cache[self.prompt_file] = (mtime, content)
-                        return content
-                else:
-                    self._log(f"Prompt file not found: {self.prompt_file}")
-                    return self.prompt  # Fallback to default prompt
+                with open(prompt_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    self._prompt_cache[prompt_path] = (mtime, content)
+                    return content
             except Exception as e:
-                self._log(f"Error accessing prompt file: {str(e)}")
+                self.logger.log(f"Error reading prompt file: {str(e)}", 'error')
                 return self.prompt  # Fallback to default prompt
-                
+
         except Exception as e:
-            self._log(f"Error loading prompt: {str(e)}")
+            self.logger.log(f"Error in get_prompt: {str(e)}", 'error')
             return self.prompt  # Fallback to default prompt
 
     def save_prompt(self, content: str) -> bool:
