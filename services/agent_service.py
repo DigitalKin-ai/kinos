@@ -269,37 +269,34 @@ List any specific constraints or limitations.
         return default_prompt
 
     def _find_prompt_file(self, agent_name: str) -> Optional[str]:
-        """
-        Find or create a prompt file for an agent
-    
-        Args:
-            agent_name (str): Name of the agent
-    
-        Returns:
-            Optional path to prompt file
-        """
+        """Find prompt file for an agent"""
         try:
             # Normalize agent name
             normalized_name = agent_name.lower().replace('agent', '').strip()
-        
-            # Possible prompt locations
+            
+            # Get project root (where prompts directory is)
+            project_root = os.getcwd()
+            
+            # Possible prompt locations in order of preference
             prompt_locations = [
-                PathManager.get_prompt_file(normalized_name),
-                os.path.join(PathManager.get_prompts_path(), f"{normalized_name}.md"),
-                os.path.join(PathManager.get_prompts_path(), "custom", f"{normalized_name}.md")
+                os.path.join(project_root, "prompts", f"{normalized_name}.md"),
+                os.path.join(project_root, "prompts", "custom", f"{normalized_name}.md"),
+                os.path.join(project_root, "prompts", f"{normalized_name}_agent.md")
             ]
-        
-            # Try to find an existing prompt file
+            
+            # Try each possible location
             for location in prompt_locations:
                 if os.path.exists(location):
                     self.logger.log(f"Found prompt for {normalized_name}: {location}", 'debug')
                     return location
-        
-            # If no prompt found, create a default
-            default_prompt_path = self._create_default_prompt_file(normalized_name)
-        
-            return default_prompt_path
-    
+            
+            self.logger.log(
+                f"No prompt file found for {normalized_name}\n"
+                f"Searched locations:\n" + "\n".join(prompt_locations),
+                'error'
+            )
+            return None
+            
         except Exception as e:
             self.logger.log(f"Error finding prompt for {agent_name}: {str(e)}", 'error')
             return None
