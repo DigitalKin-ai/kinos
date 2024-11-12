@@ -661,25 +661,7 @@ class AiderAgent(KinOSAgent):
             # Check if prompt exists
             if not os.path.exists(prompt_path):
                 self.logger.log(f"Prompt file not found: {prompt_path}", 'warning')
-                
-                # Try custom prompts directory
-                custom_prompts_dir = PathManager.get_custom_prompts_path()
-                custom_path = os.path.join(custom_prompts_dir, f"{agent_name}.md")
-                
-                if os.path.exists(custom_path):
-                    prompt_path = custom_path
-                    self.logger.log(f"Found custom prompt at: {custom_path}", 'debug')
-                else:
-                    # Create default prompt
-                    os.makedirs(os.path.dirname(prompt_path), exist_ok=True)
-                    default_content = self._create_default_prompt(agent_name)
-                    try:
-                        with open(prompt_path, 'w', encoding='utf-8') as f:
-                            f.write(default_content)
-                        self.logger.log(f"Created default prompt at: {prompt_path}", 'info')
-                    except Exception as write_error:
-                        self.logger.log(f"Error creating default prompt: {str(write_error)}", 'error')
-                        return self.prompt
+                return self.prompt  # Return default prompt if file not found
 
             # Check cache first
             mtime = os.path.getmtime(prompt_path)
