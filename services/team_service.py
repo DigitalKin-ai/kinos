@@ -235,73 +235,68 @@ class TeamService(BaseService):
     def activate_team(self, mission_id: int, team_id: str) -> Dict[str, Any]:
         """Activate a team for a mission with enhanced error handling and agent initialization"""
         try:
-            # Log initial activation attempt
-            self.web_instance.log_message(
+            # Centralized logging and error handling
+            def log_and_validate(message: str, level: str = 'info'):
+                self.web_instance.log_message(message, level)
+
+            log_and_validate(
                 f"\n=== TEAM ACTIVATION START ===\n"
                 f"Mission ID: {mission_id}\n"
                 f"Team ID: {team_id}\n"
-                f"Timestamp: {datetime.now().isoformat()}", 
-                'info'
+                f"Timestamp: {datetime.now().isoformat()}"
             )
 
-            # Get mission details
+            # Get mission details with error handling
             mission = self.web_instance.mission_service.get_mission(mission_id)
             if not mission:
-                self.web_instance.log_message(f"❌ Mission {mission_id} not found", 'error')
+                log_and_validate(f"❌ Mission {mission_id} not found", 'error')
                 raise ValueError(f"Mission {mission_id} not found")
 
             # Get mission directory
             mission_dir = PathManager.get_mission_path(mission['name'])
-            self.web_instance.log_message(f"📂 Mission directory: {mission_dir}", 'debug')
+            log_and_validate(f"📂 Mission directory: {mission_dir}", 'debug')
 
-            # Validate and get team
+            # Validate and get team configuration
             self._validate_team_id(team_id)
             team = next(t for t in self.predefined_teams if t['id'] == team_id)
             normalized_agents = self._normalize_agent_names(team['agents'])
             team['agents'] = normalized_agents
 
-            self.web_instance.log_message(
+            log_and_validate(
                 f"\n=== TEAM CONFIGURATION ===\n"
                 f"Team Name: {team['name']}\n"
                 f"Normalized Agents: {normalized_agents}", 
                 'debug'
             )
 
-            # Stop current active team if exists
+            # Stop current active team and all agents
             if self.active_team:
-                self.web_instance.log_message(f"🔄 Stopping current active team: {self.active_team['id']}", 'info')
+                log_and_validate(f"🔄 Stopping current active team: {self.active_team['id']}")
                 self.deactivate_team(self.active_team['id'])
 
-            # Stop all agents first
             if hasattr(self.web_instance.agent_service, 'stop_all_agents'):
-                self.web_instance.log_message("🛑 Stopping all agents before initialization", 'info')
+                log_and_validate("🛑 Stopping all agents before initialization")
                 self.web_instance.agent_service.stop_all_agents()
 
-            # Initialize configuration
+            # Prepare configuration
             config = {
                 "openai_api_key": self.web_instance.config.get("openai_api_key", ""),
                 "mission_dir": mission_dir
             }
 
-            self.web_instance.log_message(
-                f"\n=== AGENT INITIALIZATION START ===\n"
-                f"Config prepared with mission_dir: {mission_dir}", 
-                'debug'
-            )
-
-            # Initialize agents for this team
+            # Initialize agents with error handling
             try:
                 if hasattr(self.web_instance.agent_service, 'init_agents'):
-                    self.web_instance.log_message("🚀 Initializing agents...", 'info')
+                    log_and_validate("🚀 Initializing agents...")
                     self.web_instance.agent_service.init_agents(
                         config=config,
                         team_agents=team['agents']
                     )
-                    self.web_instance.log_message("✅ Agents initialized successfully", 'success')
+                    log_and_validate("✅ Agents initialized successfully", 'success')
                 else:
                     raise AttributeError("AgentService missing init_agents method")
             except Exception as init_error:
-                self.web_instance.log_message(
+                log_and_validate(
                     f"\n=== AGENT INITIALIZATION FAILED ===\n"
                     f"Error: {str(init_error)}\n"
                     f"Traceback: {traceback.format_exc()}", 
@@ -309,15 +304,15 @@ class TeamService(BaseService):
                 )
                 raise
 
-            # Start team agents with validation
+            # Start team agents with comprehensive validation and logging
             activation_results = []
-            self.web_instance.log_message("\n=== STARTING INDIVIDUAL AGENTS ===", 'info')
-            
+            log_and_validate("\n=== STARTING INDIVIDUAL AGENTS ===")
+        
             for agent_name in team['agents']:
                 try:
-                    self.web_instance.log_message(f"▶️ Starting agent: {agent_name}", 'info')
+                    log_and_validate(f"▶️ Starting agent: {agent_name}")
                     self._validate_agent_name(agent_name)
-                    
+                
                     if hasattr(self.web_instance.agent_service, 'toggle_agent'):
                         success = self.web_instance.agent_service.toggle_agent(
                             agent_name=agent_name,
@@ -330,13 +325,13 @@ class TeamService(BaseService):
                             'error': None if success else f"Failed to start {agent_name}"
                         }
                         activation_results.append(result)
-                        
+                    
                         status = "✅ Success" if success else "❌ Failed"
-                        self.web_instance.log_message(f"{status} - Agent: {agent_name}", 
-                                                    'success' if success else 'error')
-                        
+                        log_and_validate(f"{status} - Agent: {agent_name}", 
+                                         'success' if success else 'error')
+                    
                 except Exception as e:
-                    self.web_instance.log_message(
+                    log_and_validate(
                         f"❌ Agent activation failed:\n"
                         f"Agent: {agent_name}\n"
                         f"Error: {str(e)}", 
@@ -348,9 +343,9 @@ class TeamService(BaseService):
                         'error': str(e)
                     })
 
-            # Log final activation summary
+            # Log final activation summary with helper function
             success_count = sum(1 for r in activation_results if r['success'])
-            self.web_instance.log_message(
+            log_and_validate(
                 f"\n=== TEAM ACTIVATION SUMMARY ===\n"
                 f"Total Agents: {len(team['agents'])}\n"
                 f"Successfully Started: {success_count}\n"
@@ -359,7 +354,7 @@ class TeamService(BaseService):
             )
 
             self.active_team = team
-            
+        
             return {
                 'team': team,
                 'activation_results': activation_results,
