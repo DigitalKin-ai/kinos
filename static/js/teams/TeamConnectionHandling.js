@@ -21,18 +21,19 @@ export default {
                 const response = await fetch('/api/status', {
                     method: 'GET',
                     headers: {
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Client-Timestamp': Date.now()
                     },
                     signal: AbortSignal.timeout(5000)
                 });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    this.connectionStatus.connected = data.server?.running === true;
-                } else {
-                    this.connectionStatus.connected = false;
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
                 }
-                
+
+                const data = await response.json();
+                this.connectionStatus.connected = true;
                 this.connectionStatus.lastCheck = new Date();
                 this.connectionStatus.retryCount = 0;
                 

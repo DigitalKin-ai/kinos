@@ -23,19 +23,15 @@ export default {
             } catch (error) {
                 console.error(`Operation failed for team ${teamId}:`, error);
                 
-                if (attempts < this.maxRetries) {
+                if (attempts < maxRetries) {
                     this.retryAttempts.set(teamId, attempts + 1);
-                    await new Promise(resolve => setTimeout(resolve, this.retryDelay * Math.pow(2, attempts)));
+                    const delay = Math.min(1000 * Math.pow(2, attempts), 30000);
+                    await new Promise(resolve => setTimeout(resolve, delay));
                     return this.handleOperationWithRetry(operation, teamId, errorMessage);
                 }
                 
                 this.errorMessages.set(teamId, errorMessage);
-                this.handleError(error, { 
-                    title: 'Operation Failed', 
-                    teamId, 
-                    errorMessage 
-                });
-                
+                this.handleError(error);
                 throw error;
             } finally {
                 this.loadingStates.set(teamId, false);

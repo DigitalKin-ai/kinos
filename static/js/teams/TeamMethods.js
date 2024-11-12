@@ -33,9 +33,17 @@ export default {
             try {
                 await this.handleOperationWithRetry(
                     async () => {
+                        if (!this.connectionStatus.connected) {
+                            await this.checkConnection();
+                            if (!this.connectionStatus.connected) {
+                                throw new Error('Server is not available');
+                            }
+                        }
+
                         const action = this.isTeamRunning(team) ? 'stop' : 'start';
                         const response = await fetch(`/api/teams/${team.id}/${action}`, {
-                            method: 'POST'
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
                         });
                         
                         if (!response.ok) throw new Error(`Failed to ${action} team`);
@@ -48,6 +56,7 @@ export default {
                 );
             } catch (error) {
                 console.error('Team toggle failed:', error);
+                this.handleError(error.message);
             }
         },
 

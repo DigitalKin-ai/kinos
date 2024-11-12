@@ -59,7 +59,19 @@ export default function() {
         // États de monitoring
         monitoring: {
             pollInterval: 30000,
-            statsInterval: null
+            statsInterval: null,
+            healthChecks: new Map(),
+            lastUpdates: new Map(),
+            errors: new Map(),
+            retryAttempts: new Map(),
+            maxRetries: 3,
+            backoffDelay: 1000
+        },
+
+        statusCache: {
+            data: new Map(),
+            ttl: 5000,
+            lastCleanup: Date.now()
         }
     }
 }
