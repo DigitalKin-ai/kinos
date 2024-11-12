@@ -32,42 +32,32 @@ OPENAI_API_KEY=votre-clé-openai
 
 ## 🚀 CLI Usage
 
-### Lancement Simplifié
+### CLI Usage
 
+#### Basic Commands
 ```bash
-# Lancer une équipe dans le répertoire courant
-kin book-writing
+# Launch team in current directory
+kin default
 
-# Équipes disponibles
-# - book-writing (défaut)
-# - coding
-# - literature-review
-```
+# Launch with verbose logging
+kin default -v
 
-#### Options
-
-```bash
-# Mode verbose
-kin book-writing -v
-
-# Afficher l'aide
+# Show help
 kin --help
 ```
 
-### Équipes Prédéfinies
+#### Predefined Teams
+1. **default** (default team)
+   - Content creation and documentation
+   - Agents: Specifications, Management, Evaluation, etc.
 
-1. **Book Writing Team** (défaut)
-   - Agents pour la création de contenu
-   - Idéal pour la rédaction documentaire
-   - Agents par défaut si aucune équipe n'est spécifiée
+2. **coding**
+   - Software development focus
+   - Agents: Specifications, Production, Testing, etc.
 
-2. **Coding Team**
-   - Agents pour le développement logiciel
-   - Optimisé pour la génération de code
-
-3. **Literature Review Team**
-   - Agents pour l'analyse et la revue
-   - Parfait pour les projets de recherche
+3. **literature-review**
+   - Research and analysis
+   - Agents: Specifications, Management, Evaluation, etc.
 
 ### Gestion des Chemins
 
