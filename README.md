@@ -1,22 +1,26 @@
 # KinOS
 
-KinOS est un framework d'agents autonomes qui opèrent directement dans votre dossier de projet. Chaque agent gère ses propres fichiers et travaille de manière indépendante pour améliorer et accélérer le développement.
+KinOS est un framework d'agents autonomes qui opèrent directement dans votre dossier de projet. Les agents collaborent de manière autonome pour améliorer et accélérer le développement.
 
 ## ✨ Points Clés
 
 - **Zéro configuration** - Fonctionne dans n'importe quel dossier
-- **Agents autonomes** - Chaque agent gère ses fichiers
-- **CLI simple** - Une seule commande : `kin`
-- **Phases intelligentes** - Expansion/Convergence automatique
+- **Agents autonomes** - Collaboration intelligente
+- **CLI minimaliste** - Une seule commande : `kin`
+- **Phases adaptatives** - Expansion/Convergence automatique
 - **Dataset intégré** - Collection pour fine-tuning
+- **Gestion dynamique** - S'adapte à votre projet
 
 ## 🚀 Installation
 
 ```bash
-# Installation depuis PyPI
+# Installation des prérequis
+pip install aider-chat
+
+# Installation de KinOS
 pip install kinos
 
-# Configuration des clés API
+# Configuration des clés API (requises)
 export ANTHROPIC_API_KEY="votre-clé"
 export OPENAI_API_KEY="votre-clé"
 ```
@@ -24,17 +28,17 @@ export OPENAI_API_KEY="votre-clé"
 ## 🚀 Utilisation
 
 ```bash
-# Lancer dans le dossier courant
+# Lancer KinOS dans votre projet
 cd votre-projet
 kin
 
-# Choisir une équipe spécifique
-kin coding      # Équipe développement
-kin book        # Équipe rédaction
-kin research    # Équipe recherche
-
 # Voir le statut des phases
 kin phase status
+kin phase tokens
+
+# Gérer les phases manuellement
+kin phase set expansion
+kin phase set convergence
 
 # Voir l'aide complète
 kin --help
@@ -42,26 +46,38 @@ kin --help
 
 ## 📊 Phases de Projet
 
-KinOS alterne automatiquement entre deux phases :
+KinOS alterne automatiquement entre deux phases selon l'utilisation des tokens :
 
-- **EXPANSION** (< 60% tokens) : Création libre de contenu
-- **CONVERGENCE** (> 60% tokens) : Optimisation et consolidation
+- **EXPANSION** (< 60% tokens) 
+  * Création libre de contenu
+  * Développement de nouvelles fonctionnalités
+  * Documentation extensive
+
+- **CONVERGENCE** (> 60% tokens)
+  * Optimisation du contenu existant
+  * Réduction de la duplication
+  * Consolidation des documents
 
 ## 🤖 Agents Disponibles
 
-Chaque équipe combine différents agents spécialisés :
+Les agents collaborent automatiquement selon les besoins :
 
 - **SpecificationsAgent** - Analyse des besoins
 - **ProductionAgent** - Génération de code
 - **ValidationAgent** - Contrôle qualité
 - **DocumentalisteAgent** - Documentation
 - **DuplicationAgent** - Détection redondances
+- **ChroniqueurAgent** - Suivi des changements
+- **TesteurAgent** - Tests automatisés
 
 ## 📋 Prérequis
 
 - Python 3.8+
-- Clés API Anthropic et OpenAI
-- Aider CLI (`pip install aider-chat`)
+- Git (pour Aider)
+- Aider CLI
+- Clés API :
+  * Anthropic Claude
+  * OpenAI (optionnel)
 
 ## 📚 Documentation
 

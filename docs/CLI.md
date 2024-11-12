@@ -2,98 +2,104 @@
 
 ## Vue d'Ensemble
 
-La CLI KinOS offre une interface simplifiée pour lancer des équipes d'agents dans le répertoire de travail actuel.
+KinOS offre une interface en ligne de commande minimaliste qui opère directement dans votre dossier de projet.
+
+## Commande Principale
+
+```bash
+kin [options]
+```
 
 ## Utilisation de Base
 
 ```bash
-# Launch default team in current directory
+# Lancer KinOS dans le dossier courant
+cd votre-projet
 kin
 
-# Launch with verbose logging
+# Activer le mode verbeux
 kin -v
 
-# Show help
+# Voir l'aide
 kin --help
 ```
 
-## Commandes Disponibles
+## Gestion des Phases
 
-### Lancement d'Équipe
-
-#### Syntaxe Simplifiée
+### Commandes de Phase
 ```bash
-# Lancer l'équipe de rédaction
-kin book-writing
+# Voir le statut actuel
+kin phase status
 
-# Lancer l'équipe de développement
-kin coding
+# Voir les métriques de tokens
+kin phase tokens
 
-# Lancer l'équipe de revue littéraire
-kin literature-review
+# Voir l'historique des transitions
+kin phase history
+
+# Forcer un changement de phase
+kin phase set expansion   # Passer en phase d'expansion
+kin phase set convergence # Passer en phase de convergence
+
+# Surveiller les changements de phase
+kin phase watch
 ```
 
-### Équipes Prédéfinies
-
-1. **book-writing**
-   - Idéal pour la rédaction de contenu
-   - Agents : Spécifications, Gestion, Évaluation, Rédacteur, etc.
-
-2. **coding**
-   - Pour les projets de développement logiciel
-   - Agents : Spécifications, Production, Test, Validation, etc.
-
-3. **literature-review**
-   - Pour l'analyse et la revue de documents
-   - Agents : Spécifications, Gestion, Évaluation, Chroniqueur, etc.
-
-### Options Avancées
-
+### Gestion des Tokens
 ```bash
-# Mode verbose pour plus de détails
-kin <nom-equipe> -v
+# Voir l'utilisation par fichier
+kin tokens list
 
-# Afficher l'aide
-kin --help
+# Vérifier les avertissements
+kin tokens check
+
+# Voir la marge disponible
+kin tokens headroom
 ```
 
 ## Comportement
 
-- **Répertoire Courant** : L'équipe est lancée dans le dossier actuel
-- **Équipe par Défaut** : Déterminée par le premier argument
-- **Lancement Automatique** : Démarre immédiatement les agents
+- **Contexte** : Utilise le dossier courant comme racine du projet
+- **Configuration** : Aucune configuration requise
+- **Phases** : Transition automatique selon l'utilisation des tokens
+  * EXPANSION (< 60% tokens)
+  * CONVERGENCE (> 60% tokens)
 
 ## Exemples Pratiques
 
 ```bash
-# Dans un projet de livre
-cd mon-projet-livre
-kin book-writing
+# Démarrer dans un projet
+cd mon-projet
+kin
 
-# Dans un projet de développement
-cd mon-projet-code
-kin coding
+# Surveiller l'utilisation des tokens
+kin phase status
+kin tokens list
 
-# Avec mode verbose
-cd mon-projet-analyse
-kin literature-review -v
+# Optimiser quand nécessaire
+kin phase set convergence
+kin tokens check
 ```
-
-## Prérequis
-
-- Python 3.8+
-- KinOS installé
-- Clés API configurées
-- Répertoire de projet initialisé
 
 ## Dépannage
 
-- Vérifiez que vous êtes dans le bon répertoire
-- Assurez-vous que les clés API sont configurées
-- Consultez les logs en cas d'erreur
-- Utilisez l'option `-v` pour plus de détails
+1. **Vérifications de Base**
+   - Vous êtes dans le bon dossier
+   - Les clés API sont configurées
+   - Aider est installé et fonctionnel
 
-## Versions
+2. **Logs et Diagnostic**
+   - Utilisez `-v` pour le mode verbeux
+   - Consultez les logs dans `./logs/`
+   - Vérifiez le statut des phases
 
-- Version actuelle : 0.1.0
-- Dernière mise à jour : 2024-02-15
+3. **Problèmes Courants**
+   - Permission denied → Vérifiez les droits du dossier
+   - API key error → Reconfigurez les clés API
+   - Phase errors → Vérifiez l'utilisation des tokens
+
+## Version et Compatibilité
+
+- Version : 0.2.0
+- Python : 3.8+
+- Mise à jour : 2024-03-21
