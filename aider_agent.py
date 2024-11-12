@@ -652,7 +652,7 @@ class AiderAgent(KinOSAgent):
             agent_name = self.name.lower().replace('agent', '').strip()
             
             # Get KinOS installation directory - it's where this aider_agent.py file is located
-            kinos_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            kinos_root = os.path.dirname(os.path.abspath(__file__))
             prompts_dir = os.path.join(kinos_root, "prompts")
             prompt_path = os.path.join(prompts_dir, f"{agent_name}.md")
             
