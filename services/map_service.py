@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 from typing import Dict, List, Tuple
 from services.base_service import BaseService
+from anthropic import Anthropic
 
 class MapService(BaseService):
     """Manages project documentation mapping and size monitoring"""
@@ -13,9 +14,11 @@ class MapService(BaseService):
         super().__init__(web_instance)
         self.map_file = "map.md"
         self.size_limits = {
-            'warning': 20000,  # Characters triggering warning (20k)
-            'error': 40000     # Characters triggering error (40k)
+            'warning': 6000,  # Tokens triggering warning (6k)
+            'error': 12000    # Tokens triggering error (12k)
         }
+        # Initialize Anthropic client for tokenization
+        self.anthropic = Anthropic()
 
     def generate_map(self) -> bool:
         """Generate project map file"""
@@ -56,18 +59,18 @@ class MapService(BaseService):
                     
                 elif item.endswith('.md'):
                     # Handle markdown file
-                    char_count = self._count_chars(full_path)
-                    status_icon = self._get_status_icon(char_count)
-                
-                    # Format size in KB with one decimal
-                    size_kb = char_count / 1000
-                
+                    token_count = self._count_tokens(full_path)
+                    status_icon = self._get_status_icon(token_count)
+                    
+                    # Format size in K tokens with one decimal
+                    size_k = token_count / 1000
+                    
                     tree_lines.append(
-                        f"{current_prefix}📄 {item} ({size_kb:.1f}k chars) {status_icon}"
+                        f"{current_prefix}📄 {item} ({size_k:.1f}k tokens) {status_icon}"
                     )
-                
+                    
                     # Add warning if needed
-                    warning = self._check_file_size(item, char_count)
+                    warning = self._check_file_size(item, token_count)
                     if warning:
                         warnings.append(warning)
                         
@@ -77,28 +80,30 @@ class MapService(BaseService):
             self.logger.log(f"Error scanning directory: {str(e)}", 'error')
             return [], []
 
-    def _count_chars(self, file_path: str) -> int:
-        """Count number of characters in a file"""
+    def _count_tokens(self, file_path: str) -> int:
+        """Count number of tokens in a file using Anthropic tokenizer"""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
-                return len(f.read())
+                content = f.read()
+                # Use Anthropic's tokenizer to count tokens
+                return self.anthropic.count_tokens(content)
         except Exception:
             return 0
 
-    def _get_status_icon(self, char_count: int) -> str:
-        """Get status icon based on character count"""
-        if char_count > self.size_limits['error']:
+    def _get_status_icon(self, token_count: int) -> str:
+        """Get status icon based on token count"""
+        if token_count > self.size_limits['error']:
             return "🔴"
-        elif char_count > self.size_limits['warning']:
+        elif token_count > self.size_limits['warning']:
             return "⚠️"
         return "✓"
 
-    def _check_file_size(self, filename: str, char_count: int) -> str:
+    def _check_file_size(self, filename: str, token_count: int) -> str:
         """Generate warning message if file exceeds size limits"""
-        if char_count > self.size_limits['error']:
-            return f"🔴 {filename} needs consolidation (>{self.size_limits['error']/1000:.0f}k chars)"
-        elif char_count > self.size_limits['warning']:
-            return f"⚠️ {filename} approaching limit (>{self.size_limits['warning']/1000:.0f}k chars)"
+        if token_count > self.size_limits['error']:
+            return f"🔴 {filename} needs consolidation (>{self.size_limits['error']/1000:.1f}k tokens)"
+        elif token_count > self.size_limits['warning']:
+            return f"⚠️ {filename} approaching limit (>{self.size_limits['warning']/1000:.1f}k tokens)"
         return ""
 
     def _format_map_content(self, tree_content: List[str], warnings: List[str]) -> str:
