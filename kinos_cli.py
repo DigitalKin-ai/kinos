@@ -68,56 +68,36 @@ def launch_team(args):
 def main():
     """Main entry point for KinOS CLI"""
     parser = argparse.ArgumentParser(description="KinOS CLI - Team Launch")
-    parser.add_argument('team', nargs='?', default='book-writing', 
-                        help='Team to launch (default: book-writing)')
-    parser.add_argument('-m', '--mission', default=None, 
-                        help='Optional mission name')
+    parser.add_argument('team', nargs='?', default='default', 
+                       help='Team to launch (default: default)')
     parser.add_argument('-v', '--verbose', action='store_true', 
-                        help='Enable verbose logging')
-    parser.add_argument('--dry-run', action='store_true', 
-                        help='Simulate launch without executing')
-    parser.add_argument('-p', '--path', default=None,
-                        help='Custom base path for mission')
+                       help='Enable verbose logging')
     
     args = parser.parse_args()
     
-    # Use provided path or current directory
-    base_path = args.path or os.getcwd()
-    mission_name = args.mission or os.path.basename(base_path)
-
     try:
         # Configure logging
         logger = configure_cli_logger()
         logger.log(f"Starting KinOS CLI...", 'info')
         logger.log(f"Team: {args.team}", 'info')
-        logger.log(f"Base path: {base_path}", 'info')
-        logger.log(f"Mission name: {mission_name}", 'info')
-
-        if args.dry_run:
-            logger.log("DRY RUN - No changes will be made", 'warning')
-            return
+        logger.log(f"Working directory: {os.getcwd()}", 'info')
 
         # Create service instances
-        mission_service = MissionService()
         team_service = TeamService(None)
         agent_service = AgentService(None)
 
-        # Launch team
+        # Launch team in current directory
         result = team_service.start_team(
-            mission_id=None,
             team_id=args.team, 
-            base_path=base_path
+            base_path=os.getcwd()
         )
 
-        # Display verbose output if requested
         if args.verbose:
             logger.log("Team launch details:", 'info')
-            logger.log(f"Active threads: {result.get('active_threads', 0)}", 'info')
             for agent_result in result.get('start_results', []):
                 status = agent_result.get('status', 'unknown')
                 agent = agent_result.get('agent', 'Unknown Agent')
-                logger.log(f"Agent {agent}: {status}", 
-                           'success' if status == 'started' else 'warning')
+                logger.log(f"Agent {agent}: {status}")
 
     except Exception as e:
         logger = configure_cli_logger()
