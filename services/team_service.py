@@ -387,40 +387,6 @@ class TeamService:
         except Exception as e:
             self.logger.log(f"Error in cleanup: {str(e)}", 'error')
 
-    def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
-        """Launch a team in the specified directory"""
-        try:
-            # Use current directory if not specified
-            mission_dir = base_path or os.getcwd()
-            
-            self.logger.log(f"Starting team {team_id} in {mission_dir}")
-
-            # Validate team exists
-            team = next((t for t in self.predefined_teams if t['id'] == team_id), None)
-            if not team:
-                raise ValueError(f"Team {team_id} not found")
-
-            # Initialize agents
-            config = {'mission_dir': mission_dir}
-            self.agent_service.init_agents(config, team['agents'])
-
-            # Start each agent
-            for agent_name in team['agents']:
-                try:
-                    self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
-                    self.logger.log(f"Started agent {agent_name}")
-                except Exception as e:
-                    self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
-
-            return {
-                'team_id': team_id,
-                'mission_dir': mission_dir,
-                'agents': team['agents']
-            }
-
-        except Exception as e:
-            self.logger.log(f"Error starting team: {str(e)}", 'error')
-            raise
 
     def _run_agent_wrapper(self, agent_name: str, agent: 'KinOSAgent') -> None:
         """
