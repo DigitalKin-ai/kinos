@@ -46,19 +46,27 @@ export default class TeamService {
     }
 
     async initialize() {
-        // Charger les configurations d'équipe prédéfinies
+        // Load predefined team configurations
         this.predefinedTeams = [
             {
-                id: 'book-writing',
-                name: "Book Writing Team",
+                id: 'default',
+                name: "Default Team",
                 agents: [
                     "SpecificationsAgent",
-                    "ManagementAgent",
+                    "ManagementAgent", 
                     "EvaluationAgent",
                     "ChroniqueurAgent",
+                    "DocumentalisteAgent"
+                ]
+            },
+            {
+                id: 'coding',
+                name: "Coding Team", 
+                agents: [
+                    "SpecificationsAgent",
+                    "ProductionAgent",
+                    "TesteurAgent",
                     "DocumentalisteAgent",
-                    "DuplicationAgent",
-                    "RedacteurAgent",
                     "ValidationAgent"
                 ]
             },
@@ -67,27 +75,9 @@ export default class TeamService {
                 name: "Literature Review Team",
                 agents: [
                     "SpecificationsAgent",
-                    "ManagementAgent",
                     "EvaluationAgent",
-                    "ChroniqueurAgent",
+                    "ChroniqueurAgent", 
                     "DocumentalisteAgent",
-                    "DuplicationAgent",
-                    "RedacteurAgent",
-                    "ValidationAgent"
-                ]
-            },
-            {
-                id: 'coding',
-                name: "Coding Team",
-                agents: [
-                    "SpecificationsAgent",
-                    "ManagementAgent",
-                    "EvaluationAgent",
-                    "ChroniqueurAgent",
-                    "DocumentalisteAgent",
-                    "DuplicationAgent",
-                    "ProductionAgent",
-                    "TesteurAgent",
                     "ValidationAgent"
                 ]
             }
