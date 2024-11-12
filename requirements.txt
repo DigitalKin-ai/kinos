@@ -1,55 +1,61 @@
 # Core Web Framework
-flask==2.3.2
-flask-cors==4.0.0
-flask-limiter==3.3.1
-gunicorn==20.1.0
+flask==2.3.3
+flask-cors==4.0.1
+flask-limiter==3.5.0
+gunicorn==21.2.0
 python-dotenv==1.0.0
-werkzeug==2.3.6
+werkzeug==3.0.1
 
 # API and Async
 requests==2.31.0
-httpx==0.24.1
-aiohttp==3.8.5
+httpx==0.25.2
+aiohttp==3.9.1
 
 # AI and Machine Learning
-anthropic==0.7.6
-openai==1.3.5
-transformers==4.33.2
-torch==2.0.1
+anthropic==0.18.0
+openai==1.6.1
+transformers==4.36.2
+torch==2.1.2
 
 # Data Handling
 pyyaml==6.0.1
-pandas==2.0.3
-numpy==1.24.3
+pandas==2.2.0
+numpy==1.26.3
 
 # Authentication and Security
 python-jose==3.3.0
 passlib==1.7.4
-bcrypt==4.0.1
+bcrypt==4.1.2
 
 # Development and Testing
-pytest==7.4.0
-pytest-asyncio==0.21.1
-black==23.7.0
-mypy==1.5.1
-flake8==6.0.0
-coverage==7.2.7
+pytest==7.4.4
+pytest-asyncio==0.23.2
+black==24.1.1
+mypy==1.8.0
+flake8==7.0.0
+coverage==7.4.0
 
 # Utilities
 python-dateutil==2.8.2
 colorama==0.4.6
-tqdm==4.65.0
-rich==13.5.2
+tqdm==4.66.1
+rich==13.7.0
 
 # Web Extras
-markdown==3.4.4
-bleach==6.0.0
+markdown==3.6
+bleach==6.3.0
 
 # Performance and Monitoring
-psutil==5.9.5
-prometheus-client==0.17.1
+psutil==5.9.8
+prometheus-client==0.19.0
 
 # Specific KinOS Requirements
 portalocker==2.8.2
 marked==0.8.2
-vue==3.2.47
+vue==3.4.15
+
+# Additional KinOS Utilities
+websockets==12.0
+redis==5.0.1
+opentelemetry-api==1.22.0
+opentelemetry-sdk==1.22.0
