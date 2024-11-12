@@ -555,24 +555,26 @@ Le PathManager est un composant central qui gère tous les chemins de fichiers d
        )
    ```
 
-### Service Layer
+### Services Layer
 
-#### BaseService
-Base class providing common functionality for all services:
+Les services sont initialisés avec des dépendances minimales :
 
-Core Features:
-- Dependency injection via constructor
-- Standardized error handling with retry policies
-- Input validation with custom rules
-- Unified logging system with levels
-- Thread-safe file operations via portalocker
-- Multi-level cache management (Memory, Redis, Session)
-- Performance metrics collection
-- Resource cleanup
-- Service lifecycle management
-- Circuit breaker pattern implementation
-- Configurable retry policies
-- Distributed locking with Redis
+```python
+services = {
+    'dataset_service': DatasetService(None),
+    'file_service': FileService(None), 
+    'team_service': TeamService(None),
+    'agent_service': AgentService(None),
+    'map_service': MapService(None),
+    'phase_service': PhaseService(None)
+}
+```
+
+Chaque service :
+- Est autonome et indépendant
+- Gère ses propres ressources
+- Utilise le répertoire courant comme contexte
+- S'initialise avec une configuration minimale
 
 Error Handling:
 - Exception capture and logging
