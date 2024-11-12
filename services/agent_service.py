@@ -136,46 +136,33 @@ class AgentService:
             return None
 
     def init_agents(self, config: Dict[str, Any], team_agents: Optional[List[str]] = None) -> None:
-        """Initialize agents for a team with detailed logging"""
+        """Initialize agents with minimal configuration"""
         try:
-            # Normalize agent names
             if not team_agents:
-                team_agents = [
-                    'specifications', 'management', 'evaluation', 
-                    'chroniqueur', 'documentaliste', 'production', 'testeur'
-                ]
+                team_agents = ['specifications', 'management', 'evaluation']
 
-            normalized_agents = self._normalize_agent_names(team_agents)
-
-            # Validate mission directory
             mission_dir = config.get('mission_dir')
             if not mission_dir or not os.path.exists(mission_dir):
                 raise ValueError(f"Invalid mission directory: {mission_dir}")
 
-            # Initialize each agent
             initialized_agents = {}
-            for agent_name in normalized_agents:
+            for agent_name in team_agents:
                 try:
-                    # Configure agent
                     agent_config = {
                         'name': agent_name,
                         'mission_dir': mission_dir,
                         'prompt_file': os.path.join('prompts', f"{agent_name}.md")
                     }
-
-                    # Create agent
-                    agent = self._create_dynamic_agent(agent_config)
-                    if agent:
-                        initialized_agents[agent_name] = agent
-                        self.logger.log(f"Initialized agent: {agent_name}")
-
+                    agent = AiderAgent(agent_config)
+                    initialized_agents[agent_name] = agent
+                    self.logger.log(f"Initialized agent: {agent_name}")
                 except Exception as e:
                     self.logger.log(f"Error initializing agent {agent_name}: {str(e)}", 'error')
 
             self.agents = initialized_agents
 
         except Exception as e:
-            self.logger.log(f"Critical error in agent initialization: {str(e)}", 'error')
+            self.logger.log(f"Error in agent initialization: {str(e)}", 'error')
             raise
 
     def _find_agent_prompt(self, agent_name: str, search_paths: List[str]) -> Optional[str]:

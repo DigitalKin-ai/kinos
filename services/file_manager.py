@@ -14,25 +14,11 @@ class FileManager:
     """Service for managing file operations"""
     
     def __init__(self, web_instance, on_content_changed=None):
-        # Import only what's needed
-        from utils.logger import Logger
-        from types import SimpleNamespace
-        self.project_root = os.getcwd()  # Use current directory
+        """Initialize with minimal dependencies"""
+        self.project_root = os.getcwd()
         self._on_content_changed = on_content_changed
-        self._current_mission = None
         self.logger = Logger()
-        
-        # Initialize cache
         self.content_cache = {}
-        self.cache_hits = 0
-        self.cache_misses = 0
-        
-        # Configure file locking
-        self.lock_timeout = 10   # Seconds
-        self.max_retries = 3     # Number of retry attempts
-        self.retry_delay = 1.0   # Seconds between retries
-        
-        self._ensure_files_exist()
 
 
     def get_mission_path(self, mission_name: str = None) -> str:

@@ -65,26 +65,18 @@ class FileService(BaseService):
             self._handle_error('read_file', e)
             return None
 
-    @safe_operation()
-    def write_file(self, file_path: str, content: str) -> bool:
-        """Écrit le contenu dans un fichier avec verrouillage"""
+    def write_file(self, file_name: str, content: str) -> bool:
+        """Write file with simplified path handling"""
         try:
-            # Créer le dossier parent si nécessaire
+            file_path = os.path.join(os.getcwd(), file_name)
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
             
-            # Écrire avec verrouillage
-            with portalocker.Lock(file_path, 'w', timeout=10) as f:
+            with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(content)
                 
-            # Invalider le cache
-            if file_path in self.content_cache:
-                del self.content_cache[file_path]
-                del self.last_modified[file_path]
-                
             return True
-            
         except Exception as e:
-            self._handle_error('write_file', e)
+            self.logger.log(f"Error writing {file_name}: {str(e)}", 'error')
             return False
 
     @safe_operation()

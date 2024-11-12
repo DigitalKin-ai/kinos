@@ -5,23 +5,15 @@ from typing import Optional
 from utils.path_manager import PathManager
 
 class Logger:
-    # ANSI color codes
-    COLORS = {
-        'info': '\033[94m',     # Blue
-        'success': '\033[92m',  # Green
-        'warning': '\033[93m',  # Yellow
-        'error': '\033[91m',    # Red
-        'debug': '\033[90m',    # Gray
-        'critical': '\033[95m', # Magenta
-        'redacteur': '\033[95m', # Purple
-        'reset': '\033[0m'      # Reset to default
-    }
+    """Simplified logging with colors"""
     
-    def __init__(self, force_color=None):
-        # Détection plus robuste de l'environnement coloré
-        self.is_tty = sys.stdout.isatty()
-        self.force_color = force_color
-        self._name = "KinOSLogger"
+    COLORS = {
+        'info': '\033[94m',    # Blue
+        'success': '\033[92m', # Green
+        'warning': '\033[93m', # Yellow
+        'error': '\033[91m',   # Red
+        'reset': '\033[0m'     # Reset
+    }
 
     def _should_colorize(self):
         """Déterminer si les couleurs doivent être appliquées"""
@@ -42,36 +34,19 @@ class Logger:
             sys.platform == 'cygwin'
         )
 
-    def log(self, message: str, level: str = 'info', **kwargs):
-        """Main logging method that handles all logging cases"""
+    def log(self, message: str, level: str = 'info'):
+        """Log message with optional color"""
         try:
-            # Get timestamp
             timestamp = datetime.now().strftime("%H:%M:%S")
+            formatted = f"[{timestamp}] [{level.upper()}] {message}"
             
-            # Prepare log message
-            formatted_message = f"[{timestamp}] [{level.upper()}] {message}"
-            
-            # Colorize if appropriate
-            if self._should_colorize():
+            if sys.stdout.isatty():  # Only use colors in terminal
                 color = self.COLORS.get(level, self.COLORS['info'])
-                reset = self.COLORS['reset']
-                colored_message = f"{color}{formatted_message}{reset}"
-                print(colored_message)
+                print(f"{color}{formatted}{self.COLORS['reset']}")
             else:
-                # Plain text for non-TTY or when color is disabled
-                print(formatted_message)
-            
-            # Optional file logging
-            file_path = kwargs.get('file_path', os.path.join(PathManager.get_logs_path(), 'agent_operations.log'))
-            
-            # Ensure log directory exists
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            
-            with open(file_path, 'a', encoding='utf-8') as f:
-                f.write(f"{formatted_message}\n")
+                print(formatted)
                 
         except Exception as e:
-            # Fallback logging
             print(f"Logging error: {e}")
             print(f"Original message: {message}")
 

@@ -13,32 +13,23 @@ class TeamService:
     """Service simplifié pour la gestion des équipes en CLI"""
     
     def __init__(self, web_instance):
-        """Initialize team service with simplified dependencies"""
+        """Initialize with minimal dependencies"""
         self.logger = Logger()
         self.agent_service = AgentService(None)
-        
-        # Initialize attributes
-        self.teams = {}
-        self.active_team = None
         self.predefined_teams = self._load_predefined_teams()
 
     def _load_predefined_teams(self) -> List[Dict]:
-        """Load predefined team configurations"""
+        """Load simplified team configurations"""
         return [
             {
                 'id': 'default',
                 'name': 'Default Team',
-                'agents': ['specifications', 'management', 'evaluation', 'chroniqueur', 'documentaliste']
+                'agents': ['specifications', 'management', 'evaluation']
             },
             {
                 'id': 'coding',
-                'name': 'Coding Team', 
-                'agents': ['specifications', 'production', 'testing', 'validation', 'documentaliste']
-            },
-            {
-                'id': 'literature-review',
-                'name': 'Literature Review Team',
-                'agents': ['specifications', 'management', 'evaluation', 'chroniqueur', 'documentaliste']
+                'name': 'Coding Team',
+                'agents': ['specifications', 'production', 'testing']
             }
         ]
 
@@ -51,38 +42,30 @@ class TeamService:
         return normalized
 
     def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
-        """Launch a team in the specified directory"""
+        """Start team in current/specified directory"""
         try:
-            # Récupérer l'équipe correspondante
-            team = next((t for t in self._load_predefined_teams() if t['id'] == team_id), None)
+            mission_dir = base_path or os.getcwd()
+            team = next((t for t in self.predefined_teams if t['id'] == team_id), None)
             if not team:
-                raise ValueError(f"Équipe {team_id} non trouvée")
+                raise ValueError(f"Team {team_id} not found")
 
-            # Activation des agents de l'équipe
-            activation_results = []
+            config = {'mission_dir': mission_dir}
+            self.agent_service.init_agents(config, team['agents'])
+
             for agent_name in team['agents']:
                 try:
-                    # Logique d'activation de l'agent
-                    success = self.web_instance.agent_service.toggle_agent(agent_name, 'start')
-                    activation_results.append({
-                        'agent': agent_name,
-                        'status': 'started' if success else 'failed'
-                    })
-                except Exception as agent_error:
-                    activation_results.append({
-                        'agent': agent_name,
-                        'status': 'error',
-                        'error': str(agent_error)
-                    })
+                    self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
+                except Exception as e:
+                    self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
 
             return {
-                'team': team,
-                'activation_results': activation_results,
-                'timestamp': datetime.now().isoformat()
+                'team_id': team_id,
+                'mission_dir': mission_dir,
+                'agents': team['agents']
             }
 
         except Exception as e:
-            self.logger.log(f"Erreur lors de l'activation de l'équipe : {str(e)}", 'error')
+            self.logger.log(f"Error starting team: {str(e)}", 'error')
             raise
 
     def get_available_teams(self) -> List[Dict[str, Any]]:
