@@ -32,50 +32,41 @@ OPENAI_API_KEY=votre-clé-openai
 
 ## 🚀 CLI Usage
 
-### Mission Path Management
-
-#### Launching a Mission with Custom Path
+### Lancement Simplifié
 
 ```bash
-# Launch a mission using default path
-python kinos_cli.py team launch --mission my-project
+# Lancer une équipe dans le répertoire courant
+kin book-writing
 
-# Launch a mission with a custom base path
-python kinos_cli.py team launch --mission my-project --base-path /custom/projects/missions
-
-# Launch a mission with verbose logging
-python kinos_cli.py team launch --mission my-project --verbose --base-path /custom/path
+# Équipes disponibles
+# - book-writing
+# - coding
+# - literature-review
 ```
 
-#### Mission Path Options
-
-- `--mission`: Name of the mission (required)
-- `--base-path`: Optional custom base path for mission files
-- `--verbose`: Detailed logging about path resolution
-- `--dry-run`: Simulate mission launch without creating files
-
-#### Path Management Commands
+#### Options
 
 ```bash
-# List available missions
-python kinos_cli.py missions list
+# Mode verbose
+kin book-writing -v
 
-# Get details about a specific mission's path
-python kinos_cli.py missions path --mission my-project
+# Afficher l'aide
+kin --help
 ```
 
-### Path Configuration Examples
+### Équipes Prédéfinies
 
-#### Default Behavior
-- Missions stored in `~/KinOS_Missions/`
-- Automatic path normalization
-- Secure path validation
+1. **Book Writing Team**
+   - Agents pour la création de contenu
+   - Idéal pour la rédaction documentaire
 
-#### Custom Path Configuration
-```bash
-# Set a custom missions directory in .env
-KINOS_DEFAULT_MISSIONS_DIR=/path/to/custom/missions
-```
+2. **Coding Team**
+   - Agents pour le développement logiciel
+   - Optimisé pour la génération de code
+
+3. **Literature Review Team**
+   - Agents pour l'analyse et la revue
+   - Parfait pour les projets de recherche
 
 ### Path Security Features
 
