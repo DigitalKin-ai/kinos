@@ -13,6 +13,7 @@ from aider_agent import AiderAgent
 from utils.path_manager import PathManager
 from utils.validators import validate_agent_name
 from utils.logger import Logger
+from utils.decorators import timeout
 import sys
 
 class AgentService:
