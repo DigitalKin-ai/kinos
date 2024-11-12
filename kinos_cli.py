@@ -8,48 +8,42 @@ from utils.logger import configure_cli_logger
 from config.global_config import GlobalConfig
 
 def launch_team(args):
-    """
-    Launch a team in the current directory
-    
-    Args:
-        args: Parsed command-line arguments
-    """
+    """Launch a team from CLI arguments"""
     try:
-        # Load configuration or use default
-        config = GlobalConfig.load_config() if hasattr(GlobalConfig, 'load_config') else {}
+        # Get args with defaults
+        verbose = getattr(args, 'verbose', False)
+        team_name = getattr(args, 'team', 'default')
+        base_path = getattr(args, 'base_path', None) or os.getcwd()
         
         # Setup logging
         logger = configure_cli_logger()
         
-        # Validate team name
-        if not args.team:
-            logger.log("Team name is required", 'error')
-            sys.exit(1)
+        if verbose:
+            logger.log(f"Launching team {team_name} in {base_path}", 'info')
         
         # Create service instances
         team_service = TeamService(None)
         
         # Dry run mode
-        if args.dry_run:
-            logger.log(f"Dry run: Would launch team {args.team} in {os.getcwd()}", 'info')
+        if getattr(args, 'dry_run', False):
+            logger.log(f"Dry run: Would launch team {team_name} in {base_path}", 'info')
             return
         
-        # Launch team in current directory
+        # Launch team
         result = team_service.start_team(
-            team_id=args.team,
-            base_path=os.getcwd()
+            team_id=team_name,
+            base_path=base_path
         )
         
-        # Log detailed results
-        logger.log(f"Team {args.team} launched successfully", 'success')
-        logger.log(f"Working directory: {os.getcwd()}", 'info')
+        # Log results
+        logger.log(f"Team {team_name} launched successfully", 'success')
         
-        # Verbose mode: show detailed agent statuses
-        if args.verbose:
-            for agent_result in result.get('start_results', []):
-                status = agent_result.get('status', 'unknown')
-                agent = agent_result.get('agent', 'Unknown Agent')
-                logger.log(f"Agent {agent}: {status}")
+        if verbose:
+            logger.log(f"Working directory: {base_path}", 'info')
+            # Show detailed agent statuses
+            for agent_name, agent_status in team_service.agent_service.get_agent_status().items():
+                status = 'active' if agent_status.get('running', False) else 'inactive'
+                logger.log(f"Agent {agent_name}: {status}")
         
     except Exception as e:
         logger.log(f"Error launching team: {e}", 'error')
