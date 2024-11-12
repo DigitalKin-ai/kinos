@@ -187,15 +187,6 @@ class PathManager:
         """Retourne le chemin vers le dossier de configuration"""
         return os.path.join(PathManager.get_project_root(), "config")
 
-    @staticmethod
-    def get_templates_path() -> str:
-        """Retourne le chemin vers le dossier des templates"""
-        return os.path.join(PathManager.get_project_root(), "templates")
-
-    @staticmethod
-    def get_static_path() -> str:
-        """Retourne le chemin vers le dossier static"""
-        return os.path.join(PathManager.get_project_root(), "static")
 
     @staticmethod
     def get_logs_path() -> str:

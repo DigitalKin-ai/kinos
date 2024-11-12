@@ -17,45 +17,6 @@ class MissionService:
         self.currentMission = None
         self.missions = []
 
-    def select_mission(self, mission_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Select a mission as current
-        
-        Args:
-            mission_id: ID of the mission to select
-            
-        Returns:
-            dict: Selected mission data or None if not found
-        """
-        try:
-            # Validate mission_id
-            if not isinstance(mission_id, (int, str)):
-                raise ValueError("Invalid mission ID type")
-            
-            # Get the mission
-            mission = self.get_mission(mission_id)
-            if not mission:
-                self.logger.log(f"Mission not found: {mission_id}", "error")
-                return None
-                
-            # Update current mission
-            self.currentMission = mission
-            
-            # Add selection metadata
-            selected_mission = {
-                **mission,
-                'selected_at': datetime.now().isoformat(),
-                'status': 'active'
-            }
-            
-            # Log success
-            self.logger.log(f"Selected mission: {mission.get('name', mission_id)}", "info")
-            
-            return selected_mission
-            
-        except Exception as e:
-            self.logger.log(f"Error selecting mission: {str(e)}", "error")
-            raise
 
     def get_mission(self, mission_id: int) -> Optional[Dict]:
         """Get a specific mission by ID with better error handling"""
