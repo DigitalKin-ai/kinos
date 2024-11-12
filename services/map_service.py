@@ -204,3 +204,14 @@ class MapService(BaseService):
         except Exception as e:
             self.logger.log(f"Error reading map file: {str(e)}", 'error')
             return ""
+
+    def get_map_content(self) -> str:
+        """Get current map content"""
+        try:
+            if os.path.exists(self.map_file):
+                with open(self.map_file, 'r', encoding='utf-8') as f:
+                    return f.read()
+            return ""
+        except Exception as e:
+            self.logger.log(f"Error reading map file: {str(e)}", 'error')
+            return ""
