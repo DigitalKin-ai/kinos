@@ -660,7 +660,7 @@ class AiderAgent(KinOSAgent):
     def list_files(self) -> None:
         """Liste tous les fichiers textuels dans le dossier de la mission"""
         try:
-            # Use configured mission_dir directly instead of checking current_mission
+            # Use configured mission_dir directly
             if not self.mission_dir:
                 self._log(f"[{self.__class__.__name__}] ❌ No mission directory configured")
                 self.mission_files = {}
@@ -692,7 +692,7 @@ class AiderAgent(KinOSAgent):
                         file_path = os.path.join(root, filename)
                         text_files[file_path] = os.path.getmtime(file_path)
                         self._log(f"[{self.__class__.__name__}] ✓ Found file: {filename}")
-            
+        
             # Mettre à jour mission_files
             self.mission_files = text_files
             

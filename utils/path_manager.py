@@ -17,22 +17,19 @@ class PathManager:
         return os.getcwd()
 
     @classmethod
-    def _load_mission_config(cls) -> Dict[str, Any]:
-        """Load mission configurations from JSON"""
-        try:
-            config_path = os.path.join(cls.get_project_root(), cls._CONFIG_FILE)
-            if os.path.exists(config_path):
-                with open(config_path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            return {}
-        except Exception as e:
-            print(f"Error loading mission config: {e}")
-            return {}
-
-    @classmethod
     def get_mission_path(cls, mission_name: str = None) -> str:
         """Get mission path, defaulting to current directory"""
         return os.getcwd()
+
+    @staticmethod
+    def get_prompts_path() -> str:
+        """Retourne le chemin vers le dossier des prompts"""
+        return os.path.join(PathManager.get_project_root(), "prompts")
+
+    @staticmethod
+    def get_config_path() -> str:
+        """Retourne le chemin vers le dossier de configuration"""
+        return os.path.join(PathManager.get_project_root(), "config")
 
     @staticmethod
     def _normalize_mission_name(mission_name: str) -> str:

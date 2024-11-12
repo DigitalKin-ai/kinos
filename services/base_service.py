@@ -83,19 +83,15 @@ class BaseService:
             self.logger.log(f"Operation failed: {str(e)}", 'error')
             raise
 
-    def _validate_file_path(self, file_path: str) -> None:
-        """Validate file path exists and is accessible"""
-        if not os.path.exists(file_path):
-            raise ValidationError(f"File not found: {file_path}")
-        if not os.access(file_path, os.R_OK):
-            raise ValidationError(f"File not readable: {file_path}")
+    def _validate_path(self, path: str) -> bool:
+        """Validation centralisée des chemins"""
+        if not path or not isinstance(path, str):
+            return False
+        return os.path.exists(path) and os.access(path, os.R_OK | os.W_OK)
 
-    def _ensure_directory(self, directory: str) -> None:
-        """Ensure directory exists, create if needed"""
-        try:
-            os.makedirs(directory, exist_ok=True)
-        except Exception as e:
-            raise ServiceError(f"Failed to create directory {directory}: {str(e)}")
+    def _validate_content(self, content: str) -> bool:
+        """Validation centralisée du contenu"""
+        return bool(content and content.strip())
 
     def _safe_file_operation(self, operation: str, file_path: str, 
                             mode: str = 'r', encoding: str = 'utf-8'):
