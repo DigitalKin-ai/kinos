@@ -6,7 +6,6 @@ from utils.logger import Logger
 from utils.path_manager import PathManager
 from utils.exceptions import ServiceError
 from services.agent_service import AgentService
-from services.mission_service import MissionService
 from agents.kinos_agent import KinOSAgent
 
 class TeamService:
