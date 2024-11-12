@@ -23,7 +23,10 @@
 ### Exemples d'Utilisation
 
 ```bash
-# Lancement dans le répertoire courant
+# Lancement avec l'équipe par défaut dans le répertoire courant
+kin
+
+# Lancement d'une équipe spécifique
 kin book-writing
 
 # Lancement avec un chemin personnalisé
