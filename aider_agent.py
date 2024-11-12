@@ -523,10 +523,10 @@ class AiderAgent(KinOSAgent):
 
                         # Only proceed if we have files to save
                         if files_context:
-
+                            pass  # No dataset operations needed anymore
+                            
                     except Exception as e:
-                        self._log(f"[{self.__class__.__name__}] Error saving to dataset: {str(e)}")
-
+                        self._log(f"[{self.__class__.__name__}] Error reading files: {str(e)}")
                 
                 # Log completion status
                 if return_code != 0 or error_detected:
