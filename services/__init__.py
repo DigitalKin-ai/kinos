@@ -14,17 +14,27 @@ from utils.exceptions import ServiceError
 def init_services(_):  # Keep parameter for compatibility but don't use it
     """Initialize all services with minimal dependencies"""
     try:
-        services = {
-            'map_service': MapService(None),  # Initialize first
-            'dataset_service': DatasetService(None),
-            'file_service': FileService(None), 
-            'team_service': TeamService(None),
-            'agent_service': AgentService(None),
-            'phase_service': PhaseService(None)
+        # Create services without circular dependencies
+        map_service = MapService(None)
+        dataset_service = DatasetService(None)
+        file_service = FileService(None)
+        team_service = TeamService(None)
+        agent_service = AgentService(None)
+        phase_service = PhaseService(None)
+
+        # Generate initial map only once
+        map_service.generate_map()
+
+        # Return services dictionary
+        return {
+            'map_service': map_service,
+            'dataset_service': dataset_service,
+            'file_service': file_service,
+            'team_service': team_service,
+            'agent_service': agent_service,
+            'phase_service': phase_service
         }
-        # Generate initial map
-        services['map_service'].generate_map()
-        return services
+
     except Exception as e:
         print(f"Error initializing services: {str(e)}")
         print(f"Traceback: {traceback.format_exc()}")
