@@ -1,6 +1,7 @@
 import os
 import json
 from datetime import datetime
+import time
 from typing import Dict, Any, Optional, List
 import traceback
 from utils.logger import Logger
@@ -190,6 +191,7 @@ class TeamService:
                 try:
                     self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
                     self.logger.log(f"Started agent {agent_name}")
+                    time.sleep(5)
                 except Exception as e:
                     self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
 
