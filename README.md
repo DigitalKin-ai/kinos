@@ -66,14 +66,6 @@ kin literature-review
    - Agents: Specifications, Management, Evaluation, etc.
    - Usage: `kin literature-review`
 
-### Gestion des Chemins
-
-- Validation dynamique des chemins de mission
-- Prévention des attaques par traversée de répertoire
-- Vérification stricte des permissions
-- Normalisation des noms de mission
-- Support de plusieurs chemins de base
-
 ## 🤖 Agents
 
 ### Équipe par Défaut
@@ -135,7 +127,6 @@ Les contributions sont les bienvenues ! N'hésitez pas à :
 
 - Python 3.8+
 - Clés API (Anthropic et OpenAI)
-- Navigateur web moderne
 - Aider CLI installé et configuré
 
 ## 📞 Support
