@@ -336,16 +336,23 @@ class KinOSAgent:
         - Termine les opérations en cours
         - Sauvegarde l'état final
         """
-        self.running = False
-        # Clean up any pending operations
-        if hasattr(self, 'current_content'):
-            self.write_file(self.current_content)
-        
-        # Restore original working directory
         try:
-            os.chdir(self.original_dir)
+            with self._log_lock:
+                self.logger.log(f"[{self.__class__.__name__}] Stopping agent")
+            
+            self.running = False
+            # Clean up any pending operations
+            if hasattr(self, 'current_content'):
+                self.write_file(self.current_content)
+            
+            # Restore original working directory
+            try:
+                os.chdir(self.original_dir)
+            except Exception as e:
+                with self._log_lock:
+                    self.logger.log(f"[{self.__class__.__name__}] Error restoring working directory: {str(e)}")
         except Exception as e:
-            self.logger.log(f"[{self.__class__.__name__}] Error restoring working directory: {str(e)}")
+            print(f"Error stopping agent: {str(e)}")  # Fallback to print
 
     def cleanup(self) -> None:
         """Cleanup agent resources properly"""
