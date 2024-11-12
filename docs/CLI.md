@@ -2,9 +2,9 @@
 
 ## Vue d'Ensemble
 
-KinOS est un framework d'agents autonomes qui opère directement dans votre dossier de projet. Une seule commande `kin` suffit pour démarrer.
+KinOS est un framework d'agents autonomes qui opère directement dans votre dossier de projet. Aucune configuration n'est requise - il suffit de lancer la commande `kin` dans n'importe quel dossier.
 
-## Commandes de Base
+## Commandes Simplifiées
 
 ```bash
 # Lancer KinOS dans le dossier courant
@@ -12,32 +12,31 @@ cd votre-projet
 kin
 
 # Lancer une équipe spécifique
-kin team launch coding
-kin team launch book-writing
-kin team launch literature-review
+kin coding      # Équipe de développement
+kin book        # Équipe de rédaction
+kin review      # Équipe de revue
 
-# Mode verbeux
-kin -v
+# Options globales
+kin -v          # Mode verbeux
+kin -p /chemin  # Dossier spécifique
 
-# Gestion des Phases
-kin phase status      # Voir la phase actuelle et l'utilisation
-kin phase metrics     # Voir les métriques détaillées
-kin phase history     # Voir l'historique des transitions
+# Système de Phases
+kin phase                 # Voir statut actuel
+kin phase status         # Détails d'utilisation
+kin phase set expansion  # Forcer phase expansion
+kin phase set convergence # Forcer phase convergence
 
-# Forcer une phase (avec précaution)
-kin phase set expansion    # Passer en phase expansion
-kin phase set convergence  # Passer en phase convergence
+# Surveillance des Tokens
+kin tokens              # Vue d'ensemble
+kin tokens list        # Liste par fichier
+kin tokens check       # Vérifier alertes
+kin tokens headroom    # Marge disponible
 
-# Surveillance des tokens
-kin tokens list           # Utilisation par fichier
-kin tokens check          # Vérifier les avertissements
-kin tokens headroom       # Marge disponible
-kin tokens usage          # Utilisation totale (128k max)
-
-# Seuils de Phase
-- EXPANSION   : < 60% tokens (76.8k)
-- CONVERGENCE : > 60% tokens
-- Retour EXPANSION : < 50% tokens (64k)
+# Métriques et Limites
+- Limite totale : 128k tokens
+- EXPANSION : < 76.8k tokens (60%)
+- CONVERGENCE : > 76.8k tokens
+- Retour EXPANSION : < 64k tokens (50%)
 ```
 
 ## Système de Phases
