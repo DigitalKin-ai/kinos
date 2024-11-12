@@ -16,14 +16,13 @@ def init_services(_):  # Keep parameter for compatibility but don't use it
     try:
         services = {
             'dataset_service': DatasetService(None),
-            'file_service': FileService(None),
+            'file_service': FileService(None), 
             'team_service': TeamService(None),
             'agent_service': AgentService(None),
             'map_service': MapService(None),
             'phase_service': PhaseService(None)
         }
         return services
-        
     except Exception as e:
         print(f"Error initializing services: {str(e)}")
         print(f"Traceback: {traceback.format_exc()}")
