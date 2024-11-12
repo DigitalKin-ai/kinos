@@ -18,12 +18,11 @@ import traceback
 from utils.exceptions import ServiceError
 from agents.kinos_agent import KinOSAgent
 from utils.path_manager import PathManager
-from utils.logger import Logger
-"""
 import traceback
 from utils.exceptions import ServiceError
 from agents.kinos_agent import KinOSAgent
 from utils.path_manager import PathManager
+from utils.logger import Logger
 import os
 import subprocess
 import time
