@@ -1,6 +1,7 @@
 import os
 import json
 import traceback
+import platform
 from typing import Optional, Dict, Any
 
 class PathManager:
@@ -31,7 +32,9 @@ class PathManager:
             while current != os.path.dirname(current):
                 for strategy in strategies:
                     if strategy(current):
-                        return current
+                        # Normalize path for Windows
+                        normalized_path = current.replace('\\', '/')
+                        return normalized_path
                 current = os.path.dirname(current)
             
             # Fallback strategies
@@ -43,7 +46,9 @@ class PathManager:
             
             for path in fallback_paths:
                 if os.path.exists(path):
-                    return path
+                    # Normalize path for Windows
+                    normalized_path = path.replace('\\', '/')
+                    return normalized_path
             
             raise ValueError(f"Project root not found. Current path: {current}")
         
