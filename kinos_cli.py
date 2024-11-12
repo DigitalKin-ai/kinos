@@ -4,7 +4,7 @@ import sys
 import time
 from services.team_service import TeamService
 from services.agent_service import AgentService
-from utils.logger import configure_cli_logger
+from utils.logger import configure_cli_logger, Logger
 from config.global_config import GlobalConfig
 
 def launch_team(args):
