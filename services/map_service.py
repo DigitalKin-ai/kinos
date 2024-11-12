@@ -35,7 +35,13 @@ class MapService(BaseService):
     def generate_map(self) -> bool:
         """Generate project map file"""
         try:
-            tree_content, warnings = self._scan_directory(os.getcwd())
+            tree_content, warnings, total_tokens = self._scan_directory(os.getcwd())
+            
+            # Ensure phase service is initialized
+            self._ensure_phase_service()
+            
+            # Update phase service with total tokens
+            self.phase_service.determine_phase(total_tokens)
             
             map_content = self._format_map_content(tree_content, warnings)
             
@@ -45,11 +51,17 @@ class MapService(BaseService):
             self.logger.log(f"Error generating map: {str(e)}", 'error')
             return False
 
-    def _scan_directory(self, path: str, prefix: str = "") -> Tuple[List[str], List[str]]:
-        """Scan directory recursively and return tree structure and warnings"""
+    def _scan_directory(self, path: str, prefix: str = "") -> Tuple[List[str], List[str], int]:
+        """
+        Scan directory recursively and return tree structure, warnings and total tokens
+        
+        Returns:
+            Tuple[List[str], List[str], int]: (tree_lines, warnings, total_tokens)
+        """
         try:
             tree_lines = []
             warnings = []
+            total_tokens = 0  # Initialize total tokens counter
             
             # Load ignore patterns from .gitignore and .aiderignore
             ignore_patterns = []
@@ -94,13 +106,15 @@ class MapService(BaseService):
                     
                     # Recursively scan subdirectory
                     sub_prefix = prefix + ("    " if is_last else "│   ")
-                    sub_tree, sub_warnings = self._scan_directory(full_path, sub_prefix)
+                    sub_tree, sub_warnings, sub_tokens = self._scan_directory(full_path, sub_prefix)
                     tree_lines.extend(sub_tree)
                     warnings.extend(sub_warnings)
+                    total_tokens += sub_tokens  # Add tokens from subdirectory
                     
                 elif item.endswith('.md'):
                     # Handle markdown file
                     token_count = self._count_tokens(full_path)
+                    total_tokens += token_count  # Add tokens from this file
                     status_icon = self._get_status_icon(token_count)
                     
                     # Format size in K tokens with one decimal
@@ -115,11 +129,11 @@ class MapService(BaseService):
                     if warning:
                         warnings.append(warning)
                         
-            return tree_lines, warnings
+            return tree_lines, warnings, total_tokens
             
         except Exception as e:
             self.logger.log(f"Error scanning directory: {str(e)}", 'error')
-            return [], []
+            return [], [], 0
 
     def _count_tokens(self, file_path: str) -> int:
         """Count number of tokens in a file using Anthropic tokenizer"""
