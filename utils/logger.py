@@ -65,6 +65,7 @@ class Logger:
         if self._shutting_down:
             return  # Skip logging during shutdown
 
+        # Map string levels to logging constants
         level_map = {
             'debug': logging.DEBUG,
             'info': logging.INFO,
@@ -73,8 +74,11 @@ class Logger:
             'critical': logging.CRITICAL
         }
         
+        # Get numeric level, default to INFO if level string not recognized
+        msg_level = level_map.get(level.lower(), logging.INFO)
+        
         # Check if we should log this level
-        if level_map.get(level.lower(), logging.INFO) < self._level:
+        if msg_level < self._level:
             return
             
         try:
