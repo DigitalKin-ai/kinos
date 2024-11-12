@@ -54,44 +54,46 @@ class KinOSAgent:
                 - mission_dir: Mission directory path
                 - name: Agent name
         """
-        self.original_dir = os.getcwd()  # Save original working directory
-        # Configure default encoding for CLI output
-        import sys
-        import codecs
-        import locale
-        
-        # Force UTF-8 encoding for stdout/stderr
-        if sys.stdout.encoding != 'utf-8':
-            sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
-        if sys.stderr.encoding != 'utf-8':
-            sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
-            
-        # Set locale for proper Unicode handling
         try:
-            locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-        except locale.Error:
+            self.original_dir = os.getcwd()  # Save original working directory
+            
+            # Configure default encoding for CLI output
+            import sys
+            import codecs
+            import locale
+            
+            # Force UTF-8 encoding for stdout/stderr
+            if sys.stdout.encoding != 'utf-8':
+                sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+            if sys.stderr.encoding != 'utf-8':
+                sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+                
+            # Set locale for proper Unicode handling
             try:
-                locale.setlocale(locale.LC_ALL, 'C.UTF-8')
+                locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
             except locale.Error:
-                pass
+                try:
+                    locale.setlocale(locale.LC_ALL, 'C.UTF-8')
+                except locale.Error:
+                    pass
 
-        # Initialize timing and state attributes
-        self.last_run = None
-        self.last_change = None
-        self.consecutive_no_changes = 0
-        self.running = False
-        self.error_count = 0
+            # Initialize timing and state attributes
+            self.last_run = None
+            self.last_change = None
+            self.consecutive_no_changes = 0
+            self.running = False
+            self.error_count = 0
 
-        # Validate configuration first
-        if not config.get("mission_dir"):
-            raise ValueError("mission_dir missing in configuration")
-        if "name" not in config:
-            raise ValueError("name missing in configuration")
+            # Validate configuration first
+            required_fields = ['name', 'mission_dir']
+            missing = [f for f in required_fields if f not in config]
+            if missing:
+                raise ValueError(f"Missing required config fields: {', '.join(missing)}")
 
-        # Set name first since it's used in logging
-        self.name = config["name"]
-        self.config = config
-        self.mission_dir = config["mission_dir"]
+            # Set core attributes
+            self.name = config['name']
+            self.config = config
+            self.mission_dir = config['mission_dir']
         
         # Validate mission directory exists and is accessible
         if not os.path.exists(self.mission_dir):
