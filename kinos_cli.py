@@ -2,16 +2,14 @@ import argparse
 import os
 import sys
 import time
-import logging
 from services.team_service import TeamService
-from services.mission_service import MissionService
 from services.agent_service import AgentService
 from utils.logger import configure_cli_logger
 from config.global_config import GlobalConfig
 
 def launch_team(args):
     """
-    Launch a team with comprehensive error handling and configuration
+    Launch a team in the current directory
     
     Args:
         args: Parsed command-line arguments
@@ -23,43 +21,35 @@ def launch_team(args):
         # Setup logging
         logger = configure_cli_logger()
         
-        # Validate required arguments
-        if not args.mission:
-            logger.log("Mission name is required", 'error')
-            sys.exit(1)
-        
+        # Validate team name
         if not args.team:
             logger.log("Team name is required", 'error')
             sys.exit(1)
         
         # Create service instances
-        mission_service = MissionService()
         team_service = TeamService(None)
-        agent_service = AgentService(None)
         
         # Dry run mode
         if args.dry_run:
-            logger.log(f"Dry run: Would launch team {args.team} for mission {args.mission}", 'info')
+            logger.log(f"Dry run: Would launch team {args.team} in {os.getcwd()}", 'info')
             return
         
-        # Get mission details
-        mission = mission_service.get_mission_by_name(args.mission)
-        if not mission:
-            logger.log(f"Mission {args.mission} not found", 'error')
-            sys.exit(1)
-        
-        # Activate team
-        result = team_service.activate_team(mission['id'], args.team)
+        # Launch team in current directory
+        result = team_service.start_team(
+            team_id=args.team,
+            base_path=os.getcwd()
+        )
         
         # Log detailed results
         logger.log(f"Team {args.team} launched successfully", 'success')
+        logger.log(f"Working directory: {os.getcwd()}", 'info')
         
         # Verbose mode: show detailed agent statuses
         if args.verbose:
-            for agent_result in result.get('activation_results', []):
-                status = 'Success' if agent_result['success'] else 'Failed'
-                logger.log(f"Agent {agent_result['agent']}: {status}", 
-                           'success' if agent_result['success'] else 'error')
+            for agent_result in result.get('start_results', []):
+                status = agent_result.get('status', 'unknown')
+                agent = agent_result.get('agent', 'Unknown Agent')
+                logger.log(f"Agent {agent}: {status}")
         
     except Exception as e:
         logger.log(f"Error launching team: {e}", 'error')
