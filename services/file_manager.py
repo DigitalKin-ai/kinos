@@ -1,25 +1,26 @@
-"""
-FileManager - Handles file operations for KinOS GUI
-"""
+import threading
+import json
 import os
-import portalocker
-from typing import Dict, Optional
-from pathlib import Path
+from typing import Dict, Any, Optional, List
 from datetime import datetime
-from utils.logger import Logger
-from utils.exceptions import FileOperationError
-from utils.decorators import safe_operation
+import traceback
+import time
+from utils.exceptions import ServiceError, ValidationError, ResourceNotFoundError
+from services.base_service import BaseService
 from utils.path_manager import PathManager
+from utils.logger import Logger
+from services.agent_service import AgentService
+from services.mission_service import MissionService
+from services.file_manager import FileManager
+from agents.kinos_agent import KinOSAgent
 
-class FileManager:
-    """Manages file operations for the GUI"""
+class TeamService(BaseService):
+    """Service for managing teams and agent groupings"""
     
-    def __init__(self, web_instance, on_content_changed=None):
-        """Initialize FileManager with minimal file tracking"""
-        self.web_instance = web_instance
-        self.file_paths = {
-            'demande': 'demande.md'  # Only track demande.md initially
-        }
+    def __init__(self, web_instance):
+        # Import only what's needed
+        from utils.logger import Logger
+        from types import SimpleNamespace
         self.project_root = PathManager.get_project_root()
         self._on_content_changed = on_content_changed
         self._current_mission = None
