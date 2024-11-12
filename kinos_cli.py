@@ -72,12 +72,15 @@ def main():
     phase_subparsers = phase_parser.add_subparsers(dest='subcommand')
 
     # Status command
-    phase_subparsers.add_parser('status', help='Show current phase status')
+    status_parser = phase_subparsers.add_parser('status', help='Show current phase status')
+    status_parser.add_argument('-v', '--verbose', action='store_true',
+                             help='Show detailed token usage')
 
     # Force command
     force_parser = phase_subparsers.add_parser('force', help='Force specific phase')
     force_parser.add_argument('phase', choices=['expansion', 'convergence'], 
                             help='Phase to force')
+    force_parser.add_argument('--reason', help='Reason for forcing phase')
 
     args = parser.parse_args()
     
