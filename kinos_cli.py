@@ -10,139 +10,78 @@ from config.global_config import GlobalConfig
 def launch_team(args):
     """Launch a team from CLI arguments"""
     try:
-        # Get args with defaults
-        verbose = getattr(args, 'verbose', False)
-        team_name = getattr(args, 'team', 'default')
-        base_path = getattr(args, 'base_path', None) or os.getcwd()
-        
-        # Setup logging
-        logger = configure_cli_logger()
-        
-        if verbose:
-            logger.log(f"Launching team {team_name} in {base_path}", 'info')
-        
-        # Create service instances
+        # Create team service instance
         team_service = TeamService(None)
         
-        # Dry run mode
-        if getattr(args, 'dry_run', False):
-            logger.log(f"Dry run: Would launch team {team_name} in {base_path}", 'info')
-            return
-        
-        # Launch team
-        result = team_service.start_team(
-            team_id=team_name,
-            base_path=base_path
+        # Launch the team
+        result = team_service.launch_team(
+            team_id=args.name,
+            base_path=args.base_path
         )
         
-        # Log results
-        logger.log(f"Team {team_name} launched successfully", 'success')
-        
-        if verbose:
-            logger.log(f"Working directory: {base_path}", 'info')
-            # Show detailed agent statuses
-            for agent_name, agent_status in team_service.agent_service.get_agent_status().items():
-                status = 'active' if agent_status.get('running', False) else 'inactive'
-                logger.log(f"Agent {agent_name}: {status}")
+        return result
         
     except Exception as e:
-        logger.log(f"Error launching team: {e}", 'error')
-        sys.exit(1)
+        logger = Logger()
+        logger.log(f"Error launching team: {str(e)}", 'error')
+        raise
 
 def main():
     """Main CLI entry point"""
     parser = argparse.ArgumentParser(description='KinOS CLI')
-    
-    # Add team argument with default value
-    parser.add_argument(
-        'team', 
-        nargs='?',  # Make team name optional
-        default='default',  # Default team if none specified
+    subparsers = parser.add_subparsers(dest='command', help='Commands')
+
+    # Create the team command parser
+    team_parser = subparsers.add_parser('team', help='Team management commands')
+    team_subparsers = team_parser.add_subparsers(dest='team_command', help='Team commands')
+
+    # Add launch command
+    launch_parser = team_subparsers.add_parser('launch', help='Launch a team')
+    launch_parser.add_argument(
+        'name',
+        nargs='?',
+        default='default',
         help='Team name to launch'
     )
-    
-    # Add verbose flag
-    parser.add_argument(
+    launch_parser.add_argument(
         '-v', '--verbose',
-        action='store_true',  # This makes it a flag
+        action='store_true',
         default=False,
         help='Enable verbose output'
     )
-    
-    # Add base path option
-    parser.add_argument(
+    launch_parser.add_argument(
         '-p', '--base-path',
         help='Base path for the mission',
         default=None
     )
-    
-    # Add dry run flag
-    parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        default=False,
-        help='Simulate launch without executing'
-    )
 
+    # Parse arguments
     args = parser.parse_args()
-    from types import SimpleNamespace
-    from services.phase_service import PhaseService
-    web_instance = SimpleNamespace()
-    web_instance.phase_service = PhaseService(web_instance)
-    
+    logger = Logger()
+    logger.log("Starting KinOS CLI...")
+
     try:
-        # Configure logging
-        logger = configure_cli_logger()
-        logger.log(f"Starting KinOS CLI...", 'info')
+        # If no command specified, default to launching default team
+        if not args.command:
+            args.command = 'team'
+            args.team_command = 'launch'
+            args.name = 'default'
+            args.verbose = False
+            args.base_path = None
 
+        # Handle team commands
         if args.command == 'team':
-            logger.log(f"Team: {args.name}", 'info')
-            logger.log(f"Working directory: {os.getcwd()}", 'info')
-
-            # Create service instances
-            team_service = TeamService(None)
-            agent_service = AgentService(None)
-
-            # Launch team in current directory
-            result = team_service.start_team(
-                team_id=args.name, 
-                base_path=os.getcwd()
-            )
-
-        elif args.command == 'phase':
-            phase_service = PhaseService(None)  # Create standalone service
-                
-            if args.subcommand == 'status':
-                status = phase_service.get_status_info()
-                print(f"\nCurrent Phase: {status['phase']}")
-                print(f"Token Usage: {status['total_tokens']/1000:.1f}k/{phase_service.MODEL_TOKEN_LIMIT/1000:.0f}k ({status['usage_percent']:.1f}%)")
-                print(f"Status: {status['status_icon']} {status['status_message']}")
-                print(f"Headroom: {status['headroom']/1000:.1f}k tokens")
-                print(f"Last Transition: {status['last_transition']}")
-                    
-                if args.verbose:
-                    print("\nDetailed Token Usage:")
-                    print(f"Convergence Threshold: {phase_service.CONVERGENCE_TOKENS/1000:.1f}k tokens ({phase_service.CONVERGENCE_THRESHOLD*100:.0f}%)")
-                    print(f"Expansion Threshold: {phase_service.EXPANSION_TOKENS/1000:.1f}k tokens ({phase_service.EXPANSION_THRESHOLD*100:.0f}%)")
-                
-            elif args.subcommand == 'force':
-                if phase_service.force_phase(args.phase):
-                    reason = args.reason or "Manual override"
-                    print(f"Phase manually set to: {args.phase.upper()}")
-                    print(f"Reason: {reason}")
-                else:
-                    print(f"Error: Invalid phase '{args.phase}'")
-
-        if args.verbose:
-            logger.log("Team launch details:", 'info')
-            for agent_result in result.get('start_results', []):
-                status = agent_result.get('status', 'unknown')
-                agent = agent_result.get('agent', 'Unknown Agent')
-                logger.log(f"Agent {agent}: {status}")
+            if args.team_command == 'launch':
+                launch_team(args)
+            else:
+                logger.log("Unknown team command", 'error')
+                sys.exit(1)
+        else:
+            logger.log("Unknown command", 'error')
+            sys.exit(1)
 
     except Exception as e:
-        logger = configure_cli_logger()
-        logger.log(f"Error launching team: {str(e)}", 'error')
+        logger.log(f"Error in CLI: {str(e)}", 'error')
         sys.exit(1)
 
 if __name__ == '__main__':
