@@ -12,6 +12,7 @@ from agents.kinos_agent import KinOSAgent
 from aider_agent import AiderAgent
 from utils.path_manager import PathManager
 from utils.validators import validate_agent_name
+from utils.logger import Logger
 import sys
 
 class AgentService:
