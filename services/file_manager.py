@@ -13,10 +13,9 @@ from utils.decorators import safe_operation
 class FileManager:
     """Service for managing file operations"""
     
-    def __init__(self, web_instance, on_content_changed=None):
+    def __init__(self, _):  # Keep parameter for compatibility but don't use it
         """Initialize with minimal dependencies"""
         self.project_root = os.getcwd()
-        self._on_content_changed = on_content_changed
         self.logger = Logger()
         self.content_cache = {}
 

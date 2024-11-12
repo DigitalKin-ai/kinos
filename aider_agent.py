@@ -784,13 +784,8 @@ class AiderAgent(KinOSAgent):
                         self._log(f"[{self.__class__.__name__}] ❌ Mission directory not found: {self.mission_dir}")
                         time.sleep(60)
                         continue
-                        
-                    if not os.access(self.mission_dir, os.R_OK | os.W_OK):
-                        self._log(f"[{self.__class__.__name__}] ❌ Insufficient permissions on: {self.mission_dir}")
-                        time.sleep(60)
-                        continue
 
-                    # Update file list with configured mission directory
+                    # Update file list
                     self.list_files()
                     
                     # Get current prompt
@@ -817,9 +812,6 @@ class AiderAgent(KinOSAgent):
                     
                 except Exception as loop_error:
                     self._log(f"[{self.__class__.__name__}] ❌ Error in run loop: {str(loop_error)}")
-                    if hasattr(self.web_instance, 'agent_service') and \
-                       self.agent_service._shutting_down.is_set():
-                        break
                     time.sleep(5)  # Pause before retrying
 
             self._log(f"[{self.__class__.__name__}] Run loop ended")
