@@ -100,11 +100,11 @@ class KinOSAgent:
                 raise ValueError(f"Mission directory not found: {self.mission_dir}")
             if not os.access(self.mission_dir, os.R_OK | os.W_OK):
                 raise ValueError(f"Insufficient permissions on mission directory: {self.mission_dir}")
-            
-        self.mission_files = {}
+                
+            self.mission_files = {}
 
-        # Handle logger configuration
-        logger_config = config.get("logger", print)
+            # Handle logger configuration
+            logger_config = config.get("logger", print)
         if callable(logger_config):
             # Create wrapper that handles both Logger instances and simple callables
             def create_log_wrapper(func):
