@@ -390,8 +390,36 @@ class KinOSAgent:
             return False
 
     def should_run(self) -> bool:
-        """Determine if agent should execute"""
+        """Determine if agent should execute based on time and phase"""
         try:
+            # Get current phase first
+            from services import init_services
+            services = init_services(None)
+            phase_service = services['phase_service']
+            phase_status = phase_service.get_status_info()
+            current_phase = phase_status['phase']
+
+            # Get team configuration
+            team_service = services['team_service']
+            active_team = None
+            for team in team_service.predefined_teams:
+                if self.name in team.get('agents', []):
+                    active_team = team
+                    break
+
+            if active_team and 'phase_config' in active_team:
+                phase_config = active_team['phase_config'].get(current_phase.lower(), {})
+                active_agents = phase_config.get('active_agents', [])
+                
+                # If agent list is specified and this agent is not in it, don't run
+                if active_agents and self.name.lower() not in [a.lower() for a in active_agents]:
+                    self.logger.log(
+                        f"[{self.__class__.__name__}] ⏸️ Inactive in {current_phase} phase", 
+                        'debug'
+                    )
+                    return False
+
+            # Continue with existing time-based checks
             now = datetime.now()
             
             # First run
@@ -407,9 +435,16 @@ class KinOSAgent:
             should_execute = time_since_last >= delay
             
             if should_execute:
-                self._log(f"[{self.__class__.__name__}] ✓ Should run (time since last: {time_since_last:.1f}s)")
+                self._log(
+                    f"[{self.__class__.__name__}] ✓ Should run "
+                    f"(time since last: {time_since_last:.1f}s, phase: {current_phase})"
+                )
             else:
-                self._log(f"[{self.__class__.__name__}] ⏳ Waiting ({time_since_last:.1f}s/{delay}s)", 'debug')
+                self._log(
+                    f"[{self.__class__.__name__}] ⏳ Waiting "
+                    f"({time_since_last:.1f}s/{delay}s, phase: {current_phase})", 
+                    'debug'
+                )
                 
             return should_execute
             
