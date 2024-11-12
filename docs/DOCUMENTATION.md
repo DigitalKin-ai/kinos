@@ -631,74 +631,25 @@ Automatic Retries:
 - Configurable retry policies
 - Distributed locking with Redis
 
-Error Handling:
-- Exception capture and logging
-- Standardized error formatting
-- Configurable automatic retries
-- Default value fallbacks
-- Controlled error propagation
-- Resource cleanup on errors
-- Circuit breaker pattern
-- Error metrics collection
-- Configurable alerting
-- Automatic recovery
+#### Phase System
+Le système de phases optimise automatiquement l'utilisation des ressources :
 
-Inherited Methods:
-- _validate_input() - Input validation
-- _handle_error() - Error management
-- _log_operation() - Unified logging
-- _safe_file_operation() - File operations
-- _ensure_directory() - Directory management
-- cleanup() - Resource cleanup
+- **EXPANSION** (< 60% tokens)
+  * Création libre de contenu
+  * Développement de nouvelles fonctionnalités
+  * Documentation extensive
 
-Input Validation:
-- Type checking
-- Format validation
-- Custom constraints
-- Detailed error messages
-- Data sanitization
+- **CONVERGENCE** (> 60% tokens)
+  * Optimisation du contenu existant
+  * Réduction de la duplication
+  * Consolidation des documents
 
-Standardized Logging:
-- Configurable log levels
-- File rotation
-- Unified format
-- Execution context
-- Performance metrics
-
-Thread-safe File Operations:
-- portalocker integration
-- Configurable timeouts
-- Automatic retries
-- Cleanup handlers
-- Path validation
-
-Cache and Optimization:
-- LRU memory cache
-- Smart invalidation
-- Configurable preloading
-- Usage metrics
-- Periodic cleanup
-
-Automatic Retries:
-- Configurable policies
-- Exponential backoff
-- Custom conditions
-- Attempt limits
-- Retry logging
-
-Key features:
-- Dependency injection via constructor
-- Standardized error handling patterns
-- Centralized logging
-- Resource cleanup
-- Service lifecycle management
-
-#### Service Interactions
-Services communicate through:
-- Direct method calls with dependency injection
-- Event system for async operations
-- Shared caching layer
-- Coordinated file access
+#### Path Management
+Le système utilise le répertoire courant comme contexte :
+- Pas de configuration complexe requise
+- Validation dynamique des chemins
+- Résolution relative des ressources
+- Gestion automatique des permissions
 
 ### Notification System
 
