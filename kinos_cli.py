@@ -66,39 +66,47 @@ def launch_team(args):
         sys.exit(1)
 
 def main():
-    # Simplified argument parsing
+    """Main entry point for KinOS CLI"""
     parser = argparse.ArgumentParser(description="KinOS CLI - Team Launch")
-    parser.add_argument('team', nargs='?', default='default', 
-                        help='Team to launch (default: default)')
+    parser.add_argument('team', nargs='?', default='book-writing', 
+                        help='Team to launch (default: book-writing)')
     parser.add_argument('-m', '--mission', default=None, 
                         help='Optional mission name')
     parser.add_argument('-v', '--verbose', action='store_true', 
                         help='Enable verbose logging')
     parser.add_argument('--dry-run', action='store_true', 
                         help='Simulate launch without executing')
+    parser.add_argument('-p', '--path', default=None,
+                        help='Custom base path for mission')
     
     args = parser.parse_args()
     
-    # Use current directory as mission path if no mission specified
-    current_mission_dir = os.getcwd()
-    mission_name = args.mission or os.path.basename(current_mission_dir)
+    # Use provided path or current directory
+    base_path = args.path or os.getcwd()
+    mission_name = args.mission or os.path.basename(base_path)
 
     try:
+        # Configure logging
+        logger = configure_cli_logger()
+        logger.log(f"Starting KinOS CLI...", 'info')
+        logger.log(f"Team: {args.team}", 'info')
+        logger.log(f"Base path: {base_path}", 'info')
+        logger.log(f"Mission name: {mission_name}", 'info')
+
+        if args.dry_run:
+            logger.log("DRY RUN - No changes will be made", 'warning')
+            return
+
         # Create service instances
         mission_service = MissionService()
         team_service = TeamService(None)
         agent_service = AgentService(None)
 
-        # Log the launch details
-        logger = configure_cli_logger()
-        logger.log(f"Launching team: {args.team}", 'info')
-        logger.log(f"Mission directory: {current_mission_dir}", 'info')
-
-        # Launch team in current directory
+        # Launch team
         result = team_service.start_team(
             mission_id=None,
             team_id=args.team, 
-            base_path=current_mission_dir
+            base_path=base_path
         )
 
         # Display verbose output if requested
