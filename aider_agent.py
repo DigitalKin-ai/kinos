@@ -523,40 +523,6 @@ class AiderAgent(KinOSAgent):
 
                         # Only proceed if we have files to save
                         if files_context:
-                            # Check if dataset service is available as an attribute of the agent
-                            if hasattr(self, 'dataset_service') and self.dataset_service:
-                                try:
-                                    # Create event loop if needed
-                                    try:
-                                        loop = asyncio.get_event_loop()
-                                    except RuntimeError:
-                                        loop = asyncio.new_event_loop()
-                                        asyncio.set_event_loop(loop)
-
-                                    # Add to dataset asynchronously
-                                    loop.create_task(
-                                        self.dataset_service.add_interaction_async(
-                                            prompt=prompt,
-                                            files_context=files_context,
-                                            aider_response=full_output
-                                        )
-                                    )
-                                    self.logger.log(
-                                        f"Added interaction to dataset with {len(files_context)} files", 
-                                        'success'
-                                    )
-                                except Exception as e:
-                                    self.logger.log(
-                                        f"Error adding to dataset: {str(e)}\n"
-                                        f"Traceback: {traceback.format_exc()}", 
-                                        'error'
-                                    )
-                                finally:
-                                    # Clean up if we created a new loop
-                                    try:
-                                        loop.close()
-                                    except:
-                                        pass
 
                     except Exception as e:
                         self._log(f"[{self.__class__.__name__}] Error saving to dataset: {str(e)}")
@@ -619,43 +585,6 @@ class AiderAgent(KinOSAgent):
 
                         # Only proceed if we have files to save
                         if files_context:
-                            # Check dataset service availability silently
-                            if (hasattr(self.web_instance, 'dataset_service') and 
-                                self.dataset_service and 
-                                hasattr(self.dataset_service, 'is_available') and 
-                                self.dataset_service.is_available()):
-                                try:
-                                    # Create event loop if needed
-                                    try:
-                                        loop = asyncio.get_event_loop()
-                                    except RuntimeError:
-                                        loop = asyncio.new_event_loop()
-                                        asyncio.set_event_loop(loop)
-
-                                    # Add to dataset asynchronously
-                                    loop.create_task(
-                                        self.dataset_service.add_interaction_async(
-                                            prompt=prompt,
-                                            files_context=files_context,
-                                            aider_response=full_output
-                                        )
-                                    )
-                                    self.logger.log(
-                                        f"Added interaction to dataset with {len(files_context)} files", 
-                                        'success'
-                                    )
-                                except Exception as e:
-                                    self.logger.log(
-                                        f"Error adding to dataset: {str(e)}\n"
-                                        f"Traceback: {traceback.format_exc()}", 
-                                        'error'
-                                    )
-                                finally:
-                                    # Clean up if we created a new loop
-                                    try:
-                                        loop.close()
-                                    except:
-                                        pass
 
                     except Exception as e:
                         self._log(f"[{self.__class__.__name__}] Error saving to dataset: {str(e)}")

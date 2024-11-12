@@ -98,9 +98,6 @@ class KinOSAgent:
             # Initialize logger (needed for all other operations)
             self.logger = self._init_logger(config.get("logger", print))
             
-            # Initialize dataset service if provided in config
-            self.dataset_service = config.get("dataset_service")
-            
             # Validate and set paths
             self._validate_paths()
             
