@@ -22,9 +22,21 @@ class Logger:
         self.is_tty = sys.stdout.isatty()
         self._log_lock = threading.Lock()
         self._shutting_down = False
+        self._level = logging.INFO  # Default level
         # Register cleanup at exit
         import atexit
         atexit.register(self._cleanup)
+
+    def set_level(self, level: str):
+        """Set the logging level"""
+        level_map = {
+            'DEBUG': logging.DEBUG,
+            'INFO': logging.INFO,
+            'WARNING': logging.WARNING,
+            'ERROR': logging.ERROR,
+            'CRITICAL': logging.CRITICAL
+        }
+        self._level = level_map.get(level.upper(), logging.INFO)
 
     def _cleanup(self):
         """Mark logger as shutting down and flush output"""
@@ -40,9 +52,21 @@ class Logger:
             pass  # Ignore errors during shutdown
 
     def log(self, message: str, level: str = 'info'):
-        """Thread-safe logging with shutdown handling"""
+        """Thread-safe logging with level filtering and shutdown handling"""
         if self._shutting_down:
             return  # Skip logging during shutdown
+
+        level_map = {
+            'debug': logging.DEBUG,
+            'info': logging.INFO,
+            'warning': logging.WARNING,
+            'error': logging.ERROR,
+            'critical': logging.CRITICAL
+        }
+        
+        # Check if we should log this level
+        if level_map.get(level.lower(), logging.INFO) < self._level:
+            return
             
         try:
             with self._log_lock:
@@ -61,15 +85,16 @@ class Logger:
                 # Only print error if not shutting down
                 print(f"Logging error for message: {message}")
 
-def configure_cli_logger(force_color=None):
+def configure_cli_logger(force_color=None, log_level='INFO'):
     """
-    Configure CLI logger with intelligent color detection
+    Configure CLI logger with intelligent color detection and log level
     
     Args:
         force_color (bool, optional): 
             - True: Force color output
             - False: Disable color output
             - None: Auto-detect
+        log_level (str): Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
     
     Returns:
         Logger instance with appropriate color configuration
@@ -82,6 +107,9 @@ def configure_cli_logger(force_color=None):
     
     # Create logger instance
     logger = Logger()
+    
+    # Set log level
+    logger.set_level(log_level)
     
     # Import threading here to avoid circular imports
     import threading

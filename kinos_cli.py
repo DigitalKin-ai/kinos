@@ -67,6 +67,15 @@ def launch_team(args):
 def main():
     """Main CLI entry point"""
     parser = argparse.ArgumentParser(description='KinOS CLI')
+    
+    # Add global options that apply to all commands
+    parser.add_argument(
+        '--log-level',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+        default='INFO',
+        help='Set logging level'
+    )
+    
     subparsers = parser.add_subparsers(dest='command', help='Commands')
 
     # Create the team command parser
@@ -95,8 +104,10 @@ def main():
 
     # Parse arguments
     args = parser.parse_args()
-    logger = Logger()
-    logger.log("Starting KinOS CLI...")
+    
+    # Configure logging based on arguments
+    logger = configure_cli_logger(log_level=args.log_level)
+    logger.log(f"Starting KinOS CLI with log level: {args.log_level}")
 
     try:
         # If no command specified, default to launching default team
