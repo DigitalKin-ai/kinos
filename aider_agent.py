@@ -380,18 +380,44 @@ class AiderAgent(KinOSAgent):
                                 )
                                 continue
 
-                            # Check for error indicators
-                            lower_line = line.lower()
-                            is_error = any(err in lower_line for err in [
-                                'error', 'exception', 'failed', 'can\'t initialize'
-                            ])
-                            
-                            # Log with appropriate level
-                            if is_error:
-                                self._log(f"[{self.__class__.__name__}] ❌ {line}", 'error')
-                                error_detected = True
+                            # Parse commit messages
+                            if line.startswith("Commit ") and " " in line[7:]:
+                                try:
+                                    # Format: "Commit e7975b9 refactor: Remove web_instance..."
+                                    commit_hash = line[7:].split()[0]  # Extract hash
+                                    commit_type = line[7+len(commit_hash):].strip().split(":", 1)
+                                    
+                                    if len(commit_type) == 2:
+                                        commit_category = commit_type[0].strip()  # e.g. "refactor"
+                                        commit_message = commit_type[1].strip()   # e.g. "Remove web_instance..."
+                                        
+                                        self._log(
+                                            f"[{self.__class__.__name__}] 🔨 Commit [{commit_category}] {commit_hash}: {commit_message}", 
+                                            'success'
+                                        )
+                                    else:
+                                        # No category, just message
+                                        commit_message = line[7+len(commit_hash):].strip()
+                                        self._log(
+                                            f"[{self.__class__.__name__}] 🔨 Commit {commit_hash}: {commit_message}", 
+                                            'success'
+                                        )
+                                        
+                                except Exception as e:
+                                    # Fallback if parsing fails
+                                    self._log(f"[{self.__class__.__name__}] 🔨 {line}", 'success')
                             else:
-                                self._log(f"[{self.__class__.__name__}] 📝 {line}", 'info')
+                                # Handle non-commit lines
+                                lower_line = line.lower()
+                                is_error = any(err in lower_line for err in [
+                                    'error', 'exception', 'failed', 'can\'t initialize'
+                                ])
+                                
+                                if is_error:
+                                    self._log(f"[{self.__class__.__name__}] ❌ {line}", 'error')
+                                    error_detected = True
+                                else:
+                                    self._log(f"[{self.__class__.__name__}] 📝 {line}", 'info')
                             
                             output_lines.append(line)
                             
