@@ -71,7 +71,8 @@ class Logger:
             'info': logging.INFO,
             'warning': logging.WARNING,
             'error': logging.ERROR,
-            'critical': logging.CRITICAL
+            'critical': logging.CRITICAL,
+            'success': logging.INFO  # Add success level mapping
         }
         
         # Get numeric level, default to INFO if level string not recognized
@@ -88,9 +89,10 @@ class Logger:
                 
                 if self.is_tty:
                     color = self.COLORS.get(level, self.COLORS['info'])
-                    print(f"{color}{formatted}{self.COLORS['reset']}", flush=True)
+                    # Use print() without length limitation
+                    print(f"{color}{formatted}{self.COLORS['reset']}", flush=True, end='\n')
                 else:
-                    print(formatted, flush=True)
+                    print(formatted, flush=True, end='\n')
                 
         except Exception:
             # During shutdown, some exceptions are expected
