@@ -1,105 +1,81 @@
 import argparse
 import os
 import sys
-import time
 import logging
 from services.team_service import TeamService
 from services.mission_service import MissionService
 from services.agent_service import AgentService
 from utils.logger import configure_cli_logger
-from utils.path_manager import PathManager
 from config.global_config import GlobalConfig
 
-class KinosCLI:
-    def __init__(self, force_color=None):
-        # Use the new configure_cli_logger method
-        self.logger = configure_cli_logger(force_color)
+def launch_team(args):
+    """
+    Launch a team with comprehensive error handling and configuration
+    
+    Args:
+        args: Parsed command-line arguments
+    """
+    try:
+        # Load configuration or use default
+        config = GlobalConfig.load_config() if hasattr(GlobalConfig, 'load_config') else {}
         
-        # Initialize services
-        self.mission_service = MissionService()
-        self.team_service = TeamService(self)
-        self.agent_service = AgentService(self)
-
-    def launch_team(self, team_name, base_path=None, verbose=False, dry_run=False):
-        # Placeholder implementation
-        try:
-            # Use current directory if no base path specified
-            mission_dir = base_path or os.getcwd()
-            
-            # Validate team exists
-            available_teams = self.team_service._load_predefined_teams()
-            team_ids = [team['id'] for team in available_teams]
-            
-            if team_name not in team_ids:
-                self.logger.log(f"Équipe '{team_name}' non trouvée.", 'error')
-                self.logger.log(f"Équipes disponibles : {', '.join(team_ids)}", 'info')
-                return
-
-            if dry_run:
-                self.logger.log(f"Mode simulation : Lancement de l'équipe {team_name}", 'info')
-                return
-
-            # Launch team in specified/current directory
-            result = self.team_service.start_team(
-                mission_id=None,
-                team_id=team_name, 
-                base_path=mission_dir
-            )
-            
-            self.logger.log(f"✓ Équipe {team_name} démarrée. Démarrage des agents...", 'success')
-            self.logger.log(f"Dossier de travail : {mission_dir}", 'info')
-            
-            if verbose:
-                self.logger.log("Appuyez sur CTRL+C pour arrêter les agents", 'info')
-                
-                # Display agent statuses
-                status = self.agent_service.get_agent_status()
-                for agent_name, agent_status in status.items():
-                    running = agent_status.get('running', False)
-                    health = agent_status.get('health', {})
-                    last_run = agent_status.get('last_run', 'Jamais')
-                    
-                    status_str = "🟢 Actif" if running else "🔴 Inactif"
-                    health_str = "✅ OK" if health.get('is_healthy', True) else "❌ Dégradé"
-                    
-                    self.logger.log(
-                        f"Agent {agent_name}: {status_str} | Santé: {health_str} | "
-                        f"Dernière exécution: {last_run}",
-                        'info' if running else 'warning'
-                    )
-                
-        except Exception as e:
-            self.logger.log(f"Erreur lors du lancement de l'équipe : {e}", 'error')
+        # Setup logging
+        logger = configure_cli_logger()
+        
+        # Validate required arguments
+        if not args.mission:
+            logger.log("Mission name is required", 'error')
+            sys.exit(1)
+        
+        if not args.team:
+            logger.log("Team name is required", 'error')
+            sys.exit(1)
+        
+        # Create service instances
+        mission_service = MissionService()
+        team_service = TeamService(None)
+        agent_service = AgentService(None)
+        
+        # Dry run mode
+        if args.dry_run:
+            logger.log(f"Dry run: Would launch team {args.team} for mission {args.mission}", 'info')
+            return
+        
+        # Get mission details
+        mission = mission_service.get_mission_by_name(args.mission)
+        if not mission:
+            logger.log(f"Mission {args.mission} not found", 'error')
+            sys.exit(1)
+        
+        # Activate team
+        result = team_service.activate_team(mission['id'], args.team)
+        
+        # Log detailed results
+        logger.log(f"Team {args.team} launched successfully", 'success')
+        
+        # Verbose mode: show detailed agent statuses
+        if args.verbose:
+            for agent_result in result.get('activation_results', []):
+                status = 'Success' if agent_result['success'] else 'Failed'
+                logger.log(f"Agent {agent_result['agent']}: {status}", 
+                           'success' if agent_result['success'] else 'error')
+        
+    except Exception as e:
+        logger.log(f"Error launching team: {e}", 'error')
+        sys.exit(1)
 
 def main():
-    parser = argparse.ArgumentParser(description="KinOS CLI - Simplified Team Launch")
+    parser = argparse.ArgumentParser(description="KinOS CLI - Team Launch")
+    parser.add_argument('--mission', required=True, help='Mission name')
+    parser.add_argument('--team', required=True, help='Team to launch')
+    parser.add_argument('--verbose', action='store_true', help='Enable verbose logging')
+    parser.add_argument('--dry-run', action='store_true', help='Simulate launch without executing')
     
-    # Positional argument for team name
-    parser.add_argument('team', nargs='?', default='book-writing', 
-                        help='Team to launch (default: book-writing)')
-    parser.add_argument('-v', '--verbose', action='store_true', 
-                        help='Enable verbose logging')
-    
-    # Parse arguments
     args = parser.parse_args()
+    launch_team(args)
 
-    # Create CLI instance
-    cli = KinosCLI()
-
-    # Use current directory as mission path
-    current_mission_dir = os.getcwd()
-
-    try:
-        # Launch team in current directory
-        cli.launch_team(
-            team_name=args.team, 
-            base_path=current_mission_dir, 
-            verbose=args.verbose
-        )
-
-    except Exception as e:
-        cli.logger.log(f"Error launching team: {str(e)}", 'error')
-        sys.exit(1)
+if __name__ == '__main__':
+    main()
 
 def launch_team(self, team_name: str, base_path: str = None, verbose: bool = False):
     """
