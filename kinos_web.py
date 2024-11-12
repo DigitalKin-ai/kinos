@@ -24,6 +24,7 @@ from services.mission_service import MissionService
 from services.notification_service import NotificationService
 from services.file_manager import FileManager as FileService
 from services.team_service import TeamService
+from services.dataset_service import DatasetService
 
 from routes.agent_routes import register_agent_routes
 from routes.mission_routes import register_mission_routes
