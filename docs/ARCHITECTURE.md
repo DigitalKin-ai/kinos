@@ -28,6 +28,8 @@ KinOS est un système d'agents autonomes conçu pour simplifier et accélérer l
    - Automatic error recovery
    - Adaptive timing control
    - Smart resource management
+   - Current directory as mission context
+   - Minimal dependencies
 
 3. **File System**
    - Current directory as mission context
@@ -36,14 +38,17 @@ KinOS est un système d'agents autonomes conçu pour simplifier et accélérer l
    - Automatic backup handling
    - Permission validation
    - Resource cleanup
+   - No complex configuration needed
 
 4. **Services Layer**
+   - Minimal dependencies
    - Team management
    - Agent coordination
    - File operations
    - Path validation
    - Error handling
    - Resource management
+   - Simple initialization
 
 ### Key Features
 
@@ -53,6 +58,9 @@ KinOS est un système d'agents autonomes conçu pour simplifier et accélérer l
    - Single command operation
    - Automatic team selection
    - Graceful error handling
+   - Minimal dependencies
+   - No web instance required
+   - Direct file system access
 
 2. **Autonomy**
    - Self-managing agents
@@ -60,6 +68,8 @@ KinOS est un système d'agents autonomes conçu pour simplifier et accélérer l
    - Automatic recovery
    - Smart scheduling
    - Independent operation
+   - Local file system based
+   - No external dependencies
 
 3. **Flexibility**
    - Works in any directory
