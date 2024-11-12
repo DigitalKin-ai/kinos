@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Dict, List, Tuple
 from services.base_service import BaseService
 from anthropic import Anthropic
+from utils.logger import Logger
 
 class MapService(BaseService):
     """Manages project documentation mapping and size monitoring"""
