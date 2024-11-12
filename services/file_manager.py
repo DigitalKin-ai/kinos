@@ -17,11 +17,10 @@ class FileManager:
         # Import only what's needed
         from utils.logger import Logger
         from types import SimpleNamespace
-        self.project_root = os.getcwd()  # Use current directory instead of project root
+        self.project_root = os.getcwd()  # Use current directory
         self._on_content_changed = on_content_changed
         self._current_mission = None
         self.logger = Logger()
-        
         
         # Initialize cache
         self.content_cache = {}

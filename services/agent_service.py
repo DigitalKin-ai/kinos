@@ -138,35 +138,32 @@ class AgentService:
     def init_agents(self, config: Dict[str, Any], team_agents: Optional[List[str]] = None) -> None:
         """Initialize agents for a team with detailed logging"""
         try:
-            # Normaliser les noms d'agents
+            # Normalize agent names
             if not team_agents:
                 team_agents = [
                     'specifications', 'management', 'evaluation', 
                     'chroniqueur', 'documentaliste', 'production', 'testeur'
                 ]
 
-            normalized_agents = [
-                agent.lower().replace('agent', '').strip() 
-                for agent in team_agents
-            ]
+            normalized_agents = self._normalize_agent_names(team_agents)
 
-            # Valider le répertoire de mission
+            # Validate mission directory
             mission_dir = config.get('mission_dir')
             if not mission_dir or not os.path.exists(mission_dir):
                 raise ValueError(f"Invalid mission directory: {mission_dir}")
 
-            # Initialiser chaque agent
+            # Initialize each agent
             initialized_agents = {}
             for agent_name in normalized_agents:
                 try:
-                    # Configuration de l'agent
+                    # Configure agent
                     agent_config = {
                         'name': agent_name,
                         'mission_dir': mission_dir,
                         'prompt_file': os.path.join('prompts', f"{agent_name}.md")
                     }
 
-                    # Créer l'agent
+                    # Create agent
                     agent = self._create_dynamic_agent(agent_config)
                     if agent:
                         initialized_agents[agent_name] = agent
