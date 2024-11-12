@@ -7,6 +7,7 @@ from services.dataset_service import DatasetService
 from services.file_service import FileService
 from services.team_service import TeamService
 from services.agent_service import AgentService
+from services.map_service import MapService
 from utils.exceptions import ServiceError
 
 def init_services(web_instance):
@@ -63,7 +64,8 @@ def init_services(web_instance):
         services_to_init = [
             ('file_service', lambda: FileService(web_instance)),
             ('team_service', lambda: TeamService(web_instance)),
-            ('agent_service', lambda: AgentService(web_instance))
+            ('agent_service', lambda: AgentService(web_instance)),
+            ('map_service', lambda: MapService(web_instance))
         ]
 
         # Only initialize services that don't already exist
@@ -94,7 +96,8 @@ def init_services(web_instance):
 
         # Verify all required services are present
         required_services = [
-            'dataset_service', 'file_service', 'team_service', 'agent_service'
+            'dataset_service', 'file_service', 'team_service', 'agent_service',
+            'map_service'
         ]
         
         missing_services = [svc for svc in required_services 
