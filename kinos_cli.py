@@ -197,6 +197,112 @@ class KinosCLI:
             self.logger.log(f"Erreur lors de la récupération des équipes : {e}", 'error')
             sys.exit(1)
 
+    def start_specific_agent(self, mission_name: str, agent_name: str):
+        """
+        Start a specific agent for a given mission
+        
+        Args:
+            mission_name (str): Name of the mission
+            agent_name (str): Name of the agent to start
+        """
+        try:
+            # Validate mission exists
+            mission = self.mission_service.get_mission_by_name(mission_name)
+            if not mission:
+                self.logger.log(f"Mission '{mission_name}' not found.", 'error')
+                sys.exit(1)
+
+            # Resolve mission path using PathManager
+            try:
+                mission_path = PathManager.get_mission_path(mission_name)
+                
+                # Validate mission directory
+                if not os.path.exists(mission_path):
+                    self.logger.log(f"Mission directory not found: {mission_path}", 'error')
+                    sys.exit(1)
+                
+                if not os.access(mission_path, os.R_OK | os.W_OK):
+                    self.logger.log(f"Insufficient permissions on: {mission_path}", 'error')
+                    sys.exit(1)
+                    
+            except Exception as path_error:
+                self.logger.log(f"Error resolving mission path: {str(path_error)}", 'error')
+                sys.exit(1)
+
+            # Normalize agent name
+            normalized_agent_name = agent_name.lower().replace('agent', '').strip()
+            
+            # Verify agent exists
+            available_agents = self.agent_service.get_available_agents()
+            if normalized_agent_name not in available_agents:
+                self.logger.log(f"Agent '{normalized_agent_name}' not found.", 'error')
+                self.logger.log(f"Available agents: {', '.join(available_agents)}", 'info')
+                sys.exit(1)
+
+            # Attempt to start the agent
+            success = self.agent_service.toggle_agent(
+                agent_name=normalized_agent_name, 
+                action='start', 
+                mission_dir=mission_path
+            )
+
+            if success:
+                self.logger.log(
+                    f"✅ Agent {normalized_agent_name} started successfully for mission {mission_name}", 
+                    'success'
+                )
+                
+                # Start a thread to monitor the agent
+                def monitor_agent():
+                    try:
+                        while True:
+                            status = self.agent_service.get_agent_status(normalized_agent_name)
+                            
+                            # Display agent status
+                            running = status.get('running', False)
+                            health = status.get('health', {})
+                            last_run = status.get('last_run', 'Never')
+                            
+                            status_str = "🟢 Active" if running else "🔴 Inactive"
+                            health_str = "✅ Healthy" if health.get('is_healthy', True) else "❌ Degraded"
+                            
+                            self.logger.log(
+                                f"Agent {normalized_agent_name} Status:\n"
+                                f"  Running: {status_str}\n"
+                                f"  Health: {health_str}\n"
+                                f"  Last Run: {last_run}\n"
+                                f"  Consecutive No Changes: {health.get('consecutive_no_changes', 0)}",
+                                'info'
+                            )
+                            
+                            # Wait before next status check
+                            time.sleep(60)
+                            
+                    except KeyboardInterrupt:
+                        self.logger.log(f"\nStopping monitoring for agent {normalized_agent_name}", 'warning')
+                    except Exception as e:
+                        self.logger.log(f"Error monitoring agent: {str(e)}", 'error')
+
+                # Start monitoring thread
+                monitor_thread = threading.Thread(target=monitor_agent, daemon=True)
+                monitor_thread.start()
+
+                # Keep main thread running
+                try:
+                    monitor_thread.join()
+                except KeyboardInterrupt:
+                    self.logger.log("\nAgent monitoring stopped by user.", 'warning')
+                    self.agent_service.toggle_agent(normalized_agent_name, 'stop')
+                    sys.exit(0)
+
+            else:
+                self.logger.log(f"Failed to start agent {normalized_agent_name}", 'error')
+                sys.exit(1)
+
+        except Exception as e:
+            self.logger.log(f"Error starting agent: {str(e)}", 'error')
+            sys.exit(1)
+
     def _stream_logs(self, team_result, log_file=None):
         """
         Affiche les logs de l'équipe en temps réel
@@ -254,6 +360,11 @@ def main():
     # Commande list pour les agents
     list_parser = agent_subparsers.add_parser('list', help='Lister tous les agents disponibles')
 
+    # Commande start pour démarrer un agent spécifique
+    start_parser = agent_subparsers.add_parser('start', help='Démarrer un agent spécifique')
+    start_parser.add_argument('--mission', required=True, help='Nom de la mission')
+    start_parser.add_argument('--name', required=True, help='Nom de l\'agent à démarrer')
+
     # Sous-commande pour lister les missions
     missions_parser = subparsers.add_parser('missions', help='Commandes liées aux missions')
     missions_subparsers = missions_parser.add_subparsers(dest='missions_command')
@@ -295,6 +406,11 @@ def main():
         )
     elif args.command == 'agent' and args.agent_command == 'list':
         cli.list_agents()
+    elif args.command == 'agent' and args.agent_command == 'start':
+        cli.start_specific_agent(
+            mission_name=args.mission, 
+            agent_name=args.name
+        )
     elif args.command == 'missions' and args.missions_command == 'list':
         cli.list_missions()
     elif args.command == 'teams' and args.teams_command == 'list':
