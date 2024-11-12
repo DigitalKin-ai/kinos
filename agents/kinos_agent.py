@@ -94,12 +94,12 @@ class KinOSAgent:
             self.name = config['name']
             self.config = config
             self.mission_dir = config['mission_dir']
-        
-        # Validate mission directory exists and is accessible
-        if not os.path.exists(self.mission_dir):
-            raise ValueError(f"Mission directory not found: {self.mission_dir}")
-        if not os.access(self.mission_dir, os.R_OK | os.W_OK):
-            raise ValueError(f"Insufficient permissions on mission directory: {self.mission_dir}")
+
+            # Validate mission directory exists and is accessible
+            if not os.path.exists(self.mission_dir):
+                raise ValueError(f"Mission directory not found: {self.mission_dir}")
+            if not os.access(self.mission_dir, os.R_OK | os.W_OK):
+                raise ValueError(f"Insufficient permissions on mission directory: {self.mission_dir}")
             
         self.mission_files = {}
 
