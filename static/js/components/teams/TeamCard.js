@@ -25,7 +25,8 @@ export default {
                 totalAgents: 0,
                 runningAgents: 0,
                 healthyAgents: 0,
-                efficiency: 0
+                efficiency: 0,
+                lastUpdate: null
             })
         }
     },
