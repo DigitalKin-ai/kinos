@@ -1,0 +1,15 @@
+{
+    "id": "default",
+    "name": "Default Team",
+    "description": "Content creation and documentation",
+    "agents": [
+        "specifications",
+        "management", 
+        "evaluation",
+        "chroniqueur",
+        "documentaliste",
+        "duplication", "redondance",
+        "redacteur",
+        "validation"
+    ]
+}

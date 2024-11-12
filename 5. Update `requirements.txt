@@ -1,7 +1,0 @@
-# Existing requirements
-flask
-portalocker
-python-dateutil
-
-# CLI requirements
-argparse

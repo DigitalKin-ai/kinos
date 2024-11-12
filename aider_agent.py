@@ -290,7 +290,6 @@ class AiderAgent(KinOSAgent):
                 cmd = [
                     "aider",
                     "--model", "claude-3-5-haiku-20241022", # DON'T CHANGE ME gpt-4o-mini
-                    "--no-git",
                     "--yes-always",
                     "--cache-prompts",
                     "--no-pretty",
