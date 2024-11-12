@@ -282,8 +282,8 @@ class AiderAgent(KinOSAgent):
                 self._log(f"[{self.name}] 🚀 Starting Aider execution")
                 self._log(f"[{self.name}] 📂 Mission directory: {self.mission_dir}")
             
-            # Validate mission directory
-            if not os.path.exists(self.mission_dir):
+                # Validate mission directory
+                if not os.path.exists(self.mission_dir):
                 self._log(f"[{self.name}] ❌ Mission directory not found")
                 return None
                 
