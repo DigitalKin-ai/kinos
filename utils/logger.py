@@ -72,14 +72,14 @@ class Logger:
             'warning': logging.WARNING,
             'error': logging.ERROR,
             'critical': logging.CRITICAL,
-            'success': logging.INFO  # Add success level mapping
+            'success': logging.INFO  # Success mapped to INFO for compatibility
         }
         
         # Get numeric level, default to INFO if level string not recognized
         msg_level = level_map.get(level.lower(), logging.INFO)
         
-        # Check if we should log this level
-        if msg_level < self._level:
+        # Always show success messages, otherwise check level
+        if level.lower() != 'success' and msg_level < self._level:
             return
             
         try:
