@@ -10,8 +10,9 @@ from anthropic import Anthropic
 class MapService(BaseService):
     """Manages project documentation mapping and size monitoring"""
 
-    def __init__(self, web_instance):
-        super().__init__(web_instance)
+    def __init__(self, _):  # Keep parameter for compatibility but don't use it
+        """Initialize with minimal dependencies"""
+        self.logger = Logger()
         self.map_file = "map.md"
         self.size_limits = {
             'warning': 6000,  # Tokens triggering warning (6k)
