@@ -284,11 +284,11 @@ class AiderAgent(KinOSAgent):
                     return None
 
                 try:
-                # Change to mission directory
-                os.chdir(self.mission_dir)
-                self._log(f"[{self.name}] ✓ Changed to mission directory")
+                    # Change to mission directory
+                    os.chdir(self.mission_dir)
+                    self._log(f"[{self.name}] ✓ Changed to mission directory")
 
-                # Build command
+                    # Build command
                 cmd = [
                     "aider",
                     "--model", "claude-3-5-haiku-20241022",
