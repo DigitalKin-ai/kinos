@@ -339,11 +339,11 @@ List any specific constraints or limitations.
             with open(prompt_path, 'w', encoding='utf-8') as f:
                 f.write(default_content)
             
-            self.web_instance.log_message(f"Created default prompt file for {agent_name}: {prompt_path}", 'info')
+            self.logger.log(f"Created default prompt file for {agent_name}: {prompt_path}", 'info')
             return prompt_path
         
         except Exception as e:
-            self.web_instance.log_message(f"Error creating default prompt file for {agent_name}: {str(e)}", 'error')
+            self.logger.log(f"Error creating default prompt file for {agent_name}: {str(e)}", 'error')
             return None
 
     def get_available_agents(self) -> List[str]:
@@ -851,7 +851,7 @@ List any specific constraints or limitations.
             return error_count / max(total_runs, 1)
             
         except Exception as e:
-            self.web_instance.log_message(f"Error calculating error rate: {str(e)}", 'error')
+            self.logger.log(f"Error calculating error rate: {str(e)}", 'error')
             return 0.0
 
     def _handle_agent_error(self, agent_name: str, error: Exception) -> None:
@@ -1014,7 +1014,7 @@ List any specific constraints or limitations.
             
             # Log significant changes
             if system_status['system_health'] < 0.8:  # Less than 80% healthy
-                self.web_instance.log_message(
+                self.logger.log(
                     f"System health degraded: {system_status['system_health']:.1%}", 
                     'warning'
                 )
@@ -1023,7 +1023,7 @@ List any specific constraints or limitations.
             self._last_status = system_status
             
         except Exception as e:
-            self.web_instance.log_message(f"Error updating global status: {str(e)}", 'error')
+            self.logger.log(f"Error updating global status: {str(e)}", 'error')
 
     def create_agent(self, name: str, prompt: str) -> bool:
         """Create a new agent with the given name and prompt"""
