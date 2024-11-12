@@ -50,35 +50,41 @@ def launch_team(args):
         sys.exit(1)
 
 def main():
-    """Main entry point for KinOS CLI"""
-    parser = argparse.ArgumentParser(description="KinOS CLI - Team Launch")
-    subparsers = parser.add_subparsers(dest='command', help='Commands')
-
-    # Team command
-    team_parser = subparsers.add_parser('team', help='Team management')
-    team_parser.add_argument('name', nargs='?', default='default', 
-                            help='Team to launch (default: default)')
-    team_parser.add_argument('-v', '--verbose', action='store_true', 
-                            help='Enable verbose logging')
-
-    # Phase command
-    phase_parser = subparsers.add_parser('phase', help='Phase management commands')
-    phase_subparsers = phase_parser.add_subparsers(dest='subcommand')
-
-    # Status command
-    status_parser = phase_subparsers.add_parser('status', help='Show current phase status')
-    status_parser.add_argument('-v', '--verbose', action='store_true',
-                             help='Show detailed token usage')
-
-    # Force command
-    force_parser = phase_subparsers.add_parser('force', help='Force specific phase')
-    force_parser.add_argument('phase', choices=['expansion', 'convergence'], 
-                            help='Phase to force')
-    force_parser.add_argument('--reason', help='Reason for forcing phase')
+    """Main CLI entry point"""
+    parser = argparse.ArgumentParser(description='KinOS CLI')
+    
+    # Add team argument with default value
+    parser.add_argument(
+        'team', 
+        nargs='?',  # Make team name optional
+        default='default',  # Default team if none specified
+        help='Team name to launch'
+    )
+    
+    # Add verbose flag
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',  # This makes it a flag
+        default=False,
+        help='Enable verbose output'
+    )
+    
+    # Add base path option
+    parser.add_argument(
+        '-p', '--base-path',
+        help='Base path for the mission',
+        default=None
+    )
+    
+    # Add dry run flag
+    parser.add_argument(
+        '--dry-run',
+        action='store_true',
+        default=False,
+        help='Simulate launch without executing'
+    )
 
     args = parser.parse_args()
-    
-    # Create web instance with phase service
     from types import SimpleNamespace
     from services.phase_service import PhaseService
     web_instance = SimpleNamespace()
