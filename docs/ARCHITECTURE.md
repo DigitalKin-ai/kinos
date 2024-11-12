@@ -354,57 +354,47 @@ KinOS uses a single server architecture where both frontend and backend are serv
 
 ### Teams Management
 
-#### Architecture
-- **Team Configuration**
-  - Predefined team templates in teams-manager.js
-  - Dynamic agent groupings
-  - Flexible team composition
-  - Status tracking per team
+#### Predefined Teams
+Teams are simple agent groupings optimized for specific tasks:
 
-- **Team Operations**
-  - Centralized control via TeamsManager component
-  - Real-time status monitoring
-  - Individual and team-wide agent controls
-  - Performance metrics collection
+1. **default**
+   - Purpose: General purpose team
+   - Agents:
+     * SpecificationsAgent - Requirements analysis
+     * ManagementAgent - Project coordination
+     * EvaluationAgent - Quality control
+     * ChroniqueurAgent - Progress tracking
+     * DocumentalisteAgent - Documentation
 
-- **State Management**
-  - Team status tracking
-  - Agent status per team
-  - Loading states
-  - Operation history
-  - Performance metrics
+2. **coding**
+   - Purpose: Software development
+   - Agents:
+     * SpecificationsAgent - Technical requirements
+     * ProductionAgent - Code generation
+     * TesteurAgent - Testing
+     * DocumentalisteAgent - Documentation
+     * ValidationAgent - Code quality
 
-- **Interface Components**
-  - TeamsManager Vue component
-  - Team cards with controls
-  - Agent status indicators
-  - Performance displays
-  - Real-time updates
+3. **literature-review**
+   - Purpose: Research and analysis
+   - Agents:
+     * SpecificationsAgent - Review scope
+     * EvaluationAgent - Analysis
+     * ChroniqueurAgent - Progress tracking
+     * DocumentalisteAgent - Source organization
+     * ValidationAgent - Review validation
 
-#### Data Flow
-1. Team Configuration
-   - Stored in teams-manager.js
-   - Loaded on component mount
-   - Updated via UI interactions
-   - Persisted across sessions
-
-2. Status Updates
-   - Regular polling of agent states
-   - Real-time metric updates
-   - Team efficiency calculations
-   - History tracking
-
-3. Control Operations
-   - Team-wide start/stop
-   - Individual agent toggling
-   - Loading state management
-   - Error handling and recovery
+#### Team Operations
+- **Launch**: `kin [team-name]`
+- **Monitor**: Real-time status in terminal
+- **Control**: Graceful shutdown with Ctrl+C
+- **Recovery**: Automatic error handling and retry
 
 #### Integration
-- Interfaces with AgentService
-- Coordinates with NotificationService
-- Uses shared caching layer
-- Maintains operation history
+- Automatic directory detection
+- Dynamic path resolution
+- Thread-safe file operations
+- Graceful error handling
 
 ### Frontend Components
 
