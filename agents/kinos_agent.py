@@ -251,8 +251,7 @@ class KinOSAgent:
             self.intervals_config["default"]
         )
         
-        # Handle logger configuration
-        logger_config = self.config.get("logger", print)
+        # Initialize logger with consistent interface
         if callable(logger_config):
             # Create wrapper that handles both Logger instances and simple callables
             def create_log_wrapper(func):
@@ -267,7 +266,7 @@ class KinOSAgent:
                     # Convert message to string
                     msg = str(message)
 
-                    # If logger_config is a logging.Logger instance
+                    # If logger_config has log method
                     if hasattr(logger_config, 'log'):
                         # Remove level from kwargs if present to avoid duplication
                         kwargs.pop('level', None)
@@ -280,8 +279,8 @@ class KinOSAgent:
                 
             base_logger = create_log_wrapper(logger_config)
             
-            # Create logger object with consistent interface but prevent __str__ output
-            class Logger:
+            # Create logger object with consistent interface
+            class KinOSLogger:
                 def log(self, *args, **kwargs):
                     return base_logger(*args, **kwargs)
                 def _log(self, *args, **kwargs):
@@ -293,10 +292,8 @@ class KinOSAgent:
                 def __repr__(self):
                     return "KinOSLogger"
                     
-            self.logger = Logger()
-        else:
-            # Use logger object directly
-            self.logger = logger_config
+            return KinOSLogger()
+        return logger_config
             
         self.last_run = None
         self.last_change = None
