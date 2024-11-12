@@ -15,13 +15,17 @@ class Logger:
         'reset': '\033[0m'     # Reset
     }
 
+    def __init__(self):
+        """Initialize logger"""
+        self.is_tty = sys.stdout.isatty()
+
     def log(self, message: str, level: str = 'info'):
         """Log message with optional color"""
         try:
             timestamp = datetime.now().strftime("%H:%M:%S")
             formatted = f"[{timestamp}] [{level.upper()}] {message}"
             
-            if sys.stdout.isatty():  # Only use colors in terminal
+            if self.is_tty:  # Use is_tty instance variable
                 color = self.COLORS.get(level, self.COLORS['info'])
                 print(f"{color}{formatted}{self.COLORS['reset']}")
             else:
@@ -51,7 +55,7 @@ def configure_cli_logger(force_color=None):
         force_color = True
     
     # Create logger instance
-    logger = Logger(force_color)
+    logger = Logger()
     
     return logger
     
