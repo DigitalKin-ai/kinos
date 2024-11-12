@@ -435,15 +435,13 @@ class TeamService(BaseService):
         return sum(score * weights[metric] for metric, score in scores.items())
 
     def cleanup(self) -> None:
-        """Cleanup team service resources"""
+        """Clean up team service resources"""
         try:
-            if self.active_team:
-                self.deactivate_team(self.active_team['id'])
+            self.agent_service.stop_all_agents()
             self.teams.clear()
             self.active_team = None
-            self.logger.log("Team service cleanup completed", 'success')
         except Exception as e:
-            self.logger.log(f"Error during team service cleanup: {str(e)}", 'error')
+            self.logger.log(f"Error in cleanup: {str(e)}", 'error')
 
     def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
         """Launch a team in the specified directory"""
