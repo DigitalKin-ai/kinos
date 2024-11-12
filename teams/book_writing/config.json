@@ -14,15 +14,28 @@
         "redacteur3",
         "validation"
     ],
-    "settings": {
-        "default_timeout": 3600,
-        "max_concurrent_agents": 5,
-        "priority": "high"
-    },
-    "phases": {
-        "planning": ["specifications", "management"],
-        "writing": ["redacteur", "redacteur2", "redacteur3"],
-        "review": ["evaluation", "validation"],
-        "documentation": ["chroniqueur", "documentaliste"]
+    "phase_config": {
+        "expansion": {
+            "active_agents": [
+                "specifications",
+                "management",
+                "redacteur",
+                "redacteur2",
+                "redacteur3",
+                "chroniqueur",
+                "documentaliste"
+            ],
+            "priority": "content_generation"
+        },
+        "convergence": {
+            "active_agents": [
+                "evaluation",
+                "duplication",
+                "redondance",
+                "validation",
+                "documentaliste"
+            ],
+            "priority": "content_refinement"
+        }
     }
 }

@@ -12,5 +12,28 @@
         "duplication", "redondance",
         "redacteur", "redacteur2", "redacteur3",
         "validation"
-    ]
+    ],
+    "phase_config": {
+        "expansion": {
+            "active_agents": [
+                "specifications",
+                "chercheur",
+                "redacteur",
+                "redacteur2",
+                "redacteur3",
+                "chroniqueur"
+            ],
+            "priority": "research"
+        },
+        "convergence": {
+            "active_agents": [
+                "evaluation",
+                "duplication",
+                "redondance",
+                "validation",
+                "documentaliste"
+            ],
+            "priority": "synthesis"
+        }
+    }
 }

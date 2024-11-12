@@ -12,5 +12,27 @@
         "production",
         "testeur",
         "validation"
-    ]
+    ],
+    "phase_config": {
+        "expansion": {
+            "active_agents": [
+                "specifications",
+                "production",
+                "testeur",
+                "chroniqueur",
+                "documentaliste"
+            ],
+            "priority": "development"
+        },
+        "convergence": {
+            "active_agents": [
+                "evaluation",
+                "duplication",
+                "validation",
+                "testeur",
+                "documentaliste"
+            ],
+            "priority": "code_quality"
+        }
+    }
 }

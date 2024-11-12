@@ -11,5 +11,26 @@
         "duplication", "redondance",
         "redacteur",
         "validation"
-    ]
+    ],
+    "phase_config": {
+        "expansion": {
+            "active_agents": [
+                "specifications",
+                "management",
+                "redacteur",
+                "chroniqueur",
+                "documentaliste"
+            ],
+            "priority": "content_creation"
+        },
+        "convergence": {
+            "active_agents": [
+                "evaluation",
+                "duplication",
+                "redondance",
+                "validation"
+            ],
+            "priority": "optimization"
+        }
+    }
 }
