@@ -34,11 +34,6 @@ class FileManager:
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(content)
                 
-            # Update map if file is markdown
-            if file_name.endswith('.md'):
-                if hasattr(self.web_instance, 'map_service'):
-                    self.web_instance.map_service.update_map()
-                
             return True
         except Exception as e:
             self.logger.log(f"Error writing {file_name}: {str(e)}", 'error')

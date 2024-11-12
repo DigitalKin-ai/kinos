@@ -597,7 +597,7 @@ List any specific constraints or limitations.
         """Handle system-wide performance degradation"""
         try:
             # Log detailed metrics
-            self.web_instance.log_message(
+            self.logger.log(
                 f"System health degraded. Metrics:\n"
                 f"- Active agents: {system_metrics['active_agents']}/{system_metrics['total_agents']}\n"
                 f"- Healthy agents: {system_metrics['healthy_agents']}/{system_metrics['total_agents']}\n"
@@ -628,12 +628,12 @@ List any specific constraints or limitations.
 
             # Log recovery actions
             if recovery_actions:
-                self.web_instance.log_message(
+                self.logger.log(
                     f"Recovery actions taken:\n- " + "\n- ".join(recovery_actions),
                     'info'
                 )
             else:
-                self.web_instance.log_message(
+                self.logger.log(
                     "No automatic recovery actions available for current degradation",
                     'warning'
                 )
