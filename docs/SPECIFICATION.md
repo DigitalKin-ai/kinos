@@ -1,64 +1,81 @@
-# KinOS
-*Framework d'Agents Autonomes Parallèles*
+# Gestion Dynamique des Chemins de Fichiers dans KinOS
 
-## 1. Vue d'Ensemble
+## Nouveau Modèle de Gestion des Chemins de Mission
 
-### Description générale du projet
-KinOS est un framework innovant d'agents autonomes collaboratifs conçu pour automatiser et optimiser le développement logiciel. Il met en œuvre une approche unique où plusieurs agents spécialisés travaillent en parallèle, chacun ayant un rôle distinct mais interconnecté dans le processus de développement.
+### Changement Fondamental
+- Le répertoire de travail actuel devient le contexte de mission
+- Aucuna configuration complexa requise
+- Lancement immédiat dans n'importe quel dossier de projet
 
-### Objectifs principaux
-- **Automatisation intelligente** : Réduire la charge manuelle en automatisant les tâches répétitives du développement
-- **Collaboration multi-agents** : Permettre une coopération efficace entre agents spécialisés
-- **Adaptabilité** : S'ajuster dynamiquement aux besoins et contraintes des projets
-- **Traçabilité** : Assurer un suivi complet des décisions et modifications
-- **Qualité** : Maintenir des standards élevés grâce à des vérifications continues
+### Principes Clés
 
-### Architecture globale
-Le système s'articule autour de trois couches principales :
+#### 1. Contexte Dynamique
+- Chaque répertoire peut devenir instantanément un contexte de mission
+- Pas besoin de configuration préalable
+- L'agent s'adapte automatiquement à l'environnement courant
 
-1. **Couche Agents**
-   - Agents spécialisés (Specifications, Production, Management, etc.)
-   - Moteur de coordination
-   - Système de communication inter-agents
+#### 2. Résolution de Chemin
+- Utilisation du répertoire courant comme racine de mission
+- Support optionnel de chemins personnalisés
+- Validation dynamique des permissions
+- Normalisation intelligente des chemins
 
-2. **Couche Infrastructure**
-   - Système de fichiers
-   - Base de données des missions
-   - Gestionnaire d'états
-   - Système de logging
+### Exemples d'Utilisation
 
-3. **Couche Interface**
-   - Interface web réactive
-   - API REST
-   - Système de notifications
-   - Tableaux de bord
+```bash
+# Lancement dans le répertoire courant
+kin book-writing
 
-### Principes de fonctionnement
+# Lancement avec un chemin personnalisé
+kin book-writing -p /chemin/specifique
+```
 
-1. **Autonomie des agents**
-   - Chaque agent opère de manière indépendante
-   - Prise de décision autonome basée sur son domaine d'expertise
-   - Auto-régulation du rythme d'exécution
+### Stratégies de Validation
 
-2. **Communication asynchrone**
-   - Échange d'informations via le système de fichiers
-   - Notifications en temps réel des modifications
-   - Synchronisation automatique des états
+```python
+def validate_mission_path(path: str) -> bool:
+    """
+    Validation comprehensive du chemin de mission
+    
+    Critères:
+    - Chemin absolu
+    - Existe et est accessible
+    - Permissions lecture/écriture
+    - Exclusion des chemins système
+    """
+    return (
+        os.path.isabs(path) and
+        os.path.exists(path) and
+        os.access(path, os.R_OK | os.W_OK) and
+        not path.startswith('/sys') and
+        not path.startswith('/proc')
+    )
+```
 
-3. **Persistence et cohérence**
-   - Sauvegarde systématique des modifications
-   - Gestion des conflits
-   - Maintien de la cohérence des données
+### Avantages
 
-4. **Adaptabilité dynamique**
-   - Ajustement automatique des intervalles d'exécution
-   - Adaptation aux charges de travail
-   - Optimisation des ressources
+1. **Simplicité**
+   - Aucune configuration complexe
+   - Démarrage immédiat
+   - Zéro configuration requise
 
-5. **Monitoring continu**
-   - Surveillance en temps réel des activités
-   - Détection et récupération des erreurs
-   - Métriques de performance
+2. **Flexibilité**
+   - Adaptable à tous les types de projets
+   - Support multi-langages
+   - Indépendant de la structure de projet
+
+3. **Sécurité**
+   - Validation stricte des chemins
+   - Vérification des permissions
+   - Protection contre les accès non autorisés
+
+### Bonnes Pratiques
+
+1. Toujours vérifier les permissions avant opération
+2. Utiliser des chemins absolus
+3. Gérer les erreurs de chemin
+4. Logger les opérations sensibles
+5. Fournir des options de configuration personnalisée
 
 ## 2. Composants Principaux
 
