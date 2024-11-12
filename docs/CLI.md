@@ -2,148 +2,92 @@
 
 ## Vue d'Ensemble
 
-La CLI KinOS offre un ensemble de commandes pour interagir avec le système d'agents autonomes, gérer les missions et contrôler les opérations.
+La CLI KinOS offre une interface simplifiée pour lancer des équipes d'agents dans le répertoire de travail actuel.
 
-## Installation et Prérequis
-
-- Python 3.8+
-- Dépendances installées via `requirements.txt`
-- Clés API configurées dans `.env`
-
-## Utilisation Générale
+## Utilisation de Base
 
 ```bash
-python kinos_cli.py <commande> <sous-commande> [options]
+# Lancer une équipe dans le répertoire courant
+kin <nom-equipe>
 ```
 
 ## Commandes Disponibles
 
-### 1. Gestion des Équipes
+### Lancement d'Équipe
 
-#### Lancer une Équipe
+#### Syntaxe Simplifiée
 ```bash
-python kinos_cli.py team launch --mission <nom_mission> --team <nom_equipe>
-```
+# Lancer l'équipe de rédaction
+kin book-writing
 
-**Options**:
-- `--mission` (requis): Nom de la mission
-- `--team` (requis): Nom de l'équipe
-- `--verbose`: Mode débogage détaillé
-- `--dry-run`: Simulation sans exécution
-- `--timeout <secondes>`: Limite de temps
-- `--log-file <chemin>`: Fichier de log
-
-**Exemples**:
-```bash
 # Lancer l'équipe de développement
-python kinos_cli.py team launch --mission projet-ia --team coding
+kin coding
 
-# Mode verbose pour diagnostic
-python kinos_cli.py team launch --mission projet-ia --team coding --verbose
+# Lancer l'équipe de revue littéraire
+kin literature-review
 ```
 
-### 2. Gestion des Agents
+### Équipes Prédéfinies
 
-#### Lister les Agents
-```bash
-python kinos_cli.py agent list
-```
+1. **book-writing**
+   - Idéal pour la rédaction de contenu
+   - Agents : Spécifications, Gestion, Évaluation, Rédacteur, etc.
 
-**Fonctionnalités**:
-- Affiche tous les agents disponibles
-- Montre le statut de chaque agent
-- Utile pour vérifier les agents configurés
+2. **coding**
+   - Pour les projets de développement logiciel
+   - Agents : Spécifications, Production, Test, Validation, etc.
 
-**Exemple**:
-```bash
-python kinos_cli.py agent list
-```
-
-### 3. Gestion des Missions
-
-#### Lister les Missions
-```bash
-python kinos_cli.py missions list
-```
-
-**Fonctionnalités**:
-- Affiche toutes les missions disponibles
-- Montre l'ID, le nom, le statut et la date de création
-- Utile pour avoir un aperçu des projets en cours
-
-**Exemple**:
-```bash
-python kinos_cli.py missions list
-```
-
-### 4. Gestion des Équipes Disponibles
-
-#### Lister les Équipes
-```bash
-python kinos_cli.py teams list
-```
-
-**Fonctionnalités**:
-- Affiche toutes les équipes prédéfinies
-- Montre l'ID, le nom et les agents de chaque équipe
-- Aide à choisir l'équipe adaptée à un projet
-
-**Exemple**:
-```bash
-python kinos_cli.py teams list
-```
-
-## Types d'Équipes Prédéfinies
-
-1. **Équipe Développement (coding)**
-   - Agents: SpecificationsAgent, ProductionAgent, TesteurAgent, etc.
-   - Idéal pour les projets de développement logiciel
-
-2. **Équipe Rédaction (book-writing)**
-   - Agents: SpecificationsAgent, RedacteurAgent, ValidationAgent, etc.
-   - Adapté à la création de documentation ou de contenu
-
-3. **Équipe Revue Littéraire (literature-review)**
-   - Agents: DocumentalisteAgent, EvaluationAgent, ChroniqueurAgent, etc.
+3. **literature-review**
    - Pour l'analyse et la revue de documents
+   - Agents : Spécifications, Gestion, Évaluation, Chroniqueur, etc.
 
-## Gestion des Erreurs
+### Options Avancées
 
-- Validation stricte des noms de mission et d'équipe
-- Messages d'erreur détaillés
-- Codes de sortie pour intégration avec scripts
+```bash
+# Mode verbose pour plus de détails
+kin <nom-equipe> -v
 
-## Bonnes Pratiques
+# Afficher l'aide
+kin --help
+```
 
-1. Toujours spécifier une mission existante
-2. Vérifier les agents disponibles avant lancement
-3. Utiliser `--verbose` pour le débogage
-4. Surveiller les logs pour les détails d'exécution
+## Comportement
+
+- **Répertoire Courant** : L'équipe est lancée dans le dossier actuel
+- **Équipe par Défaut** : Déterminée par le premier argument
+- **Lancement Automatique** : Démarre immédiatement les agents
+
+## Exemples Pratiques
+
+```bash
+# Dans un projet de livre
+cd mon-projet-livre
+kin book-writing
+
+# Dans un projet de développement
+cd mon-projet-code
+kin coding
+
+# Avec mode verbose
+cd mon-projet-analyse
+kin literature-review -v
+```
+
+## Prérequis
+
+- Python 3.8+
+- KinOS installé
+- Clés API configurées
+- Répertoire de projet initialisé
 
 ## Dépannage
 
-- Vérifiez que les clés API sont configurées
-- Assurez-vous que la mission existe
-- Consultez les logs pour les détails des erreurs
-- Utilisez `--dry-run` pour tester sans exécuter
-
-## Configuration Avancée
-
-Vous pouvez personnaliser le comportement via des variables d'environnement :
-
-```bash
-# Exemple de configuration
-KINOS_LOG_LEVEL=DEBUG python kinos_cli.py team launch ...
-```
-
-## Contribution et Support
-
-- Rapportez les bugs sur le dépôt GitHub
-- Consultez la documentation complète
-- Rejoignez notre communauté Discord
+- Vérifiez que vous êtes dans le bon répertoire
+- Assurez-vous que les clés API sont configurées
+- Consultez les logs en cas d'erreur
+- Utilisez l'option `-v` pour plus de détails
 
 ## Versions
 
 - Version actuelle : 0.1.0
 - Dernière mise à jour : 2024-02-15
-- Compatibilité : Python 3.8+
