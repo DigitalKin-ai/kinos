@@ -27,27 +27,25 @@ class Logger:
         import atexit
         atexit.register(self._cleanup)
 
-    def set_level(self, level: str):
-        """Set the logging level"""
-        level_map = {
-            'DEBUG': logging.DEBUG,
-            'INFO': logging.INFO,
-            'WARNING': logging.WARNING,
-            'ERROR': logging.ERROR,
-            'CRITICAL': logging.CRITICAL
-        }
-        self._level = level_map.get(level.upper(), logging.INFO)
-
-    def set_level(self, level: str):
-        """Set the logging level"""
-        level_map = {
-            'DEBUG': logging.DEBUG,
-            'INFO': logging.INFO,
-            'WARNING': logging.WARNING,
-            'ERROR': logging.ERROR,
-            'CRITICAL': logging.CRITICAL
-        }
-        self._level = level_map.get(level.upper(), logging.INFO)
+    def set_level(self, level):
+        """Set the logging level
+        
+        Args:
+            level: Either a string level name or logging constant
+        """
+        if isinstance(level, str):
+            # Convert string level to logging constant
+            level_map = {
+                'DEBUG': logging.DEBUG,
+                'INFO': logging.INFO,
+                'WARNING': logging.WARNING, 
+                'ERROR': logging.ERROR,
+                'CRITICAL': logging.CRITICAL
+            }
+            self._level = level_map.get(level.upper(), logging.INFO)
+        else:
+            # Already a logging constant
+            self._level = level
 
     def _cleanup(self):
         """Mark logger as shutting down and flush output"""
