@@ -290,7 +290,8 @@ def main():
             verbose=args.verbose,
             dry_run=args.dry_run,
             timeout=args.timeout,
-            log_file=args.log_file
+            log_file=args.log_file,
+            base_path=args.base_path
         )
     elif args.command == 'agent' and args.agent_command == 'list':
         cli.list_agents()
