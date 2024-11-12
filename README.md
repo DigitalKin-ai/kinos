@@ -34,13 +34,13 @@ OPENAI_API_KEY=votre-clé-openai
 
 ### CLI Usage
 
-#### Basic Commands
+#### Basic Command
 ```bash
-# Launch team in current directory
-kin default
+# Launch default team in current directory
+kin
 
 # Launch with verbose logging
-kin default -v
+kin -v
 
 # Show help
 kin --help
