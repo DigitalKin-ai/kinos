@@ -7,8 +7,6 @@ from services.dataset_service import DatasetService
 from services.file_service import FileService
 from services.mission_service import MissionService
 from services.team_service import TeamService
-from services.notification_service import NotificationService
-from services.cache_service import CacheService
 from services.agent_service import AgentService
 from utils.exceptions import ServiceError
 
@@ -23,14 +21,8 @@ def init_services(web_instance):
             web_instance.logger = Logger()
             print("Created new logger for web_instance")
 
-        # Skip DatasetService initialization if it already exists AND is available
-        if hasattr(web_instance, 'dataset_service') and web_instance.dataset_service:
-            if web_instance.dataset_service.is_available():
-                print("Dataset service already initialized and available")
-            else:
-                print("Dataset service exists but not available - reinitializing")
-                web_instance.dataset_service = DatasetService(web_instance)
-        else:
+        # Initialize DatasetService first as it's required for fine-tuning
+        if not hasattr(web_instance, 'dataset_service'):
             print("\n=== DATASET SERVICE INITIALIZATION ===")
             try:
                 # Verify data path
@@ -56,9 +48,6 @@ def init_services(web_instance):
                     web_instance.logger.log("Dataset service initialization failed", 'error')
                     raise ServiceError("Dataset service not available after initialization")
                     
-                print(f"Data directory: {web_instance.dataset_service.data_dir}")
-                print(f"Dataset file: {web_instance.dataset_service.dataset_file}")
-                    
                 web_instance.logger.log(
                     f"Dataset service initialized successfully\n"
                     f"Data directory: {web_instance.dataset_service.data_dir}\n"
@@ -71,16 +60,10 @@ def init_services(web_instance):
                 web_instance.logger.log(f"Error initializing dataset service: {str(e)}", 'error')
                 raise ServiceError(f"Dataset service initialization failed: {str(e)}")
 
-        # Initialize remaining services only if dataset service is available
-        if not hasattr(web_instance, 'dataset_service') or not web_instance.dataset_service.is_available():
-            raise ServiceError("Dataset service must be initialized and available before other services")
-
-        # Continue with other services...
+        # Initialize remaining core services
         services_to_init = [
-            ('cache_service', lambda: CacheService(web_instance)),
             ('file_service', lambda: FileService(web_instance)),
             ('mission_service', lambda: MissionService()),
-            ('notification_service', lambda: NotificationService(web_instance)),
             ('team_service', lambda: TeamService(web_instance)),
             ('agent_service', lambda: AgentService(web_instance))
         ]
@@ -113,9 +96,8 @@ def init_services(web_instance):
 
         # Verify all required services are present
         required_services = [
-            'cache_service', 'file_service', 'mission_service',
-            'notification_service', 'dataset_service', 'team_service', 
-            'agent_service'
+            'dataset_service', 'file_service', 'mission_service', 
+            'team_service', 'agent_service'
         ]
         
         missing_services = [svc for svc in required_services 
