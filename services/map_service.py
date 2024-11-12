@@ -22,10 +22,15 @@ class MapService(BaseService):
         # Initialize Anthropic client for tokenization
         self.anthropic = Anthropic()
         
-        # Get phase service
-        from services import init_services
-        services = init_services(None)
-        self.phase_service = services['phase_service']
+        # Initialize phase_service as None - will be loaded on demand
+        self.phase_service = None
+
+    def _ensure_phase_service(self):
+        """Lazy initialization of phase service"""
+        if self.phase_service is None:
+            from services import init_services
+            services = init_services(None)
+            self.phase_service = services['phase_service']
 
     def generate_map(self) -> bool:
         """Generate project map file"""
@@ -156,6 +161,9 @@ class MapService(BaseService):
     def _format_map_content(self, tree_content: List[str], warnings: List[str]) -> str:
         """Format complete map.md content with introduction and phase information"""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Ensure phase service is initialized
+        self._ensure_phase_service()
         
         # Get phase status from PhaseService
         phase_status = self.phase_service.get_status_info()
