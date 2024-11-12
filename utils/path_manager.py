@@ -3,14 +3,24 @@ import json
 from typing import Optional, Dict, Any
 
 class PathManager:
-    """Gestionnaire centralisé et sécurisé des chemins pour KinOS"""
+    """Centralized and secure path management for KinOS"""
     
     _CONFIG_FILE = 'config/missions.json'
-    _DEFAULT_MISSIONS_DIR = 'missions'
+    _DEFAULT_MISSIONS_DIR = os.path.expanduser('~/KinOS_Missions')
     
     @classmethod
+    def get_project_root(cls) -> str:
+        """Returns the absolute path to the project root"""
+        current = os.path.abspath(__file__)
+        while current != os.path.dirname(current):
+            if os.path.exists(os.path.join(current, "missions")):
+                return current
+            current = os.path.dirname(current)
+        raise ValueError("Project root not found")
+
+    @classmethod
     def _load_mission_config(cls) -> Dict[str, Any]:
-        """Charge la configuration des chemins de mission"""
+        """Load mission configurations from JSON"""
         try:
             config_path = os.path.join(cls.get_project_root(), cls._CONFIG_FILE)
             if os.path.exists(config_path):
@@ -21,127 +31,133 @@ class PathManager:
             print(f"Error loading mission config: {e}")
             return {}
 
-    @staticmethod
-    def get_project_root() -> str:
-        """Retourne le chemin racine du projet"""
-        current = os.path.abspath(__file__)
-        while current != os.path.dirname(current):
-            if os.path.exists(os.path.join(current, "missions")):
-                return current
-            current = os.path.dirname(current)
-        raise ValueError("Project root not found")
-
     @classmethod
     def get_mission_path(cls, mission_name: str, base_path: Optional[str] = None) -> str:
         """
-        Retourne le chemin absolu vers une mission avec support de chemins personnalisés
+        Get the absolute path for a mission with enhanced validation
         
         Args:
-            mission_name (str): Nom de la mission
-            base_path (Optional[str]): Chemin de base personnalisé
+            mission_name (str): Name of the mission
+            base_path (Optional[str]): Custom base path for missions
         
         Returns:
-            str: Chemin absolu de la mission
+            str: Absolute path to the mission directory
         """
-        # Charger la configuration des missions
-        mission_config = cls._load_mission_config()
+        # Validate mission name
+        if not mission_name or not isinstance(mission_name, str):
+            raise ValueError("Invalid mission name")
         
-        # Priorité de sélection du chemin de base :
-        # 1. Chemin fourni explicitement
-        # 2. Chemin configuré pour cette mission
-        # 3. Dossier missions par défaut dans le projet
+        # Normalize mission name for filesystem
+        normalized_name = cls._normalize_mission_name(mission_name)
         
+        # Determine base path with priority:
+        # 1. Explicitly provided base path
+        # 2. Path from mission configuration
+        # 3. Default missions directory
         if base_path:
-            mission_path = os.path.join(base_path, mission_name)
-        elif mission_name in mission_config and 'path' in mission_config[mission_name]:
-            mission_path = mission_config[mission_name]['path']
+            mission_path = os.path.abspath(os.path.join(base_path, normalized_name))
         else:
-            root = cls.get_project_root()
-            mission_path = os.path.join(root, cls._DEFAULT_MISSIONS_DIR, mission_name)
+            mission_config = cls._load_mission_config()
+            if mission_name in mission_config and 'path' in mission_config[mission_name]:
+                mission_path = os.path.abspath(mission_config[mission_name]['path'])
+            else:
+                # Use default missions directory, creating if it doesn't exist
+                os.makedirs(cls._DEFAULT_MISSIONS_DIR, exist_ok=True)
+                mission_path = os.path.join(cls._DEFAULT_MISSIONS_DIR, normalized_name)
         
-        # Normaliser et valider le chemin
-        mission_path = os.path.abspath(mission_path)
-        
-        # Validation du chemin
+        # Validate mission path
         if not cls.validate_mission_path(mission_path):
-            raise ValueError(f"Chemin de mission invalide : {mission_path}")
+            raise ValueError(f"Invalid mission path: {mission_path}")
         
-        return mission_path
-
-    @staticmethod
-    def validate_mission_path(path: str) -> bool:
-        """
-        Valide un chemin de mission
-        
-        Critères:
-        - Chemin absolu
-        - Existe et est accessible
-        - N'est pas dans le répertoire du projet
-        - Permissions en lecture/écriture
-        """
-        try:
-            # Vérifier que c'est un chemin absolu
-            if not os.path.isabs(path):
-                return False
-            
-            # Vérifier que le chemin existe
-            if not os.path.exists(path):
-                return False
-            
-            # Vérifier les permissions
-            if not os.access(path, os.R_OK | os.W_OK):
-                return False
-            
-            # Optionnel : Vérifier que le chemin n'est pas dans le projet
-            project_root = PathManager.get_project_root()
-            if path.startswith(project_root):
-                return False
-            
-            return True
-        except Exception:
-            return False
-
-    @classmethod
-    def create_mission_directory(cls, mission_name: str, base_path: Optional[str] = None) -> str:
-        """
-        Crée un répertoire de mission s'il n'existe pas
-        
-        Args:
-            mission_name (str): Nom de la mission
-            base_path (Optional[str]): Chemin de base personnalisé
-        
-        Returns:
-            str: Chemin absolu du répertoire de mission
-        """
-        mission_path = cls.get_mission_path(mission_name, base_path)
-        
-        # Créer le répertoire s'il n'existe pas
+        # Ensure mission directory exists
         os.makedirs(mission_path, exist_ok=True)
         
         return mission_path
 
+    @staticmethod
+    def _normalize_mission_name(mission_name: str) -> str:
+        """
+        Normalize mission name for filesystem use
+        
+        Args:
+            mission_name (str): Original mission name
+        
+        Returns:
+            str: Normalized mission name
+        """
+        # Replace invalid filesystem characters
+        invalid_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
+        normalized = mission_name.lower()
+        for char in invalid_chars:
+            normalized = normalized.replace(char, '_')
+        
+        # Remove multiple consecutive underscores
+        while '__' in normalized:
+            normalized = normalized.replace('__', '_')
+        
+        # Remove leading/trailing underscores and whitespace
+        return normalized.strip('_').strip()
+
+    @classmethod
+    def validate_mission_path(cls, path: str) -> bool:
+        """
+        Validate a mission path with comprehensive checks
+        
+        Args:
+            path (str): Path to validate
+        
+        Returns:
+            bool: Whether the path is valid
+        """
+        try:
+            # Ensure absolute path
+            if not os.path.isabs(path):
+                return False
+            
+            # Ensure path is not within project root
+            project_root = cls.get_project_root()
+            if path.startswith(project_root):
+                return False
+            
+            # Check path exists or is creatable
+            try:
+                # Attempt to create directory if it doesn't exist
+                os.makedirs(path, exist_ok=True)
+            except (PermissionError, OSError):
+                return False
+            
+            # Check read and write permissions
+            if not os.access(path, os.R_OK | os.W_OK):
+                return False
+            
+            return True
+        
+        except Exception:
+            return False
+
     @classmethod
     def list_missions(cls, base_path: Optional[str] = None) -> Dict[str, str]:
         """
-        Liste toutes les missions disponibles
+        List all available missions
         
         Args:
-            base_path (Optional[str]): Chemin de base personnalisé
+            base_path (Optional[str]): Custom base path to search for missions
         
         Returns:
-            Dict[str, str]: Dictionnaire des missions (nom: chemin)
+            Dict[str, str]: Dictionary of mission names and their paths
         """
-        if base_path is None:
-            base_path = os.path.join(cls.get_project_root(), cls._DEFAULT_MISSIONS_DIR)
-        
         missions = {}
+        
+        # Use provided base path or default missions directory
+        search_path = base_path or cls._DEFAULT_MISSIONS_DIR
+        
         try:
-            for mission_name in os.listdir(base_path):
-                mission_path = os.path.join(base_path, mission_name)
+            for mission_name in os.listdir(search_path):
+                mission_path = os.path.join(search_path, mission_name)
                 if os.path.isdir(mission_path) and cls.validate_mission_path(mission_path):
                     missions[mission_name] = mission_path
         except Exception as e:
-            print(f"Erreur lors de la liste des missions : {e}")
+            print(f"Error listing missions: {e}")
         
         return missions
 
