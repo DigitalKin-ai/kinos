@@ -283,7 +283,7 @@ class AiderAgent(KinOSAgent):
                     self._log(f"[{self.name}] ❌ Insufficient permissions for: {self.mission_dir}")
                     return None
 
-            try:
+                try:
                 # Change to mission directory
                 os.chdir(self.mission_dir)
                 self._log(f"[{self.name}] ✓ Changed to mission directory")
@@ -694,14 +694,14 @@ class AiderAgent(KinOSAgent):
                     self._log(f"[{self.name}] Process failed with code {return_code}")
                     return None
 
-            finally:
-                # Restore original directory in finally block
-                try:
-                    if self.original_dir:
-                        os.chdir(self.original_dir)
-                        self._log(f"[{self.name}] 📂 Restored directory: {self.original_dir}")
-                except Exception as e:
-                    self._log(f"[{self.name}] ❌ Error restoring directory: {str(e)}")
+                finally:
+                    # Restore original directory in finally block
+                    try:
+                        if original_dir:
+                            os.chdir(original_dir)
+                            self._log(f"[{self.name}] 📂 Restored directory: {original_dir}")
+                    except Exception as e:
+                        self._log(f"[{self.name}] ❌ Error restoring directory: {str(e)}")
 
     def list_files(self) -> None:
         """Liste tous les fichiers textuels dans le dossier de la mission"""
