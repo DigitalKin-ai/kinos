@@ -418,4 +418,22 @@ python kinos_cli.py team launch
     --dry-run             # Simulation sans exécution
     --timeout <secondes>  # Limite de temps
     --log-file <chemin>   # Fichier de log
+    --phase <phase>       # Phase initiale (expansion/convergence)
+    --tokens-limit <n>    # Limite de tokens personnalisée
+```
+
+#### Commandes de Phase
+```bash
+# Voir l'état actuel des phases
+kin phase status
+
+# Voir l'utilisation des tokens
+kin phase tokens
+
+# Forcer un changement de phase
+kin phase set expansion
+kin phase set convergence
+
+# Voir les métriques détaillées
+kin phase metrics
 ```
