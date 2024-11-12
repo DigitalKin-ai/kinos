@@ -13,7 +13,8 @@ aiohttp==3.9.1
 
 # AI and Machine Learning
 anthropic==0.18.0
-openai==1.6.1
+openai>=1.6.1
+litellm>=1.16.0
 transformers==4.36.2
 torch>=2.1.2,<2.4.0
 
