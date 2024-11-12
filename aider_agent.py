@@ -32,15 +32,13 @@ from datetime import datetime
 from typing import Dict, Optional
 
 class AiderAgent(KinOSAgent):
-    """
-    Agent utilisant Aider pour effectuer des modifications sur les fichiers.
+    """Agent utilisant Aider pour effectuer des modifications sur les fichiers.
     Chaque instance représente un rôle spécifique (specifications, production, etc.)
-    mais partage la même logique d'interaction avec Aider.
-    """
+    mais partage la même logique d'interaction avec Aider."""
     
     
     def _handle_agent_error(self, operation: str, error: Exception) -> None:
-        """Centralized error handling for agent operations"""
+        """Centralized error handling for agent operations."""
         self._log(f"[{self.__class__.__name__}] ❌ Error in {operation}: {str(error)}")
 
     def __init__(self, config: Dict):
