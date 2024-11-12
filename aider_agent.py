@@ -535,7 +535,7 @@ class AiderAgent(KinOSAgent):
                         self._log(f"[{self.__class__.__name__}] Error reading files: {str(e)}")
                 
                 # Log completion status
-                if return_code != 0 or error_detected:
+                if return_code != 0:
                     self._log(
                         f"[{self.__class__.__name__}] ❌ Aider process failed (code: {return_code})\n"
                         f"Last few lines of output:\n" + 
@@ -543,6 +543,13 @@ class AiderAgent(KinOSAgent):
                         'error'
                     )
                     return None
+                elif error_detected:
+                    self._log(
+                        f"[{self.__class__.__name__}] ⚠️ Aider completed with warnings\n"
+                        f"Last few lines of output:\n" + 
+                        "\n".join(output_lines[-5:]),
+                        'warning'
+                    )
                 
                 # Combine output
                 full_output = "\n".join(output_lines)
