@@ -66,6 +66,11 @@ def launch_team(args):
 
 def main():
     """Main CLI entry point"""
+    # Initialize services and generate initial map
+    from services import init_services
+    services = init_services(None)
+    services['map_service'].generate_map()
+    
     parser = argparse.ArgumentParser(description='KinOS CLI')
     
     # Add global options that apply to all commands

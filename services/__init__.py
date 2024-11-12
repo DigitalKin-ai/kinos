@@ -22,6 +22,8 @@ def init_services(_):  # Keep parameter for compatibility but don't use it
             'agent_service': AgentService(None),
             'phase_service': PhaseService(None)
         }
+        # Generate initial map
+        services['map_service'].generate_map()
         return services
     except Exception as e:
         print(f"Error initializing services: {str(e)}")
