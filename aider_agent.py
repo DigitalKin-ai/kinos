@@ -4,13 +4,8 @@ Chaque instance représente un rôle spécifique (specifications, production, et
 mais partage la même logique d'interaction avec Aider.
 
 GESTION DES CHEMINS:
-1. Création des fichiers:
-   - Utilise des chemins absolus pour garantir la création au bon endroit
-   - Structure: missions/<nom_mission>/<fichier>.md
-   - Exemple: missions/Mission_1/specifications.md
-
-2. Appel à Aider:
-   - Change le dossier courant vers le dossier mission
+Appel à Aider:
+   - Change le dossier courant vers le dossier de la mission
    - Utilise des chemins relatifs pour tous les fichiers
    - Revient au dossier original après exécution
 """
