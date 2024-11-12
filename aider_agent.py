@@ -878,50 +878,19 @@ class AiderAgent(KinOSAgent):
                     
                 except Exception as loop_error:
                     self._log(f"[{self.__class__.__name__}] ❌ Error in run loop: {str(loop_error)}")
-                    time.sleep(60)  # Wait before retrying
-                    
-        except Exception as e:
-            error_str = str(e)
-            
-            # Check for rate limit errors
-            if "rate_limit_error" in error_str.lower():
-                attempt = 1
-                while attempt <= 5:  # Max 5 attempts
-                    if not self._handle_rate_limit_error(attempt):
+                    if hasattr(self.web_instance, 'agent_service') and \
+                       self.web_instance.agent_service._shutting_down.is_set():
                         break
-                        
-                    try:
-                        # Retry the Aider command
-                        self._log(
-                            f"[{self.__class__.__name__}] 🔄 Retry attempt {attempt}/5...",
-                            'info'
-                        )
-                        return self._run_aider(prompt)  # Recursive retry
-                        
-                    except Exception as retry_error:
-                        if "rate_limit_error" not in str(retry_error).lower():
-                            # If it's a different error, stop retrying
-                            self._log(
-                                f"[{self.__class__.__name__}] ❌ Different error on retry: {str(retry_error)}",
-                                'error'
-                            )
-                            break
-                            
-                    attempt += 1
-                    
-                self._log(
-                    f"[{self.__class__.__name__}] 🛑 Rate limit retries exhausted. "
-                    "Consider reducing prompt length or request frequency.",
-                    'error'
-                )
-                return None
-                
-            else:
-                # Handle non-rate-limit errors as before
-                self._log(
-                    f"[{self.__class__.__name__}] 🔥 Critical error in run: {str(e)}"
-                )
-                self.running = False
+                    time.sleep(5)  # Pause before retrying
+
+            self._log(f"[{self.__class__.__name__}] Run loop ended")
+            
+        except Exception as e:
+            self._log(f"[{self.__class__.__name__}] Critical error in run: {str(e)}")
+            self.running = False
+        finally:
+            # Ensure cleanup happens
+            self.cleanup()
 
     def _validate_run_conditions(self, prompt: str) -> bool:
         """Validate conditions before running Aider"""
