@@ -21,7 +21,7 @@ cd kinos
 
 2. Installez les dépendances :
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 
 3. Configurez les clés API dans un fichier `.env` :
@@ -39,7 +39,7 @@ OPENAI_API_KEY=votre-clé-openai
 kin book-writing
 
 # Équipes disponibles
-# - book-writing
+# - book-writing (défaut)
 # - coding
 # - literature-review
 ```
@@ -56,9 +56,10 @@ kin --help
 
 ### Équipes Prédéfinies
 
-1. **Book Writing Team**
+1. **Book Writing Team** (défaut)
    - Agents pour la création de contenu
    - Idéal pour la rédaction documentaire
+   - Agents par défaut si aucune équipe n'est spécifiée
 
 2. **Coding Team**
    - Agents pour le développement logiciel
@@ -68,19 +69,19 @@ kin --help
    - Agents pour l'analyse et la revue
    - Parfait pour les projets de recherche
 
-### Path Security Features
+### Gestion des Chemins
 
-- Validates mission directory paths
-- Prevents path traversal attacks
-- Enforces permission checks
-- Normalizes mission names
-- Supports multiple base paths
+- Validation dynamique des chemins de mission
+- Prévention des attaques par traversée de répertoire
+- Vérification stricte des permissions
+- Normalisation des noms de mission
+- Support de plusieurs chemins de base
 
 ## 🎮 Utilisation
 
 1. Lancez le serveur :
 ```bash
-python run_server.py
+python kinos_web.py
 ```
 
 2. Ouvrez votre navigateur à l'adresse : `http://127.0.0.1:8000`
@@ -94,78 +95,41 @@ python run_server.py
 
 ## 🤖 Agents
 
-#### Core Agents
+### Équipe par Défaut
+
+Par défaut, une équipe standard est utilisée avec les agents suivants :
+- Specifications
+- Management
+- Evaluation
+- Chroniqueur
+- Documentaliste
+
+### Agents Principaux
+
 1. **SpecificationsAgent**
    - Gestion du template et structure documentaire
    - Analyse des demandes initiales
    - Extraction des exigences
-   - Configuration:
-     ```python
-     {
-         "name": "Specification",
-         "prompt_file": "prompts/specifications.md",
-         "check_interval": 300
-     }
-     ```
 
 2. **ProductionAgent**
    - Création et implémentation du contenu
    - Génération de code optimisé
    - Respect des standards
-   - Configuration:
-     ```python
-     {
-         "name": "Production",
-         "prompt_file": "prompts/production.md",
-         "check_interval": 300
-     }
-     ```
 
 3. **ManagementAgent**
    - Coordination et planification
    - Gestion des priorités
    - Résolution des conflits
-   - Configuration:
-     ```python
-     {
-         "name": "Management",
-         "prompt_file": "prompts/management.md",
-         "check_interval": 300
-     }
-     ```
 
 4. **EvaluationAgent**
    - Contrôle qualité et validation
    - Tests fonctionnels
    - Mesures performances
-   - Configuration:
-     ```python
-     {
-         "name": "Evaluation",
-         "prompt_file": "prompts/evaluation.md",
-         "check_interval": 300
-     }
-     ```
 
 5. **DocumentalisteAgent**
    - Analyse de la documentation existante
    - Détection des incohérences avec le code
    - Mise à jour automatique de la documentation
-   - Configuration:
-     ```python
-     {
-         "name": "Documentaliste",
-         "prompt_file": "prompts/documentaliste.md",
-         "check_interval": 300
-     }
-     ```
-
-#### Agent Interactions
-- Surveillance continue des fichiers partagés
-- Communication via système de fichiers
-- Notifications temps réel des modifications
-- Coordination via AgentService
-- Résolution des conflits par ManagementAgent
 
 ## 🛠️ Développement
 
@@ -188,9 +152,10 @@ Les contributions sont les bienvenues ! N'hésitez pas à :
 
 ## ⚠️ Prérequis
 
-- Python 3.9+
+- Python 3.8+
 - Clés API (Anthropic et OpenAI)
 - Navigateur web moderne
+- Aider CLI installé et configuré
 
 ## 📞 Support
 
