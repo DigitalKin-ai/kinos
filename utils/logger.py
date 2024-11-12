@@ -4,6 +4,8 @@ from datetime import datetime
 from typing import Optional
 from utils.path_manager import PathManager
 
+import threading
+
 class Logger:
     """Simplified logging with colors and thread-safe output"""
     
