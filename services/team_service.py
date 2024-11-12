@@ -148,7 +148,6 @@ class TeamService:
 
             log_and_validate(
                 f"\n=== TEAM ACTIVATION START ===\n"
-                f"Mission ID: {mission_id}\n"
                 f"Team ID: {team_id}\n"
                 f"Timestamp: {datetime.now().isoformat()}"
             )
