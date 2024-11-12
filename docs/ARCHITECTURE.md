@@ -577,6 +577,246 @@ kin phase [expansion|convergence]
 - Pas d'historique des phases
 - Pas de période de grâce lors des transitions
 
+La map est un document Markdown généré automatiquement qui :
+- Affiche l'arborescence complète du projet
+- Surveille la taille des fichiers en tokens
+- Fournit des alertes visuelles sur les fichiers trop longs
+- Aide à maintenir des documents de taille raisonnable
+
+#### Seuils de Taille (en tokens)
+
+- ✓ OK : < 6k tokens
+- ⚠️ Long : > 6k tokens 
+- 🔴 Trop long : > 12k tokens
+
+Ces seuils sont choisis pour :
+- Maintenir les documents dans une taille gérable
+- Faciliter la revue et la maintenance
+- Optimiser l'utilisation des modèles de langage
+- Encourager la modularisation du contenu
+
+#### Format de la Map
+
+```
+# Project Map
+Generated: 2024-03-21 15:30:45
+
+## Document Tree
+📁 Project
+├── 📁 docs/
+│   ├── 📄 architecture.md (4.2k tokens) ✓
+│   └── 📄 api.md (7.1k tokens) ⚠️
+├── 📁 src/
+│   └── 📄 main.md (13.5k tokens) 🔴
+└── 📄 README.md (2.1k tokens) ✓
+
+## Warnings
+⚠️ api.md approaching limit (>6k tokens)
+🔴 main.md needs consolidation (>12k tokens)
+```
+
+#### Fonctionnalités
+
+1. **Surveillance Automatique**
+   - Analyse continue des fichiers Markdown
+   - Mise à jour automatique après modifications
+   - Calcul précis des tokens via Anthropic
+   - Détection des dépassements de seuils
+
+2. **Visualisation Claire**
+   - Arborescence intuitive du projet
+   - Indicateurs visuels de taille (✓, ⚠️, 🔴)
+   - Tailles affichées en kilotokens
+   - Section dédiée aux avertissements
+
+3. **Aide à la Maintenance**
+   - Identification rapide des fichiers problématiques
+   - Suggestions de consolidation
+   - Historique des changements de taille
+   - Guide pour la restructuration
+
+4. **Intégration**
+   - Mise à jour via MapService
+   - Accessible via l'API (/api/map)
+   - Notifications de changements
+   - Hooks de pré-commit disponibles
+
+#### Utilisation
+
+1. **Consultation**
+   ```bash
+   # Voir la map actuelle
+   cat map.md
+   ```
+
+2. **Mise à jour Manuelle**
+   ```python
+   # Via l'API
+   map_service.update_map()
+   ```
+
+3. **Surveillance Continue**
+   - La map est mise à jour automatiquement après chaque modification de fichier
+   - Les agents utilisent la map pour guider leurs décisions
+   - Les avertissements sont propagés via le système de notifications
+
+#### Bonnes Pratiques
+
+1. **Structure des Documents**
+   - Viser des documents < 6k tokens
+   - Diviser les longs documents
+   - Utiliser des références croisées
+   - Maintenir une hiérarchie claire
+
+2. **Maintenance**
+   - Surveiller les avertissements de taille
+   - Restructurer avant d'atteindre les limites
+   - Réviser régulièrement l'organisation
+   - Documenter les décisions de structure
+
+3. **Optimisation**
+   - Extraire les sections communes
+   - Utiliser des liens plutôt que la duplication
+   - Maintenir une granularité cohérente
+   - Regrouper logiquement le contenu
+
+### Phase System
+
+Le système de phases permet une gestion intelligente de la taille totale du projet basée sur l'utilisation des tokens.
+
+#### Vue d'Ensemble
+
+Le système alterne automatiquement entre deux phases :
+- EXPANSION : Création libre de contenu
+- CONVERGENCE : Focus sur l'optimisation et la consolidation
+
+Cette alternance est pilotée par des seuils d'utilisation des tokens du projet.
+
+#### Constantes Système
+
+```python
+MODEL_TOKEN_LIMIT = 128_000  # Limite du modèle
+CONVERGENCE_THRESHOLD = 0.60  # Seuil de passage en convergence (60%)
+EXPANSION_THRESHOLD = 0.50    # Seuil de retour en expansion (50%)
+
+# Valeurs dérivées en tokens
+CONVERGENCE_TOKENS = 76_800   # 128k * 0.60
+EXPANSION_TOKENS = 64_000     # 128k * 0.50
+```
+
+#### Format de la Map avec Phases
+
+```markdown
+# Project Map
+Generated: 2024-03-21 15:30:45
+Current Phase: EXPANSION
+
+## Token Usage
+Total: 72.5k/128k (56.6%)
+Convergence at: 76.8k (60%)
+
+## Phase Status
+⚠️ Approaching convergence threshold
+Headroom: 4.3k tokens
+
+## Document Tree
+📁 Project/
+├── 📄 specifications.md (12.3k tokens)
+├── 📁 docs/
+│   └── 📄 guide.md (8.2k tokens)
+[...]
+```
+
+#### États du Système
+
+1. **EXPANSION**
+   - État par défaut
+   - Création libre de contenu
+   - Monitoring continu des tokens
+   - Avertissements à l'approche du seuil
+   - Affichage du headroom disponible
+
+2. **CONVERGENCE**
+   - État de consolidation
+   - Focus sur la réduction des tokens
+   - Restriction sur nouveau contenu
+   - Suggestions d'optimisation
+   - Tracking de la réduction
+
+#### Règles de Transition
+
+1. **EXPANSION → CONVERGENCE**
+   - Déclencheur: total_tokens > 76.8k
+   - Action immédiate
+   - Message: "Convergence needed - Token limit approaching"
+
+2. **CONVERGENCE → EXPANSION**
+   - Déclencheur: total_tokens < 64k
+   - Action immédiate
+   - Message: "Returning to expansion - Token usage optimized"
+
+#### Indicateurs Visuels
+
+1. **Symboles de Status**
+   - ✓ : < 55% (<70.4k tokens)
+   - ⚠️ : 55-60% (70.4k-76.8k tokens)
+   - 🔴 : > 60% (>76.8k tokens)
+
+2. **Messages de Status**
+   - "Below convergence threshold"
+   - "Approaching convergence threshold"
+   - "Convergence needed"
+
+#### Mise à Jour Automatique
+
+1. **Déclencheurs**
+   - Modification de fichier .md
+   - Création/suppression de fichier
+   - Changement de phase
+
+2. **Processus**
+   ```python
+   def update_map():
+       total_tokens = count_total_tokens()
+       current_phase = determine_phase(total_tokens)
+       update_map_file(total_tokens, current_phase)
+       handle_phase_transition(current_phase)
+   ```
+
+#### Interface CLI
+
+```bash
+# Voir état actuel
+kin status
+
+# Voir détails tokens
+kin tokens
+
+# Forcer changement phase (debug)
+kin phase [expansion|convergence]
+```
+
+#### Bonnes Pratiques
+
+1. **En Phase d'EXPANSION**
+   - Créer librement du contenu
+   - Surveiller les avertissements
+   - Anticiper la convergence
+   - Maintenir une structure claire
+
+2. **En Phase de CONVERGENCE**
+   - Prioriser la consolidation
+   - Optimiser les gros fichiers
+   - Restructurer le contenu
+   - Éliminer la redondance
+
+#### Limitations Actuelles
+
+- Pas de tracking individuel des fichiers
+- Pas de seuils par fichier
+- Pas d'historique des phases
+- Pas de période de grâce lors des transitions
+
 ### Utils
 - `utils/error_handler.py` - Gestion centralisée des erreurs
   - Formatage des erreurs
