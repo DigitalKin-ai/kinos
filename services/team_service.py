@@ -1,7 +1,7 @@
 import os
 import json
-from datetime import datetime
 import time
+from datetime import datetime
 from typing import Dict, Any, Optional, List
 import traceback
 from utils.logger import Logger
@@ -134,9 +134,16 @@ class TeamService:
             config = {'mission_dir': mission_dir}
             self.agent_service.init_agents(config, team['agents'])
 
-            for agent_name in team['agents']:
+            # Add delay between agent starts
+            for i, agent_name in enumerate(team['agents']):
                 try:
+                    if i > 0:  # Don't wait for first agent
+                        self.logger.log(f"Waiting 10 seconds before starting next agent...", 'info')
+                        time.sleep(10)  # Wait 10 seconds
+                    
+                    self.logger.log(f"Starting agent {i+1}/{len(team['agents'])}: {agent_name}", 'info')
                     self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
+                    
                 except Exception as e:
                     self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
 
