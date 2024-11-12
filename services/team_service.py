@@ -100,12 +100,34 @@ class TeamService:
             normalized.append(norm_name)
         return normalized
 
+    def _normalize_team_id(self, team_id: str) -> str:
+        """Normalize team ID to handle different separator styles"""
+        # Convert to lowercase and replace underscores and spaces with hyphens
+        normalized = team_id.lower().replace('_', '-').replace(' ', '-')
+        return normalized
+
     def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
         """Start team in current/specified directory"""
         try:
             mission_dir = base_path or os.getcwd()
-            team = next((t for t in self.predefined_teams if t['id'] == team_id), None)
+            
+            # Normalize the requested team ID
+            normalized_id = self._normalize_team_id(team_id)
+            
+            # Find team with normalized ID comparison
+            team = next(
+                (t for t in self.predefined_teams 
+                 if self._normalize_team_id(t['id']) == normalized_id),
+                None
+            )
+            
             if not team:
+                # Log available teams to help debugging
+                available_teams = [t['id'] for t in self.predefined_teams]
+                self.logger.log(
+                    f"Team {team_id} not found. Available teams: {available_teams}",
+                    'error'
+                )
                 raise ValueError(f"Team {team_id} not found")
 
             config = {'mission_dir': mission_dir}
@@ -118,7 +140,7 @@ class TeamService:
                     self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
 
             return {
-                'team_id': team_id,
+                'team_id': team['id'],
                 'mission_dir': mission_dir,
                 'agents': team['agents']
             }
