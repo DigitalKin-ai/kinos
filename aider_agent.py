@@ -38,35 +38,59 @@ class AiderAgent(KinOSAgent):
         self._log(f"[{self.__class__.__name__}] ❌ Error in {operation}: {str(error)}")
 
     def __init__(self, config: Dict):
-        # Validation de la configuration
-        if "name" not in config:
-            raise ValueError("Le nom de l'agent doit être spécifié")
-            
-        # Validate web_instance
-        self.web_instance = config.get("web_instance")
-        if not self.web_instance:
-            raise ValueError("web_instance must be provided in config")
-            
-        # Add original_dir tracking
-        self.original_dir = None
+        print("\n=== AIDER AGENT INITIALIZATION STARTING ===")
+        print(f"Config received: {config}")
         
-        # Add rate limit tracking
-        self._last_request_time = 0
-        self._requests_this_minute = 0
-        self._rate_limit_window = 60  # 1 minute
-        self._max_requests_per_minute = 50  # Adjust based on your rate limit
+        try:
+            # Validate web_instance
+            self.web_instance = config.get("web_instance")
+            if not self.web_instance:
+                raise ValueError("web_instance must be provided in config")
+                
+            print("\n=== WEB INSTANCE SERVICES CHECK ===")
+            print(f"Web instance attributes: {dir(self.web_instance)}")
             
-        # Initialize logger properly
-        if hasattr(self.web_instance, 'logger'):
-            self.logger = self.web_instance.logger
-        else:
-            from utils.logger import Logger
-            self.logger = Logger()
+            # Check for required services
+            required_services = ['dataset_service', 'file_manager', 'mission_service']
+            for service in required_services:
+                has_service = hasattr(self.web_instance, service)
+                print(f"Service {service}:")
+                print(f"- Has attribute: {has_service}")
+                if has_service:
+                    service_obj = getattr(self.web_instance, service)
+                    print(f"- Is not None: {service_obj is not None}")
+                    if service == 'dataset_service':
+                        is_available = service_obj.is_available() if hasattr(service_obj, 'is_available') else False
+                        print(f"- Is available: {is_available}")
+
+            # Validation de la configuration
+            if "name" not in config:
+                raise ValueError("Le nom de l'agent doit être spécifié")
+                
+            # Add original_dir tracking
+            self.original_dir = None
             
-        # Verify required services
-        required_services = ['dataset_service', 'file_manager', 'mission_service']
-        missing_services = [svc for svc in required_services 
-                          if not hasattr(self.web_instance, svc)]
+            # Add rate limit tracking
+            self._last_request_time = 0
+            self._requests_this_minute = 0
+            self._rate_limit_window = 60  # 1 minute
+            self._max_requests_per_minute = 50  # Adjust based on your rate limit
+            
+            # Initialize logger properly
+            if hasattr(self.web_instance, 'logger'):
+                self.logger = self.web_instance.logger
+            else:
+                from utils.logger import Logger
+                self.logger = Logger()
+                
+            # Verify required services
+            required_services = ['dataset_service', 'file_manager', 'mission_service']
+            missing_services = [svc for svc in required_services 
+                              if not hasattr(self.web_instance, svc)]
+                              
+        except Exception as e:
+            print(f"Error during initialization: {str(e)}")
+            raise
         
         if missing_services:
             self.logger.log(
@@ -414,6 +438,16 @@ class AiderAgent(KinOSAgent):
 
                 # Combine all output
                 full_output = "\n".join(output_lines)
+
+                # Add debug log for dataset processing start
+                self._log(
+                    f"[{self.__class__.__name__}] 🔄 Starting dataset processing:\n"
+                    f"Return code: {return_code}\n"
+                    f"Output length: {len(full_output) if full_output else 0} chars\n"
+                    f"Dataset service available: {hasattr(self.web_instance, 'dataset_service')}\n"
+                    f"Current directory: {os.getcwd()}",
+                    'debug'
+                )
                 
                 # Track modified files from output
                 modified_files = set()
@@ -463,69 +497,48 @@ class AiderAgent(KinOSAgent):
                                 hasattr(self.web_instance.dataset_service, 'is_available') and 
                                 self.web_instance.dataset_service.is_available()):
                                 try:
-                                    # Create event loop if needed
+                                    # Create and manage event loop properly
                                     try:
                                         loop = asyncio.get_event_loop()
                                     except RuntimeError:
+                                        # If no loop exists, create a new one
                                         loop = asyncio.new_event_loop()
                                         asyncio.set_event_loop(loop)
 
-                                    # Add to dataset asynchronously
-                                    loop.create_task(
+                                    # Run coroutine in the event loop
+                                    loop.run_until_complete(
                                         self.web_instance.dataset_service.add_interaction_async(
                                             prompt=prompt,
                                             files_context=files_context,
                                             aider_response=full_output
                                         )
                                     )
-                                    self.logger.log(
-                                        f"Added interaction to dataset with {len(files_context)} files", 
+                                
+                                    self._log(
+                                        f"[{self.__class__.__name__}] ✅ Added interaction to dataset "
+                                        f"with {len(files_context)} files", 
                                         'success'
                                     )
                                 except Exception as e:
-                                    self.logger.log(f"Error adding to dataset: {str(e)}", 'error')
+                                    self._log(
+                                        f"[{self.__class__.__name__}] ❌ Error adding to dataset: {str(e)}\n"
+                                        f"Traceback: {traceback.format_exc()}", 
+                                        'error'
+                                    )
+                            else:
+                                self._log(
+                                    f"[{self.__class__.__name__}] ⚠️ Dataset service not available - "
+                                    f"skipping interaction save", 
+                                    'warning'
+                                )
 
                     except Exception as e:
-                        self._log(f"[{self.__class__.__name__}] Error saving to dataset: {str(e)}")
+                        self._log(
+                            f"[{self.__class__.__name__}] ❌ Error processing dataset interaction: {str(e)}\n"
+                            f"Traceback: {traceback.format_exc()}", 
+                            'error'
+                        )
 
-                # Return output if process succeeded
-                if return_code == 0:
-                    return full_output
-                else:
-                    self._log(f"[{self.__class__.__name__}] Process failed with code {return_code}")
-                    return None
-                
-                # Créer des buffers séparés pour la sortie d'Aider et les fichiers modifiés
-                aider_output_buffer = []
-                modified_files = set()
-                
-                # Stream output in real-time
-                while True:
-                    # Read stdout
-                    stdout_line = process.stdout.readline()
-                    if stdout_line:
-                        line = stdout_line.rstrip()
-                        print(f"[{self.name}] {line}")  # Print to main output
-                        aider_output_buffer.append(line)
-                        
-                        # Détecter les fichiers modifiés dans la sortie
-                        if "Wrote " in line and ".md" in line:
-                            try:
-                                modified_file = line.split("Wrote ")[1].split()[0]
-                                modified_files.add(modified_file)
-                            except:
-                                pass
-                        
-                    # Read stderr
-                    stderr_line = process.stderr.readline()
-                    if stderr_line:
-                        line = stderr_line.rstrip()
-                        print(f"[{self.name}] ⚠️ {line}")  # Print errors to main output
-                        aider_output_buffer.append(f"ERROR: {line}")
-                    
-                    # Check if process has finished
-                    if process.poll() is not None:
-                        break
                 
                 # Log completion status
                 if return_code != 0 or error_detected:
@@ -545,8 +558,18 @@ class AiderAgent(KinOSAgent):
                     
                 self._log(f"[{self.__class__.__name__}] ✅ Aider completed successfully", 'success')
                 
+                # Track modified files from output
+                modified_files = set()
+                for line in output_lines:
+                    if "Wrote " in line and ".md" in line:
+                        try:
+                            modified_file = line.split("Wrote ")[1].split()[0]
+                            modified_files.add(modified_file)
+                        except:
+                            pass
+
                 # If execution was successful, save for fine-tuning
-                if full_output:
+                if return_code == 0 and full_output:
                     try:
                         # Read modified files content
                         files_context = {}
@@ -574,104 +597,52 @@ class AiderAgent(KinOSAgent):
 
                         # Only proceed if we have files to save
                         if files_context:
-                            # Check dataset service availability
-                            if hasattr(self.web_instance, 'dataset_service'):
-                                dataset_service = self.web_instance.dataset_service
-                                if dataset_service and dataset_service.is_available():
+                            # Check dataset service availability silently
+                            if (hasattr(self.web_instance, 'dataset_service') and 
+                                self.web_instance.dataset_service and 
+                                hasattr(self.web_instance.dataset_service, 'is_available') and 
+                                self.web_instance.dataset_service.is_available()):
+                                try:
+                                    # Create event loop if needed
                                     try:
-                                        # Create event loop if needed
-                                        try:
-                                            loop = asyncio.get_event_loop()
-                                        except RuntimeError:
-                                            loop = asyncio.new_event_loop()
-                                            asyncio.set_event_loop(loop)
+                                        loop = asyncio.get_event_loop()
+                                    except RuntimeError:
+                                        loop = asyncio.new_event_loop()
+                                        asyncio.set_event_loop(loop)
 
-                                        # Add to dataset asynchronously
-                                        loop.create_task(
-                                            dataset_service.add_interaction_async(
-                                                prompt=prompt,
-                                                files_context=files_context,
-                                                aider_response=full_output
-                                            )
+                                    # Add to dataset asynchronously
+                                    loop.create_task(
+                                        self.web_instance.dataset_service.add_interaction_async(
+                                            prompt=prompt,
+                                            files_context=files_context,
+                                            aider_response=full_output
                                         )
-                                        self.logger.log(
-                                            f"Added interaction to dataset with {len(files_context)} files", 
-                                            'success'
-                                        )
-                                    except Exception as e:
-                                        self.logger.log(f"Error adding to dataset: {str(e)}", 'error')
-                                else:
-                                    self.logger.log("Dataset service not available or properly initialized", 'warning')
-                            else:
-                                self.logger.log("Dataset service not found on web instance", 'warning')
+                                    )
+                                    self.logger.log(
+                                        f"Added interaction to dataset with {len(files_context)} files", 
+                                        'success'
+                                    )
+                                except Exception as e:
+                                    self.logger.log(
+                                        f"Error adding to dataset: {str(e)}\n"
+                                        f"Traceback: {traceback.format_exc()}", 
+                                        'error'
+                                    )
+                                finally:
+                                    # Clean up if we created a new loop
+                                    try:
+                                        loop.close()
+                                    except:
+                                        pass
 
                     except Exception as e:
-                        self.logger.log(f"Error processing files for dataset: {str(e)}", 'error')
+                        self._log(f"[{self.__class__.__name__}] Error saving to dataset: {str(e)}")
 
-                    # If execution was successful, save for fine-tuning
-                    if full_output:
-                        try:
-                            if hasattr(self.web_instance, 'dataset_service'):
-                                dataset_service = self.web_instance.dataset_service
-                                if dataset_service and dataset_service.is_available():
-                                    # Prepare the files context
-                                    files_context = {}
-                                    
-                                    # Add modified files
-                                    for file_path in modified_files:
-                                        try:
-                                            full_path = os.path.join(self.mission_dir, file_path)
-                                            if os.path.exists(full_path):
-                                                with open(full_path, 'r', encoding='utf-8') as f:
-                                                    files_context[file_path] = f.read()
-                                        except Exception as e:
-                                            self._log(f"Error reading modified file {file_path}: {str(e)}")
-
-                                    # Add original files if not already included
-                                    for file_path in self.mission_files:
-                                        rel_path = os.path.relpath(file_path, self.mission_dir)
-                                        if rel_path not in files_context:
-                                            try:
-                                                with open(file_path, 'r', encoding='utf-8') as f:
-                                                    files_context[rel_path] = f.read()
-                                            except Exception as e:
-                                                self._log(f"Error reading original file {file_path}: {str(e)}")
-
-                                    # Only proceed if we have files to save
-                                    if files_context:
-                                        try:
-                                            # Create event loop if needed
-                                            try:
-                                                loop = asyncio.get_event_loop()
-                                            except RuntimeError:
-                                                loop = asyncio.new_event_loop()
-                                                asyncio.set_event_loop(loop)
-
-                                            # Add to dataset with explicit await
-                                            future = dataset_service.add_interaction_async(
-                                                prompt=prompt,
-                                                files_context=files_context,
-                                                aider_response=full_output
-                                            )
-                                            
-                                            # Run the coroutine
-                                            loop.run_until_complete(future)
-                                            
-                                            self._log(f"✅ Successfully saved interaction to dataset with {len(files_context)} files")
-                                        except Exception as e:
-                                            self._log(f"❌ Error saving to dataset: {str(e)}")
-                                    else:
-                                        self._log("⚠️ No file contents to save to dataset")
-                                else:
-                                    self._log("⚠️ Dataset service not available", 'debug')
-                            else:
-                                self._log("⚠️ Dataset service not configured", 'debug')
-                        except Exception as e:
-                            self._log(f"❌ Error in dataset handling: {str(e)}")
-
+                # Return output if process succeeded
+                if return_code == 0:
                     return full_output
                 else:
-                    self.logger.log(f"Aider process failed with code {process.returncode}", 'error')
+                    self._log(f"[{self.__class__.__name__}] Process failed with code {return_code}")
                     return None
 
             finally:

@@ -67,42 +67,89 @@ class DatasetService(BaseService):
         except Exception as e:
             self.logger.log(f"Error initializing dataset service: {str(e)}", 'error')
             raise ServiceError(f"Failed to initialize dataset service: {str(e)}")
+            
+            # Create dataset file if it doesn't exist
+            if not os.path.exists(self.dataset_file):
+                try:
+                    with open(self.dataset_file, 'w', encoding='utf-8') as f:
+                        pass  # Create empty file
+                    self.logger.log(f"Created new dataset file: {self.dataset_file}", 'info')
+                except Exception as e:
+                    self.logger.log(f"Error creating dataset file: {str(e)}", 'error')
+                    raise
+            
+            # Verify service availability immediately
+            if not self.is_available():
+                self.logger.log(
+                    "Dataset service initialization failed - service may be unreliable", 
+                    'warning'
+                )
+                return
+                
+            # Log successful initialization with stats
+            stats = self.get_dataset_stats()
+            self.logger.log(
+                f"Dataset service initialized successfully:\n"
+                f"- File: {self.dataset_file}\n"
+                f"- Entries: {stats['total_entries']}\n"
+                f"- Total files: {stats['total_files']}\n"
+                f"- Size: {stats['size_bytes']} bytes", 
+                'success'
+            )
+            
+            # Start cleanup timer
+            self._start_cleanup_timer()
+        except Exception as e:
+            self.logger.log(f"Error initializing dataset service: {str(e)}", 'error')
+            raise ServiceError(f"Failed to initialize dataset service: {str(e)}")
 
     def is_available(self) -> bool:
         """Check if dataset service is properly initialized and available"""
         try:
-            # Verify essential components
-            if not hasattr(self, 'dataset_file'):
-                self.logger.log("Dataset file path not configured", 'warning')
+            # Verify essential attributes
+            if not hasattr(self, 'data_dir') or not hasattr(self, 'dataset_file'):
+                self.logger.log("Missing essential attributes in dataset service", 'error')
                 return False
-                
-            # Check if data directory exists
-            data_dir = os.path.dirname(self.dataset_file)
-            if not os.path.exists(data_dir):
+
+            # Verify data directory exists and is writable
+            if not os.path.exists(self.data_dir):
                 try:
-                    os.makedirs(data_dir, exist_ok=True)
-                    self.logger.log(f"Created data directory: {data_dir}", 'info')
+                    os.makedirs(self.data_dir, exist_ok=True)
+                    self.logger.log(f"Created data directory: {self.data_dir}", 'info')
                 except Exception as e:
                     self.logger.log(f"Cannot create data directory: {str(e)}", 'error')
                     return False
-                    
-            # Verify file permissions
-            if os.path.exists(self.dataset_file):
-                if not os.access(self.dataset_file, os.W_OK):
-                    self.logger.log("Dataset file not writable", 'error')
-                    return False
-            else:
-                # Try to create the file
+
+            if not os.access(self.data_dir, os.W_OK):
+                self.logger.log(f"Data directory not writable: {self.data_dir}", 'error')
+                return False
+
+            # Verify dataset file exists and is writable
+            if not os.path.exists(self.dataset_file):
                 try:
+                    # Try to create and write to the file
                     with open(self.dataset_file, 'a', encoding='utf-8') as f:
-                        pass
+                        f.write("")  # Write empty string to verify write access
                     self.logger.log(f"Created dataset file: {self.dataset_file}", 'info')
                 except Exception as e:
                     self.logger.log(f"Cannot create dataset file: {str(e)}", 'error')
                     return False
-                    
+            else:
+                if not os.access(self.dataset_file, os.W_OK):
+                    self.logger.log(f"Dataset file not writable: {self.dataset_file}", 'error')
+                    return False
+
+            # Try to read the file to verify full access
+            try:
+                with open(self.dataset_file, 'r', encoding='utf-8') as f:
+                    pass
+            except Exception as e:
+                self.logger.log(f"Cannot read dataset file: {str(e)}", 'error')
+                return False
+
+            self.logger.log("Dataset service is available and fully functional", 'success')
             return True
-            
+
         except Exception as e:
             self.logger.log(f"Error checking dataset service availability: {str(e)}", 'error')
             return False
@@ -118,7 +165,14 @@ class DatasetService(BaseService):
                                   aider_response: str, weight: float = 0) -> None:
         """Asynchronously add an interaction to the dataset"""
         try:
-            self.logger.log("Processing new interaction for dataset", 'debug')
+            self.logger.log(
+                f"💾 Starting dataset interaction processing:\n"
+                f"Prompt length: {len(prompt)}\n"
+                f"Number of files: {len(files_context)}\n"
+                f"Response length: {len(aider_response)}\n"
+                f"Dataset file: {self.dataset_file}",
+                'debug'
+            )
             
             # Validate inputs
             if not prompt or not files_context or not aider_response:
@@ -382,41 +436,102 @@ class DatasetService(BaseService):
     def is_available(self) -> bool:
         """Check if dataset service is properly initialized and available"""
         try:
-            # Verify essential components
-            if not hasattr(self, 'dataset_file'):
-                self.logger.log("Dataset file path not configured", 'warning')
+            # Verify essential attributes
+            if not hasattr(self, 'data_dir') or not hasattr(self, 'dataset_file'):
+                self.logger.log("Missing essential attributes in dataset service", 'error')
                 return False
-                
-            # Check if data directory exists
-            data_dir = os.path.dirname(self.dataset_file)
-            if not os.path.exists(data_dir):
+
+            # Verify data directory exists and is writable
+            if not os.path.exists(self.data_dir):
                 try:
-                    os.makedirs(data_dir, exist_ok=True)
-                    self.logger.log(f"Created data directory: {data_dir}", 'info')
+                    os.makedirs(self.data_dir, exist_ok=True)
+                    self.logger.log(f"Created data directory: {self.data_dir}", 'info')
                 except Exception as e:
                     self.logger.log(f"Cannot create data directory: {str(e)}", 'error')
                     return False
-                    
-            # Verify file permissions
-            if os.path.exists(self.dataset_file):
-                if not os.access(self.dataset_file, os.W_OK):
-                    self.logger.log("Dataset file not writable", 'error')
-                    return False
-            else:
-                # Try to create the file
+
+            if not os.access(self.data_dir, os.W_OK):
+                self.logger.log(f"Data directory not writable: {self.data_dir}", 'error')
+                return False
+
+            # Verify dataset file exists and is writable
+            if not os.path.exists(self.dataset_file):
                 try:
+                    # Try to create and write to the file
                     with open(self.dataset_file, 'a', encoding='utf-8') as f:
-                        pass
+                        f.write("")  # Write empty string to verify write access
                     self.logger.log(f"Created dataset file: {self.dataset_file}", 'info')
                 except Exception as e:
                     self.logger.log(f"Cannot create dataset file: {str(e)}", 'error')
                     return False
-                    
+            else:
+                if not os.access(self.dataset_file, os.W_OK):
+                    self.logger.log(f"Dataset file not writable: {self.dataset_file}", 'error')
+                    return False
+
+            # Try to read the file to verify full access
+            try:
+                with open(self.dataset_file, 'r', encoding='utf-8') as f:
+                    pass
+            except Exception as e:
+                self.logger.log(f"Cannot read dataset file: {str(e)}", 'error')
+                return False
+
+            self.logger.log("Dataset service is available and fully functional", 'success')
             return True
-            
+
         except Exception as e:
             self.logger.log(f"Error checking dataset service availability: {str(e)}", 'error')
             return False
+
+    def diagnose(self) -> Dict[str, Any]:
+        """Run diagnostics and return detailed status"""
+        try:
+            status = {
+                'initialized': hasattr(self, 'data_dir') and hasattr(self, 'dataset_file'),
+                'data_dir': {
+                    'path': getattr(self, 'data_dir', None),
+                    'exists': False,
+                    'writable': False
+                },
+                'dataset_file': {
+                    'path': getattr(self, 'dataset_file', None),
+                    'exists': False,
+                    'writable': False,
+                    'readable': False
+                },
+                'stats': None,
+                'errors': []
+            }
+
+            # Check data directory
+            if status['data_dir']['path']:
+                status['data_dir']['exists'] = os.path.exists(self.data_dir)
+                if status['data_dir']['exists']:
+                    status['data_dir']['writable'] = os.access(self.data_dir, os.W_OK)
+
+            # Check dataset file
+            if status['dataset_file']['path']:
+                status['dataset_file']['exists'] = os.path.exists(self.dataset_file)
+                if status['dataset_file']['exists']:
+                    status['dataset_file']['writable'] = os.access(self.dataset_file, os.W_OK)
+                    status['dataset_file']['readable'] = os.access(self.dataset_file, os.R_OK)
+
+            # Get stats if possible
+            if self.is_available():
+                try:
+                    status['stats'] = self.get_dataset_stats()
+                except Exception as e:
+                    status['errors'].append(f"Error getting stats: {str(e)}")
+
+            return status
+
+        except Exception as e:
+            self.logger.log(f"Error running diagnostics: {str(e)}", 'error')
+            return {
+                'error': str(e),
+                'traceback': traceback.format_exc()
+            }
 
     def cleanup(self):
         """Cleanup dataset service resources with logging"""

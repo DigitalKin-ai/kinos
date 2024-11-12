@@ -13,6 +13,14 @@ class KinosCLI:
         # Use the new configure_cli_logger method
         self.logger = configure_cli_logger(force_color)
         
+        # Initialize dataset service first
+        from services.dataset_service import DatasetService
+        self.dataset_service = DatasetService(self)
+        
+        # Verify dataset service is available
+        if not self.dataset_service.is_available():
+            self.logger.log("Warning: Dataset service not available", 'warning')
+        
         self.mission_service = MissionService()
         
         # Existing configuration remains the same
@@ -322,6 +330,7 @@ def create_robust_web_instance(config=None):
     from services.mission_service import MissionService
     from services.agent_service import AgentService
     from services.team_service import TeamService
+    from services.dataset_service import DatasetService
     from utils.logger import Logger
     from types import SimpleNamespace
 
@@ -338,6 +347,9 @@ def create_robust_web_instance(config=None):
         log=lambda message, level='info': log_instance.log(message, level),
         config=config,
         
+        # Initialize dataset service first
+        dataset_service=DatasetService(None),  # Will be updated with web_instance
+        
         # Créer des services
         mission_service=MissionService(),
         agent_service=AgentService(None),
@@ -349,6 +361,9 @@ def create_robust_web_instance(config=None):
         log_info=lambda message: log_instance.log(message, 'info')
     )
 
+    # Update dataset_service with web_instance
+    web_instance.dataset_service.web_instance = web_instance
+    
     # Créer le TeamService avec l'instance web
     web_instance.team_service = TeamService(web_instance)
 

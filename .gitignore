@@ -48,6 +48,7 @@ ENV/
 *.log
 *.sqlite3
 *.db
+*.jsonl
 
 # Mission and Project Data
 missions/

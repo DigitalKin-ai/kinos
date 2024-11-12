@@ -145,6 +145,130 @@ class KinOSWeb:
         for rule in self.app.url_map.iter_rules():
             self.log_message(f"  {rule.endpoint}: {rule.methods} {rule}", 'info')
         
+    def _initialize_services(self):
+        """Initialize all services in correct order with dependencies"""
+        try:
+            print("\n=== STARTING SERVICE INITIALIZATION ===")
+            
+            # Ensure web_instance has logger
+            if not hasattr(self, 'logger'):
+                from utils.logger import Logger
+                self.logger = Logger()
+                print("Created new logger for web_instance")
+
+            # Skip DatasetService initialization if it already exists
+            if not hasattr(self, 'dataset_service') or self.dataset_service is None:
+                print("\n=== DATASET SERVICE INITIALIZATION ===")
+                try:
+                    # Verify data path
+                    data_dir = os.path.join(PathManager.get_project_root(), "data")
+                    print(f"Data directory path: {data_dir}")
+                    print(f"Directory exists: {os.path.exists(data_dir)}")
+                        
+                    if not os.path.exists(data_dir):
+                        os.makedirs(data_dir)
+                        print(f"Created data directory: {data_dir}")
+                        
+                    # Create and verify service
+                    self.dataset_service = DatasetService(self)
+                    print(f"Service created: {self.dataset_service is not None}")
+                        
+                    # Verify availability
+                    available = self.dataset_service.is_available()
+                    print(f"Service available: {available}")
+                        
+                    if not available:
+                        print("Running availability check again with logging...")
+                        self.dataset_service.is_available()  # Run again for logs
+                        self.logger.log("Dataset service initialization failed", 'error')
+                        raise ServiceError("Dataset service not available after initialization")
+                        
+                    print(f"Data directory: {self.dataset_service.data_dir}")
+                    print(f"Dataset file: {self.dataset_service.dataset_file}")
+                        
+                    self.logger.log(
+                        f"Dataset service initialized successfully\n"
+                        f"Data directory: {self.dataset_service.data_dir}\n"
+                        f"Dataset file: {self.dataset_service.dataset_file}",
+                        'success'
+                    )
+                except Exception as e:
+                    print(f"Error initializing dataset service: {str(e)}")
+                    print(f"Traceback: {traceback.format_exc()}")
+                    self.logger.log(f"Error initializing dataset service: {str(e)}", 'error')
+                    raise ServiceError(f"Dataset service initialization failed: {str(e)}")
+
+            # Initialize remaining services only if dataset service is available
+            if not hasattr(self, 'dataset_service') or not self.dataset_service.is_available():
+                raise ServiceError("Dataset service must be initialized and available before other services")
+
+            # Continue with other services...
+            services_to_init = [
+                ('cache_service', lambda: CacheService(self)),
+                ('file_service', lambda: FileService(self)),
+                ('mission_service', lambda: MissionService()),
+                ('notification_service', lambda: NotificationService(self)),
+                ('team_service', lambda: TeamService(self)),
+                ('agent_service', lambda: AgentService(self))
+            ]
+
+            # Only initialize services that don't already exist
+            for service_name, init_func in services_to_init:
+                if not hasattr(self, service_name):
+                    try:
+                        self.logger.log(f"Initializing {service_name}...", 'info')
+                        setattr(self, service_name, init_func())
+                        
+                        # Verify service was set
+                        if not hasattr(self, service_name):
+                            raise ServiceError(f"Failed to set {service_name} on web_instance")
+                        
+                        # Verify service is not None
+                        if getattr(self, service_name) is None:
+                            raise ServiceError(f"{service_name} was initialized as None")
+                        
+                        self.logger.log(f"Successfully initialized {service_name}", 'success')
+                        
+                    except Exception as e:
+                        self.logger.log(
+                            f"Error initializing {service_name}:\n"
+                            f"Error: {str(e)}\n"
+                            f"Traceback: {traceback.format_exc()}", 
+                            'error'
+                        )
+                        raise ServiceError(f"Failed to initialize {service_name}: {str(e)}")
+
+            # Verify all required services are present
+            required_services = [
+                'cache_service', 'file_service', 'mission_service',
+                'notification_service', 'dataset_service', 'team_service', 
+                'agent_service'
+            ]
+            
+            missing_services = [svc for svc in required_services 
+                              if not hasattr(self, svc)]
+            
+            if missing_services:
+                raise ServiceError(
+                    f"Missing required services after initialization: {missing_services}"
+                )
+
+            # Log successful initialization
+            self.logger.log(
+                "All services initialized successfully\n"
+                f"Active services: {[svc for svc in required_services if hasattr(self, svc)]}",
+                'success'
+            )
+            
+        except Exception as e:
+            self.logger.log(
+                f"Critical error in service initialization:\n"
+                f"Error: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}", 
+                'critical'
+            )
+            raise ServiceError(f"Service initialization failed: {str(e)}")
+
     def _initialize_components(self, config):
         """Initialize all required components"""
         try:
@@ -262,6 +386,9 @@ class KinOSWeb:
         self.logger.log(f"Dossier statique: {self.static_dir}", 'debug')
         self.logger.log(f"Dossier templates: {self.template_dir}", 'debug')
         self.logger.log("Flask app initialized", 'success')
+
+        # Initialize services in correct order
+        self._initialize_services()
         
         # Initialize CORS with specific origins
         CORS(self.app, resources={
@@ -280,34 +407,6 @@ class KinOSWeb:
             key_func=get_remote_address,
             default_limits=["1000 per minute"]
         )
-
-        # Initialize services in correct order
-        try:
-            # Initialize MissionService first as other services depend on it
-            self.mission_service = MissionService()
-            self.logger.log("Mission service initialized", 'success')
-
-            # Initialize other services that depend on mission_service
-            self.file_manager = FileManager(web_instance=self)
-            self.logger.log("File manager initialized", 'success')
-
-            self.notification_service = NotificationService(self)
-            self.logger.log("Notification service initialized", 'success')
-
-            self.team_service = TeamService(self)
-            self.logger.log("Team service initialized", 'success')
-
-            self.agent_service = AgentService(self)
-            self.logger.log("Agent service initialized", 'success')
-
-            # Initialize dataset service last
-            from services.dataset_service import DatasetService
-            self.dataset_service = DatasetService(self)
-            self.logger.log("Dataset service initialized", 'success')
-
-        except Exception as e:
-            self.logger.log(f"Error initializing services: {str(e)}", 'error')
-            raise RuntimeError(f"Failed to initialize services: {str(e)}")
         
         # Register routes and handlers
         self._register_routes()

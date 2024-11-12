@@ -4,6 +4,7 @@
     "description": "Research and analysis",
     "agents": [
         "specifications",
+        "chercheur",
         "management", 
         "evaluation",
         "chroniqueur",
