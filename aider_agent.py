@@ -279,6 +279,8 @@ class AiderAgent(KinOSAgent):
                         with open(gitignore_path, 'r', encoding='utf-8') as f:
                             gitignore_patterns = f.readlines()
                         gitignore_patterns = [p.strip() for p in gitignore_patterns if p.strip() and not p.startswith('#')]
+                        from pathspec import PathSpec
+                        from pathspec.patterns import GitWildMatchPattern
                         spec = PathSpec.from_lines(GitWildMatchPattern, gitignore_patterns)
                     except Exception as e:
                         self.logger.log(f"[{self.__class__.__name__}] Warning reading .gitignore: {str(e)}", 'warning')
