@@ -7,6 +7,7 @@ from services.team_service import TeamService
 from services.mission_service import MissionService
 from services.agent_service import AgentService
 from utils.logger import configure_cli_logger
+from utils.path_manager import PathManager
 
 class KinosCLI:
     def __init__(self, force_color=None):
@@ -23,14 +24,14 @@ class KinosCLI:
         
         self.mission_service = MissionService()
         
-        # Existing configuration remains the same
+        # Update mission path configuration using PathManager
         self.config = {
             "anthropic_api_key": os.environ.get("ANTHROPIC_API_KEY", ""),
             "openai_api_key": os.environ.get("OPENAI_API_KEY", ""),
             "paths": {
-                "missions_dir": os.path.join(os.path.dirname(__file__), "missions"),
-                "prompts_dir": os.path.join(os.path.dirname(__file__), "prompts"),
-                "logs_dir": os.path.join(os.path.dirname(__file__), "logs")
+                "missions_dir": PathManager.get_mission_path(""),
+                "prompts_dir": PathManager.get_prompts_path(),
+                "logs_dir": PathManager.get_logs_path()
             }
         }
         
@@ -43,7 +44,7 @@ class KinosCLI:
         # Passer self avec l'agent_service et config ajoutés
         self.team_service = TeamService(self)
 
-    def launch_team(self, mission_name, team_name, verbose=False, dry_run=False, timeout=None, log_file=None):
+    def launch_team(self, mission_name, team_name, verbose=False, dry_run=False, timeout=None, log_file=None, base_path=None):
         """
         Lance une équipe pour une mission spécifique et affiche les logs en continu
         """
@@ -60,6 +61,24 @@ class KinosCLI:
                 self.logger.log(f"Erreur : Équipe '{team_name}' non trouvée.", 'error')
                 sys.exit(1)
 
+            # Résoudre le chemin de la mission en utilisant PathManager
+            try:
+                mission_path = PathManager.get_mission_path(mission_name, base_path)
+                
+                # Créer le dossier de mission s'il n'existe pas
+                if not os.path.exists(mission_path):
+                    self.logger.log(f"Création du dossier de mission : {mission_path}", 'info')
+                    os.makedirs(mission_path, exist_ok=True)
+                
+                # Vérifier les permissions
+                if not os.access(mission_path, os.R_OK | os.W_OK):
+                    self.logger.log(f"Erreur : Permissions insuffisantes sur {mission_path}", 'error')
+                    sys.exit(1)
+                
+            except Exception as path_error:
+                self.logger.log(f"Erreur de résolution du chemin de mission : {str(path_error)}", 'error')
+                sys.exit(1)
+
             if dry_run:
                 self.logger.log(f"Mode simulation : Lancement de l'équipe {team_name} pour la mission {mission_name}", 'info')
                 return
@@ -72,9 +91,10 @@ class KinosCLI:
                 self.logger.log("Échec de l'activation de l'équipe", 'error')
                 sys.exit(1)
 
-            self.team_service.start_team(mission['id'], team_name) 
+            self.team_service.start_team(mission['id'], team_name, mission_path=mission_path) 
 
             self.logger.log(f"✓ Équipe {team_name} activée et démarée. Démarrage des agents...", 'success')
+            self.logger.log(f"Dossier de mission : {mission_path}", 'info')
             self.logger.log("Appuyez sur CTRL+C pour arrêter les agents", 'info')
             
             # Boucle principale d'affichage des logs
@@ -225,6 +245,7 @@ def main():
     launch_parser.add_argument('--dry-run', action='store_true', help='Simulation sans exécution')
     launch_parser.add_argument('--timeout', type=int, help='Limite de temps en secondes')
     launch_parser.add_argument('--log-file', help='Chemin du fichier de log')
+    launch_parser.add_argument('--base-path', help='Chemin de base personnalisé pour les missions', default=None)
 
     # Sous-commande pour les agents
     agent_parser = subparsers.add_parser('agent', help='Commandes liées aux agents')
