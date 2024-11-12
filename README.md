@@ -1,136 +1,76 @@
 # KinOS
 
-KinOS est un framework d'agents autonomes parallèles conçu pour accélérer et améliorer le développement de projets complexes via une interface en ligne de commande (CLI). Chaque agent gère son propre fichier et opère de manière continue et indépendante.
+KinOS est un framework d'agents autonomes qui opèrent directement dans votre dossier de projet. Chaque agent gère ses propres fichiers et travaille de manière indépendante pour améliorer et accélérer le développement.
 
-## 🌟 Caractéristiques
+## ✨ Points Clés
 
-- **Simplicité maximale** dans la conception
-- **Communication via fichiers markdown**
-- **Modifications non-linéaires** via SEARCH/REPLACE
-- **Autonomie complète** des agents
-- **État persistant** dans les fichiers
-- **Interface CLI intuitive** pour le contrôle
+- **Zéro configuration** - Fonctionne dans n'importe quel dossier
+- **Agents autonomes** - Chaque agent gère ses fichiers
+- **CLI simple** - Une seule commande : `kin`
+- **Phases intelligentes** - Expansion/Convergence automatique
+- **Dataset intégré** - Collection pour fine-tuning
 
 ## 🚀 Installation
 
-1. Clonez le repository :
 ```bash
-git clone git@github.com:DigitalKin-ai/kinos.git
-cd kinos
-```
+# Installation depuis PyPI
+pip install kinos
 
-2. Installez les dépendances :
-```bash
-pip install -e .
-```
-
-3. Configurez les clés API dans un fichier `.env` :
-```env
-ANTHROPIC_API_KEY=votre-clé-anthropic
-OPENAI_API_KEY=votre-clé-openai
+# Configuration des clés API
+export ANTHROPIC_API_KEY="votre-clé"
+export OPENAI_API_KEY="votre-clé"
 ```
 
 ## 🚀 Utilisation
 
-### Commandes de Base
 ```bash
-# Lancer l'équipe par défaut dans le dossier courant
+# Lancer dans le dossier courant
+cd votre-projet
 kin
 
-# Lancer avec logs détaillés
-kin -v
+# Choisir une équipe spécifique
+kin coding      # Équipe développement
+kin book        # Équipe rédaction
+kin research    # Équipe recherche
 
-# Afficher l'aide
+# Voir le statut des phases
+kin phase status
+
+# Voir l'aide complète
 kin --help
-
-# Lancer une équipe spécifique
-kin coding
-kin book-writing
-kin literature-review
 ```
 
-### Équipes Prédéfinies
+## 📊 Phases de Projet
 
-1. **default** (équipe par défaut)
-   - Création de contenu et documentation
-   - Agents: Specifications, Management, Evaluation, etc.
-   - Usage: `kin`
+KinOS alterne automatiquement entre deux phases :
 
-2. **coding**
-   - Développement logiciel
-   - Agents: Specifications, Production, Testing, etc.
-   - Usage: `kin coding`
+- **EXPANSION** (< 60% tokens) : Création libre de contenu
+- **CONVERGENCE** (> 60% tokens) : Optimisation et consolidation
 
-3. **literature-review**
-   - Recherche et analyse
-   - Agents: Specifications, Management, Evaluation, etc.
-   - Usage: `kin literature-review`
+## 🤖 Agents Disponibles
 
-## 🤖 Agents
+Chaque équipe combine différents agents spécialisés :
 
-### Équipe par Défaut
+- **SpecificationsAgent** - Analyse des besoins
+- **ProductionAgent** - Génération de code
+- **ValidationAgent** - Contrôle qualité
+- **DocumentalisteAgent** - Documentation
+- **DuplicationAgent** - Détection redondances
 
-Par défaut, une équipe standard est utilisée avec les agents suivants :
-- Specifications
-- Management
-- Evaluation
-- Chroniqueur
-- Documentaliste
+## 📋 Prérequis
 
-### Agents Principaux
+- Python 3.8+
+- Clés API Anthropic et OpenAI
+- Aider CLI (`pip install aider-chat`)
 
-1. **SpecificationsAgent**
-   - Gestion du template et structure documentaire
-   - Analyse des demandes initiales
-   - Extraction des exigences
+## 📚 Documentation
 
-2. **ProductionAgent**
-   - Création et implémentation du contenu
-   - Génération de code optimisé
-   - Respect des standards
-
-3. **ManagementAgent**
-   - Coordination et planification
-   - Gestion des priorités
-   - Résolution des conflits
-
-4. **EvaluationAgent**
-   - Contrôle qualité et validation
-   - Tests fonctionnels
-   - Mesures performances
-
-5. **DocumentalisteAgent**
-   - Analyse de la documentation existante
-   - Détection des incohérences avec le code
-   - Mise à jour automatique de la documentation
-
-## 🛠️ Développement
-
-Pour contribuer au projet :
-
-1. Créez une branche pour votre fonctionnalité
-2. Committez vos changements
-3. Ouvrez une Pull Request
-
-## 📄 Licence
-
-[À définir]
+Documentation complète : https://kinos.readthedocs.io
 
 ## 🤝 Contribution
 
-Les contributions sont les bienvenues ! N'hésitez pas à :
-- Ouvrir des issues
-- Proposer des pull requests
-- Suggérer des améliorations
+Les contributions sont bienvenues ! Voir CONTRIBUTING.md
 
-## ⚠️ Prérequis
+## 📝 Licence
 
-- Python 3.8+
-- Clés API (Anthropic et OpenAI)
-- Aider CLI installé et configuré
-
-## 📞 Support
-
-Pour toute question ou problème :
-- Ouvrez une issue sur GitHub
-- [Contact à définir]
+MIT License - voir LICENSE
