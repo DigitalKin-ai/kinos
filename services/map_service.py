@@ -130,7 +130,7 @@ class MapService(BaseService):
             )
 
     def _format_map_content(self, tree_content: List[str], warnings: List[str]) -> str:
-        """Format complete map.md content with phase information"""
+        """Format complete map.md content with introduction and phase information"""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         # Get phase status from PhaseService
@@ -138,7 +138,17 @@ class MapService(BaseService):
         
         content = [
             "# Project Map",
-            f"Generated: {timestamp}\n",
+            "\nCe document est une carte dynamique du projet qui est automatiquement mise à jour pour fournir une vue d'ensemble de la structure et de l'état du projet. Il surveille notamment :",
+            "- L'arborescence complète des fichiers",
+            "- La taille de chaque document en tokens",
+            "- La phase actuelle du projet (EXPANSION/CONVERGENCE)",
+            "- Les alertes et recommandations d'optimisation",
+            "\nLa map est automatiquement mise à jour par le MapService à chaque :",
+            "- Modification de fichier markdown",
+            "- Changement de phase du projet",
+            "- Création ou suppression de fichier",
+            "\nLes indicateurs visuels (✓, ⚠️, 🔴) permettent d'identifier rapidement les fichiers nécessitant une attention particulière.",
+            f"\nGenerated: {timestamp}\n",
             "## Project Phase",
             self._get_phase_description(phase_status),
             "\n## Token Usage",
