@@ -1,8 +1,13 @@
 import os
+from datetime import datetime
 from typing import Dict, Any, Optional, List
+import traceback
 from utils.logger import Logger
+from utils.path_manager import PathManager
+from utils.exceptions import ServiceError
 from services.agent_service import AgentService
 from services.mission_service import MissionService
+from agents.kinos_agent import KinOSAgent
 
 class TeamService:
     """Service simplifié pour la gestion des équipes en CLI"""
