@@ -152,13 +152,19 @@
                 }
             },
 
-            handleError(message, error) {
-                console.error(message, error);
-                this.error = typeof error === 'string' ? error : error.message || 'An unexpected error occurred';
-            
-                // Show error in UI
-                this.errorMessage = this.error;
+            handleError(message, error = null) {
+                console.error('Error:', message, error);
+                
+                // Ensure message is a string
+                const errorMessage = typeof message === 'string' ? message : 
+                                   (message?.message || 'An unexpected error occurred');
+                
+                // Set error state
+                this.error = errorMessage;
+                this.errorMessage = errorMessage;
                 this.showError = true;
+
+                // Auto-hide error after 5 seconds
                 setTimeout(() => {
                     this.showError = false;
                 }, 5000);
@@ -271,7 +277,7 @@
                 this.loading = true;
                 await this.loadTeams();
             } catch (error) {
-                this.handleError(error);
+                this.handleError('Failed to load teams', error);
             } finally {
                 this.loading = false;
             }
@@ -397,18 +403,31 @@
 
             async loadTeams() {
                 try {
-                    const teamResponse = await fetch(`/api/missions/${this.currentMission.id}/teams`);
-                    if (teamResponse.ok) {
-                        const teams = await teamResponse.json();
-                        this.teams = teams;
-                        this.activeTeam = teams.length > 0 ? teams[0] : null;
-                    } else {
-                        throw new Error('Failed to fetch teams: ' + teamResponse.statusText);
+                    if (!this.currentMission?.id) {
+                        this.teams = [];
+                        return;
+                    }
+
+                    const response = await fetch(`/api/missions/${this.currentMission.id}/teams`);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch teams: ${response.statusText}`);
+                    }
+                    
+                    const teams = await response.json();
+                    this.teams = teams.map(team => ({
+                        ...team,
+                        id: team.id || team.name.toLowerCase().replace(/\s+/g, '-'),
+                        agents: team.agents || [],
+                        status: team.status || 'available'
+                    }));
+
+                    if (this.teams.length > 0 && !this.activeTeam) {
+                        this.activeTeam = this.teams[0];
                     }
                 } catch (error) {
-                    this.handleError('Error fetching teams: ' + error.message);
+                    console.error('Failed to load teams:', error);
                     this.teams = [];
-                    this.activeTeam = null;
+                    this.handleError('Failed to load teams: ' + (error.message || 'Unknown error'));
                 }
             },
 
@@ -427,6 +446,19 @@
 
             handleSidebarToggle(collapsed) {
                 // Handle sidebar collapse/expand if needed
+            },
+
+            async checkConnection() {
+                try {
+                    const response = await fetch('/api/status');
+                    this.connectionStatus.connected = response.ok;
+                    this.connectionStatus.lastCheck = new Date();
+                    this.connectionStatus.retryCount = 0;
+                } catch (error) {
+                    this.connectionStatus.connected = false;
+                    this.connectionStatus.retryCount++;
+                    this.handleError('Connection error: ' + (error.message || 'Failed to connect to server'));
+                }
             }
         }
     });
