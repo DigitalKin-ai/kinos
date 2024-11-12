@@ -11,6 +11,7 @@ from datetime import datetime
 from utils.path_manager import PathManager
 from services.base_service import BaseService
 from utils.exceptions import ServiceError
+from utils.logger import Logger  # Add Logger import
 
 class DatasetService(BaseService):
     """Manages dataset creation for fine-tuning"""
@@ -18,14 +19,14 @@ class DatasetService(BaseService):
     def __init__(self, _):  # Keep parameter for compatibility but don't use it
         """Initialize dataset service with explicit configuration"""
         try:
+            # Initialize logger first
+            self.logger = Logger()
+            
             # Get data directory path using PathManager
             self.data_dir = os.path.join(PathManager.get_project_root(), "data")
             os.makedirs(self.data_dir, exist_ok=True)
             
             self.dataset_file = os.path.join(self.data_dir, "fine-tuning.jsonl")
-            
-            # Initialize logger
-            self.logger = Logger()
             
             # Create dataset file if it doesn't exist
             if not os.path.exists(self.dataset_file):
@@ -59,6 +60,9 @@ class DatasetService(BaseService):
             # Start cleanup timer
             self._start_cleanup_timer()
         except Exception as e:
+            # Create logger if it doesn't exist yet
+            if not hasattr(self, 'logger'):
+                self.logger = Logger()
             self.logger.log(f"Error initializing dataset service: {str(e)}", 'error')
             raise ServiceError(f"Failed to initialize dataset service: {str(e)}")
             
