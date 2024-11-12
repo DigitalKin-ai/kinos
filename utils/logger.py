@@ -1,9 +1,9 @@
 import os
 import sys
+import logging
 from datetime import datetime
 from typing import Optional
 from utils.path_manager import PathManager
-
 import threading
 
 class Logger:
