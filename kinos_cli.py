@@ -66,14 +66,55 @@ def launch_team(args):
         sys.exit(1)
 
 def main():
+    # Simplified argument parsing
     parser = argparse.ArgumentParser(description="KinOS CLI - Team Launch")
-    parser.add_argument('--mission', required=True, help='Mission name')
-    parser.add_argument('--team', required=True, help='Team to launch')
-    parser.add_argument('--verbose', action='store_true', help='Enable verbose logging')
-    parser.add_argument('--dry-run', action='store_true', help='Simulate launch without executing')
+    parser.add_argument('team', nargs='?', default='book-writing', 
+                        help='Team to launch (default: book-writing)')
+    parser.add_argument('-m', '--mission', default=None, 
+                        help='Optional mission name')
+    parser.add_argument('-v', '--verbose', action='store_true', 
+                        help='Enable verbose logging')
+    parser.add_argument('--dry-run', action='store_true', 
+                        help='Simulate launch without executing')
     
     args = parser.parse_args()
-    launch_team(args)
+    
+    # Use current directory as mission path if no mission specified
+    current_mission_dir = os.getcwd()
+    mission_name = args.mission or os.path.basename(current_mission_dir)
+
+    try:
+        # Create service instances
+        mission_service = MissionService()
+        team_service = TeamService(None)
+        agent_service = AgentService(None)
+
+        # Log the launch details
+        logger = configure_cli_logger()
+        logger.log(f"Launching team: {args.team}", 'info')
+        logger.log(f"Mission directory: {current_mission_dir}", 'info')
+
+        # Launch team in current directory
+        result = team_service.start_team(
+            mission_id=None,
+            team_id=args.team, 
+            base_path=current_mission_dir
+        )
+
+        # Display verbose output if requested
+        if args.verbose:
+            logger.log("Team launch details:", 'info')
+            logger.log(f"Active threads: {result.get('active_threads', 0)}", 'info')
+            for agent_result in result.get('start_results', []):
+                status = agent_result.get('status', 'unknown')
+                agent = agent_result.get('agent', 'Unknown Agent')
+                logger.log(f"Agent {agent}: {status}", 
+                           'success' if status == 'started' else 'warning')
+
+    except Exception as e:
+        logger = configure_cli_logger()
+        logger.log(f"Error launching team: {str(e)}", 'error')
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
