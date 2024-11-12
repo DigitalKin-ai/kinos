@@ -58,29 +58,62 @@ def launch_team(args):
 def main():
     """Main entry point for KinOS CLI"""
     parser = argparse.ArgumentParser(description="KinOS CLI - Team Launch")
-    parser.add_argument('team', nargs='?', default='default', 
-                       help='Team to launch (default: default)')
-    parser.add_argument('-v', '--verbose', action='store_true', 
-                       help='Enable verbose logging')
-    
+    subparsers = parser.add_subparsers(dest='command', help='Commands')
+
+    # Team command
+    team_parser = subparsers.add_parser('team', help='Team management')
+    team_parser.add_argument('name', nargs='?', default='default', 
+                            help='Team to launch (default: default)')
+    team_parser.add_argument('-v', '--verbose', action='store_true', 
+                            help='Enable verbose logging')
+
+    # Phase command
+    phase_parser = subparsers.add_parser('phase', help='Phase management commands')
+    phase_subparsers = phase_parser.add_subparsers(dest='subcommand')
+
+    # Status command
+    phase_subparsers.add_parser('status', help='Show current phase status')
+
+    # Force command
+    force_parser = phase_subparsers.add_parser('force', help='Force specific phase')
+    force_parser.add_argument('phase', choices=['expansion', 'convergence'], 
+                            help='Phase to force')
+
     args = parser.parse_args()
     
     try:
         # Configure logging
         logger = configure_cli_logger()
         logger.log(f"Starting KinOS CLI...", 'info')
-        logger.log(f"Team: {args.team}", 'info')
-        logger.log(f"Working directory: {os.getcwd()}", 'info')
 
-        # Create service instances
-        team_service = TeamService(None)
-        agent_service = AgentService(None)
+        if args.command == 'team':
+            logger.log(f"Team: {args.name}", 'info')
+            logger.log(f"Working directory: {os.getcwd()}", 'info')
 
-        # Launch team in current directory
-        result = team_service.start_team(
-            team_id=args.team, 
-            base_path=os.getcwd()
-        )
+            # Create service instances
+            team_service = TeamService(None)
+            agent_service = AgentService(None)
+
+            # Launch team in current directory
+            result = team_service.start_team(
+                team_id=args.name, 
+                base_path=os.getcwd()
+            )
+
+        elif args.command == 'phase':
+            if args.subcommand == 'status':
+                status = web_instance.phase_service.get_status_info()
+                print(f"\nCurrent Phase: {status['phase']}")
+                print(f"Token Usage: {status['total_tokens']/1000:.1f}k/{web_instance.phase_service.MODEL_TOKEN_LIMIT/1000:.0f}k ({status['usage_percent']:.1f}%)")
+                print(f"Status: {status['status_icon']} {status['status_message']}")
+                print(f"Headroom: {status['headroom']/1000:.1f}k tokens")
+                print(f"Last Transition: {status['last_transition']}")
+            
+            elif args.subcommand == 'force':
+                if web_instance.phase_service.force_phase(args.phase):
+                    print(f"Phase manually set to: {args.phase.upper()}")
+                else:
+                    print(f"Error: Invalid phase '{args.phase}'")
 
         if args.verbose:
             logger.log("Team launch details:", 'info')

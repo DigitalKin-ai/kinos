@@ -65,7 +65,8 @@ def init_services(web_instance):
             ('file_service', lambda: FileService(web_instance)),
             ('team_service', lambda: TeamService(web_instance)),
             ('agent_service', lambda: AgentService(web_instance)),
-            ('map_service', lambda: MapService(web_instance))
+            ('map_service', lambda: MapService(web_instance)),
+            ('phase_service', lambda: PhaseService(web_instance))
         ]
 
         # Only initialize services that don't already exist

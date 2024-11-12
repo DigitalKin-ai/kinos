@@ -107,12 +107,22 @@ class MapService(BaseService):
         return ""
 
     def _format_map_content(self, tree_content: List[str], warnings: List[str]) -> str:
-        """Format complete map.md content"""
+        """Format complete map.md content with phase information"""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Get phase status from PhaseService
+        phase_status = self.web_instance.phase_service.get_status_info()
         
         content = [
             "# Project Map",
-            f"Generated: {timestamp}\n",
+            f"Generated: {timestamp}",
+            f"Current Phase: {phase_status['phase']}\n",
+            "## Token Usage",
+            f"Total: {phase_status['total_tokens']/1000:.1f}k/{self.web_instance.phase_service.MODEL_TOKEN_LIMIT/1000:.0f}k ({phase_status['usage_percent']:.1f}%)",
+            f"Convergence at: {self.web_instance.phase_service.CONVERGENCE_TOKENS/1000:.1f}k ({self.web_instance.phase_service.CONVERGENCE_THRESHOLD*100:.0f}%)\n",
+            "## Phase Status",
+            f"{phase_status['status_icon']} {phase_status['status_message']}",
+            f"Headroom: {phase_status['headroom']/1000:.1f}k tokens\n",
             "## Document Tree",
             "📁 Project"
         ]
