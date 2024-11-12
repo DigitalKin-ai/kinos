@@ -1,6 +1,6 @@
 # KinOS
 
-KinOS est un framework d'agents autonomes parallèles conçu pour accélérer et améliorer le développement de projets complexes. Chaque agent gère son propre fichier et opère de manière continue et indépendante.
+KinOS est un framework d'agents autonomes parallèles conçu pour accélérer et améliorer le développement de projets complexes via une interface en ligne de commande (CLI). Chaque agent gère son propre fichier et opère de manière continue et indépendante.
 
 ## 🌟 Caractéristiques
 
@@ -9,7 +9,7 @@ KinOS est un framework d'agents autonomes parallèles conçu pour accélérer et
 - **Modifications non-linéaires** via SEARCH/REPLACE
 - **Autonomie complète** des agents
 - **État persistant** dans les fichiers
-- **Interface web intuitive** pour le suivi et le contrôle
+- **Interface CLI intuitive** pour le contrôle
 
 ## 🚀 Installation
 
@@ -30,34 +30,41 @@ ANTHROPIC_API_KEY=votre-clé-anthropic
 OPENAI_API_KEY=votre-clé-openai
 ```
 
-## 🚀 CLI Usage
+## 🚀 Utilisation
 
-### CLI Usage
-
-#### Basic Command
+### Commandes de Base
 ```bash
-# Launch default team in current directory
+# Lancer l'équipe par défaut dans le dossier courant
 kin
 
-# Launch with verbose logging
+# Lancer avec logs détaillés
 kin -v
 
-# Show help
+# Afficher l'aide
 kin --help
+
+# Lancer une équipe spécifique
+kin coding
+kin book-writing
+kin literature-review
 ```
 
-#### Predefined Teams
-1. **default** (default team)
-   - Content creation and documentation
+### Équipes Prédéfinies
+
+1. **default** (équipe par défaut)
+   - Création de contenu et documentation
    - Agents: Specifications, Management, Evaluation, etc.
+   - Usage: `kin`
 
 2. **coding**
-   - Software development focus
+   - Développement logiciel
    - Agents: Specifications, Production, Testing, etc.
+   - Usage: `kin coding`
 
 3. **literature-review**
-   - Research and analysis
+   - Recherche et analyse
    - Agents: Specifications, Management, Evaluation, etc.
+   - Usage: `kin literature-review`
 
 ### Gestion des Chemins
 
@@ -66,22 +73,6 @@ kin --help
 - Vérification stricte des permissions
 - Normalisation des noms de mission
 - Support de plusieurs chemins de base
-
-## 🎮 Utilisation
-
-1. Lancez le serveur :
-```bash
-python kinos_web.py
-```
-
-2. Ouvrez votre navigateur à l'adresse : `http://127.0.0.1:8000`
-
-3. Utilisez l'interface pour :
-   - Démarrer/arrêter les agents
-   - Visualiser les fichiers en temps réel
-   - Suivre les logs d'exécution
-   - Exporter les logs
-   - Charger des données de test
 
 ## 🤖 Agents
 
