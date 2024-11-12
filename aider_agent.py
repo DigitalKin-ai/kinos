@@ -958,7 +958,7 @@ class AiderAgent(KinOSAgent):
             return False
 
     def _build_prompt(self, context: dict = None) -> str:
-        """Build the complete prompt with context"""
+        """Build the complete prompt with context."""
         try:
             # Get base prompt content
             prompt_content = self.get_prompt()
