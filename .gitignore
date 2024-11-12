@@ -50,8 +50,7 @@ ENV/
 *.db
 *.jsonl
 
-# Mission and Project Data
-missions/
+# Project Data
 data/
 temp/
 cache/

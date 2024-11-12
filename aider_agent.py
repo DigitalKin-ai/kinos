@@ -694,15 +694,6 @@ class AiderAgent(KinOSAgent):
                     self._log(f"[{self.name}] Process failed with code {return_code}")
                     return None
 
-                finally:
-                    # Restore original directory in finally block
-                    try:
-                        if original_dir:
-                            os.chdir(original_dir)
-                            self._log(f"[{self.name}] 📂 Restored directory: {original_dir}")
-                    except Exception as e:
-                        self._log(f"[{self.name}] ❌ Error restoring directory: {str(e)}")
-
     def list_files(self) -> None:
         """Liste tous les fichiers textuels dans le dossier de la mission"""
         try:

@@ -276,6 +276,7 @@ def launch_team(args):
                 for agent_result in result.get('activation_results', []):
                     if agent_result['success']:
                         logger.info(f"Agent {agent_result['agent']} activé avec succès")
+                        time.sleep(5)
                     else:
                         logger.error(f"Échec de l'activation de l'agent {agent_result['agent']}: {agent_result.get('error', 'Erreur inconnue')}")
                 
