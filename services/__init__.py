@@ -22,10 +22,7 @@ def init_services(_):  # Keep parameter for compatibility but don't use it
         agent_service = AgentService(None)
         phase_service = PhaseService(None)
 
-        # Generate initial map only once
-        map_service.generate_map()
-
-        # Return services dictionary
+        # Return services dictionary without generating map
         return {
             'map_service': map_service,
             'dataset_service': dataset_service,

@@ -110,9 +110,11 @@ def main():
     logger.log(f"Starting KinOS CLI with log level: {args.log_level}")
 
     try:
-        # Initialize services and generate initial map
+        # Initialize services
         from services import init_services
         services = init_services(None)
+        
+        # Generate initial map after services are initialized
         services['map_service'].generate_map()
 
         # If no command specified, default to launching default team

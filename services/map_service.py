@@ -28,9 +28,9 @@ class MapService(BaseService):
     def _ensure_phase_service(self):
         """Lazy initialization of phase service"""
         if self.phase_service is None:
-            from services import init_services
-            services = init_services(None)
-            self.phase_service = services['phase_service']
+            # Import locally to avoid circular import
+            from services.phase_service import PhaseService
+            self.phase_service = PhaseService(None)
 
     def generate_map(self) -> bool:
         """Generate project map file"""
