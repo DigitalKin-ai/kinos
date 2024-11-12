@@ -14,8 +14,8 @@ KinOS est un système d'agents autonomes conçu pour simplifier et accélérer l
 ### Core Components
 
 1. **CLI Interface** (`kinos_cli.py`)
-   - Simple command-line entry point
-   - Automatic current directory detection
+   - Single command entry point: `kin`
+   - Current directory detection
    - Dynamic team loading
    - Real-time agent monitoring
    - Error handling with retry
