@@ -1,57 +1,20 @@
-export default class TeamService {
-    constructor(missionService) {
-        this.missionService = missionService;
-        this.teams = new Map();
-        this.activeTeam = null;
-        this.teamStates = new Map();
-        this.connectionStatus = {
-            connected: true,
-            lastCheck: null,
-            retryCount: 0,
-            checkInterval: null
-        };
-        this.apiClient = new ApiClient();
-    }
+class TeamService:
+    """Service for managing teams of agents"""
+    
+    def __init__(self, web_instance):
+        self.web_instance = web_instance
+        self.teams = {}
+        self.active_team = None
+        self.predefined_teams = self._load_predefined_teams()
+        self.logger = web_instance.logger if hasattr(web_instance, 'logger') else None
 
-    async updateRunningState(missionId, state) {
-        try {
-            if (!missionId) return;
-        
-            this.stateUpdateQueue.push({ missionId, state });
-            if (!this.stateUpdateInProgress) {
-                await this.processStateUpdates();
-            }
-        } catch (error) {
-            console.error('Error updating running state:', error);
-            this.handleError('Failed to update mission state');
-        }
-    }
-
-    async processStateUpdates() {
-        if (this.stateUpdateQueue.length === 0) {
-            this.stateUpdateInProgress = false;
-            return;
-        }
-
-        this.stateUpdateInProgress = true;
-        try {
-            const update = this.stateUpdateQueue.shift();
-            this.runningStates.set(update.missionId, update.state);
-            await this.processStateUpdates();
-        } catch (error) {
-            console.error('Error processing state updates:', error);
-        } finally {
-            this.stateUpdateInProgress = false;
-        }
-    }
-
-    async initialize() {
-        // Load predefined team configurations
-        this.predefinedTeams = [
+    def _load_predefined_teams(self) -> list:
+        """Load predefined team configurations"""
+        return [
             {
-                id: 'default',
-                name: "Default Team",
-                agents: [
+                'id': 'default',
+                'name': "Default Team",
+                'agents': [
                     "SpecificationsAgent",
                     "ManagementAgent", 
                     "EvaluationAgent",
@@ -60,9 +23,9 @@ export default class TeamService {
                 ]
             },
             {
-                id: 'coding',
-                name: "Coding Team", 
-                agents: [
+                'id': 'coding',
+                'name': "Coding Team", 
+                'agents': [
                     "SpecificationsAgent",
                     "ProductionAgent",
                     "TesteurAgent",
@@ -71,9 +34,9 @@ export default class TeamService {
                 ]
             },
             {
-                id: 'literature-review',
-                name: "Literature Review Team",
-                agents: [
+                'id': 'literature-review',
+                'name': "Literature Review Team",
+                'agents': [
                     "SpecificationsAgent",
                     "EvaluationAgent",
                     "ChroniqueurAgent", 
@@ -81,82 +44,58 @@ export default class TeamService {
                     "ValidationAgent"
                 ]
             }
-        ];
-    }
+        ]
 
-    async checkConnection() {
-        if (this.connectionCheckInProgress) return;
-        
-        try {
-            this.connectionCheckInProgress = true;
-            const isConnected = await this.apiClient.checkServerConnection();
+    def start_team(self, team_id: str, base_path: str = None) -> bool:
+        """Start a team in the specified directory"""
+        try:
+            # Validate team exists
+            team = next((t for t in self.predefined_teams if t['id'] == team_id), None)
+            if not team:
+                if self.logger:
+                    self.logger.log(f"Team {team_id} not found", 'error')
+                return False
+
+            # Initialize and start agents
+            if hasattr(self.web_instance, 'agent_service'):
+                config = {'mission_dir': base_path} if base_path else {}
+                self.web_instance.agent_service.init_agents(config, team['agents'])
+                self.web_instance.agent_service.start_all_agents()
+                return True
+            return False
+
+        except Exception as e:
+            if self.logger:
+                self.logger.log(f"Error starting team: {str(e)}", 'error')
+            return False
+
+    def stop_team(self) -> bool:
+        """Stop the currently running team"""
+        try:
+            if hasattr(self.web_instance, 'agent_service'):
+                self.web_instance.agent_service.stop_all_agents()
+                return True
+            return False
             
-            this.connectionStatus.connected = isConnected;
-            this.connectionStatus.lastCheck = new Date();
-            this.connectionStatus.retryCount = 0;
-            
-        } catch (error) {
-            this.connectionStatus.connected = false;
-            this.connectionStatus.retryCount++;
-            this.handleConnectionError(error);
-        } finally {
-            this.connectionCheckInProgress = false;
-        }
-    }
+        except Exception as e:
+            if self.logger:
+                self.logger.log(f"Error stopping team: {str(e)}", 'error')
+            return False
 
-    startConnectionMonitoring() {
-        this.checkConnection();
-        this.connectionInterval = setInterval(() => {
-            this.checkConnection();
-        }, 30000); // Check every 30 seconds
-    }
+    def get_predefined_teams(self) -> list:
+        """Get list of predefined teams"""
+        return self.predefined_teams
 
-    stopConnectionMonitoring() {
-        if (this.connectionInterval) {
-            clearInterval(this.connectionInterval);
-            this.connectionInterval = null;
-        }
-    }
-
-    async getTeamsForMission(missionId) {
-        try {
-            const response = await fetch(`/api/missions/${missionId}/teams`);
-            if (!response.ok) throw new Error('Failed to fetch teams');
-            const teams = await response.json();
-            
-            // Mettre à jour le cache local
-            teams.forEach(team => this.teams.set(team.id, team));
-            
-            return teams;
-        } catch (error) {
-            console.error('Error fetching teams:', error);
-            throw error;
-        }
-    }
-
-    async activateTeam(missionId, teamId) {
-        try {
-            // Arrêter l'équipe active si elle existe
-            if (this.activeTeam) {
-                await this.deactivateTeam(this.activeTeam.id);
-            }
-
-            const response = await fetch(`/api/missions/${missionId}/teams/${teamId}/activate`, {
-                method: 'POST'
-            });
-
-            if (!response.ok) throw new Error('Failed to activate team');
-            
-            const team = await response.json();
-            this.activeTeam = team;
-            this.teamStates.set(teamId, { active: true, timestamp: Date.now() });
-            
-            return team;
-        } catch (error) {
-            console.error('Error activating team:', error);
-            throw error;
-        }
-    }
+    def cleanup(self):
+        """Cleanup team resources"""
+        try:
+            if hasattr(self.web_instance, 'agent_service'):
+                self.web_instance.agent_service.stop_all_agents()
+            self.teams.clear()
+            self.active_team = None
+        except Exception as e:
+            if self.logger:
+                self.logger.log(f"Error in cleanup: {str(e)}", 'error')
 
     async deactivateTeam(teamId) {
         try {
