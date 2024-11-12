@@ -110,17 +110,6 @@ KinOS uses a single server architecture where both frontend and backend are serv
    - Portalocker for thread-safe file access
    - Caching for performance optimization
 
-4. **Frontend Integration**
-   - Vue.js components served from /static
-   - API calls use relative paths:
-     ```javascript
-     // Correct
-     fetch('/api/missions')
-     
-     // Incorrect - don't use absolute URLs
-     fetch('http://localhost:8000/api/missions')
-     ```
-
 #### Benefits
 - Simplified deployment (single process)
 - No database configuration needed
