@@ -557,24 +557,48 @@ Le PathManager est un composant central qui gère tous les chemins de fichiers d
 
 ### Services Layer
 
-Les services sont initialisés avec des dépendances minimales :
+The services layer has been simplified to use the current directory as context:
 
 ```python
-services = {
-    'dataset_service': DatasetService(None),
-    'file_service': FileService(None), 
-    'team_service': TeamService(None),
-    'agent_service': AgentService(None),
-    'map_service': MapService(None),
-    'phase_service': PhaseService(None)
-}
+# Services are initialized with minimal dependencies
+services = init_services()
+
+# Each service:
+- Is fully autonomous with no web_instance dependency
+- Uses current directory as mission context
+- Manages its own resources and state
+- Handles its own error recovery
+- Integrates with the phase system
 ```
 
-Chaque service :
-- Est autonome et indépendant
-- Gère ses propres ressources
-- Utilise le répertoire courant comme contexte
-- S'initialise avec une configuration minimale
+Key Services:
+1. **PhaseService**
+   - Manages project phases (EXPANSION/CONVERGENCE)
+   - Monitors token usage (128k limit)
+   - Triggers phase transitions:
+     * CONVERGENCE at >60% tokens (76.8k)
+     * Return to EXPANSION at <50% tokens (64k)
+   - Provides headroom metrics
+   - Guides agent behavior
+
+2. **DatasetService**
+   - Collects fine-tuning data
+   - Validates and deduplicates entries
+   - Manages dataset growth
+   - Provides usage metrics
+   - Handles cleanup
+
+3. **TeamService**
+   - Manages predefined teams
+   - Uses current directory
+   - Coordinates agents
+   - Handles team metrics
+
+4. **AgentService**
+   - Manages agent lifecycle
+   - Uses relative paths
+   - Integrates with phases
+   - Provides health metrics
 
 Error Handling:
 - Exception capture and logging

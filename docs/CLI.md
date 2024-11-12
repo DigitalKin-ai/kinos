@@ -7,16 +7,30 @@ KinOS offre une interface en ligne de commande minimaliste qui opère directemen
 ## Commandes de Base
 
 ```bash
-# Lancer KinOS avec l'équipe par défaut
+# Launch KinOS in current directory with default team
 kin
 
-# Lancer une équipe spécifique
+# Launch specific team in current directory
 kin coding
 kin book-writing
 kin literature-review
 
-# Mode verbeux
+# Launch with custom path
+kin coding -p /path/to/project
+
+# Verbose mode
 kin -v coding
+
+# Phase Management
+kin phase status      # View current phase
+kin phase metrics     # View detailed metrics
+kin phase set expansion    # Force expansion phase
+kin phase set convergence  # Force convergence phase
+
+# Token Management  
+kin tokens list      # List token usage by file
+kin tokens check     # Check for warnings
+kin tokens headroom  # View available headroom
 ```
 
 ## Gestion des Phases
