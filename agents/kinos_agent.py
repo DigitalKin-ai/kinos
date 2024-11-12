@@ -576,7 +576,7 @@ class KinOSAgent:
     def run(self) -> None:
         """Main agent loop"""
         self.running = True
-        self.logger(f"[{self.__class__.__name__}] Starting run loop")
+        self.logger.log(f"[{self.__class__.__name__}] Starting run loop")
         
         while self.running:
             try:
@@ -588,48 +588,48 @@ class KinOSAgent:
                 self.list_files()
                 
                 # Log detailed debug info
-                self.logger(f"[{self.__class__.__name__}] Starting execution cycle")
-                self.logger(f"[{self.__class__.__name__}] Current prompt: {self.prompt[:100]}...")
-                self.logger(f"[{self.__class__.__name__}] Watching files: {list(self.mission_files.keys())}")
+                self.logger.log(f"[{self.__class__.__name__}] Starting execution cycle")
+                self.logger.log(f"[{self.__class__.__name__}] Current prompt: {self.prompt[:100]}...")
+                self.logger.log(f"[{self.__class__.__name__}] Watching files: {list(self.mission_files.keys())}")
                 
                 # Verify we have files to watch
                 if not self.mission_files:
-                    self.logger(f"[{self.__class__.__name__}] No files to watch, waiting...")
+                    self.logger.log(f"[{self.__class__.__name__}] No files to watch, waiting...")
                     time.sleep(self.check_interval)
                     continue
 
                 # Verify we have a valid prompt
                 if not self.prompt or not self.prompt.strip():
-                    self.logger(f"[{self.__class__.__name__}] No valid prompt, waiting...")
+                    self.logger.log(f"[{self.__class__.__name__}] No valid prompt, waiting...")
                     time.sleep(self.check_interval) 
                     continue
 
                 # Execute Aider with agent's prompt
                 if hasattr(self, '_run_aider'):
-                    self.logger(f"[{self.__class__.__name__}] Calling _run_aider")
+                    self.logger.log(f"[{self.__class__.__name__}] Calling _run_aider")
                     result = self._run_aider(self.prompt)
                     if result:
                         self.last_change = datetime.now()
                         self.consecutive_no_changes = 0
-                        self.logger(f"[{self.__class__.__name__}] Changes made by Aider")
+                        self.logger.log(f"[{self.__class__.__name__}] Changes made by Aider")
                     else:
                         self.consecutive_no_changes += 1
-                        self.logger(f"[{self.__class__.__name__}] No changes made")
+                        self.logger.log(f"[{self.__class__.__name__}] No changes made")
                 else:
-                    self.logger(f"[{self.__class__.__name__}] _run_aider method not implemented")
-    
+                    self.logger.log(f"[{self.__class__.__name__}] _run_aider method not implemented")
+
                 # Update metrics
                 self.last_run = datetime.now()
                 
                 # Adaptive pause
                 interval = self.calculate_dynamic_interval()
-                self.logger(f"[{self.__class__.__name__}] Sleeping for {interval} seconds")
+                self.logger.log(f"[{self.__class__.__name__}] Sleeping for {interval} seconds")
                 time.sleep(interval)
                 
             except Exception as e:
-                self.logger(f"[{self.__class__.__name__}] Error in agent loop: {str(e)}")
+                self.logger.log(f"[{self.__class__.__name__}] Error in agent loop: {str(e)}")
                 time.sleep(5)  # Pause before retrying
                 if not self.running:
                     break
 
-        self.logger(f"[{self.__class__.__name__}] Run loop ended")
+        self.logger.log(f"[{self.__class__.__name__}] Run loop ended")
