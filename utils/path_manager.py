@@ -208,7 +208,7 @@ class PathManager:
 
     @staticmethod
     def normalize_path(path: str) -> str:
-        """Normalise un chemin de fichier"""
+        """Normalize a file path"""
         return os.path.normpath(os.path.abspath(path))
 
     @staticmethod

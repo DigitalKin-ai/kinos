@@ -275,15 +275,15 @@ class AiderAgent(KinOSAgent):
 
                 work_dir = PathManager.get_project_root()
                 
-                self._log(f"[{self.__class__.__name__}] 📂 Dossier mission: {self.mission_dir}")
-                self._log(f"[{self.__class__.__name__}] 📂 Dossier travail: {work_dir}")
+                self._log(f"[{self.__class__.__name__}] 📂 Mission directory: {self.mission_dir}")
+                self._log(f"[{self.__class__.__name__}] 📂 Working directory: {work_dir}")
                 
             except Exception as e:
                 self.logger.log(f"[{self.__class__.__name__}] ❌ Error getting paths: {str(e)}")
                 return None
 
             try:
-                os.chdir(self.mission_dir)  # Use configured mission_dir
+                os.chdir(self.mission_dir)
                 self._log(f"[{self.__class__.__name__}] 📂 Changed to directory: {self.mission_dir}")
 
                 # Build command with explicit paths and logging
