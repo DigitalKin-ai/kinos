@@ -410,40 +410,28 @@ class AiderAgent(KinOSAgent):
                             self._log(f"[{self.name}] 📝 Raw output: {line}", 'debug')
 
                             # Parse commit messages - more robust
-                            if "commit" in line.lower() and ":" in line:
+                            if "Commit" in line:
                                 try:
-                                    # Extract hash and message
-                                    parts = line.split(":", 1)
-                                    commit_part = parts[0].strip()
-                                    message_part = parts[1].strip()
+                                    # Extract commit hash and message
+                                    commit_hash = line.split()[1]
+                                    message = ' '.join(line.split()[2:])
                                     
-                                    # Extract hash
-                                    commit_hash = commit_part.split()[-1]
-                                    
-                                    # Detect commit type
+                                    # Detect commit type from message
                                     commit_type = None
-                                    commit_message = message_part
-                                    
                                     for known_type in COMMIT_ICONS.keys():
-                                        if message_part.lower().startswith(known_type + ":"):
+                                        if message.lower().startswith(f"{known_type}:"):
                                             commit_type = known_type
-                                            commit_message = message_part[len(known_type)+1:].strip()
+                                            message = message[len(known_type)+1:].strip()
                                             break
                                     
                                     # Get appropriate icon
                                     icon = COMMIT_ICONS.get(commit_type, '🔨') if commit_type else '🔨'
                                     
-                                    # Log with or without type
-                                    if commit_type:
-                                        self._log(
-                                            f"[{self.name}] {icon} Commit [{commit_type}] {commit_hash}: {commit_message}", 
-                                            'success'
-                                        )
-                                    else:
-                                        self._log(
-                                            f"[{self.name}] {icon} Commit {commit_hash}: {commit_message}", 
-                                            'success'
-                                        )
+                                    # Log with consistent format
+                                    self.logger.log(
+                                        f"[{self.name}] {icon} {commit_hash}: {message}",
+                                        'success'
+                                    )
                                         
                                 except Exception as e:
                                     # Fallback if parsing fails
@@ -685,7 +673,7 @@ class AiderAgent(KinOSAgent):
             # Récupérer tous les fichiers textuels
             text_files = {}
             for root, dirs, filenames in os.walk(self.mission_dir):
-                self._log(f"[{self.name}] 🔍 Scanning subdirectory: {root}")
+                #self._log(f"[{self.name}] 🔍 Scanning subdirectory: {root}")
                 for filename in filenames:
                     if os.path.splitext(filename)[1].lower() in text_extensions:
                         file_path = os.path.join(root, filename)
