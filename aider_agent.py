@@ -38,39 +38,42 @@ class AiderAgent(KinOSAgent):
         self._log(f"[{self.__class__.__name__}] ❌ Error in {operation}: {str(error)}")
 
     def __init__(self, config: Dict):
+        """Initialize agent with minimal configuration"""
         print("\n=== AIDER AGENT INITIALIZATION STARTING ===")
         print(f"Config received: {config}")
         
         try:
-            # Validate web_instance
-            self.web_instance = config.get("web_instance")
-            if not self.web_instance:
-                raise ValueError("web_instance must be provided in config")
+            # Initialize core attributes
+            self.name = config.get("name")
+            if not self.name:
+                raise ValueError("name must be provided in config")
                 
-            print("\n=== WEB INSTANCE SERVICES CHECK ===")
-            print(f"Web instance attributes: {dir(self.web_instance)}")
-            
-            # Check for required services
-            required_services = ['dataset_service', 'file_manager', 'mission_service']
-            for service in required_services:
-                has_service = hasattr(self.web_instance, service)
-                print(f"Service {service}:")
-                print(f"- Has attribute: {has_service}")
-                if has_service:
-                    service_obj = getattr(self.web_instance, service)
-                    print(f"- Is not None: {service_obj is not None}")
-                    if service == 'dataset_service':
-                        is_available = service_obj.is_available() if hasattr(service_obj, 'is_available') else False
-                        print(f"- Is available: {is_available}")
+            self.mission_dir = config.get("mission_dir")
+            if not self.mission_dir:
+                raise ValueError("mission_dir must be provided in config")
 
-            # Validation de la configuration
-            if "name" not in config:
-                raise ValueError("Le nom de l'agent doit être spécifié")
-                
-            # Add original_dir tracking
-            self.original_dir = None
+            # Store original directory
+            self.original_dir = os.getcwd()
             
-            # Add rate limit tracking
+            # Initialize logger
+            self.logger = Logger()
+            
+            # Initialize state tracking
+            self.running = False
+            self.last_run = None
+            self.last_change = None
+            self.consecutive_no_changes = 0
+            self.mission_files = {}
+            self._prompt_cache = {}
+            
+            # Load prompt file path
+            self.prompt_file = config.get("prompt_file")
+            self.prompt = config.get("prompt", "")
+
+            # Configure UTF-8 encoding
+            self._configure_encoding()
+            
+            self.logger.log(f"[{self.__class__.__name__}] Initialized as {self.name}")
             self._last_request_time = 0
             self._requests_this_minute = 0
             self._rate_limit_window = 60  # 1 minute
