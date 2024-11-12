@@ -1,19 +1,19 @@
-"""
-AiderAgent - Agent générique utilisant Aider pour les modifications de fichiers.
-Chaque instance représente un rôle spécifique (specifications, production, etc.)
-mais partage la même logique d'interaction avec Aider.
+    """
+    AiderAgent - Agent générique utilisant Aider pour les modifications de fichiers.
+    Chaque instance représente un rôle spécifique (specifications, production, etc.)
+    mais partage la même logique d'interaction avec Aider.
 
-GESTION DES CHEMINS:
-1. Création des fichiers:
-   - Utilise des chemins absolus pour garantir la création au bon endroit
-   - Structure: missions/<nom_mission>/<fichier>.md
-   - Exemple: missions/Mission_1/specifications.md
+    GESTION DES CHEMINS:
+    1. Création des fichiers:
+       - Utilise des chemins absolus pour garantir la création au bon endroit
+       - Structure: missions/<nom_mission>/<fichier>.md
+       - Exemple: missions/Mission_1/specifications.md
 
-2. Appel à Aider:
-   - Change le dossier courant vers le dossier mission
-   - Utilise des chemins relatifs pour tous les fichiers
-   - Revient au dossier original après exécution
-"""
+    2. Appel à Aider:
+       - Change le dossier courant vers le dossier mission
+       - Utilise des chemins relatifs pour tous les fichiers
+       - Revient au dossier original après exécution
+    """
 import traceback
 from utils.exceptions import ServiceError
 from agents.kinos_agent import KinOSAgent
@@ -958,7 +958,15 @@ class AiderAgent(KinOSAgent):
             return False
 
     def _build_prompt(self, context: dict = None) -> str:
-        """Build the complete prompt with context."""
+        """
+        Build the complete prompt with context.
+        
+        Args:
+            context (dict, optional): Additional context to include in prompt
+            
+        Returns:
+            str: Complete formatted prompt
+        """
         try:
             # Get base prompt content
             prompt_content = self.get_prompt()
