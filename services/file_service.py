@@ -36,33 +36,16 @@ class FileService(BaseService):
 
     @safe_operation()
     def read_file(self, file_name: str) -> Optional[str]:
-        """Read content from a file with caching and locking"""
+        """Read file with simplified path handling"""
         try:
-            # Normalize file name
-            if not file_name.endswith('.md'):
-                file_name = f"{file_name}.md"
-
-            # Construct absolute file path from current directory
             file_path = os.path.join(os.getcwd(), file_name)
-
-            # Don't create file if it doesn't exist
             if not os.path.exists(file_path):
                 return None
-
-            # Use centralized cache service
-            cache_key = f"file:{file_path}"
-            cached_content = self.content_cache.get(cache_key)
-            if cached_content is not None:
-                return cached_content[1]  # Return cached content
-
-            # Read with safe operation
-            content = self._safe_file_operation('read', file_path)
-            if content is not None:
-                self.content_cache[cache_key] = (os.path.getmtime(file_path), content)
-            return content
                 
+            with open(file_path, 'r', encoding='utf-8') as f:
+                return f.read()
         except Exception as e:
-            self._handle_error('read_file', e)
+            self.logger.log(f"Error reading {file_name}: {str(e)}", 'error')
             return None
 
     def write_file(self, file_name: str, content: str) -> bool:
