@@ -104,19 +104,26 @@ def main():
             )
 
         elif args.command == 'phase':
+            phase_service = PhaseService(None)  # Create standalone service
+                
             if args.subcommand == 'status':
-                phase_service = PhaseService(None)  # Create standalone service
                 status = phase_service.get_status_info()
                 print(f"\nCurrent Phase: {status['phase']}")
                 print(f"Token Usage: {status['total_tokens']/1000:.1f}k/{phase_service.MODEL_TOKEN_LIMIT/1000:.0f}k ({status['usage_percent']:.1f}%)")
                 print(f"Status: {status['status_icon']} {status['status_message']}")
                 print(f"Headroom: {status['headroom']/1000:.1f}k tokens")
                 print(f"Last Transition: {status['last_transition']}")
-            
+                    
+                if args.verbose:
+                    print("\nDetailed Token Usage:")
+                    print(f"Convergence Threshold: {phase_service.CONVERGENCE_TOKENS/1000:.1f}k tokens ({phase_service.CONVERGENCE_THRESHOLD*100:.0f}%)")
+                    print(f"Expansion Threshold: {phase_service.EXPANSION_TOKENS/1000:.1f}k tokens ({phase_service.EXPANSION_THRESHOLD*100:.0f}%)")
+                
             elif args.subcommand == 'force':
-                phase_service = PhaseService(None)  # Create standalone service
                 if phase_service.force_phase(args.phase):
+                    reason = args.reason or "Manual override"
                     print(f"Phase manually set to: {args.phase.upper()}")
+                    print(f"Reason: {reason}")
                 else:
                     print(f"Error: Invalid phase '{args.phase}'")
 
