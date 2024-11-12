@@ -609,6 +609,13 @@ class AiderAgent(KinOSAgent):
 
                 # Return output if process succeeded
                 if return_code == 0:
+                    try:
+                        # Update map after modifications
+                        from services import init_services
+                        services = init_services(None)
+                        services['map_service'].update_map()
+                    except Exception as e:
+                        self._log(f"[{self.__class__.__name__}] Error updating map: {str(e)}")
                     return full_output
                 else:
                     self._log(f"[{self.__class__.__name__}] Process failed with code {return_code}")

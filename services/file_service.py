@@ -49,13 +49,19 @@ class FileService(BaseService):
             return None
 
     def write_file(self, file_name: str, content: str) -> bool:
-        """Write file with simplified path handling"""
+        """Write file with map update"""
         try:
             file_path = os.path.join(os.getcwd(), file_name)
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
             
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(content)
+                
+            # Update map after any file change except map.md itself
+            if file_name != 'map.md':
+                from services import init_services
+                services = init_services(None)
+                services['map_service'].update_map()
                 
             return True
         except Exception as e:

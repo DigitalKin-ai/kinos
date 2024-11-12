@@ -21,6 +21,11 @@ class MapService(BaseService):
         }
         # Initialize Anthropic client for tokenization
         self.anthropic = Anthropic()
+        
+        # Get phase service
+        from services import init_services
+        services = init_services(None)
+        self.phase_service = services['phase_service']
 
     def generate_map(self) -> bool:
         """Generate project map file"""
