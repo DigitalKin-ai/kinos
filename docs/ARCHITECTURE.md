@@ -2,31 +2,25 @@
 
 ## Overview
 
-The KinOS system uses a modular architecture built around autonomous agents that collaborate through a shared file system. The core components are:
+KinOS est un système d'agents autonomes conçu pour simplifier et accélérer le développement de projets complexes via une interface en ligne de commande (CLI). L'architecture est centrée sur:
 
-- Web Application (Flask)
-- Autonomous Agents
-- Service Layer
-- File System
-- Real-time Notifications
+- Agents autonomes avec gestion dynamique des ressources
+- Communication via système de fichiers
+- Interface CLI simple et efficace
+- Gestion intelligente des chemins
 
 ## Component Architecture
 
 ### Core
-- `kinos_web.py` - Main web application class
-  - Advanced Flask initialization with configuration
-    * Configurable CORS
-    * Intelligent rate limiting
-    * Response compression
-    * Secure sessions
-    * Prometheus metrics
-    * Validation metrics collection
-  - API route configuration with versioning
-  - Service management with dependency injection
-  - Error handling with retry policies
-  - Real-time monitoring with websockets
-  - Distributed cache with Redis
-  - Configurable JWT authentication
+- `kinos_cli.py` - Point d'entrée principal CLI
+  - Gestion des commandes et options
+  - Initialisation des services
+  - Gestion des erreurs avec retry
+  - Monitoring des agents
+  - Configuration dynamique
+  - Validation des chemins
+  - Logging détaillé
+  - Gestion des ressources
 
 ### Single Server Architecture
 
