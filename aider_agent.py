@@ -87,13 +87,6 @@ class AiderAgent(KinOSAgent):
             print(f"Error during initialization: {str(e)}")
             raise
         
-        if missing_services:
-            self.logger.log(
-                f"Missing required services: {missing_services}. "
-                "Agent functionality may be limited.", 
-                'warning'
-            )
-        
         # Initialize base attributes
         self.name = config["name"]
         self.prompt = config.get("prompt", "")  # Default empty prompt if not specified
