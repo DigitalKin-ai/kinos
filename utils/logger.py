@@ -5,7 +5,7 @@ from typing import Optional
 from utils.path_manager import PathManager
 
 class Logger:
-    """Simplified logging with colors"""
+    """Simplified logging with colors and thread-safe output"""
     
     COLORS = {
         'info': '\033[94m',    # Blue
@@ -16,24 +16,40 @@ class Logger:
     }
 
     def __init__(self):
-        """Initialize logger"""
+        """Initialize logger with thread lock"""
         self.is_tty = sys.stdout.isatty()
+        self._log_lock = threading.Lock()
+        self._shutting_down = False
+        # Register cleanup at exit
+        import atexit
+        atexit.register(self._cleanup)
+
+    def _cleanup(self):
+        """Mark logger as shutting down"""
+        self._shutting_down = True
+        self.flush()
 
     def log(self, message: str, level: str = 'info'):
-        """Log message with optional color"""
-        try:
-            timestamp = datetime.now().strftime("%H:%M:%S")
-            formatted = f"[{timestamp}] [{level.upper()}] {message}"
+        """Thread-safe logging with shutdown handling"""
+        if self._shutting_down:
+            return  # Skip logging during shutdown
             
-            if self.is_tty:  # Use is_tty instance variable
-                color = self.COLORS.get(level, self.COLORS['info'])
-                print(f"{color}{formatted}{self.COLORS['reset']}")
-            else:
-                print(formatted)
+        try:
+            with self._log_lock:
+                timestamp = datetime.now().strftime("%H:%M:%S")
+                formatted = f"[{timestamp}] [{level.upper()}] {message}"
                 
-        except Exception as e:
-            print(f"Logging error: {e}")
-            print(f"Original message: {message}")
+                if self.is_tty:
+                    color = self.COLORS.get(level, self.COLORS['info'])
+                    print(f"{color}{formatted}{self.COLORS['reset']}", flush=True)
+                else:
+                    print(formatted, flush=True)
+                
+        except Exception:
+            # During shutdown, some exceptions are expected
+            if not self._shutting_down:
+                # Only print error if not shutting down
+                print(f"Logging error for message: {message}")
 
 def configure_cli_logger(force_color=None):
     """
@@ -56,6 +72,9 @@ def configure_cli_logger(force_color=None):
     
     # Create logger instance
     logger = Logger()
+    
+    # Import threading here to avoid circular imports
+    import threading
     
     return logger
     
@@ -202,9 +221,12 @@ def configure_cli_logger(force_color=None):
         self.log(message, level, **kwargs)
         
     def flush(self):
-        """Flush any buffered output"""
+        """Safe flush of output streams"""
         try:
-            sys.stdout.flush()
-            sys.stderr.flush()
+            with self._log_lock:
+                if hasattr(sys.stdout, 'flush'):
+                    sys.stdout.flush()
+                if hasattr(sys.stderr, 'flush'):
+                    sys.stderr.flush()
         except:
-            pass
+            pass  # Ignore flush errors during shutdown
