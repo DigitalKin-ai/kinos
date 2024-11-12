@@ -651,8 +651,9 @@ class AiderAgent(KinOSAgent):
             # Normalize agent name
             agent_name = self.name.lower().replace('agent', '').strip()
             
-            # Use PathManager to get prompts directory
-            prompts_dir = PathManager.get_prompts_path()
+            # Get absolute path to project root (where prompts directory is)
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            prompts_dir = os.path.join(project_root, "prompts")
             prompt_path = os.path.join(prompts_dir, f"{agent_name}.md")
             
             # Log search path for debugging
