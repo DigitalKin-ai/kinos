@@ -239,72 +239,57 @@ class AiderAgent(KinOSAgent):
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Execute Aider with given prompt and stream output."""
         try:
-            # Check rate limit before proceeding
-            if not self._check_rate_limit():
+            # Validate input
+            if not prompt or not prompt.strip():
+                self._log(f"[{self.__class__.__name__}] ❌ Empty prompt")
+                return None
+
+            # Log start of execution
+            self._log(f"[{self.__class__.__name__}] 🚀 Starting Aider execution")
+            self._log(f"[{self.__class__.__name__}] 📂 Mission directory: {self.mission_dir}")
+            
+            # Validate mission directory
+            if not os.path.exists(self.mission_dir):
+                self._log(f"[{self.__class__.__name__}] ❌ Mission directory not found")
                 return None
                 
-            # Store original directory before changing
-            self.original_dir = os.getcwd()
-            
-            # Log début d'exécution
-            self._log(f"[{self.__class__.__name__}] 🚀 Démarrage Aider avec prompt: {prompt[:100]}...")
-            
-            # Use configured mission_dir directly
-            try:
-                # Validate mission directory
-                if not self.mission_dir:
-                    self._log(f"[{self.__class__.__name__}] ❌ No mission directory configured")
-                    return None
-
-                if not os.path.exists(self.mission_dir):
-                    self._log(f"[{self.__class__.__name__}] ❌ Mission directory not found: {self.mission_dir}")
-                    return None
-
-                work_dir = PathManager.get_project_root()
-                
-                self._log(f"[{self.__class__.__name__}] 📂 Mission directory: {self.mission_dir}")
-                self._log(f"[{self.__class__.__name__}] 📂 Working directory: {work_dir}")
+            # Store original directory
+            original_dir = os.getcwd()
                 
             except Exception as e:
                 self.logger.log(f"[{self.__class__.__name__}] ❌ Error getting paths: {str(e)}")
                 return None
 
             try:
+                # Change to mission directory
                 os.chdir(self.mission_dir)
-                self._log(f"[{self.__class__.__name__}] 📂 Changed to directory: {self.mission_dir}")
+                self._log(f"[{self.__class__.__name__}] ✓ Changed to mission directory")
 
-                # Build command with explicit paths and logging
+                # Build command
                 cmd = [
                     "aider",
-                    "--model", "claude-3-5-haiku-20241022", # DON'T CHANGE ME gpt-4o-mini
+                    "--model", "claude-3-5-haiku-20241022",
                     "--yes-always",
                     "--cache-prompts",
                     "--no-pretty",
                     "--architect"
                 ]
-                
-                self._log(f"[{self.__class__.__name__}] 🛠️ Commande Aider: {' '.join(cmd)}")
-                
-                # Add files with detailed logging
+
+                # Add files
                 files_added = []
                 for file_path in self.mission_files:
                     try:
-                        # Get relative path directly from mission_dir
                         rel_path = os.path.relpath(file_path, self.mission_dir)
-                        
-                        # Normalize path for consistency
-                        normalized_path = os.path.normpath(rel_path)
-                        
-                        if os.path.exists(os.path.join(self.mission_dir, normalized_path)):
-                            cmd.extend(["--file", normalized_path])
-                            files_added.append(normalized_path)
-                            self._log(f"[{self.__class__.__name__}] ➕ Added file: {normalized_path}")
+                        if os.path.exists(os.path.join(self.mission_dir, rel_path)):
+                            cmd.extend(["--file", rel_path])
+                            files_added.append(rel_path)
+                            self._log(f"[{self.__class__.__name__}] ➕ Added file: {rel_path}")
                     except Exception as e:
-                        self._log(f"[{self.__class__.__name__}] ❌ Error adding file {file_path}: {str(e)}")
-                        continue
+                        self._log(f"[{self.__class__.__name__}] ⚠️ Error adding file {file_path}: {str(e)}")
 
-                # Log les fichiers ajoutés
-                self._log(f"[{self.__class__.__name__}] 📄 Fichiers ajoutés: {files_added}")
+                if not files_added:
+                    self._log(f"[{self.__class__.__name__}] ⚠️ No files added to command")
+                    return None
                 
                 # Add the message/prompt
                 cmd.extend(["--message", prompt])
