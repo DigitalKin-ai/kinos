@@ -410,14 +410,14 @@ class AiderAgent(KinOSAgent):
                                         icon = COMMIT_ICONS.get(commit_category, '🔨')
                                         
                                         self._log(
-                                            f"[{self.__class__.__name__}] {icon} Commit [{commit_category}] {commit_hash}: {commit_message}", 
+                                            f"[{self.name}] {icon} Commit [{commit_category}] {commit_hash}: {commit_message}", 
                                             'success'
                                         )
                                     else:
                                         # No category, just message
                                         commit_message = line[7+len(commit_hash):].strip()
                                         self._log(
-                                            f"[{self.__class__.__name__}] 🔨 Commit {commit_hash}: {commit_message}", 
+                                            f"[{self.name}] 🔨 Commit {commit_hash}: {commit_message}", 
                                             'success'
                                         )
                                         
