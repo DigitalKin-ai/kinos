@@ -427,28 +427,32 @@ class KinOSAgent:
             return False
 
     def should_run(self) -> bool:
-        """
-        Détermine si l'agent doit s'exécuter.
-        
-        Returns:
-            bool: True si l'agent doit s'exécuter
+        """Determine if agent should execute"""
+        try:
+            now = datetime.now()
             
-        Facteurs considérés:
-        - Temps depuis dernière exécution
-        - Niveau d'activité récent
-        - Ajustements dynamiques du timing
-        """
-        now = datetime.now()
-        
-        # First run
-        if self.last_run is None:
-            return True
+            # First run
+            if self.last_run is None:
+                self._log(f"[{self.__class__.__name__}] 🔄 First run")
+                return True
+                
+            # Calculate dynamic delay
+            delay = self.calculate_dynamic_interval()
             
-        # Calculate dynamic delay
-        delay = self.calculate_dynamic_interval()
-        
-        # Check if enough time has elapsed
-        return (now - self.last_run) >= timedelta(seconds=delay)
+            # Check if enough time has elapsed
+            time_since_last = (now - self.last_run).total_seconds()
+            should_execute = time_since_last >= delay
+            
+            if should_execute:
+                self._log(f"[{self.__class__.__name__}] ✓ Should run (time since last: {time_since_last:.1f}s)")
+            else:
+                self._log(f"[{self.__class__.__name__}] ⏳ Waiting ({time_since_last:.1f}s/{delay}s)", 'debug')
+                
+            return should_execute
+            
+        except Exception as e:
+            self._log(f"[{self.__class__.__name__}] ❌ Error in should_run: {str(e)}")
+            return False
 
 
     def calculate_dynamic_interval(self) -> float:
