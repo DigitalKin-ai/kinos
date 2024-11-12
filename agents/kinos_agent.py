@@ -252,7 +252,7 @@ class KinOSAgent:
         )
         
         # Initialize logger with consistent interface
-        if callable(logger_config):
+        if callable(log_func):
             # Create wrapper that handles both Logger instances and simple callables
             def create_log_wrapper(func):
                 def wrapper(*args, **kwargs):
@@ -266,18 +266,18 @@ class KinOSAgent:
                     # Convert message to string
                     msg = str(message)
 
-                    # If logger_config has log method
-                    if hasattr(logger_config, 'log'):
+                    # If log_func has log method
+                    if hasattr(log_func, 'log'):
                         # Remove level from kwargs if present to avoid duplication
                         kwargs.pop('level', None)
-                        return logger_config.log(msg, level)
+                        return log_func.log(msg, level)
                     
-                    # If logger_config is a simple callable (like print)
+                    # If log_func is a simple callable (like print)
                     return func(msg)
 
                 return wrapper
                 
-            base_logger = create_log_wrapper(logger_config)
+            base_logger = create_log_wrapper(log_func)
             
             # Create logger object with consistent interface
             class KinOSLogger:
@@ -293,7 +293,7 @@ class KinOSAgent:
                     return "KinOSLogger"
                     
             return KinOSLogger()
-        return logger_config
+        return log_func
             
         self.last_run = None
         self.last_change = None
