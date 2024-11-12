@@ -1,3 +1,76 @@
+import argparse
+import os
+import sys
+import time
+import logging
+from services.team_service import TeamService
+from services.mission_service import MissionService
+from services.agent_service import AgentService
+from utils.logger import configure_cli_logger
+from utils.path_manager import PathManager
+from config.global_config import GlobalConfig
+
+class KinosCLI:
+    def __init__(self, force_color=None):
+        # Use the new configure_cli_logger method
+        self.logger = configure_cli_logger(force_color)
+        
+        # Initialize services
+        self.mission_service = MissionService()
+        self.team_service = TeamService(self)
+        self.agent_service = AgentService(self)
+
+    def launch_team(self, team_name, base_path=None, verbose=False, dry_run=False):
+        # Placeholder implementation
+        try:
+            # Use current directory if no base path specified
+            mission_dir = base_path or os.getcwd()
+            
+            # Validate team exists
+            available_teams = self.team_service._load_predefined_teams()
+            team_ids = [team['id'] for team in available_teams]
+            
+            if team_name not in team_ids:
+                self.logger.log(f"Équipe '{team_name}' non trouvée.", 'error')
+                self.logger.log(f"Équipes disponibles : {', '.join(team_ids)}", 'info')
+                return
+
+            if dry_run:
+                self.logger.log(f"Mode simulation : Lancement de l'équipe {team_name}", 'info')
+                return
+
+            # Launch team in specified/current directory
+            result = self.team_service.start_team(
+                mission_id=None,
+                team_id=team_name, 
+                base_path=mission_dir
+            )
+            
+            self.logger.log(f"✓ Équipe {team_name} démarrée. Démarrage des agents...", 'success')
+            self.logger.log(f"Dossier de travail : {mission_dir}", 'info')
+            
+            if verbose:
+                self.logger.log("Appuyez sur CTRL+C pour arrêter les agents", 'info')
+                
+                # Display agent statuses
+                status = self.agent_service.get_agent_status()
+                for agent_name, agent_status in status.items():
+                    running = agent_status.get('running', False)
+                    health = agent_status.get('health', {})
+                    last_run = agent_status.get('last_run', 'Jamais')
+                    
+                    status_str = "🟢 Actif" if running else "🔴 Inactif"
+                    health_str = "✅ OK" if health.get('is_healthy', True) else "❌ Dégradé"
+                    
+                    self.logger.log(
+                        f"Agent {agent_name}: {status_str} | Santé: {health_str} | "
+                        f"Dernière exécution: {last_run}",
+                        'info' if running else 'warning'
+                    )
+                
+        except Exception as e:
+            self.logger.log(f"Erreur lors du lancement de l'équipe : {e}", 'error')
+
 def main():
     parser = argparse.ArgumentParser(description="KinOS CLI - Simplified Team Launch")
     
