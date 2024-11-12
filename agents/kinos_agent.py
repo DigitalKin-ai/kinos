@@ -72,50 +72,8 @@ class KinOSAgent:
             # Basic error logging even if logger isn't initialized
             print(f"Error initializing agent: {str(e)}")
             raise
-        if callable(logger_config):
-            # Create wrapper that handles both Logger instances and simple callables
-            def create_log_wrapper(func):
-                def wrapper(*args, **kwargs):
-                    # Extract message and level
-                    if len(args) >= 2:
-                        message, level = args[0], args[1]
-                    else:
-                        message = args[0] if args else kwargs.get('message', '')
-                        level = kwargs.get('level', 'info')
-
-                    # Convert message to string
-                    msg = str(message)
-
-                    # If logger_config is a logging.Logger instance
-                    if hasattr(logger_config, 'log'):
-                        # Remove level from kwargs if present to avoid duplication
-                        kwargs.pop('level', None)
-                        return logger_config.log(msg, level)
-                    
-                    # If logger_config is a simple callable (like print)
-                    return func(msg)
-
-                return wrapper
-                
-            base_logger = create_log_wrapper(logger_config)
-            
-            # Create logger object with consistent interface but prevent __str__ output
-            class KinOSLogger:
-                def log(self, *args, **kwargs):
-                    return base_logger(*args, **kwargs)
-                def _log(self, *args, **kwargs):
-                    return base_logger(*args, **kwargs)
-                def __call__(self, *args, **kwargs):
-                    return base_logger(*args, **kwargs)
-                def __str__(self):
-                    return "KinOSLogger"
-                def __repr__(self):
-                    return "KinOSLogger"
-                    
-            self.logger = KinOSLogger()
-        else:
-            # Use logger object directly
-            self.logger = logger_config
+        # Initialize logger (needed for all other operations)
+        self.logger = self._init_logger(config.get("logger", print))
 
         # Now we can safely log since name is set
         self.logger.log(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
@@ -164,7 +122,46 @@ class KinOSAgent:
     def _init_logger(self, logger_config) -> Any:
         """Initialize logger with consistent interface"""
         if callable(logger_config):
-            return self._create_logger_wrapper(logger_config)
+            # Create wrapper that handles both Logger instances and simple callables
+            def create_log_wrapper(func):
+                def wrapper(*args, **kwargs):
+                    # Extract message and level
+                    if len(args) >= 2:
+                        message, level = args[0], args[1]
+                    else:
+                        message = args[0] if args else kwargs.get('message', '')
+                        level = kwargs.get('level', 'info')
+
+                    # Convert message to string
+                    msg = str(message)
+
+                    # If logger_config has log method
+                    if hasattr(logger_config, 'log'):
+                        # Remove level from kwargs if present to avoid duplication
+                        kwargs.pop('level', None)
+                        return logger_config.log(msg, level)
+                    
+                    # If logger_config is a simple callable (like print)
+                    return func(msg)
+
+                return wrapper
+                
+            base_logger = create_log_wrapper(logger_config)
+            
+            # Create logger object with consistent interface
+            class KinOSLogger:
+                def log(self, *args, **kwargs):
+                    return base_logger(*args, **kwargs)
+                def _log(self, *args, **kwargs):
+                    return base_logger(*args, **kwargs)
+                def __call__(self, *args, **kwargs):
+                    return base_logger(*args, **kwargs)
+                def __str__(self):
+                    return "KinOSLogger"
+                def __repr__(self):
+                    return "KinOSLogger"
+                    
+            return KinOSLogger()
         return logger_config
 
     def _init_state(self):
