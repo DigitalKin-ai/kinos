@@ -33,7 +33,7 @@ class AiderAgent(KinOSAgent):
     
     def _handle_agent_error(self, operation: str, error: Exception) -> None:
         """Centralized error handling for agent operations."""
-        self._log(f"[{self.__class__.__name__}] ❌ Error in {operation}: {str(error)}")
+        self._log(f"[{self.name}] ❌ Error in {operation}: {str(error)}")
 
     def __init__(self, config: Dict):
         """Initialize agent with minimal configuration"""
@@ -75,7 +75,7 @@ class AiderAgent(KinOSAgent):
             self._configure_encoding()
             
             with self._log_lock:
-                self.logger.log(f"[{self.__class__.__name__}] Initialized as {self.name}")
+                self.logger.log(f"[{self.name}] Initialized as {self.name}")
             
             self._last_request_time = 0
             self._requests_this_minute = 0
@@ -107,7 +107,7 @@ class AiderAgent(KinOSAgent):
         self.check_interval = config.get('check_interval', 60)  # 60 secondes par défaut
 
         # Logging d'initialisation
-        self.logger.log(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
+        self.logger.log(f"[{self.name}] Initialisé comme {self.name}")
 
     def _log(self, message: str, level: str = 'info') -> None:
         """Méthode de logging centralisée"""
@@ -131,49 +131,49 @@ class AiderAgent(KinOSAgent):
         self.last_change = None
         self.consecutive_no_changes = 0
 
-        self.logger(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
+        self.logger(f"[{self.name}] Initialisé comme {self.name}")
 
     def _validate_mission_directory(self) -> bool:
         """Vérifie que le dossier de mission est valide et accessible"""
         try:
             if not os.path.exists(self.mission_dir):
-                self._log(f"[{self.__class__.__name__}] ❌ Dossier mission non trouvé: {self.mission_dir}")
+                self._log(f"[{self.name}] ❌ Dossier mission non trouvé: {self.mission_dir}")
                 return False
                 
             if not os.access(self.mission_dir, os.R_OK | os.W_OK):
-                self._log(f"[{self.__class__.__name__}] ❌ Permissions insuffisantes sur: {self.mission_dir}")
+                self._log(f"[{self.name}] ❌ Permissions insuffisantes sur: {self.mission_dir}")
                 return False
                 
-            self._log(f"[{self.__class__.__name__}] ✓ Dossier mission valide: {self.mission_dir}")
+            self._log(f"[{self.name}] ✓ Dossier mission valide: {self.mission_dir}")
             return True
             
         except Exception as e:
-            self._log(f"[{self.__class__.__name__}] ❌ Erreur validation dossier: {str(e)}")
+            self._log(f"[{self.name}] ❌ Erreur validation dossier: {str(e)}")
             return False
 
     def run_aider(self, prompt: str) -> Optional[str]:
         """Version diagnostique de run_aider"""
         try:
-            self.logger.log(f"[{self.__class__.__name__}] 🔍 Début de run_aider()", 'debug')
+            self.logger.log(f"[{self.name}] 🔍 Début de run_aider()", 'debug')
         
             # Validation des préconditions
             if not self._validate_run_conditions(prompt):
-                self._log(f"[{self.__class__.__name__}] ❌ Conditions d'exécution non remplies", 'error')
+                self._log(f"[{self.name}] ❌ Conditions d'exécution non remplies", 'error')
                 return None
         
             # Appel du parent avec logging
             result = self._run_aider(prompt)
         
             if result is None:
-                self._log(f"[{self.__class__.__name__}] ⚠️ Aucun résultat de run_aider", 'warning')
+                self._log(f"[{self.name}] ⚠️ Aucun résultat de run_aider", 'warning')
             else:
-                self._log(f"[{self.__class__.__name__}] ✅ run_aider exécuté avec succès", 'success')
+                self._log(f"[{self.name}] ✅ run_aider exécuté avec succès", 'success')
         
             return result
     
         except Exception as e:
             self.logger.log(
-                f"[{self.__class__.__name__}] 🔥 Erreur dans run_aider:\n"
+                f"[{self.name}] 🔥 Erreur dans run_aider:\n"
                 f"{traceback.format_exc()}", 
                 'critical'
             )
@@ -192,7 +192,7 @@ class AiderAgent(KinOSAgent):
         """
         if attempt >= max_attempts:
             self._log(
-                f"[{self.__class__.__name__}] ❌ Max retry attempts ({max_attempts}) exceeded for rate limit",
+                f"[{self.name}] ❌ Max retry attempts ({max_attempts}) exceeded for rate limit",
                 'error'
             )
             return False
@@ -201,7 +201,7 @@ class AiderAgent(KinOSAgent):
         wait_time = 5 * (3 ** (attempt - 1))
         
         self._log(
-            f"[{self.__class__.__name__}] ⏳ Rate limit hit (attempt {attempt}/{max_attempts}). "
+            f"[{self.name}] ⏳ Rate limit hit (attempt {attempt}/{max_attempts}). "
             f"Waiting {wait_time} seconds before retry...",
             'warning'
         )
@@ -225,7 +225,7 @@ class AiderAgent(KinOSAgent):
             wait_time = self._rate_limit_window - (current_time - self._last_request_time)
             if wait_time > 0:
                 self._log(
-                    f"[{self.__class__.__name__}] ⏳ Approaching rate limit. "
+                    f"[{self.name}] ⏳ Approaching rate limit. "
                     f"Waiting {wait_time:.1f}s before next request.",
                     'warning'
                 )
@@ -241,16 +241,16 @@ class AiderAgent(KinOSAgent):
         try:
             # Validate input
             if not prompt or not prompt.strip():
-                self._log(f"[{self.__class__.__name__}] ❌ Empty prompt")
+                self._log(f"[{self.name}] ❌ Empty prompt")
                 return None
 
             # Log start of execution
-            self._log(f"[{self.__class__.__name__}] 🚀 Starting Aider execution")
-            self._log(f"[{self.__class__.__name__}] 📂 Mission directory: {self.mission_dir}")
+            self._log(f"[{self.name}] 🚀 Starting Aider execution")
+            self._log(f"[{self.name}] 📂 Mission directory: {self.mission_dir}")
             
             # Validate mission directory
             if not os.path.exists(self.mission_dir):
-                self._log(f"[{self.__class__.__name__}] ❌ Mission directory not found")
+                self._log(f"[{self.name}] ❌ Mission directory not found")
                 return None
                 
             # Store original directory
@@ -259,7 +259,7 @@ class AiderAgent(KinOSAgent):
             try:
                 # Change to mission directory
                 os.chdir(self.mission_dir)
-                self._log(f"[{self.__class__.__name__}] ✓ Changed to mission directory")
+                self._log(f"[{self.name}] ✓ Changed to mission directory")
 
                 # Build command
                 cmd = [
@@ -283,7 +283,7 @@ class AiderAgent(KinOSAgent):
                         from pathspec.patterns import GitWildMatchPattern
                         spec = PathSpec.from_lines(GitWildMatchPattern, gitignore_patterns)
                     except Exception as e:
-                        self.logger.log(f"[{self.__class__.__name__}] Warning reading .gitignore: {str(e)}", 'warning')
+                        self.logger.log(f"[{self.name}] Warning reading .gitignore: {str(e)}", 'warning')
                         spec = None
                 else:
                     spec = None
@@ -297,7 +297,7 @@ class AiderAgent(KinOSAgent):
                         # Skip if file matches gitignore patterns
                         if spec and spec.match_file(rel_path):
                             self.logger.log(
-                                f"[{self.__class__.__name__}] Skipping ignored file: {rel_path}", 
+                                f"[{self.name}] Skipping ignored file: {rel_path}", 
                                 'debug'
                             )
                             continue
@@ -306,12 +306,12 @@ class AiderAgent(KinOSAgent):
                         if os.path.exists(os.path.join(self.mission_dir, rel_path)):
                             cmd.extend(["--file", rel_path])
                             files_added.append(rel_path)
-                            self.logger.log(f"[{self.__class__.__name__}] ➕ Added file: {rel_path}")
+                            self.logger.log(f"[{self.name}] ➕ Added file: {rel_path}")
                     except Exception as e:
-                        self.logger.log(f"[{self.__class__.__name__}] ⚠️ Error adding file {file_path}: {str(e)}")
+                        self.logger.log(f"[{self.name}] ⚠️ Error adding file {file_path}: {str(e)}")
 
                 if not files_added:
-                    self._log(f"[{self.__class__.__name__}] ⚠️ No files added to command")
+                    self._log(f"[{self.name}] ⚠️ No files added to command")
                     return None
                 
                 # Add the message/prompt
@@ -321,28 +321,28 @@ class AiderAgent(KinOSAgent):
                 env = os.environ.copy()
                 env['PYTHONIOENCODING'] = 'utf-8'
                 
-                self._log(f"[{self.__class__.__name__}] 🚀 Lancement Aider...")
+                self._log(f"[{self.name}] 🚀 Lancement Aider...")
             
                 # Validate command before execution
                 try:
                     import shutil
                     aider_path = shutil.which('aider')
                     if not aider_path:
-                        self._log(f"[{self.__class__.__name__}] ❌ Aider command not found in PATH", 'error')
+                        self._log(f"[{self.name}] ❌ Aider command not found in PATH", 'error')
                         return None
                         
-                    self._log(f"[{self.__class__.__name__}] ✓ Found Aider at: {aider_path}", 'debug')
+                    self._log(f"[{self.name}] ✓ Found Aider at: {aider_path}", 'debug')
                     
                     # Test if we can access the mission directory
                     if not os.access(self.mission_dir, os.R_OK | os.W_OK):
                         self._log(
-                            f"[{self.__class__.__name__}] ❌ Cannot access mission directory: {self.mission_dir}", 
+                            f"[{self.name}] ❌ Cannot access mission directory: {self.mission_dir}", 
                             'error'
                         )
                         return None
                         
                 except Exception as e:
-                    self._log(f"[{self.__class__.__name__}] ❌ Command validation failed: {str(e)}", 'error')
+                    self._log(f"[{self.name}] ❌ Command validation failed: {str(e)}", 'error')
                     return None
 
                 # Set timeout duration (5 minutes)
@@ -376,7 +376,7 @@ class AiderAgent(KinOSAgent):
                             # Handle Windows console warning
                             if "No Windows console found" in line:
                                 self._log(
-                                    f"[{self.__class__.__name__}] ⚠️ Windows console initialization warning:\n"
+                                    f"[{self.name}] ⚠️ Windows console initialization warning:\n"
                                     f"This is a known issue and doesn't affect functionality.\n"
                                     f"Original message: {line}",
                                     'warning'
@@ -426,7 +426,7 @@ class AiderAgent(KinOSAgent):
                                         
                                 except Exception as e:
                                     # Fallback if parsing fails
-                                    self._log(f"[{self.__class__.__name__}] 🔨 {line}", 'success')
+                                    self._log(f"[{self.name}] 🔨 {line}", 'success')
                             else:
                                 # Handle non-commit lines
                                 lower_line = line.lower()
@@ -435,15 +435,15 @@ class AiderAgent(KinOSAgent):
                                 ])
                                 
                                 if is_error:
-                                    self._log(f"[{self.__class__.__name__}] ❌ {line}", 'error')
+                                    self._log(f"[{self.name}] ❌ {line}", 'error')
                                     error_detected = True
                                 else:
-                                    self._log(f"[{self.__class__.__name__}] 📝 {line}", 'info')
+                                    self._log(f"[{self.name}] 📝 {line}", 'info')
                             
                             output_lines.append(line)
                             
                     except Exception as e:
-                        self._log(f"[{self.__class__.__name__}] Error reading output: {str(e)}")
+                        self._log(f"[{self.name}] Error reading output: {str(e)}")
                         continue
 
                 # Get return code and check timeout
@@ -452,7 +452,7 @@ class AiderAgent(KinOSAgent):
                 except subprocess.TimeoutExpired:
                     process.kill()
                     self._log(
-                        f"[{self.__class__.__name__}] ⚠️ Process timed out after {TIMEOUT_SECONDS} seconds", 
+                        f"[{self.name}] ⚠️ Process timed out after {TIMEOUT_SECONDS} seconds", 
                         'warning'
                     )
                     return None
@@ -472,14 +472,14 @@ class AiderAgent(KinOSAgent):
                                 output_lines.append(f"ERROR: {line}")
                 except subprocess.TimeoutExpired:
                     process.kill()
-                    self._log(f"[{self.__class__.__name__}] Process killed due to timeout")
+                    self._log(f"[{self.name}] Process killed due to timeout")
 
                 # Combine all output
                 full_output = "\n".join(output_lines)
 
                 # Log processing results
                 self._log(
-                    f"[{self.__class__.__name__}] 🔄 Processing complete:\n"
+                    f"[{self.name}] 🔄 Processing complete:\n"
                     f"Return code: {return_code}\n"
                     f"Output length: {len(full_output) if full_output else 0} chars\n"
                     f"Current directory: {os.getcwd()}",
@@ -532,12 +532,12 @@ class AiderAgent(KinOSAgent):
                             )
                             
                     except Exception as e:
-                        self._log(f"[{self.__class__.__name__}] Error reading files: {str(e)}")
+                        self._log(f"[{self.name}] Error reading files: {str(e)}")
                 
                 # Log completion status
                 if return_code != 0:
                     self._log(
-                        f"[{self.__class__.__name__}] ❌ Aider process failed (code: {return_code})\n"
+                        f"[{self.name}] ❌ Aider process failed (code: {return_code})\n"
                         f"Last few lines of output:\n" + 
                         "\n".join(output_lines[-5:]),  # Show last 5 lines
                         'error'
@@ -545,7 +545,7 @@ class AiderAgent(KinOSAgent):
                     return None
                 elif error_detected:
                     self._log(
-                        f"[{self.__class__.__name__}] ⚠️ Aider completed with warnings\n"
+                        f"[{self.name}] ⚠️ Aider completed with warnings\n"
                         f"Last few lines of output:\n" + 
                         "\n".join(output_lines[-5:]),
                         'warning'
@@ -554,10 +554,10 @@ class AiderAgent(KinOSAgent):
                 # Combine output
                 full_output = "\n".join(output_lines)
                 if not full_output.strip():
-                    self._log(f"[{self.__class__.__name__}] ⚠️ No output from Aider", 'warning')
+                    self._log(f"[{self.name}] ⚠️ No output from Aider", 'warning')
                     return None
                     
-                self._log(f"[{self.__class__.__name__}] ✅ Aider completed successfully", 'success')
+                self._log(f"[{self.name}] ✅ Aider completed successfully", 'success')
                 
                 # Track modified files from output
                 modified_files = set()
@@ -605,7 +605,7 @@ class AiderAgent(KinOSAgent):
                             )
 
                     except Exception as e:
-                        self._log(f"[{self.__class__.__name__}] Error saving to dataset: {str(e)}")
+                        self._log(f"[{self.name}] Error saving to dataset: {str(e)}")
 
                 # Return output if process succeeded
                 if return_code == 0:
@@ -614,12 +614,12 @@ class AiderAgent(KinOSAgent):
                         from services import init_services
                         services = init_services(None)
                         services['map_service'].update_map()
-                        self._log(f"[{self.__class__.__name__}] Map updated successfully")
+                        self._log(f"[{self.name}] Map updated successfully")
                     except Exception as e:
-                        self._log(f"[{self.__class__.__name__}] Error updating map: {str(e)}")
+                        self._log(f"[{self.name}] Error updating map: {str(e)}")
                     return full_output
                 else:
-                    self._log(f"[{self.__class__.__name__}] Process failed with code {return_code}")
+                    self._log(f"[{self.name}] Process failed with code {return_code}")
                     return None
 
             finally:
@@ -627,12 +627,12 @@ class AiderAgent(KinOSAgent):
                 try:
                     if self.original_dir:
                         os.chdir(self.original_dir)
-                        self._log(f"[{self.__class__.__name__}] 📂 Restored directory: {self.original_dir}")
+                        self._log(f"[{self.name}] 📂 Restored directory: {self.original_dir}")
                 except Exception as e:
-                    self._log(f"[{self.__class__.__name__}] ❌ Error restoring directory: {str(e)}")
+                    self._log(f"[{self.name}] ❌ Error restoring directory: {str(e)}")
                     
         except Exception as e:
-            self._log(f"[{self.__class__.__name__}] ❌ Error running Aider: {str(e)}")
+            self._log(f"[{self.name}] ❌ Error running Aider: {str(e)}")
             return None
 
     def list_files(self) -> None:
@@ -640,18 +640,18 @@ class AiderAgent(KinOSAgent):
         try:
             # Use configured mission_dir directly
             if not self.mission_dir:
-                self._log(f"[{self.__class__.__name__}] ❌ No mission directory configured")
+                self._log(f"[{self.name}] ❌ No mission directory configured")
                 self.mission_files = {}
                 return
 
             # Validate mission directory exists and is accessible
             if not os.path.exists(self.mission_dir):
-                self._log(f"[{self.__class__.__name__}] ❌ Mission directory not found: {self.mission_dir}")
+                self._log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}")
                 self.mission_files = {}
                 return
 
             if not os.access(self.mission_dir, os.R_OK | os.W_OK):
-                self._log(f"[{self.__class__.__name__}] ❌ Insufficient permissions for: {self.mission_dir}")
+                self._log(f"[{self.name}] ❌ Insufficient permissions for: {self.mission_dir}")
                 self.mission_files = {}
                 return
 
@@ -659,29 +659,29 @@ class AiderAgent(KinOSAgent):
             text_extensions = {'.md', '.txt', '.json', '.yaml', '.yml', '.py', '.js', '.html', '.css', '.sh'}
             
             # Log directory contents for debugging
-            self._log(f"[{self.__class__.__name__}] 📂 Scanning directory: {self.mission_dir}")
+            self._log(f"[{self.name}] 📂 Scanning directory: {self.mission_dir}")
             
             # Récupérer tous les fichiers textuels
             text_files = {}
             for root, dirs, filenames in os.walk(self.mission_dir):
-                self._log(f"[{self.__class__.__name__}] 🔍 Scanning subdirectory: {root}")
+                self._log(f"[{self.name}] 🔍 Scanning subdirectory: {root}")
                 for filename in filenames:
                     if os.path.splitext(filename)[1].lower() in text_extensions:
                         file_path = os.path.join(root, filename)
                         text_files[file_path] = os.path.getmtime(file_path)
-                        self._log(f"[{self.__class__.__name__}] ✓ Found file: {filename}")
+                        self._log(f"[{self.name}] ✓ Found file: {filename}")
         
             # Mettre à jour mission_files
             self.mission_files = text_files
             
             # Log final results
-            self._log(f"[{self.__class__.__name__}] 📁 Found {len(self.mission_files)} files in {self.mission_dir}")
+            self._log(f"[{self.name}] 📁 Found {len(self.mission_files)} files in {self.mission_dir}")
             for file in self.mission_files:
                 rel_path = os.path.relpath(file, self.mission_dir)
-                self._log(f"[{self.__class__.__name__}] 📄 {rel_path}")
+                self._log(f"[{self.name}] 📄 {rel_path}")
                 
         except Exception as e:
-            self._log(f"[{self.__class__.__name__}] ❌ Error listing files: {str(e)}")
+            self._log(f"[{self.name}] ❌ Error listing files: {str(e)}")
             self.mission_files = {}
 
     def get_prompt(self) -> str:
@@ -796,11 +796,11 @@ class AiderAgent(KinOSAgent):
             if hasattr(self, 'original_dir') and self.original_dir:
                 try:
                     os.chdir(self.original_dir)
-                    self._log(f"[{self.__class__.__name__}] 📂 Restored directory during cleanup: {self.original_dir}")
+                    self._log(f"[{self.name}] 📂 Restored directory during cleanup: {self.original_dir}")
                 except Exception as e:
-                    self._log(f"[{self.__class__.__name__}] ❌ Error restoring directory during cleanup: {str(e)}")
+                    self._log(f"[{self.name}] ❌ Error restoring directory during cleanup: {str(e)}")
         except Exception as e:
-            self._log(f"[{self.__class__.__name__}] ❌ Error in cleanup: {str(e)}")
+            self._log(f"[{self.name}] ❌ Error in cleanup: {str(e)}")
 
     def stop(self):
         """Stop method to ensure cleanup"""
@@ -810,27 +810,27 @@ class AiderAgent(KinOSAgent):
             
             # Then handle regular stop logic
             self.running = False
-            self._log(f"[{self.__class__.__name__}] 🛑 Agent stopped")
+            self._log(f"[{self.name}] 🛑 Agent stopped")
             
         except Exception as e:
-            self._log(f"[{self.__class__.__name__}] ❌ Error stopping agent: {str(e)}")
+            self._log(f"[{self.name}] ❌ Error stopping agent: {str(e)}")
 
     def run(self):
         """Main execution loop for the agent"""
         try:
-            self._log(f"[{self.__class__.__name__}] 🚀 Starting agent run loop")
+            self._log(f"[{self.name}] 🚀 Starting agent run loop")
             
             while self.running:
                 try:
                     # Use configured mission directory
                     if not self.mission_dir:
-                        self._log(f"[{self.__class__.__name__}] ❌ No mission directory configured")
+                        self._log(f"[{self.name}] ❌ No mission directory configured")
                         time.sleep(60)
                         continue
 
                     # Validate mission directory
                     if not os.path.exists(self.mission_dir):
-                        self._log(f"[{self.__class__.__name__}] ❌ Mission directory not found: {self.mission_dir}")
+                        self._log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}")
                         time.sleep(60)
                         continue
 
@@ -840,7 +840,7 @@ class AiderAgent(KinOSAgent):
                     # Get current prompt
                     prompt = self.get_prompt()
                     if not prompt:
-                        self._log(f"[{self.__class__.__name__}] ⚠️ No prompt available, skipping run")
+                        self._log(f"[{self.name}] ⚠️ No prompt available, skipping run")
                         time.sleep(60)
                         continue
                         
@@ -860,13 +860,13 @@ class AiderAgent(KinOSAgent):
                     time.sleep(interval)
                     
                 except Exception as loop_error:
-                    self._log(f"[{self.__class__.__name__}] ❌ Error in run loop: {str(loop_error)}")
+                    self._log(f"[{self.name}] ❌ Error in run loop: {str(loop_error)}")
                     time.sleep(5)  # Pause before retrying
 
-            self._log(f"[{self.__class__.__name__}] Run loop ended")
+            self._log(f"[{self.name}] Run loop ended")
             
         except Exception as e:
-            self._log(f"[{self.__class__.__name__}] Critical error in run: {str(e)}")
+            self._log(f"[{self.name}] Critical error in run: {str(e)}")
             self.running = False
         finally:
             # Ensure cleanup happens
@@ -876,25 +876,25 @@ class AiderAgent(KinOSAgent):
         """Validate conditions before running Aider"""
         try:
             if not prompt or not prompt.strip():
-                self._log(f"[{self.__class__.__name__}] ❌ Prompt vide", 'error')
+                self._log(f"[{self.name}] ❌ Prompt vide", 'error')
                 return False
                 
             if not self.mission_dir:
-                self._log(f"[{self.__class__.__name__}] ❌ Dossier mission non défini", 'error')
+                self._log(f"[{self.name}] ❌ Dossier mission non défini", 'error')
                 return False
                 
             if not os.path.exists(self.mission_dir):
-                self._log(f"[{self.__class__.__name__}] ❌ Dossier mission non trouvé: {self.mission_dir}", 'error')
+                self._log(f"[{self.name}] ❌ Dossier mission non trouvé: {self.mission_dir}", 'error')
                 return False
                 
             if not self.mission_files:
-                self._log(f"[{self.__class__.__name__}] ❌ Aucun fichier mission trouvé", 'warning')
+                self._log(f"[{self.name}] ❌ Aucun fichier mission trouvé", 'warning')
                 return False
                 
             return True
             
         except Exception as e:
-            self._log(f"[{self.__class__.__name__}] ❌ Erreur validation conditions: {str(e)}", 'error')
+            self._log(f"[{self.name}] ❌ Erreur validation conditions: {str(e)}", 'error')
             return False
 
     def _build_prompt(self, context: dict = None) -> str:
