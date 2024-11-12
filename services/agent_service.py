@@ -141,7 +141,7 @@ class AgentService:
             return None
 
     def init_agents(self, config: Dict[str, Any], team_agents: Optional[List[str]] = None) -> None:
-        """Initialise les agents pour une équipe"""
+        """Initialize agents for a team with detailed logging"""
         try:
             # Normaliser les noms d'agents
             if not team_agents:
