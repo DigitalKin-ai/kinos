@@ -171,7 +171,7 @@ class AgentService:
                 full_path = os.path.join(search_path, filename)
                 searched_paths.append(full_path)
                 
-                self.web_instance.log_message(
+                self.logger.log(
                     f"Checking potential prompt file: {full_path}\n"
                     f"File exists: {os.path.exists(full_path)}", 
                     'debug'
