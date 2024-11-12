@@ -38,6 +38,17 @@ class Logger:
         }
         self._level = level_map.get(level.upper(), logging.INFO)
 
+    def set_level(self, level: str):
+        """Set the logging level"""
+        level_map = {
+            'DEBUG': logging.DEBUG,
+            'INFO': logging.INFO,
+            'WARNING': logging.WARNING,
+            'ERROR': logging.ERROR,
+            'CRITICAL': logging.CRITICAL
+        }
+        self._level = level_map.get(level.upper(), logging.INFO)
+
     def _cleanup(self):
         """Mark logger as shutting down and flush output"""
         try:
