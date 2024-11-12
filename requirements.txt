@@ -1,61 +1,22 @@
-# Core Web Framework
-flask==2.3.3
-flask-cors==4.0.1
-flask-limiter==3.5.0
-gunicorn==21.2.0
+# Core Dependencies
+aider-chat==0.62.1
 python-dotenv==1.0.0
-werkzeug==3.0.1
 
-# API and Async
-requests==2.31.0
-httpx==0.25.2
-aiohttp==3.9.1
-
-# AI and Machine Learning
-anthropic==0.18.0
-openai>=1.6.1
-litellm>=1.16.0
-transformers==4.36.2
-torch>=2.1.2,<2.4.0
-
-# Data Handling
-pyyaml==6.0.1
-pandas==2.2.0
-numpy==1.26.3
-
-# Authentication and Security
-python-jose==3.3.0
-passlib==1.7.4
-bcrypt==4.1.2
-
-# Development and Testing
-pytest==7.4.4
-pytest-asyncio==0.23.2
-black==24.1.1
-mypy==1.8.0
-flake8==7.0.0
-coverage==7.4.0
+# File Operations
+portalocker==2.8.2
 
 # Utilities
-python-dateutil==2.8.2
 colorama==0.4.6
-tqdm==4.66.1
-rich==13.7.0
+pyyaml==6.0.1
 
-# Web Extras
-markdown==3.6
-bleach==6.2.0
+# These versions are required by aider-chat
+litellm==1.51.2
+openai==1.53.0
+anthropic==0.18.0
+httpx==0.27.2
+aiohttp==3.10.10
 
-# Performance and Monitoring
-psutil==5.9.8
-prometheus-client==0.19.0
-
-# Specific KinOS Requirements
-portalocker==2.8.2
-marked==0.9.1
-
-# Additional KinOS Utilities
-websockets==12.0
-redis==5.0.1
-opentelemetry-api==1.22.0
-opentelemetry-sdk==1.22.0
+# Optional Development Dependencies
+pytest==7.4.4
+black==24.1.1
+flake8==7.0.0
