@@ -89,54 +89,17 @@ class FileManager:
 
 
 
-    @safe_operation(max_retries=3, delay=1.0)
     def read_file(self, file_name: str) -> Optional[str]:
-        """
-        Read content from a file with caching and locking.
-        
-        Args:
-            file_name: Name of file to read
-            
-        Returns:
-            str: File contents or None if error
-        """
+        """Read file with simplified path handling"""
         try:
-            # Normalize file name
-            if not file_name.endswith('.md'):
-                file_name = f"{file_name}.md"
-
-            # Get file path using PathManager
-            file_path = (PathManager.get_mission_path(self.current_mission) if self.current_mission 
-                        else PathManager.get_project_root())
-            file_path = os.path.join(file_path, file_name)
-
-            self.logger.log(f"Reading file: {file_path}", 'debug')
-
-            # Check cache first
-            cache_key = f"file:{file_path}"
-            if cache_key in self.content_cache:
-                mtime = os.path.getmtime(file_path)
-                cached_time, cached_content = self.content_cache[cache_key]
-                if mtime == cached_time:
-                    self.logger.log(f"Cache hit for {file_path}", 'debug')
-                    return cached_content
-
-            # Ensure directory exists
-            os.makedirs(os.path.dirname(file_path) if os.path.dirname(file_path) else '.', exist_ok=True)
-
-            # Ne pas créer le fichier s'il n'existe pas
+            file_path = os.path.join(os.getcwd(), file_name)
             if not os.path.exists(file_path):
                 return None
-
-            # Read existing file with locking
-            with portalocker.Lock(file_path, 'r', timeout=10) as lock:
-                content = lock.read()
-                # Cache the content
-                self.content_cache[cache_key] = (os.path.getmtime(file_path), content)
-                return content
                 
+            with open(file_path, 'r', encoding='utf-8') as f:
+                return f.read()
         except Exception as e:
-            self.logger.log(f"Erreur lecture {file_name}: {str(e)}", 'error')
+            self.logger.log(f"Error reading {file_name}: {str(e)}", 'error')
             return None
             
     @safe_operation(max_retries=3, delay=1.0)
