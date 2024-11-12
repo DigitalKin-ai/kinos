@@ -3,31 +3,109 @@
 ## Nouveau Modèle de Gestion des Chemins de Mission
 
 ### Changement Fondamental
-- Les chemins de mission sont désormais des chemins absolus, complètement indépendants du répertoire du projet
-- Le chemin de mission est spécifié explicitement et peut se trouver n'importe où sur le système de fichiers
-- Permet une séparation claire entre le code du projet et les fichiers de mission
-- Facilite l'activation de Git pour chaque mission
+- Le répertoire de travail actuel devient le contexte de mission par défaut
+- Aucune configuration de mission complexe requise
+- Flexibilité maximale pour les développeurs
+- Activation immédiate dans n'importe quel dossier de projet
 
-### Avantages
-1. **Isolation Complète**
-   - Chaque mission a son propre espace de fichiers
-   - Indépendance totale du répertoire du projet KinOS
-   - Possibilité de gérer des missions dans n'importe quel emplacement du système
+### Principes Clés
 
-2. **Activation Git Simplifiée**
-   - Aider peut être lancé directement dans le dossier de mission
-   - Gestion de version locale pour chaque mission
-   - Contrôle de version indépendant
+#### 1. Contexte Dynamique
+- Chaque répertoire peut devenir instantanément un contexte de mission
+- Pas besoin de configuration préalable
+- L'agent s'adapte automatiquement à l'environnement courant
 
-### Exemple de Configuration
+#### 2. Résolution de Chemin
+- Utilisation du répertoire courant (`os.getcwd()`) comme racine
+- Support optionnel de chemins personnalisés
+- Validation dynamique des permissions
+- Normalisation intelligente des chemins
+
+### Exemples d'Utilisation
+
+```bash
+# Lancement dans le répertoire courant
+python kinos_cli.py team launch --team coding
+
+# Lancement avec un chemin personnalisé
+python kinos_cli.py team launch --team coding --base-path /chemin/specifique
+```
+
+### Stratégies de Validation
 
 ```python
-# Exemple de spécification de chemin de mission
-mission_config = {
-    'name': 'mon-projet-ia',
-    'path': '/chemin/absolu/vers/missions/mon-projet-ia',
-    'git_enabled': True
+def validate_mission_path(path: str) -> bool:
+    """
+    Validation comprehensive du chemin de mission
+    
+    Critères:
+    - Chemin absolu
+    - Existe et est accessible
+    - Permissions lecture/écriture
+    - Exclusion des chemins système
+    """
+    return (
+        os.path.isabs(path) and
+        os.path.exists(path) and
+        os.access(path, os.R_OK | os.W_OK) and
+        not path.startswith('/sys') and
+        not path.startswith('/proc')
+    )
+```
+
+### Avantages
+
+1. **Simplicité**
+   - Aucune configuration complexe
+   - Démarrage immédiat
+   - Zéro configuration requise
+
+2. **Flexibilité**
+   - Adaptable à tous les types de projets
+   - Support multi-langages
+   - Indépendant de la structure de projet
+
+3. **Sécurité**
+   - Validation stricte des chemins
+   - Vérification des permissions
+   - Protection contre les accès non autorisés
+
+### Bonnes Pratiques
+
+1. Toujours vérifier les permissions avant opération
+2. Utiliser des chemins absolus
+3. Gérer les erreurs de chemin
+4. Logger les opérations sensibles
+5. Fournir des options de configuration personnalisée
+
+### Configuration Minimale
+
+```python
+# Configuration par défaut dans global_config.py
+DEFAULT_CONFIG = {
+    'core': {
+        'default_mission_dir': os.getcwd(),
+        'verbose': False
+    },
+    'paths': {
+        'current_mission': os.path.basename(os.getcwd())
+    }
 }
+```
+
+### Diagnostic et Débogage
+
+Utilisez le script de diagnostic pour comprendre la configuration des chemins :
+
+```bash
+python diagnose_paths.py
+```
+
+Ce script fournira :
+- Répertoire de travail actuel
+- Racine du projet
+- Chemin de mission
+- Vérification des permissions
 ```
 
 ### Stratégies d'Accès
