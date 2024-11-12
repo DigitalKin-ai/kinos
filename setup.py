@@ -9,6 +9,7 @@ setup(
         'portalocker',
         'anthropic',
         'openai',
+        'argparse',
         # Add other dependencies from your requirements
     ],
     entry_points={
@@ -17,13 +18,6 @@ setup(
         ],
     },
     python_requires='>=3.8',
-    install_requires=[
-        'flask',
-        'portalocker',
-        'anthropic', 
-        'openai',
-        'argparse'
-    ],
     author='Your Name',
     description='KinOS CLI Tool',
     long_description=open('README.md').read(),
