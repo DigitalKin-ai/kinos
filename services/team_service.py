@@ -492,21 +492,25 @@ class TeamService(BaseService):
         except Exception as e:
             self.logger.log(f"Error during team service cleanup: {str(e)}", 'error')
 
-    def start_team(self, mission_id: int, team_id: str) -> Dict[str, Any]:
+    def start_team(self, mission_id: int, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
         """
         Lance effectivement les agents d'une équipe en appelant leur méthode run()
         
         Args:
             mission_id: ID de la mission
             team_id: ID de l'équipe
+            base_path: Chemin de base optionnel pour la mission
             
         Returns:
             Dict avec les résultats du lancement
         """
         try:
+            # Utiliser PathManager pour obtenir le chemin de la mission
+            mission_dir = PathManager.get_mission_path(base_path=base_path)
+            
             self.web_instance.log_message(
                 f"\n=== TEAM START SEQUENCE ===\n"
-                f"Mission ID: {mission_id}\n"
+                f"Mission Directory: {mission_dir}\n"
                 f"Team ID: {team_id}\n"
                 f"Timestamp: {datetime.now().isoformat()}", 
                 'info'
@@ -530,6 +534,9 @@ class TeamService(BaseService):
                     agent = self.web_instance.agent_service.agents.get(agent_name.lower())
                     if not agent:
                         raise ValueError(f"Agent {agent_name} not found")
+
+                    # Définir le répertoire de mission pour l'agent
+                    agent.mission_dir = mission_dir
 
                     self.web_instance.log_message(f"🚀 Starting agent thread: {agent_name}", 'info')
                     
@@ -582,7 +589,7 @@ class TeamService(BaseService):
 
             return {
                 'team_id': team_id,
-                'mission_id': mission_id,
+                'mission_dir': mission_dir,
                 'start_results': start_results,
                 'active_threads': len(agent_threads)
             }

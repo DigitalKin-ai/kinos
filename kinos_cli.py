@@ -45,66 +45,48 @@ class KinosCLI:
         # Passer self avec l'agent_service et config ajoutés
         self.team_service = TeamService(self)
 
-    def launch_team(self, mission_name, team_name, verbose=False, dry_run=False, timeout=None, log_file=None, base_path=None):
+    def launch_team(self, team_name, base_path=None, verbose=False, dry_run=False):
         """
-        Lance une équipe pour une mission spécifique et affiche les logs en continu
+        Launch a team in current directory or specified path
+        
+        Args:
+            team_name: Name of the team to launch
+            base_path: Optional custom base path
+            verbose: Enable verbose logging
+            dry_run: Simulate launch without executing
         """
         try:
-            # Validation des paramètres
-            mission = self.mission_service.get_mission_by_name(mission_name)
-            if not mission:
-                self.logger.log(f"Erreur : Mission '{mission_name}' non trouvée.", 'error')
-                sys.exit(1)
-
-            # Vérification de l'équipe
+            # Use current directory if no base path specified
+            mission_dir = base_path or os.getcwd()
+            
+            # Validate team exists
             available_teams = self.team_service._load_predefined_teams()
             if team_name not in [team['id'] for team in available_teams]:
-                self.logger.log(f"Erreur : Équipe '{team_name}' non trouvée.", 'error')
-                sys.exit(1)
-
-            # Résoudre le chemin de la mission en utilisant PathManager
-            try:
-                mission_path = PathManager.get_mission_path(mission_name, base_path)
-                
-                # Créer le dossier de mission s'il n'existe pas
-                if not os.path.exists(mission_path):
-                    self.logger.log(f"Création du dossier de mission : {mission_path}", 'info')
-                    os.makedirs(mission_path, exist_ok=True)
-                
-                # Vérifier les permissions
-                if not os.access(mission_path, os.R_OK | os.W_OK):
-                    self.logger.log(f"Erreur : Permissions insuffisantes sur {mission_path}", 'error')
-                    sys.exit(1)
-                
-            except Exception as path_error:
-                self.logger.log(f"Erreur de résolution du chemin de mission : {str(path_error)}", 'error')
+                self.logger.log(f"Équipe '{team_name}' non trouvée.", 'error')
                 sys.exit(1)
 
             if dry_run:
-                self.logger.log(f"Mode simulation : Lancement de l'équipe {team_name} pour la mission {mission_name}", 'info')
+                self.logger.log(f"Mode simulation : Lancement de l'équipe {team_name}", 'info')
                 return
 
-            # Lancement de l'équipe
-            self.logger.log(f"Lancement de l'équipe {team_name} pour la mission {mission_name}...", 'info')
-            result = self.team_service.activate_team(mission['id'], team_name)
+            # Launch team in specified/current directory
+            result = self.team_service.start_team(
+                mission_id=None,  # No longer needed
+                team_id=team_name, 
+                base_path=mission_dir
+            )
             
-            if not result:
-                self.logger.log("Échec de l'activation de l'équipe", 'error')
-                sys.exit(1)
-
-            self.team_service.start_team(mission['id'], team_name, mission_path=mission_path) 
-
-            self.logger.log(f"✓ Équipe {team_name} activée et démarée. Démarrage des agents...", 'success')
-            self.logger.log(f"Dossier de mission : {mission_path}", 'info')
+            self.logger.log(f"✓ Équipe {team_name} démarrée. Démarrage des agents...", 'success')
+            self.logger.log(f"Dossier de travail : {mission_dir}", 'info')
             self.logger.log("Appuyez sur CTRL+C pour arrêter les agents", 'info')
             
-            # Boucle principale d'affichage des logs
+            # Main log display loop
             try:
                 while True:
-                    # Obtenir le statut de tous les agents
+                    # Get status of all agents
                     status = self.agent_service.get_agent_status()
                     
-                    # Afficher le statut de chaque agent
+                    # Display status for each agent
                     for agent_name, agent_status in status.items():
                         running = agent_status.get('running', False)
                         health = agent_status.get('health', {})
@@ -119,10 +101,10 @@ class KinosCLI:
                             'info' if running else 'warning'
                         )
                     
-                    # Afficher une ligne de séparation
+                    # Display separator
                     self.logger.log("-" * 80, 'info')
                     
-                    # Attendre avant la prochaine mise à jour
+                    # Wait before next update
                     time.sleep(60)
 
             except KeyboardInterrupt:
@@ -133,7 +115,6 @@ class KinosCLI:
 
         except Exception as e:
             self.logger.log(f"Erreur lors du lancement de l'équipe : {e}", 'error')
-            self.agent_service.stop_all_agents()  # S'assurer que les agents sont arrêtés en cas d'erreur
             sys.exit(1)
 
     def list_agents(self):
