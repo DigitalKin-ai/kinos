@@ -87,14 +87,8 @@ class PathManager:
             if not os.path.isabs(path):
                 return False
             
-            # Ensure path is not within project root
-            project_root = cls.get_project_root()
-            if path.startswith(project_root):
-                return False
-            
             # Check path exists or is creatable
             try:
-                # Attempt to create directory if it doesn't exist
                 os.makedirs(path, exist_ok=True)
             except (PermissionError, OSError):
                 return False
