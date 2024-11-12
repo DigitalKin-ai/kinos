@@ -43,7 +43,7 @@ rich==13.7.0
 
 # Web Extras
 markdown==3.6
-bleach==6.3.0
+bleach==6.2.0
 
 # Performance and Monitoring
 psutil==5.9.8
