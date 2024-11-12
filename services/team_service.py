@@ -18,44 +18,10 @@ class TeamService(BaseService):
     """Service for managing teams and agent groupings"""
     
     def __init__(self, web_instance):
-        # Import only what's needed
-        from utils.logger import Logger
-        from types import SimpleNamespace
-
-        # Créer un web_instance par défaut s'il est None
-        if web_instance is None:
-            logger = Logger()
-            web_instance = SimpleNamespace(
-                logger=logger,
-                log_message=lambda message, level='info': logger.log(message, level),
-                agent_service=AgentService(None),
-                mission_service=MissionService(),
-                file_manager=FileManager(None, on_content_changed=None),
-                config={},
-                log=lambda message, level='info': logger.log(message, level)
-            )
-
-        # Vérification et ajout des attributs manquants
-        if not hasattr(web_instance, 'logger'):
-            web_instance.logger = Logger()
-        
-        if not hasattr(web_instance, 'log_message'):
-            web_instance.log_message = lambda message, level='info': web_instance.logger.log(message, level)
-        
-        if not hasattr(web_instance, 'agent_service'):
-            web_instance.agent_service = AgentService(None)
-        
-        if not hasattr(web_instance, 'mission_service'):
-            web_instance.mission_service = MissionService()
-        
-        if not hasattr(web_instance, 'file_manager'):
-            web_instance.file_manager = FileManager(web_instance, on_content_changed=None)
-
-        # Initialiser le BaseService avec le logger
-        super().__init__(web_instance.logger)
-
-        # Stocker l'instance web
-        self.web_instance = web_instance
+        """Initialize team service with simplified dependencies"""
+        self.logger = Logger()
+        self.agent_service = AgentService(None)
+        self.mission_service = MissionService()
         
         # Initialiser les attributs
         self.teams = {}
@@ -97,45 +63,24 @@ class TeamService(BaseService):
             raise ResourceNotFoundError(f"Agent {agent_name} not found")
 
     def _load_predefined_teams(self) -> List[Dict]:
-        """Load team configurations from files"""
-        try:
-            # Add default team configuration
-            default_team = {
+        """Load predefined team configurations"""
+        return [
+            {
                 'id': 'default',
                 'name': 'Default Team',
-                'agents': [
-                    'specifications', 
-                    'management', 
-                    'evaluation', 
-                    'chroniqueur', 
-                    'documentaliste'
-                ]
+                'agents': ['specifications', 'management', 'evaluation', 'chroniqueur', 'documentaliste']
+            },
+            {
+                'id': 'coding',
+                'name': 'Coding Team', 
+                'agents': ['specifications', 'production', 'testing', 'validation', 'documentaliste']
+            },
+            {
+                'id': 'literature-review',
+                'name': 'Literature Review Team',
+                'agents': ['specifications', 'management', 'evaluation', 'chroniqueur', 'documentaliste']
             }
-            
-            teams = [default_team]
-            teams_dir = os.path.join(PathManager.get_project_root(), 'teams')
-            
-            if not os.path.exists(teams_dir):
-                self.logger.log("Teams directory not found", 'warning')
-                return teams
-                
-            # Scan team directories
-            for team_dir in os.listdir(teams_dir):
-                config_path = os.path.join(teams_dir, team_dir, 'config.json')
-                if os.path.exists(config_path):
-                    try:
-                        with open(config_path, 'r', encoding='utf-8') as f:
-                            team_config = json.load(f)
-                            teams.append(team_config)
-                    except Exception as e:
-                        self.logger.log(f"Error loading team config {team_dir}: {str(e)}", 'error')
-                        continue
-                        
-            return teams
-            
-        except Exception as e:
-            self.logger.log(f"Error loading predefined teams: {str(e)}", 'error')
-            return [default_team]
+        ]
 
     def get_predefined_teams(self):
         """
@@ -500,116 +445,40 @@ class TeamService(BaseService):
         except Exception as e:
             self.logger.log(f"Error during team service cleanup: {str(e)}", 'error')
 
-    def start_team(self, mission_id: int, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Lance effectivement les agents d'une équipe en appelant leur méthode run()
-        
-        Args:
-            mission_id: ID de la mission
-            team_id: ID de l'équipe
-            base_path: Chemin de base optionnel pour la mission
-            
-        Returns:
-            Dict avec les résultats du lancement
-        """
+    def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
+        """Launch a team in the specified directory"""
         try:
-            # Utiliser PathManager pour obtenir le chemin de la mission
-            mission_dir = PathManager.get_mission_path(base_path=base_path)
+            # Use current directory if not specified
+            mission_dir = base_path or os.getcwd()
             
-            self.web_instance.log_message(
-                f"\n=== TEAM START SEQUENCE ===\n"
-                f"Mission Directory: {mission_dir}\n"
-                f"Team ID: {team_id}\n"
-                f"Timestamp: {datetime.now().isoformat()}", 
-                'info'
-            )
+            self.logger.log(f"Starting team {team_id} in {mission_dir}")
 
-            # Vérifier que l'équipe est active
-            if not self.active_team or self.active_team['id'] != team_id:
-                raise ValueError(f"Team {team_id} must be activated first")
+            # Validate team exists
+            team = next((t for t in self.predefined_teams if t['id'] == team_id), None)
+            if not team:
+                raise ValueError(f"Team {team_id} not found")
 
-            # Récupérer les agents de l'équipe
-            team_agents = self.active_team['agents']
-            self.web_instance.log_message(f"Starting {len(team_agents)} agents...", 'info')
+            # Initialize agents
+            config = {'mission_dir': mission_dir}
+            self.agent_service.init_agents(config, team['agents'])
 
-            # Créer un thread pour chaque agent
-            agent_threads = {}
-            start_results = []
-
-            for agent_name in team_agents:
+            # Start each agent
+            for agent_name in team['agents']:
                 try:
-                    # Récupérer l'instance de l'agent
-                    agent = self.web_instance.agent_service.agents.get(agent_name.lower())
-                    if not agent:
-                        raise ValueError(f"Agent {agent_name} not found")
-
-                    # Définir le répertoire de mission pour l'agent
-                    agent.mission_dir = mission_dir
-
-                    self.web_instance.log_message(f"🚀 Starting agent thread: {agent_name}", 'info')
-                    
-                    # Créer et démarrer le thread
-                    thread = threading.Thread(
-                        target=self._run_agent_wrapper,
-                        args=(agent_name, agent),
-                        daemon=True,
-                        name=f"Agent-{agent_name}"
-                    )
-                    thread.start()
-                    
-                    agent_threads[agent_name] = thread
-                    start_results.append({
-                        'agent': agent_name,
-                        'status': 'started',
-                        'thread_id': thread.ident
-                    })
-                    
-                    self.web_instance.log_message(
-                        f"✅ Agent {agent_name} thread started successfully", 
-                        'success'
-                    )
-
-                    time.sleep(10) # Echelonner les lancements
-
+                    self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
+                    self.logger.log(f"Started agent {agent_name}")
                 except Exception as e:
-                    self.web_instance.log_message(
-                        f"❌ Failed to start agent {agent_name}: {str(e)}", 
-                        'error'
-                    )
-                    start_results.append({
-                        'agent': agent_name,
-                        'status': 'failed',
-                        'error': str(e)
-                    })
-
-            # Stocker les threads dans le service
-            self.agent_threads = agent_threads
-
-            # Log résumé final
-            success_count = sum(1 for r in start_results if r['status'] == 'started')
-            self.web_instance.log_message(
-                f"\n=== TEAM START SUMMARY ===\n"
-                f"Total Agents: {len(team_agents)}\n"
-                f"Successfully Started: {success_count}\n"
-                f"Failed: {len(team_agents) - success_count}", 
-                'info'
-            )
+                    self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
 
             return {
                 'team_id': team_id,
                 'mission_dir': mission_dir,
-                'start_results': start_results,
-                'active_threads': len(agent_threads)
+                'agents': team['agents']
             }
 
         except Exception as e:
-            self.web_instance.log_message(
-                f"\n=== TEAM START FAILED ===\n"
-                f"Error: {str(e)}\n"
-                f"Traceback: {traceback.format_exc()}", 
-                'critical'
-            )
-            raise ServiceError(f"Failed to start team: {str(e)}")
+            self.logger.log(f"Error starting team: {str(e)}", 'error')
+            raise
 
     def _run_agent_wrapper(self, agent_name: str, agent: 'KinOSAgent') -> None:
         """
