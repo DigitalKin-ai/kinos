@@ -51,6 +51,28 @@ class MapService(BaseService):
             tree_lines = []
             warnings = []
             
+            # Load ignore patterns from .gitignore and .aiderignore
+            ignore_patterns = []
+            for ignore_file in ['.gitignore', '.aiderignore']:
+                ignore_path = os.path.join(path, ignore_file)
+                if os.path.exists(ignore_path):
+                    try:
+                        with open(ignore_path, 'r', encoding='utf-8') as f:
+                            patterns = f.readlines()
+                        # Clean up patterns
+                        patterns = [p.strip() for p in patterns if p.strip() and not p.startswith('#')]
+                        ignore_patterns.extend(patterns)
+                    except Exception as e:
+                        self.logger.log(f"Error reading {ignore_file}: {str(e)}", 'warning')
+
+            # Create PathSpec for pattern matching if we have patterns
+            if ignore_patterns:
+                from pathspec import PathSpec
+                from pathspec.patterns import GitWildMatchPattern
+                spec = PathSpec.from_lines(GitWildMatchPattern, ignore_patterns)
+            else:
+                spec = None
+                
             # Get and sort directory contents
             items = sorted(os.listdir(path))
             
@@ -59,6 +81,13 @@ class MapService(BaseService):
                 current_prefix = prefix + ("└── " if is_last else "├── ")
                 full_path = os.path.join(path, item)
                 
+                # Get path relative to root for pattern matching
+                rel_path = os.path.relpath(full_path, os.getcwd())
+                
+                # Skip if path matches ignore patterns
+                if spec and spec.match_file(rel_path):
+                    continue
+                    
                 if os.path.isdir(full_path):
                     # Handle directory
                     tree_lines.append(f"{current_prefix}📁 {item}/")
