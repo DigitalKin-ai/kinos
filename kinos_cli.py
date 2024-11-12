@@ -68,8 +68,8 @@ def launch_team(args):
 def main():
     # Simplified argument parsing
     parser = argparse.ArgumentParser(description="KinOS CLI - Team Launch")
-    parser.add_argument('team', nargs='?', default='book-writing', 
-                        help='Team to launch (default: book-writing)')
+    parser.add_argument('team', nargs='?', default='default', 
+                        help='Team to launch (default: default)')
     parser.add_argument('-m', '--mission', default=None, 
                         help='Optional mission name')
     parser.add_argument('-v', '--verbose', action='store_true', 

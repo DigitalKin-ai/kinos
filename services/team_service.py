@@ -99,12 +99,25 @@ class TeamService(BaseService):
     def _load_predefined_teams(self) -> List[Dict]:
         """Load team configurations from files"""
         try:
-            teams = []
+            # Add default team configuration
+            default_team = {
+                'id': 'default',
+                'name': 'Default Team',
+                'agents': [
+                    'specifications', 
+                    'management', 
+                    'evaluation', 
+                    'chroniqueur', 
+                    'documentaliste'
+                ]
+            }
+            
+            teams = [default_team]
             teams_dir = os.path.join(PathManager.get_project_root(), 'teams')
             
             if not os.path.exists(teams_dir):
                 self.logger.log("Teams directory not found", 'warning')
-                return []
+                return teams
                 
             # Scan team directories
             for team_dir in os.listdir(teams_dir):
@@ -122,7 +135,7 @@ class TeamService(BaseService):
             
         except Exception as e:
             self.logger.log(f"Error loading predefined teams: {str(e)}", 'error')
-            return []
+            return [default_team]
 
     def get_predefined_teams(self):
         """
