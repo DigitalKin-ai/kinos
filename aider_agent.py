@@ -494,46 +494,9 @@ class AiderAgent(KinOSAgent):
                         except:
                             pass
 
-                # Si l'exécution est réussie, sauvegarder pour le fine-tuning
+                # Dataset functionality disabled in CLI mode
                 if return_code == 0 and full_output:
-                    try:
-                        # Lire le contenu des fichiers modifiés
-                        files_context = {}
-                        for file_path in modified_files:
-                            try:
-                                with open(file_path, 'r', encoding='utf-8') as f:
-                                    files_context[file_path] = f.read()
-                            except Exception as e:
-                                self._log(f"[{self.__class__.__name__}] Error reading modified file: {str(e)}")
-                                continue
-
-                        # Ajouter aussi les fichiers initiaux
-                        for file_path in self.mission_files:
-                            if file_path not in files_context:
-                                try:
-                                    with open(file_path, 'r', encoding='utf-8') as f:
-                                        files_context[file_path] = f.read()
-                                except Exception as e:
-                                    self._log(f"[{self.__class__.__name__}] Error reading original file: {str(e)}")
-                                    continue
-
-                        # S'assurer qu'il y a des fichiers à sauvegarder
-                        if files_context:
-                            # Create event loop if needed
-                            try:
-                                loop = asyncio.get_event_loop()
-                            except RuntimeError:
-                                loop = asyncio.new_event_loop()
-                                asyncio.set_event_loop(loop)
-
-                            # Dataset functionality disabled in CLI mode
-
-                    except Exception as e:
-                        self._log(
-                            f"[{self.__class__.__name__}] ❌ Error processing dataset interaction: {str(e)}\n"
-                            f"Traceback: {traceback.format_exc()}", 
-                            'error'
-                        )
+                    pass
 
                 
                 # Log completion status

@@ -836,7 +836,7 @@ List any specific constraints or limitations.
             return status
 
         except Exception as e:
-            self.web_instance.log_message(f"Error getting detailed status: {str(e)}", 'error')
+            self.logger.log(f"Error getting detailed status: {str(e)}", 'error')
             return self._get_default_status()
 
     def _calculate_error_rate(self, agent) -> float:
@@ -856,7 +856,7 @@ List any specific constraints or limitations.
     def _handle_agent_error(self, agent_name: str, error: Exception) -> None:
         """Handle agent errors with recovery attempts"""
         try:
-            self.web_instance.log_message(f"Agent {agent_name} error: {str(error)}", 'error')
+            self.logger.log(f"Agent {agent_name} error: {str(error)}", 'error')
             
             # Get agent instance
             agent = self.agents.get(agent_name)
@@ -871,19 +871,19 @@ List any specific constraints or limitations.
                 try:
                     success = agent.recover_from_error()
                     if success:
-                        self.web_instance.log_message(f"Agent {agent_name} recovered successfully", 'info')
+                        self.logger.log(f"Agent {agent_name} recovered successfully", 'info')
                     else:
-                        self.web_instance.log_message(f"Agent {agent_name} recovery failed", 'warning')
+                        self.logger.log(f"Agent {agent_name} recovery failed", 'warning')
                 except Exception as recovery_error:
-                    self.web_instance.log_message(f"Error during agent recovery: {str(recovery_error)}", 'error')
+                    self.logger.log(f"Error during agent recovery: {str(recovery_error)}", 'error')
             
             # Stop agent if too many errors
             if agent.error_count > 5:  # Configurable threshold
-                self.web_instance.log_message(f"Stopping agent {agent_name} due to too many errors", 'warning')
+                self.logger.log(f"Stopping agent {agent_name} due to too many errors", 'warning')
                 agent.stop()
                 
         except Exception as e:
-            self.web_instance.log_message(f"Error handling agent error: {str(e)}", 'error')
+            self.logger.log(f"Error handling agent error: {str(e)}", 'error')
 
     def _get_response_times(self, agent) -> Dict[str, float]:
         """Get agent response time metrics"""
@@ -968,10 +968,10 @@ List any specific constraints or limitations.
             )
             thread.start()
             
-            self.web_instance.log_message(f"Successfully restarted agent {name}", 'success')
+            self.logger.log(f"Successfully restarted agent {name}", 'success')
             
         except Exception as e:
-            self.web_instance.log_message(f"Error restarting agent {name}: {str(e)}", 'error')
+            self.logger.log(f"Error restarting agent {name}: {str(e)}", 'error')
 
 
     def _verify_team_agents(self, team_agents: List[str]) -> bool:
@@ -1166,7 +1166,7 @@ Default operational instructions.
             
             for element in required_elements:
                 if element not in prompt_content:
-                    self.web_instance.log_message(
+                    self.logger.log(
                         f"Missing required element in prompt: {element}", 
                         'warning'
                     )
@@ -1175,7 +1175,7 @@ Default operational instructions.
             return True
             
         except Exception as e:
-            self.web_instance.log_message(f"Error validating prompt: {str(e)}", 'error')
+            self.logger.log(f"Error validating prompt: {str(e)}", 'error')
             return False
 
     def _backup_prompt(self, agent_name: str) -> bool:
