@@ -451,80 +451,24 @@ List any specific constraints or limitations.
             self.logger.log(f"Error cleaning up resources: {str(e)}", 'error')
 
     def start_all_agents(self) -> None:
-        """Start all agents with better resource management"""
+        """Start all agents"""
         try:
-            self.web_instance.log_message("🚀 Starting agents...", 'info')
+            self.logger.log("Starting agents...")
             
-            # Check available agents
-            available_agents = self.get_available_agents()
-            self.web_instance.log_message(f"Available agents: {available_agents}", 'debug')
+            # Get current directory as mission directory
+            mission_dir = os.getcwd()
             
-            if not available_agents:
-                self.web_instance.log_message("No agents available to start", 'warning')
-                return
-                
-            # Get current mission from FileManager and validate
-            current_mission = self.web_instance.file_manager.current_mission
-            if not current_mission:
-                self.web_instance.log_message("❌ No mission selected - cannot start agents", 'error')
-                return
-
-            # Get mission directory using PathManager
-            try:
-                mission_dir = PathManager.get_mission_path(current_mission)
-                self.web_instance.log_message(f"Using mission directory: {mission_dir}", 'info')
-                
-                # Validate mission directory
-                if not os.path.exists(mission_dir):
-                    raise ValueError(f"Mission directory not found: {mission_dir}")
-                if not os.access(mission_dir, os.R_OK | os.W_OK):
-                    raise ValueError(f"Insufficient permissions on: {mission_dir}")
-                    
-            except Exception as e:
-                self.web_instance.log_message(f"❌ Invalid mission configuration: {str(e)}", 'error')
-                return
-
-            # Initialize agents if not already done
-            if not self.agents:
-                self.web_instance.log_message("Initializing agents...", 'info')
-                config = {
-                    'mission_dir': mission_dir
-                }
-                
-                # Validate config before initialization
-                if not self._validate_agent_config(config):
-                    self.web_instance.log_message(
-                        "Invalid configuration for agents, skipping initialization",
-                        'error'
-                    )
-                    return
-                    
-                self.init_agents(config)
-                
-                if not self.agents:
-                    self.web_instance.log_message("❌ Failed to initialize agents", 'error')
-                    return
-
             # Update mission directory for all agents
             for name, agent in self.agents.items():
                 agent.mission_dir = mission_dir
-                self.web_instance.log_message(f"Set mission dir for {name}: {mission_dir}", 'debug')
+                self.logger.log(f"Set mission dir for {name}: {mission_dir}")
 
-            # Store thread references
-            self.agent_threads = {}
-            
-            self.running = True
-            
-            # Start monitor thread
-            self._start_monitor_thread()
-            
             # Start agent threads
             for name, agent in self.agents.items():
                 try:
-                    self.web_instance.log_message(f"Starting agent: {name}", 'info')
+                    self.logger.log(f"Starting agent: {name}")
                     agent.start()
                     
-                    # Create and start thread
                     thread = threading.Thread(
                         target=self._run_agent_wrapper,
                         args=(name, agent),
@@ -535,33 +479,13 @@ List any specific constraints or limitations.
                     self.agent_threads[name] = thread
                     thread.start()
                     
-                    self.web_instance.log_message(f"✅ Agent {name} started successfully", 'success')
+                    self.logger.log(f"Agent {name} started successfully")
                     
-                except Exception as agent_error:
-                    self.web_instance.log_message(
-                        f"Failed to start agent {name}: {str(agent_error)}", 
-                        'error'
-                    )
-
-            # Verify all threads are running
-            running_threads = [name for name, thread in self.agent_threads.items() if thread.is_alive()]
-            self.web_instance.log_message(f"Running agent threads: {running_threads}", 'info')
-
-            if len(running_threads) != len(self.agents):
-                self.web_instance.log_message(
-                    f"⚠️ Only {len(running_threads)} of {len(self.agents)} agents started",
-                    'warning'
-                )
-            else:
-                self.web_instance.log_message("✨ All agents started successfully", 'success')
+                except Exception as e:
+                    self.logger.log(f"Failed to start agent {name}: {str(e)}", 'error')
 
         except Exception as e:
-            self.web_instance.log_message(
-                f"Critical error starting agents:\n"
-                f"Error: {str(e)}\n"
-                f"Traceback: {traceback.format_exc()}", 
-                'critical'
-            )
+            self.logger.log(f"Error starting agents: {str(e)}", 'error')
             raise
 
     def stop_all_agents(self) -> None:
