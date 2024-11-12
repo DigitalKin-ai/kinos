@@ -13,8 +13,8 @@ class MapService(BaseService):
         super().__init__(web_instance)
         self.map_file = "map.md"
         self.size_limits = {
-            'warning': 2000,  # Lines triggering warning
-            'error': 3000     # Lines triggering error
+            'warning': 20000,  # Characters triggering warning (20k)
+            'error': 40000     # Characters triggering error (40k)
         }
 
     def generate_map(self) -> bool:
@@ -56,15 +56,18 @@ class MapService(BaseService):
                     
                 elif item.endswith('.md'):
                     # Handle markdown file
-                    line_count = self._count_lines(full_path)
-                    status_icon = self._get_status_icon(line_count)
-                    
+                    char_count = self._count_chars(full_path)
+                    status_icon = self._get_status_icon(char_count)
+                
+                    # Format size in KB with one decimal
+                    size_kb = char_count / 1000
+                
                     tree_lines.append(
-                        f"{current_prefix}📄 {item} ({line_count} lines) {status_icon}"
+                        f"{current_prefix}📄 {item} ({size_kb:.1f}k chars) {status_icon}"
                     )
-                    
+                
                     # Add warning if needed
-                    warning = self._check_file_size(item, line_count)
+                    warning = self._check_file_size(item, char_count)
                     if warning:
                         warnings.append(warning)
                         
@@ -74,28 +77,28 @@ class MapService(BaseService):
             self.logger.log(f"Error scanning directory: {str(e)}", 'error')
             return [], []
 
-    def _count_lines(self, file_path: str) -> int:
-        """Count number of lines in a file"""
+    def _count_chars(self, file_path: str) -> int:
+        """Count number of characters in a file"""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
-                return sum(1 for _ in f)
+                return len(f.read())
         except Exception:
             return 0
 
-    def _get_status_icon(self, line_count: int) -> str:
-        """Get status icon based on line count"""
-        if line_count > self.size_limits['error']:
+    def _get_status_icon(self, char_count: int) -> str:
+        """Get status icon based on character count"""
+        if char_count > self.size_limits['error']:
             return "🔴"
-        elif line_count > self.size_limits['warning']:
+        elif char_count > self.size_limits['warning']:
             return "⚠️"
         return "✓"
 
-    def _check_file_size(self, filename: str, line_count: int) -> str:
+    def _check_file_size(self, filename: str, char_count: int) -> str:
         """Generate warning message if file exceeds size limits"""
-        if line_count > self.size_limits['error']:
-            return f"🔴 {filename} needs consolidation (>{self.size_limits['error']} lines)"
-        elif line_count > self.size_limits['warning']:
-            return f"⚠️ {filename} approaching limit (>{self.size_limits['warning']} lines)"
+        if char_count > self.size_limits['error']:
+            return f"🔴 {filename} needs consolidation (>{self.size_limits['error']/1000:.0f}k chars)"
+        elif char_count > self.size_limits['warning']:
+            return f"⚠️ {filename} approaching limit (>{self.size_limits['warning']/1000:.0f}k chars)"
         return ""
 
     def _format_map_content(self, tree_content: List[str], warnings: List[str]) -> str:
