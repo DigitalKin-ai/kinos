@@ -2,7 +2,7 @@
 
 ## Vue d'Ensemble
 
-KinOS offre une interface en ligne de commande minimaliste qui opère directement dans votre dossier de projet.
+KinOS est un framework d'agents autonomes qui opère directement dans votre dossier de projet. Une seule commande `kin` suffit pour démarrer.
 
 ## Commandes de Base
 
@@ -12,37 +12,17 @@ cd votre-projet
 kin
 
 # Lancer une équipe spécifique
-kin coding
-kin book-writing
-kin literature-review
+kin team launch coding
+kin team launch book-writing
+kin team launch literature-review
 
 # Mode verbeux
 kin -v
 
 # Gestion des Phases
-kin phase status      # Voir la phase actuelle
+kin phase status      # Voir la phase actuelle et l'utilisation
 kin phase metrics     # Voir les métriques détaillées
-kin phase set expansion    # Forcer la phase expansion
-kin phase set convergence  # Forcer la phase convergence
-kin phase history         # Voir l'historique des transitions
-
-# Gestion des Tokens
-kin tokens list      # Liste l'utilisation par fichier
-kin tokens check     # Vérifier les avertissements
-kin tokens headroom  # Voir la marge disponible
-kin tokens usage     # Voir l'utilisation totale
-```
-
-## Gestion des Phases
-
-Les phases permettent d'optimiser automatiquement l'utilisation des ressources :
-
-### Phase Commands
-```bash
-# Voir le statut actuel
-kin phase status      # Phase actuelle et utilisation
-kin phase metrics     # Métriques détaillées
-kin phase history     # Historique des transitions
+kin phase history     # Voir l'historique des transitions
 
 # Forcer une phase (avec précaution)
 kin phase set expansion    # Passer en phase expansion
@@ -58,6 +38,45 @@ kin tokens usage          # Utilisation totale (128k max)
 - EXPANSION   : < 60% tokens (76.8k)
 - CONVERGENCE : > 60% tokens
 - Retour EXPANSION : < 50% tokens (64k)
+```
+
+## Système de Phases
+
+Le système de phases optimise automatiquement l'utilisation des ressources selon l'usage des tokens :
+
+### EXPANSION (< 60% tokens)
+- Création libre de contenu
+- Développement de nouvelles fonctionnalités
+- Documentation extensive
+- Optimisation non prioritaire
+
+### CONVERGENCE (> 60% tokens)
+- Optimisation du contenu existant
+- Réduction de la duplication
+- Consolidation des documents
+- Limitation des nouvelles créations
+
+### Commandes de Phase
+```bash
+# Statut et Métriques
+kin phase status      # Phase actuelle et utilisation
+kin phase metrics     # Métriques détaillées
+kin phase history     # Historique des transitions
+
+# Contrôle Manuel (utiliser avec précaution)
+kin phase set expansion    # Forcer phase expansion
+kin phase set convergence  # Forcer phase convergence
+
+# Surveillance des Tokens
+kin tokens list      # Utilisation par fichier
+kin tokens check     # Alertes et avertissements
+kin tokens headroom  # Marge disponible
+kin tokens usage     # Utilisation totale
+
+# Seuils et Transitions
+- Limite totale : 128k tokens
+- CONVERGENCE : > 76.8k tokens (60%)
+- EXPANSION : < 64k tokens (50%)
 ```
 
 ## Comportement
