@@ -4,53 +4,47 @@
 
 KinOS offre une interface en ligne de commande minimaliste qui opère directement dans votre dossier de projet.
 
-## Commande Principale
+## Commandes de Base
 
 ```bash
-kin [options]
-```
-
-## Utilisation de Base
-
-```bash
-# Lancer KinOS dans le dossier courant
-cd votre-projet
+# Lancer KinOS avec l'équipe par défaut
 kin
 
-# Activer le mode verbeux
-kin -v
+# Lancer une équipe spécifique
+kin coding
+kin book-writing
+kin literature-review
 
-# Voir l'aide
-kin --help
+# Mode verbeux
+kin -v coding
 ```
 
 ## Gestion des Phases
 
-### Commandes de Phase
+Les phases permettent d'optimiser automatiquement l'utilisation des ressources :
+
+### Commandes
 ```bash
 # Voir le statut actuel
 kin phase status
 
-# Voir les métriques de tokens
-kin phase tokens
+# Voir les métriques détaillées
+kin phase metrics
 
-# Voir l'historique des transitions
+# Voir l'historique
 kin phase history
 
-# Forcer un changement de phase
-kin phase set expansion   # Passer en phase d'expansion
-kin phase set convergence # Passer en phase de convergence
-
-# Surveiller les changements de phase
-kin phase watch
+# Forcer une phase (si nécessaire)
+kin phase set expansion
+kin phase set convergence
 ```
 
-### Gestion des Tokens
+### Surveillance
 ```bash
-# Voir l'utilisation par fichier
+# Voir l'utilisation des tokens
 kin tokens list
 
-# Vérifier les avertissements
+# Vérifier les limites
 kin tokens check
 
 # Voir la marge disponible

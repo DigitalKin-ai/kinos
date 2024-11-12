@@ -1,46 +1,40 @@
 # KinOS
 
-KinOS est un framework d'agents autonomes qui opèrent directement dans votre dossier de projet. Les agents collaborent de manière autonome pour améliorer et accélérer le développement.
+KinOS est un framework d'agents autonomes qui opèrent directement dans votre dossier de projet. Les agents collaborent pour améliorer et accélérer le développement.
 
 ## ✨ Points Clés
 
 - **Zéro configuration** - Fonctionne dans n'importe quel dossier
 - **Agents autonomes** - Collaboration intelligente
 - **CLI minimaliste** - Une seule commande : `kin`
-- **Phases adaptatives** - Expansion/Convergence automatique
+- **Phases adaptatives** - Optimisation automatique des ressources
 - **Dataset intégré** - Collection pour fine-tuning
 - **Gestion dynamique** - S'adapte à votre projet
 
 ## 🚀 Installation
 
 ```bash
-# Installation des prérequis
-pip install aider-chat
-
-# Installation de KinOS
+# Installation
 pip install kinos
 
-# Configuration des clés API (requises)
+# Configuration (requise)
 export ANTHROPIC_API_KEY="votre-clé"
-export OPENAI_API_KEY="votre-clé"
 ```
 
 ## 🚀 Utilisation
 
 ```bash
-# Lancer KinOS dans votre projet
+# Lancer KinOS
 cd votre-projet
 kin
 
-# Voir le statut des phases
+# Lancer une équipe spécifique
+kin coding
+
+# Voir le statut
 kin phase status
-kin phase tokens
 
-# Gérer les phases manuellement
-kin phase set expansion
-kin phase set convergence
-
-# Voir l'aide complète
+# Voir l'aide
 kin --help
 ```
 
