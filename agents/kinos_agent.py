@@ -1,4 +1,5 @@
 import os
+import traceback
 from typing import Optional
 from utils.logger import Logger
 
