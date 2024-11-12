@@ -1,17 +1,19 @@
 """
-Foundation for autonomous file-focused agents.
+Foundation for autonomous CLI-focused agents.
 
 Each agent is responsible for:
-- Monitoring and updating its dedicated file
-- Analyzing changes in related files
-- Making independent decisions
-- Adapting its execution rhythm
+- Dynamic file management and monitoring
+- Independent decision making and execution
+- Self-regulated operation cycles
+- Automatic error recovery and adaptation
 
 Key behaviors:
-- File-based state persistence
-- Self-regulated execution cycles
+- Dynamic file management
+- Flexible monitoring patterns
+- Self-regulated execution
 - Automatic error recovery
-- Activity-based timing adjustments
+- Adaptive timing control
+- Smart resource management
 """
 import json
 from typing import Dict, Any, Optional, List
@@ -53,14 +55,25 @@ class KinOSAgent:
                 - name: Agent name
         """
         self.original_dir = os.getcwd()  # Save original working directory
-        # Configure default encoding
+        # Configure default encoding for CLI output
         import sys
         import codecs
+        import locale
         
+        # Force UTF-8 encoding for stdout/stderr
         if sys.stdout.encoding != 'utf-8':
             sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
         if sys.stderr.encoding != 'utf-8':
             sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+            
+        # Set locale for proper Unicode handling
+        try:
+            locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+        except locale.Error:
+            try:
+                locale.setlocale(locale.LC_ALL, 'C.UTF-8')
+            except locale.Error:
+                pass
 
         # Initialize timing and state attributes
         self.last_run = None
