@@ -289,7 +289,7 @@ class AiderAgent(KinOSAgent):
                     self._log(f"[{self.name}] ✓ Changed to mission directory")
 
                     # Build command
-                cmd = [
+                    cmd = [
                     "aider",
                     "--model", "claude-3-5-haiku-20241022",
                     "--yes-always",
