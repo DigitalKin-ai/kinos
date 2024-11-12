@@ -66,47 +66,24 @@ class PathManager:
             return {}
 
     @classmethod
-    def get_mission_path(cls, mission_name: str, base_path: Optional[str] = None) -> str:
+    def get_mission_path(cls, mission_name: str = None, base_path: Optional[str] = None) -> str:
         """
-        Get the absolute path for a mission with enhanced validation
+        Get mission path, defaulting to current working directory
         
         Args:
-            mission_name (str): Name of the mission
-            base_path (Optional[str]): Custom base path for missions
+            mission_name (str, optional): Ignored in this simplified model
+            base_path (str, optional): Optional custom base path
         
         Returns:
-            str: Absolute path to the mission directory
+            str: Absolute path to mission directory
         """
-        # Validate mission name
-        if not mission_name or not isinstance(mission_name, str):
-            raise ValueError("Invalid mission name")
-        
-        # Normalize mission name for filesystem
-        normalized_name = cls._normalize_mission_name(mission_name)
-        
-        # Determine base path with priority:
-        # 1. Explicitly provided base path
-        # 2. Path from mission configuration
-        # 3. Default missions directory
+        # Prioritize base_path if provided
         if base_path:
-            mission_path = os.path.abspath(os.path.join(base_path, normalized_name))
-        else:
-            mission_config = cls._load_mission_config()
-            if mission_name in mission_config and 'path' in mission_config[mission_name]:
-                mission_path = os.path.abspath(mission_config[mission_name]['path'])
-            else:
-                # Use default missions directory, creating if it doesn't exist
-                os.makedirs(cls._DEFAULT_MISSIONS_DIR, exist_ok=True)
-                mission_path = os.path.join(cls._DEFAULT_MISSIONS_DIR, normalized_name)
+            return os.path.abspath(base_path)
         
-        # Validate mission path
-        if not cls.validate_mission_path(mission_path):
-            raise ValueError(f"Invalid mission path: {mission_path}")
-        
-        # Ensure mission directory exists
-        os.makedirs(mission_path, exist_ok=True)
-        
-        return mission_path
+        # Default to current working directory
+        current_dir = os.getcwd()
+        return current_dir
 
     @staticmethod
     def _normalize_mission_name(mission_name: str) -> str:

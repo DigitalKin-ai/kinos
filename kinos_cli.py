@@ -346,13 +346,10 @@ def main():
     team_subparsers = team_parser.add_subparsers(dest='team_command')
     
     launch_parser = team_subparsers.add_parser('launch', help='Lancer une équipe pour une mission')
-    launch_parser.add_argument('--mission', required=True, help='Nom de la mission')
     launch_parser.add_argument('--team', required=True, help='Nom de l\'équipe')
     launch_parser.add_argument('--verbose', action='store_true', help='Mode débogage détaillé')
     launch_parser.add_argument('--dry-run', action='store_true', help='Simulation sans exécution')
-    launch_parser.add_argument('--timeout', type=int, help='Limite de temps en secondes')
-    launch_parser.add_argument('--log-file', help='Chemin du fichier de log')
-    launch_parser.add_argument('--base-path', help='Chemin de base personnalisé pour les missions', default=None)
+    launch_parser.add_argument('--base-path', help='Chemin de base personnalisé', default=None)
 
     # Sous-commande pour les agents
     agent_parser = subparsers.add_parser('agent', help='Commandes liées aux agents')
@@ -397,13 +394,10 @@ def main():
         cli.list_teams()
     elif args.command == 'team' and args.team_command == 'launch':
         cli.launch_team(
-            mission_name=args.mission, 
             team_name=args.team, 
+            base_path=args.base_path,
             verbose=args.verbose,
-            dry_run=args.dry_run,
-            timeout=args.timeout,
-            log_file=args.log_file,
-            base_path=args.base_path
+            dry_run=args.dry_run
         )
     elif args.command == 'agent' and args.agent_command == 'list':
         cli.list_agents()
