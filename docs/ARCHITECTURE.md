@@ -91,6 +91,7 @@ KinOS uses a single server architecture where both frontend and backend are serv
 - Consider file system limitations
 
 ### Agents
+
 - `agents/kinos_agent.py` - Base agent class
   - Dynamic file management
   - Flexible file monitoring
@@ -111,15 +112,10 @@ KinOS uses a single server architecture where both frontend and backend are serv
   - ManagementAgent - Activity coordination
   - EvaluationAgent - Testing and validation
   - ChroniqueurAgent - Progress tracking
-  - ValidationAgent - Validation et conformité
-    * Validation des spécifications
-    * Vérification de la conformité
-    * Mesures quantitatives
-    * Validation des critères objectifs
-    * Contrôle qualité automatisé
-    * Contrôle qualité automatisé
+  - ValidationAgent - Quality control and conformity
 
 ### Services
+
 - `services/base_service.py` - Base class for all services
   - Error handling with retry policies
   - Input validation with custom rules
@@ -128,13 +124,11 @@ KinOS uses a single server architecture where both frontend and backend are serv
   - Resource cleanup
   - Service lifecycle management
 
-- `services/cache_service.py` - Multi-level caching service
-  - Memory cache (LRU)
-  - File content cache
-  - Prompt cache
-  - Metadata cache
-  - Cache metrics collection
-  - Automatic cleanup
+- `services/team_service.py` - Team management service
+  - Team configuration and initialization
+  - Agent coordination
+  - Status monitoring
+  - Performance metrics
 
 - `services/file_service.py` - File operations service
   - Thread-safe file operations
@@ -142,12 +136,6 @@ KinOS uses a single server architecture where both frontend and backend are serv
   - Path validation
   - Mission file management
   - Error recovery
-
-- `services/notification_service.py` - Real-time notification service
-  - Message queue management
-  - Content change detection
-  - Cache performance metrics
-  - Real-time updates
 
 ### File System
 - Structure dynamique par mission
