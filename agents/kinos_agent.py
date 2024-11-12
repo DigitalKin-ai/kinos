@@ -300,35 +300,74 @@ class KinOSAgent:
             os.chdir(self.original_dir)
         except Exception as e:
             self.logger.log(f"[{self.__class__.__name__}] Error restoring working directory: {str(e)}")
-            
-    def recover_from_error(self):
-        """
-        Tente de récupérer après une erreur.
-        
-        - Réinitialise l'état interne
-        - Recharge les fichiers
-        - Journalise la tentative
-        
-        Returns:
-            bool: True si récupération réussie, False sinon
-        """
+
+    def cleanup(self) -> None:
+        """Cleanup agent resources properly"""
         try:
-            self.logger(f"[{self.__class__.__name__}] Attempting recovery...")
-            
-            # Reset internal state
-            self.last_run = None
-            self.last_change = None
-            self.consecutive_no_changes = 0
-            
-            # Re-initialize file monitoring
-            self.list_files()
-            
-            # Log recovery attempt
-            self.logger(f"[{self.__class__.__name__}] Recovery complete")
-            return True
-            
+            # Stop agent if running
+            if self.running:
+                self.stop()
+                
+            # Clear caches
+            if hasattr(self, '_prompt_cache'):
+                self._prompt_cache.clear()
+                
+            # Restore original directory
+            if hasattr(self, 'original_dir') and self.original_dir:
+                try:
+                    os.chdir(self.original_dir)
+                    self.logger.log(f"[{self.__class__.__name__}] Restored directory: {self.original_dir}")
+                except Exception as e:
+                    self.logger.log(f"[{self.__class__.__name__}] Error restoring directory: {str(e)}")
+                    
+            # Clear file tracking
+            if hasattr(self, 'mission_files'):
+                self.mission_files.clear()
+                
         except Exception as e:
-            self.logger(f"[{self.__class__.__name__}] Recovery failed: {str(e)}")
+            self.logger.log(f"[{self.__class__.__name__}] Error in cleanup: {str(e)}", 'error')
+            
+    def recover_from_error(self) -> bool:
+        """Enhanced error recovery with state preservation"""
+        try:
+            self.logger.log(f"[{self.__class__.__name__}] Starting recovery...")
+            
+            # Store current state
+            previous_state = {
+                'running': self.running,
+                'last_run': self.last_run,
+                'last_change': self.last_change,
+                'mission_files': dict(self.mission_files)
+            }
+            
+            try:
+                # Reset state
+                self._init_state()
+                
+                # Re-validate paths
+                self._validate_paths()
+                
+                # Reload files
+                self.list_files()
+                
+                # Verify recovery
+                if not self.mission_files:
+                    raise ValueError("Failed to reload mission files")
+                    
+                self.logger.log(f"[{self.__class__.__name__}] Recovery successful")
+                return True
+                
+            except Exception as recovery_error:
+                # Restore previous state on failed recovery
+                self.running = previous_state['running']
+                self.last_run = previous_state['last_run']
+                self.last_change = previous_state['last_change']
+                self.mission_files = previous_state['mission_files']
+                
+                raise recovery_error
+                
+        except Exception as e:
+            self.logger.log(f"[{self.__class__.__name__}] Recovery failed: {str(e)}", 'error')
             return False
 
     def should_run(self) -> bool:
@@ -357,28 +396,38 @@ class KinOSAgent:
 
 
     def calculate_dynamic_interval(self) -> float:
-        """
-        Calcule l'intervalle optimal entre les exécutions.
-        
-        Returns:
-            float: Intervalle calculé en secondes
+        """Enhanced dynamic interval calculation with bounds"""
+        try:
+            base_interval = self.check_interval
+            min_interval = 60  # Minimum 1 minute
+            max_interval = 3600  # Maximum 1 hour
             
-        Facteurs pris en compte:
-        - Fréquence récente des changements
-        - Niveau d'activité système
-        - Utilisation des ressources
-        - Exigences temporelles spécifiques
-        """
-        base_interval = self.check_interval
-        
-        # If no recent changes, increase interval more aggressively
-        if self.last_change and self.consecutive_no_changes > 0:
-            # More aggressive backoff: up to 30x base rhythm
-            multiplier = min(30, 2 ** min(4, self.consecutive_no_changes))
-            return base_interval * multiplier
+            # Calculate multiplier based on activity
+            if self.consecutive_no_changes > 0:
+                # More aggressive backoff with upper bound
+                multiplier = min(10, 1.5 ** min(5, self.consecutive_no_changes))
+                
+                # Apply error penalty if recent errors
+                if hasattr(self, 'error_count') and self.error_count > 0:
+                    multiplier *= 1.5
+                    
+                interval = base_interval * multiplier
+                
+                # Log adjustment
+                self.logger.log(
+                    f"[{self.__class__.__name__}] Adjusted interval: {interval:.1f}s "
+                    f"(multiplier: {multiplier:.1f})", 
+                    'debug'
+                )
+                
+                # Ensure within bounds
+                return max(min_interval, min(max_interval, interval))
+                
+            return max(min_interval, base_interval)
             
-        # Add minimum delay to prevent rate limiting
-        return max(base_interval, 80)  # At least 80 seconds between calls
+        except Exception as e:
+            self.logger.log(f"[{self.__class__.__name__}] Error calculating interval: {str(e)}", 'error')
+            return self.check_interval  # Return base interval on error
 
     def is_healthy(self) -> bool:
         """
@@ -392,6 +441,34 @@ class KinOSAgent:
         - Pas trop d'erreurs consécutives
         - Fichiers accessibles
         """
+
+    def get_health_metrics(self) -> Dict[str, Any]:
+        """Get comprehensive health metrics"""
+        try:
+            return {
+                'status': {
+                    'running': self.running,
+                    'is_healthy': self.is_healthy(),
+                    'last_run': self.last_run.isoformat() if self.last_run else None,
+                    'last_change': self.last_change.isoformat() if self.last_change else None
+                },
+                'performance': {
+                    'consecutive_no_changes': self.consecutive_no_changes,
+                    'current_interval': self.calculate_dynamic_interval(),
+                    'error_count': getattr(self, 'error_count', 0)
+                },
+                'resources': {
+                    'mission_files': len(self.mission_files),
+                    'cache_size': len(self._prompt_cache),
+                    'working_dir': os.getcwd()
+                }
+            }
+        except Exception as e:
+            self.logger.log(f"[{self.__class__.__name__}] Error getting health metrics: {str(e)}", 'error')
+            return {
+                'error': str(e),
+                'status': {'running': False, 'is_healthy': False}
+            }
         try:
             # Vérifier le dernier run
             if self.last_run:
@@ -409,6 +486,35 @@ class KinOSAgent:
             
         except Exception as e:
             self.logger(f"[{self.__class__.__name__}] Erreur vérification santé: {str(e)}", 'error')
+            return False
+
+    def _validate_run_conditions(self) -> bool:
+        """Validate conditions required for running"""
+        try:
+            # Check mission directory
+            if not os.path.exists(self.mission_dir):
+                self.logger.log(f"[{self.__class__.__name__}] Mission directory not found", 'error')
+                return False
+                
+            # Verify file access
+            if not os.access(self.mission_dir, os.R_OK | os.W_OK):
+                self.logger.log(f"[{self.__class__.__name__}] Insufficient permissions", 'error')
+                return False
+                
+            # Check for monitored files
+            if not self.mission_files:
+                self.logger.log(f"[{self.__class__.__name__}] No files to monitor", 'warning')
+                return False
+                
+            # Verify prompt
+            if not hasattr(self, 'prompt') or not self.prompt or not self.prompt.strip():
+                self.logger.log(f"[{self.__class__.__name__}] No valid prompt", 'error')
+                return False
+                
+            return True
+            
+        except Exception as e:
+            self.logger.log(f"[{self.__class__.__name__}] Error validating run conditions: {str(e)}", 'error')
             return False
 
     def run(self) -> None:
