@@ -330,41 +330,17 @@ def launch_team(args):
         sys.exit(1)
 
 def main():
-    """
-    Point d'entrée principal du CLI KinOS
-    """
-    # Essayez de charger la configuration, sinon utilisez une configuration par défaut
-    try:
-        config = GlobalConfig.load_config() if hasattr(GlobalConfig, 'load_config') else load_default_config()
-    except Exception:
-        config = load_default_config()
-
-    # Parser pour les arguments de ligne de commande
-    parser = argparse.ArgumentParser(description="KinOS CLI Tool")
-    parser.add_argument('--version', action='version', version='KinOS CLI v0.1.0')
-    parser.add_argument('--config', type=str, help='Chemin vers un fichier de configuration personnalisé')
+    """Main entry point for KinOS CLI"""
+    parser = argparse.ArgumentParser(description="KinOS CLI - Team Launch")
+    parser.add_argument('team', nargs='?', default='default', 
+                       help='Team to launch (default: default)')
+    parser.add_argument('-v', '--verbose', action='store_true', 
+                       help='Enable verbose logging')
+    parser.add_argument('--dry-run', action='store_true',
+                       help='Simulate without executing')
     
-    # Sous-commandes
-    subparsers = parser.add_subparsers(dest='command', help='Commandes disponibles')
-    
-    # Sous-commande pour lancer une équipe
-    team_parser = subparsers.add_parser('team', help='Commandes liées aux équipes')
-    team_parser.add_argument('action', choices=['launch'], help='Action à effectuer')
-    team_parser.add_argument('--mission', type=str, help='Nom de la mission')
-    team_parser.add_argument('--team', type=str, help='Nom de l\'équipe')
-    team_parser.add_argument('--verbose', action='store_true', help='Mode verbose avec logs détaillés')
-    team_parser.add_argument('--dry-run', action='store_true', help='Simulation sans exécution')
-    team_parser.add_argument('--timeout', type=int, default=3600, help='Timeout en secondes')
-    team_parser.add_argument('--log-file', type=str, help='Chemin du fichier de log')
-    
-    # Parse les arguments
     args = parser.parse_args()
-    
-    # Dispatch des commandes
-    if args.command == 'team' and args.action == 'launch':
-        launch_team(args)
-    else:
-        parser.print_help()
+    launch_team(args)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="KinOS CLI - Team Launch")
