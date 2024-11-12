@@ -99,20 +99,18 @@ def configure_cli_logger(force_color=None, log_level='INFO'):
     Returns:
         Logger instance with appropriate color configuration
     """
-    # Check environment variables first
-    if os.environ.get('NO_COLOR') is not None:
-        force_color = False
-    elif os.environ.get('FORCE_COLOR') is not None:
-        force_color = True
-    
     # Create logger instance
     logger = Logger()
     
-    # Set log level
-    logger.set_level(log_level)
-    
-    # Import threading here to avoid circular imports
-    import threading
+    # Set log level - Convert string level to logging constant
+    level_map = {
+        'DEBUG': logging.DEBUG,
+        'INFO': logging.INFO,
+        'WARNING': logging.WARNING,
+        'ERROR': logging.ERROR,
+        'CRITICAL': logging.CRITICAL
+    }
+    logger.set_level(level_map.get(log_level.upper(), logging.INFO))
     
     return logger
     
