@@ -46,8 +46,10 @@ class AiderAgent(KinOSAgent):
         print(f"Config received: {config}")
         
         try:
-            # Initialize logger first
+            # Initialize logger with thread-safe configuration
             from utils.logger import Logger
+            import threading
+            self._log_lock = threading.Lock()
             self.logger = Logger()
             
             # Initialize core attributes
@@ -77,7 +79,9 @@ class AiderAgent(KinOSAgent):
             # Configure UTF-8 encoding
             self._configure_encoding()
             
-            self.logger.log(f"[{self.__class__.__name__}] Initialized as {self.name}")
+            with self._log_lock:
+                self.logger.log(f"[{self.__class__.__name__}] Initialized as {self.name}")
+            
             self._last_request_time = 0
             self._requests_this_minute = 0
             self._rate_limit_window = 60  # 1 minute
@@ -982,3 +986,10 @@ class AiderAgent(KinOSAgent):
         except Exception as e:
             self.logger(f"Error building prompt: {str(e)}")
             return self.prompt  # Fallback to default prompt
+    def _safe_log(self, message: str, level: str = 'info') -> None:
+        """Thread-safe logging"""
+        try:
+            with self._log_lock:
+                self.logger.log(message, level)
+        except Exception as e:
+            print(f"Logging error: {str(e)} - Message: {message}")  # Fallback
