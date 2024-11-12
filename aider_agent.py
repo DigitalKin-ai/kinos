@@ -552,7 +552,19 @@ class AiderAgent(KinOSAgent):
                                     with open(full_path, 'r', encoding='utf-8') as f:
                                         files_context[file_path] = f.read()
                             except Exception as e:
-                                self.logger.log(f"Error reading modified file {file_path}: {str(e)}", 'error')
+                                error_str = str(e).lower()
+                                
+                                # Detect Anthropic rate limit errors
+                                if any(msg in error_str for msg in ['rate limit', 'too many requests', '429']):
+                                    if self._handle_rate_limit_error(attempt, max_attempts):
+                                        attempt += 1
+                                        continue
+                                    else:
+                                        self._log(f"[{self.name}] ❌ Abandoning after {max_attempts} rate limit retries")
+                                        return None
+                                
+                                # For other errors, log and continue
+                                self._log(f"[{self.name}] ❌ Error reading modified file {file_path}: {str(e)}")
                                 continue
 
                         # Add original files if not already included
@@ -563,7 +575,19 @@ class AiderAgent(KinOSAgent):
                                     with open(file_path, 'r', encoding='utf-8') as f:
                                         files_context[rel_path] = f.read()
                                 except Exception as e:
-                                    self.logger.log(f"Error reading original file {file_path}: {str(e)}", 'error')
+                                    error_str = str(e).lower()
+                                    
+                                    # Detect Anthropic rate limit errors
+                                    if any(msg in error_str for msg in ['rate limit', 'too many requests', '429']):
+                                        if self._handle_rate_limit_error(attempt, max_attempts):
+                                            attempt += 1
+                                            continue
+                                        else:
+                                            self._log(f"[{self.name}] ❌ Abandoning after {max_attempts} rate limit retries")
+                                            return None
+                                    
+                                    # For other errors, log and continue
+                                    self._log(f"[{self.name}] ❌ Error reading original file {file_path}: {str(e)}")
                                     continue
 
                         # Only proceed if we have files to save
@@ -573,9 +597,21 @@ class AiderAgent(KinOSAgent):
                                 f"Files modified:\n" + "\n".join(files_context.keys()),
                                 'info'
                             )
-                            
+
                     except Exception as e:
-                        self._log(f"[{self.name}] Error reading files: {str(e)}")
+                        error_str = str(e).lower()
+                        
+                        # Detect Anthropic rate limit errors
+                        if any(msg in error_str for msg in ['rate limit', 'too many requests', '429']):
+                            if self._handle_rate_limit_error(attempt, max_attempts):
+                                attempt += 1
+                                continue
+                            else:
+                                self._log(f"[{self.name}] ❌ Abandoning after {max_attempts} rate limit retries")
+                                return None
+                        
+                        # For other errors, log and continue
+                        self._log(f"[{self.name}] ❌ Error reading files: {str(e)}")
                 
                 # Log completion status
                 if return_code != 0:
