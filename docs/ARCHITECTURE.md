@@ -730,6 +730,37 @@ Teams are simple agent groupings optimized for specific tasks:
    - Recovery automatique
    - Prévention des conflits
 
+### Map System
+
+Le MapService est un composant central qui :
+- Génère une vue d'ensemble structurée du projet
+- Surveille la taille des documents en tokens
+- Fournit des alertes visuelles (✓, ⚠️, 🔴)
+- Met à jour automatiquement la map après chaque modification
+
+#### Seuils de Taille
+- ✓ OK : < 6k tokens
+- ⚠️ Long : > 6k tokens 
+- 🔴 Trop long : > 12k tokens
+
+### Phase System
+Le système de phases optimise l'utilisation des ressources :
+
+- **EXPANSION** (< 60% tokens)
+  * Création libre de contenu
+  * Développement de nouvelles fonctionnalités
+  * Documentation extensive
+
+- **CONVERGENCE** (> 60% tokens)
+  * Optimisation du contenu existant
+  * Réduction de la duplication
+  * Consolidation des documents
+
+Seuils :
+- Limite totale : 128k tokens
+- CONVERGENCE : > 76.8k tokens (60%)
+- Retour EXPANSION : < 64k tokens (50%)
+
 ## Points d'Extension
 
 1. Nouveaux Agents
