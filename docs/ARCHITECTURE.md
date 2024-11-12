@@ -11,18 +11,64 @@ KinOS est un système d'agents autonomes conçu pour simplifier et accélérer l
 
 ## Component Architecture
 
-### Core
-- `kinos_cli.py` - Point d'entrée principal CLI
-  - Gestion des commandes et options
-  - Initialisation des services
-  - Gestion des erreurs avec retry
-  - Monitoring des agents
-  - Configuration dynamique
-  - Validation des chemins
-  - Logging détaillé
-  - Gestion des ressources
+### Core Components
 
-### Single Server Architecture
+1. **CLI Interface** (`kinos_cli.py`)
+   - Simple command-line entry point
+   - Automatic current directory detection
+   - Dynamic team loading
+   - Real-time agent monitoring
+   - Error handling with retry
+   - Graceful shutdown handling
+
+2. **Agent System**
+   - Autonomous file-focused agents
+   - Self-regulated execution cycles
+   - Dynamic file management
+   - Automatic error recovery
+   - Adaptive timing control
+   - Smart resource management
+
+3. **File System**
+   - Current directory as mission context
+   - Dynamic path validation
+   - Thread-safe file operations
+   - Automatic backup handling
+   - Permission validation
+   - Resource cleanup
+
+4. **Services Layer**
+   - Team management
+   - Agent coordination
+   - File operations
+   - Path validation
+   - Error handling
+   - Resource management
+
+### Key Features
+
+1. **Simplicity**
+   - Zero configuration required
+   - Current directory = mission context
+   - Single command operation
+   - Automatic team selection
+   - Graceful error handling
+
+2. **Autonomy**
+   - Self-managing agents
+   - Dynamic resource allocation
+   - Automatic recovery
+   - Smart scheduling
+   - Independent operation
+
+3. **Flexibility**
+   - Works in any directory
+   - Multiple team configurations
+   - Adaptable to any project
+   - Language agnostic
+   - Extensible design
+
+### System Architecture
 
 KinOS uses a single server architecture where both frontend and backend are served from the same Flask application:
 
