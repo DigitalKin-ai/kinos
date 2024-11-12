@@ -245,6 +245,15 @@ class PathManager:
             return False
 
     @staticmethod
+    def _validate_path_safety(path: str) -> bool:
+        """Centralized validation of path safety"""
+        try:
+            normalized = os.path.normpath(path)
+            return not any(part in ['..', '.'] for part in normalized.split(os.sep))
+        except Exception:
+            return False
+
+    @staticmethod
     def ensure_directory(path: str) -> None:
         """Crée un dossier s'il n'existe pas"""
         os.makedirs(path, exist_ok=True)

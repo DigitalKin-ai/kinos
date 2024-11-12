@@ -45,7 +45,7 @@ class FileService(BaseService):
             # Construct absolute file path from current directory
             file_path = os.path.join(os.getcwd(), file_name)
 
-            # Ne pas créer le fichier s'il n'existe pas
+            # Don't create file if it doesn't exist
             if not os.path.exists(file_path):
                 return None
 
@@ -62,7 +62,7 @@ class FileService(BaseService):
             return content
                 
         except Exception as e:
-            self.logger.log(f"Error reading {file_name}: {str(e)}", 'error')
+            self._handle_error('read_file', e)
             return None
 
     @safe_operation()

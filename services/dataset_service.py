@@ -543,6 +543,9 @@ class DatasetService(BaseService):
                 f.flush()
                 os.fsync(f.fileno())
                 
+            # Clear caches
+            self.content_cache.clear()
+            
             self.logger.log("Dataset service cleanup completed", 'success')
             
         except Exception as e:
