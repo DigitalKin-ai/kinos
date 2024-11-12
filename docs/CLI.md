@@ -7,8 +7,14 @@ La CLI KinOS offre une interface simplifiée pour lancer des équipes d'agents d
 ## Utilisation de Base
 
 ```bash
-# Lancer une équipe dans le répertoire courant
-kin <nom-equipe>
+# Launch default team in current directory
+kin
+
+# Launch with verbose logging
+kin -v
+
+# Show help
+kin --help
 ```
 
 ## Commandes Disponibles
