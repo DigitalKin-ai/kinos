@@ -1,27 +1,149 @@
 import os
+import json
+from typing import Optional, Dict, Any
 
 class PathManager:
-    """Gestionnaire centralisé des chemins pour KinOS"""
+    """Gestionnaire centralisé et sécurisé des chemins pour KinOS"""
     
+    _CONFIG_FILE = 'config/missions.json'
+    _DEFAULT_MISSIONS_DIR = 'missions'
+    
+    @classmethod
+    def _load_mission_config(cls) -> Dict[str, Any]:
+        """Charge la configuration des chemins de mission"""
+        try:
+            config_path = os.path.join(cls.get_project_root(), cls._CONFIG_FILE)
+            if os.path.exists(config_path):
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            return {}
+        except Exception as e:
+            print(f"Error loading mission config: {e}")
+            return {}
+
     @staticmethod
     def get_project_root() -> str:
         """Retourne le chemin racine du projet"""
-        # Remonte jusqu'à trouver le dossier racine du projet (contenant missions/)
         current = os.path.abspath(__file__)
-        while current:
+        while current != os.path.dirname(current):
             if os.path.exists(os.path.join(current, "missions")):
                 return current
-            parent = os.path.dirname(current)
-            if parent == current:
-                break
-            current = parent
+            current = os.path.dirname(current)
         raise ValueError("Project root not found")
 
+    @classmethod
+    def get_mission_path(cls, mission_name: str, base_path: Optional[str] = None) -> str:
+        """
+        Retourne le chemin absolu vers une mission avec support de chemins personnalisés
+        
+        Args:
+            mission_name (str): Nom de la mission
+            base_path (Optional[str]): Chemin de base personnalisé
+        
+        Returns:
+            str: Chemin absolu de la mission
+        """
+        # Charger la configuration des missions
+        mission_config = cls._load_mission_config()
+        
+        # Priorité de sélection du chemin de base :
+        # 1. Chemin fourni explicitement
+        # 2. Chemin configuré pour cette mission
+        # 3. Dossier missions par défaut dans le projet
+        
+        if base_path:
+            mission_path = os.path.join(base_path, mission_name)
+        elif mission_name in mission_config and 'path' in mission_config[mission_name]:
+            mission_path = mission_config[mission_name]['path']
+        else:
+            root = cls.get_project_root()
+            mission_path = os.path.join(root, cls._DEFAULT_MISSIONS_DIR, mission_name)
+        
+        # Normaliser et valider le chemin
+        mission_path = os.path.abspath(mission_path)
+        
+        # Validation du chemin
+        if not cls.validate_mission_path(mission_path):
+            raise ValueError(f"Chemin de mission invalide : {mission_path}")
+        
+        return mission_path
+
     @staticmethod
-    def get_mission_path(mission_name: str) -> str:
-        """Retourne le chemin absolu vers une mission"""
-        root = PathManager.get_project_root()
-        return os.path.join(root, "missions", mission_name)
+    def validate_mission_path(path: str) -> bool:
+        """
+        Valide un chemin de mission
+        
+        Critères:
+        - Chemin absolu
+        - Existe et est accessible
+        - N'est pas dans le répertoire du projet
+        - Permissions en lecture/écriture
+        """
+        try:
+            # Vérifier que c'est un chemin absolu
+            if not os.path.isabs(path):
+                return False
+            
+            # Vérifier que le chemin existe
+            if not os.path.exists(path):
+                return False
+            
+            # Vérifier les permissions
+            if not os.access(path, os.R_OK | os.W_OK):
+                return False
+            
+            # Optionnel : Vérifier que le chemin n'est pas dans le projet
+            project_root = PathManager.get_project_root()
+            if path.startswith(project_root):
+                return False
+            
+            return True
+        except Exception:
+            return False
+
+    @classmethod
+    def create_mission_directory(cls, mission_name: str, base_path: Optional[str] = None) -> str:
+        """
+        Crée un répertoire de mission s'il n'existe pas
+        
+        Args:
+            mission_name (str): Nom de la mission
+            base_path (Optional[str]): Chemin de base personnalisé
+        
+        Returns:
+            str: Chemin absolu du répertoire de mission
+        """
+        mission_path = cls.get_mission_path(mission_name, base_path)
+        
+        # Créer le répertoire s'il n'existe pas
+        os.makedirs(mission_path, exist_ok=True)
+        
+        return mission_path
+
+    @classmethod
+    def list_missions(cls, base_path: Optional[str] = None) -> Dict[str, str]:
+        """
+        Liste toutes les missions disponibles
+        
+        Args:
+            base_path (Optional[str]): Chemin de base personnalisé
+        
+        Returns:
+            Dict[str, str]: Dictionnaire des missions (nom: chemin)
+        """
+        if base_path is None:
+            base_path = os.path.join(cls.get_project_root(), cls._DEFAULT_MISSIONS_DIR)
+        
+        missions = {}
+        try:
+            for mission_name in os.listdir(base_path):
+                mission_path = os.path.join(base_path, mission_name)
+                if os.path.isdir(mission_path) and cls.validate_mission_path(mission_path):
+                    missions[mission_name] = mission_path
+        except Exception as e:
+            print(f"Erreur lors de la liste des missions : {e}")
+        
+        return missions
 
     @staticmethod
     def get_prompts_path() -> str:
