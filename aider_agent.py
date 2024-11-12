@@ -121,7 +121,7 @@ class AiderAgent(KinOSAgent):
     def _get_relative_file_path(self, file_path: str) -> str:
         """Get relative path from mission directory"""
         try:
-            mission_dir = PathManager.get_mission_path(self.web_instance.file_manager.current_mission)
+            mission_dir = PathManager.get_mission_path(self.file_manager.current_mission)
             return os.path.relpath(file_path, mission_dir)
         except Exception as e:
             self.logger(f"Error getting relative path: {str(e)}")
@@ -398,13 +398,13 @@ class AiderAgent(KinOSAgent):
                             # Parse commit messages
                             if line.startswith("Commit ") and " " in line[7:]:
                                 try:
-                                    # Format: "Commit e7975b9 refactor: Remove web_instance..."
+                                    # Format: "Commit e7975b9 refactor: Remove self..."
                                     commit_hash = line[7:].split()[0]  # Extract hash
                                     commit_type = line[7+len(commit_hash):].strip().split(":", 1)
                                     
                                     if len(commit_type) == 2:
                                         commit_category = commit_type[0].strip().lower()  # e.g. "refactor"
-                                        commit_message = commit_type[1].strip()   # e.g. "Remove web_instance..."
+                                        commit_message = commit_type[1].strip()   # e.g. "Remove self..."
                                         
                                         # Get appropriate icon or default to 🔨
                                         icon = COMMIT_ICONS.get(commit_category, '🔨')
@@ -558,9 +558,9 @@ class AiderAgent(KinOSAgent):
                         if files_context:
                             # Check dataset service availability silently
                             if (hasattr(self.web_instance, 'dataset_service') and 
-                                self.web_instance.dataset_service and 
-                                hasattr(self.web_instance.dataset_service, 'is_available') and 
-                                self.web_instance.dataset_service.is_available()):
+                                self.dataset_service and 
+                                hasattr(self.dataset_service, 'is_available') and 
+                                self.dataset_service.is_available()):
                                 try:
                                     # Create event loop if needed
                                     try:
@@ -571,7 +571,7 @@ class AiderAgent(KinOSAgent):
 
                                     # Add to dataset asynchronously
                                     loop.create_task(
-                                        self.web_instance.dataset_service.add_interaction_async(
+                                        self.dataset_service.add_interaction_async(
                                             prompt=prompt,
                                             files_context=files_context,
                                             aider_response=full_output
@@ -798,7 +798,7 @@ class AiderAgent(KinOSAgent):
                 try:
                     # Check for shutdown signal
                     if hasattr(self.web_instance, 'agent_service') and \
-                       self.web_instance.agent_service._shutting_down.is_set():
+                       self.agent_service._shutting_down.is_set():
                         self._log(f"[{self.__class__.__name__}] Shutdown signal received")
                         break
 
@@ -847,7 +847,7 @@ class AiderAgent(KinOSAgent):
                 except Exception as loop_error:
                     self._log(f"[{self.__class__.__name__}] ❌ Error in run loop: {str(loop_error)}")
                     if hasattr(self.web_instance, 'agent_service') and \
-                       self.web_instance.agent_service._shutting_down.is_set():
+                       self.agent_service._shutting_down.is_set():
                         break
                     time.sleep(5)  # Pause before retrying
 

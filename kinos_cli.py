@@ -239,10 +239,10 @@ def create_robust_web_instance(config=None):
     )
 
     # Update dataset_service with web_instance
-    web_instance.dataset_service.web_instance = web_instance
+    self.dataset_service.web_instance = web_instance
     
     # Créer le TeamService avec l'instance web
-    web_instance.team_service = TeamService(web_instance)
+    self.team_service = TeamService(web_instance)
 
     return web_instance
 
@@ -279,14 +279,14 @@ def launch_team(args):
             return
         
         # Récupérer l'ID de la mission
-        mission = web_instance.mission_service.get_mission_by_name(args.mission)
+        mission = self.mission_service.get_mission_by_name(args.mission)
         if not mission:
             logger.error(f"Mission {args.mission} non trouvée")
             sys.exit(1)
         
         # Lancement de l'équipe avec gestion des erreurs détaillée
         try:
-            result = web_instance.team_service.activate_team(mission['id'], args.team)
+            result = self.team_service.activate_team(mission['id'], args.team)
             
             if result:
                 logger.info(f"Équipe {args.team} lancée avec succès")

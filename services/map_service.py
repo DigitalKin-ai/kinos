@@ -117,7 +117,7 @@ class MapService(BaseService):
                 "- Free to create new content and sections\n"
                 "- Normal operation of all agents\n"
                 "- Regular token monitoring\n"
-                f"- Will transition to CONVERGENCE at {self.web_instance.phase_service.CONVERGENCE_TOKENS/1000:.1f}k tokens"
+                f"- Will transition to CONVERGENCE at {self.phase_service.CONVERGENCE_TOKENS/1000:.1f}k tokens"
             )
         else:  # CONVERGENCE
             return (
@@ -126,7 +126,7 @@ class MapService(BaseService):
                 "- Limited new content creation\n"
                 "- Focus on reducing token usage\n"
                 "- Emphasis on content optimization\n"
-                f"- Can return to EXPANSION below {self.web_instance.phase_service.EXPANSION_TOKENS/1000:.1f}k tokens"
+                f"- Can return to EXPANSION below {self.phase_service.EXPANSION_TOKENS/1000:.1f}k tokens"
             )
 
     def _format_map_content(self, tree_content: List[str], warnings: List[str]) -> str:
@@ -134,7 +134,7 @@ class MapService(BaseService):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         # Get phase status from PhaseService
-        phase_status = self.web_instance.phase_service.get_status_info()
+        phase_status = self.phase_service.get_status_info()
         
         content = [
             "# Project Map",
@@ -152,8 +152,8 @@ class MapService(BaseService):
             "## Project Phase",
             self._get_phase_description(phase_status),
             "\n## Token Usage",
-            f"Total: {phase_status['total_tokens']/1000:.1f}k/{self.web_instance.phase_service.MODEL_TOKEN_LIMIT/1000:.0f}k ({phase_status['usage_percent']:.1f}%)",
-            f"Convergence at: {self.web_instance.phase_service.CONVERGENCE_TOKENS/1000:.1f}k ({self.web_instance.phase_service.CONVERGENCE_THRESHOLD*100:.0f}%)\n",
+            f"Total: {phase_status['total_tokens']/1000:.1f}k/{self.phase_service.MODEL_TOKEN_LIMIT/1000:.0f}k ({phase_status['usage_percent']:.1f}%)",
+            f"Convergence at: {self.phase_service.CONVERGENCE_TOKENS/1000:.1f}k ({self.phase_service.CONVERGENCE_THRESHOLD*100:.0f}%)\n",
             "## Phase Status",
             f"{phase_status['status_icon']} {phase_status['status_message']}",
             f"Headroom: {phase_status['headroom']/1000:.1f}k tokens\n",

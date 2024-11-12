@@ -46,7 +46,7 @@ class FileManager:
                 
             # Update map for any file except map.md itself
             if file_name != 'map.md' and hasattr(self.web_instance, 'map_service'):
-                self.web_instance.map_service.update_map()
+                self.map_service.update_map()
                 
             return True
         except Exception as e:

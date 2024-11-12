@@ -58,13 +58,13 @@ class AgentService:
 
         # Ajouter des méthodes par défaut si manquantes
         if not hasattr(web_instance, 'logger'):
-            web_instance.logger = Logger()
+            self.logger = Logger()
         
         if not hasattr(web_instance, 'log_message'):
-            web_instance.log_message = lambda msg, level='info': web_instance.logger.log(msg, level)
+            self.log_message = lambda msg, level='info': self.logger.log(msg, level)
         
         if not hasattr(web_instance, 'file_manager'):
-            web_instance.file_manager = FileManager(web_instance)
+            self.file_manager = FileManager(web_instance)
 
         return web_instance
 
@@ -78,7 +78,7 @@ class AgentService:
             # Create prompts directory if it doesn't exist
             if not os.path.exists(prompts_dir):
                 os.makedirs(prompts_dir)
-                self.web_instance.log_message("Created prompts directory", 'info')
+                self.log_message("Created prompts directory", 'info')
                 return []
 
             # Get prompts directory using PathManager
@@ -96,12 +96,12 @@ class AgentService:
                             'class': agent_class,
                             'status': self._get_agent_status(agent_name)
                         })
-                        self.web_instance.log_message(f"Discovered agent: {agent_name}", 'debug')
+                        self.log_message(f"Discovered agent: {agent_name}", 'debug')
 
             return discovered_agents
 
         except Exception as e:
-            self.web_instance.log_message(f"Error discovering agents: {str(e)}", 'error')
+            self.log_message(f"Error discovering agents: {str(e)}", 'error')
             return []
 
     def _get_agent_class(self, agent_name: str):
@@ -114,7 +114,7 @@ class AgentService:
             return AiderAgent
             
         except ImportError as e:
-            self.web_instance.log_message(f"Error importing agent class: {str(e)}", 'error')
+            self.log_message(f"Error importing agent class: {str(e)}", 'error')
             return None
 
     def init_agents(self, config: Dict[str, Any], team_agents: Optional[List[str]] = None) -> None:
@@ -162,7 +162,7 @@ class AgentService:
 
         for search_path in search_paths:
             if not os.path.exists(search_path):
-                self.web_instance.log_message(
+                self.log_message(
                     f"Search path does not exist: {search_path}", 
                     'warning'
                 )
@@ -202,7 +202,7 @@ class AgentService:
         """
         try:
             if not prompt_file or not os.path.exists(prompt_file):
-                self.web_instance.log_message(
+                self.log_message(
                     f"Prompt file not found: {prompt_file}", 
                     'error'
                 )
@@ -212,20 +212,20 @@ class AgentService:
                 content = f.read()
                 
             if not content.strip():
-                self.web_instance.log_message(
+                self.log_message(
                     f"Empty prompt file: {prompt_file}", 
                     'warning'
                 )
                 return None
                 
-            self.web_instance.log_message(
+            self.log_message(
                 f"Successfully read prompt from: {prompt_file}", 
                 'debug'
             )
             return content
             
         except Exception as e:
-            self.web_instance.log_message(
+            self.log_message(
                 f"Error reading prompt file {prompt_file}: {str(e)}", 
                 'error'
             )
@@ -261,7 +261,7 @@ Detailed step-by-step instructions for the agent's workflow.
 List any specific constraints or limitations.
 """
         
-        self.web_instance.log_message(
+        self.log_message(
             f"Created default prompt for {agent_name}", 
             'info'
         )
@@ -354,7 +354,7 @@ List any specific constraints or limitations.
                 # Try to get agents from active team or use a default list
                 team_agents = None
                 try:
-                    active_team = self.web_instance.team_service.active_team
+                    active_team = self.team_service.active_team
                     team_agents = active_team['agents'] if active_team else None
                 except Exception:
                     pass
@@ -377,7 +377,7 @@ List any specific constraints or limitations.
                 self.init_agents({
                 }, team_agents)
             except Exception as e:
-                self.web_instance.log_message(f"Failed to initialize agents: {str(e)}", 'error')
+                self.log_message(f"Failed to initialize agents: {str(e)}", 'error')
     
         return list(self.agents.keys())
 
@@ -591,7 +591,7 @@ List any specific constraints or limitations.
             return max(0.0, min(1.0, health_score))  # Clamp between 0 and 1
             
         except Exception as e:
-            self.web_instance.log_message(f"Error calculating system health: {str(e)}", 'error')
+            self.log_message(f"Error calculating system health: {str(e)}", 'error')
             return 0.0  # Return 0 on error
 
     def _handle_system_degradation(self, system_metrics: Dict) -> None:
@@ -978,12 +978,12 @@ List any specific constraints or limitations.
     def _verify_team_agents(self, team_agents: List[str]) -> bool:
         """Vérifie que tous les agents requis sont disponibles"""
         try:
-            available_agents = set(self.web_instance.agent_service.get_available_agents())
+            available_agents = set(self.agent_service.get_available_agents())
             normalized_agents = set(self._normalize_agent_names(team_agents))
             
             missing_agents = normalized_agents - available_agents
             if missing_agents:
-                self.web_instance.log_message(
+                self.log_message(
                     f"Missing required agents: {missing_agents}\n"
                     f"Available agents: {available_agents}", 
                     'error'
@@ -991,7 +991,7 @@ List any specific constraints or limitations.
                 return False
             return True
         except Exception as e:
-            self.web_instance.log_message(f"Error verifying team agents: {str(e)}", 'error')
+            self.log_message(f"Error verifying team agents: {str(e)}", 'error')
             return False
 
     def _update_global_status(self, status_updates: Dict[str, Dict], system_metrics: Dict, health_score: float) -> None:
@@ -1063,7 +1063,7 @@ List any specific constraints or limitations.
         except Exception as e:
             # Log agent creation failure
             self.log_agent_creation(name, False)
-            self.web_instance.log_message(f"Error creating agent: {str(e)}", 'error')
+            self.log_message(f"Error creating agent: {str(e)}", 'error')
             raise
 
     def get_agent_prompt(self, agent_id: str) -> Optional[str]:
@@ -1091,10 +1091,10 @@ List any specific constraints or limitations.
                         
                         # Validate prompt content
                         if prompt and prompt.strip():
-                            self.web_instance.log_message(f"Retrieved prompt from {prompt_path}", 'debug')
+                            self.log_message(f"Retrieved prompt from {prompt_path}", 'debug')
                             return prompt
                     except Exception as read_error:
-                        self.web_instance.log_message(f"Error reading prompt file {prompt_path}: {str(read_error)}", 'error')
+                        self.log_message(f"Error reading prompt file {prompt_path}: {str(read_error)}", 'error')
             
             # If no prompt found, return a default
             default_prompt = f"""# {agent_name.capitalize()} Agent Default Prompt
@@ -1108,11 +1108,11 @@ Default context for agent operations.
 ## INSTRUCTIONS
 Default operational instructions.
 """
-            self.web_instance.log_message(f"Using default prompt for {agent_name}", 'warning')
+            self.log_message(f"Using default prompt for {agent_name}", 'warning')
             return default_prompt
             
         except Exception as e:
-            self.web_instance.log_message(f"Error getting agent prompt: {str(e)}", 'error')
+            self.log_message(f"Error getting agent prompt: {str(e)}", 'error')
             return None
 
     def save_agent_prompt(self, agent_id: str, prompt_content: str) -> bool:
@@ -1140,11 +1140,11 @@ Default operational instructions.
             if agent_name in self.agents:
                 self.reload_agent(agent_name)
             
-            self.web_instance.log_message(f"Saved new prompt for agent {agent_name}", 'success')
+            self.log_message(f"Saved new prompt for agent {agent_name}", 'success')
             return True
             
         except Exception as e:
-            self.web_instance.log_message(f"Error saving agent prompt: {str(e)}", 'error')
+            self.log_message(f"Error saving agent prompt: {str(e)}", 'error')
             return False
 
     def _validate_prompt(self, prompt_content: str) -> bool:
@@ -1198,14 +1198,14 @@ Default operational instructions.
             import shutil
             shutil.copy2(prompt_file, backup_file)
             
-            self.web_instance.log_message(
+            self.log_message(
                 f"Created backup of {agent_name} prompt: {backup_file}", 
                 'info'
             )
             return True
             
         except Exception as e:
-            self.web_instance.log_message(f"Error backing up prompt: {str(e)}", 'error')
+            self.log_message(f"Error backing up prompt: {str(e)}", 'error')
             return False
 
     def log_agent_creation(self, agent_name: str, success: bool):
@@ -1228,7 +1228,7 @@ Default operational instructions.
             return content
             
         except Exception as e:
-            self.web_instance.log_message(f"Error loading prompt template: {str(e)}", 'error')
+            self.log_message(f"Error loading prompt template: {str(e)}", 'error')
             return None
 
     def _create_default_prompt(self, agent_name: str) -> str:
@@ -1310,7 +1310,7 @@ Describe the operational context and key responsibilities.
         # Vérifier les champs requis
         missing_fields = [field for field in required_fields if field not in config]
         if missing_fields:
-            self.web_instance.log_message(
+            self.log_message(
                 f"Missing required fields in agent config: {missing_fields}", 
                 'error'
             )
@@ -1319,7 +1319,7 @@ Describe the operational context and key responsibilities.
         # Vérifier le mission_dir si fourni
         if 'mission_dir' in config and config['mission_dir']:
             if not os.path.exists(config['mission_dir']):
-                self.web_instance.log_message(
+                self.log_message(
                     f"Mission directory does not exist: {config['mission_dir']}", 
                     'error'
                 )

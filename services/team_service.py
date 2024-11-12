@@ -182,10 +182,10 @@ class TeamService:
             agent: Instance de l'agent
         """
         try:
-            self.web_instance.log_message(f"🔄 Agent {agent_name} starting run loop", 'info')
+            self.log_message(f"🔄 Agent {agent_name} starting run loop", 'info')
             agent.run()  # Appel effectif de la méthode run()
         except Exception as e:
-            self.web_instance.log_message(
+            self.log_message(
                 f"💥 Agent {agent_name} crashed:\n"
                 f"Error: {str(e)}\n"
                 f"Traceback: {traceback.format_exc()}", 

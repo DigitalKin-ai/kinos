@@ -20,7 +20,7 @@ def init_services(web_instance):
         # Ensure web_instance has logger
         if not hasattr(web_instance, 'logger'):
             from utils.logger import Logger
-            web_instance.logger = Logger()
+            self.logger = Logger()
             print("Created new logger for web_instance")
 
         # Initialize DatasetService first as it's required for fine-tuning
@@ -37,29 +37,29 @@ def init_services(web_instance):
                     print(f"Created data directory: {data_dir}")
                     
                 # Create and verify service
-                web_instance.dataset_service = DatasetService(web_instance)
-                print(f"Service created: {web_instance.dataset_service is not None}")
+                self.dataset_service = DatasetService(web_instance)
+                print(f"Service created: {self.dataset_service is not None}")
                     
                 # Verify availability
-                available = web_instance.dataset_service.is_available()
+                available = self.dataset_service.is_available()
                 print(f"Service available: {available}")
                     
                 if not available:
                     print("Running availability check again with logging...")
-                    web_instance.dataset_service.is_available()  # Run again for logs
-                    web_instance.logger.log("Dataset service initialization failed", 'error')
+                    self.dataset_service.is_available()  # Run again for logs
+                    self.logger.log("Dataset service initialization failed", 'error')
                     raise ServiceError("Dataset service not available after initialization")
                     
-                web_instance.logger.log(
+                self.logger.log(
                     f"Dataset service initialized successfully\n"
-                    f"Data directory: {web_instance.dataset_service.data_dir}\n"
-                    f"Dataset file: {web_instance.dataset_service.dataset_file}",
+                    f"Data directory: {self.dataset_service.data_dir}\n"
+                    f"Dataset file: {self.dataset_service.dataset_file}",
                     'success'
                 )
             except Exception as e:
                 print(f"Error initializing dataset service: {str(e)}")
                 print(f"Traceback: {traceback.format_exc()}")
-                web_instance.logger.log(f"Error initializing dataset service: {str(e)}", 'error')
+                self.logger.log(f"Error initializing dataset service: {str(e)}", 'error')
                 raise ServiceError(f"Dataset service initialization failed: {str(e)}")
 
         # Initialize core services
@@ -75,7 +75,7 @@ def init_services(web_instance):
         for service_name, init_func in services_to_init:
             if not hasattr(web_instance, service_name):
                 try:
-                    web_instance.logger.log(f"Initializing {service_name}...", 'info')
+                    self.logger.log(f"Initializing {service_name}...", 'info')
                     setattr(web_instance, service_name, init_func())
                     
                     # Verify service was set
@@ -86,10 +86,10 @@ def init_services(web_instance):
                     if getattr(web_instance, service_name) is None:
                         raise ServiceError(f"{service_name} was initialized as None")
                     
-                    web_instance.logger.log(f"Successfully initialized {service_name}", 'success')
+                    self.logger.log(f"Successfully initialized {service_name}", 'success')
                     
                 except Exception as e:
-                    web_instance.logger.log(
+                    self.logger.log(
                         f"Error initializing {service_name}:\n"
                         f"Error: {str(e)}\n"
                         f"Traceback: {traceback.format_exc()}", 
@@ -112,14 +112,14 @@ def init_services(web_instance):
             )
 
         # Log successful initialization
-        web_instance.logger.log(
+        self.logger.log(
             "All services initialized successfully\n"
             f"Active services: {[svc for svc in required_services if hasattr(web_instance, svc)]}",
             'success'
         )
         
     except Exception as e:
-        web_instance.logger.log(
+        self.logger.log(
             f"Critical error in service initialization:\n"
             f"Error: {str(e)}\n"
             f"Traceback: {traceback.format_exc()}", 

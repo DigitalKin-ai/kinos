@@ -87,7 +87,7 @@ class FileService(BaseService):
             # Use relative paths for API endpoints
             endpoint = f"/api/missions/{mission_id}/files/{file_path}"
             # Obtenir les infos de la mission
-            mission = self.web_instance.mission_service.get_mission(mission_id)
+            mission = self.mission_service.get_mission(mission_id)
             if not mission:
                 raise ValidationError("Mission not found")
                 
