@@ -26,13 +26,18 @@ class FileManager:
             return None
             
     def write_file(self, file_name: str, content: str) -> bool:
-        """Write file with simplified path handling"""
+        """Write file with map update"""
         try:
             file_path = os.path.join(os.getcwd(), file_name)
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
             
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(content)
+                
+            # Update map if file is markdown
+            if file_name.endswith('.md'):
+                if hasattr(self.web_instance, 'map_service'):
+                    self.web_instance.map_service.update_map()
                 
             return True
         except Exception as e:
