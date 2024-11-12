@@ -23,7 +23,7 @@ class TeamService:
         return [
             {
                 'id': 'default',
-                'name': 'Default Team',
+                'name': 'Default Team', 
                 'agents': ['specifications', 'management', 'evaluation']
             },
             {

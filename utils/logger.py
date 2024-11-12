@@ -15,25 +15,6 @@ class Logger:
         'reset': '\033[0m'     # Reset
     }
 
-    def _should_colorize(self):
-        """Déterminer si les couleurs doivent être appliquées"""
-        # Conditions pour forcer la couleur
-        if self.force_color is True:
-            return True
-        
-        # Conditions pour désactiver la couleur
-        if self.force_color is False:
-            return False
-        
-        # Détection automatique
-        return (
-            self.is_tty or 
-            'TERM' in os.environ or 
-            os.name == 'nt' or  # Windows support
-            sys.platform == 'win32' or 
-            sys.platform == 'cygwin'
-        )
-
     def log(self, message: str, level: str = 'info'):
         """Log message with optional color"""
         try:
