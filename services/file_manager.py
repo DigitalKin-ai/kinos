@@ -10,8 +10,8 @@ from utils.path_manager import PathManager
 from utils.logger import Logger
 from utils.decorators import safe_operation
 
-class TeamService(BaseService):
-    """Service for managing teams and agent groupings"""
+class FileManager:
+    """Service for managing file operations"""
     
     def __init__(self, web_instance, on_content_changed=None):
         # Import only what's needed
