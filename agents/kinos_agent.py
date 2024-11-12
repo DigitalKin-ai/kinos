@@ -1,20 +1,61 @@
-"""
-Foundation for autonomous CLI-focused agents.
+import os
+from typing import Optional
+from utils.logger import Logger
 
-Each agent is responsible for:
-- Dynamic file management and monitoring
-- Independent decision making and execution
-- Self-regulated operation cycles
-- Automatic error recovery and adaptation
+class FileManager:
+    """Service for managing file operations"""
+    
+    def __init__(self, web_instance, on_content_changed=None):
+        """Initialize with minimal dependencies"""
+        self.project_root = os.getcwd()
+        self._on_content_changed = on_content_changed
+        self.logger = Logger()
+        self.content_cache = {}
 
-Key behaviors:
-- Dynamic file management
-- Flexible monitoring patterns
-- Self-regulated execution
-- Automatic error recovery
-- Adaptive timing control
-- Smart resource management
-"""
+    def read_file(self, file_name: str) -> Optional[str]:
+        """Read file with simplified path handling"""
+        try:
+            file_path = os.path.join(os.getcwd(), file_name)
+            if not os.path.exists(file_path):
+                return None
+                
+            with open(file_path, 'r', encoding='utf-8') as f:
+                return f.read()
+        except Exception as e:
+            self.logger.log(f"Error reading {file_name}: {str(e)}", 'error')
+            return None
+            
+    def write_file(self, file_name: str, content: str) -> bool:
+        """Write file with simplified path handling"""
+        try:
+            file_path = os.path.join(os.getcwd(), file_name)
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+                
+            return True
+        except Exception as e:
+            self.logger.log(f"Error writing {file_name}: {str(e)}", 'error')
+            return False
+            
+    def reset_files(self) -> bool:
+        """Reset all files to their initial state"""
+        try:
+            # Contenu initial par défaut
+            initial_contents = {
+                'demande': '# Mission Request\n\nDescribe the mission request here.',
+                'specifications': '# Specifications\n\nDefine specifications here.',
+                'evaluation': '# Evaluation\n\nEvaluation criteria and results.'
+            }
+            
+            for file_name, content in initial_contents.items():
+                if not self.write_file(file_name, content):
+                    return False
+            return True
+        except Exception as e:
+            self.logger.log(f"Error resetting files: {e}", 'error')
+            return False
 import json
 from typing import Dict, Any, Optional, List
 import re
