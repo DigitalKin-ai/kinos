@@ -1,129 +1,117 @@
 # Gestion Dynamique des Chemins de Fichiers dans KinOS
 
-## Vue d'Ensemble
+## Nouveau Modèle de Gestion des Chemins de Mission
 
-KinOS implémente une gestion flexible et sécurisée des chemins de fichiers:
-- Création dynamique à la demande par les agents
-- Normalisation intelligente via FileManager
-- Validation stricte des permissions
-- Optimisation des accès fichiers
+### Changement Fondamental
+- Les chemins de mission sont désormais des chemins absolus, complètement indépendants du répertoire du projet
+- Le chemin de mission est spécifié explicitement et peut se trouver n'importe où sur le système de fichiers
+- Permet une séparation claire entre le code du projet et les fichiers de mission
+- Facilite l'activation de Git pour chaque mission
 
-## Stratégies par Contexte
+### Avantages
+1. **Isolation Complète**
+   - Chaque mission a son propre espace de fichiers
+   - Indépendance totale du répertoire du projet KinOS
+   - Possibilité de gérer des missions dans n'importe quel emplacement du système
 
-### 1. Création de Fichiers
+2. **Activation Git Simplifiée**
+   - Aider peut être lancé directement dans le dossier de mission
+   - Gestion de version locale pour chaque mission
+   - Contrôle de version indépendant
 
-- Utilise des chemins absolus
-- Structure: `missions/<nom_mission>/<fichier>.md`
-- Crée les dossiers parents si nécessaires
-- Vérifie les droits d'accès
+### Exemple de Configuration
 
-Exemple:
 ```python
-mission_dir = os.path.join("missions", mission_name)
-file_path = os.path.join(mission_dir, "specifications.md")
-os.makedirs(mission_dir, exist_ok=True)
+# Exemple de spécification de chemin de mission
+mission_config = {
+    'name': 'mon-projet-ia',
+    'path': '/chemin/absolu/vers/missions/mon-projet-ia',
+    'git_enabled': True
+}
 ```
 
-### 2. Opérations Aider
+### Stratégies d'Accès
 
-- Change vers le dossier mission
-- Utilise des chemins relatifs
-- Revient au dossier original après
-
-Exemple:
+#### 1. Initialisation de Mission
 ```python
-current_dir = os.getcwd()
-try:
-    os.chdir(mission_dir)
-    # Utilise chemins relatifs pour Aider
-finally:
-    os.chdir(current_dir)
+mission_dir = "/chemin/absolu/vers/missions/ma-mission"
+agent_config = {
+    'mission_dir': mission_dir,
+    'git_enabled': True
+}
 ```
 
-### 3. Lecture/Écriture
+#### 2. Lancement Aider
+```bash
+# Changement de répertoire avant l'appel d'Aider
+cd /chemin/absolu/vers/missions/ma-mission
+aider --no-git --yes-always --file *.py --message "Modifier le code"
+```
 
-- Utilise chemins absolus pour accès direct
-- Vérifie existence avant opérations
-- Gère les erreurs de permissions
+### Considérations de Sécurité
+- Validation stricte des chemins absolus
+- Vérification des permissions d'accès
+- Protection contre les traversées de répertoire
+- Validation des chemins en dehors du projet
 
-## Bonnes Pratiques
-
-1. Validation des Chemins
-   - Normaliser avec `os.path.normpath()`
-   - Vérifier les traversées de dossier
-   - Valider les extensions de fichiers
-
-2. Gestion des Erreurs
-   - Vérifier existence des dossiers
-   - Gérer les erreurs de permissions
-   - Nettoyer les ressources
-
-3. Portabilité
-   - Utiliser `os.path.join()`
-   - Éviter les séparateurs codés en dur
-   - Gérer les différences Windows/Unix
-
-## Exemples de Code
-
-### Création Sécurisée
+### Méthodes de Validation
 ```python
-def create_mission_file(mission_name: str, file_name: str) -> bool:
-    try:
-        # Construire chemin absolu
-        mission_dir = os.path.abspath(os.path.join("missions", mission_name))
-        file_path = os.path.join(mission_dir, file_name)
-        
-        # Valider le chemin
-        if not file_path.startswith(mission_dir):
-            raise ValueError("Invalid file path")
-            
-        # Créer dossier et fichier
-        os.makedirs(mission_dir, exist_ok=True)
-        with open(file_path, 'w') as f:
-            f.write("")
-            
-        return True
-        
-    except Exception as e:
-        logger.error(f"Error creating file: {e}")
+def validate_mission_path(path: str) -> bool:
+    """
+    Valide un chemin de mission
+    
+    Critères:
+    - Chemin absolu
+    - Existe et est accessible
+    - N'est pas dans le répertoire du projet
+    - Permissions en lecture/écriture
+    """
+    if not os.path.isabs(path):
         return False
+    
+    if not os.path.exists(path):
+        return False
+    
+    if not os.access(path, os.R_OK | os.W_OK):
+        return False
+    
+    # Optionnel : Vérifier que le chemin n'est pas dans le projet
+    project_root = PathManager.get_project_root()
+    if path.startswith(project_root):
+        return False
+    
+    return True
 ```
 
-### Exécution Aider
+### Intégration avec PathManager
 ```python
-def run_aider_in_mission(mission_name: str, files: List[str]) -> bool:
-    current_dir = os.getcwd()
-    try:
-        # Changer vers dossier mission
-        mission_dir = os.path.join("missions", mission_name)
-        os.chdir(mission_dir)
+class PathManager:
+    @staticmethod
+    def get_mission_path(mission_name: str, base_path: str = None) -> str:
+        """
+        Récupère le chemin complet d'une mission
         
-        # Utiliser chemins relatifs
-        cmd = ["aider", "--no-git"]
-        for file in files:
-            cmd.extend(["--file", os.path.basename(file)])
-            
-        subprocess.run(cmd)
-        return True
+        Args:
+            mission_name: Nom de la mission
+            base_path: Chemin de base personnalisé (optionnel)
+        """
+        if base_path:
+            # Utiliser le chemin de base fourni
+            mission_path = os.path.join(base_path, mission_name)
+        else:
+            # Utiliser un chemin par défaut si non spécifié
+            mission_path = os.path.join("/chemin/par/defaut/missions", mission_name)
         
-    finally:
-        # Toujours revenir au dossier original
-        os.chdir(current_dir)
+        # Validation du chemin
+        if not validate_mission_path(mission_path):
+            raise ValueError(f"Chemin de mission invalide : {mission_path}")
+        
+        return mission_path
 ```
 
-## Points d'Attention
-
-1. Sécurité
-   - Valider tous les chemins
-   - Éviter les traversées de dossier
-   - Gérer les permissions
-
-2. Performance
-   - Minimiser les changements de dossier
-   - Réutiliser les chemins calculés
-   - Mettre en cache si possible
-
-3. Maintenance
-   - Documenter la stratégie
-   - Centraliser la logique
-   - Tests automatisés
+### Bonnes Pratiques
+1. Toujours utiliser des chemins absolus
+2. Valider les chemins avant utilisation
+3. Gérer les permissions explicitement
+4. Supporter les chemins personnalisés
+5. Documenter la configuration des chemins
