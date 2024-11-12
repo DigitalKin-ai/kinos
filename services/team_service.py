@@ -131,17 +131,56 @@ class TeamService:
                 )
                 raise ValueError(f"Team {team_id} not found")
 
-            config = {'mission_dir': mission_dir}
-            self.agent_service.init_agents(config, team['agents'])
+            # Determine current phase before starting agents
+            from services import init_services
+            services = init_services(None)
+            phase_service = services['phase_service']
+            map_service = services['map_service']
 
-            # Add delay between agent starts
-            for i, agent_name in enumerate(team['agents']):
+            # Generate map to calculate total tokens
+            map_service.generate_map()
+            
+            # Get phase status
+            phase_status = phase_service.get_status_info()
+            current_phase = phase_status['phase']
+            
+            self.logger.log(
+                f"Current phase: {current_phase}\n"
+                f"Total tokens: {phase_status['total_tokens']}\n"
+                f"Usage: {phase_status['usage_percent']:.1f}%\n"
+                f"Status: {phase_status['status_message']}", 
+                'info'
+            )
+
+            # Filter agents based on phase
+            filtered_agents = self._filter_agents_by_phase(team['agents'], current_phase)
+            
+            if not filtered_agents:
+                self.logger.log(
+                    f"No agents available for phase {current_phase}. "
+                    f"Original agents: {team['agents']}", 
+                    'warning'
+                )
+                return {
+                    'team_id': team['id'],
+                    'mission_dir': mission_dir,
+                    'agents': [],
+                    'phase': current_phase,
+                    'status': 'no_agents_for_phase'
+                }
+
+            # Initialize filtered agents
+            config = {'mission_dir': mission_dir}
+            self.agent_service.init_agents(config, filtered_agents)
+
+            # Start agents with delay
+            for i, agent_name in enumerate(filtered_agents):
                 try:
                     if i > 0:  # Don't wait for first agent
                         self.logger.log(f"Waiting 10 seconds before starting next agent...", 'info')
-                        time.sleep(10)  # Wait 10 seconds
+                        time.sleep(10)
                     
-                    self.logger.log(f"Starting agent {i+1}/{len(team['agents'])}: {agent_name}", 'info')
+                    self.logger.log(f"Starting agent {i+1}/{len(filtered_agents)}: {agent_name}", 'info')
                     self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
                     
                 except Exception as e:
@@ -150,7 +189,9 @@ class TeamService:
             return {
                 'team_id': team['id'],
                 'mission_dir': mission_dir,
-                'agents': team['agents']
+                'agents': filtered_agents,
+                'phase': current_phase,
+                'status': 'started'
             }
 
         except Exception as e:
@@ -303,3 +344,30 @@ class TeamService:
         except Exception as e:
             self.logger.log(f"Error calculating health score: {str(e)}", 'error')
             return 0.0
+    def _filter_agents_by_phase(self, agents: List[str], phase: str) -> List[str]:
+        """Filter agents based on current phase"""
+        # In EXPANSION phase, all agents are active
+        if phase == "EXPANSION":
+            return agents
+            
+        # In CONVERGENCE phase, prioritize optimization agents
+        if phase == "CONVERGENCE":
+            # Priority agents for convergence phase
+            priority_agents = [
+                'duplication',      # Duplication detection
+                'validation',       # Quality validation
+                'documentaliste',   # Documentation organization
+                'evaluation'        # Global evaluation
+            ]
+            
+            # Filter to keep priority agents
+            filtered = [agent for agent in agents if agent in priority_agents]
+            
+            # If no priority agents found, return minimal list
+            if not filtered:
+                return ['validation', 'evaluation']
+                
+            return filtered
+            
+        # Default: return all agents
+        return agents
