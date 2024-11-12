@@ -181,7 +181,7 @@ class AgentService:
                     return full_path
 
         # Log détaillé si aucun fichier n'est trouvé
-        self.web_instance.log_message(
+        self.logger.log(
             f"No prompt file found for agent: {agent_name}\n"
             f"Searched paths: {searched_paths}\n"
             f"Potential filenames: {potential_filenames}", 
@@ -639,7 +639,7 @@ List any specific constraints or limitations.
                 )
 
         except Exception as e:
-            self.web_instance.log_message(
+            self.logger.log(
                 f"Error handling system degradation: {str(e)}",
                 'error'
             )
@@ -704,7 +704,7 @@ List any specific constraints or limitations.
                     self._handle_system_degradation(system_metrics)
                     
             except Exception as e:
-                self.web_instance.log_message(f"Error in monitor loop: {str(e)}", 'error')
+                self.logger.log(f"Error in monitor loop: {str(e)}", 'error')
             finally:
                 time.sleep(30)  # Check every 30 seconds
 
@@ -775,7 +775,7 @@ List any specific constraints or limitations.
             return self._get_agent_status_details(agent)
             
         except Exception as e:
-            self.web_instance.log_message(f"Error getting agent status: {str(e)}", 'error')
+            self.logger.log(f"Error getting agent status: {str(e)}", 'error')
             return {
                 'running': False,
                 'status': 'error',
