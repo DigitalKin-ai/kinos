@@ -2,6 +2,8 @@ import os
 import traceback
 from typing import Optional
 from utils.logger import Logger
+from pathspec import PathSpec
+from pathspec.patterns import GitWildMatchPattern
 
 class FileManager:
     """Service for managing file operations"""

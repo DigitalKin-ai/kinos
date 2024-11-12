@@ -271,17 +271,42 @@ class AiderAgent(KinOSAgent):
                     "--architect"
                 ]
 
-                # Add files
+                # Read .gitignore patterns
+                gitignore_patterns = []
+                gitignore_path = os.path.join(self.mission_dir, '.gitignore')
+                if os.path.exists(gitignore_path):
+                    try:
+                        with open(gitignore_path, 'r', encoding='utf-8') as f:
+                            gitignore_patterns = f.readlines()
+                        gitignore_patterns = [p.strip() for p in gitignore_patterns if p.strip() and not p.startswith('#')]
+                        spec = PathSpec.from_lines(GitWildMatchPattern, gitignore_patterns)
+                    except Exception as e:
+                        self.logger.log(f"[{self.__class__.__name__}] Warning reading .gitignore: {str(e)}", 'warning')
+                        spec = None
+                else:
+                    spec = None
+
+                # Add files, respecting .gitignore
                 files_added = []
                 for file_path in self.mission_files:
                     try:
                         rel_path = os.path.relpath(file_path, self.mission_dir)
+                        
+                        # Skip if file matches gitignore patterns
+                        if spec and spec.match_file(rel_path):
+                            self.logger.log(
+                                f"[{self.__class__.__name__}] Skipping ignored file: {rel_path}", 
+                                'debug'
+                            )
+                            continue
+
+                        # Only add if file exists and is in mission directory
                         if os.path.exists(os.path.join(self.mission_dir, rel_path)):
                             cmd.extend(["--file", rel_path])
                             files_added.append(rel_path)
-                            self._log(f"[{self.__class__.__name__}] ➕ Added file: {rel_path}")
+                            self.logger.log(f"[{self.__class__.__name__}] ➕ Added file: {rel_path}")
                     except Exception as e:
-                        self._log(f"[{self.__class__.__name__}] ⚠️ Error adding file {file_path}: {str(e)}")
+                        self.logger.log(f"[{self.__class__.__name__}] ⚠️ Error adding file {file_path}: {str(e)}")
 
                 if not files_added:
                     self._log(f"[{self.__class__.__name__}] ⚠️ No files added to command")

@@ -20,3 +20,4 @@ openai
 anthropic
 httpx
 aiohttp
+pathspec>=0.11.0  # For gitignore pattern matching
