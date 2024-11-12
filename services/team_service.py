@@ -16,9 +16,8 @@ class TeamService:
         """Initialize team service with simplified dependencies"""
         self.logger = Logger()
         self.agent_service = AgentService(None)
-        self.mission_service = MissionService()
         
-        # Initialiser les attributs
+        # Initialize attributes
         self.teams = {}
         self.active_team = None
         self.predefined_teams = self._load_predefined_teams()
@@ -86,27 +85,23 @@ class TeamService:
             self.logger.log(f"Erreur lors de l'activation de l'équipe : {str(e)}", 'error')
             raise
 
-    def get_teams_for_mission(self, mission_id: int) -> List[Dict[str, Any]]:
-        """Get available teams for a mission"""
+    def get_available_teams(self) -> List[Dict[str, Any]]:
+        """Get list of available teams"""
         try:
-            # Use relative paths for any API endpoints
-            endpoint = f"/api/missions/{mission_id}/teams"
-            # Predefined teams with mission-specific modifications
             teams = [
                 {
-                    'id': f"{mission_id}_{team['id']}",  # Unique ID
+                    'id': team['id'],
                     'name': team['name'],
-                    'mission_id': mission_id,
                     'agents': team['agents'],
-                    'status': 'available'  # Add a status field
-                } 
+                    'status': 'available'
+                }
                 for team in self.predefined_teams
             ]
             
-            self.logger.log(f"Retrieved {len(teams)} teams for mission {mission_id}", 'info')
+            self.logger.log(f"Retrieved {len(teams)} available teams", 'info')
             return teams
         except Exception as e:
-            self.logger.log(f"Error getting teams for mission {mission_id}: {str(e)}", 'error')
+            self.logger.log(f"Error getting available teams: {str(e)}", 'error')
             raise ServiceError(f"Failed to get teams: {str(e)}")
 
     def launch_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
@@ -158,14 +153,8 @@ class TeamService:
                 f"Timestamp: {datetime.now().isoformat()}"
             )
 
-            # Get mission details with error handling
-            mission = self.web_instance.mission_service.get_mission(mission_id)
-            if not mission:
-                log_and_validate(f"❌ Mission {mission_id} not found", 'error')
-                raise ValueError(f"Mission {mission_id} not found")
-
-            # Get mission directory
-            mission_dir = PathManager.get_mission_path(mission['name'])
+            # Use current directory as mission directory
+            mission_dir = os.getcwd()
             log_and_validate(f"📂 Mission directory: {mission_dir}", 'debug')
 
             # Validate and get team configuration
