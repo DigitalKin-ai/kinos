@@ -61,7 +61,7 @@ class MapService(BaseService):
         try:
             tree_lines = []
             warnings = []
-            total_tokens = 0  # Initialize total tokens counter
+            total_tokens = 0
             
             # Load ignore patterns from .gitignore and .aiderignore
             ignore_patterns = []
@@ -71,7 +71,6 @@ class MapService(BaseService):
                     try:
                         with open(ignore_path, 'r', encoding='utf-8') as f:
                             patterns = f.readlines()
-                        # Clean up patterns
                         patterns = [p.strip() for p in patterns if p.strip() and not p.startswith('#')]
                         ignore_patterns.extend(patterns)
                     except Exception as e:
@@ -101,30 +100,33 @@ class MapService(BaseService):
                     continue
                     
                 if os.path.isdir(full_path):
-                    # Handle directory
+                    # Skip directory if it matches ignore patterns
+                    if spec and any(spec.match_file(os.path.join(rel_path, "dummy")) for pattern in ignore_patterns):
+                        continue
+                        
                     tree_lines.append(f"{current_prefix}📁 {item}/")
-                    
-                    # Recursively scan subdirectory
                     sub_prefix = prefix + ("    " if is_last else "│   ")
                     sub_tree, sub_warnings, sub_tokens = self._scan_directory(full_path, sub_prefix)
-                    tree_lines.extend(sub_tree)
-                    warnings.extend(sub_warnings)
-                    total_tokens += sub_tokens  # Add tokens from subdirectory
+                    
+                    # Only add directory to tree if it has visible contents
+                    if sub_tree:
+                        tree_lines.extend(sub_tree)
+                        warnings.extend(sub_warnings)
+                        total_tokens += sub_tokens
+                    else:
+                        # Remove empty directory entry
+                        tree_lines.pop()
                     
                 elif item.endswith('.md'):
-                    # Handle markdown file
                     token_count = self._count_tokens(full_path)
-                    total_tokens += token_count  # Add tokens from this file
+                    total_tokens += token_count
                     status_icon = self._get_status_icon(token_count)
                     
-                    # Format size in K tokens with one decimal
                     size_k = token_count / 1000
-                    
                     tree_lines.append(
                         f"{current_prefix}📄 {item} ({size_k:.1f}k tokens) {status_icon}"
                     )
                     
-                    # Add warning if needed
                     warning = self._check_file_size(item, token_count)
                     if warning:
                         warnings.append(warning)
