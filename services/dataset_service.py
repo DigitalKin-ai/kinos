@@ -15,9 +15,8 @@ from utils.exceptions import ServiceError
 class DatasetService(BaseService):
     """Manages dataset creation for fine-tuning"""
 
-    def __init__(self, web_instance):
+    def __init__(self, _):  # Keep parameter for compatibility but don't use it
         """Initialize dataset service with explicit configuration"""
-        super().__init__(web_instance)
         try:
             # Get data directory path using PathManager
             self.data_dir = os.path.join(PathManager.get_project_root(), "data")
@@ -25,13 +24,8 @@ class DatasetService(BaseService):
             
             self.dataset_file = os.path.join(self.data_dir, "fine-tuning.jsonl")
             
-            # Log initialization details
-            self.logger.log(
-                f"Initializing dataset service:\n"
-                f"Data directory: {self.data_dir}\n"
-                f"Dataset file: {self.dataset_file}", 
-                'info'
-            )
+            # Initialize logger
+            self.logger = Logger()
             
             # Create dataset file if it doesn't exist
             if not os.path.exists(self.dataset_file):

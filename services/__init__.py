@@ -12,25 +12,18 @@ from services.phase_service import PhaseService
 from services.phase_service import PhaseService
 from utils.exceptions import ServiceError
 
-def init_services(web_instance):
-    """Initialize all services with detailed logging"""
+def init_services(_):  # Keep parameter for compatibility but don't use it
+    """Initialize all services with minimal dependencies"""
     try:
-        print("\n=== STARTING SERVICE INITIALIZATION ===")
-        
-        # Ensure web_instance has logger
-        if not hasattr(web_instance, 'logger'):
-            from utils.logger import Logger
-            self.logger = Logger()
-            print("Created new logger for web_instance")
-
-        # Initialize DatasetService first as it's required for fine-tuning
-        if not hasattr(web_instance, 'dataset_service'):
-            print("\n=== DATASET SERVICE INITIALIZATION ===")
-            try:
-                # Verify data path
-                data_dir = os.path.join(PathManager.get_project_root(), "data")
-                print(f"Data directory path: {data_dir}")
-                print(f"Directory exists: {os.path.exists(data_dir)}")
+        services = {
+            'dataset_service': DatasetService(None),
+            'file_service': FileService(None),
+            'team_service': TeamService(None),
+            'agent_service': AgentService(None),
+            'map_service': MapService(None),
+            'phase_service': PhaseService(None)
+        }
+        return services
                     
                 if not os.path.exists(data_dir):
                     os.makedirs(data_dir)

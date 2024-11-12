@@ -21,8 +21,8 @@ class PhaseService(BaseService):
     CONVERGENCE_TOKENS = int(MODEL_TOKEN_LIMIT * CONVERGENCE_THRESHOLD)
     EXPANSION_TOKENS = int(MODEL_TOKEN_LIMIT * EXPANSION_THRESHOLD)
 
-    def __init__(self, web_instance):
-        super().__init__(web_instance)
+    def __init__(self, _):  # Keep parameter for compatibility but don't use it
+        self.logger = Logger()
         self.current_phase = ProjectPhase.EXPANSION
         self.last_transition = datetime.now()
         self.total_tokens = 0

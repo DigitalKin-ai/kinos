@@ -81,24 +81,14 @@ class FileService(BaseService):
             return []
 
     @safe_operation()
-    def get_file_content(self, mission_id: int, file_path: str) -> Optional[str]:
-        """Récupère le contenu d'un fichier de mission"""
+    def get_file_content(self, file_path: str) -> Optional[str]:
+        """Récupère le contenu d'un fichier"""
         try:
-            # Use relative paths for API endpoints
-            endpoint = f"/api/missions/{mission_id}/files/{file_path}"
-            # Obtenir les infos de la mission
-            mission = self.mission_service.get_mission(mission_id)
-            if not mission:
-                raise ValidationError("Mission not found")
-                
-            # Construire le chemin complet
-            full_path = os.path.join("missions", mission['name'], file_path)
-            
             # Vérifier et lire le fichier
-            if not os.path.exists(full_path):
+            if not os.path.exists(file_path):
                 raise FileOperationError(f"File not found: {file_path}")
                 
-            return self.read_file(full_path)
+            return self.read_file(file_path)
             
         except Exception as e:
             self._handle_error('get_file_content', e)
