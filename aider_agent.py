@@ -121,17 +121,6 @@ class AiderAgent(KinOSAgent):
         except Exception as e:
             self.logger(f"Error getting relative path: {str(e)}")
             return file_path
-        self._prompt_cache = {}
-        
-        # Initialize watched files list
-        self.watched_files = []
-
-        # Ensure timing attributes are initialized
-        self.last_run = None
-        self.last_change = None
-        self.consecutive_no_changes = 0
-
-        self.logger(f"[{self.name}] Initialisé comme {self.name}")
 
     def _validate_mission_directory(self) -> bool:
         """Vérifie que le dossier de mission est valide et accessible"""
@@ -713,10 +702,6 @@ class AiderAgent(KinOSAgent):
                         self._log(f"[{self.name}] 📂 Restored directory: {self.original_dir}")
                 except Exception as e:
                     self._log(f"[{self.name}] ❌ Error restoring directory: {str(e)}")
-                    
-        except Exception as e:
-            self._log(f"[{self.name}] ❌ Error running Aider: {str(e)}")
-            return None
 
     def list_files(self) -> None:
         """Liste tous les fichiers textuels dans le dossier de la mission"""
