@@ -27,9 +27,17 @@ class Logger:
         atexit.register(self._cleanup)
 
     def _cleanup(self):
-        """Mark logger as shutting down"""
-        self._shutting_down = True
-        self.flush()
+        """Mark logger as shutting down and flush output"""
+        try:
+            self._shutting_down = True
+            # Flush output streams directly instead of calling self.flush()
+            with self._log_lock:
+                if hasattr(sys.stdout, 'flush'):
+                    sys.stdout.flush()
+                if hasattr(sys.stderr, 'flush'):
+                    sys.stderr.flush()
+        except:
+            pass  # Ignore errors during shutdown
 
     def log(self, message: str, level: str = 'info'):
         """Thread-safe logging with shutdown handling"""
@@ -222,13 +230,3 @@ def configure_cli_logger(force_color=None):
         # Call log() without explicitly passing level as kwarg
         self.log(message, level, **kwargs)
         
-    def flush(self):
-        """Safe flush of output streams"""
-        try:
-            with self._log_lock:
-                if hasattr(sys.stdout, 'flush'):
-                    sys.stdout.flush()
-                if hasattr(sys.stderr, 'flush'):
-                    sys.stderr.flush()
-        except:
-            pass  # Ignore flush errors during shutdown
