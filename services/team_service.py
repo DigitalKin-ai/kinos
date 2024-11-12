@@ -21,9 +21,12 @@ class TeamService:
     def _load_predefined_teams(self) -> List[Dict]:
         """Load team configurations from teams/ directory"""
         teams = []
-        teams_dir = "teams"
         
         try:
+            # Get KinOS installation directory - it's where this team_service.py file is located
+            kinos_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            teams_dir = os.path.join(kinos_root, "teams")
+            
             # Scan teams directory
             if not os.path.exists(teams_dir):
                 self.logger.log(f"Teams directory not found: {teams_dir}", 'warning')
