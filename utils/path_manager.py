@@ -1,5 +1,6 @@
 import os
 import json
+import traceback
 from typing import Optional, Dict, Any
 
 class PathManager:
@@ -10,13 +11,46 @@ class PathManager:
     
     @classmethod
     def get_project_root(cls) -> str:
-        """Returns the absolute path to the project root"""
-        current = os.path.abspath(__file__)
-        while current != os.path.dirname(current):
-            if os.path.exists(os.path.join(current, "missions")):
-                return current
-            current = os.path.dirname(current)
-        raise ValueError("Project root not found")
+        """Returns the absolute path to the project root with robust detection"""
+        try:
+            # Current file's directory
+            current = os.path.abspath(__file__)
+            
+            # Detection strategies
+            strategies = [
+                # Strategy 1: Look for key directories
+                lambda path: any(os.path.exists(os.path.join(path, d)) 
+                                 for d in ["missions", "config", "agents", "services", "routes"]),
+                
+                # Strategy 2: Look for specific project files
+                lambda path: any(os.path.exists(os.path.join(path, f)) 
+                                 for f in ['kinos_cli.py', 'kinos_web.py', 'requirements.txt', '.env'])
+            ]
+            
+            # Traverse up the directory tree
+            while current != os.path.dirname(current):
+                for strategy in strategies:
+                    if strategy(current):
+                        return current
+                current = os.path.dirname(current)
+            
+            # Fallback strategies
+            fallback_paths = [
+                os.path.dirname(os.path.abspath(__file__)),  # directory of path_manager.py
+                os.getcwd(),  # current working directory
+                os.path.expanduser('~/KinOS')  # potential project directory
+            ]
+            
+            for path in fallback_paths:
+                if os.path.exists(path):
+                    return path
+            
+            raise ValueError(f"Project root not found. Current path: {current}")
+        
+        except Exception as e:
+            print(f"Project root detection failed: {e}")
+            print(f"Traceback: {traceback.format_exc()}")
+            raise
 
     @classmethod
     def _load_mission_config(cls) -> Dict[str, Any]:
