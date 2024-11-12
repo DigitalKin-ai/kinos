@@ -489,20 +489,38 @@ List any specific constraints or limitations.
             raise
 
     def stop_all_agents(self) -> None:
-        """Arrête tous les agents"""
+        """Stop all agents with proper cleanup"""
         try:
+            # First set all agents to not running
             for name, agent in self.agents.items():
                 try:
-                    agent.stop()
-                    self.logger.log(f"Stopped agent {name}")
+                    agent.running = False
+                    self.logger.log(f"Marked agent {name} to stop")
                 except Exception as e:
-                    self.logger.log(f"Error stopping agent {name}: {str(e)}", 'error')
+                    self.logger.log(f"Error marking agent {name} to stop: {str(e)}", 'error')
 
-            self._cleanup_resources()
+            # Then wait for threads to finish with timeout
+            for name, thread in self.agent_threads.items():
+                try:
+                    if thread and thread.is_alive():
+                        thread.join(timeout=5)  # 5 second timeout
+                        self.logger.log(f"Stopped agent thread {name}")
+                except Exception as e:
+                    self.logger.log(f"Error stopping agent thread {name}: {str(e)}", 'error')
+
+            # Clear thread references
+            self.agent_threads.clear()
             
+            # Final cleanup
+            for agent in self.agents.values():
+                try:
+                    if hasattr(agent, 'cleanup'):
+                        agent.cleanup()
+                except Exception as e:
+                    self.logger.log(f"Error in agent cleanup: {str(e)}", 'error')
+
         except Exception as e:
             self.logger.log(f"Error stopping agents: {str(e)}", 'error')
-            raise
 
     def _start_monitor_thread(self) -> None:
         """Start the agent monitor thread if not running"""

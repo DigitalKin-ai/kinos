@@ -354,7 +354,7 @@ class KinOSAgent:
         except Exception as e:
             print(f"Error stopping agent: {str(e)}")  # Fallback to print
 
-    def cleanup(self) -> None:
+    def cleanup(self):
         """Cleanup agent resources properly"""
         try:
             # Stop agent if running
@@ -369,16 +369,24 @@ class KinOSAgent:
             if hasattr(self, 'original_dir') and self.original_dir:
                 try:
                     os.chdir(self.original_dir)
-                    self.logger.log(f"[{self.__class__.__name__}] Restored directory: {self.original_dir}")
                 except Exception as e:
-                    self.logger.log(f"[{self.__class__.__name__}] Error restoring directory: {str(e)}")
+                    self.logger.log(f"Error restoring directory: {str(e)}", 'error')
                     
             # Clear file tracking
             if hasattr(self, 'mission_files'):
                 self.mission_files.clear()
                 
+            # Flush logger if possible
+            if hasattr(self, 'logger'):
+                try:
+                    if hasattr(self.logger, 'flush'):
+                        self.logger.flush()
+                except:
+                    pass
+                    
         except Exception as e:
-            self.logger.log(f"[{self.__class__.__name__}] Error in cleanup: {str(e)}", 'error')
+            # Use print as logger may be unavailable
+            print(f"Error in cleanup: {str(e)}")
             
     def recover_from_error(self) -> bool:
         """Enhanced error recovery with state preservation"""
