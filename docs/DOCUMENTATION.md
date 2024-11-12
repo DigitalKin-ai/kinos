@@ -2,6 +2,43 @@
 
 ## Architecture
 
+### Commit Icons
+
+Les commits sont catégorisés visuellement avec des icônes spécifiques :
+
+| Catégorie | Icône | Description |
+|-----------|-------|-------------|
+| feat | ✨ | Nouvelle fonctionnalité |
+| fix | 🐛 | Correction de bug |
+| docs | 📚 | Documentation |
+| style | 💎 | Style/formatage |
+| refactor | ♻️ | Refactoring |
+| perf | ⚡️ | Performance |
+| test | 🧪 | Tests |
+| build | 📦 | Build/dépendances |
+| ci | 🔄 | CI/CD |
+| chore | 🔧 | Maintenance |
+| revert | ⏪ | Retour arrière |
+| autre | 🔨 | Type non catégorisé |
+
+Format des messages de commit :
+```bash
+[AgentName] <icône> Commit [<type>] <hash>: <message>
+```
+
+Exemples :
+```bash
+[AgentName] ♻️ Commit [refactor] e7975b9: Remove web_instance references
+[AgentName] 🐛 Commit [fix] a1b2c3d: Fix race condition in file locking
+[AgentName] ✨ Commit [feat] x7y8z9w: Add new notification system
+```
+
+Cette catégorisation visuelle permet :
+- Une identification rapide du type de modification
+- Une meilleure lisibilité des logs
+- Une cohérence avec les conventions de commit conventionnels
+- Un suivi facilité des différents types de changements
+
 ### Agents
 
 #### Architecture des Agents
