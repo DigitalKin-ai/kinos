@@ -282,12 +282,16 @@ class AiderAgent(KinOSAgent):
                 self._log(f"[{self.name}] 🚀 Starting Aider execution")
                 self._log(f"[{self.name}] 📂 Mission directory: {self.mission_dir}")
             
-                # Validate mission directory
+                # Validate mission directory exists and is accessible
                 if not os.path.exists(self.mission_dir):
-                self._log(f"[{self.name}] ❌ Mission directory not found")
-                return None
+                    self._log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}")
+                    return None
                 
-            # Store original directory
+                if not os.access(self.mission_dir, os.R_OK | os.W_OK):
+                    self._log(f"[{self.name}] ❌ Insufficient permissions for: {self.mission_dir}")
+                    return None
+
+                # Store original directory
             original_dir = os.getcwd()
 
             try:
