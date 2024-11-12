@@ -15,7 +15,7 @@ aiohttp==3.9.1
 anthropic==0.18.0
 openai==1.6.1
 transformers==4.36.2
-torch==2.1.2
+torch>=2.1.2,<2.4.0
 
 # Data Handling
 pyyaml==6.0.1
