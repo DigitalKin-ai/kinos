@@ -380,6 +380,21 @@ class AiderAgent(KinOSAgent):
                                 )
                                 continue
 
+                            # Commit type icons
+                            COMMIT_ICONS = {
+                                'feat': '✨',     # New feature
+                                'fix': '🐛',      # Bug fix
+                                'docs': '📚',     # Documentation
+                                'style': '💎',    # Style/formatting
+                                'refactor': '♻️',  # Refactoring
+                                'perf': '⚡️',     # Performance
+                                'test': '🧪',     # Tests
+                                'build': '📦',    # Build/dependencies
+                                'ci': '🔄',       # CI/CD
+                                'chore': '🔧',    # Maintenance
+                                'revert': '⏪',    # Revert changes
+                            }
+
                             # Parse commit messages
                             if line.startswith("Commit ") and " " in line[7:]:
                                 try:
@@ -388,11 +403,14 @@ class AiderAgent(KinOSAgent):
                                     commit_type = line[7+len(commit_hash):].strip().split(":", 1)
                                     
                                     if len(commit_type) == 2:
-                                        commit_category = commit_type[0].strip()  # e.g. "refactor"
+                                        commit_category = commit_type[0].strip().lower()  # e.g. "refactor"
                                         commit_message = commit_type[1].strip()   # e.g. "Remove web_instance..."
                                         
+                                        # Get appropriate icon or default to 🔨
+                                        icon = COMMIT_ICONS.get(commit_category, '🔨')
+                                        
                                         self._log(
-                                            f"[{self.__class__.__name__}] 🔨 Commit [{commit_category}] {commit_hash}: {commit_message}", 
+                                            f"[{self.__class__.__name__}] {icon} Commit [{commit_category}] {commit_hash}: {commit_message}", 
                                             'success'
                                         )
                                     else:
