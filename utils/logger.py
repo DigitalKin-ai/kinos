@@ -200,3 +200,11 @@ def configure_cli_logger(force_color=None):
         kwargs.pop('level', None)
         # Call log() without explicitly passing level as kwarg
         self.log(message, level, **kwargs)
+        
+    def flush(self):
+        """Flush any buffered output"""
+        try:
+            sys.stdout.flush()
+            sys.stderr.flush()
+        except:
+            pass

@@ -828,6 +828,12 @@ class AiderAgent(KinOSAgent):
             
             while self.running:
                 try:
+                    # Check for shutdown signal
+                    if hasattr(self.web_instance, 'agent_service') and \
+                       self.web_instance.agent_service._shutting_down.is_set():
+                        self._log(f"[{self.__class__.__name__}] Shutdown signal received")
+                        break
+
                     # Use configured mission directory instead of checking current_mission
                     if not self.mission_dir:
                         self._log(f"[{self.__class__.__name__}] ❌ No mission directory configured")

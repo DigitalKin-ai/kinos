@@ -31,6 +31,7 @@ class AgentService:
         self.agents = {}
         self.agent_threads = {}
         self._cleanup_lock = threading.Lock()
+        self._shutting_down = threading.Event()  # Add shutdown flag
 
     def validate_web_instance(self, web_instance):
         """
@@ -491,36 +492,47 @@ List any specific constraints or limitations.
     def stop_all_agents(self) -> None:
         """Stop all agents with proper cleanup"""
         try:
-            # First set all agents to not running
-            for name, agent in self.agents.items():
-                try:
-                    agent.running = False
-                    self.logger.log(f"Marked agent {name} to stop")
-                except Exception as e:
-                    self.logger.log(f"Error marking agent {name} to stop: {str(e)}", 'error')
-
-            # Then wait for threads to finish with timeout
-            for name, thread in self.agent_threads.items():
-                try:
-                    if thread and thread.is_alive():
-                        thread.join(timeout=5)  # 5 second timeout
-                        self.logger.log(f"Stopped agent thread {name}")
-                except Exception as e:
-                    self.logger.log(f"Error stopping agent thread {name}: {str(e)}", 'error')
-
-            # Clear thread references
-            self.agent_threads.clear()
+            self._shutting_down.set()
             
-            # Final cleanup
-            for agent in self.agents.values():
-                try:
-                    if hasattr(agent, 'cleanup'):
-                        agent.cleanup()
-                except Exception as e:
-                    self.logger.log(f"Error in agent cleanup: {str(e)}", 'error')
+            # Use timeout context for overall shutdown
+            with timeout(30):  # 30 second total shutdown timeout
+                # First set all agents to not running
+                for name, agent in self.agents.items():
+                    try:
+                        agent.running = False
+                        self.logger.log(f"Marked agent {name} to stop")
+                    except Exception as e:
+                        self.logger.log(f"Error marking agent {name} to stop: {str(e)}", 'error')
 
+                # Then wait for threads to finish with timeout
+                for name, thread in self.agent_threads.items():
+                    try:
+                        if thread and thread.is_alive():
+                            thread.join(timeout=5)  # 5 second timeout per thread
+                            self.logger.log(f"Stopped agent thread {name}")
+                    except Exception as e:
+                        self.logger.log(f"Error stopping agent thread {name}: {str(e)}", 'error')
+
+                # Clear thread references
+                self.agent_threads.clear()
+                
+                # Final cleanup with timeout
+                with timeout(10):  # 10 second timeout for cleanup
+                    for agent in self.agents.values():
+                        try:
+                            if hasattr(agent, 'cleanup'):
+                                agent.cleanup()
+                        except Exception as e:
+                            self.logger.log(f"Error in agent cleanup: {str(e)}", 'error')
+
+        except TimeoutError:
+            self.logger.log("Shutdown timed out - some operations may not have completed", 'warning')
         except Exception as e:
             self.logger.log(f"Error stopping agents: {str(e)}", 'error')
+        finally:
+            # Force clear references
+            self.agents.clear()
+            self.agent_threads.clear()
 
     def _start_monitor_thread(self) -> None:
         """Start the agent monitor thread if not running"""
