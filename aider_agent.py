@@ -32,9 +32,9 @@ from datetime import datetime
 from typing import Dict, Optional
 
 class AiderAgent(KinOSAgent):
-    """Agent utilisant Aider pour effectuer des modifications sur les fichiers.
-    Chaque instance représente un rôle spécifique (specifications, production, etc.)
-    mais partage la même logique d'interaction avec Aider."""
+    """Agent using Aider to modify files.
+    Each instance represents a specific role (specifications, production, etc.)
+    but shares the same interaction logic with Aider."""
     
     
     def _handle_agent_error(self, operation: str, error: Exception) -> None:
