@@ -20,7 +20,7 @@ setup(
     install_requires=[
         'flask',
         'portalocker',
-        'anthropic',
+        'anthropic', 
         'openai',
         'argparse'
     ],
