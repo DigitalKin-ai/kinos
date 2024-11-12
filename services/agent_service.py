@@ -400,7 +400,6 @@ List any specific constraints or limitations.
             if action == 'start':
                 if not agent.running:
                     agent.start()
-                    # Créer et démarrer le thread
                     thread = threading.Thread(
                         target=self._run_agent_wrapper,
                         args=(agent_name, agent),

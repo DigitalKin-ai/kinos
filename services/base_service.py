@@ -44,9 +44,8 @@ class BaseService:
     """Base class for all services providing common functionality"""
     
     def __init__(self, web_instance):
-        self.web_instance = web_instance
+        """Base class for all services providing common functionality"""
         self.logger = Logger()
-        
     def _validate_input(self, **kwargs) -> None:
         """Validate input parameters"""
         missing = [k for k, v in kwargs.items() if v is None]
