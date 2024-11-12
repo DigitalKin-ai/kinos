@@ -20,6 +20,6 @@ setup(
     python_requires='>=3.8',
     author='Your Name',
     description='KinOS CLI Tool',
-    long_description=open('README.md').read(),
+    long_description=open('README.md', encoding='utf-8').read(),
     long_description_content_type='text/markdown',
 )
