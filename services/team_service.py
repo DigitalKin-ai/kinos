@@ -11,7 +11,7 @@ from agents.kinos_agent import KinOSAgent
 class TeamService:
     """Service simplifié pour la gestion des équipes en CLI"""
     
-    def __init__(self, web_instance):
+    def __init__(self, _):  # Keep parameter for compatibility but don't use it
         """Initialize with minimal dependencies"""
         self.logger = Logger()
         self.agent_service = AgentService(None)
