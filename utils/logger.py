@@ -98,30 +98,6 @@ def configure_cli_logger(force_color=None):
     logger = Logger(force_color)
     
     return logger
-
-def configure_cli_logger(force_color=None):
-    """
-    Configure CLI logger with intelligent color detection
-    
-    Args:
-        force_color (bool, optional): 
-            - True: Force color output
-            - False: Disable color output
-            - None: Auto-detect
-    
-    Returns:
-        Logger instance with appropriate color configuration
-    """
-    # Check environment variables first
-    if os.environ.get('NO_COLOR') is not None:
-        force_color = False
-    elif os.environ.get('FORCE_COLOR') is not None:
-        force_color = True
-    
-    # Create logger instance
-    logger = Logger(force_color)
-    
-    return logger
     
     def _should_colorize(self):
         """Determine if colors should be applied"""
