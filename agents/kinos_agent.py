@@ -37,6 +37,12 @@ class FileManager:
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(content)
                 
+            # Update map after any file change except map.md itself
+            if file_name != 'map.md':
+                from services import init_services
+                services = init_services(None)
+                services['map_service'].update_map()
+                
             return True
         except Exception as e:
             self.logger.log(f"Error writing {file_name}: {str(e)}", 'error')

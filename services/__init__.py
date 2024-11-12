@@ -15,11 +15,11 @@ def init_services(_):  # Keep parameter for compatibility but don't use it
     """Initialize all services with minimal dependencies"""
     try:
         services = {
+            'map_service': MapService(None),  # Initialize first
             'dataset_service': DatasetService(None),
             'file_service': FileService(None), 
             'team_service': TeamService(None),
             'agent_service': AgentService(None),
-            'map_service': MapService(None),
             'phase_service': PhaseService(None)
         }
         return services
