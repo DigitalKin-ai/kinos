@@ -377,32 +377,37 @@ def main():
         parser.print_help()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="KinOS CLI - Simplified Team Launch")
-    
-    # Positional argument for team name
-    parser.add_argument('team', nargs='?', default='book-writing', 
-                        help='Team to launch (default: book-writing)')
+    parser = argparse.ArgumentParser(description="KinOS CLI - Team Launch")
+    parser.add_argument('team', nargs='?', default='default', 
+                       help='Team to launch (default: default)')
     parser.add_argument('-v', '--verbose', action='store_true', 
-                        help='Enable verbose logging')
+                       help='Enable verbose logging')
     
-    # Parse arguments
     args = parser.parse_args()
-
-    # Use current directory as mission path
-    current_mission_dir = os.getcwd()
-
+    
     try:
+        # Configure logging
+        logger = configure_cli_logger()
+        logger.log(f"Starting KinOS CLI...", 'info')
+        logger.log(f"Team: {args.team}", 'info')
+        logger.log(f"Working directory: {os.getcwd()}", 'info')
+
         # Create service instances
-        mission_service = MissionService()
         team_service = TeamService(None)
         agent_service = AgentService(None)
 
         # Launch team in current directory
-        team_service.start_team(
-            mission_id=None,
+        result = team_service.start_team(
             team_id=args.team, 
-            base_path=current_mission_dir
+            base_path=os.getcwd()
         )
+
+        if args.verbose:
+            logger.log("Team launch details:", 'info')
+            for agent_result in result.get('start_results', []):
+                status = agent_result.get('status', 'unknown')
+                agent = agent_result.get('agent', 'Unknown Agent')
+                logger.log(f"Agent {agent}: {status}")
 
     except Exception as e:
         logger = configure_cli_logger()
