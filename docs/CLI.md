@@ -7,62 +7,57 @@ KinOS offre une interface en ligne de commande minimaliste qui opère directemen
 ## Commandes de Base
 
 ```bash
-# Launch KinOS in current directory with default team
+# Lancer KinOS dans le dossier courant
+cd votre-projet
 kin
 
-# Launch specific team in current directory
+# Lancer une équipe spécifique
 kin coding
 kin book-writing
 kin literature-review
 
-# Launch with custom path
-kin coding -p /path/to/project
+# Mode verbeux
+kin -v
 
-# Verbose mode
-kin -v coding
+# Gestion des Phases
+kin phase status      # Voir la phase actuelle
+kin phase metrics     # Voir les métriques détaillées
+kin phase set expansion    # Forcer la phase expansion
+kin phase set convergence  # Forcer la phase convergence
+kin phase history         # Voir l'historique des transitions
 
-# Phase Management
-kin phase status      # View current phase
-kin phase metrics     # View detailed metrics
-kin phase set expansion    # Force expansion phase
-kin phase set convergence  # Force convergence phase
-
-# Token Management  
-kin tokens list      # List token usage by file
-kin tokens check     # Check for warnings
-kin tokens headroom  # View available headroom
+# Gestion des Tokens
+kin tokens list      # Liste l'utilisation par fichier
+kin tokens check     # Vérifier les avertissements
+kin tokens headroom  # Voir la marge disponible
+kin tokens usage     # Voir l'utilisation totale
 ```
 
 ## Gestion des Phases
 
 Les phases permettent d'optimiser automatiquement l'utilisation des ressources :
 
-### Commandes
+### Phase Commands
 ```bash
 # Voir le statut actuel
-kin phase status
+kin phase status      # Phase actuelle et utilisation
+kin phase metrics     # Métriques détaillées
+kin phase history     # Historique des transitions
 
-# Voir les métriques détaillées
-kin phase metrics
+# Forcer une phase (avec précaution)
+kin phase set expansion    # Passer en phase expansion
+kin phase set convergence  # Passer en phase convergence
 
-# Voir l'historique
-kin phase history
+# Surveillance des tokens
+kin tokens list           # Utilisation par fichier
+kin tokens check          # Vérifier les avertissements
+kin tokens headroom       # Marge disponible
+kin tokens usage          # Utilisation totale (128k max)
 
-# Forcer une phase (si nécessaire)
-kin phase set expansion
-kin phase set convergence
-```
-
-### Surveillance
-```bash
-# Voir l'utilisation des tokens
-kin tokens list
-
-# Vérifier les limites
-kin tokens check
-
-# Voir la marge disponible
-kin tokens headroom
+# Seuils de Phase
+- EXPANSION   : < 60% tokens (76.8k)
+- CONVERGENCE : > 60% tokens
+- Retour EXPANSION : < 50% tokens (64k)
 ```
 
 ## Comportement
