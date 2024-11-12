@@ -383,7 +383,7 @@ class AiderAgent(KinOSAgent):
                                 )
                                 continue
 
-                            # Commit type icons
+                            # Commit type icons with descriptions
                             COMMIT_ICONS = {
                                 'feat': '✨',     # New feature
                                 'fix': '🐛',      # Bug fix
@@ -396,31 +396,52 @@ class AiderAgent(KinOSAgent):
                                 'ci': '🔄',       # CI/CD
                                 'chore': '🔧',    # Maintenance
                                 'revert': '⏪',    # Revert changes
+                                'merge': '🔗',    # Merge changes
+                                'update': '📝',   # Content updates
+                                'add': '➕',      # Add content/files
+                                'remove': '➖',    # Remove content/files
+                                'move': '🚚',     # Move/rename content
+                                'cleanup': '🧹',  # Code cleanup
+                                'format': '🎨',   # Formatting changes
+                                'optimize': '🚀'  # Optimizations
                             }
 
-                            # Parse commit messages
-                            if line.startswith("Commit ") and " " in line[7:]:
+                            # Log raw output for debugging
+                            self._log(f"[{self.name}] 📝 Raw output: {line}", 'debug')
+
+                            # Parse commit messages - more robust
+                            if "commit" in line.lower() and ":" in line:
                                 try:
-                                    # Format: "Commit e7975b9 refactor: Remove self..."
-                                    commit_hash = line[7:].split()[0]  # Extract hash
-                                    commit_type = line[7+len(commit_hash):].strip().split(":", 1)
+                                    # Extract hash and message
+                                    parts = line.split(":", 1)
+                                    commit_part = parts[0].strip()
+                                    message_part = parts[1].strip()
                                     
-                                    if len(commit_type) == 2:
-                                        commit_category = commit_type[0].strip().lower()  # e.g. "refactor"
-                                        commit_message = commit_type[1].strip()   # e.g. "Remove self..."
-                                        
-                                        # Get appropriate icon or default to 🔨
-                                        icon = COMMIT_ICONS.get(commit_category, '🔨')
-                                        
+                                    # Extract hash
+                                    commit_hash = commit_part.split()[-1]
+                                    
+                                    # Detect commit type
+                                    commit_type = None
+                                    commit_message = message_part
+                                    
+                                    for known_type in COMMIT_ICONS.keys():
+                                        if message_part.lower().startswith(known_type + ":"):
+                                            commit_type = known_type
+                                            commit_message = message_part[len(known_type)+1:].strip()
+                                            break
+                                    
+                                    # Get appropriate icon
+                                    icon = COMMIT_ICONS.get(commit_type, '🔨') if commit_type else '🔨'
+                                    
+                                    # Log with or without type
+                                    if commit_type:
                                         self._log(
-                                            f"[{self.name}] {icon} Commit [{commit_category}] {commit_hash}: {commit_message}", 
+                                            f"[{self.name}] {icon} Commit [{commit_type}] {commit_hash}: {commit_message}", 
                                             'success'
                                         )
                                     else:
-                                        # No category, just message
-                                        commit_message = line[7+len(commit_hash):].strip()
                                         self._log(
-                                            f"[{self.name}] 🔨 Commit {commit_hash}: {commit_message}", 
+                                            f"[{self.name}] {icon} Commit {commit_hash}: {commit_message}", 
                                             'success'
                                         )
                                         
