@@ -38,6 +38,7 @@ class Logger:
             level_map = {
                 'DEBUG': logging.DEBUG,
                 'INFO': logging.INFO,
+                'SUCCESS': logging.INFO,  # Map SUCCESS to INFO
                 'WARNING': logging.WARNING, 
                 'ERROR': logging.ERROR,
                 'CRITICAL': logging.CRITICAL
@@ -46,6 +47,9 @@ class Logger:
         else:
             # Already a logging constant
             self._level = level
+        
+        # Log level change
+        print(f"Log level set to: {level}")
 
     def _cleanup(self):
         """Mark logger as shutting down and flush output"""

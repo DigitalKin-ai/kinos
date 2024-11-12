@@ -66,11 +66,6 @@ def launch_team(args):
 
 def main():
     """Main CLI entry point"""
-    # Initialize services and generate initial map
-    from services import init_services
-    services = init_services(None)
-    services['map_service'].generate_map()
-    
     parser = argparse.ArgumentParser(description='KinOS CLI')
     
     # Add global options that apply to all commands
@@ -115,6 +110,11 @@ def main():
     logger.log(f"Starting KinOS CLI with log level: {args.log_level}")
 
     try:
+        # Initialize services and generate initial map
+        from services import init_services
+        services = init_services(None)
+        services['map_service'].generate_map()
+
         # If no command specified, default to launching default team
         if not args.command:
             args.command = 'team'
