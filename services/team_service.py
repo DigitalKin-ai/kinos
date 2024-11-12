@@ -1,4 +1,5 @@
 import os
+import json
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 import traceback
@@ -18,19 +19,60 @@ class TeamService:
         self.predefined_teams = self._load_predefined_teams()
 
     def _load_predefined_teams(self) -> List[Dict]:
-        """Load simplified team configurations"""
-        return [
-            {
+        """Load team configurations from teams/ directory"""
+        teams = []
+        teams_dir = "teams"
+        
+        try:
+            # Scan teams directory
+            if not os.path.exists(teams_dir):
+                self.logger.log(f"Teams directory not found: {teams_dir}", 'warning')
+                return []
+                
+            for team_dir in os.listdir(teams_dir):
+                config_path = os.path.join(teams_dir, team_dir, "config.json")
+                
+                if os.path.exists(config_path):
+                    try:
+                        with open(config_path, 'r', encoding='utf-8') as f:
+                            team_config = json.load(f)
+                            
+                        # Validate required fields
+                        if 'id' not in team_config:
+                            team_config['id'] = team_dir
+                            
+                        if 'name' not in team_config:
+                            team_config['name'] = team_dir.replace('_', ' ').title()
+                            
+                        if 'agents' not in team_config:
+                            self.logger.log(f"No agents defined in {config_path}", 'warning')
+                            continue
+                            
+                        teams.append(team_config)
+                        self.logger.log(f"Loaded team configuration: {team_config['id']}", 'debug')
+                        
+                    except Exception as e:
+                        self.logger.log(f"Error loading team config {config_path}: {str(e)}", 'error')
+                        continue
+                        
+            if not teams:
+                self.logger.log("No team configurations found", 'warning')
+                # Add default team as fallback
+                teams.append({
+                    'id': 'default',
+                    'name': 'Default Team',
+                    'agents': ['specifications', 'management', 'evaluation']
+                })
+                
+            return teams
+            
+        except Exception as e:
+            self.logger.log(f"Error loading team configurations: {str(e)}", 'error')
+            return [{
                 'id': 'default',
-                'name': 'Default Team', 
+                'name': 'Default Team',
                 'agents': ['specifications', 'management', 'evaluation']
-            },
-            {
-                'id': 'coding',
-                'name': 'Coding Team',
-                'agents': ['specifications', 'production', 'testing']
-            }
-        ]
+            }]
 
     def _normalize_agent_names(self, team_agents: List[str]) -> List[str]:
         """Normalize agent names"""
