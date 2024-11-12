@@ -17,7 +17,7 @@ class FileManager:
         # Import only what's needed
         from utils.logger import Logger
         from types import SimpleNamespace
-        self.project_root = PathManager.get_project_root()
+        self.project_root = os.getcwd()  # Use current directory instead of project root
         self._on_content_changed = on_content_changed
         self._current_mission = None
         self.logger = Logger()
@@ -36,17 +36,9 @@ class FileManager:
         self._ensure_files_exist()
 
 
-    def get_mission_path(self, mission_name: str) -> str:
-        """
-        Returns absolute path to a mission directory.
-        
-        Args:
-            mission_name: Name of the mission
-            
-        Returns:
-            str: Absolute path to mission directory
-        """
-        return PathManager.get_mission_path(mission_name)
+    def get_mission_path(self, mission_name: str = None) -> str:
+        """Now just returns current directory"""
+        return os.getcwd()
         
     def _normalize_mission_name(self, mission_name: str) -> str:
         """

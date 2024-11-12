@@ -158,37 +158,40 @@ class TeamService(BaseService):
             self.logger.log(f"Error getting teams for mission {mission_id}: {str(e)}", 'error')
             raise ServiceError(f"Failed to get teams: {str(e)}")
 
-    def launch_team(self, mission_id: int, team_id: str) -> Dict[str, Any]:
-        """
-        Lance une équipe complète pour une mission
-        
-        Args:
-            mission_id: ID de la mission
-            team_id: ID de l'équipe
-            
-        Returns:
-            Dict avec les résultats du lancement
-        """
+    def launch_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
+        """Launch a team in the specified directory"""
         try:
-            # 1. Activer l'équipe (initialisation)
-            activation_result = self.activate_team(mission_id, team_id)
+            # Use current directory if not specified
+            mission_dir = base_path or os.getcwd()
             
-            # 2. Démarrer effectivement les agents
-            start_result = self.start_team(mission_id, team_id)
-            
+            self.logger.log(f"Starting team {team_id} in {mission_dir}")
+
+            # Validate team exists
+            team = next((t for t in self.predefined_teams if t['id'] == team_id), None)
+            if not team:
+                raise ValueError(f"Team {team_id} not found")
+
+            # Initialize agents
+            config = {'mission_dir': mission_dir}
+            self.agent_service.init_agents(config, team['agents'])
+
+            # Start each agent
+            for agent_name in team['agents']:
+                try:
+                    self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
+                    self.logger.log(f"Started agent {agent_name}")
+                except Exception as e:
+                    self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
+
             return {
-                'activation': activation_result,
-                'start': start_result,
-                'status': 'running',
-                'timestamp': datetime.now().isoformat()
+                'team_id': team_id,
+                'mission_dir': mission_dir,
+                'agents': team['agents']
             }
-            
+
         except Exception as e:
-            self.web_instance.log_message(
-                f"Failed to launch team {team_id} for mission {mission_id}: {str(e)}", 
-                'error'
-            )
-            raise ServiceError(f"Team launch failed: {str(e)}")
+            self.logger.log(f"Error starting team: {str(e)}", 'error')
+            raise
 
     def activate_team(self, mission_id: int, team_id: str) -> Dict[str, Any]:
         """Activate a team for a mission with enhanced error handling and agent initialization"""

@@ -5,7 +5,6 @@ import traceback
 from utils.path_manager import PathManager
 from services.dataset_service import DatasetService
 from services.file_service import FileService
-from services.mission_service import MissionService
 from services.team_service import TeamService
 from services.agent_service import AgentService
 from utils.exceptions import ServiceError
@@ -60,10 +59,9 @@ def init_services(web_instance):
                 web_instance.logger.log(f"Error initializing dataset service: {str(e)}", 'error')
                 raise ServiceError(f"Dataset service initialization failed: {str(e)}")
 
-        # Initialize remaining core services
+        # Initialize core services
         services_to_init = [
             ('file_service', lambda: FileService(web_instance)),
-            ('mission_service', lambda: MissionService()),
             ('team_service', lambda: TeamService(web_instance)),
             ('agent_service', lambda: AgentService(web_instance))
         ]
@@ -96,8 +94,7 @@ def init_services(web_instance):
 
         # Verify all required services are present
         required_services = [
-            'dataset_service', 'file_service', 'mission_service', 
-            'team_service', 'agent_service'
+            'dataset_service', 'file_service', 'team_service', 'agent_service'
         ]
         
         missing_services = [svc for svc in required_services 
