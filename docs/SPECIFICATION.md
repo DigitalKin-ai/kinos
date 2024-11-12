@@ -424,16 +424,42 @@ python kinos_cli.py team launch
 
 #### Commandes de Phase
 ```bash
-# Voir l'état actuel des phases
+# Phase Management Commands
+
+## View Phase Status
+```bash
+# View current phase and token usage
 kin phase status
 
-# Voir l'utilisation des tokens
+# View detailed token metrics
 kin phase tokens
 
-# Forcer un changement de phase
-kin phase set expansion
-kin phase set convergence
-
-# Voir les métriques détaillées
+# View all phase-related metrics
 kin phase metrics
+```
+
+## Phase Control
+```bash
+# Force phase change (use with caution)
+kin phase set expansion   # Switch to expansion phase
+kin phase set convergence # Switch to convergence phase
+
+# Monitor phase transitions
+kin phase watch          # Real-time phase monitoring
+
+# Get phase history
+kin phase history        # View phase transition history
+```
+
+## Token Management
+```bash
+# View token usage by file
+kin tokens list
+
+# Get warnings for files approaching limits
+kin tokens check
+
+# View token headroom
+kin tokens headroom
+```
 ```
