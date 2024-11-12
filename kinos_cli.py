@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import time
 import logging
 from services.team_service import TeamService
 from services.mission_service import MissionService
@@ -358,20 +359,23 @@ if __name__ == '__main__':
     # Parse arguments
     args = parser.parse_args()
 
-    # Create CLI instance
-    cli = KinosCLI()
-
     # Use current directory as mission path
     current_mission_dir = os.getcwd()
 
     try:
+        # Create service instances
+        mission_service = MissionService()
+        team_service = TeamService(None)
+        agent_service = AgentService(None)
+
         # Launch team in current directory
-        cli.launch_team(
-            team_name=args.team, 
-            base_path=current_mission_dir, 
-            verbose=args.verbose
+        team_service.start_team(
+            mission_id=None,
+            team_id=args.team, 
+            base_path=current_mission_dir
         )
 
     except Exception as e:
-        cli.logger.log(f"Error launching team: {str(e)}", 'error')
+        logger = configure_cli_logger()
+        logger.log(f"Error launching team: {str(e)}", 'error')
         sys.exit(1)
