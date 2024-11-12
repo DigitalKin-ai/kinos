@@ -1,21 +1,11 @@
-import threading
-import json
 import os
 from typing import Dict, Any, Optional, List
-from datetime import datetime
-import traceback
-import time
-from utils.exceptions import ServiceError, ValidationError, ResourceNotFoundError
-from services.base_service import BaseService
-from utils.path_manager import PathManager
 from utils.logger import Logger
 from services.agent_service import AgentService
 from services.mission_service import MissionService
-from services.file_manager import FileManager
-from agents.kinos_agent import KinOSAgent
 
-class TeamService(BaseService):
-    """Service for managing teams and agent groupings"""
+class TeamService:
+    """Service simplifié pour la gestion des équipes en CLI"""
     
     def __init__(self, web_instance):
         """Initialize team service with simplified dependencies"""
@@ -27,40 +17,6 @@ class TeamService(BaseService):
         self.teams = {}
         self.active_team = None
         self.predefined_teams = self._load_predefined_teams()
-        
-        # Utiliser le logger de web_instance
-        self.logger = web_instance.logger
-
-    def _normalize_agent_names(self, team_agents: List[str]) -> List[str]:
-        """
-        Normalise les noms d'agents pour correspondre aux conventions
-        
-        Args:
-            team_agents: Liste des noms d'agents à normaliser
-            
-        Returns:
-            Liste des noms d'agents normalisés
-        """
-        normalized = []
-        for agent in team_agents:
-            # Supprimer 'Agent' et normaliser
-            norm_name = agent.lower().replace('agent', '').strip()
-            normalized.append(norm_name)
-        return normalized
-
-    def _validate_team_id(self, team_id: str) -> None:
-        """Validate team ID format and existence"""
-        if not team_id or not isinstance(team_id, str):
-            raise ValidationError("Invalid team ID format")
-        if not any(t['id'] == team_id for t in self.predefined_teams):
-            raise ResourceNotFoundError(f"Team {team_id} not found")
-
-    def _validate_agent_name(self, agent_name: str) -> None:
-        """Validate agent name format and existence"""
-        if not agent_name or not isinstance(agent_name, str):
-            raise ValidationError("Invalid agent name format")
-        if agent_name.lower() not in self.web_instance.agent_service.agents:
-            raise ResourceNotFoundError(f"Agent {agent_name} not found")
 
     def _load_predefined_teams(self) -> List[Dict]:
         """Load predefined team configurations"""
@@ -82,26 +38,16 @@ class TeamService(BaseService):
             }
         ]
 
-    def get_predefined_teams(self):
-        """
-        Retourne la liste des équipes prédéfinies
-    
-        Returns:
-            list: Liste des équipes disponibles
-        """
-        return self._load_predefined_teams()
+    def _normalize_agent_names(self, team_agents: List[str]) -> List[str]:
+        """Normalize agent names"""
+        normalized = []
+        for agent in team_agents:
+            norm_name = agent.lower().replace('agent', '').strip()
+            normalized.append(norm_name)
+        return normalized
 
-    def activate_team(self, mission_id, team_id):
-        """
-        Active une équipe pour une mission avec gestion des logs
-    
-        Args:
-            mission_id (int): ID de la mission
-            team_id (str): ID de l'équipe
-    
-        Returns:
-            dict: Résultat de l'activation avec informations de l'équipe
-        """
+    def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
+        """Launch a team in the specified directory"""
         try:
             # Récupérer l'équipe correspondante
             team = next((t for t in self._load_predefined_teams() if t['id'] == team_id), None)
