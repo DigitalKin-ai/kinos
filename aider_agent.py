@@ -46,6 +46,10 @@ class AiderAgent(KinOSAgent):
         print(f"Config received: {config}")
         
         try:
+            # Initialize logger first
+            from utils.logger import Logger
+            self.logger = Logger()
+            
             # Initialize core attributes
             self.name = config.get("name")
             if not self.name:
@@ -57,9 +61,6 @@ class AiderAgent(KinOSAgent):
 
             # Store original directory
             self.original_dir = os.getcwd()
-            
-            # Initialize logger
-            self.logger = Logger()
             
             # Initialize state tracking
             self.running = False
@@ -81,18 +82,6 @@ class AiderAgent(KinOSAgent):
             self._requests_this_minute = 0
             self._rate_limit_window = 60  # 1 minute
             self._max_requests_per_minute = 50  # Adjust based on your rate limit
-            
-            # Initialize logger properly
-            if hasattr(self.web_instance, 'logger'):
-                self.logger = self.web_instance.logger
-            else:
-                from utils.logger import Logger
-                self.logger = Logger()
-                
-            # Verify required services
-            required_services = ['dataset_service', 'file_manager', 'mission_service']
-            missing_services = [svc for svc in required_services 
-                              if not hasattr(self.web_instance, svc)]
                               
         except Exception as e:
             print(f"Error during initialization: {str(e)}")
