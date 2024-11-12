@@ -588,6 +588,11 @@ class AiderAgent(KinOSAgent):
 
                         # Only proceed if we have files to save
                         if files_context:
+                            # Log the changes
+                            self.logger.log(
+                                f"Files modified:\n" + "\n".join(files_context.keys()),
+                                'info'
+                            )
 
                     except Exception as e:
                         self._log(f"[{self.__class__.__name__}] Error saving to dataset: {str(e)}")
