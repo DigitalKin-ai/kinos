@@ -1,23 +1,19 @@
-import threading
-import json
 import os
+import json
+import portalocker
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 import traceback
-import time
-from utils.exceptions import ServiceError, ValidationError, ResourceNotFoundError
+from utils.exceptions import ServiceError, ValidationError, ResourceNotFoundError, FileOperationError
 from services.base_service import BaseService
 from utils.path_manager import PathManager
 from utils.logger import Logger
-from services.agent_service import AgentService
-from services.mission_service import MissionService
-from services.file_manager import FileManager
-from agents.kinos_agent import KinOSAgent
+from utils.decorators import safe_operation
 
 class TeamService(BaseService):
     """Service for managing teams and agent groupings"""
     
-    def __init__(self, web_instance):
+    def __init__(self, web_instance, on_content_changed=None):
         # Import only what's needed
         from utils.logger import Logger
         from types import SimpleNamespace
