@@ -187,7 +187,51 @@ Les agents sont le cœur du système KinOS, chacun opérant de manière totaleme
   - Nommage conventionnel
   - Liens entre fichiers
 
-### 2.3 Interface Web
+### 2.3 Dataset Service
+
+Le DatasetService gère la collecte et l'organisation des données pour le fine-tuning.
+
+#### Fonctionnalités
+- Collection automatique des interactions
+- Validation des données
+- Gestion des duplicatas
+- Nettoyage périodique
+- Métriques d'utilisation
+
+#### Configuration
+```python
+# Chemins
+data_dir = "data/"
+dataset_file = "data/fine-tuning.jsonl"
+
+# Format d'entrée
+{
+    "messages": [
+        {"role": "system", "content": "..."},
+        {"role": "user", "content": "..."},
+        {"role": "assistant", "content": "..."}
+    ],
+    "metadata": {
+        "timestamp": "2024-03-21T15:30:45",
+        "num_files": 3,
+        "files": ["file1.md", "file2.md", "file3.md"]
+    }
+}
+```
+
+#### Méthodes Principales
+- `add_interaction_async()`: Ajout asynchrone d'interactions
+- `is_available()`: Vérification disponibilité service
+- `get_dataset_stats()`: Statistiques d'utilisation
+- `cleanup()`: Nettoyage périodique
+
+#### Intégration
+- Collecte automatique via AiderAgent
+- Validation avant sauvegarde
+- Métriques de performance
+- Gestion des erreurs
+
+### 2.4 Interface Web
 
 #### Architecture Frontend
 - **Vue.js 3**
