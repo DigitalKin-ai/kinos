@@ -44,67 +44,34 @@ class KinOSAgent:
     
 
     def __init__(self, config: Dict[str, Any]):
-        """
-        Initialize agent with configuration.
-        
-        Args:
-            config: Dictionary containing:
-                - check_interval: Check interval
-                - logger: Logging function
-                - mission_dir: Mission directory path
-                - name: Agent name
-        """
+        """Initialize agent with configuration"""
         try:
-            self.original_dir = os.getcwd()  # Save original working directory
+            self.original_dir = os.getcwd()
             
-            # Configure default encoding for CLI output
-            import sys
-            import codecs
-            import locale
+            # Configure UTF-8 encoding once
+            self._configure_encoding()
             
-            # Force UTF-8 encoding for stdout/stderr
-            if sys.stdout.encoding != 'utf-8':
-                sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
-            if sys.stderr.encoding != 'utf-8':
-                sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
-                
-            # Set locale for proper Unicode handling
-            try:
-                locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-            except locale.Error:
-                try:
-                    locale.setlocale(locale.LC_ALL, 'C.UTF-8')
-                except locale.Error:
-                    pass
-
-            # Initialize timing and state attributes
-            self.last_run = None
-            self.last_change = None
-            self.consecutive_no_changes = 0
-            self.running = False
-            self.error_count = 0
-
-            # Validate configuration first
-            required_fields = ['name', 'mission_dir']
-            missing = [f for f in required_fields if f not in config]
-            if missing:
-                raise ValueError(f"Missing required config fields: {', '.join(missing)}")
-
-            # Set core attributes
-            self.name = config['name']
-            self.config = config
-            self.mission_dir = config['mission_dir']
-
-            # Validate mission directory exists and is accessible
-            if not os.path.exists(self.mission_dir):
-                raise ValueError(f"Mission directory not found: {self.mission_dir}")
-            if not os.access(self.mission_dir, os.R_OK | os.W_OK):
-                raise ValueError(f"Insufficient permissions on mission directory: {self.mission_dir}")
-                
-            self.mission_files = {}
-
-            # Handle logger configuration
-            logger_config = config.get("logger", print)
+            # Initialize core attributes first
+            self._init_core_attributes(config)
+            
+            # Initialize logger (needed for all other operations)
+            self.logger = self._init_logger(config.get("logger", print))
+            
+            # Validate and set paths
+            self._validate_paths()
+            
+            # Initialize state tracking
+            self._init_state()
+            
+            # Load configuration
+            self._load_config()
+            
+            self.logger.log(f"[{self.__class__.__name__}] Initialized as {self.name}")
+            
+        except Exception as e:
+            # Basic error logging even if logger isn't initialized
+            print(f"Error initializing agent: {str(e)}")
+            raise
         if callable(logger_config):
             # Create wrapper that handles both Logger instances and simple callables
             def create_log_wrapper(func):
@@ -164,6 +131,67 @@ class KinOSAgent:
         
         self.running = False
         
+    def _configure_encoding(self):
+        """Configure UTF-8 encoding for CLI output"""
+        import sys
+        import codecs
+        import locale
+        
+        if sys.stdout.encoding != 'utf-8':
+            sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+        if sys.stderr.encoding != 'utf-8':
+            sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+            
+        try:
+            locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+        except locale.Error:
+            try:
+                locale.setlocale(locale.LC_ALL, 'C.UTF-8')
+            except locale.Error:
+                pass
+
+    def _init_core_attributes(self, config: Dict[str, Any]):
+        """Initialize core attributes from config"""
+        required_fields = ['name', 'mission_dir']
+        missing = [f for f in required_fields if f not in config]
+        if missing:
+            raise ValueError(f"Missing required config fields: {', '.join(missing)}")
+            
+        self.name = config['name']
+        self.config = config
+        self.mission_dir = config['mission_dir']
+
+    def _init_logger(self, logger_config) -> Any:
+        """Initialize logger with consistent interface"""
+        if callable(logger_config):
+            return self._create_logger_wrapper(logger_config)
+        return logger_config
+
+    def _init_state(self):
+        """Initialize agent state tracking"""
+        self.running = False
+        self.last_run = None
+        self.last_change = None
+        self.consecutive_no_changes = 0
+        self.error_count = 0
+        self.mission_files = {}
+        self._prompt_cache = {}
+
+    def _load_config(self):
+        """Load agent configuration"""
+        self.intervals_config = self._load_intervals_config()
+        self.check_interval = self.config.get(
+            "check_interval",
+            self._get_agent_interval()
+        )
+
+    def _validate_paths(self):
+        """Validate all required paths"""
+        if not os.path.exists(self.mission_dir):
+            raise ValueError(f"Mission directory not found: {self.mission_dir}")
+        if not os.access(self.mission_dir, os.R_OK | os.W_OK):
+            raise ValueError(f"Insufficient permissions on mission directory: {self.mission_dir}")
+
     def _load_intervals_config(self) -> Dict:
         """Load agent intervals from config file"""
         try:
