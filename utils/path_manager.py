@@ -29,22 +29,8 @@ class PathManager:
             return {}
 
     @classmethod
-    def get_mission_path(cls, mission_name: str = None, base_path: Optional[str] = None) -> str:
-        """
-        Get mission path, defaulting to current working directory
-        
-        Args:
-            mission_name (str, optional): Ignored in this simplified model
-            base_path (str, optional): Optional custom base path
-        
-        Returns:
-            str: Absolute path to mission directory
-        """
-        # Prioritize base_path if provided
-        if base_path:
-            return os.path.abspath(base_path)
-        
-        # Default to current working directory
+    def get_mission_path(cls, mission_name: str = None) -> str:
+        """Get mission path, defaulting to current directory"""
         return os.getcwd()
 
     @staticmethod
@@ -73,32 +59,24 @@ class PathManager:
 
     @classmethod
     def validate_mission_path(cls, path: str) -> bool:
-        """
-        Validate a mission path with comprehensive checks
-        
-        Args:
-            path (str): Path to validate
-        
-        Returns:
-            bool: Whether the path is valid
-        """
+        """Validate a mission path"""
         try:
             # Ensure absolute path
             if not os.path.isabs(path):
                 return False
-            
+                
             # Check path exists or is creatable
             try:
                 os.makedirs(path, exist_ok=True)
             except (PermissionError, OSError):
                 return False
-            
+                
             # Check read and write permissions
             if not os.access(path, os.R_OK | os.W_OK):
                 return False
-            
+                
             return True
-        
+            
         except Exception:
             return False
 

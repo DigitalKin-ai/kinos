@@ -42,8 +42,8 @@ class FileService(BaseService):
             if not file_name.endswith('.md'):
                 file_name = f"{file_name}.md"
 
-            # Construct absolute file path
-            file_path = os.path.join(self.project_root, file_name)
+            # Construct absolute file path from current directory
+            file_path = os.path.join(os.getcwd(), file_name)
 
             # Ne pas créer le fichier s'il n'existe pas
             if not os.path.exists(file_path):
@@ -51,9 +51,9 @@ class FileService(BaseService):
 
             # Use centralized cache service
             cache_key = f"file:{file_path}"
-            cached_content = self.web_instance.cache_service.get(cache_key)
+            cached_content = self.content_cache.get(cache_key)
             if cached_content is not None:
-                return cached_content
+                return cached_content[1]  # Return cached content
 
             # Read with safe operation
             content = self._safe_file_operation('read', file_path)
