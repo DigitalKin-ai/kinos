@@ -24,6 +24,8 @@ AIDER_INIT_ERRORS = [
     "aider.chat/docs/troubleshooting/edit-errors.html"
 ]
 
+from services import init_services
+
 class TeamService:
     """Service simplifié pour la gestion des équipes en CLI"""
     
@@ -209,6 +211,15 @@ class TeamService:
                 filtered_agents,
                 active_agents,
                 waiting_agents,
+                started_agents
+            )
+
+            # Process completed agents with started_agents list
+            self._process_completed_agents(
+                futures,
+                active_agents,
+                waiting_agents,
+                random_agents,
                 started_agents
             )
 
@@ -544,7 +555,8 @@ class TeamService:
         futures: List,
         active_agents: List[str],
         waiting_agents: List[str],
-        random_agents: List[Dict]
+        random_agents: List[Dict],
+        started_agents: List[str]
     ) -> None:
         """Process completed agent futures"""
         done, futures = concurrent.futures.wait(
