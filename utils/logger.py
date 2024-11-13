@@ -186,6 +186,11 @@ def configure_cli_logger(force_color=None, log_level='INFO'):
         kwargs.pop('level', None)
         self.log(message, level, **kwargs)
 
+    def log_commit(self, agent: str, commit_hash: str, message: str, emoji: str):
+        """Log a commit with consistent formatting"""
+        formatted = f"[{agent}] {emoji} {commit_hash}: {message}"
+        self.log(formatted, 'info')
+
     def log_path_operation(self, operation: str, path: str, success: bool, error: Optional[str] = None):
         """
         Log file/path operations with consistent formatting

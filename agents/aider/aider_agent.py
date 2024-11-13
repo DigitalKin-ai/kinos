@@ -227,7 +227,25 @@ class AiderAgent(AgentBase):
             # Parse output with timeout
             with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
                 output = self.output_parser.parse_output(process)
+
+            if output:
+                # Parse and log commits
+                commit_logger = CommitLogger(self.logger)
+                commit_logger.parse_commits(output, self.name)
                 
+                # Process file changes
+                changes = self._process_file_changes(output)
+                if changes['modified'] or changes['added'] or changes['deleted']:
+                    self.logger.log(
+                        f"[{self.name}] Changes detected:\n"
+                        f"Modified: {len(changes['modified'])} files\n"
+                        f"Added: {len(changes['added'])} files\n"
+                        f"Deleted: {len(changes['deleted'])} files"
+                    )
+                    
+                    # Update map after changes
+                    self._update_project_map()
+
             # Handle known initialization errors gracefully
             initialization_errors = [
                 "No Windows console found",
