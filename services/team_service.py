@@ -2,6 +2,10 @@ import os
 import json
 import time
 import sys
+import random
+import threading
+import concurrent.futures
+from queue import Queue
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 import traceback
@@ -26,6 +30,10 @@ class TeamService:
         self.logger = Logger()
         self.agent_service = AgentService(None)
         self.predefined_teams = self._load_predefined_teams()
+        self.max_concurrent_agents = 4  # Maximum concurrent agents
+        self._agent_queue = Queue()  # Agent queue
+        self._active_agents = set()  # Active agents tracking
+        self._team_lock = threading.Lock()
 
     def _load_predefined_teams(self) -> List[Dict]:
         """Load team configurations from teams/ directory"""
