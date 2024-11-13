@@ -129,6 +129,19 @@ class AiderOutputParser:
         ]
         return any(indicator in line.lower() for indicator in error_indicators)
 
+    def _handle_error_message(self, line: str) -> None:
+        """
+        Handle error message in output
+        
+        Args:
+            line: Output line containing error
+        """
+        # Log error message
+        self.logger.log(
+            f"Error detected in Aider output: {line.strip()}", 
+            'error'
+        )
+
     def parse_output(self, process: subprocess.Popen) -> Optional[str]:
         """
         Parse Aider command output with enhanced error handling
