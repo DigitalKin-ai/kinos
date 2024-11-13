@@ -89,7 +89,14 @@ class MapService(BaseService):
 
             # Get and sort directory contents
             items = sorted(os.listdir(path))
-            
+        
+            # Define tracked file extensions
+            tracked_extensions = {
+                '.md', '.txt', '.py', '.js', '.html', '.css', '.json', 
+                '.yaml', '.yml', '.sh', '.bat', '.ps1', '.java', '.cpp', 
+                '.h', '.c', '.cs', '.php', '.rb', '.go', '.rs', '.ts'
+            }
+        
             for i, item in enumerate(items):
                 is_last = i == len(items) - 1
                 current_prefix = prefix + ("└── " if is_last else "├── ")
@@ -99,29 +106,29 @@ class MapService(BaseService):
                 # Skip if matches ignore patterns
                 if spec.match_file(rel_path):
                     continue
-                
+            
                 if os.path.isdir(full_path):
                     tree_lines.append(f"{current_prefix}📁 {item}/")
                     sub_prefix = prefix + ("    " if is_last else "│   ")
                     sub_tree, sub_warnings, sub_tokens = self._scan_directory(full_path, sub_prefix)
-                    
+                
                     if sub_tree:
                         tree_lines.extend(sub_tree)
                         warnings.extend(sub_warnings)
                         total_tokens += sub_tokens
                     else:
                         tree_lines.pop()
-                    
-                elif item.endswith('.md'):
+                
+                elif any(item.endswith(ext) for ext in tracked_extensions):
                     token_count = self._count_tokens(full_path)
                     total_tokens += token_count
                     status_icon = self._get_status_icon(token_count)
-                    
+                
                     size_k = token_count / 1000
                     tree_lines.append(
                         f"{current_prefix}📄 {item} ({size_k:.1f}k tokens) {status_icon}"
                     )
-                    
+                
                     warning = self._check_file_size(item, token_count)
                     if warning:
                         warnings.append(warning)
