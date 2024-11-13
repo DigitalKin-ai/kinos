@@ -298,27 +298,35 @@ class AiderOutputParser:
     def _parse_commit_line(self, line: str) -> None:
         """Parse and log a commit line"""
         try:
-            # Extract commit hash and message
-            parts = line.split()
-            if len(parts) < 3 or parts[0] != "Commit":
+            # Vérifier que c'est bien une ligne de commit
+            if not line.startswith("Commit "):
+                return
+                
+            # Extraire le hash et le message complet
+            # Utiliser split avec maxsplit=2 pour garder le reste du message intact
+            parts = line.split(maxsplit=2)
+            if len(parts) < 3:
                 return
                 
             commit_hash = parts[1]
-            message = ' '.join(parts[2:])
+            full_message = parts[2]
             
             # Detect commit type from message
             commit_type = None
+            message = full_message
+            
             for known_type in self.COMMIT_ICONS:
-                if message.lower().startswith(f"{known_type}:"):
+                prefix = f"{known_type}:"
+                if full_message.lower().startswith(prefix.lower()):
                     commit_type = known_type
-                    message = message[len(known_type)+1:].strip()
+                    message = full_message[len(prefix):].strip()
                     break
                     
             # Get icon and log with proper formatting
             icon = self.COMMIT_ICONS.get(commit_type, '🔨')
             self.logger.log(
                 f"{icon} {commit_hash}: {message}",
-                'success'  # Use success level for commits
+                'success'
             )
             
         except Exception as e:
