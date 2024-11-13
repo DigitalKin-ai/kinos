@@ -124,24 +124,6 @@ class KinOSAgent:
             print(f"Error initializing agent: {str(e)}")
             raise
         
-    def _configure_encoding(self):
-        """Configure UTF-8 encoding for CLI output"""
-        import sys
-        import codecs
-        import locale
-        
-        if sys.stdout.encoding != 'utf-8':
-            sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
-        if sys.stderr.encoding != 'utf-8':
-            sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
-            
-        try:
-            locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-        except locale.Error:
-            try:
-                locale.setlocale(locale.LC_ALL, 'C.UTF-8')
-            except locale.Error:
-                pass
 
     def _init_core_attributes(self, config: Dict[str, Any]):
         """Initialize core attributes from config"""

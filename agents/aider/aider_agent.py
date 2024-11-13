@@ -91,33 +91,6 @@ class AiderAgent(AgentBase):
                 )
                 return None
 
-    def _validate_run_input(self, prompt: str) -> bool:
-        """Validate all inputs before running Aider"""
-        try:
-            # Validate prompt
-            if not prompt or not prompt.strip():
-                self.logger.log("Empty prompt provided", 'error')
-                return False
-
-            # Validate mission directory
-            if not os.path.exists(self.mission_dir):
-                self.logger.log(f"Mission directory not found: {self.mission_dir}", 'error')
-                return False
-
-            if not os.access(self.mission_dir, os.R_OK | os.W_OK):
-                self.logger.log(f"Insufficient permissions on: {self.mission_dir}", 'error')
-                return False
-
-            # Validate files to process
-            if not self.mission_files:
-                self.logger.log("No files to process", 'warning')
-                return False
-
-            return True
-
-        except Exception as e:
-            self.logger.log(f"Error in input validation: {str(e)}", 'error')
-            return False
 
     def _configure_environment(self):
         """Configure environment for Aider execution"""
@@ -203,21 +176,6 @@ class AiderAgent(AgentBase):
             except Exception as e:
                 self.logger.log(f"Error restoring directory: {str(e)}", 'error')
 
-    def _load_ignore_patterns(self) -> List[str]:
-        """Load and parse gitignore patterns"""
-        patterns = []
-        try:
-            for ignore_file in ['.gitignore', '.aiderignore']:
-                ignore_path = os.path.join(self.mission_dir, ignore_file)
-                if os.path.exists(ignore_path):
-                    with open(ignore_path, 'r', encoding='utf-8') as f:
-                        file_patterns = [p.strip() for p in f.readlines() 
-                                       if p.strip() and not p.startswith('#')]
-                        patterns.extend(file_patterns)
-                        self.logger.log(f"Loaded patterns from {ignore_file}", 'debug')
-        except Exception as e:
-            self.logger.log(f"Error loading ignore patterns: {str(e)}", 'error')
-        return patterns
 
     def _update_system_state(self, result: str):
         """Update system state after successful execution"""
@@ -243,51 +201,7 @@ class AiderAgent(AgentBase):
         except Exception as e:
             self.logger.log(f"Error updating system state: {str(e)}", 'error')
             
-    def _track_file_changes(self, result: str) -> Dict[str, Any]:
-        """Track file modifications with context"""
-        changes = {
-            'modified_files': set(),
-            'added_files': set(),
-            'deleted_files': set(),
-            'file_contents': {},
-            'timestamp': datetime.now().isoformat()
-        }
-        
-        try:
-            # Parse output for file changes
-            for line in result.splitlines():
-                if "Wrote " in line:
-                    try:
-                        file_path = line.split("Wrote ")[1].split()[0]
-                        changes['modified_files'].add(file_path)
-                        # Store file content
-                        full_path = os.path.join(self.mission_dir, file_path)
-                        if os.path.exists(full_path):
-                            with open(full_path, 'r', encoding='utf-8') as f:
-                                changes['file_contents'][file_path] = f.read()
-                    except Exception as e:
-                        self.logger.log(f"Error tracking file {file_path}: {str(e)}", 'error')
-                        continue
-            
-            # Log changes
-            if changes['modified_files']:
-                self.logger.log(
-                    f"Files modified:\n" + "\n".join(changes['modified_files']),
-                    'info'
-                )
-                
-            return changes
-                
-        except Exception as e:
-            self.logger.log(f"Error tracking changes: {str(e)}", 'error')
-            return changes
 
-    def _build_command(self, prompt: str) -> List[str]:
-        """Build Aider command with current configuration"""
-        return self.command_builder.build_command(
-            prompt=prompt,
-            files=list(self.mission_files.keys())
-        )
 
     def _run_process(self, cmd: List[str]) -> subprocess.Popen:
         """Execute Aider process with proper environment"""
