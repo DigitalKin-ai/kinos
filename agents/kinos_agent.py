@@ -1,8 +1,12 @@
 import os
 import json
 import traceback
-from typing import Optional
+import time
+from typing import Optional, Dict, Any
+from datetime import datetime
 from utils.logger import Logger
+from utils.managers.timeout_manager import TimeoutManager
+from utils.constants import COMMAND_EXECUTION_TIMEOUT
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 
@@ -321,35 +325,75 @@ class KinOSAgent:
 
     def execute_mission(self, prompt: str) -> Optional[str]:
         """
-        Generic mission execution method to be overridden by specific agent types
-        
-        Args:
-            prompt: Mission prompt/instructions
-            
-        Returns:
-            Optional result of mission execution
+        Enhanced mission execution with comprehensive tracking and error management
         """
-        try:
-            # Validate run conditions
-            if not self._validate_run_conditions(prompt):
-                self.logger.log(f"[{self.name}] Run conditions not met", 'warning')
-                return None
-            
-            # Delegate to specific agent implementation
-            result = self._specific_mission_execution(prompt)
-            
-            # Update agent state
-            if result:
-                self.last_change = datetime.now()
-                self.consecutive_no_changes = 0
-            else:
-                self.consecutive_no_changes += 1
-            
-            return result
-            
-        except Exception as e:
-            self._handle_error('execute_mission', e)
-            return None
+        start_time = time.time()
+        attempt = 0
+        max_attempts = 3
+
+        while attempt < max_attempts:
+            try:
+                # Performance tracking
+                attempt_start = time.time()
+
+                # Validate run conditions
+                if not self._validate_run_conditions(prompt):
+                    self.logger.log(
+                        f"[{self.name}] Run conditions not met (Attempt {attempt+1})", 
+                        'warning'
+                    )
+                    return None
+
+                # Execute mission with timeout
+                with TimeoutManager.timeout(COMMAND_EXECUTION_TIMEOUT):
+                    result = self._specific_mission_execution(prompt)
+
+                # Performance metrics
+                execution_time = time.time() - attempt_start
+                self._update_performance_metrics(execution_time)
+
+                # State management
+                if result:
+                    self.last_change = datetime.now()
+                    self.consecutive_no_changes = 0
+                    self.logger.log(
+                        f"[{self.name}] Mission successful (Time: {execution_time:.2f}s)", 
+                        'success'
+                    )
+                else:
+                    self.consecutive_no_changes += 1
+                    self.logger.log(
+                        f"[{self.name}] No changes detected (Attempt {attempt+1})", 
+                        'warning'
+                    )
+
+                return result
+
+            except TimeoutError:
+                self.logger.log(
+                    f"[{self.name}] Mission execution timed out (Attempt {attempt+1})", 
+                    'error'
+                )
+                attempt += 1
+                time.sleep(2 ** attempt)  # Exponential backoff
+
+            except Exception as e:
+                self._handle_error('execute_mission', e, {
+                    'prompt': prompt,
+                    'attempt': attempt + 1
+                })
+                attempt += 1
+                
+                # Adaptive backoff
+                backoff_time = min(30, 2 ** attempt)
+                time.sleep(backoff_time)
+
+        # Final failure logging
+        self.logger.log(
+            f"[{self.name}] Mission failed after {max_attempts} attempts", 
+            'critical'
+        )
+        return None
 
     def _specific_mission_execution(self, prompt: str) -> Optional[str]:
         """
@@ -358,6 +402,39 @@ class KinOSAgent:
         Subclasses like AiderAgent will override this method
         """
         raise NotImplementedError("Subclasses must implement mission execution")
+
+    def _update_performance_metrics(self, execution_time: float) -> None:
+        """
+        Update agent performance metrics
+        
+        Args:
+            execution_time: Time taken for mission execution
+        """
+        try:
+            # Initialize metrics if not exist
+            if not hasattr(self, '_execution_times'):
+                self._execution_times = []
+            
+            # Store execution time
+            self._execution_times.append(execution_time)
+            
+            # Keep only last 10 execution times
+            self._execution_times = self._execution_times[-10:]
+            
+            # Calculate metrics
+            self.avg_response_time = sum(self._execution_times) / len(self._execution_times)
+            self.min_response_time = min(self._execution_times)
+            self.max_response_time = max(self._execution_times)
+            
+            # Log performance if it exceeds threshold
+            if execution_time > (self.avg_response_time * 2):
+                self.logger.log(
+                    f"[{self.name}] Slow execution detected: {execution_time:.2f}s "
+                    f"(Avg: {self.avg_response_time:.2f}s)", 
+                    'warning'
+                )
+        except Exception as e:
+            self.logger.log(f"Error updating performance metrics: {str(e)}", 'error')
 
     def _validate_run_conditions(self, prompt: str) -> bool:
         """
@@ -438,6 +515,30 @@ class KinOSAgent:
         except Exception as e:
             self.logger.log(f"[{self.__class__.__name__}] Recovery failed: {str(e)}", 'error')
             return False
+
+    def _store_error_log(self, error_details: Dict[str, Any]) -> None:
+        """
+        Store error details in a rolling log file
+        
+        Args:
+            error_details: Dictionary of error information
+        """
+        try:
+            # Ensure error log directory exists
+            error_log_dir = os.path.join(self.mission_dir, 'error_logs')
+            os.makedirs(error_log_dir, exist_ok=True)
+            
+            # Generate log filename
+            log_filename = f"errors_{datetime.now().strftime('%Y%m%d')}.jsonl"
+            log_path = os.path.join(error_log_dir, log_filename)
+            
+            # Append error as JSON line
+            with open(log_path, 'a', encoding='utf-8') as f:
+                json.dump(error_details, f)
+                f.write('\n')
+                
+        except Exception as e:
+            print(f"Error storing error log: {str(e)}")
 
     def should_run(self) -> bool:
         """Determine if agent should execute based on time and phase"""
