@@ -32,6 +32,9 @@ from services import init_services
 class TeamService:
     """Service simplifié pour la gestion des équipes en CLI"""
     
+    # Timeout constant
+    TOTAL_TIMEOUT = 300  # 5 minutes total timeout
+
     def __init__(self, _):  # Keep parameter for compatibility but don't use it
         """Initialize with minimal dependencies"""
         self.logger = Logger()
@@ -180,6 +183,7 @@ class TeamService:
             self._shutdown_requested = False 
             self._handle_shutdown = False
             
+            start_time = time.time()
             self.logger.log(f"Starting team {team_id} initialization...", 'info')
             
             # Get team config
