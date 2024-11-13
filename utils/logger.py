@@ -100,15 +100,27 @@ class Logger:
                 force_color = os.environ.get('FORCE_COLOR', '').lower() in ('1', 'true', 'yes')
                 should_colorize = force_color or self.is_tty
                 
-                if should_colorize:
-                    # Ensure color codes are properly escaped
-                    color = self.COLORS.get(level.lower(), self.COLORS['info'])
-                    reset = self.COLORS['reset']
-                    # Use print with flush=True for immediate output
-                    print(f"{color}{formatted}{reset}", flush=True)
-                else:
-                    # No color for non-TTY output
-                    print(formatted, flush=True)
+                try:
+                    if should_colorize:
+                        # Ensure color codes are properly escaped
+                        color = self.COLORS.get(level.lower(), self.COLORS['info'])
+                        reset = self.COLORS['reset']
+                        # Use print without flush on Windows
+                        if sys.platform == 'win32':
+                            print(f"{color}{formatted}{reset}")
+                        else:
+                            print(f"{color}{formatted}{reset}", flush=True)
+                    else:
+                        # No color for non-TTY output, no flush on Windows
+                        if sys.platform == 'win32':
+                            print(formatted)
+                        else:
+                            print(formatted, flush=True)
+                        
+                except OSError as os_error:
+                    # Ignore Windows stdout flush error
+                    if not ("[Errno 22] Invalid argument" in str(os_error) and sys.platform == 'win32'):
+                        raise
                 
         except Exception:
             # During shutdown, some exceptions are expected
