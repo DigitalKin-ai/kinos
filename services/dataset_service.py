@@ -298,29 +298,21 @@ class DatasetService(BaseService):
 
     def _validate_entry_format(self, entry: Dict) -> bool:
         """Validate format of a dataset entry"""
-        required_fields = {
-            'messages': list,
-            'metadata': dict
-        }
-        
         try:
             # Check required fields and types
-            for field, field_type in required_fields.items():
-                if field not in entry:
-                    return False
-                if not isinstance(entry[field], field_type):
-                    return False
-                    
+            if 'messages' not in entry:
+                return False
+            
+            if not isinstance(entry['messages'], list):
+                return False
+            
             # Validate messages format
             for msg in entry['messages']:
                 if not all(k in msg for k in ('role', 'content')):
                     return False
+                if not isinstance(msg.get('role'), str) or not isinstance(msg.get('content'), str):
+                    return False
                     
-            # Validate metadata
-            required_metadata = {'timestamp', 'num_files', 'weight'}
-            if not all(k in entry['metadata'] for k in required_metadata):
-                return False
-                
             return True
             
         except Exception:
