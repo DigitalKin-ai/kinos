@@ -180,18 +180,18 @@ class AiderAgent(AgentBase):
             # Collection de la sortie avec gestion spécifique des erreurs Windows
             try:
                 output = self.output_parser.parse_output(process)
+                
+                # Explicitly ignore known Aider messages
+                if output and any(msg in output for msg in [
+                    "Can't initialize prompt toolkit",
+                    "No Windows console found",
+                    "aider.chat/docs/troubleshooting/edit-errors.html",
+                    "[Errno 22] Invalid argument"
+                ]):
+                    # Return empty success instead of None to prevent shutdown
+                    return ""
                     
-                    # Explicitly ignore known Aider messages
-                    if output and any(msg in output for msg in [
-                        "Can't initialize prompt toolkit",
-                        "No Windows console found",
-                        "aider.chat/docs/troubleshooting/edit-errors.html",
-                        "[Errno 22] Invalid argument"
-                    ]):
-                        # Return empty success instead of None to prevent shutdown
-                        return ""
-                        
-                    return output
+                return output
 
             except OSError as os_error:
                 # Handle Windows stream error silently
