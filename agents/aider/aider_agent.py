@@ -45,8 +45,8 @@ class AiderAgent(AgentBase):
             # Configure UTF-8 encoding first
             self._configure_encoding()
             
-            # Initialize components
-            self.command_builder = AiderCommandBuilder()
+            # Initialize components with agent name
+            self.command_builder = AiderCommandBuilder(self.name)
             self.output_parser = AiderOutputParser(self.logger)
             self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
             self.file_handler = FileHandler(self.mission_dir, self.logger)

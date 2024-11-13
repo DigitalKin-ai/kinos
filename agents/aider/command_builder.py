@@ -10,6 +10,10 @@ from pathspec.patterns import GitWildMatchPattern
 class AiderCommandBuilder:
     """Builds and executes Aider commands"""
     
+    def __init__(self, agent_name: str):
+        """Initialize with agent name"""
+        self.agent_name = agent_name
+
     def get_model_args(self) -> List[str]:
         """Get model-specific command arguments"""
         return [
@@ -90,9 +94,8 @@ class AiderCommandBuilder:
         cmd.extend(self.get_model_args())
         cmd.extend(self.get_file_args(files, self.get_ignore_patterns(os.getcwd())))
         
-        # Add chat history file argument
-        agent_name = os.path.basename(files[0]).split('.')[0] if files else 'default'
-        cmd.extend(["--chat-history-file", f".aider.{agent_name}.chat.history.md"])
+        # Use the agent name from initialization
+        cmd.extend(["--chat-history-file", f".aider.{self.agent_name}.chat.history.md"])
         
         cmd.extend(["--message", prompt])
         
