@@ -149,29 +149,29 @@ class TeamService:
                 )
                 raise ValueError(f"Team {team_id} not found")
 
-            # Get current phase
+            # Get services and ensure phase is determined first
             from services import init_services
             services = init_services(None)
-            phase_service = services['phase_service']
             map_service = services['map_service']
+            phase_service = services['phase_service']
 
-            # Generate map to calculate total tokens
+            # Generate map and determine phase
             map_service.generate_map()
+            current_phase, _ = phase_service.determine_phase(phase_service.total_tokens)
             
-            # Get phase status
+            # Get complete phase status after phase is determined
             phase_status = phase_service.get_status_info()
-            current_phase = phase_status['phase']
             
             self.logger.log(
-                f"Current phase: {current_phase}\n"
+                f"Current phase: {current_phase.value}\n"
                 f"Total tokens: {phase_status['total_tokens']}\n"
                 f"Usage: {phase_status['usage_percent']:.1f}%\n"
                 f"Status: {phase_status['status_message']}", 
                 'info'
             )
 
-            # Filter agents based on phase
-            filtered_agents = self._filter_agents_by_phase(team['agents'], current_phase)
+            # Filter agents based on determined phase
+            filtered_agents = self._filter_agents_by_phase(team['agents'], current_phase.value)
             
             if not filtered_agents:
                 self.logger.log(
