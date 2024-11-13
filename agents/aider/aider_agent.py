@@ -319,47 +319,21 @@ class AiderAgent(AgentBase):
                         self._log(f"[{self.name}] Error reading output: {str(e)}")
                         continue
 
-                # Get return code with timeout handling
-                try:
-                    with TimeoutManager.timeout(DEFAULT_TIMEOUT):
-                        return_code = process.wait()
-                except TimeoutError:
-                    process.kill()
-                    self._log(
-                        f"[{self.name}] ⚠️ Process timed out after {DEFAULT_TIMEOUT} seconds", 
-                        'warning'
-                    )
-                    return None
-                
-                # Get any remaining output with timeout handling
-                try:
-                    with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
-                        remaining_out, remaining_err = process.communicate()
-                        if remaining_out:
-                            for line in remaining_out.splitlines():
-                                if line.strip():
-                                    print(f"[{self.name}] {line}")
-                                    output_lines.append(line)
-                        if remaining_err:
-                            for line in remaining_err.splitlines():
-                                if line.strip():
-                                    print(f"[{self.name}] ⚠️ {line}")
-                                    output_lines.append(f"ERROR: {line}")
-                except TimeoutError:
-                    process.kill()
-                    self._log(f"[{self.name}] Timeout collecting remaining output")
+            # Get return code with timeout handling
+            try:
+                with TimeoutManager.timeout(DEFAULT_TIMEOUT):
+                    return_code = process.wait()
+            except TimeoutError:
+                process.kill()
+                self._log(f"[{self.name}] ⚠️ Process timed out after {DEFAULT_TIMEOUT} seconds", 'warning')
+                return None
 
-                # Combine all output
-                full_output = "\n".join(output_lines)
-
-                # Log processing results
-                self._log(
-                    f"[{self.name}] 🔄 Processing complete:\n"
-                    f"Return code: {return_code}\n"
-                    f"Output length: {len(full_output) if full_output else 0} chars\n"
-                    f"Current directory: {os.getcwd()}",
-                    'debug'
-                )
+            # Process results
+            return self._process_execution_results(
+                return_code,
+                output_lines,
+                error_detected
+            )
                 
                 # Track modified files from output
                 modified_files = set()
