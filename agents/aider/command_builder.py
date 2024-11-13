@@ -90,7 +90,13 @@ class AiderCommandBuilder:
         Returns:
             List of command arguments
         """
-        cmd = ["aider"]
+        cmd = ["python", "-m", "aider"]
+        
+        # Add the PYTHONPATH environment variable when executing
+        # to ensure your modified aider version is found
+        os.environ["PYTHONPATH"] = os.path.join(os.environ.get("PYTHONPATH", ""), 
+                                            r"C:\Users\conta\parallagon")
+        
         cmd.extend(self.get_model_args())
         cmd.extend(self.get_file_args(files, self.get_ignore_patterns(os.getcwd())))
         

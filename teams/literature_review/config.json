@@ -11,68 +11,56 @@
         {
             "name": "chercheur",
             "type": "research",
-            "weight": 0.9
+            "weight": 0.5
         },
         {
             "name": "management",
             "type": "aider",
-            "weight": 0.6
+            "weight": 0.3
         },
         {
             "name": "evaluation",
             "type": "aider",
-            "weight": 0.7
+            "weight": 0.4
         },
         {
             "name": "chroniqueur",
             "type": "aider",
-            "weight": 0.5
+            "weight": 0.1
         },
         {
             "name": "documentaliste",
             "type": "research",
-            "weight": 0.8
+            "weight": 0.3
         },
         {
             "name": "duplication",
             "type": "aider",
-            "weight": 0.3
+            "weight": 0.2
         },
         {
             "name": "redondance",
             "type": "aider",
-            "weight": 0.4
+            "weight": 0.2
         },
         {
             "name": "redacteur",
             "type": "aider",
-            "weight": 0.8
-        },
-        {
-            "name": "redacteur2",
-            "type": "aider",
-            "weight": 0.7
-        },
-        {
-            "name": "redacteur3",
-            "type": "aider",
-            "weight": 0.6
+            "weight": 0.9
         },
         {
             "name": "validation",
             "type": "aider",
-            "weight": 0.7
+            "weight": 0.4
         }
     ],
     "phase_config": {
         "expansion": {
             "active_agents": [
-                {"name": "specifications", "weight": 0.4},
-                {"name": "chercheur", "weight": 0.9},
-                {"name": "redacteur", "weight": 0.8},
-                {"name": "redacteur2", "weight": 0.7},
-                {"name": "redacteur3", "weight": 0.6},
-                {"name": "chroniqueur", "weight": 0.4}
+                {"name": "specifications", "weight": 0.2},
+                {"name": "chercheur", "weight": 0.5},
+                {"name": "redacteur", "weight": 0.9},
+                {"name": "chroniqueur", "weight": 0.1}
             ],
             "priority": "research"
         },

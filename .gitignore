@@ -2,7 +2,6 @@
 .env
 .aider*
 aider/
-aider/*
 *.secret
 secrets.yaml
 config.local.yaml
