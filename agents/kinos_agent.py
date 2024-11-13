@@ -547,67 +547,56 @@ class KinOSAgent:
             self.logger.log(f"[{self.__class__.__name__}] Error validating run conditions: {str(e)}", 'error')
             return False
 
-    def run(self) -> None:
-        """Main agent loop"""
+    def run(self):
+        """Main execution loop for the agent"""
         try:
-            self.logger.log(f"[{self.__class__.__name__}] 🚀 Starting agent run loop")
+            self._log(f"[{self.name}] 🚀 Starting agent run loop")
             
             while self.running:
                 try:
-                    # List files to watch
+                    # Validate mission directory
+                    if not os.path.exists(self.mission_dir):
+                        self._log(f"[{self.name}] ❌ Mission directory not found")
+                        time.sleep(60)
+                        continue
+
+                    # Update file list
                     self.list_files()
                     
-                    # Log detailed status
-                    self.logger.log(f"[{self.__class__.__name__}] 📊 Status check:")
-                    self.logger.log(f"[{self.__class__.__name__}] - Files monitored: {len(self.mission_files)}")
-                    self.logger.log(f"[{self.__class__.__name__}] - Last run: {self.last_run}")
-                    self.logger.log(f"[{self.__class__.__name__}] - No changes count: {self.consecutive_no_changes}")
-
+                    # Get current prompt
+                    prompt = self.get_prompt()
+                    if not prompt:
+                        self._log(f"[{self.name}] ⚠️ No prompt available")
+                        time.sleep(60)
+                        continue
+                        
                     # Check if we should run
                     if not self.should_run():
                         interval = self.calculate_dynamic_interval()
-                        self.logger.log(f"[{self.__class__.__name__}] ⏳ Waiting {interval}s before next check")
-                        time.sleep(1)  # Short sleep to prevent CPU spinning
+                        time.sleep(interval)
                         continue
-
-                    # Verify mission directory
-                    if not os.path.exists(self.mission_dir):
-                        self.logger.log(f"[{self.__class__.__name__}] ❌ Mission directory not found: {self.mission_dir}")
-                        time.sleep(60)
-                        continue
-
-                    # Get current prompt
-                    prompt = self.get_prompt()
-                    if not prompt or not prompt.strip():
-                        self.logger.log(f"[{self.__class__.__name__}] ⚠️ No valid prompt available")
-                        time.sleep(60)
-                        continue
-
-                    # Execute Aider with current prompt
-                    self.logger.log(f"[{self.__class__.__name__}] 🔄 Running Aider")
+                        
+                    # Run Aider with current prompt
                     result = self._run_aider(prompt)
                     
-                    # Update metrics
+                    # Update state based on result
                     self.last_run = datetime.now()
                     if result:
                         self.last_change = datetime.now()
                         self.consecutive_no_changes = 0
-                        self.logger.log(f"[{self.__class__.__name__}] ✅ Changes made successfully")
                     else:
                         self.consecutive_no_changes += 1
-                        self.logger.log(f"[{self.__class__.__name__}] ℹ️ No changes needed")
-                    
-                    # Calculate next interval
-                    interval = self.calculate_dynamic_interval()
-                    self.logger.log(f"[{self.__class__.__name__}] 💤 Sleeping for {interval}s")
-                    time.sleep(interval)
-                    
-                except Exception as e:
-                    self.logger.log(f"[{self.__class__.__name__}] ❌ Error in run loop: {str(e)}\n{traceback.format_exc()}")
-                    time.sleep(5)  # Short pause before retrying
-                    
-            self.logger.log(f"[{self.__class__.__name__}] 🛑 Run loop ended")
+                        
+                except Exception as loop_error:
+                    self._handle_error('run_loop', loop_error)
+                    time.sleep(5)  # Brief pause before retrying
+
+            self._log(f"[{self.name}] Run loop ended")
             
         except Exception as e:
-            self.logger.log(f"[{self.__class__.__name__}] 💥 Critical error: {str(e)}\n{traceback.format_exc()}")
+            self._handle_error('run', e)
             self.running = False
+            
+        finally:
+            # Ensure cleanup happens
+            self.cleanup()
