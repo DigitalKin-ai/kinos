@@ -47,7 +47,7 @@ class ResearchAgent(AgentBase):
 
     def extract_research_topics(self, content: str) -> List[str]:
         """
-        Extract research questions/topics from content
+        Extract research questions/topics from content using keyword analysis
         
         Args:
             content: Text content to analyze
@@ -56,9 +56,35 @@ class ResearchAgent(AgentBase):
             List of research topics/questions
         """
         try:
-            # TODO: Implement topic extraction logic
-            # For now, return placeholder
-            return ["Sample research topic"]
+            # Split into sentences
+            sentences = [s.strip() for s in content.split('.') if s.strip()]
+            topics = []
+            
+            # Keywords that indicate research topics
+            topic_indicators = [
+                '?', 'how', 'what', 'why', 'when', 'where', 'which',
+                'research', 'investigate', 'analyze', 'study', 'examine',
+                'explore', 'determine', 'identify', 'understand'
+            ]
+            
+            for sentence in sentences:
+                # Check if sentence contains topic indicators
+                if any(indicator in sentence.lower() for indicator in topic_indicators):
+                    # Clean and normalize the topic
+                    topic = sentence.strip('?!.,').strip()
+                    if topic and len(topic) > 10:  # Minimum length threshold
+                        topics.append(topic)
+            
+            # Remove duplicates while preserving order
+            unique_topics = list(dict.fromkeys(topics))
+            
+            if not unique_topics:
+                self.logger.log("No research topics found in content", 'warning')
+                return []
+                
+            self.logger.log(f"Extracted {len(unique_topics)} research topics", 'info')
+            return unique_topics
+            
         except Exception as e:
             self.logger.log(f"Error extracting topics: {str(e)}", 'error')
             return []
@@ -74,15 +100,41 @@ class ResearchAgent(AgentBase):
             Formatted query string
         """
         try:
-            # TODO: Implement query generation logic
-            return f"Research query for: {topic}"
+            # Remove any existing query prefixes
+            topic = topic.lower().replace('research', '').replace('investigate', '').strip()
+            
+            # Add context-specific prefixes based on topic content
+            if '?' in topic:
+                # Direct question - use as is
+                query = topic
+            elif any(w in topic.lower() for w in ['how', 'what', 'why', 'when', 'where']):
+                # Question-like statement - add question mark
+                query = f"{topic}?"
+            else:
+                # Statement - convert to research question
+                query = f"What are the key findings and current research about {topic}?"
+            
+            # Add research-focused qualifiers
+            qualifiers = [
+                "Include recent research",
+                "Cite key studies",
+                "Focus on verified sources",
+                "Provide specific examples"
+            ]
+            
+            # Combine query with qualifiers
+            full_query = f"{query} {' '.join(qualifiers)}"
+            
+            self.logger.log(f"Generated query: {full_query}", 'debug')
+            return full_query
+            
         except Exception as e:
             self.logger.log(f"Error generating query: {str(e)}", 'error')
             return ""
 
     def execute_query(self, query: str) -> Optional[Dict[str, Any]]:
         """
-        Execute query using Perplexity API
+        Execute query using Perplexity API with rate limiting and caching
         
         Args:
             query: Query string to execute
@@ -91,8 +143,37 @@ class ResearchAgent(AgentBase):
             Query results or None on error
         """
         try:
-            # TODO: Implement Perplexity API call
-            return {"query": query, "results": []}
+            # Check cache first
+            cache_key = hash(query)
+            if cache_key in self.query_cache:
+                self.logger.log("Using cached query result", 'debug')
+                return self.query_cache[cache_key]
+            
+            # Check rate limits
+            if not self._check_rate_limit():
+                self.logger.log("Rate limit exceeded, waiting...", 'warning')
+                return None
+            
+            # Initialize Perplexity client
+            from utils.perplexity_client import PerplexityClient
+            client = PerplexityClient()
+            
+            # Execute query with default parameters
+            result = client.execute_query(
+                query=query,
+                max_tokens=1000,
+                temperature=0.7
+            )
+            
+            if result:
+                # Cache successful result
+                self.query_cache[cache_key] = result
+                self.logger.log("Query executed and cached successfully", 'info')
+            else:
+                self.logger.log("Query returned no results", 'warning')
+            
+            return result
+            
         except Exception as e:
             self.logger.log(f"Error executing query: {str(e)}", 'error')
             return None
