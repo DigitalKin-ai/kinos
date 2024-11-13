@@ -572,10 +572,10 @@ class AiderAgent(AgentBase):
         return any(indicator in line.lower() for indicator in error_indicators)
 
     def list_files(self) -> None:
-    """List and track files that this agent should monitor"""
-    try:
-        # Use FileHandler to list files in mission directory
-        file_handler = FileHandler(self.mission_dir, self.logger)
+        """List and track files that this agent should monitor"""
+        try:
+            # Use FileHandler to list files in mission directory
+            file_handler = FileHandler(self.mission_dir, self.logger)
         self.mission_files = file_handler.list_files()
         
         # Log files being monitored
