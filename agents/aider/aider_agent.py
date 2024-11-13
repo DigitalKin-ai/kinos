@@ -512,26 +512,6 @@ class AiderAgent(AgentBase):
         except Exception as e:
             self.logger.log(f"[{self.name}] Error handling commit message: {str(e)}")
 
-    def _is_error_message(self, line: str) -> bool:
-        """
-        Check if line contains error message
-        
-        Args:
-            line: Output line to check
-            
-        Returns:
-            bool: True if line contains error
-        """
-        error_indicators = [
-            'error',
-            'exception',
-            'failed',
-            'can\'t initialize',
-            'fatal:',
-            'permission denied'
-        ]
-        return any(indicator in line.lower() for indicator in error_indicators)
-
     def _handle_error_message(self, line: str) -> None:
         """
         Handle error message output
