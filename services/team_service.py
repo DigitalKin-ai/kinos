@@ -414,10 +414,12 @@ class TeamService:
                 'duplication',      # Duplication detection
                 'validation',       # Quality validation
                 'documentaliste',   # Documentation organization
-                'evaluation'        # Global evaluation
+                'evaluation',       # Global evaluation
+                'cleaner',         # Code cleanup
+                'redondance'       # Redundancy detection
             ]
             
-            # Filter to keep priority agents
+            # Filter to keep priority agents that exist in the team
             filtered = [agent for agent in agents if agent in priority_agents]
             
             # If no priority agents found, return minimal list
