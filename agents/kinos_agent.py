@@ -658,27 +658,48 @@ class KinOSAgent:
 
 
     def calculate_dynamic_interval(self) -> float:
-        """Enhanced dynamic interval calculation with weight and bounds"""
+        """Enhanced dynamic interval calculation with weight and phase-specific bounds"""
         try:
             base_interval = self.check_interval
             min_interval = 60  # Minimum 1 minute
             max_interval = 3600  # Maximum 1 hour
             
-            # Get agent weight from config (default to 0.5 if not found)
-            agent_weight = 0.5
+            # Get agent weight from config and current phase
+            agent_weight = 0.5  # Default weight
+            phase_weight = None
+            
             try:
                 from services import init_services
                 services = init_services(None)
                 team_service = services['team_service']
+                phase_service = services['phase_service']
+                
+                # Get current phase
+                phase_status = phase_service.get_status_info()
+                current_phase = phase_status['phase'].lower()
                 
                 # Find agent in active team config
                 for team in team_service.predefined_teams:
+                    # Check base weight from team config
                     for agent in team.get('agents', []):
                         if isinstance(agent, dict) and agent.get('name') == self.name:
                             agent_weight = agent.get('weight', 0.5)
+                            
+                            # Check phase-specific weight
+                            phase_config = team.get('phase_config', {}).get(current_phase, {})
+                            for phase_agent in phase_config.get('active_agents', []):
+                                if isinstance(phase_agent, dict) and phase_agent.get('name') == self.name:
+                                    phase_weight = phase_agent.get('weight')
+                                    break
                             break
+                    if phase_weight is not None:
+                        break
+                        
             except Exception as e:
-                self.logger.log(f"Error getting agent weight: {str(e)}", 'debug')
+                self.logger.log(f"Error getting agent weights: {str(e)}", 'debug')
+            
+            # Use phase weight if available, otherwise use base weight
+            final_weight = phase_weight if phase_weight is not None else agent_weight
             
             # Calculate multiplier based on activity and weight
             if self.consecutive_no_changes > 0:
@@ -690,7 +711,7 @@ class KinOSAgent:
                     multiplier *= 1.5
                     
                 # Apply weight - higher weight means shorter interval
-                weight_factor = 2 - agent_weight  # Convert 0-1 weight to 1-2 range
+                weight_factor = 2 - final_weight  # Convert 0-1 weight to 1-2 range
                 multiplier *= weight_factor
                 
                 interval = base_interval * multiplier
@@ -698,7 +719,7 @@ class KinOSAgent:
                 # Log adjustment with weight info
                 self.logger.log(
                     f"[{self.__class__.__name__}] Adjusted interval: {interval:.1f}s "
-                    f"(multiplier: {multiplier:.1f}, weight: {agent_weight:.1f})", 
+                    f"(multiplier: {multiplier:.1f}, weight: {final_weight:.1f})", 
                     'debug'
                 )
                 
@@ -706,7 +727,7 @@ class KinOSAgent:
                 return max(min_interval, min(max_interval, interval))
             
             # Apply weight to base interval
-            weight_factor = 2 - agent_weight  # Convert 0-1 weight to 1-2 range
+            weight_factor = 2 - final_weight  # Convert 0-1 weight to 1-2 range
             interval = base_interval * weight_factor
             return max(min_interval, min(max_interval, interval))
             
