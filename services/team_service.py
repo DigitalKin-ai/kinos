@@ -181,10 +181,7 @@ class TeamService:
                 try:
                     if i > 0:  # Don't wait for first agent
                         self.logger.log(f"Waiting 10 seconds before starting next agent...", 'info')
-                        try:
-                            time.sleep(10)
-                        except KeyboardInterrupt:
-                            raise KeyboardInterrupt("User interrupted team startup")
+                        time.sleep(10)
                     
                     # Try starting agent with retries
                     start_attempts = 0
@@ -212,16 +209,7 @@ class TeamService:
                             if start_attempts >= max_start_attempts:
                                 break
                             time.sleep(2 ** start_attempts)  # Exponential backoff
-                    
-                except KeyboardInterrupt:
-                    self.logger.log("Startup interrupted by user - cleaning up...", 'warning')
-                    # Stop started agents
-                    for started_agent in started_agents:
-                        try:
-                            self.agent_service.toggle_agent(started_agent, 'stop', mission_dir)
-                        except Exception as e:
-                            self.logger.log(f"Error stopping agent {started_agent}: {str(e)}", 'error')
-                    raise
+                
                 except Exception as e:
                     self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
 
@@ -233,15 +221,6 @@ class TeamService:
                 'status': 'started'
             }
 
-        except KeyboardInterrupt:
-            # Cleanup already handled above
-            return {
-                'team_id': team_id,
-                'mission_dir': mission_dir,
-                'agents': started_agents,
-                'phase': current_phase,
-                'status': 'interrupted'
-            }
         except Exception as e:
             self.logger.log(f"Error starting team: {str(e)}", 'error')
             # Try to stop any started agents
