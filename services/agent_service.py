@@ -748,48 +748,9 @@ List any specific constraints or limitations.
             }
         return status
 
-    def _get_agent_status_details(self, agent) -> dict:
-        """Get standardized agent status details"""
-        try:
-            return {
-                'running': getattr(agent, 'running', False),
-                'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
-                'status': 'active' if getattr(agent, 'running', False) else 'inactive',
-                'health': {
-                    'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
-                    'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
-                }
-            }
-        except Exception as e:
-            self.logger.log(f"Error getting agent status details: {str(e)}", 'error')
-            return {
-                'running': False,
-                'status': 'error',
-                'last_run': None,
-                'health': {'is_healthy': False, 'consecutive_no_changes': 0}
-            }
+    # Removed _get_agent_status_details method as it's now consolidated
 
-    def _get_agent_status(self, agent_name: str) -> Dict[str, Any]:
-        """Get comprehensive status for a specific agent"""
-        try:
-            agent = self.agents.get(agent_name)
-            if not agent:
-                return self._get_default_agent_status('not_found')
-
-            return {
-                'running': getattr(agent, 'running', False),
-                'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
-                'status': 'active' if getattr(agent, 'running', False) else 'inactive',
-                'health': {
-                    'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
-                    'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0),
-                    'error_count': getattr(agent, 'error_count', 0)
-                }
-            }
-
-        except Exception as e:
-            self.logger.log(f"Error getting agent status: {str(e)}", 'error')
-            return self._get_default_agent_status('error')
+    # Removed _get_agent_status method as it's now consolidated
 
     def _get_default_agent_status(self, status_type: str = 'default') -> Dict[str, Any]:
         """Generate a default agent status dictionary"""
