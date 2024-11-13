@@ -241,47 +241,55 @@ class TeamService:
                         self.logger.log(f"Critical error starting agent {agent_name}: {str(e)}", 'error')
                         return False
 
-                # Submit initial batch of agents with error handling
+                # Maintain pools of active and waiting agents
                 futures = []
-                initial_batch = random_agents[:self.max_concurrent_agents]
-                remaining_agents = random_agents[self.max_concurrent_agents:]
+                active_agents = set()
+                waiting_agents = set(agent['name'] if isinstance(agent, dict) else agent 
+                                   for agent in normalized_agents)
 
-                for agent_config in initial_batch:
-                    try:
-                        # Extract agent name from config dict
-                        agent_name = agent_config['name'] if isinstance(agent_config, dict) else agent_config
-                        
-                        futures.append(executor.submit(start_agent, agent_name))
-                        time.sleep(5)  # Wait 5 seconds between each initial agent
-                    except Exception as e:
-                        self.logger.log(f"Error submitting agent {agent_config}: {str(e)}", 'error')
+                while waiting_agents or active_agents:
+                    # Calculate how many slots are available
+                    available_slots = self.max_concurrent_agents - len(active_agents)
 
-                # Process results and add new agents as others complete
-                while futures or remaining_agents:
-                    try:
-                        # Wait for an agent to complete
-                        done, futures = concurrent.futures.wait(
-                            futures,
-                            return_when=concurrent.futures.FIRST_COMPLETED,
-                            timeout=10  # Add timeout to prevent hanging
+                    if available_slots > 0 and waiting_agents:
+                        # Randomly select agents to start
+                        agents_to_start = random.sample(
+                            waiting_agents, 
+                            min(available_slots, len(waiting_agents))
                         )
+                        
+                        # Start new agents
+                        for agent_name in agents_to_start:
+                            waiting_agents.remove(agent_name)
+                            future = executor.submit(start_agent, agent_name)
+                            futures.append(future)
+                            active_agents.add(agent_name)
+                            time.sleep(5)  # Wait between starts
 
-                        # For each completed agent
-                        for future in done:
-                            try:
-                                success = future.result(timeout=5)  # Add timeout for result retrieval
-                                if success and remaining_agents:
-                                    # Get next agent config and extract name
-                                    next_agent = remaining_agents.pop(0)
-                                    agent_name = next_agent['name'] if isinstance(next_agent, dict) else next_agent
-                                    
-                                    futures.add(executor.submit(start_agent, agent_name))
-                                    time.sleep(5)  # Wait 5 seconds before starting next agent
-                            except Exception as e:
-                                self.logger.log(f"Error processing agent result: {str(e)}", 'error')
-                    except Exception as e:
-                        self.logger.log(f"Error in agent processing loop: {str(e)}", 'error')
-                        break
+                    # Wait for any agent to complete
+                    done, futures = concurrent.futures.wait(
+                        futures,
+                        return_when=concurrent.futures.FIRST_COMPLETED,
+                        timeout=10
+                    )
+
+                    # Process completed agents
+                    for future in done:
+                        try:
+                            success = future.result(timeout=5)
+                            # Find which agent completed
+                            completed_agent = next(
+                                agent for agent in active_agents
+                                if agent in [a['name'] if isinstance(a, dict) else a 
+                                           for a in normalized_agents]
+                            )
+                            active_agents.remove(completed_agent)
+                            # Put completed agent back in waiting pool
+                            waiting_agents.add(completed_agent)
+                        except Exception as e:
+                            self.logger.log(f"Error processing agent result: {str(e)}", 'error')
+
+                    time.sleep(1)  # Prevent tight loop
 
             return {
                 'team_id': team['id'],
