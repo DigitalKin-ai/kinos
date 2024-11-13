@@ -132,6 +132,7 @@ class AiderAgent(AgentBase):
             return False
         return True
 
+    @TimeoutManager.with_timeout(COMMAND_EXECUTION_TIMEOUT)
     def _execute_aider_command(self, prompt: str) -> Optional[str]:
         """Build and execute Aider command with comprehensive handling"""
         original_dir = os.getcwd()

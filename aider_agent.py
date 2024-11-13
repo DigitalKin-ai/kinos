@@ -5,6 +5,7 @@ import os
 import time
 import subprocess
 import traceback
+from utils.managers.timeout_manager import TimeoutManager
 from datetime import datetime
 from typing import Dict, Any, Optional
 from agents.base.agent_base import AgentBase
@@ -393,33 +394,35 @@ class AiderAgent(AgentBase):
                         self._log(f"[{self.name}] Error reading output: {str(e)}")
                         continue
 
-                # Get return code and check timeout
+                # Get return code with timeout handling
                 try:
-                    return_code = process.wait(timeout=TIMEOUT_SECONDS)
-                except subprocess.TimeoutExpired:
+                    with TimeoutManager.timeout(DEFAULT_TIMEOUT):
+                        return_code = process.wait()
+                except TimeoutError:
                     process.kill()
                     self._log(
-                        f"[{self.name}] ⚠️ Process timed out after {TIMEOUT_SECONDS} seconds", 
+                        f"[{self.name}] ⚠️ Process timed out after {DEFAULT_TIMEOUT} seconds", 
                         'warning'
                     )
                     return None
                 
-                # Get any remaining output
+                # Get any remaining output with timeout handling
                 try:
-                    remaining_out, remaining_err = process.communicate(timeout=5)
-                    if remaining_out:
-                        for line in remaining_out.splitlines():
-                            if line.strip():
-                                print(f"[{self.name}] {line}")
-                                output_lines.append(line)
-                    if remaining_err:
-                        for line in remaining_err.splitlines():
-                            if line.strip():
-                                print(f"[{self.name}] ⚠️ {line}")
-                                output_lines.append(f"ERROR: {line}")
-                except subprocess.TimeoutExpired:
+                    with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
+                        remaining_out, remaining_err = process.communicate()
+                        if remaining_out:
+                            for line in remaining_out.splitlines():
+                                if line.strip():
+                                    print(f"[{self.name}] {line}")
+                                    output_lines.append(line)
+                        if remaining_err:
+                            for line in remaining_err.splitlines():
+                                if line.strip():
+                                    print(f"[{self.name}] ⚠️ {line}")
+                                    output_lines.append(f"ERROR: {line}")
+                except TimeoutError:
                     process.kill()
-                    self._log(f"[{self.name}] Process killed due to timeout")
+                    self._log(f"[{self.name}] Timeout collecting remaining output")
 
                 # Combine all output
                 full_output = "\n".join(output_lines)
