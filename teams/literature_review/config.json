@@ -3,15 +3,54 @@
     "name": "Literature Review Team", 
     "description": "Research and analysis",
     "agents": [
-        "specifications",
-        "chercheur",
-        "management", 
-        "evaluation",
-        "chroniqueur",
-        "documentaliste",
-        "duplication", "redondance",
-        "redacteur", "redacteur2", "redacteur3",
-        "validation"
+        {
+            "name": "specifications",
+            "type": "aider"
+        },
+        {
+            "name": "chercheur",
+            "type": "research"
+        },
+        {
+            "name": "management",
+            "type": "aider"
+        },
+        {
+            "name": "evaluation",
+            "type": "aider"
+        },
+        {
+            "name": "chroniqueur",
+            "type": "aider"
+        },
+        {
+            "name": "documentaliste",
+            "type": "research"
+        },
+        {
+            "name": "duplication",
+            "type": "aider"
+        },
+        {
+            "name": "redondance",
+            "type": "aider"
+        },
+        {
+            "name": "redacteur",
+            "type": "aider"
+        },
+        {
+            "name": "redacteur2",
+            "type": "aider"
+        },
+        {
+            "name": "redacteur3",
+            "type": "aider"
+        },
+        {
+            "name": "validation",
+            "type": "aider"
+        }
     ],
     "phase_config": {
         "expansion": {

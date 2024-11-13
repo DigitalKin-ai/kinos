@@ -3,16 +3,46 @@
     "name": "Coding Team",
     "description": "Software development",
     "agents": [
-        "specifications",
-        "management",
-        "evaluation",
-        "chroniqueur",
-        "documentaliste",
-        "duplication",
-        "production",
-        "testeur",
-        "validation",
-        "cleaner"
+        {
+            "name": "specifications",
+            "type": "aider"
+        },
+        {
+            "name": "management",
+            "type": "aider"
+        },
+        {
+            "name": "evaluation",
+            "type": "aider"
+        },
+        {
+            "name": "chroniqueur",
+            "type": "aider"
+        },
+        {
+            "name": "documentaliste",
+            "type": "research"
+        },
+        {
+            "name": "duplication",
+            "type": "aider"
+        },
+        {
+            "name": "production",
+            "type": "aider"
+        },
+        {
+            "name": "testeur",
+            "type": "aider"
+        },
+        {
+            "name": "validation",
+            "type": "aider"
+        },
+        {
+            "name": "cleaner",
+            "type": "aider"
+        }
     ],
     "phase_config": {
         "expansion": {

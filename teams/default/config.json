@@ -3,14 +3,42 @@
     "name": "Default Team",
     "description": "Content creation and documentation",
     "agents": [
-        "specifications",
-        "management", 
-        "evaluation",
-        "chroniqueur",
-        "documentaliste",
-        "duplication", "redondance",
-        "redacteur",
-        "validation"
+        {
+            "name": "specifications",
+            "type": "aider"
+        },
+        {
+            "name": "management",
+            "type": "aider"
+        },
+        {
+            "name": "evaluation",
+            "type": "aider"
+        },
+        {
+            "name": "chroniqueur",
+            "type": "aider"
+        },
+        {
+            "name": "documentaliste",
+            "type": "research"
+        },
+        {
+            "name": "duplication",
+            "type": "aider"
+        },
+        {
+            "name": "redondance",
+            "type": "aider"
+        },
+        {
+            "name": "redacteur",
+            "type": "aider"
+        },
+        {
+            "name": "validation",
+            "type": "aider"
+        }
     ],
     "phase_config": {
         "expansion": {
