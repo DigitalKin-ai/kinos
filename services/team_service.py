@@ -43,6 +43,7 @@ class TeamService:
         self._waiting_agents = []  # List for waiting agents
         self._started_agents = []  # List for started agents
         self._team_lock = threading.Lock()
+        self._shutdown_requested = False  # Track if shutdown was requested
 
     def _load_predefined_teams(self) -> List[Dict]:
         """Load team configurations from teams/ directory"""
@@ -179,6 +180,9 @@ class TeamService:
         TOTAL_TIMEOUT = 300  # 5 minute total timeout
         
         try:
+            # Reset shutdown flag
+            self._shutdown_requested = False
+            
             self.logger.log(f"Starting team {team_id} initialization...", 'info')
             
             # Get team config
@@ -227,18 +231,31 @@ class TeamService:
                                 "[Errno 22] Invalid argument"
                             ]):
                                 success = True  # Override failure for known Aider messages
+                                continue  # Skip shutdown for these messages
                             
-                        if not success:
+                        if not success and not self._shutdown_requested:
                             self.logger.log(f"Failed to start agent {agent_name}", 'error')
                     except Exception as e:
                         # Don't propagate known Aider errors
-                        if not any(err in str(e) for err in [
+                        if any(err in str(e) for err in [
                             "Can't initialize prompt toolkit",
                             "No Windows console found",
                             "aider.chat/docs/troubleshooting/edit-errors.html",
                             "[Errno 22] Invalid argument"
                         ]):
+                            continue  # Skip shutdown for these messages
+                        
+                        if not self._shutdown_requested:
                             self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
+
+            # Only perform shutdown if explicitly requested
+            if self._shutdown_requested:
+                self.stop_team(team_id)
+                return {
+                    'status': 'shutdown',
+                    'team_id': team_id,
+                    'reason': 'Shutdown requested'
+                }
 
             elapsed = time.time() - start_time
             self.logger.log(f"Team startup completed in {elapsed:.1f}s", 'success')
@@ -253,9 +270,8 @@ class TeamService:
             }
 
         except TimeoutError:
-            self.logger.log(f"Team startup timed out after {TOTAL_TIMEOUT}s", 'error')
-            # Attempt to stop any started agents
-            self.stop_team(team_id)
+            if not self._shutdown_requested:
+                self.logger.log(f"Team startup timed out after {TOTAL_TIMEOUT}s", 'error')
             return {
                 'status': 'timeout',
                 'team_id': team_id,
@@ -263,19 +279,26 @@ class TeamService:
             }
         except Exception as e:
             # Don't propagate known Aider errors
-            if not any(err in str(e) for err in [
+            if any(err in str(e) for err in [
                 "Can't initialize prompt toolkit",
                 "No Windows console found",
                 "aider.chat/docs/troubleshooting/edit-errors.html",
                 "[Errno 22] Invalid argument"
             ]):
+                return {
+                    'status': 'started',  # Still report as started for known Aider messages
+                    'team_id': team_id,
+                    'mission_dir': mission_dir if 'mission_dir' in locals() else None,
+                    'phase': phase_status['phase'] if 'phase_status' in locals() else None,
+                    'agents': [a['name'] if isinstance(a, dict) else a for a in filtered_agents] if 'filtered_agents' in locals() else []
+                }
+                
+            if not self._shutdown_requested:
                 self.logger.log(f"Error starting team: {str(e)}", 'error')
             return {
-                'status': 'started',  # Still report as started for known Aider messages
+                'status': 'error',
                 'team_id': team_id,
-                'mission_dir': mission_dir if 'mission_dir' in locals() else None,
-                'phase': phase_status['phase'] if 'phase_status' in locals() else None,
-                'agents': [a['name'] if isinstance(a, dict) else a for a in filtered_agents] if 'filtered_agents' in locals() else []
+                'error': str(e)
             }
 
         # Initialize tracking collections
@@ -289,6 +312,15 @@ class TeamService:
     def stop_team(self, team_id: str, timeout: int = 30) -> Dict[str, Any]:
         """Stop team with graceful shutdown and cleanup"""
         try:
+            # Only proceed with shutdown if explicitly requested or critical error
+            if not self._shutdown_requested:
+                self.logger.log("Ignoring automatic shutdown request", 'info')
+                return {
+                    'status': 'ignored',
+                    'team_id': team_id,
+                    'message': 'Shutdown not explicitly requested'
+                }
+
             team_config = self._get_team_config(team_id)
             if not team_config:
                 return {'status': 'not_found', 'team_id': team_id}
@@ -947,3 +979,6 @@ class TeamService:
                 self.agent_service.toggle_agent(agent_name, 'stop', mission_dir)
             except Exception as cleanup_error:
                 self.logger.log(f"Error stopping agent {agent_name}: {str(cleanup_error)}", 'error')
+    def request_shutdown(self):
+        """Explicitly request team shutdown"""
+        self._shutdown_requested = True
