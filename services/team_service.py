@@ -206,7 +206,12 @@ class TeamService:
             if not self._initialize_agents(mission_dir, filtered_agents):
                 return self._build_error_response(team_id, "Agent initialization failed")
 
+            # Randomize agent order for startup
+            random_agents = filtered_agents.copy()
+            random.shuffle(random_agents)
+
             # Start agents with thread pool
+            futures = []
             startup_result = self._start_agents_with_pool(
                 filtered_agents,
                 active_agents,
