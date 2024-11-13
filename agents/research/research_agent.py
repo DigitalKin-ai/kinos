@@ -277,6 +277,40 @@ Please update the files to incorporate this research data while maintaining the 
             self.logger.log(f"Error in research mission: {str(e)}", 'error')
             return None
 
+    def get_prompt(self) -> Optional[str]:
+        """Get the current prompt content"""
+        try:
+            # Use prompt handler to get prompt
+            from agents.base.prompt_handler import PromptHandler
+            prompt_handler = PromptHandler(self.logger)
+            return prompt_handler.get_prompt(self.prompt_file)
+        except Exception as e:
+            self.logger.log(f"Error getting prompt: {str(e)}", 'error')
+            return None
+
+    def _run_aider(self, prompt: str) -> Optional[str]:
+        """Execute Aider with the given prompt"""
+        try:
+            # Build and execute query
+            query = self.generate_query(prompt)
+            results = self.execute_query(query)
+            
+            if not results:
+                return None
+                
+            # Format results for Aider
+            formatted_results = self._format_research_results([{
+                'topic': prompt,
+                'query': query,
+                'results': results
+            }])
+            
+            return formatted_results
+            
+        except Exception as e:
+            self.logger.log(f"Error running Aider: {str(e)}", 'error')
+            return None
+
     def cleanup(self):
         """Cleanup research agent resources"""
         try:

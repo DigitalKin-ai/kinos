@@ -246,12 +246,15 @@ class TeamService:
                 initial_batch = random_agents[:self.max_concurrent_agents]
                 remaining_agents = random_agents[self.max_concurrent_agents:]
 
-                for agent_name in initial_batch:
+                for agent_config in initial_batch:
                     try:
+                        # Extract agent name from config dict
+                        agent_name = agent_config['name'] if isinstance(agent_config, dict) else agent_config
+                        
                         futures.append(executor.submit(start_agent, agent_name))
                         time.sleep(5)  # Wait 5 seconds between each initial agent
                     except Exception as e:
-                        self.logger.log(f"Error submitting agent {agent_name}: {str(e)}", 'error')
+                        self.logger.log(f"Error submitting agent {agent_config}: {str(e)}", 'error')
 
                 # Process results and add new agents as others complete
                 while futures or remaining_agents:
@@ -268,9 +271,11 @@ class TeamService:
                             try:
                                 success = future.result(timeout=5)  # Add timeout for result retrieval
                                 if success and remaining_agents:
-                                    # Start next agent
+                                    # Get next agent config and extract name
                                     next_agent = remaining_agents.pop(0)
-                                    futures.add(executor.submit(start_agent, next_agent))
+                                    agent_name = next_agent['name'] if isinstance(next_agent, dict) else next_agent
+                                    
+                                    futures.add(executor.submit(start_agent, agent_name))
                                     time.sleep(5)  # Wait 5 seconds before starting next agent
                             except Exception as e:
                                 self.logger.log(f"Error processing agent result: {str(e)}", 'error')
