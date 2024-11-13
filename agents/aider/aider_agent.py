@@ -355,7 +355,7 @@ class AiderAgent(AgentBase):
         """Main execution loop for the agent"""
         try:
             self.logger.log(f"[{self.name}] 🚀 Starting agent run loop", 'info')
-            
+        
             # Set running flag to True when starting
             self.running = True
             
@@ -377,9 +377,17 @@ class AiderAgent(AgentBase):
                         time.sleep(60)
                         continue
                         
-                    # Run Aider with current prompt
-                    result = self.run_aider(prompt)
-                    
+                    # Run Aider with current prompt and handle stdout flush error
+                    try:
+                        result = self.run_aider(prompt)
+                    except OSError as os_error:
+                        if "[Errno 22] Invalid argument" in str(os_error):
+                            # Ignorer cette erreur spécifique de flush
+                            self.logger.log(f"[{self.name}] Ignoring Windows stdout flush error", 'debug')
+                            result = None  # Continue with None result
+                        else:
+                            raise  # Re-raise other OS errors
+                
                     # Update state based on result
                     self.last_run = datetime.now()
                     if result:
@@ -394,13 +402,19 @@ class AiderAgent(AgentBase):
                     time.sleep(interval)
                     
                 except Exception as loop_error:
+                    # Ignore known Windows stdout flush error
+                    if isinstance(loop_error, OSError) and "[Errno 22] Invalid argument" in str(loop_error):
+                        continue
+                    
                     self.logger.log(f"[{self.name}] ❌ Error in run loop: {str(loop_error)}", 'error')
                     time.sleep(5)  # Brief pause before retrying
 
             self.logger.log(f"[{self.name}] Run loop ended", 'info')
             
         except Exception as e:
-            self.logger.log(f"[{self.name}] Critical error in run: {str(e)}", 'error')
+            # Final error handler also ignores the stdout flush error
+            if not (isinstance(e, OSError) and "[Errno 22] Invalid argument" in str(e)):
+                self.logger.log(f"[{self.name}] Critical error in run: {str(e)}", 'error')
             self.running = False
             
         finally:
