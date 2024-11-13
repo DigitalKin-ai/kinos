@@ -8,7 +8,7 @@ from utils.logger import Logger
 from utils.path_manager import PathManager
 from utils.exceptions import ServiceError
 from services.agent_service import AgentService
-from agents.kinos_agent import KinOSAgent
+from agents.base.agent_base import AgentBase
 
 class TeamService:
     """Service simplifié pour la gestion des équipes en CLI"""
