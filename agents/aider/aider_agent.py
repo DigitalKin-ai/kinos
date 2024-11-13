@@ -391,14 +391,21 @@ Instructions:
                     try:
                         from anthropic import Anthropic
                         client = Anthropic()
+                        
+                        messages = []
+                        
+                        # Only add chat history if not empty
+                        if chat_history.strip():
+                            messages.append({"role": "assistant", "content": chat_history})
+                            
+                        # Add user message
+                        messages.append({"role": "user", "content": context_message})
+                        
                         response = client.messages.create(
                             model="claude-3-haiku-20240307",
                             max_tokens=4000,
                             system=prompt,  # Set system prompt
-                            messages=[
-                                {"role": "assistant", "content": chat_history},
-                                {"role": "user", "content": context_message}
-                            ]
+                            messages=messages
                         )
                         instructions = response.content[0].text
                         self.logger.log(f"[{self.name}] Generated instructions:\n{instructions}", 'debug')
