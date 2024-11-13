@@ -529,8 +529,6 @@ class AiderAgent(AgentBase):
         """
         self._log(f"[{self.name}] ❌ {line}", 'error')
         self.error_count += 1
-from agents.base.file_handler import FileHandler
-import os
 
 def list_files(self) -> None:
     """List and track files that this agent should monitor"""
