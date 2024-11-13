@@ -3,6 +3,21 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
 
+@dataclass 
+class TeamMetrics:
+    """Track team startup metrics"""
+    total_agents: int = 0
+    active_agents: int = 0
+    healthy_agents: int = 0
+    error_count: int = 0
+    last_update: datetime = field(default_factory=datetime.now)
+
+    @property
+    def success_rate(self) -> float:
+        if self.total_agents == 0:
+            return 0.0
+        return self.healthy_agents / self.total_agents
+
 @dataclass
 class TeamConfig:
     """Team configuration with validation"""
