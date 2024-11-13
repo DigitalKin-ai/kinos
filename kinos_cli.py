@@ -285,17 +285,63 @@ def launch_team(args):
         sys.exit(1)
 
 def main():
-    """Main entry point for KinOS CLI"""
-    parser = argparse.ArgumentParser(description="KinOS CLI - Team Launch")
-    parser.add_argument('team', nargs='?', default='default', 
-                       help='Team to launch (default: default)')
-    parser.add_argument('-v', '--verbose', action='store_true', 
-                       help='Enable verbose logging')
-    parser.add_argument('--dry-run', action='store_true',
-                       help='Simulate without executing')
+    """Main CLI entry point"""
+    parser = argparse.ArgumentParser(description='KinOS CLI')
     
+    # Add global options that apply to all commands
+    parser.add_argument(
+        '--log-level',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+        default='INFO',
+        help='Set logging level'
+    )
+    
+    # Add team argument
+    parser.add_argument(
+        'team',
+        nargs='?',
+        default='default',
+        help='Team to start (default: default)'
+    )
+    
+    # Add verbose flag
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help='Enable verbose output'
+    )
+
+    # Parse arguments
     args = parser.parse_args()
-    launch_team(args)
+    
+    try:
+        # Configure logging
+        logger = configure_cli_logger()
+        logger.log(f"Starting KinOS CLI...", 'info')
+        logger.log(f"Team: {args.team}", 'info')
+        logger.log(f"Working directory: {os.getcwd()}", 'info')
+
+        # Create service instances
+        team_service = TeamService(None)
+        agent_service = AgentService(None)
+
+        # Start team in current directory
+        result = team_service.start_team(
+            team_id=args.team, 
+            base_path=os.getcwd()
+        )
+
+        if args.verbose:
+            logger.log("Team startup details:", 'info')
+            for agent_result in result.get('start_results', []):
+                status = agent_result.get('status', 'unknown')
+                agent = agent_result.get('agent', 'Unknown Agent')
+                logger.log(f"Agent {agent}: {status}")
+
+    except Exception as e:
+        logger = configure_cli_logger()
+        logger.log(f"Error starting team: {str(e)}", 'error')
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
