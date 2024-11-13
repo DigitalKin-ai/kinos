@@ -184,12 +184,13 @@ class TeamService:
                             time.sleep(5)
                             self.logger.log("Wait completed normally", 'debug')
                         except KeyboardInterrupt:
-                            # Check if it's an Aider initialization error or user interrupt
-                            if "No Windows console found" in str(sys.last_value):
+                            # Vérifier le message d'erreur directement
+                            error_msg = str(e)
+                            if "No Windows console found" in error_msg or "Can't initialize prompt toolkit" in error_msg:
                                 self.logger.log("Aider initialization warning - continuing", 'debug')
                                 continue
                             else:
-                                self.logger.log("Sleep interrupted by Ctrl+C", 'warning')
+                                self.logger.log("User interrupted with Ctrl+C", 'warning')
                                 # Stop started agents in reverse order
                                 for started_agent in reversed(started_agents):
                                     try:
