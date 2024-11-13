@@ -334,16 +334,16 @@ class AiderAgent(AgentBase):
                 output_lines,
                 error_detected
             )
-                
-                # Track modified files from output
-                modified_files = set()
-                for line in output_lines:
-                    if "Wrote " in line and ".md" in line:
-                        try:
-                            modified_file = line.split("Wrote ")[1].split()[0]
-                            modified_files.add(modified_file)
-                        except:
-                            pass
+
+            # Track modified files from output
+            modified_files = set()
+            for line in output_lines:
+                if "Wrote " in line and ".md" in line:
+                    try:
+                        modified_file = line.split("Wrote ")[1].split()[0]
+                        modified_files.add(modified_file)
+                    except:
+                        pass
 
                 # If execution was successful, log the changes
                 if return_code == 0 and full_output:
