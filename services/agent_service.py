@@ -14,8 +14,6 @@ from agents.aider.aider_agent import AiderAgent
 from utils.path_manager import PathManager
 from utils.validators import validate_agent_name
 from utils.logger import Logger
-from utils.decorators import timeout
-from utils.managers.timeout_manager import TimeoutManager
 import sys
 
 class AgentService:
@@ -490,7 +488,7 @@ List any specific constraints or limitations.
                 if agent_name in self.agent_threads:
                     thread = self.agent_threads[agent_name]
                     if thread and thread.is_alive():
-                        thread.join(timeout=5)
+                        thread.join()
                     del self.agent_threads[agent_name]
                     
                 return not agent.running
@@ -523,7 +521,7 @@ List any specific constraints or limitations.
                 for thread in self.agent_threads.values():
                     if thread and thread.is_alive():
                         try:
-                            thread.join(timeout=1)
+                            thread.join()
                         except:
                             pass
                             
@@ -575,39 +573,34 @@ List any specific constraints or limitations.
         try:
             self._shutting_down.set()
             
-            # Use timeout context for overall shutdown
-            with timeout(30):  # 30 second total shutdown timeout
-                # First set all agents to not running
-                for name, agent in self.agents.items():
-                    try:
-                        agent.running = False
-                        self.logger.log(f"Marked agent {name} to stop")
-                    except Exception as e:
-                        self.logger.log(f"Error marking agent {name} to stop: {str(e)}", 'error')
+            # First set all agents to not running
+            for name, agent in self.agents.items():
+                try:
+                    agent.running = False
+                    self.logger.log(f"Marked agent {name} to stop")
+                except Exception as e:
+                    self.logger.log(f"Error marking agent {name} to stop: {str(e)}", 'error')
 
-                # Then wait for threads to finish with timeout
-                for name, thread in self.agent_threads.items():
-                    try:
-                        if thread and thread.is_alive():
-                            thread.join(timeout=5)  # 5 second timeout per thread
-                            self.logger.log(f"Stopped agent thread {name}")
-                    except Exception as e:
-                        self.logger.log(f"Error stopping agent thread {name}: {str(e)}", 'error')
+            # Then wait for threads to finish
+            for name, thread in self.agent_threads.items():
+                try:
+                    if thread and thread.is_alive():
+                        thread.join()
+                        self.logger.log(f"Stopped agent thread {name}")
+                except Exception as e:
+                    self.logger.log(f"Error stopping agent thread {name}: {str(e)}", 'error')
 
-                # Clear thread references
-                self.agent_threads.clear()
-                
-                # Final cleanup with timeout
-                with timeout(10):  # 10 second timeout for cleanup
-                    for agent in self.agents.values():
-                        try:
-                            if hasattr(agent, 'cleanup'):
-                                agent.cleanup()
-                        except Exception as e:
-                            self.logger.log(f"Error in agent cleanup: {str(e)}", 'error')
+            # Clear thread references
+            self.agent_threads.clear()
+            
+            # Final cleanup
+            for agent in self.agents.values():
+                try:
+                    if hasattr(agent, 'cleanup'):
+                        agent.cleanup()
+                except Exception as e:
+                    self.logger.log(f"Error in agent cleanup: {str(e)}", 'error')
 
-        except TimeoutError:
-            self.logger.log("Shutdown timed out - some operations may not have completed", 'warning')
         except Exception as e:
             self.logger.log(f"Error stopping agents: {str(e)}", 'error')
         finally:
@@ -1107,20 +1100,18 @@ List any specific constraints or limitations.
 
     def _start_agent_with_retry(self, agent_name: str, agent_state: AgentState, max_attempts: int = 3) -> bool:
         """Start agent with retry logic and exponential backoff"""
-        AGENT_TIMEOUT = 60  # 60 second timeout per agent
         
         for attempt in range(max_attempts):
             try:
                 self.logger.log(f"Starting agent {agent_name} (attempt {attempt + 1}/{max_attempts})", 'info')
                 
-                with TimeoutManager.timeout(AGENT_TIMEOUT):
-                    agent_state.mark_active()
-                    success = self._start_agent(agent_name)
-                    
-                    if success:
-                        agent_state.mark_completed()
-                        self.logger.log(f"Successfully started agent {agent_name}", 'success')
-                        return True
+                agent_state.mark_active()
+                success = self._start_agent(agent_name)
+                
+                if success:
+                    agent_state.mark_completed()
+                    self.logger.log(f"Successfully started agent {agent_name}", 'success')
+                    return True
                         
                 # If failed but can retry
                 if agent_state.can_retry:
@@ -1135,10 +1126,6 @@ List any specific constraints or limitations.
                     agent_state.mark_error(f"Failed after {max_attempts} attempts")
                     return False
                     
-            except TimeoutError:
-                self.logger.log(f"Timeout starting agent {agent_name}", 'error')
-                agent_state.mark_error(f"Timeout after {AGENT_TIMEOUT}s")
-                return False
             except Exception as e:
                 self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
                 agent_state.mark_error(str(e))
