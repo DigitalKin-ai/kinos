@@ -31,9 +31,10 @@ class AiderOutputParser:
         'optimize': '🚀'  # Optimizations
     }
     
-    def __init__(self, logger: Logger):
-        """Initialize with logger"""
+    def __init__(self, logger: Logger, agent_name: str):
+        """Initialize with logger and agent name"""
         self.logger = logger
+        self.agent_name = agent_name
         
     def _parse_commit_message(self, line: str, output_lines: list) -> None:
         """
@@ -326,7 +327,6 @@ class AiderOutputParser:
                 return False
                 
             # Extraire le hash et le message complet
-            # Utiliser split avec maxsplit=2 pour garder le reste du message intact
             parts = line.split(maxsplit=2)
             if len(parts) < 3:
                 return False
@@ -345,12 +345,13 @@ class AiderOutputParser:
                     message = full_message[len(prefix):].strip()
                     break
                     
-            # Get icon and log with proper formatting
+            # Get icon and format commit type
             icon = self.COMMIT_ICONS.get(commit_type, '🔨')
+            commit_type_str = f"[{commit_type}]" if commit_type else ""
             
-            # Log avec un niveau 'success' pour être sûr qu'il s'affiche
+            # Log avec le nom de l'agent et le type de commit
             self.logger.log(
-                f"{icon} {commit_hash}: {message}",
+                f"[{self.agent_name}] {icon} {commit_type_str} {message}",
                 'success'
             )
             

@@ -47,7 +47,7 @@ class AiderAgent(AgentBase):
             
             # Initialize components with agent name
             self.command_builder = AiderCommandBuilder(self.name)
-            self.output_parser = AiderOutputParser(self.logger)
+            self.output_parser = AiderOutputParser(self.logger, self.name)
             self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
             self.file_handler = FileHandler(self.mission_dir, self.logger)
             self.prompt_handler = PromptHandler(self.logger)
