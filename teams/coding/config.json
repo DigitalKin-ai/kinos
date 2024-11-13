@@ -11,7 +11,8 @@
         "duplication",
         "production",
         "testeur",
-        "validation"
+        "validation",
+        "cleaner"
     ],
     "phase_config": {
         "expansion": {
@@ -30,7 +31,8 @@
                 "duplication",
                 "validation",
                 "testeur",
-                "documentaliste"
+                "documentaliste",
+                "cleaner"
             ],
             "priority": "code_quality"
         }
