@@ -231,8 +231,14 @@ class AiderAgent(AgentBase):
             return None
 
         except Exception as e:
+            # Known Aider initialization error patterns
+            known_errors = [
+                "Can't initialize prompt toolkit",
+                "No Windows console found",
+                "aider.chat/docs/troubleshooting/edit-errors.html"
+            ]
             # Vérifier si l'erreur est une erreur d'initialisation connue
-            if any(err in str(e) for err in initialization_errors):
+            if any(err in str(e) for err in known_errors):
                 self.logger.log(
                     f"[{self.name}] Aider initialization warning - skipping", 
                     'debug'
