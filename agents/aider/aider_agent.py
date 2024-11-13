@@ -195,15 +195,6 @@ class AiderAgent(AgentBase):
         """Execute Aider with given prompt and handle all outcomes"""
         try:
             # Liste des messages à ignorer complètement
-            ignored_messages = [
-                "Can't initialize prompt toolkit: No Windows console found",
-                "https://aider.chat/docs/troubleshooting/edit-errors.html",
-                "No Windows console found",
-                "Failed to initialize console",
-                "Could not initialize terminal"
-            ]
-            
-            # Errors to check for initialization issues
             initialization_errors = [
                 "Can't initialize prompt toolkit: No Windows console found",
                 "https://aider.chat/docs/troubleshooting/edit-errors.html",
@@ -251,14 +242,32 @@ class AiderAgent(AgentBase):
                 # Supprimer les lignes contenant des messages ignorés
                 output_lines = [
                     line for line in output.split('\n') 
-                    if not any(ignored_msg in line for ignored_msg in ignored_messages)
+                    if not any(ignored_msg in line for ignored_msg in initialization_errors)
                 ]
                 output = '\n'.join(output_lines).strip()
 
             # Vérifier si le résultat est valide après filtrage
             if not output:
-                self.logger.log(f"[{self.name}] ❌ No valid output from Aider after filtering")
+                self.logger.log(
+                    f"[{self.name}] ⚠️ No valid output after filtering initialization messages", 
+                    'debug'
+                )
                 return None
+
+            return output
+
+        except Exception as e:
+            # Vérifier si l'erreur est liée à ces messages spécifiques
+            if any(msg in str(e) for msg in initialization_errors):
+                self.logger.log(
+                    f"[{self.name}] 🔧 Aider initialization warning - skipping", 
+                    'debug'
+                )
+                return None
+            
+            # Gestion des autres exceptions
+            self._handle_error('run_aider', e, {'prompt': prompt})
+            return None
 
             # Process file changes
             changes = self._process_file_changes(output)
