@@ -599,6 +599,10 @@ class AiderAgent(AgentBase):
                     self._log(f"[{self.name}] Process failed with code {return_code}")
                     return None
 
+            except Exception as e:
+                self._log(f"[{self.name}] Error in _run_aider: {str(e)}")
+                return None
+
     def list_files(self) -> None:
         """List all text files in mission directory"""
         self.mission_files = self.file_handler.list_files()
