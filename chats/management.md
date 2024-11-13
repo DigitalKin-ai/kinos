@@ -1,2 +1,0 @@
-# Management Agent Chat Log
-

@@ -628,7 +628,7 @@ class KinOSAgent:
             
             # First run
             if self.last_run is None:
-                self._log(f"[{self.__class__.__name__}] 🔄 First run")
+                self.logger.log(f"[{self.__class__.__name__}] 🔄 First run")
                 return True
                 
             # Calculate dynamic delay
@@ -639,12 +639,12 @@ class KinOSAgent:
             should_execute = time_since_last >= delay
             
             if should_execute:
-                self._log(
+                self.logger.log(
                     f"[{self.__class__.__name__}] ✓ Should run "
                     f"(time since last: {time_since_last:.1f}s, phase: {current_phase})"
                 )
             else:
-                self._log(
+                self.logger.log(
                     f"[{self.__class__.__name__}] ⏳ Waiting "
                     f"({time_since_last:.1f}s/{delay}s, phase: {current_phase})", 
                     'debug'
@@ -653,7 +653,7 @@ class KinOSAgent:
             return should_execute
             
         except Exception as e:
-            self._log(f"[{self.__class__.__name__}] ❌ Error in should_run: {str(e)}")
+            self.logger.log(f"[{self.__class__.__name__}] ❌ Error in should_run: {str(e)}")
             return False
 
 
@@ -782,13 +782,13 @@ class KinOSAgent:
     def run(self):
         """Main execution loop for the agent"""
         try:
-            self._log(f"[{self.name}] 🚀 Starting agent run loop")
+            self.logger.log(f"[{self.name}] 🚀 Starting agent run loop")
         
             while self.running:
                 try:
                     # Validate mission directory
                     if not os.path.exists(self.mission_dir):
-                        self._log(f"[{self.name}] ❌ Mission directory not found")
+                        self.logger.log(f"[{self.name}] ❌ Mission directory not found")
                         time.sleep(60)
                         continue
 
@@ -798,7 +798,7 @@ class KinOSAgent:
                     # Get current prompt
                     prompt = self.get_prompt()
                     if not prompt:
-                        self._log(f"[{self.name}] ⚠️ No prompt available")
+                        self.logger.log(f"[{self.name}] ⚠️ No prompt available")
                         time.sleep(60)
                         continue
                     
@@ -817,7 +817,7 @@ class KinOSAgent:
                     self._handle_error('run_loop', loop_error)
                     time.sleep(5)  # Brief pause before retrying
 
-            self._log(f"[{self.name}] Run loop ended")
+            self.logger.log(f"[{self.name}] Run loop ended")
         
         except Exception as e:
             self._handle_error('run', e)

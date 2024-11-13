@@ -1,2 +1,0 @@
-# Validation Agent Chat Log
-
