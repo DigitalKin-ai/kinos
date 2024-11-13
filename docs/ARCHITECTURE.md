@@ -497,6 +497,188 @@ Le système d'intégration avec Claude-3 permet une interaction sophistiquée et
 
 Cette architecture permet une interaction sophistiquée et efficace entre les agents et Claude, assurant des modifications de code précises et contextuelles.
 
+### Weight System
+
+#### Vue d'Ensemble
+Le système de poids permet d'ajuster dynamiquement l'importance et le comportement des agents selon la phase du projet et le contexte d'exécution.
+
+#### Architecture
+
+1. **Configuration des Poids**
+   ```json
+   {
+     "phase_config": {
+       "expansion": {
+         "active_agents": [
+           {"name": "specifications", "weight": 0.9},
+           {"name": "production", "weight": 0.8},
+           {"name": "chroniqueur", "weight": 0.5}
+         ]
+       },
+       "convergence": {
+         "active_agents": [
+           {"name": "validation", "weight": 0.9},
+           {"name": "duplication", "weight": 0.8},
+           {"name": "documentaliste", "weight": 0.7}
+         ]
+       }
+     }
+   }
+   ```
+
+2. **Impact des Poids**
+   - Intervalle d'exécution : Plus le poids est élevé, plus l'agent s'exécute fréquemment
+   - Priorité des tâches : Influence l'ordre d'exécution des agents
+   - Allocation des ressources : Affecte le temps CPU et les tokens alloués
+   - Seuils de décision : Module les critères de prise de décision
+
+#### Calcul des Intervalles
+
+```python
+def calculate_dynamic_interval(self) -> float:
+    """Calculate dynamic interval based on weight and activity"""
+    base_interval = self.check_interval
+    min_interval = 60  # Minimum 1 minute
+    max_interval = 3600  # Maximum 1 hour
+    
+    # Get effective weight for current phase
+    weight = self.get_effective_weight()
+    
+    # Calculate multiplier based on activity and weight
+    if self.consecutive_no_changes > 0:
+        multiplier = min(10, 1.5 ** min(5, self.consecutive_no_changes))
+        
+        # Apply weight - higher weight means shorter interval
+        weight_factor = 2 - weight  # Convert 0-1 weight to 1-2 range
+        multiplier *= weight_factor
+        
+        interval = base_interval * multiplier
+        return max(min_interval, min(max_interval, interval))
+    
+    # Apply weight to base interval
+    weight_factor = 2 - weight
+    interval = base_interval * weight_factor
+    return max(min_interval, min(max_interval, interval))
+```
+
+#### Phases et Poids
+
+1. **Phase EXPANSION** (< 60% tokens)
+   - Agents de création prioritaires
+     * SpecificationsAgent: 0.9
+     * ProductionAgent: 0.8
+     * ChroniqueurAgent: 0.5
+   - Focus sur la génération de contenu
+   - Intervalles courts pour développement rapide
+
+2. **Phase CONVERGENCE** (> 60% tokens)
+   - Agents d'optimisation prioritaires
+     * ValidationAgent: 0.9
+     * DuplicationAgent: 0.8
+     * DocumentalisteAgent: 0.7
+   - Focus sur la qualité et l'optimisation
+   - Intervalles plus longs pour analyse approfondie
+
+#### Ajustement Dynamique
+
+1. **Facteurs d'Ajustement**
+   - Poids de base de l'agent
+   - Phase actuelle du projet
+   - Historique des modifications
+   - Taux de succès
+   - Utilisation des ressources
+
+2. **Formule de Calcul**
+   ```python
+   effective_weight = base_weight * phase_multiplier * success_rate
+   ```
+
+#### Métriques et Monitoring
+
+1. **Métriques par Agent**
+   - Temps entre exécutions
+   - Taux de modifications réussies
+   - Utilisation des ressources
+   - Impact des modifications
+
+2. **Métriques Globales**
+   - Distribution des poids
+   - Équilibre des activités
+   - Efficacité du système
+   - Progression du projet
+
+#### Configuration
+
+1. **Par Équipe**
+   ```json
+   {
+     "team": "coding",
+     "phase_weights": {
+       "expansion": {
+         "production": 0.9,
+         "testeur": 0.7
+       },
+       "convergence": {
+         "validation": 0.9,
+         "duplication": 0.8
+       }
+     }
+   }
+   ```
+
+2. **Par Agent**
+   ```python
+   agent_config = {
+     "name": "production",
+     "type": "aider",
+     "weight": 0.8,
+     "min_interval": 60,
+     "max_interval": 3600
+   }
+   ```
+
+#### Bonnes Pratiques
+
+1. **Configuration des Poids**
+   - Adapter les poids aux objectifs de phase
+   - Maintenir une somme cohérente
+   - Éviter les changements brusques
+   - Documenter les ajustements
+
+2. **Monitoring**
+   - Surveiller l'impact des poids
+   - Ajuster selon les métriques
+   - Valider l'efficacité
+   - Optimiser la distribution
+
+3. **Optimisation**
+   - Analyser les patterns d'exécution
+   - Identifier les goulots d'étranglement
+   - Ajuster les seuils dynamiquement
+   - Maintenir l'équilibre global
+
+#### Intégration
+
+1. **Dans TeamService**
+   ```python
+   def get_phase_weights(self, phase: str) -> Dict[str, float]:
+       """Get agent weights for current phase"""
+       phase_config = self.team_config['phase_config'][phase]
+       return {
+           agent['name']: agent['weight']
+           for agent in phase_config['active_agents']
+       }
+   ```
+
+2. **Dans AgentService**
+   ```python
+   def calculate_effective_weight(self, agent_name: str) -> float:
+       """Calculate effective weight based on phase and performance"""
+       base_weight = self.get_agent_weight(agent_name)
+       phase_multiplier = self.get_phase_multiplier()
+       return base_weight * phase_multiplier
+   ```
+
 ### Map System
 
 Le système de map fournit une vue d'ensemble structurée du projet et surveille la taille des documents.
