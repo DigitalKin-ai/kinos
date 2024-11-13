@@ -147,8 +147,6 @@ class AiderAgent(AgentBase):
         
             if result is None:
                 self.logger.log(f"[{self.name}] ⚠️ Aucun résultat de run_aider", 'warning')
-            else:
-                self.logger.log(f"[{self.name}] ✅ run_aider exécuté avec succès", 'success')
         
             return result
     
