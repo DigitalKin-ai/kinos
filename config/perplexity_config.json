@@ -15,3 +15,9 @@
         "backoff_factor": 2
     }
 }
+{
+    "api_key": "YOUR_PERPLEXITY_API_KEY",
+    "max_results": 5,
+    "min_relevance": 0.7,
+    "cache_ttl": 3600
+}
