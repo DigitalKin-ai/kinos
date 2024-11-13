@@ -113,7 +113,8 @@ class TeamService:
 
     def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
         """Start team in current/specified directory"""
-        started_agents = []  # Track started agents
+        # Initialize started_agents as a list for tracking
+        started_agents = []  # Track started agents as a list, not a set
         original_sigint_handler = signal.getsignal(signal.SIGINT)  # Save original handler
         
         try:
@@ -230,7 +231,8 @@ class TeamService:
                             success = self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
                             if success:
                                 with self._team_lock:
-                                    started_agents.append(agent_name)
+                                    if agent_name not in started_agents:  # Avoid duplicates
+                                        started_agents.append(agent_name)
                             return success
                         except Exception as e:
                             error_msg = str(e)
@@ -286,8 +288,9 @@ class TeamService:
                                            for a in normalized_agents]
                             )
                             active_agents.remove(completed_agent)
-                            # Put completed agent back in waiting pool
-                            waiting_agents.add(completed_agent)
+                            # Put completed agent back in waiting pool if not already started
+                            if completed_agent not in started_agents:
+                                waiting_agents.add(completed_agent)
                         except Exception as e:
                             self.logger.log(f"Error processing agent result: {str(e)}", 'error')
 
