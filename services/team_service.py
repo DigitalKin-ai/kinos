@@ -168,67 +168,69 @@ class TeamService:
 
     def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
         """Start a team with enhanced tracking and metrics"""
-        metrics = TeamMetrics(
-            start_time=datetime.now(),
-            total_agents=0  # Will be updated after filtering
-        )
-        
-        agent_states: Dict[str, AgentState] = {}
+        start_time = time.time()
+        TOTAL_TIMEOUT = 300  # 5 minute total timeout
         
         try:
+            self.logger.log(f"Starting team {team_id} initialization...", 'info')
+            
             # Get and validate team config
             team_config = TeamConfig.from_dict(self._get_team_config(team_id))
             if not team_config:
                 raise TeamStartupError("Team not found", team_id)
-                
-            valid, error = team_config.validate()
-            if not valid:
-                raise TeamStartupError(error, team_id)
 
-            # Setup and validate mission directory
+            # Setup mission directory
             mission_dir = base_path or os.getcwd()
-            
+            self.logger.log(f"Using mission directory: {mission_dir}", 'info')
+
             # Initialize services and get phase
             phase_status = self._initialize_services(mission_dir)
-            
+            self.logger.log(f"Current phase: {phase_status['phase']}", 'info')
+
             # Filter agents for current phase
             filtered_agents = self._get_phase_filtered_agents(team_config, phase_status['phase'])
-            metrics.total_agents = len(filtered_agents)
-            
-            # Initialize agent states
-            for agent in filtered_agents:
-                agent_name = agent['name'] if isinstance(agent, dict) else agent
-                agent_states[agent_name] = AgentState(name=agent_name)
-            
-            # Start agents with enhanced tracking
-            startup_result = self._start_agents_with_tracking(
-                filtered_agents,
-                agent_states,
-                metrics,
-                mission_dir
-            )
+            self.logger.log(f"Filtered agents to start: {[a['name'] if isinstance(a, dict) else a for a in filtered_agents]}", 'info')
+
+            # Start agents with timeout
+            with TimeoutManager.timeout(TOTAL_TIMEOUT):
+                for agent in filtered_agents:
+                    agent_name = agent['name'] if isinstance(agent, dict) else agent
+                    try:
+                        self.logger.log(f"Starting agent {agent_name}...", 'info')
+                        success = self._start_agent_with_retry(agent_name, AgentState(name=agent_name))
+                        if not success:
+                            self.logger.log(f"Failed to start agent {agent_name}", 'error')
+                    except Exception as e:
+                        self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
+
+            elapsed = time.time() - start_time
+            self.logger.log(f"Team startup completed in {elapsed:.1f}s", 'success')
             
             return {
-                'team_id': team_config.id,
+                'team_id': team_id,
                 'mission_dir': mission_dir,
                 'phase': phase_status['phase'],
-                'metrics': metrics.to_dict(),
-                'agent_states': {
-                    name: state.__dict__ 
-                    for name, state in agent_states.items()
-                },
-                'status': 'started' if metrics.success_rate > 0.5 else 'failed'
+                'status': 'started',
+                'startup_time': elapsed,
+                'agents': [a['name'] if isinstance(a, dict) else a for a in filtered_agents]
             }
-            
-        except TeamStartupError as e:
-            return e.to_dict()
+
+        except TimeoutError:
+            self.logger.log(f"Team startup timed out after {TOTAL_TIMEOUT}s", 'error')
+            # Attempt to stop any started agents
+            self.stop_team(team_id)
+            return {
+                'status': 'timeout',
+                'team_id': team_id,
+                'error': f'Startup timed out after {TOTAL_TIMEOUT}s'
+            }
         except Exception as e:
-            error = TeamStartupError(
-                str(e), 
-                team_id,
-                {'type': type(e).__name__, 'traceback': traceback.format_exc()}
-            )
-            return error.to_dict()
+            self.logger.log(f"Error starting team: {str(e)}", 'error')
+            return {
+                'status': 'error',
+                'team_id': team_id,
+                'error': str(e)
+            }
 
         # Initialize tracking collections
         started_agents = []
