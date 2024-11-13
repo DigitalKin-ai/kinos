@@ -87,8 +87,10 @@ class PhaseService(BaseService):
     def get_status_info(self) -> Dict[str, Any]:
         """Get current phase status information"""
         try:
+            print(f"[DEBUG] get_status_info() - Current total_tokens: {self.total_tokens}")
             # Calculate usage percentage
             usage_percent = (self.total_tokens / self.MODEL_TOKEN_LIMIT) * 100
+            print(f"[DEBUG] get_status_info() - Usage percent: {usage_percent:.1f}%")
             
             # Determine status based on percentage
             if usage_percent >= self.CONVERGENCE_THRESHOLD * 100:

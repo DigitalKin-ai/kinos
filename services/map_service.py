@@ -70,6 +70,7 @@ class MapService(BaseService):
             Tuple[List[str], List[str], int]: (tree_lines, warnings, total_tokens)
         """
         try:
+            print(f"[DEBUG] Starting directory scan at: {path}")
             tree_lines = []
             warnings = []
             total_tokens = 0
@@ -142,6 +143,7 @@ class MapService(BaseService):
                     if warning:
                         warnings.append(warning)
                         
+            print(f"[DEBUG] Scan complete - Found {total_tokens} tokens")
             return tree_lines, warnings, total_tokens
             
         except Exception as e:

@@ -140,6 +140,8 @@ class TeamService:
             services = init_services(None)
             phase_service = services['phase_service']
             map_service = services['map_service']
+            
+            print(f"[DEBUG] Services initialized - phase_service id: {id(phase_service)}")
 
             # Generate map first to get token count
             map_service.generate_map()
