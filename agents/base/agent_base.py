@@ -91,7 +91,6 @@ class AgentBase(ABC):
             self.logger.log(f"Error checking health: {str(e)}", 'error')
             return False
 
-    @abstractmethod
     def list_files(self) -> None:
         """List and track files that this agent should monitor"""
         try:
