@@ -107,10 +107,9 @@ class TeamService:
         normalized = team_id.lower().replace('_', '-').replace(' ', '-')
         return normalized
 
-    def start_team(self, team_id: str, base_path: Optional[str] = None, max_retries: int = 3) -> Dict[str, Any]:
-        """Start team in current/specified directory with retries"""
-        started_agents = []  # Track started agents for cleanup
-        retry_count = 0
+    def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
+        """Start team in current/specified directory"""
+        started_agents = []  # Track started agents
         
         try:
             mission_dir = base_path or os.getcwd()
@@ -126,7 +125,6 @@ class TeamService:
             )
             
             if not team:
-                # Log available teams to help debugging
                 available_teams = [t['id'] for t in self.predefined_teams]
                 self.logger.log(
                     f"Team {team_id} not found. Available teams: {available_teams}",
@@ -134,7 +132,7 @@ class TeamService:
                 )
                 raise ValueError(f"Team {team_id} not found")
 
-            # Determine current phase before starting agents
+            # Get current phase
             from services import init_services
             services = init_services(None)
             phase_service = services['phase_service']
@@ -176,40 +174,16 @@ class TeamService:
             config = {'mission_dir': mission_dir}
             self.agent_service.init_agents(config, filtered_agents)
 
-            # Start agents with delay and interruption handling
+            # Start agents with simple delay
             for i, agent_name in enumerate(filtered_agents):
                 try:
                     if i > 0:  # Don't wait for first agent
-                        self.logger.log(f"Starting next agent in 5 seconds...", 'info')
                         time.sleep(5)
                     
-                    # Try starting agent with retries
-                    start_attempts = 0
-                    max_start_attempts = 3
+                    self.logger.log(f"Starting agent {i+1}/{len(filtered_agents)}: {agent_name}", 'info')
+                    if self.agent_service.toggle_agent(agent_name, 'start', mission_dir):
+                        started_agents.append(agent_name)
                     
-                    while start_attempts < max_start_attempts:
-                        try:
-                            self.logger.log(
-                                f"Starting agent {i+1}/{len(filtered_agents)}: {agent_name} "
-                                f"(Attempt {start_attempts + 1}/{max_start_attempts})", 
-                                'info'
-                            )
-                            if self.agent_service.toggle_agent(agent_name, 'start', mission_dir):
-                                started_agents.append(agent_name)
-                                break
-                            start_attempts += 1
-                            if start_attempts < max_start_attempts:
-                                time.sleep(2)  # Fixed delay between attempts
-                        except Exception as e:
-                            self.logger.log(
-                                f"Error starting agent {agent_name} (Attempt {start_attempts + 1}): {str(e)}", 
-                                'error'
-                            )
-                            start_attempts += 1
-                            if start_attempts >= max_start_attempts:
-                                break
-                            time.sleep(2)
-                
                 except Exception as e:
                     self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
 
@@ -221,24 +195,9 @@ class TeamService:
                 'status': 'started' if started_agents else 'failed'
             }
 
-        except KeyboardInterrupt:
-            self.logger.log("Team startup interrupted by user - cleaning up...", 'warning')
-            # Clean stop of started agents
-            for started_agent in started_agents:
-                try:
-                    self.agent_service.toggle_agent(started_agent, 'stop', mission_dir)
-                except:
-                    pass
-            return {
-                'team_id': team['id'],
-                'mission_dir': mission_dir,
-                'agents': [],
-                'phase': current_phase,
-                'status': 'interrupted'
-            }
         except Exception as e:
             self.logger.log(f"Error starting team: {str(e)}", 'error')
-            # Try to stop any started agents
+            # Stop any started agents
             for agent_name in started_agents:
                 try:
                     self.agent_service.toggle_agent(agent_name, 'stop', mission_dir)
