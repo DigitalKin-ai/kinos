@@ -6,6 +6,7 @@ import random
 import threading
 import signal
 import concurrent.futures
+from utils.managers.timeout_manager import TimeoutManager
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
 from datetime import datetime

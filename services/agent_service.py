@@ -6,6 +6,7 @@ import json
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Union
 from utils.exceptions import AgentError
+from agents.base.agent_state import AgentState
 import importlib
 import inspect
 from agents.base.agent_base import AgentBase
