@@ -17,6 +17,9 @@ class ProjectPhase(Enum):
 class PhaseService(BaseService):
     """Manages project phases based on token usage"""
     
+    # Add MODEL_TOKEN_LIMIT as a class attribute
+    MODEL_TOKEN_LIMIT = 128_000
+    
     # Derived values
     CONVERGENCE_TOKENS = int(MODEL_TOKEN_LIMIT * CONVERGENCE_THRESHOLD)
     EXPANSION_TOKENS = int(MODEL_TOKEN_LIMIT * EXPANSION_THRESHOLD)
