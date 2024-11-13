@@ -38,52 +38,36 @@ class DatasetService(BaseService):
                     self.logger.log(f"Error creating dataset file: {str(e)}", 'error')
                     raise
             
-            # Verify service availability immediately
-            if not self.is_available():
-                self.logger.log(
-                    "Dataset service initialization failed - service may be unreliable", 
-                    'warning'
-                )
-                return
-                
-            # Log successful initialization with stats
-            stats = self.get_dataset_stats()
-            self.logger.log(
-                f"Dataset service initialized successfully:\n"
-                f"- File: {self.dataset_file}\n"
-                f"- Entries: {stats['total_entries']}\n"
-                f"- Total files: {stats['total_files']}\n"
-                f"- Size: {stats['size_bytes']} bytes", 
-                'success'
-            )
+            # Verify service availability and log initialization
+            self._initialize_service()
             
-            # Start cleanup timer
-            self._start_cleanup_timer()
-            
-            # Verify service availability immediately
-            if not self.is_available():
-                self.logger.log(
-                    "Dataset service initialization failed - service may be unreliable", 
-                    'warning'
-                )
-                return
-                
-            # Log successful initialization with stats
-            stats = self.get_dataset_stats()
-            self.logger.log(
-                f"Dataset service initialized successfully:\n"
-                f"- File: {self.dataset_file}\n"
-                f"- Entries: {stats['total_entries']}\n"
-                f"- Total files: {stats['total_files']}\n"
-                f"- Size: {stats['size_bytes']} bytes", 
-                'success'
-            )
-            
-            # Start cleanup timer
-            self._start_cleanup_timer()
         except Exception as e:
             self.logger.log(f"Error initializing dataset service: {str(e)}", 'error')
             raise ServiceError(f"Failed to initialize dataset service: {str(e)}")
+
+    def _initialize_service(self):
+        """Centralized service initialization method"""
+        # Verify service availability
+        if not self.is_available():
+            self.logger.log(
+                "Dataset service initialization failed - service may be unreliable", 
+                'warning'
+            )
+            return
+            
+        # Log successful initialization with stats
+        stats = self.get_dataset_stats()
+        self.logger.log(
+            f"Dataset service initialized successfully:\n"
+            f"- File: {self.dataset_file}\n"
+            f"- Entries: {stats['total_entries']}\n"
+            f"- Total files: {stats['total_files']}\n"
+            f"- Size: {stats['size_bytes']} bytes", 
+            'success'
+        )
+        
+        # Start cleanup timer
+        self._start_cleanup_timer()
 
 
     def _format_files_context(self, files_context: Dict[str, str]) -> str:
