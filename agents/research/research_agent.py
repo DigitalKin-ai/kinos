@@ -344,3 +344,75 @@ Findings:
         except Exception as e:
             self.logger.log(f"Error formatting findings: {str(e)}", 'error')
             return str(results)
+"""Research agent implementation"""
+import os
+import time
+from datetime import datetime
+from typing import Dict, Any, Optional
+from agents.base.agent_base import AgentBase
+
+class ResearchAgent(AgentBase):
+    """
+    Agent that performs automated research using Perplexity API.
+    """
+    def __init__(self, config: Dict[str, Any]):
+        super().__init__(config)  # Important d'appeler le constructeur parent
+        self.api_key = os.environ.get('PERPLEXITY_API_KEY')
+        
+    def _specific_mission_execution(self, prompt: str) -> Optional[str]:
+        """Execute research-specific mission"""
+        # TODO: Implement research logic using Perplexity API
+        return None
+        
+    def run(self):
+        """Main execution loop for research agent"""
+        try:
+            self.logger.log(f"[{self.name}] 🚀 Starting research agent run loop")
+            
+            self.running = True
+            while self.running:
+                try:
+                    # Validate mission directory
+                    if not os.path.exists(self.mission_dir):
+                        self.logger.log(f"[{self.name}] ❌ Mission directory not found")
+                        time.sleep(60)
+                        continue
+
+                    # Update file list
+                    self.list_files()
+                    
+                    # Get current prompt
+                    prompt = self.get_prompt()
+                    if not prompt:
+                        self.logger.log(f"[{self.name}] ⚠️ No prompt available")
+                        time.sleep(60)
+                        continue
+                    
+                    # Execute research mission
+                    result = self._specific_mission_execution(prompt)
+                    
+                    # Update state based on result
+                    self.last_run = datetime.now()
+                    if result:
+                        self.last_change = datetime.now()
+                        self.consecutive_no_changes = 0
+                    else:
+                        self.consecutive_no_changes += 1
+                    
+                    # Dynamic sleep based on activity
+                    sleep_time = self.calculate_dynamic_interval()
+                    time.sleep(sleep_time)
+                    
+                except Exception as loop_error:
+                    self.logger.log(f"[{self.name}] Error in run loop: {str(loop_error)}", 'error')
+                    time.sleep(5)  # Brief pause before retrying
+
+            self.logger.log(f"[{self.name}] Run loop ended")
+            
+        except Exception as e:
+            self.logger.log(f"[{self.name}] Critical error in run: {str(e)}", 'error')
+            self.running = False
+            
+        finally:
+            # Ensure cleanup happens
+            self.cleanup()
