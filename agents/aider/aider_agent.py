@@ -193,6 +193,7 @@ class AiderAgent(AgentBase):
 
 
     def _run_aider(self, prompt: str) -> Optional[str]:
+        """Execute Aider command with streamed output processing"""
         try:
             # Validation des conditions préalables
             if not self._validate_run_conditions(prompt):
@@ -211,33 +212,41 @@ class AiderAgent(AgentBase):
             with TimeoutManager.timeout(COMMAND_EXECUTION_TIMEOUT):
                 process = self.command_builder.execute_command(cmd)
 
-            # Collection de la sortie
-            with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
-                output = self.output_parser.parse_output(process)
+            # Traitement ligne par ligne de la sortie
+            output_lines = []
+            while True:
+                line = process.stdout.readline()
+                if not line and process.poll() is not None:
+                    break
+                    
+                line = line.rstrip()
+                if not line:
+                    continue
+                    
+                # Traiter chaque ligne immédiatement
+                self._handle_output_line(line)
+                output_lines.append(line)
 
-            # Validation finale
-            if not output:
-                self.logger.log(
-                    f"[{self.name}] ⚠️ No output from Aider", 
-                    'debug'
-                )
+            # Obtenir le code de retour
+            return_code = process.wait(timeout=5)
+            
+            # Combiner la sortie
+            output = "\n".join(output_lines)
+            
+            # Vérifier le code de retour
+            if return_code != 0:
+                self.logger.log(f"[{self.name}] Process failed with code {return_code}", 'error')
                 return None
-
+                
             return output
 
         except Exception as e:
-            # Gestion générique des exceptions
-            self._handle_error('run_aider', e, {'prompt': prompt})
-            return None
-
-        except Exception as e:
-            # Known Aider initialization error patterns
+            # Gestion des erreurs connues d'Aider
             known_errors = [
                 "Can't initialize prompt toolkit",
                 "No Windows console found",
                 "aider.chat/docs/troubleshooting/edit-errors.html"
             ]
-            # Vérifier si l'erreur est une erreur d'initialisation connue
             if any(err in str(e) for err in known_errors):
                 self.logger.log(
                     f"[{self.name}] Aider initialization warning - skipping", 
@@ -250,7 +259,7 @@ class AiderAgent(AgentBase):
             return None
             
         finally:
-            # Always try to restore original directory
+            # Toujours restaurer le répertoire original
             try:
                 os.chdir(self.original_dir)
             except Exception as dir_error:
