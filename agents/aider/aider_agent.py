@@ -436,11 +436,20 @@ Instructions:
                         result = self._run_aider(instructions)
                     except OSError as os_error:
                         if "[Errno 22] Invalid argument" in str(os_error):
-                            # Ignorer cette erreur spécifique de flush
+                            # Ignore this specific Windows error
                             self.logger.log(f"[{self.name}] Ignoring Windows stdout flush error", 'debug')
-                            result = None
+                            continue
                         else:
                             raise
+                    except Exception as e:
+                        # Ignore known Aider errors
+                        if any(err in str(e) for err in [
+                            "Can't initialize prompt toolkit",
+                            "No Windows console found",
+                            "aider.chat/docs/troubleshooting/edit-errors.html"
+                        ]):
+                            continue
+                        raise
                 
                     # Update state based on result
                     self.last_run = datetime.now()
