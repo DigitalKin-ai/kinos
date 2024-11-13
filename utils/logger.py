@@ -97,10 +97,10 @@ class Logger:
                 
                 if self.is_tty:
                     color = self.COLORS.get(level, self.COLORS['info'])
-                    # Use print() without length limitation
-                    print(f"{color}{formatted}{self.COLORS['reset']}", flush=True, end='\n')
+                    # Use print() with width=None to prevent truncation
+                    print(f"{color}{formatted}{self.COLORS['reset']}", flush=True, end='\n', width=None)
                 else:
-                    print(formatted, flush=True, end='\n')
+                    print(formatted, flush=True, end='\n', width=None)
                 
         except Exception:
             # During shutdown, some exceptions are expected
