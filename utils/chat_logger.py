@@ -46,6 +46,8 @@ class ChatLogger:
         response: str, 
         files_context: Optional[Dict[str, str]] = None
     ) -> bool:
+        """Log an agent interaction to the chat file"""
+        self.logger.log(f"🔍 Logging interaction for agent: {agent_name}")
         """
         Log an agent interaction to the chat file
         
@@ -69,13 +71,16 @@ class ChatLogger:
             
             # Add files context if provided
             if files_context:
-                log_entry += "### Files Context:\n"
+                log_entry += "### 📄 Files Context:\n"
                 for filename, content in files_context.items():
-                    log_entry += f"#### {filename}\n```\n{content}\n```\n\n"
+                    rel_path = os.path.relpath(filename, self.mission_dir)
+                    log_entry += f"#### {rel_path}\n```\n{content}\n```\n\n"
             
-            # Add prompt and response
-            log_entry += f"### Prompt:\n{prompt}\n\n"
-            log_entry += f"### Response:\n{response}\n"
+            # Add prompt and response with clear separators
+            log_entry += "### 💭 Prompt:\n"
+            log_entry += "```\n" + prompt + "\n```\n\n"
+            log_entry += "### 🤖 Response:\n"
+            log_entry += "```\n" + response + "\n```\n"
             
             # Append to chat file
             with open(chat_file_path, 'a', encoding='utf-8') as f:

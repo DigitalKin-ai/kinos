@@ -215,26 +215,41 @@ class AiderAgent(AgentBase):
             with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
                 output = self.output_parser.parse_output(process)
 
-            # Si on a une réponse, logger l'interaction
+            # Log interaction if we have output
             if output:
-                # Créer le contexte des fichiers
+                self.logger.log("📝 Processing agent interaction for logging...")
+                
+                # Create files context
                 files_context = {}
                 for file_path in self.mission_files.keys():
                     try:
                         with open(file_path, 'r', encoding='utf-8') as f:
-                            files_context[file_path] = f.read()
+                            content = f.read()
+                            files_context[file_path] = content
+                            self.logger.log(f"📄 Added file to context: {file_path}")
                     except Exception as e:
-                        self.logger.log(f"Error reading file for context: {str(e)}", 'error')
+                        self.logger.log(f"❌ Error reading file for context: {str(e)}", 'error')
 
-                # Logger l'interaction via ChatLogger
-                from utils.chat_logger import ChatLogger
-                chat_logger = ChatLogger(os.path.basename(self.mission_dir))
-                chat_logger.log_agent_interaction(
-                    agent_name=self.name,
-                    prompt=prompt,
-                    response=output,
-                    files_context=files_context
-                )
+                # Get mission name from directory
+                mission_name = os.path.basename(self.mission_dir)
+                self.logger.log(f"📁 Using mission name: {mission_name}")
+
+                # Log via ChatLogger
+                try:
+                    from utils.chat_logger import ChatLogger
+                    chat_logger = ChatLogger(mission_name)
+                    success = chat_logger.log_agent_interaction(
+                        agent_name=self.name,
+                        prompt=prompt,
+                        response=output,
+                        files_context=files_context
+                    )
+                    if success:
+                        self.logger.log("✅ Successfully logged agent interaction")
+                    else:
+                        self.logger.log("⚠️ Failed to log agent interaction", 'warning')
+                except Exception as e:
+                    self.logger.log(f"❌ Error logging interaction: {str(e)}", 'error')
 
             return output
 
