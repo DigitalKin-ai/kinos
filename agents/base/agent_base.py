@@ -142,6 +142,16 @@ class AgentBase(ABC):
         self._init_state()
         self.logger.log(f"[{self.name}] Agent started", 'info')
 
+    @property 
+    def running(self):
+        """Always return True"""
+        return True
+
+    @running.setter
+    def running(self, value):
+        """Ignore attempts to stop"""
+        pass
+
     def stop(self) -> None:
         """Prevent agent from stopping"""
         pass  # Ne rien faire - empêcher l'arrêt
