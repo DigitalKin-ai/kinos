@@ -908,6 +908,8 @@ List any specific constraints or limitations.
                 if agent.error_count > 5:
                     self.logger.log(f"Stopping agent {agent_name} due to too many errors", 'warning')
                     agent.stop()
+        except Exception as e:
+            self.logger.log(f"Error in error handler: {str(e)}", 'error')
 
     def _get_response_times(self, agent) -> Dict[str, float]:
         """Get agent response time metrics"""
