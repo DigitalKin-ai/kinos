@@ -15,6 +15,7 @@ from utils.path_manager import PathManager
 from utils.validators import validate_agent_name
 from utils.logger import Logger
 from utils.decorators import timeout
+from utils.managers.timeout_manager import TimeoutManager
 import sys
 
 class AgentService:
