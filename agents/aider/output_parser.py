@@ -35,6 +35,80 @@ class AiderOutputParser:
         """Initialize with logger"""
         self.logger = logger
         
+    def _parse_file_changes(self, output: str) -> Dict[str, Any]:
+        """
+        Parse file changes from output
+        
+        Args:
+            output: Command output string
+            
+        Returns:
+            Dict with changes info
+        """
+        changes = {
+            'modified_files': set(),
+            'added_files': set(),
+            'deleted_files': set()
+        }
+        
+        try:
+            for line in output.splitlines():
+                if "Wrote " in line:
+                    file_path = line.split("Wrote ")[1].split()[0]
+                    changes['modified_files'].add(file_path)
+                elif "Created " in line:
+                    file_path = line.split("Created ")[1].split()[0]
+                    changes['added_files'].add(file_path)
+                elif "Deleted " in line:
+                    file_path = line.split("Deleted ")[1].split()[0]
+                    changes['deleted_files'].add(file_path)
+                    
+            return changes
+            
+        except Exception as e:
+            self.logger.log(f"Error parsing file changes: {str(e)}", 'error')
+            return changes
+
+    def _parse_error_messages(self, output: str) -> List[str]:
+        """
+        Extract error messages from output
+        
+        Args:
+            output: Command output string
+            
+        Returns:
+            List of error messages
+        """
+        errors = []
+        
+        try:
+            for line in output.splitlines():
+                lower_line = line.lower()
+                if any(err in lower_line for err in [
+                    'error', 'exception', 'failed', 'can\'t initialize'
+                ]):
+                    errors.append(line.strip())
+                    
+            return errors
+            
+        except Exception as e:
+            self.logger.log(f"Error parsing errors: {str(e)}", 'error')
+            return errors
+
+    def _format_commit_message(self, commit_type: str, message: str) -> str:
+        """
+        Format commit message with icon
+        
+        Args:
+            commit_type: Type of commit
+            message: Commit message
+            
+        Returns:
+            Formatted message with icon
+        """
+        icon = self.COMMIT_ICONS.get(commit_type, '🔨')
+        return f"{icon} {message}"
+
     def parse_output(self, process: subprocess.Popen) -> Optional[str]:
         """
         Parse Aider command output
@@ -46,7 +120,6 @@ class AiderOutputParser:
             Optional[str]: Parsed output or None on error
         """
         output_lines = []
-        error_detected = False
         
         try:
             # Read output while process is running
@@ -70,34 +143,36 @@ class AiderOutputParser:
                 # Parse commit messages
                 if "Commit" in line:
                     self._parse_commit_line(line)
-                else:
-                    # Check for errors
-                    lower_line = line.lower()
-                    is_error = any(err in lower_line for err in [
-                        'error', 'exception', 'failed', 'can\'t initialize'
-                    ])
                     
-                    if is_error:
-                        self.logger.log(f"Error detected: {line}", 'error')
-                        error_detected = True
-                    else:
-                        self.logger.log(line, 'info')
-                        
                 output_lines.append(line)
                 
             # Get return code
             return_code = process.wait(timeout=5)
             
-            # Check for success
-            if return_code != 0 or error_detected:
-                self.logger.log(
-                    f"Aider failed (code: {return_code})",
-                    'error'
-                )
+            # Combine output
+            output = "\n".join(output_lines)
+            
+            # Parse changes and errors
+            changes = self._parse_file_changes(output)
+            errors = self._parse_error_messages(output)
+            
+            # Log results
+            if changes['modified_files']:
+                self.logger.log(f"Modified files: {changes['modified_files']}", 'info')
+            if changes['added_files']:
+                self.logger.log(f"Added files: {changes['added_files']}", 'info')
+            if changes['deleted_files']:
+                self.logger.log(f"Deleted files: {changes['deleted_files']}", 'info')
+                
+            if errors:
+                self.logger.log(f"Errors detected:\n" + "\n".join(errors), 'error')
                 return None
                 
-            # Combine output
-            return "\n".join(output_lines)
+            if return_code != 0:
+                self.logger.log(f"Process failed with code {return_code}", 'error')
+                return None
+                
+            return output
             
         except Exception as e:
             self.logger.log(f"Error parsing output: {str(e)}", 'error')

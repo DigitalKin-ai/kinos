@@ -10,6 +10,71 @@ from pathspec.patterns import GitWildMatchPattern
 class AiderCommandBuilder:
     """Builds and executes Aider commands"""
     
+    def get_model_args(self) -> List[str]:
+        """Get model-specific command arguments"""
+        return [
+            "--model", "claude-3-5-haiku-20241022",
+            "--yes-always",
+            "--cache-prompts",
+            "--no-pretty",
+            "--architect"
+        ]
+
+    def get_file_args(self, files: List[str], ignore_patterns: List[str]) -> List[str]:
+        """
+        Get file-related command arguments
+        
+        Args:
+            files: List of files to include
+            ignore_patterns: List of patterns to ignore
+            
+        Returns:
+            List of file arguments
+        """
+        args = []
+        for file in files:
+            # Skip ignored files
+            if any(pattern in file for pattern in ignore_patterns):
+                continue
+            args.extend(["--file", file])
+        return args
+
+    def validate_command(self, cmd: List[str]) -> bool:
+        """
+        Validate command before execution
+        
+        Args:
+            cmd: Command arguments list
+            
+        Returns:
+            bool: True if command is valid
+        """
+        try:
+            # Check for required arguments
+            required = ["--model", "--file", "--message"]
+            for arg in required:
+                if arg not in cmd:
+                    return False
+                    
+            # Validate model argument
+            model_idx = cmd.index("--model")
+            if len(cmd) <= model_idx + 1:
+                return False
+                
+            # Validate files exist
+            file_indices = [i for i, arg in enumerate(cmd) if arg == "--file"]
+            for idx in file_indices:
+                if len(cmd) <= idx + 1:
+                    return False
+                file_path = cmd[idx + 1]
+                if not os.path.exists(file_path):
+                    return False
+                    
+            return True
+            
+        except Exception:
+            return False
+
     def build_command(self, prompt: str, files: List[str]) -> List[str]:
         """
         Build Aider command with arguments
@@ -21,22 +86,14 @@ class AiderCommandBuilder:
         Returns:
             List of command arguments
         """
-        cmd = [
-            "aider",
-            "--model", "claude-3-5-haiku-20241022",
-            "--yes-always",
-            "--cache-prompts",
-            "--no-pretty",
-            "--architect"
-        ]
-        
-        # Add files
-        for file in files:
-            cmd.extend(["--file", file])
-            
-        # Add prompt
+        cmd = ["aider"]
+        cmd.extend(self.get_model_args())
+        cmd.extend(self.get_file_args(files, self.get_ignore_patterns(os.getcwd())))
         cmd.extend(["--message", prompt])
         
+        if not self.validate_command(cmd):
+            raise ValueError("Invalid command configuration")
+            
         return cmd
         
     def execute_command(self, cmd: List[str]) -> subprocess.Popen:

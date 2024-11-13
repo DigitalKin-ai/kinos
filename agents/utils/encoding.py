@@ -5,6 +5,50 @@ import sys
 import codecs
 import locale
 
+def detect_file_encoding(file_path: str) -> str:
+    """
+    Detect file encoding
+    
+    Args:
+        file_path: Path to file
+        
+    Returns:
+        str: Detected encoding
+    """
+    import chardet
+    
+    try:
+        with open(file_path, 'rb') as f:
+            raw = f.read()
+        result = chardet.detect(raw)
+        return result['encoding'] or 'utf-8'
+    except Exception:
+        return 'utf-8'
+
+def normalize_encoding(text: str, target_encoding: str = 'utf-8') -> str:
+    """
+    Normalize text encoding
+    
+    Args:
+        text: Text to normalize
+        target_encoding: Target encoding
+        
+    Returns:
+        str: Normalized text
+    """
+    try:
+        # Detect source encoding
+        detected = chardet.detect(text.encode())['encoding']
+        
+        # Convert to bytes with detected encoding
+        bytes_data = text.encode(detected or 'utf-8')
+        
+        # Decode to target encoding
+        return bytes_data.decode(target_encoding)
+        
+    except Exception:
+        return text
+
 def configure_encoding():
     """Configure UTF-8 encoding for CLI output"""
     # Configure stdout
