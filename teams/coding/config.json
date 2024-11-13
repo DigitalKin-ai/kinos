@@ -5,43 +5,53 @@
     "agents": [
         {
             "name": "specifications",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.8
         },
         {
             "name": "management",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.6
         },
         {
             "name": "evaluation",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.7
         },
         {
             "name": "chroniqueur",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.5
         },
         {
             "name": "documentaliste",
-            "type": "research"
+            "type": "research",
+            "weight": 0.4
         },
         {
             "name": "duplication",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.3
         },
         {
             "name": "production",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.9
         },
         {
             "name": "testeur",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.8
         },
         {
             "name": "validation",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.7
         },
         {
             "name": "cleaner",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.4
         }
     ],
     "phase_config": {

@@ -658,13 +658,29 @@ class KinOSAgent:
 
 
     def calculate_dynamic_interval(self) -> float:
-        """Enhanced dynamic interval calculation with bounds"""
+        """Enhanced dynamic interval calculation with weight and bounds"""
         try:
             base_interval = self.check_interval
             min_interval = 60  # Minimum 1 minute
             max_interval = 3600  # Maximum 1 hour
             
-            # Calculate multiplier based on activity
+            # Get agent weight from config (default to 0.5 if not found)
+            agent_weight = 0.5
+            try:
+                from services import init_services
+                services = init_services(None)
+                team_service = services['team_service']
+                
+                # Find agent in active team config
+                for team in team_service.predefined_teams:
+                    for agent in team.get('agents', []):
+                        if isinstance(agent, dict) and agent.get('name') == self.name:
+                            agent_weight = agent.get('weight', 0.5)
+                            break
+            except Exception as e:
+                self.logger.log(f"Error getting agent weight: {str(e)}", 'debug')
+            
+            # Calculate multiplier based on activity and weight
             if self.consecutive_no_changes > 0:
                 # More aggressive backoff with upper bound
                 multiplier = min(10, 1.5 ** min(5, self.consecutive_no_changes))
@@ -673,19 +689,26 @@ class KinOSAgent:
                 if hasattr(self, 'error_count') and self.error_count > 0:
                     multiplier *= 1.5
                     
+                # Apply weight - higher weight means shorter interval
+                weight_factor = 2 - agent_weight  # Convert 0-1 weight to 1-2 range
+                multiplier *= weight_factor
+                
                 interval = base_interval * multiplier
                 
-                # Log adjustment
+                # Log adjustment with weight info
                 self.logger.log(
                     f"[{self.__class__.__name__}] Adjusted interval: {interval:.1f}s "
-                    f"(multiplier: {multiplier:.1f})", 
+                    f"(multiplier: {multiplier:.1f}, weight: {agent_weight:.1f})", 
                     'debug'
                 )
                 
                 # Ensure within bounds
                 return max(min_interval, min(max_interval, interval))
-                
-            return max(min_interval, base_interval)
+            
+            # Apply weight to base interval
+            weight_factor = 2 - agent_weight  # Convert 0-1 weight to 1-2 range
+            interval = base_interval * weight_factor
+            return max(min_interval, min(max_interval, interval))
             
         except Exception as e:
             self.logger.log(f"[{self.__class__.__name__}] Error calculating interval: {str(e)}", 'error')

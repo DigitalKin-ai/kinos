@@ -5,51 +5,63 @@
     "agents": [
         {
             "name": "specifications",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.7
         },
         {
             "name": "chercheur",
-            "type": "research"
+            "type": "research",
+            "weight": 0.9
         },
         {
             "name": "management",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.6
         },
         {
             "name": "evaluation",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.7
         },
         {
             "name": "chroniqueur",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.5
         },
         {
             "name": "documentaliste",
-            "type": "research"
+            "type": "research",
+            "weight": 0.8
         },
         {
             "name": "duplication",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.3
         },
         {
             "name": "redondance",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.4
         },
         {
             "name": "redacteur",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.8
         },
         {
             "name": "redacteur2",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.7
         },
         {
             "name": "redacteur3",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.6
         },
         {
             "name": "validation",
-            "type": "aider"
+            "type": "aider",
+            "weight": 0.7
         }
     ],
     "phase_config": {
