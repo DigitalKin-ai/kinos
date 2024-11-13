@@ -332,19 +332,16 @@ class AiderAgent(AgentBase):
     def run(self):
         """Main execution loop for the agent"""
         try:
-            self.logger.log(f"[{self.name}] 🚀 Starting agent run loop")
+            self.logger.log(f"[{self.name}] 🚀 Starting agent run loop", 'info')
+            
+            # Set running flag to True when starting
+            self.running = True
             
             while self.running:
                 try:
-                    # Use configured mission directory
-                    if not self.mission_dir:
-                        self.logger.log(f"[{self.name}] ❌ No mission directory configured")
-                        time.sleep(60)
-                        continue
-
                     # Validate mission directory
                     if not os.path.exists(self.mission_dir):
-                        self.logger.log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}")
+                        self.logger.log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}", 'error')
                         time.sleep(60)
                         continue
 
@@ -354,7 +351,7 @@ class AiderAgent(AgentBase):
                     # Get current prompt
                     prompt = self.get_prompt()
                     if not prompt:
-                        self.logger.log(f"[{self.name}] ⚠️ No prompt available, skipping run")
+                        self.logger.log(f"[{self.name}] ⚠️ No prompt available, skipping run", 'warning')
                         time.sleep(60)
                         continue
                         
@@ -371,17 +368,19 @@ class AiderAgent(AgentBase):
                         
                     # Calculate and wait for next interval
                     interval = self.calculate_dynamic_interval()
+                    self.logger.log(f"[{self.name}] Waiting {interval}s before next run", 'info')
                     time.sleep(interval)
                     
                 except Exception as loop_error:
-                    self.logger.log(f"[{self.name}] ❌ Error in run loop: {str(loop_error)}")
-                    time.sleep(5)  # Pause before retrying
+                    self.logger.log(f"[{self.name}] ❌ Error in run loop: {str(loop_error)}", 'error')
+                    time.sleep(5)  # Brief pause before retrying
 
-            self.logger.log(f"[{self.name}] Run loop ended")
+            self.logger.log(f"[{self.name}] Run loop ended", 'info')
             
         except Exception as e:
-            self.logger.log(f"[{self.name}] Critical error in run: {str(e)}")
+            self.logger.log(f"[{self.name}] Critical error in run: {str(e)}", 'error')
             self.running = False
+            
         finally:
             # Ensure cleanup happens
             self.cleanup()

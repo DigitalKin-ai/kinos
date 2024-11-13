@@ -131,6 +131,7 @@ class AgentBase(ABC):
         """Start the agent"""
         self.running = True
         self._init_state()
+        self.logger.log(f"[{self.name}] Agent started", 'info')
 
     def stop(self) -> None:
         """Stop the agent gracefully"""
