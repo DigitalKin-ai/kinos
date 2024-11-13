@@ -458,6 +458,10 @@ class TeamService:
         except Exception as e:
             self.logger.log(f"Error in cleanup: {str(e)}", 'error')
 
+    def request_shutdown(self):
+        """Removed to prevent shutdowns"""
+        pass
+
 
     def _run_agent_wrapper(self, agent_name: str, agent: 'AgentBase') -> None:
         """
