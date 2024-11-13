@@ -247,9 +247,18 @@ class AiderOutputParser:
                     # Skip PyPI version check errors
                     if "Error checking pypi for new version" in line:
                         continue
-                        
+                    
                     line = line.rstrip()
                     if not line:
+                        continue
+                    
+                    # Skip known Aider messages
+                    if any(msg in line for msg in [
+                        "Can't initialize prompt toolkit",
+                        "No Windows console found",
+                        "aider.chat/docs/troubleshooting/edit-errors.html",
+                        "[Errno 22] Invalid argument"
+                    ]):
                         continue
                         
                     # Si c'est une nouvelle ligne de commit, sauvegarder la ligne complète
@@ -306,8 +315,14 @@ class AiderOutputParser:
             changes = self._parse_file_changes(output)
             errors = self._parse_error_messages(output)
             
-            # Filter out PyPI version check errors
-            errors = [err for err in errors if not "Error checking pypi for new version" in err]
+            # Filter out PyPI version check errors and known Aider messages
+            errors = [err for err in errors if not any(msg in err for msg in [
+                "Error checking pypi for new version",
+                "Can't initialize prompt toolkit",
+                "No Windows console found",
+                "aider.chat/docs/troubleshooting/edit-errors.html",
+                "[Errno 22] Invalid argument"
+            ])]
             
             if errors:
                 self.logger.log(f"Errors detected:\n" + "\n".join(errors), 'error')
