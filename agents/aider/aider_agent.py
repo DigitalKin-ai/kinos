@@ -203,6 +203,15 @@ class AiderAgent(AgentBase):
                 "Could not initialize terminal"
             ]
             
+            # Errors to check for initialization issues
+            initialization_errors = [
+                "Can't initialize prompt toolkit: No Windows console found",
+                "https://aider.chat/docs/troubleshooting/edit-errors.html",
+                "No Windows console found",
+                "Failed to initialize console",
+                "Could not initialize terminal"
+            ]
+            
             if not self._validate_run_conditions(prompt):
                 return None
 
