@@ -318,6 +318,83 @@ class KinOSAgent:
         except Exception as e:
             # Use print as logger may be unavailable
             print(f"Error in cleanup: {str(e)}")
+
+    def execute_mission(self, prompt: str) -> Optional[str]:
+        """
+        Generic mission execution method to be overridden by specific agent types
+        
+        Args:
+            prompt: Mission prompt/instructions
+            
+        Returns:
+            Optional result of mission execution
+        """
+        try:
+            # Validate run conditions
+            if not self._validate_run_conditions(prompt):
+                self.logger.log(f"[{self.name}] Run conditions not met", 'warning')
+                return None
+            
+            # Delegate to specific agent implementation
+            result = self._specific_mission_execution(prompt)
+            
+            # Update agent state
+            if result:
+                self.last_change = datetime.now()
+                self.consecutive_no_changes = 0
+            else:
+                self.consecutive_no_changes += 1
+            
+            return result
+            
+        except Exception as e:
+            self._handle_error('execute_mission', e)
+            return None
+
+    def _specific_mission_execution(self, prompt: str) -> Optional[str]:
+        """
+        Placeholder for agent-specific mission execution logic
+        
+        Subclasses like AiderAgent will override this method
+        """
+        raise NotImplementedError("Subclasses must implement mission execution")
+
+    def _validate_run_conditions(self, prompt: str) -> bool:
+        """
+        Validate conditions required for mission execution
+        
+        Args:
+            prompt: Mission prompt to validate
+            
+        Returns:
+            bool: Whether conditions are met for execution
+        """
+        try:
+            # Check mission directory
+            if not os.path.exists(self.mission_dir):
+                self.logger.log(f"[{self.name}] Mission directory not found", 'error')
+                return False
+            
+            # Verify file access
+            if not os.access(self.mission_dir, os.R_OK | os.W_OK):
+                self.logger.log(f"[{self.name}] Insufficient permissions", 'error')
+                return False
+            
+            # Check for monitored files
+            if not self.mission_files:
+                self.logger.log(f"[{self.name}] No files to monitor", 'warning')
+                return False
+            
+            # Validate prompt
+            if not prompt or not prompt.strip():
+                self.logger.log(f"[{self.name}] Empty or invalid prompt", 'error')
+                return False
+            
+            return True
+            
+        except Exception as e:
+            self.logger.log(f"[{self.name}] Error validating run conditions: {str(e)}", 'error')
+            return False
             
     def recover_from_error(self) -> bool:
         """Enhanced error recovery with state preservation"""
@@ -552,7 +629,7 @@ class KinOSAgent:
         """Main execution loop for the agent"""
         try:
             self._log(f"[{self.name}] 🚀 Starting agent run loop")
-            
+        
             while self.running:
                 try:
                     # Validate mission directory
@@ -563,23 +640,17 @@ class KinOSAgent:
 
                     # Update file list
                     self.list_files()
-                    
+                
                     # Get current prompt
                     prompt = self.get_prompt()
                     if not prompt:
                         self._log(f"[{self.name}] ⚠️ No prompt available")
                         time.sleep(60)
                         continue
-                        
-                    # Check if we should run
-                    if not self.should_run():
-                        interval = self.calculate_dynamic_interval()
-                        time.sleep(interval)
-                        continue
-                        
-                    # Run Aider with current prompt
-                    result = self._run_aider(prompt)
                     
+                    # Execute mission
+                    result = self.execute_mission(prompt)
+                
                     # Update state based on result
                     self.last_run = datetime.now()
                     if result:
@@ -587,17 +658,17 @@ class KinOSAgent:
                         self.consecutive_no_changes = 0
                     else:
                         self.consecutive_no_changes += 1
-                        
+                    
                 except Exception as loop_error:
                     self._handle_error('run_loop', loop_error)
                     time.sleep(5)  # Brief pause before retrying
 
             self._log(f"[{self.name}] Run loop ended")
-            
+        
         except Exception as e:
             self._handle_error('run', e)
             self.running = False
-            
+        
         finally:
             # Ensure cleanup happens
             self.cleanup()
