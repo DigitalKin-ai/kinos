@@ -85,56 +85,6 @@ class DatasetService(BaseService):
             self.logger.log(f"Error initializing dataset service: {str(e)}", 'error')
             raise ServiceError(f"Failed to initialize dataset service: {str(e)}")
 
-    def is_available(self) -> bool:
-        """Check if dataset service is properly initialized and available"""
-        try:
-            # Verify essential attributes
-            if not hasattr(self, 'data_dir') or not hasattr(self, 'dataset_file'):
-                self.logger.log("Missing essential attributes in dataset service", 'error')
-                return False
-
-            # Verify data directory exists and is writable
-            if not os.path.exists(self.data_dir):
-                try:
-                    os.makedirs(self.data_dir, exist_ok=True)
-                    self.logger.log(f"Created data directory: {self.data_dir}", 'info')
-                except Exception as e:
-                    self.logger.log(f"Cannot create data directory: {str(e)}", 'error')
-                    return False
-
-            if not os.access(self.data_dir, os.W_OK):
-                self.logger.log(f"Data directory not writable: {self.data_dir}", 'error')
-                return False
-
-            # Verify dataset file exists and is writable
-            if not os.path.exists(self.dataset_file):
-                try:
-                    # Try to create and write to the file
-                    with open(self.dataset_file, 'a', encoding='utf-8') as f:
-                        f.write("")  # Write empty string to verify write access
-                    self.logger.log(f"Created dataset file: {self.dataset_file}", 'info')
-                except Exception as e:
-                    self.logger.log(f"Cannot create dataset file: {str(e)}", 'error')
-                    return False
-            else:
-                if not os.access(self.dataset_file, os.W_OK):
-                    self.logger.log(f"Dataset file not writable: {self.dataset_file}", 'error')
-                    return False
-
-            # Try to read the file to verify full access
-            try:
-                with open(self.dataset_file, 'r', encoding='utf-8') as f:
-                    pass
-            except Exception as e:
-                self.logger.log(f"Cannot read dataset file: {str(e)}", 'error')
-                return False
-
-            self.logger.log("Dataset service is available and fully functional", 'success')
-            return True
-
-        except Exception as e:
-            self.logger.log(f"Error checking dataset service availability: {str(e)}", 'error')
-            return False
 
     def _format_files_context(self, files_context: Dict[str, str]) -> str:
         """Format files context into a readable string with clear file boundaries"""

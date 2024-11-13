@@ -123,22 +123,6 @@ class KinOSAgent:
             # Basic error logging even if logger isn't initialized
             print(f"Error initializing agent: {str(e)}")
             raise
-        # Initialize logger (needed for all other operations)
-        self.logger = self._init_logger(config.get("logger", print))
-
-        # Now we can safely log since name is set
-        self.logger.log(f"[{self.__class__.__name__}] Initialisé comme {self.name}")
-        
-        # Load intervals config
-        self.intervals_config = self._load_intervals_config()
-        
-        # Get agent-specific interval or default
-        self.check_interval = config.get(
-            "check_interval",
-            self._get_agent_interval()
-        )
-        
-        self.running = False
         
     def _configure_encoding(self):
         """Configure UTF-8 encoding for CLI output"""

@@ -120,23 +120,6 @@ class AiderAgent(AgentBase):
             self.logger(f"Error getting relative path: {str(e)}")
             return file_path
 
-    def _validate_mission_directory(self) -> bool:
-        """Vérifie que le dossier de mission est valide et accessible"""
-        try:
-            if not os.path.exists(self.mission_dir):
-                self._log(f"[{self.name}] ❌ Dossier mission non trouvé: {self.mission_dir}")
-                return False
-                
-            if not os.access(self.mission_dir, os.R_OK | os.W_OK):
-                self._log(f"[{self.name}] ❌ Permissions insuffisantes sur: {self.mission_dir}")
-                return False
-                
-            self._log(f"[{self.name}] ✓ Dossier mission valide: {self.mission_dir}")
-            return True
-            
-        except Exception as e:
-            self._log(f"[{self.name}] ❌ Erreur validation dossier: {str(e)}")
-            return False
 
     def run_aider(self, prompt: str) -> Optional[str]:
         """Version diagnostique de run_aider"""
@@ -166,35 +149,6 @@ class AiderAgent(AgentBase):
             )
             return None
 
-    def _handle_rate_limit_error(self, attempt: int, max_attempts: int = 5) -> bool:
-        """
-        Handle rate limit errors with aggressive exponential backoff
-        
-        Args:
-            attempt: Current attempt number
-            max_attempts: Maximum number of retry attempts
-            
-        Returns:
-            bool: True if should retry, False if max attempts exceeded
-        """
-        if attempt >= max_attempts:
-            self._log(
-                f"[{self.name}] ❌ Max retry attempts ({max_attempts}) exceeded for rate limit",
-                'error'
-            )
-            return False
-            
-        # More aggressive backoff: 5s, 15s, 45s, 135s, 405s
-        wait_time = 5 * (3 ** (attempt - 1))
-        
-        self._log(
-            f"[{self.name}] ⏳ Rate limit hit (attempt {attempt}/{max_attempts}). "
-            f"Waiting {wait_time} seconds before retry...",
-            'warning'
-        )
-        
-        time.sleep(wait_time)
-        return True
 
     def _check_rate_limit(self) -> bool:
         """
@@ -699,9 +653,6 @@ class AiderAgent(AgentBase):
         """List all text files in mission directory"""
         self.mission_files = self.file_handler.list_files()
 
-    def get_prompt(self) -> str:
-        """Get the current prompt content"""
-        return self.prompt_handler.get_prompt(self.prompt_file)
 
     def save_prompt(self, content: str) -> bool:
         """Save new prompt content"""
@@ -893,10 +844,3 @@ class AiderAgent(AgentBase):
         except Exception as e:
             self.logger(f"Error building prompt: {str(e)}")
             return self.prompt  # Fallback to default prompt
-    def _safe_log(self, message: str, level: str = 'info') -> None:
-        """Thread-safe logging"""
-        try:
-            with self._log_lock:
-                self.logger.log(message, level)
-        except Exception as e:
-            print(f"Logging error: {str(e)} - Message: {message}")  # Fallback
