@@ -179,6 +179,15 @@ class AiderAgent(AgentBase):
             return None
 
         try:
+            # Log start of execution
+            self._log(f"[{self.name}] 🚀 Starting Aider execution")
+            self._log(f"[{self.name}] 📂 Mission directory: {self.mission_dir}")
+            
+            # Validate mission directory exists and is accessible
+            if not os.path.exists(self.mission_dir):
+                self._log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}")
+                return None
+
             # Build command with builder
             cmd = self.command_builder.build_command(
                 prompt=prompt,
@@ -199,10 +208,6 @@ class AiderAgent(AgentBase):
         except Exception as e:
             self._handle_error('run_aider', e, {'prompt': prompt})
             return None
-
-                # Log start of execution
-                self._log(f"[{self.name}] 🚀 Starting Aider execution")
-                self._log(f"[{self.name}] 📂 Mission directory: {self.mission_dir}")
             
                 # Validate mission directory exists and is accessible
                 if not os.path.exists(self.mission_dir):
