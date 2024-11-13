@@ -230,6 +230,7 @@ class AiderOutputParser:
             'added_files': set(),
             'deleted_files': set()
         }
+        has_results = False  # Flag pour suivre si on a des résultats
         
         try:
             # Collect all output with Windows error handling
@@ -263,8 +264,10 @@ class AiderOutputParser:
                     # Parse different line types
                     if "Wrote " in line:
                         self._parse_file_modification(line, changes)
+                        has_results = True
                     elif line.startswith("Commit "):
-                        self._parse_commit_line(current_commit or line)
+                        if self._parse_commit_line(current_commit or line):
+                            has_results = True
                     elif self._is_error_message(line):
                         self._handle_error_message(line)
                     else:
@@ -304,24 +307,29 @@ class AiderOutputParser:
                 self.logger.log(f"Process failed with code {return_code}", 'error')
                 return None
                 
+            # Ne retourner None que si on n'a vraiment aucun résultat
+            if not has_results:
+                self.logger.log("⚠️ Aucun résultat de run_aider", 'warning')
+                return None
+                
             return output
             
         except Exception as e:
             self.logger.log(f"Error parsing output: {str(e)}", 'error')
             return None
             
-    def _parse_commit_line(self, line: str) -> None:
+    def _parse_commit_line(self, line: str) -> bool:
         """Parse and log a commit line"""
         try:
             # Vérifier que c'est bien une ligne de commit
-            if not line.startswith("Commit "):
-                return
+            if not line or not line.startswith("Commit "):
+                return False
                 
             # Extraire le hash et le message complet
             # Utiliser split avec maxsplit=2 pour garder le reste du message intact
             parts = line.split(maxsplit=2)
             if len(parts) < 3:
-                return
+                return False
                 
             commit_hash = parts[1]
             full_message = parts[2]
@@ -339,10 +347,16 @@ class AiderOutputParser:
                     
             # Get icon and log with proper formatting
             icon = self.COMMIT_ICONS.get(commit_type, '🔨')
+            
+            # Log avec un niveau 'success' pour être sûr qu'il s'affiche
             self.logger.log(
                 f"{icon} {commit_hash}: {message}",
                 'success'
             )
             
+            # Indiquer qu'on a bien eu un résultat
+            return True
+            
         except Exception as e:
             self.logger.log(f"Error parsing commit: {str(e)}", 'error')
+            return False
