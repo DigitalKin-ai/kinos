@@ -314,6 +314,9 @@ class AiderAgent(KinOSAgent):
                             spec = None
                     else:
                         spec = None
+                except Exception as e:
+                    self._log(f"[{self.name}] ❌ Error during setup: {str(e)}")
+                    return None
 
                 # Add files, respecting .gitignore
                 files_added = []
