@@ -45,7 +45,7 @@ class ResearchAgent(AgentBase):
             self.logger.log(f"Error getting prompt: {str(e)}", 'error')
             return None
 
-    def _run_aider(self, prompt: str) -> Optional[str]:
+    def _run_aider(self, prompt: str) -> str:
         """Execute Aider with the given prompt"""
         try:
             # Build and execute query
@@ -53,7 +53,7 @@ class ResearchAgent(AgentBase):
             results = self.execute_query(query)
             
             if not results:
-                return None
+                return ""  # Return empty string instead of None
                 
             # Format results for Aider
             formatted_results = self._format_research_results([{
@@ -62,11 +62,12 @@ class ResearchAgent(AgentBase):
                 'results': results
             }])
             
-            return formatted_results
+            return formatted_results or ""  # Ensure string return
             
         except Exception as e:
-            self.logger.log(f"Error running Aider: {str(e)}", 'error')
-            return None
+            # Log but don't propagate error
+            self.logger.log(f"Error running Aider (continuing): {str(e)}", 'warning')
+            return ""  # Return empty string to prevent shutdown
 
     def _load_api_config(self) -> Dict[str, Any]:
         """Load Perplexity API configuration"""

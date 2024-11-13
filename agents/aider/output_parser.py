@@ -218,7 +218,7 @@ class AiderOutputParser:
         except Exception as e:
             self.logger.log(f"Error parsing file modification: {str(e)}", 'error')
 
-    def parse_output(self, process: subprocess.Popen) -> Optional[str]:
+    def parse_output(self, process: subprocess.Popen) -> str:
         """
         Parse Aider command output with enhanced error handling
         
@@ -226,7 +226,7 @@ class AiderOutputParser:
             process: Running Aider process
             
         Returns:
-            Optional[str]: Parsed output or None on error
+            str: Parsed output, empty string on error to prevent shutdown
         """
         output_lines = []
         changes = {

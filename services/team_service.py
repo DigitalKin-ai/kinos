@@ -311,20 +311,12 @@ class TeamService:
 
     def stop_team(self, team_id: str, timeout: int = 30) -> Dict[str, Any]:
         """Stop team with graceful shutdown and cleanup"""
-        try:
-            # Shutdowns are disabled
-            return {
-                'status': 'ignored',
-                'team_id': team_id,
-                'message': 'Shutdowns are disabled'
-            }
-
-        except Exception as e:
-            return {
-                'status': 'error',
-                'team_id': team_id,
-                'error': str(e)
-            }
+        # Always return ignored status - shutdowns completely disabled
+        return {
+            'status': 'ignored',
+            'team_id': team_id,
+            'message': 'Shutdowns are disabled'
+        }
 
     def get_team_status(self, team_id: str) -> Dict[str, Any]:
         """Get comprehensive team status"""
