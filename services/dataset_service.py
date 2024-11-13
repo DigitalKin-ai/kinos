@@ -72,10 +72,10 @@ class DatasetService(BaseService):
 
     def _format_files_context(self, files_context: Dict[str, str]) -> str:
         """Format files context into a readable string with clear file boundaries"""
-        formatted = []
-        for filename, content in files_context.items():
-            formatted.append(f"File: {filename}\n```\n{content}\n```\n")
-        return "\n".join(formatted)
+        return "\n".join(
+            f"File: {filename}\n```\n{content}\n```\n"
+            for filename, content in files_context.items()
+        )
 
     async def add_interaction_async(self, prompt: str, files_context: Dict[str, str], 
                                   aider_response: str, weight: float = 0) -> None:
