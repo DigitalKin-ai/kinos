@@ -176,15 +176,16 @@ class AiderAgent(AgentBase):
             
         # Check if we're approaching the limit
         if self._requests_this_minute >= self.rate_limiter.max_requests:
-            wait_time = self.rate_limiter.get_wait_time()
+            wait_time = self.rate_limiter.get_backoff_time()  # Use exponential backoff
             if wait_time > 0:
                 self.logger.log(
-                    f"[{self.name}] ⏳ Rate limit approaching. "
-                    f"Waiting {wait_time:.1f}s",
+                    f"[{self.name}] ⏳ Rate limit reached. "
+                    f"Backing off for {wait_time:.1f}s",
                     'warning'
                 )
                 time.sleep(wait_time)
                 self._requests_this_minute = 0
+                return False  # Signal that we hit the limit
                 
         self._last_request_time = current_time
         self._requests_this_minute += 1

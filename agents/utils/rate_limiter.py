@@ -63,7 +63,9 @@ class RateLimiter:
         """
         usage_ratio = len(self.requests) / self.max_requests
         if usage_ratio > 0.9:
-            return min(300, 2 ** (usage_ratio * 10))  # Max 5 minutes
+            return min(600, 2 ** (usage_ratio * 10))  # Max 10 minutes
+        elif usage_ratio > 0.7:
+            return min(300, 2 ** (usage_ratio * 8))   # Max 5 minutes for moderate usage
         return 0
 
     def should_allow_request(self) -> bool:
