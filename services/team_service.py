@@ -469,40 +469,53 @@ class TeamService:
         except Exception as e:
             self.logger.log(f"Error calculating health score: {str(e)}", 'error')
             return 0.0
-    def _start_agent_with_retry(self, agent_name: str, max_attempts: int = 3) -> bool:
+    def _start_agent_with_retry(self, agent_name: str, agent_state: Optional['AgentState'] = None) -> bool:
         """Start agent with retry logic and exponential backoff"""
+        MAX_ATTEMPTS = 3  # Define max attempts as constant
         AGENT_TIMEOUT = 60  # 60 second timeout per agent
         
-        for attempt in range(max_attempts):
+        for attempt in range(MAX_ATTEMPTS):
             try:
-                self.logger.log(f"Starting agent {agent_name} (attempt {attempt + 1}/{max_attempts})", 'info')
+                self.logger.log(f"Starting agent {agent_name} (attempt {attempt + 1}/{MAX_ATTEMPTS})", 'info')
                 
                 with TimeoutManager.timeout(AGENT_TIMEOUT):
+                    # Update agent state if provided
+                    if agent_state:
+                        agent_state.mark_active()
+                
                     success = self._start_agent(agent_name)
                     
                     if success:
+                        if agent_state:
+                            agent_state.mark_completed()
                         self.logger.log(f"Successfully started agent {agent_name}", 'success')
                         return True
                         
                 # If failed but can retry
-                if attempt < max_attempts - 1:
+                if attempt < MAX_ATTEMPTS - 1:
                     backoff_time = min(30, 2 ** attempt)  # Exponential backoff capped at 30s
                     self.logger.log(
                         f"Retrying agent {agent_name} in {backoff_time}s "
-                        f"(Attempt {attempt + 1}/{max_attempts})",
+                        f"(Attempt {attempt + 1}/{MAX_ATTEMPTS})",
                         'warning'
                     )
                     time.sleep(backoff_time)
                 else:
-                    self.logger.log(f"Failed to start agent {agent_name} after {max_attempts} attempts", 'error')
+                    if agent_state:
+                        agent_state.mark_error(f"Failed after {MAX_ATTEMPTS} attempts")
+                    self.logger.log(f"Failed to start agent {agent_name} after {MAX_ATTEMPTS} attempts", 'error')
                     return False
                     
             except TimeoutError:
+                if agent_state:
+                    agent_state.mark_error(f"Timeout after {AGENT_TIMEOUT}s")
                 self.logger.log(f"Timeout starting agent {agent_name}", 'error')
                 return False
             except Exception as e:
+                if agent_state:
+                    agent_state.mark_error(str(e))
                 self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
-                if attempt >= max_attempts - 1:
+                if attempt >= MAX_ATTEMPTS - 1:
                     return False
                     
         return False
