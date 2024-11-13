@@ -525,7 +525,28 @@ class TeamService:
         try:
             self.logger.log(f"Initializing agent: {agent_name}", 'info')
             
-            # Ignore known Aider initialization errors
+            # Check if agent exists in agent service
+            if agent_name not in self.agent_service.agents:
+                # Initialize agent if not found
+                agent_config = {
+                    'name': agent_name,
+                    'type': 'aider',
+                    'weight': 0.5,
+                    'mission_dir': os.getcwd(),  # Use current directory as mission dir
+                    'prompt_file': os.path.join('prompts', f"{agent_name}.md")
+                }
+                
+                # Initialize the agent service if needed
+                if not self.agent_service.agents:
+                    self.agent_service.init_agents({'mission_dir': os.getcwd()})
+                
+                # Create agent instance
+                from agents.aider.aider_agent import AiderAgent
+                agent = AiderAgent(agent_config)
+                self.agent_service.agents[agent_name] = agent
+                self.logger.log(f"Created new agent instance: {agent_name}")
+
+            # Try to start the agent
             try:
                 success = self.agent_service.toggle_agent(agent_name, 'start')
                 if success:
