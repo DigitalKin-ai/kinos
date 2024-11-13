@@ -1,0 +1,17 @@
+{
+    "api_key": "",
+    "default_params": {
+        "max_tokens": 1000,
+        "temperature": 0.7,
+        "model": "pplx-7b-online"
+    },
+    "rate_limits": {
+        "queries_per_minute": 10,
+        "queries_per_hour": 100
+    },
+    "retry_config": {
+        "max_retries": 3,
+        "delay_seconds": 1,
+        "backoff_factor": 2
+    }
+}
