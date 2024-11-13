@@ -181,6 +181,31 @@ class AiderOutputParser:
             'error'
         )
 
+    def _parse_file_modification(self, line: str, changes: Dict[str, set]) -> None:
+        """
+        Parse file modification line and update changes tracking
+        
+        Args:
+            line: Output line containing file modification
+            changes: Dictionary tracking file changes
+        """
+        try:
+            if "Wrote " in line:
+                file_path = line.split("Wrote ")[1].split()[0]
+                changes['modified_files'].add(file_path)
+                self.logger.log(f"✍️ Modified: {file_path}", 'info')
+            elif "Created " in line:
+                file_path = line.split("Created ")[1].split()[0]
+                changes['added_files'].add(file_path)
+                self.logger.log(f"➕ Created: {file_path}", 'info')
+            elif "Deleted " in line:
+                file_path = line.split("Deleted ")[1].split()[0]
+                changes['deleted_files'].add(file_path)
+                self.logger.log(f"➖ Deleted: {file_path}", 'info')
+                
+        except Exception as e:
+            self.logger.log(f"Error parsing file modification: {str(e)}", 'error')
+
     def parse_output(self, process: subprocess.Popen) -> Optional[str]:
         """
         Parse Aider command output with enhanced error handling
