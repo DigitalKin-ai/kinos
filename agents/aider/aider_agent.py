@@ -576,23 +576,23 @@ class AiderAgent(AgentBase):
         try:
             # Use FileHandler to list files in mission directory
             file_handler = FileHandler(self.mission_dir, self.logger)
-        self.mission_files = file_handler.list_files()
-        
-        # Log files being monitored
-        if self.mission_files:
-            self.logger.log(
-                f"[{self.name}] Monitoring {len(self.mission_files)} files:\n" + 
-                "\n".join(f"  - {os.path.relpath(f, self.mission_dir)}" for f in self.mission_files.keys()), 
-                'info'
-            )
-        else:
-            self.logger.log(
-                f"[{self.name}] No files found to monitor in {self.mission_dir}", 
-                'warning'
-            )
+            self.mission_files = file_handler.list_files()
             
-    except Exception as e:
-        self.logger.log(
-            f"[{self.name}] Error listing files: {str(e)}", 
-            'error'
-        )
+            # Log files being monitored
+            if self.mission_files:
+                self.logger.log(
+                    f"[{self.name}] Monitoring {len(self.mission_files)} files:\n" + 
+                    "\n".join(f"  - {os.path.relpath(f, self.mission_dir)}" for f in self.mission_files.keys()), 
+                    'info'
+                )
+            else:
+                self.logger.log(
+                    f"[{self.name}] No files found to monitor in {self.mission_dir}", 
+                    'warning'
+                )
+                
+        except Exception as e:
+            self.logger.log(
+                f"[{self.name}] Error listing files: {str(e)}", 
+                'error'
+            )
