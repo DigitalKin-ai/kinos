@@ -190,29 +190,51 @@ class TeamService:
             config = {'mission_dir': mission_dir}
             self.agent_service.init_agents(config, filtered_agents)
 
-            # Start agents with simple delay
-            for i, agent_name in enumerate(filtered_agents):
-                try:
-                    if i > 0:  # Don't wait for first agent
-                        wait_time = 30  # Increase to 30 seconds instead of 5
-                        self.logger.log(f"Waiting {wait_time} seconds before starting next agent...", 'info')
+            # Randomize agent order
+            random_agents = filtered_agents.copy()
+            random.shuffle(random_agents)
+
+            # Create thread pool
+            with ThreadPoolExecutor(max_workers=self.max_concurrent_agents) as executor:
+                # Function to start an agent
+                def start_agent(agent_name: str) -> bool:
+                    try:
+                        self.logger.log(f"Starting agent: {agent_name}", 'info')
+                        success = self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
+                        if success:
+                            with self._team_lock:
+                                started_agents.append(agent_name)
+                        return success
+                    except Exception as e:
+                        self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
+                        return False
+
+                # Submit initial batch of agents
+                futures = []
+                initial_batch = random_agents[:self.max_concurrent_agents]
+                remaining_agents = random_agents[self.max_concurrent_agents:]
+
+                for agent_name in initial_batch:
+                    futures.append(executor.submit(start_agent, agent_name))
+
+                # Process results and add new agents as others complete
+                while futures or remaining_agents:
+                    # Wait for an agent to complete
+                    done, futures = concurrent.futures.wait(
+                        futures,
+                        return_when=concurrent.futures.FIRST_COMPLETED
+                    )
+
+                    # For each completed agent
+                    for future in done:
                         try:
-                            time.sleep(wait_time)
-                            self.logger.log("Wait completed normally", 'debug')
-                        except KeyboardInterrupt:
-                            # Ignore interruption and continue startup sequence
-                            self.logger.log("Ignoring interrupt - continuing startup sequence", 'debug')
-                            continue
-                        except Exception as sleep_error:
-                            self.logger.log(f"Sleep interrupted by unexpected error: {str(sleep_error)}", 'error')
-                            raise
-                    
-                    self.logger.log(f"Starting agent {i+1}/{len(filtered_agents)}: {agent_name}", 'info')
-                    if self.agent_service.toggle_agent(agent_name, 'start', mission_dir):
-                        started_agents.append(agent_name)
-                    
-                except Exception as e:
-                    self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
+                            success = future.result()
+                            if success and remaining_agents:
+                                # Start next agent
+                                next_agent = remaining_agents.pop(0)
+                                futures.add(executor.submit(start_agent, next_agent))
+                        except Exception as e:
+                            self.logger.log(f"Error processing agent result: {str(e)}", 'error')
 
             return {
                 'team_id': team['id'],
