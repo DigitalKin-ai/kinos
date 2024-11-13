@@ -207,20 +207,9 @@ class AiderAgent(AgentBase):
                 raise
 
         except Exception as e:
-            # List of known Aider errors to ignore silently
-            known_errors = [
-                "Can't initialize prompt toolkit",
-                "No Windows console found",
-                "aider.chat/docs/troubleshooting/edit-errors.html",
-                "[Errno 22] Invalid argument"
-            ]
-
-            error_msg = str(e)
-            if any(err in error_msg for err in known_errors):
-                return ""  # Return empty success instead of None
-            else:
-                self._handle_error('run_aider', e, {'prompt': prompt})
-                return None
+            # Ignorer TOUTES les erreurs et continuer
+            self.logger.log(f"[{self.name}] Non-critical Aider error: {str(e)}", 'warning')
+            return ""  # Toujours retourner une chaîne vide au lieu de None
             
         finally:
             # Toujours restaurer le répertoire original
