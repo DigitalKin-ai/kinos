@@ -405,30 +405,19 @@ class TeamService:
             return 0.0
     def _filter_agents_by_phase(self, agents: List[str], phase: str) -> List[str]:
         """Filter agents based on current phase"""
-        # In EXPANSION phase, all agents are active
-        if phase == "EXPANSION":
-            return agents
-            
-        # In CONVERGENCE phase, prioritize optimization agents
-        if phase == "CONVERGENCE":
-            # Priority agents for convergence phase
-            priority_agents = [
-                'duplication',      # Duplication detection
-                'validation',       # Quality validation
-                'documentaliste',   # Documentation organization
-                'evaluation',       # Global evaluation
-                'cleaner',         # Code cleanup
-                'redondance'       # Redundancy detection
-            ]
-            
-            # Filter to keep priority agents that exist in the team
-            filtered = [agent for agent in agents if agent in priority_agents]
-            
-            # If no priority agents found, return minimal list
-            if not filtered:
-                return ['validation', 'evaluation']
+        # Get team configuration for the phase
+        for team in self.predefined_teams:
+            if any(agent in team['agents'] for agent in agents):
+                # Found matching team, check phase config
+                phase_config = team.get('phase_config', {}).get(phase.lower(), {})
+                active_agents = phase_config.get('active_agents', [])
                 
-            return filtered
-            
-        # Default: return all agents
+                if active_agents:
+                    # Filter to keep only active agents that exist in the team
+                    return [agent for agent in agents if agent in active_agents]
+                
+                # If no phase config or no active_agents defined, return all agents
+                return agents
+                
+        # If no matching team found, return all agents
         return agents
