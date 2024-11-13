@@ -92,33 +92,33 @@ class AiderAgent(AgentBase):
         try:
             # Check mission directory
             if not os.path.exists(self.mission_dir):
-                self._log(f"[{self.name}] Mission directory not found: {self.mission_dir}")
+                self.logger.log(f"[{self.name}] Mission directory not found: {self.mission_dir}")
                 return False
                 
             # Check permissions
             if not os.access(self.mission_dir, os.R_OK | os.W_OK):
-                self._log(f"[{self.name}] Insufficient permissions on mission directory")
+                self.logger.log(f"[{self.name}] Insufficient permissions on mission directory")
                 return False
                 
             # Validate prompt
             if not prompt or not prompt.strip():
-                self._log(f"[{self.name}] Empty prompt provided")
+                self.logger.log(f"[{self.name}] Empty prompt provided")
                 return False
                 
             # Check for files to process
             if not self.mission_files:
-                self._log(f"[{self.name}] No files to process")
+                self.logger.log(f"[{self.name}] No files to process")
                 return False
                 
             # Check rate limiting
             if not self._check_rate_limit():
-                self._log(f"[{self.name}] Rate limit exceeded")
+                self.logger.log(f"[{self.name}] Rate limit exceeded")
                 return False
                 
             return True
             
         except Exception as e:
-            self._log(f"[{self.name}] Error validating conditions: {str(e)}")
+            self.logger.log(f"[{self.name}] Error validating conditions: {str(e)}")
             return False
 
 
@@ -189,7 +189,7 @@ class AiderAgent(AgentBase):
         try:
             # Check rate limiting
             if not self._check_rate_limit():
-                self._log(f"[{self.name}] Rate limit exceeded, skipping execution")
+                self.logger.log(f"[{self.name}] Rate limit exceeded, skipping execution")
                 return None
 
             # Log start of execution
@@ -219,13 +219,13 @@ class AiderAgent(AgentBase):
                 output = self.output_parser.parse_output(process)
                 
             if output is None:
-                self._log(f"[{self.name}] ❌ No valid output from Aider")
+                self.logger.log(f"[{self.name}] ❌ No valid output from Aider")
                 return None
 
             # Process file changes
             changes = self._process_file_changes(output)
             if changes['modified'] or changes['added'] or changes['deleted']:
-                self._log(
+                self.logger.log(
                     f"[{self.name}] Changes detected:\n"
                     f"Modified: {len(changes['modified'])} files\n"
                     f"Added: {len(changes['added'])} files\n"
@@ -239,7 +239,7 @@ class AiderAgent(AgentBase):
 
 
         except TimeoutError:
-            self._log(f"[{self.name}] ⚠️ Operation timed out", 'warning')
+            self.logger.log(f"[{self.name}] ⚠️ Operation timed out", 'warning')
             return None
             
         except Exception as e:
@@ -251,7 +251,7 @@ class AiderAgent(AgentBase):
             try:
                 os.chdir(self.original_dir)
             except Exception as dir_error:
-                self._log(f"[{self.name}] Error restoring directory: {str(dir_error)}")
+                self.logger.log(f"[{self.name}] Error restoring directory: {str(dir_error)}")
 
     def _process_file_changes(self, output: str) -> Dict[str, set]:
         """Process and track file changes from Aider output"""
@@ -276,7 +276,7 @@ class AiderAgent(AgentBase):
             return changes
             
         except Exception as e:
-            self._log(f"[{self.name}] Error processing changes: {str(e)}")
+            self.logger.log(f"[{self.name}] Error processing changes: {str(e)}")
             return changes
 
     def _update_project_map(self) -> None:
@@ -285,9 +285,9 @@ class AiderAgent(AgentBase):
             from services import init_services
             services = init_services(None)
             services['map_service'].update_map()
-            self._log(f"[{self.name}] Map updated successfully")
+            self.logger.log(f"[{self.name}] Map updated successfully")
         except Exception as e:
-            self._log(f"[{self.name}] Error updating map: {str(e)}")
+            self.logger.log(f"[{self.name}] Error updating map: {str(e)}")
 
     def get_prompt(self) -> Optional[str]:
         """Get prompt with caching"""
@@ -324,27 +324,27 @@ class AiderAgent(AgentBase):
             
             # Then handle regular stop logic
             self.running = False
-            self._log(f"[{self.name}] 🛑 Agent stopped")
+            self.logger.log(f"[{self.name}] 🛑 Agent stopped")
             
         except Exception as e:
-            self._log(f"[{self.name}] ❌ Error stopping agent: {str(e)}")
+            self.logger.log(f"[{self.name}] ❌ Error stopping agent: {str(e)}")
 
     def run(self):
         """Main execution loop for the agent"""
         try:
-            self._log(f"[{self.name}] 🚀 Starting agent run loop")
+            self.logger.log(f"[{self.name}] 🚀 Starting agent run loop")
             
             while self.running:
                 try:
                     # Use configured mission directory
                     if not self.mission_dir:
-                        self._log(f"[{self.name}] ❌ No mission directory configured")
+                        self.logger.log(f"[{self.name}] ❌ No mission directory configured")
                         time.sleep(60)
                         continue
 
                     # Validate mission directory
                     if not os.path.exists(self.mission_dir):
-                        self._log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}")
+                        self.logger.log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}")
                         time.sleep(60)
                         continue
 
@@ -354,7 +354,7 @@ class AiderAgent(AgentBase):
                     # Get current prompt
                     prompt = self.get_prompt()
                     if not prompt:
-                        self._log(f"[{self.name}] ⚠️ No prompt available, skipping run")
+                        self.logger.log(f"[{self.name}] ⚠️ No prompt available, skipping run")
                         time.sleep(60)
                         continue
                         
@@ -374,13 +374,13 @@ class AiderAgent(AgentBase):
                     time.sleep(interval)
                     
                 except Exception as loop_error:
-                    self._log(f"[{self.name}] ❌ Error in run loop: {str(loop_error)}")
+                    self.logger.log(f"[{self.name}] ❌ Error in run loop: {str(loop_error)}")
                     time.sleep(5)  # Pause before retrying
 
-            self._log(f"[{self.name}] Run loop ended")
+            self.logger.log(f"[{self.name}] Run loop ended")
             
         except Exception as e:
-            self._log(f"[{self.name}] Critical error in run: {str(e)}")
+            self.logger.log(f"[{self.name}] Critical error in run: {str(e)}")
             self.running = False
         finally:
             # Ensure cleanup happens
@@ -453,10 +453,10 @@ class AiderAgent(AgentBase):
                 self._handle_error_message(line)
             else:
                 # Log regular output
-                self._log(f"[{self.name}] 📝 {line}", 'debug')
+                self.logger.log(f"[{self.name}] 📝 {line}", 'debug')
                 
         except Exception as e:
-            self._log(f"[{self.name}] Error processing output line: {str(e)}")
+            self.logger.log(f"[{self.name}] Error processing output line: {str(e)}")
 
     def _handle_file_modification(self, line: str) -> None:
         """
@@ -467,14 +467,14 @@ class AiderAgent(AgentBase):
         """
         try:
             file_path = line.split("Wrote ")[1].split()[0]
-            self._log(f"[{self.name}] ✍️ Modified: {file_path}", 'info')
+            self.logger.log(f"[{self.name}] ✍️ Modified: {file_path}", 'info')
             
             # Track modification
             if hasattr(self, 'modified_files'):
                 self.modified_files.add(file_path)
                 
         except Exception as e:
-            self._log(f"[{self.name}] Error handling file modification: {str(e)}")
+            self.logger.log(f"[{self.name}] Error handling file modification: {str(e)}")
 
     def _handle_commit_message(self, line: str) -> None:
         """
@@ -499,10 +499,10 @@ class AiderAgent(AgentBase):
                     
             # Get icon and log
             icon = self.output_parser.COMMIT_ICONS.get(commit_type, '🔨')
-            self._log(f"[{self.name}] {icon} {commit_hash}: {message}", 'success')
+            self.logger.log(f"[{self.name}] {icon} {commit_hash}: {message}", 'success')
             
         except Exception as e:
-            self._log(f"[{self.name}] Error handling commit message: {str(e)}")
+            self.logger.log(f"[{self.name}] Error handling commit message: {str(e)}")
 
     def _is_error_message(self, line: str) -> bool:
         """
@@ -531,7 +531,7 @@ class AiderAgent(AgentBase):
         Args:
             line: Output line containing error
         """
-        self._log(f"[{self.name}] ❌ {line}", 'error')
+        self.logger.log(f"[{self.name}] ❌ {line}", 'error')
         self.error_count += 1
 
 def list_files(self) -> None:
