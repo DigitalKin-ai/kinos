@@ -874,18 +874,18 @@ List any specific constraints or limitations.
                     "No Windows console found",
                     "aider.chat/docs/troubleshooting/edit-errors.html",
                     "[Errno 22] Invalid argument",  # Windows-specific error
-                    "Failed to execute" # Generic Aider error
+                    "Failed to execute"  # Generic Aider error
                 ]
-                
+
                 # Only log unknown errors
                 if not any(err in error_msg for err in known_errors):
                     self.logger.log(
                         f"Agent {name} error (will retry):\n"
                         f"Error: {str(e)}\n"
-                        f"Traceback: {traceback.format_exc()}", 
+                        f"Traceback: {traceback.format_exc()}",
                         'warning'
                     )
-                
+
                 # Always wait before retrying
                 time.sleep(5)
                 continue

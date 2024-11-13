@@ -214,13 +214,13 @@ class AiderAgent(AgentBase):
                 "aider.chat/docs/troubleshooting/edit-errors.html",
                 "[Errno 22] Invalid argument"
             ]
-            
+
             error_msg = str(e)
             if any(err in error_msg for err in known_errors):
                 return ""  # Return empty success instead of None
-                
-            self._handle_error('run_aider', e, {'prompt': prompt})
-            return None
+            else:
+                self._handle_error('run_aider', e, {'prompt': prompt})
+                return None
             
         finally:
             # Toujours restaurer le répertoire original
