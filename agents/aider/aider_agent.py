@@ -416,7 +416,7 @@ Instructions:
                             
                     # Run Aider with generated instructions
                     try:
-                        result = self.run_aider(instructions)
+                        result = self._run_aider(instructions)
                     except OSError as os_error:
                         if "[Errno 22] Invalid argument" in str(os_error):
                             # Ignorer cette erreur spécifique de flush
