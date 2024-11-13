@@ -22,10 +22,17 @@ class PathManager:
         """Get mission path, defaulting to current directory"""
         return os.getcwd()
 
-    @staticmethod
+    @classmethod
+    def get_kinos_root(cls) -> str:
+        """Returns the KinOS installation directory"""
+        # Le fichier path_manager.py est dans utils/, donc remonter de 2 niveaux
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    @staticmethod 
     def get_prompts_path() -> str:
         """Retourne le chemin vers le dossier des prompts"""
-        return os.path.join(PathManager.get_project_root(), "prompts")
+        # Utiliser get_kinos_root() au lieu de get_project_root()
+        return os.path.join(PathManager.get_kinos_root(), "prompts")
 
     @staticmethod
     def get_config_path() -> str:
