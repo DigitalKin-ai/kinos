@@ -30,12 +30,6 @@ COMMIT_ICONS = {
     'optimize': '🚀'  # Optimizations
 }
 
-# Timeout settings
-DEFAULT_TIMEOUT = 300  # 5 minutes
-PROCESS_CLEANUP_TIMEOUT = 5  # 5 seconds
-AGENT_SHUTDOWN_TIMEOUT = 30  # 30 seconds
-COMMAND_EXECUTION_TIMEOUT = 300  # 5 minutes
-OUTPUT_COLLECTION_TIMEOUT = 5  # 5 seconds
 
 # File operations
 DEFAULT_ENCODING = 'utf-8'

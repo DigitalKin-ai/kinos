@@ -32,9 +32,6 @@ from services import init_services
 class TeamService:
     """Service simplifié pour la gestion des équipes en CLI"""
     
-    # Timeout constant (5 minutes)
-    TOTAL_TIMEOUT = 300
-    
     def __init__(self, _):  # Keep parameter for compatibility but don't use it
         """Initialize with minimal dependencies"""
         self.logger = Logger()
@@ -214,9 +211,8 @@ class TeamService:
                 'info'
             )
 
-            # Start agents with timeout
-            with TimeoutManager.timeout(self.TOTAL_TIMEOUT):
-                for agent in filtered_agents:
+            # Start agents
+            for agent in filtered_agents:
                     agent_name = agent['name'] if isinstance(agent, dict) else agent
                     try:
                         self.logger.log(f"Starting agent {agent_name}...", 'info')

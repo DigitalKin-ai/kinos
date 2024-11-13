@@ -20,11 +20,6 @@ from agents.base.prompt_handler import PromptHandler
 from utils.path_manager import PathManager
 from utils.error_handler import ErrorHandler
 from utils.managers.timeout_manager import TimeoutManager
-from utils.constants import (
-    DEFAULT_TIMEOUT,
-    OUTPUT_COLLECTION_TIMEOUT,
-    COMMAND_EXECUTION_TIMEOUT
-)
 from utils.constants import COMMIT_ICONS
 
 class AiderAgent(AgentBase):
@@ -179,14 +174,12 @@ class AiderAgent(AgentBase):
             if not self.command_builder.validate_command(cmd):
                 return ""  # Return empty string instead of None
                 
-            # Exécution avec gestion des timeout
-            with TimeoutManager.timeout(COMMAND_EXECUTION_TIMEOUT):
-                process = self.command_builder.execute_command(cmd)
+            # Execute command
+            process = self.command_builder.execute_command(cmd)
 
             # Collection de la sortie avec gestion spécifique des erreurs Windows
             try:
-                with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
-                    output = self.output_parser.parse_output(process)
+                output = self.output_parser.parse_output(process)
                     
                     # Explicitly ignore known Aider messages
                     if output and any(msg in output for msg in [
