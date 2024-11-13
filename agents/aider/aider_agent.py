@@ -310,7 +310,7 @@ class AiderAgent(AgentBase):
         """Prevent agent from stopping"""
         pass  # Ne rien faire - empêcher l'arrêt
 
-    def _truncate_history(self, content: str, max_chars: int = 25000) -> str:
+    def _truncate_history(self, content: str, max_chars: int = 15000) -> str:
         """Truncate history content to last N characters"""
         if len(content) <= max_chars:
             return content
