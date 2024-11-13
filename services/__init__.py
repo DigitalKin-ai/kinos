@@ -7,11 +7,13 @@ from utils.exceptions import ServiceError
 
 # Cache des services initialisés
 _initialized_services = {}
+_configs_loaded = False
 
 def init_services(_):  # Keep parameter for compatibility but don't use it
     """Initialize all services with minimal dependencies"""
+    global _configs_loaded
     
-    # Si les services sont déjà initialisés, retourner le cache SANS recharger les configs
+    # Si les services sont déjà initialisés, retourner le cache directement
     if _initialized_services:
         return _initialized_services
         
@@ -34,12 +36,14 @@ def init_services(_):  # Keep parameter for compatibility but don't use it
             'phase_service': PhaseService(None)
         }
 
-        # Store in cache BEFORE loading configs
+        # Store in cache
         _initialized_services.update(services)
 
-        # Maintenant charger les configurations une seule fois
-        for team_config in ['book-writing', 'coding', 'default', 'literature-review']:
-            print(f"Loaded team configuration: {team_config}")
+        # Charger les configurations une seule fois
+        if not _configs_loaded:
+            for team_config in ['book-writing', 'coding', 'default', 'literature-review']:
+                print(f"Loaded team configuration: {team_config}")
+            _configs_loaded = True
 
         return _initialized_services
 
