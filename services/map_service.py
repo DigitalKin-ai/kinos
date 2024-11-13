@@ -246,18 +246,69 @@ class MapService(BaseService):
         return "\n".join(content)
 
     def _write_map_file(self, content: str) -> bool:
-        """Write content to map file"""
+        """Write content to map file with atomic write"""
         try:
-            with open(self.map_file, 'w', encoding='utf-8') as f:
-                f.write(content)
-            return True
+            # Écrire d'abord dans un fichier temporaire
+            temp_file = f"{self.map_file}.tmp"
+            try:
+                with open(temp_file, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                    f.flush()
+                    os.fsync(f.fileno())  # Force l'écriture sur le disque
+                    
+                # Renommage atomique
+                os.replace(temp_file, self.map_file)
+                
+                self.logger.log("Map file updated successfully", 'debug')
+                return True
+                
+            finally:
+                # Nettoyer le fichier temporaire si il existe encore
+                if os.path.exists(temp_file):
+                    try:
+                        os.remove(temp_file)
+                    except:
+                        pass
+                        
         except Exception as e:
             self.logger.log(f"Error writing map file: {str(e)}", 'error')
             return False
 
     def update_map(self) -> bool:
-        """Update map after file changes"""
-        return self.generate_map()
+        """Update map after file changes with enhanced error handling"""
+        try:
+            self.logger.log("Starting map update", 'debug')
+            
+            # Vérifier si le fichier existe et est accessible en écriture
+            if os.path.exists(self.map_file):
+                if not os.access(self.map_file, os.W_OK):
+                    self.logger.log(f"Map file not writable: {self.map_file}", 'error')
+                    return False
+                    
+                # Sauvegarder la dernière modification
+                last_modified = os.path.getmtime(self.map_file)
+            else:
+                last_modified = 0
+
+            # Générer la nouvelle map
+            success = self.generate_map()
+            
+            if success:
+                # Vérifier que le fichier a bien été mis à jour
+                try:
+                    new_modified = os.path.getmtime(self.map_file)
+                    if new_modified <= last_modified:
+                        self.logger.log("Map file not updated - forcing regeneration", 'warning')
+                        # Forcer une nouvelle génération
+                        return self.generate_map()
+                except Exception as check_error:
+                    self.logger.log(f"Error checking map update: {str(check_error)}", 'error')
+                    
+            return success
+
+        except Exception as e:
+            self.logger.log(f"Error updating map: {str(e)}", 'error')
+            return False
 
     def get_map_content(self) -> str:
         """Get current map content"""

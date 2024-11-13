@@ -56,21 +56,43 @@ class FileService(BaseService):
             return None
 
     def write_file(self, file_name: str, content: str) -> bool:
-        """Write file with map update"""
+        """Write file with reliable map update"""
         try:
             file_path = os.path.join(os.getcwd(), file_name)
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
             
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(content)
+            # Écrire le fichier de manière atomique
+            temp_path = f"{file_path}.tmp"
+            try:
+                with open(temp_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                    f.flush()
+                    os.fsync(f.fileno())
+                    
+                os.replace(temp_path, file_path)
                 
-            # Update map after any file change except map (readonly).md itself
-            if file_name != 'map (readonly).md':
-                from services import init_services
-                services = init_services(None)
-                services['map_service'].update_map()
+                # Mise à jour explicite de la map sauf pour le fichier map lui-même
+                if file_name != 'map (readonly).md':
+                    try:
+                        from services import init_services
+                        services = init_services(None)
+                        map_service = services['map_service']
+                        
+                        if not map_service.update_map():
+                            self.logger.log("Failed to update map after file write", 'warning')
+                            
+                    except Exception as map_error:
+                        self.logger.log(f"Error updating map: {str(map_error)}", 'error')
+                        
+                return True
                 
-            return True
+            finally:
+                if os.path.exists(temp_path):
+                    try:
+                        os.remove(temp_path)
+                    except:
+                        pass
+                        
         except Exception as e:
             self.logger.log(f"Error writing {file_name}: {str(e)}", 'error')
             return False
