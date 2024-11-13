@@ -706,47 +706,43 @@ List any specific constraints or limitations.
                 time.sleep(30)  # Check every 30 seconds
 
     def get_agent_status(self, agent_name: str = None) -> Union[Dict[str, Dict[str, Any]], Dict[str, Any]]:
-        """Get status for all agents or a specific agent"""
+        """Unified method for retrieving agent status"""
         if agent_name:
             # Normalize agent name
             agent_key = agent_name.lower()
             
-            # Ensure agent exists
+            # Check if agent exists
             if agent_key not in self.agents:
                 return {
                     'running': False,
                     'status': 'not_initialized',
-                    'error': f'Agent {agent_name} not initialized'
+                    'error': f'Agent {agent_name} not found'
                 }
             
             agent = self.agents[agent_key]
-            
             return {
-                'running': getattr(agent, 'running', False),
-                'status': 'active' if getattr(agent, 'running', False) else 'inactive',
-                'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
+                'running': agent.running,
+                'status': 'active' if agent.running else 'inactive',
+                'last_run': agent.last_run.isoformat() if agent.last_run else None,
                 'health': {
-                    'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
+                    'is_healthy': agent.is_healthy(),
                     'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
                 }
             }
         
-        # If no specific agent, return status for all agents
-        status = {}
-        for name, agent in self.agents.items():
-            name_lower = name.lower()
-            status[name_lower] = {
+        # Return status for all agents
+        return {
+            name: {
                 'running': agent.running,
                 'status': 'active' if agent.running else 'inactive',
                 'last_run': agent.last_run.isoformat() if agent.last_run else None,
-                'last_change': agent.last_change.isoformat() if agent.last_change else None,
                 'health': {
                     'is_healthy': agent.is_healthy(),
-                    'consecutive_no_changes': agent.consecutive_no_changes,
-                    'current_interval': agent.calculate_dynamic_interval()
+                    'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0)
                 }
             }
-        return status
+            for name, agent in self.agents.items()
+        }
 
     # Removed _get_agent_status_details method as it's now consolidated
 
