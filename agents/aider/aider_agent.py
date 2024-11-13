@@ -192,7 +192,7 @@ class AiderAgent(AgentBase):
 
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Execute Aider with given prompt and handle all outcomes"""
-        if not self._validate_run_input(prompt):
+        if not self._validate_run_conditions(prompt):
             return None
 
         try:
