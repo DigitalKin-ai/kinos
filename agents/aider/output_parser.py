@@ -235,6 +235,7 @@ class AiderOutputParser:
             'deleted_files': set()
         }
         has_results = False  # Flag pour suivre si on a des résultats
+        has_results = False  # Flag pour suivre si on a des résultats
         
         try:
             # Collect all output with Windows error handling
