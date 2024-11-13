@@ -262,15 +262,24 @@ class AiderAgent(AgentBase):
 
             # Log the interaction using ChatLogger
             from utils.chat_logger import ChatLogger
-            chat_logger = ChatLogger(os.path.basename(self.mission_dir))
+            from utils.path_manager import PathManager
+            
+            # Use PathManager to get mission name and chats directory
+            mission_name = os.path.basename(self.mission_dir)
+            chat_logger = ChatLogger(mission_name)
+            
+            # Prepare files context with full content
+            files_context = {
+                filename: self.mission_files.get(filename, '') 
+                for filename in list(changes['modified']) + list(changes['added'])
+            }
+            
+            # Log agent interaction
             chat_logger.log_agent_interaction(
                 agent_name=self.name,
                 prompt=prompt,
                 response=output,
-                files_context={
-                    filename: self.mission_files.get(filename, '') 
-                    for filename in list(changes['modified']) + list(changes['added'])
-                }
+                files_context=files_context
             )
 
             return output

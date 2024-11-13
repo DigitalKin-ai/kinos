@@ -258,6 +258,32 @@ class PathManager:
         return os.path.join(PathManager.get_logs_path(), f"{service_name}.log")
 
     @staticmethod
+    def get_chats_path(mission_name: Optional[str] = None) -> str:
+        """
+        Returns the path to the chats directory, optionally for a specific mission
+        
+        Args:
+            mission_name (Optional[str]): Name of the mission to get chats for
+        
+        Returns:
+            str: Path to the chats directory
+        """
+        chats_dir = os.path.join(PathManager.get_project_root(), "chats")
+        
+        # Create base chats directory if it doesn't exist
+        os.makedirs(chats_dir, exist_ok=True)
+        
+        # If mission name is provided, create a subdirectory for that mission
+        if mission_name:
+            # Normalize mission name for filesystem use
+            normalized_mission_name = mission_name.lower().replace(' ', '_').replace('-', '_')
+            mission_chats_dir = os.path.join(chats_dir, normalized_mission_name)
+            os.makedirs(mission_chats_dir, exist_ok=True)
+            return mission_chats_dir
+        
+        return chats_dir
+
+    @staticmethod
     def validate_path(path: str) -> bool:
         """Validate that a path is secure and within project"""
         try:

@@ -1252,6 +1252,34 @@ Default operational instructions.
         else:
             self.logger.log(f"Failed to create agent: {agent_name}", 'error')
 
+    def log_agent_interaction(self, agent_name: str, prompt: str, response: str, files_context: Optional[Dict[str, str]] = None):
+        """
+        Log an agent interaction using ChatLogger
+        
+        Args:
+            agent_name: Name of the agent
+            prompt: Prompt sent to the agent
+            response: Agent's response
+            files_context: Optional context of files involved
+        """
+        try:
+            from utils.chat_logger import ChatLogger
+            from utils.path_manager import PathManager
+            
+            # Use current mission directory or a default
+            mission_name = os.path.basename(os.getcwd())
+            chat_logger = ChatLogger(mission_name)
+            
+            # Log the interaction
+            chat_logger.log_agent_interaction(
+                agent_name=agent_name,
+                prompt=prompt,
+                response=response,
+                files_context=files_context or {}
+            )
+        except Exception as e:
+            self.logger.log(f"Error logging agent interaction: {str(e)}", 'error')
+
     def _load_prompt_template(self, agent_type: str) -> Optional[str]:
         """Load default prompt template for agent type"""
         try:
