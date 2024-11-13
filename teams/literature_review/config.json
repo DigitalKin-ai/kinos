@@ -67,22 +67,22 @@
     "phase_config": {
         "expansion": {
             "active_agents": [
-                "specifications",
-                "chercheur",
-                "redacteur",
-                "redacteur2",
-                "redacteur3",
-                "chroniqueur"
+                {"name": "specifications", "weight": 0.8},
+                {"name": "chercheur", "weight": 0.9},
+                {"name": "redacteur", "weight": 0.8},
+                {"name": "redacteur2", "weight": 0.7},
+                {"name": "redacteur3", "weight": 0.6},
+                {"name": "chroniqueur", "weight": 0.5}
             ],
             "priority": "research"
         },
         "convergence": {
             "active_agents": [
-                "evaluation",
-                "duplication",
-                "redondance",
-                "validation",
-                "documentaliste"
+                {"name": "evaluation", "weight": 0.8},
+                {"name": "duplication", "weight": 0.6},
+                {"name": "redondance", "weight": 0.7},
+                {"name": "validation", "weight": 0.8},
+                {"name": "documentaliste", "weight": 0.9}
             ],
             "priority": "synthesis"
         }

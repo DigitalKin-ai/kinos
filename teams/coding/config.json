@@ -57,22 +57,22 @@
     "phase_config": {
         "expansion": {
             "active_agents": [
-                "specifications",
-                "production",
-                "testeur",
-                "chroniqueur",
-                "documentaliste"
+                {"name": "specifications", "weight": 0.9},
+                {"name": "production", "weight": 0.9},
+                {"name": "testeur", "weight": 0.8},
+                {"name": "chroniqueur", "weight": 0.5},
+                {"name": "documentaliste", "weight": 0.4}
             ],
             "priority": "development"
         },
         "convergence": {
             "active_agents": [
-                "evaluation",
-                "duplication",
-                "validation",
-                "testeur",
-                "documentaliste",
-                "cleaner"
+                {"name": "evaluation", "weight": 0.8},
+                {"name": "duplication", "weight": 0.6},
+                {"name": "validation", "weight": 0.8},
+                {"name": "testeur", "weight": 0.9},
+                {"name": "documentaliste", "weight": 0.6},
+                {"name": "cleaner", "weight": 0.7}
             ],
             "priority": "code_quality"
         }

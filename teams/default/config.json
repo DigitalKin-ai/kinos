@@ -52,20 +52,20 @@
     "phase_config": {
         "expansion": {
             "active_agents": [
-                "specifications",
-                "management",
-                "redacteur",
-                "chroniqueur",
-                "documentaliste"
+                {"name": "specifications", "weight": 0.8},
+                {"name": "management", "weight": 0.7},
+                {"name": "redacteur", "weight": 0.9},
+                {"name": "chroniqueur", "weight": 0.5},
+                {"name": "documentaliste", "weight": 0.6}
             ],
             "priority": "content_creation"
         },
         "convergence": {
             "active_agents": [
-                "evaluation",
-                "duplication",
-                "redondance",
-                "validation"
+                {"name": "evaluation", "weight": 0.8},
+                {"name": "duplication", "weight": 0.6},
+                {"name": "redondance", "weight": 0.7},
+                {"name": "validation", "weight": 0.8}
             ],
             "priority": "optimization"
         }
