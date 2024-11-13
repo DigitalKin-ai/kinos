@@ -57,7 +57,13 @@ class CommitLogger:
             # Check for commit line
             match = self.commit_pattern.search(line)
             if not match:
-                return None
+                return {
+                    'hash': 'skipped',
+                    'message': 'Non-commit line', 
+                    'agent': agent_name,
+                    'timestamp': datetime.now().isoformat(),
+                    'status': 'skipped'
+                }
                 
             # Extract commit hash and full message
             commit_hash = match.group(1)
@@ -71,21 +77,28 @@ class CommitLogger:
             # Get emoji for commit type
             emoji = COMMIT_ICONS.get(commit_type, '🔨')
             
-            # Build commit info
+            # Build commit info with status
             commit = {
                 'hash': commit_hash,
                 'type': commit_type,
                 'message': message,
                 'emoji': emoji,
                 'agent': agent_name,
-                'timestamp': datetime.now().isoformat()
+                'timestamp': datetime.now().isoformat(),
+                'status': 'success'
             }
             
             return commit
             
         except Exception as e:
             self.logger.log(f"Error parsing commit line: {str(e)}", 'error')
-            return None
+            return {
+                'hash': 'error',
+                'message': str(e),
+                'agent': agent_name,
+                'timestamp': datetime.now().isoformat(),
+                'status': 'error'
+            }
 
     def _log_commit(self, commit: Dict) -> None:
         """
