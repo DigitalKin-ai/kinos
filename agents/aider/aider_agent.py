@@ -53,20 +53,28 @@ class AiderAgent(AgentBase):
             raise ValueError(f"Invalid mission directory: {self.mission_dir}")
 
     def _run_aider(self, prompt: str) -> Optional[str]:
-        """Execute Aider with given prompt"""
+        """Execute Aider with given prompt and handle all outcomes"""
+        if not self._validate_run_input(prompt):
+            return None
+
         attempt = 1
         max_attempts = 5
         
         while attempt <= max_attempts:
             try:
+                # Check rate limiting
                 if not self._check_rate_limit():
                     return None
-                    
+
+                # Configure environment
+                self._configure_environment()
+                
+                # Execute command with all validation
                 return self._execute_aider_command(prompt)
                     
             except Exception as e:
                 error_str = str(e).lower()
-                # Detect Anthropic rate limit errors
+                # Handle rate limits with exponential backoff
                 if any(msg in error_str for msg in ['rate limit', 'too many requests', '429']):
                     if attempt < max_attempts:
                         wait_time = min(30 * attempt, 300)  # Max 5 min wait
@@ -74,9 +82,65 @@ class AiderAgent(AgentBase):
                         time.sleep(wait_time)
                         attempt += 1
                         continue
-                        
-                self.logger.log(f"Error running Aider: {str(e)}\n{traceback.format_exc()}", 'error')
+                
+                self.logger.log(
+                    f"Error running Aider:\n"
+                    f"Error: {str(e)}\n"
+                    f"Traceback: {traceback.format_exc()}", 
+                    'error'
+                )
                 return None
+
+    def _validate_run_input(self, prompt: str) -> bool:
+        """Validate all inputs before running Aider"""
+        try:
+            # Validate prompt
+            if not prompt or not prompt.strip():
+                self.logger.log("Empty prompt provided", 'error')
+                return False
+
+            # Validate mission directory
+            if not os.path.exists(self.mission_dir):
+                self.logger.log(f"Mission directory not found: {self.mission_dir}", 'error')
+                return False
+
+            if not os.access(self.mission_dir, os.R_OK | os.W_OK):
+                self.logger.log(f"Insufficient permissions on: {self.mission_dir}", 'error')
+                return False
+
+            # Validate files to process
+            if not self.mission_files:
+                self.logger.log("No files to process", 'warning')
+                return False
+
+            return True
+
+        except Exception as e:
+            self.logger.log(f"Error in input validation: {str(e)}", 'error')
+            return False
+
+    def _configure_environment(self):
+        """Configure environment for Aider execution"""
+        # Configure UTF-8 encoding
+        import sys
+        import codecs
+        import locale
+
+        if sys.stdout.encoding != 'utf-8':
+            sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+        if sys.stderr.encoding != 'utf-8':
+            sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+
+        try:
+            locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+        except locale.Error:
+            try:
+                locale.setlocale(locale.LC_ALL, 'C.UTF-8')
+            except locale.Error:
+                pass
+
+        # Set environment variables
+        os.environ['PYTHONIOENCODING'] = 'utf-8'
 
     def _check_rate_limit(self) -> bool:
         """Check rate limiting and wait if needed"""
@@ -87,29 +151,80 @@ class AiderAgent(AgentBase):
         return True
 
     def _execute_aider_command(self, prompt: str) -> Optional[str]:
-        """Build and execute Aider command with proper directory handling"""
+        """Build and execute Aider command with comprehensive handling"""
         original_dir = os.getcwd()
+        process = None
+        
         try:
+            # Change to mission directory
             os.chdir(self.mission_dir)
+            self.logger.log(f"Changed to directory: {self.mission_dir}", 'debug')
             
+            # Build and validate command
             cmd = self._build_command(prompt)
+            if not self.command_builder.validate_command(cmd):
+                self.logger.log("Invalid command configuration", 'error')
+                return None
+            
+            # Execute process
             process = self._run_process(cmd)
             
-            # Set timeout duration (5 minutes)
+            # Handle process output with timeout
             try:
                 result = self._handle_process_output(process, timeout=300)
+                if result:
+                    self.rate_limiter.record_request()
+                    self._update_system_state(result)
+                return result
+                
             except TimeoutError:
                 self.logger.log("Process timed out after 300 seconds", 'error')
-                process.kill()
                 return None
                 
-            if result:
-                self.rate_limiter.record_request()
-                
-            return result
+        except Exception as e:
+            self.logger.log(f"Error executing command: {str(e)}", 'error')
+            return None
             
         finally:
-            os.chdir(original_dir)
+            # Cleanup
+            if process and process.poll() is None:
+                try:
+                    process.kill()
+                except:
+                    pass
+                    
+            try:
+                os.chdir(original_dir)
+            except Exception as e:
+                self.logger.log(f"Error restoring directory: {str(e)}", 'error')
+
+    def _update_system_state(self, result: str):
+        """Update system state after successful execution"""
+        try:
+            # Update map
+            from services import init_services
+            services = init_services(None)
+            services['map_service'].update_map()
+            
+            # Parse modified files
+            modified_files = set()
+            for line in result.splitlines():
+                if "Wrote " in line and ".md" in line:
+                    try:
+                        modified_file = line.split("Wrote ")[1].split()[0]
+                        modified_files.add(modified_file)
+                    except:
+                        continue
+            
+            # Log changes
+            if modified_files:
+                self.logger.log(
+                    f"Files modified:\n" + "\n".join(modified_files),
+                    'info'
+                )
+                
+        except Exception as e:
+            self.logger.log(f"Error updating system state: {str(e)}", 'error')
 
     def _build_command(self, prompt: str) -> List[str]:
         """Build Aider command with current configuration"""
