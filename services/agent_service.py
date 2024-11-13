@@ -1087,46 +1087,35 @@ List any specific constraints or limitations.
         except Exception as e:
             self.logger.log(f"Error updating global status: {str(e)}", 'error')
 
-    def create_agent(self, name: str, prompt: str) -> bool:
-        """Create a new agent with the given name and prompt"""
+    def create_agent(self, agent_config: Dict[str, Any]) -> Optional[AgentBase]:
+        """Create appropriate agent instance based on type"""
         try:
-            # Validate name
-            if not validate_agent_name(name):
-                raise ValueError("Invalid agent name format")
-
-            # Validate prompt
-            if not self._validate_prompt(prompt):
-                raise ValueError("Invalid prompt content")
-
-            # Use PathManager for custom prompts
-            custom_prompts_dir = PathManager.get_custom_prompts_path()
-            os.makedirs(custom_prompts_dir, exist_ok=True)
+            agent_type = agent_config.get('type', 'aider')
+            agent_name = agent_config['name']
             
-            # Check if agent already exists
-            prompt_file = os.path.join(custom_prompts_dir, f'{name}.md')
-            if os.path.exists(prompt_file):
-                raise ValueError(f"Agent {name} already exists")
-
-            # Backup existing prompts if any
-            self._backup_prompt(name)
-
-            # Save prompt file
-            with open(prompt_file, 'w', encoding='utf-8') as f:
-                f.write(prompt)
-
-            # Reinitialize agent
-            self.init_agents({
-            }, [name])
-
-            # Log agent creation
-            self.log_agent_creation(name, True)
-            return True
-
+            # Validate agent name
+            if not validate_agent_name(agent_name):
+                raise ValueError(f"Invalid agent name: {agent_name}")
+                
+            # Create appropriate agent instance
+            if agent_type == 'research':
+                from agents.research.research_agent import ResearchAgent
+                agent = ResearchAgent(agent_config)
+            else:
+                from agents.aider.aider_agent import AiderAgent
+                agent = AiderAgent(agent_config)
+                
+            self.logger.log(
+                f"Created {agent_type} agent: {agent_name} "
+                f"(weight: {agent_config.get('weight', 0.5):.2f})",
+                'success'
+            )
+            
+            return agent
+            
         except Exception as e:
-            # Log agent creation failure
-            self.log_agent_creation(name, False)
-            self.log_message(f"Error creating agent: {str(e)}", 'error')
-            raise
+            self.logger.log(f"Error creating agent: {str(e)}", 'error')
+            return None
 
     def get_agent_prompt(self, agent_id: str) -> Optional[str]:
         """Get the current prompt for a specific agent"""

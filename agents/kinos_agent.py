@@ -342,6 +342,51 @@ class KinOSAgent:
         except Exception as e:
             print(f"Error stopping agent: {str(e)}")  # Fallback to print
 
+    def get_agent_capabilities(self) -> Dict[str, Any]:
+        """Get agent capabilities based on type"""
+        try:
+            capabilities = {
+                'aider': {
+                    'can_modify_files': True,
+                    'can_execute_commands': False,
+                    'can_research': False,
+                    'priority_level': 1
+                },
+                'research': {
+                    'can_modify_files': True,
+                    'can_execute_commands': False,
+                    'can_research': True,
+                    'priority_level': 2
+                }
+            }
+            
+            return capabilities.get(self.type, capabilities['aider'])
+            
+        except Exception as e:
+            self.logger.log(f"Error getting capabilities: {str(e)}", 'error')
+            return capabilities['aider']
+
+    def validate_operation(self, operation_type: str) -> bool:
+        """Validate if agent can perform operation based on type"""
+        try:
+            capabilities = self.get_agent_capabilities()
+            
+            operation_requirements = {
+                'file_modification': 'can_modify_files',
+                'command_execution': 'can_execute_commands',
+                'research': 'can_research'
+            }
+            
+            required_capability = operation_requirements.get(operation_type)
+            if not required_capability:
+                return False
+                
+            return capabilities.get(required_capability, False)
+            
+        except Exception as e:
+            self.logger.log(f"Error validating operation: {str(e)}", 'error')
+            return False
+
     def cleanup(self):
         """Cleanup agent resources properly"""
         try:

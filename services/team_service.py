@@ -446,23 +446,56 @@ class TeamService:
         except Exception as e:
             self.logger.log(f"Error calculating health score: {str(e)}", 'error')
             return 0.0
-    def _filter_agents_by_phase(self, agents: List[str], phase: str) -> List[str]:
-        """Filter agents based on current phase"""
-        # Get team configuration for the phase
-        for team in self.predefined_teams:
-            if any(isinstance(agent, dict) and agent['name'] in agents for agent in team['agents']):
-                # Found matching team, check phase config
-                phase_config = team.get('phase_config', {}).get(phase.lower(), {})
-                active_agents = phase_config.get('active_agents', [])
-                
-                if active_agents:
-                    # Filter to keep only active agents that exist in the team
-                    # Return agent names only since weights are handled in calculate_dynamic_interval
-                    return [agent['name'] for agent in active_agents 
-                           if agent['name'] in [a['name'] if isinstance(a, dict) else a for a in agents]]
-                
-                # If no phase config or no active_agents defined, return all agents
-                return agents
-                
-        # If no matching team found, return all agents
-        return agents
+    def _filter_agents_by_phase(self, agents: List[Union[str, Dict]], phase: str) -> List[Dict]:
+        """Filter and configure agents based on current phase"""
+        try:
+            # Get team configuration for the phase
+            active_team = None
+            for team in self.predefined_teams:
+                if any(isinstance(a, dict) and a['name'] in [ag['name'] if isinstance(ag, dict) else ag for ag in agents] 
+                      for a in team.get('agents', [])):
+                    active_team = team
+                    break
+
+            if not active_team:
+                # Return default configuration if no matching team
+                return [{'name': a, 'type': 'aider', 'weight': 0.5} if isinstance(a, str) else a 
+                       for a in agents]
+
+            # Get phase configuration
+            phase_config = active_team.get('phase_config', {}).get(phase.lower(), {})
+            active_agents = phase_config.get('active_agents', [])
+
+            if not active_agents:
+                # Use default weights if no phase-specific config
+                return [{'name': a, 'type': 'aider', 'weight': 0.5} if isinstance(a, str) else a 
+                       for a in agents]
+
+            # Build filtered and configured agents list
+            filtered_agents = []
+            phase_weights = {a['name']: a.get('weight', 0.5) for a in active_agents}
+
+            for agent in agents:
+                agent_name = agent['name'] if isinstance(agent, dict) else agent
+                if agent_name in phase_weights:
+                    # Create or update agent configuration
+                    agent_config = agent.copy() if isinstance(agent, dict) else {'name': agent}
+                    agent_config.update({
+                        'type': agent_config.get('type', 'aider'),
+                        'weight': phase_weights[agent_name]
+                    })
+                    filtered_agents.append(agent_config)
+
+            self.logger.log(
+                f"Filtered agents for phase {phase}:\n" +
+                "\n".join(f"- {a['name']} (type: {a['type']}, weight: {a['weight']:.2f})" 
+                         for a in filtered_agents),
+                'debug'
+            )
+
+            return filtered_agents
+
+        except Exception as e:
+            self.logger.log(f"Error filtering agents: {str(e)}", 'error')
+            return [{'name': a, 'type': 'aider', 'weight': 0.5} if isinstance(a, str) else a 
+                    for a in agents]

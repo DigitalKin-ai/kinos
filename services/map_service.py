@@ -198,6 +198,15 @@ class MapService(BaseService):
                 f"- Can return to EXPANSION below {self.phase_service.EXPANSION_TOKENS/1000:.1f}k tokens"
             )
 
+    def _format_agent_info(self, agent_name: str, weight: float, agent_type: str) -> str:
+        """Format agent information for map display"""
+        type_icons = {
+            'aider': '🔧',
+            'research': '🔍'
+        }
+        icon = type_icons.get(agent_type, '❓')
+        return f"{icon} {agent_name} (type: {agent_type}, weight: {weight:.2f})"
+
     def _format_map_content(self, tree_content: List[str], warnings: List[str]) -> str:
         """Format complete map content with phase and agent weights"""
         try:
