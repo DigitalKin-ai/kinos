@@ -215,7 +215,7 @@ class TeamService:
             )
 
             # Start agents with timeout
-            with TimeoutManager.timeout(TOTAL_TIMEOUT):
+            with TimeoutManager.timeout(self.TOTAL_TIMEOUT):
                 for agent in filtered_agents:
                     agent_name = agent['name'] if isinstance(agent, dict) else agent
                     try:
@@ -272,11 +272,11 @@ class TeamService:
 
         except TimeoutError:
             if not self._shutdown_requested:
-                self.logger.log(f"Team startup timed out after {TOTAL_TIMEOUT}s", 'error')
+                self.logger.log(f"Team startup timed out after {self.TOTAL_TIMEOUT}s", 'error')
             return {
                 'status': 'timeout',
                 'team_id': team_id,
-                'error': f'Startup timed out after {TOTAL_TIMEOUT}s'
+                'error': f'Startup timed out after {self.TOTAL_TIMEOUT}s'
             }
         except Exception as e:
             # Don't propagate known Aider errors
