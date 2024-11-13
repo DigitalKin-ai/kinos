@@ -248,6 +248,8 @@ class AiderOutputParser:
                 # Parse different line types
                 if "Wrote " in line:
                     self._parse_file_modification(line, changes)
+                elif "Commit " in line:  # Add commit detection
+                    self._parse_commit_line(line)
                 elif self._is_error_message(line):
                     self._handle_error_message(line)
                 else:
@@ -290,10 +292,13 @@ class AiderOutputParser:
         try:
             # Extract commit hash and message
             parts = line.split()
+            if len(parts) < 3 or parts[0] != "Commit":
+                return
+                
             commit_hash = parts[1]
             message = ' '.join(parts[2:])
             
-            # Detect commit type
+            # Detect commit type from message
             commit_type = None
             for known_type in self.COMMIT_ICONS:
                 if message.lower().startswith(f"{known_type}:"):
@@ -301,13 +306,11 @@ class AiderOutputParser:
                     message = message[len(known_type)+1:].strip()
                     break
                     
-            # Get icon
+            # Get icon and log with proper formatting
             icon = self.COMMIT_ICONS.get(commit_type, '🔨')
-            
-            # Log commit
             self.logger.log(
                 f"{icon} {commit_hash}: {message}",
-                'success'
+                'success'  # Use success level for commits
             )
             
         except Exception as e:
