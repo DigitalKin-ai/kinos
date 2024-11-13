@@ -4,6 +4,7 @@ import time
 import sys
 import random
 import threading
+import signal
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
@@ -113,8 +114,12 @@ class TeamService:
     def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
         """Start team in current/specified directory"""
         started_agents = []  # Track started agents
+        original_sigint_handler = signal.getsignal(signal.SIGINT)  # Save original handler
         
         try:
+            # Temporarily disable Ctrl+C
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            
             mission_dir = base_path or os.getcwd()
             
             # Normalize the requested team ID
@@ -270,6 +275,10 @@ class TeamService:
                 except Exception as cleanup_error:
                     self.logger.log(f"Error stopping agent {agent_name}: {str(cleanup_error)}", 'error')
             raise
+            
+        finally:
+            # Restore original Ctrl+C handler
+            signal.signal(signal.SIGINT, original_sigint_handler)
 
     def get_available_teams(self) -> List[Dict[str, Any]]:
         """Get list of available teams"""
