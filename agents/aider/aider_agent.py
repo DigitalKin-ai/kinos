@@ -193,10 +193,19 @@ class AiderAgent(AgentBase):
 
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Execute Aider with given prompt and handle all outcomes"""
-        if not self._validate_run_conditions(prompt):
-            return None
-
         try:
+            # Ignorer les erreurs spécifiques de console Windows et d'initialisation
+            initialization_errors = [
+                "Can't initialize prompt toolkit: No Windows console found",
+                "https://aider.chat/docs/troubleshooting/edit-errors.html",
+                "No Windows console found",
+                "Failed to initialize console",
+                "Could not initialize terminal"
+            ]
+            
+            if not self._validate_run_conditions(prompt):
+                return None
+
             # Check rate limiting
             if not self._check_rate_limit():
                 self.logger.log(f"[{self.name}] Rate limit exceeded, skipping execution")
@@ -228,38 +237,13 @@ class AiderAgent(AgentBase):
             with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
                 output = self.output_parser.parse_output(process)
 
-            if output:
-                # Parse and log commits
-                commit_logger = CommitLogger(self.logger)
-                commit_logger.parse_commits(output, self.name)
-                
-                # Process file changes
-                changes = self._process_file_changes(output)
-                if changes['modified'] or changes['added'] or changes['deleted']:
-                    self.logger.log(
-                        f"[{self.name}] Changes detected:\n"
-                        f"Modified: {len(changes['modified'])} files\n"
-                        f"Added: {len(changes['added'])} files\n"
-                        f"Deleted: {len(changes['deleted'])} files"
-                    )
-                    
-                    # Update map after changes
-                    self._update_project_map()
-
-            # Handle known initialization errors gracefully
-            initialization_errors = [
-                "No Windows console found",
-                "Failed to initialize console",
-                "Could not initialize terminal"
-            ]
-            
+            # Vérifier et filtrer les erreurs d'initialisation
             if output and any(err in output for err in initialization_errors):
+                # Log silencieux sans afficher l'erreur complète
                 self.logger.log(
-                    f"[{self.name}] Aider initialization error detected - will retry\n"
-                    f"Error: {output}", 
-                    'warning'
+                    f"[{self.name}] Aider initialization warning - will retry", 
+                    'debug'
                 )
-                # Don't treat as interruption, just return None
                 return None
 
             if output is None:
@@ -307,15 +291,16 @@ class AiderAgent(AgentBase):
 
             return output
 
-        except TimeoutError:
-            self.logger.log(f"[{self.name}] ⚠️ Operation timed out", 'warning')
-            return None
-            
         except Exception as e:
-            # Don't treat console initialization errors as interruptions
-            if "No Windows console found" in str(e):
-                self.logger.log(f"[{self.name}] Aider console initialization error - will retry", 'error')
+            # Vérifier si l'erreur est une erreur d'initialisation connue
+            if any(err in str(e) for err in initialization_errors):
+                self.logger.log(
+                    f"[{self.name}] Aider initialization warning - skipping", 
+                    'debug'
+                )
                 return None
+            
+            # Gestion des autres exceptions
             self._handle_error('run_aider', e, {'prompt': prompt})
             return None
             
