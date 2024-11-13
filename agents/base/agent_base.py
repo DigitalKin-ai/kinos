@@ -92,7 +92,28 @@ class AgentBase(ABC):
     @abstractmethod
     def list_files(self) -> None:
         """List and track files that this agent should monitor"""
-        pass
+        try:
+            # Use FileHandler to list files in mission directory
+            file_handler = FileHandler(self.mission_dir, self.logger)
+            self.mission_files = file_handler.list_files()
+            
+            # Log files being monitored
+            if self.mission_files:
+                self.logger.log(
+                    f"[{self.name}] Monitoring {len(self.mission_files)} files", 
+                    'info'
+                )
+            else:
+                self.logger.log(
+                    f"[{self.name}] No files found to monitor in {self.mission_dir}", 
+                    'warning'
+                )
+                
+        except Exception as e:
+            self.logger.log(
+                f"[{self.name}] Error listing files: {str(e)}", 
+                'error'
+            )
 
     @abstractmethod
     def get_prompt(self) -> str:
