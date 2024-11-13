@@ -122,12 +122,17 @@ class AgentService:
     def init_agents(self, config: Dict[str, Any], team_agents: Optional[List[Union[str, Dict[str, Any]]]] = None) -> None:
         """Initialize agents with minimal configuration"""
         try:
+            # If no team_agents provided, load from default team config
             if not team_agents:
-                team_agents = [
-                    {'name': 'specifications', 'type': 'aider', 'weight': 0.7},
-                    {'name': 'management', 'type': 'aider', 'weight': 0.6},
-                    {'name': 'evaluation', 'type': 'aider', 'weight': 0.7}
-                ]
+                default_team_path = os.path.join(PathManager.get_kinos_root(), "teams", "default", "config.json")
+                try:
+                    with open(default_team_path, 'r', encoding='utf-8') as f:
+                        default_team = json.load(f)
+                    team_agents = default_team.get('agents', [])
+                    self.logger.log(f"Loaded default team configuration with {len(team_agents)} agents")
+                except Exception as e:
+                    self.logger.log(f"Error loading default team config: {str(e)}", 'error')
+                    return
 
             mission_dir = config.get('mission_dir')
             if not mission_dir or not os.path.exists(mission_dir):
@@ -146,6 +151,7 @@ class AgentService:
                         agent_type = 'aider'
                         agent_weight = 0.5
 
+                    # Construct agent config
                     agent_config = {
                         'name': agent_name,
                         'type': agent_type,
