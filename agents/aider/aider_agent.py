@@ -19,7 +19,6 @@ from agents.base.file_handler import FileHandler
 from agents.base.prompt_handler import PromptHandler
 from utils.path_manager import PathManager
 from utils.error_handler import ErrorHandler
-from utils.managers.timeout_manager import TimeoutManager
 from utils.constants import COMMIT_ICONS
 
 class AiderAgent(AgentBase):

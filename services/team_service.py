@@ -6,7 +6,6 @@ import random
 import threading
 import signal
 import concurrent.futures
-from utils.managers.timeout_manager import TimeoutManager
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
 from datetime import datetime
@@ -501,12 +500,11 @@ class TeamService:
             try:
                 self.logger.log(f"Starting agent {agent_name} (attempt {attempt + 1}/{MAX_ATTEMPTS})", 'info')
                 
-                with TimeoutManager.timeout(AGENT_TIMEOUT):
-                    # Update agent state if provided
-                    if agent_state:
-                        agent_state.mark_active()
-                
-                    success = self._start_agent(agent_name)
+                # Update agent state if provided
+                if agent_state:
+                    agent_state.mark_active()
+            
+                success = self._start_agent(agent_name)
                     
                     if success:
                         if agent_state:
