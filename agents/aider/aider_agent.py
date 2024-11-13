@@ -283,54 +283,53 @@ class AiderAgent(AgentBase):
         except Exception as e:
             self._log(f"[{self.name}] Error updating map: {str(e)}")
 
-                            # Log raw output for debugging
-                            self._log(f"[{self.name}] 📝 Raw output: {line}", 'debug')
+            # Log raw output for debugging
+            self._log(f"[{self.name}] 📝 Raw output: {line}", 'debug')
 
-                            # Parse commit messages - more robust
-                            if "Commit" in line:
-                                try:
-                                    # Extract commit hash and message
-                                    commit_hash = line.split()[1]
-                                    message = ' '.join(line.split()[2:])
-                                    
-                                    # Detect commit type from message
-                                    commit_type = None
-                                    for known_type in COMMIT_ICONS.keys():
-                                        if message.lower().startswith(f"{known_type}:"):
-                                            commit_type = known_type
-                                            message = message[len(known_type)+1:].strip()
-                                            break
-                                    
-                                    # Get appropriate icon
-                                    icon = COMMIT_ICONS.get(commit_type, '🔨') if commit_type else '🔨'
-                                    
-                                    # Log with consistent format
-                                    self.logger.log(
-                                        f"[{self.name}] {icon} {commit_hash}: {message}",
-                                        'success'
-                                    )
-                                        
-                                except Exception as e:
-                                    # Fallback if parsing fails
-                                    self._log(f"[{self.name}] 🔨 {line}", 'success')
-                            else:
-                                # Handle non-commit lines
-                                lower_line = line.lower()
-                                is_error = any(err in lower_line for err in [
-                                    'error', 'exception', 'failed', 'can\'t initialize'
-                                ])
-                                
-                                if is_error:
-                                    self._log(f"[{self.name}] ❌ {line}", 'error')
-                                    error_detected = True
-                                else:
-                                    self._log(f"[{self.name}] 📝 {line}", 'info')
-                            
-                            output_lines.append(line)
-                            
-                    except Exception as e:
-                        self._log(f"[{self.name}] Error reading output: {str(e)}")
-                        continue
+            # Parse commit messages - more robust
+            if "Commit" in line:
+                try:
+                    # Extract commit hash and message
+                    commit_hash = line.split()[1]
+                    message = ' '.join(line.split()[2:])
+                    
+                    # Detect commit type from message
+                    commit_type = None
+                    for known_type in COMMIT_ICONS.keys():
+                        if message.lower().startswith(f"{known_type}:"):
+                            commit_type = known_type
+                            message = message[len(known_type)+1:].strip()
+                            break
+                    
+                    # Get appropriate icon
+                    icon = COMMIT_ICONS.get(commit_type, '🔨') if commit_type else '🔨'
+                    
+                    # Log with consistent format
+                    self.logger.log(
+                        f"[{self.name}] {icon} {commit_hash}: {message}",
+                        'success'
+                    )
+                        
+                except Exception as e:
+                    # Fallback if parsing fails
+                    self._log(f"[{self.name}] 🔨 {line}", 'success')
+            else:
+                # Handle non-commit lines
+                lower_line = line.lower()
+                is_error = any(err in lower_line for err in [
+                    'error', 'exception', 'failed', 'can\'t initialize'
+                ])
+                
+                if is_error:
+                    self._log(f"[{self.name}] ❌ {line}", 'error')
+                    error_detected = True
+                else:
+                    self._log(f"[{self.name}] 📝 {line}", 'info')
+            
+            output_lines.append(line)
+            
+        except Exception as e:
+            self._log(f"[{self.name}] Error reading output: {str(e)}")
 
             # Get return code with timeout handling
             try:
@@ -347,174 +346,6 @@ class AiderAgent(AgentBase):
                 output_lines,
                 error_detected
             )
-
-            # Track modified files from output
-            modified_files = set()
-            for line in output_lines:
-                if "Wrote " in line and ".md" in line:
-                    try:
-                        modified_file = line.split("Wrote ")[1].split()[0]
-                        modified_files.add(modified_file)
-                    except:
-                        pass
-
-                # If execution was successful, log the changes
-                if return_code == 0 and output_lines:
-                    try:
-                        # Read modified files content
-                        files_context = {}
-                        for file_path in modified_files:
-                            try:
-                                # Use relative path for reading
-                                full_path = os.path.join(self.mission_dir, file_path)
-                                if os.path.exists(full_path):
-                                    with open(full_path, 'r', encoding='utf-8') as f:
-                                        files_context[file_path] = f.read()
-                            except Exception as e:
-                                error_str = str(e).lower()
-                                
-                                # Detect Anthropic rate limit errors
-                                if any(msg in error_str for msg in ['rate limit', 'too many requests', '429']):
-                                    self._log(f"[{self.name}] Rate limit hit, skipping file", 'warning')
-                                    continue
-                                
-                                # For other errors, log and continue
-                                self._log(f"[{self.name}] ❌ Error reading modified file {file_path}: {str(e)}")
-                                continue
-
-                        # Add original files if not already included
-                        for file_path in self.mission_files:
-                            rel_path = os.path.relpath(file_path, self.mission_dir)
-                            if rel_path not in files_context:
-                                try:
-                                    with open(file_path, 'r', encoding='utf-8') as f:
-                                        files_context[rel_path] = f.read()
-                                except Exception as e:
-                                    error_str = str(e).lower()
-                                    
-                                    # Detect Anthropic rate limit errors
-                                    if any(msg in error_str for msg in ['rate limit', 'too many requests', '429']):
-                                        self._log(f"[{self.name}] Rate limit hit, skipping file", 'warning')
-                                        continue
-                                    
-                                    # For other errors, log and continue
-                                    self._log(f"[{self.name}] ❌ Error reading original file {file_path}: {str(e)}")
-                                    continue
-
-                        # Only proceed if we have files to save
-                        if files_context:
-                            # Log the changes
-                            self.logger.log(
-                                f"Files modified:\n" + "\n".join(files_context.keys()),
-                                'info'
-                            )
-
-                    except Exception as e:
-                        error_str = str(e).lower()
-                        
-                        # Detect Anthropic rate limit errors
-                        if any(msg in error_str for msg in ['rate limit', 'too many requests', '429']):
-                            self._log(f"[{self.name}] Rate limit hit, skipping operation", 'warning')
-                            return None
-                        
-                        # For other errors, log and continue
-                        self._log(f"[{self.name}] ❌ Error reading files: {str(e)}")
-                
-                # Log completion status
-                if return_code != 0:
-                    self._log(
-                        f"[{self.name}] ❌ Aider process failed (code: {return_code})\n"
-                        f"Last few lines of output:\n" + 
-                        "\n".join(output_lines[-5:]),  # Show last 5 lines
-                        'error'
-                    )
-                    return None
-                elif error_detected:
-                    self._log(
-                        f"[{self.name}] ⚠️ Aider completed with warnings\n"
-                        f"Last few lines of output:\n" + 
-                        "\n".join(output_lines[-5:]),
-                        'warning'
-                    )
-                
-                # Combine output
-                full_output = "\n".join(output_lines)
-                if not full_output.strip():
-                    self._log(f"[{self.name}] ⚠️ No output from Aider", 'warning')
-                    return None
-                    
-                self._log(f"[{self.name}] ✅ Aider completed successfully", 'success')
-                
-                # Track modified files from output
-                modified_files = set()
-                for line in output_lines:
-                    if "Wrote " in line and ".md" in line:
-                        try:
-                            modified_file = line.split("Wrote ")[1].split()[0]
-                            modified_files.add(modified_file)
-                        except:
-                            pass
-
-                # If execution was successful, save for fine-tuning
-                if return_code == 0 and full_output:
-                    try:
-                        # Read modified files content
-                        files_context = {}
-                        for file_path in modified_files:
-                            try:
-                                # Use relative path for reading
-                                full_path = os.path.join(self.mission_dir, file_path)
-                                if os.path.exists(full_path):
-                                    with open(full_path, 'r', encoding='utf-8') as f:
-                                        files_context[file_path] = f.read()
-                            except Exception as e:
-                                self.logger.log(f"Error reading modified file {file_path}: {str(e)}", 'error')
-                                continue
-
-                        # Add original files if not already included
-                        for file_path in self.mission_files:
-                            rel_path = os.path.relpath(file_path, self.mission_dir)
-                            if rel_path not in files_context:
-                                try:
-                                    with open(file_path, 'r', encoding='utf-8') as f:
-                                        files_context[rel_path] = f.read()
-                                except Exception as e:
-                                    self.logger.log(f"Error reading original file {file_path}: {str(e)}", 'error')
-                                    continue
-
-                        # Only proceed if we have files to save
-                        if files_context:
-                            # Log the changes
-                            self.logger.log(
-                                f"Files modified:\n" + "\n".join(files_context.keys()),
-                                'info'
-                            )
-
-                    except Exception as e:
-                        self._log(f"[{self.name}] Error saving to dataset: {str(e)}")
-
-                # Return output if process succeeded
-                if return_code == 0:
-                    try:
-                        # Update map after modifications
-                        from services import init_services
-                        services = init_services(None)
-                        services['map_service'].update_map()
-                        self._log(f"[{self.name}] Map updated successfully")
-                    except Exception as e:
-                        self._log(f"[{self.name}] Error updating map: {str(e)}")
-                    return full_output
-                else:
-                    self._log(f"[{self.name}] Process failed with code {return_code}")
-                    return None
-
-        except Exception as e:
-            self._log(f"[{self.name}] Error in _run_aider: {str(e)}")
-            return None
-
-    def list_files(self) -> None:
-        """List all text files in mission directory"""
-        self.mission_files = self.file_handler.list_files()
 
     def get_prompt(self) -> Optional[str]:
         """Get prompt with caching"""
@@ -542,31 +373,6 @@ class AiderAgent(AgentBase):
             
         except Exception as e:
             self.logger.log(f"Error in error handler: {str(e)}", 'error')
-
-
-    def cleanup(self):
-        """Cleanup agent resources"""
-        try:
-            # Stop agent if running
-            if self.running:
-                self.stop()
-            
-            # Restore original directory
-            if hasattr(self, 'original_dir'):
-                try:
-                    os.chdir(self.original_dir)
-                except Exception as e:
-                    self.logger.log(f"Error restoring directory: {str(e)}", 'error')
-            
-            # Clear caches
-            self.prompt_handler._prompt_cache.clear()
-            self.mission_files.clear()
-            
-            # Base cleanup
-            super().cleanup()
-            
-        except Exception as e:
-            self.logger.log(f"Error in cleanup: {str(e)}", 'error')
 
     def stop(self):
         """Stop method to ensure cleanup"""
@@ -683,6 +489,7 @@ class AiderAgent(AgentBase):
         except Exception as e:
             self.logger(f"Error building prompt: {str(e)}")
             return self.prompt  # Fallback to default prompt
+        
     def _handle_output_line(self, line: str) -> None:
         """
         Process a single line of Aider output
