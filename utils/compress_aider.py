@@ -3,9 +3,12 @@ Script to compress large Aider discussion files using GPT-4 in a map-reduce patt
 """
 import os
 import glob
+import time
 from typing import List, Optional
 import anthropic
 from pathlib import Path
+from utils.logger import Logger
+from utils.path_manager import PathManager
 
 def split_content(content: str, chunk_size: int = 50000) -> List[str]:
     """Split content into chunks of approximately equal size"""
@@ -85,6 +88,10 @@ Create a unified technical summary."""
 def compress_aider_files():
     """Compress large Aider discussion files using map-reduce summarization"""
     try:
+        # Initialize logger
+        logger = Logger()
+        logger.log("Starting Aider history compression", 'info')
+        
         # Initialize Anthropic client
         client = anthropic.Anthropic()
         
@@ -98,7 +105,7 @@ def compress_aider_files():
                 if size < 100000:  # Skip if under 100K chars
                     continue
                     
-                print(f"Processing {file_path} ({size/1000:.1f}K chars)")
+                logger.log(f"Processing {file_path} ({size/1000:.1f}K chars)", 'info')
                 
                 # Read content
                 with open(file_path, 'r', encoding='utf-8') as f:
@@ -106,46 +113,48 @@ def compress_aider_files():
                     
                 # Split into chunks
                 chunks = split_content(content)
-                print(f"Split into {len(chunks)} chunks")
+                logger.log(f"Split into {len(chunks)} chunks", 'info')
                 
                 # Map: Summarize each chunk
                 summaries = []
                 for i, chunk in enumerate(chunks, 1):
-                    print(f"Summarizing chunk {i}/{len(chunks)}")
+                    logger.log(f"Summarizing chunk {i}/{len(chunks)}", 'info')
                     summary = summarize_chunk(chunk, client)
                     if summary:
                         summaries.append(summary)
                     else:
-                        print(f"Failed to summarize chunk {i}")
+                        logger.log(f"Failed to summarize chunk {i}", 'error')
                         
                 if not summaries:
-                    print(f"No successful summaries for {file_path}")
+                    logger.log(f"No successful summaries for {file_path}", 'error')
                     continue
                     
                 # Reduce: Merge summaries
-                print("Merging summaries...")
+                logger.log("Merging summaries...", 'info')
                 final_summary = merge_summaries(summaries, client)
                 
                 if not final_summary:
-                    print(f"Failed to merge summaries for {file_path}")
+                    logger.log(f"Failed to merge summaries for {file_path}", 'error')
                     continue
                     
-                # Create backup
-                backup_path = f"{file_path}.backup"
+                # Create backup in proper backup directory
+                backup_dir = os.path.join(PathManager.get_project_root(), "backups")
+                os.makedirs(backup_dir, exist_ok=True)
+                backup_path = os.path.join(backup_dir, f"{os.path.basename(file_path)}.{int(time.time())}.backup")
                 os.rename(file_path, backup_path)
                 
                 # Write compressed version
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(final_summary)
                     
-                print(f"Successfully compressed {file_path}")
+                logger.log(f"Successfully compressed {file_path}", 'success')
                 
             except Exception as e:
-                print(f"Error processing {file_path}: {str(e)}")
+                logger.log(f"Error processing {file_path}: {str(e)}", 'error')
                 continue
                 
     except Exception as e:
-        print(f"Error in compression script: {str(e)}")
+        logger.log(f"Error in compression script: {str(e)}", 'error')
 
 if __name__ == "__main__":
     compress_aider_files()
