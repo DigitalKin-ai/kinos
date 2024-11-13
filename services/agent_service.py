@@ -410,26 +410,56 @@ List any specific constraints or limitations.
     
         return list(self.agents.keys())
 
-    def run_random_agent(self, available_agents: List[str]):
-        """Run a random agent from the list"""
+    def run_random_agent(self, team_agents: List[str]):
+        """
+        Run a random agent from the team based on weights
+        
+        Args:
+            team_agents: List of agent names from team config
+        """
         try:
-            # Pick random agent
-            agent_name = random.choice(available_agents)
+            # Get current phase first
+            from services import init_services
+            services = init_services(None)
+            phase_service = services['phase_service']
+            phase_status = phase_service.get_status_info()
+            current_phase = phase_status['phase']
+
+            # Get phase-specific weights
+            phase_weights = phase_service.get_phase_weights(current_phase)
             
+            if not phase_weights:
+                # Fallback to default weights if no phase config
+                weights = [0.5] * len(team_agents)
+                agent_name = random.choice(team_agents)
+            else:
+                # Use phase weights for selection
+                weights = [phase_weights.get(agent, 0.5) for agent in team_agents]
+                # Normalize weights
+                total = sum(weights)
+                if total > 0:
+                    weights = [w/total for w in weights]
+                agent_name = random.choices(team_agents, weights=weights, k=1)[0]
+
             # Configure agent
             config = {
                 'name': agent_name,
                 'mission_dir': os.getcwd(),
-                'prompt_file': os.path.join('prompts', f"{agent_name}.md")
+                'prompt_file': os.path.join('prompts', f"{agent_name}.md"),
+                'weight': phase_weights.get(agent_name, 0.5)  # Pass weight to agent
             }
             
             # Create and run agent
             agent = AiderAgent(config)
-            self.logger.log(f"Running agent: {agent_name}")
+            self.logger.log(
+                f"Running agent {agent_name} (weight: {config['weight']:.2f}) "
+                f"in {current_phase} phase", 
+                'info'
+            )
             agent.run()  # Single run
             
         except Exception as e:
-            self.logger.log(f"Error running agent: {e}", 'error')
+            self.logger.log(f"Error running agent: {str(e)}", 'error')
 
     def toggle_agent(self, agent_name: str, action: str, mission_dir: Optional[str] = None) -> bool:
         """Start or stop an agent with improved error handling"""
