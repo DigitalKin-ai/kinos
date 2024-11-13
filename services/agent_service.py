@@ -1037,24 +1037,60 @@ List any specific constraints or limitations.
             self.logger.log(f"Error restarting agent {name}: {str(e)}", 'error')
 
 
-    def _verify_team_agents(self, team_agents: List[str]) -> bool:
-        """Vérifie que tous les agents requis sont disponibles"""
+    def _filter_agents_by_phase(self, agents: List[Union[str, Dict]], phase: str) -> List[Dict]:
+        """Filter and configure agents based on current phase"""
         try:
-            available_agents = set(self.agent_service.get_available_agents())
-            normalized_agents = set(self._normalize_agent_names(team_agents))
-            
-            missing_agents = normalized_agents - available_agents
-            if missing_agents:
-                self.log_message(
-                    f"Missing required agents: {missing_agents}\n"
-                    f"Available agents: {available_agents}", 
-                    'error'
-                )
-                return False
-            return True
+            # Get team configuration for the phase
+            active_team = None
+            for team in self.predefined_teams:
+                if any(isinstance(a, dict) and a['name'] in [ag['name'] if isinstance(ag, dict) else ag for ag in agents] 
+                      for a in team.get('agents', [])):
+                    active_team = team
+                    break
+
+            if not active_team:
+                # Return default configuration if no matching team
+                return [{'name': a, 'type': 'aider', 'weight': 0.5} if isinstance(a, str) else a.copy() 
+                       for a in agents]
+
+            # Get phase configuration
+            phase_config = active_team.get('phase_config', {}).get(phase.lower(), {})
+            active_agents = phase_config.get('active_agents', [])
+
+            if not active_agents:
+                # Use default weights if no phase-specific config
+                return [{'name': a, 'type': 'aider', 'weight': 0.5} if isinstance(a, str) else a.copy() 
+                       for a in agents]
+
+            # Build filtered and configured agents list
+            filtered_agents = []
+            phase_weights = {a['name']: a.get('weight', 0.5) for a in active_agents}
+
+            for agent in agents:
+                agent_name = agent['name'] if isinstance(agent, dict) else agent
+                if agent_name in phase_weights:
+                    # Create or update agent configuration
+                    agent_config = agent.copy() if isinstance(agent, dict) else {'name': agent}
+                    agent_config.update({
+                        'type': agent_config.get('type', 'aider'),
+                        'weight': phase_weights[agent_name]
+                    })
+                    filtered_agents.append(agent_config)
+
+            self.logger.log(
+                f"Filtered agents for phase {phase}:\n" +
+                "\n".join(f"- {a['name']} (type: {a['type']}, weight: {a['weight']:.2f})" 
+                         for a in filtered_agents),
+                'debug'
+            )
+
+            return filtered_agents
+
         except Exception as e:
-            self.log_message(f"Error verifying team agents: {str(e)}", 'error')
-            return False
+            self.logger.log(f"Error filtering agents: {str(e)}", 'error')
+            # Return default configuration on error
+            return [{'name': a, 'type': 'aider', 'weight': 0.5} if isinstance(a, str) else a.copy() 
+                    for a in agents]
 
     def _update_global_status(self, status_updates: Dict[str, Dict], system_metrics: Dict, health_score: float) -> None:
         """Update global system status based on agent states"""
