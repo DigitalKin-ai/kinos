@@ -192,64 +192,32 @@ class AiderAgent(AgentBase):
 
 
     def _run_aider(self, prompt: str) -> Optional[str]:
-        """Execute Aider with given prompt and handle all outcomes"""
         try:
-            # Liste des messages à ignorer complètement
-            initialization_errors = [
-                "Can't initialize prompt toolkit: No Windows console found",
-                "https://aider.chat/docs/troubleshooting/edit-errors.html",
-                "No Windows console found",
-                "Failed to initialize console",
-                "Could not initialize terminal"
-            ]
-            
+            # Validation des conditions préalables
             if not self._validate_run_conditions(prompt):
                 return None
 
-            # Check rate limiting
-            if not self._check_rate_limit():
-                self.logger.log(f"[{self.name}] Rate limit exceeded, skipping execution")
-                return None
-
-            # Log start of execution
-            self.logger.log(f"[{self.name}] 🚀 Starting Aider execution", 'info')
-            self.logger.log(f"[{self.name}] 📂 Mission directory: {self.mission_dir}", 'info')
-            
-            # Change to mission directory
-            os.chdir(self.mission_dir)
-            self.logger.log(f"[{self.name}] ✓ Changed to mission directory", 'info')
-
-            # Build and validate command
+            # Construction et validation de la commande
             cmd = self.command_builder.build_command(
                 prompt=prompt,
                 files=list(self.mission_files.keys())
             )
             
             if not self.command_builder.validate_command(cmd):
-                self.logger.log("Invalid command configuration", 'error')
                 return None
                 
-            # Execute command with timeout
+            # Exécution avec gestion des timeout
             with TimeoutManager.timeout(COMMAND_EXECUTION_TIMEOUT):
                 process = self.command_builder.execute_command(cmd)
 
-            # Parse output with timeout
+            # Collection de la sortie
             with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
                 output = self.output_parser.parse_output(process)
 
-            # Filtrer les messages indésirables
-            if output:
-                # Supprimer les lignes contenant des messages ignorés
-                output_lines = [
-                    line for line in output.split('\n') 
-                    if not any(ignored_msg in line for ignored_msg in initialization_errors)
-                ]
-                output = '\n'.join(output_lines).strip()
-
-            # Vérifier si le résultat est valide après filtrage
+            # Validation finale
             if not output:
                 self.logger.log(
-                    f"[{self.name}] ⚠️ No valid output after filtering initialization messages", 
+                    f"[{self.name}] ⚠️ No output from Aider", 
                     'debug'
                 )
                 return None
@@ -257,58 +225,9 @@ class AiderAgent(AgentBase):
             return output
 
         except Exception as e:
-            # Vérifier si l'erreur est liée à ces messages spécifiques
-            if any(msg in str(e) for msg in initialization_errors):
-                self.logger.log(
-                    f"[{self.name}] 🔧 Aider initialization warning - skipping", 
-                    'debug'
-                )
-                return None
-            
-            # Gestion des autres exceptions
+            # Gestion générique des exceptions
             self._handle_error('run_aider', e, {'prompt': prompt})
             return None
-
-            # Process file changes
-            changes = self._process_file_changes(output)
-            if changes['modified'] or changes['added'] or changes['deleted']:
-                self.logger.log(
-                    f"[{self.name}] Changes detected:\n"
-                    f"Modified: {len(changes['modified'])} files\n"
-                    f"Added: {len(changes['added'])} files\n"
-                    f"Deleted: {len(changes['deleted'])} files"
-                )
-                
-                # Update map after changes
-                self._update_project_map()
-
-            # Log the interaction using ChatLogger
-            from utils.chat_logger import ChatLogger
-            from utils.path_manager import PathManager
-            
-            # Use PathManager to get mission name and chats directory
-            mission_name = os.path.basename(self.mission_dir)
-            chat_logger = ChatLogger(mission_name)
-            
-            # Prepare files context with full content
-            files_context = {
-                filename: self.mission_files.get(filename, '') 
-                for filename in list(changes['modified']) + list(changes['added'])
-            }
-            
-            # Log agent interaction
-            chat_logger.log_agent_interaction(
-                agent_name=self.name,
-                prompt=prompt,
-                response=output,
-                files_context=files_context
-            )
-
-            # Parse and log commits
-            commit_logger = CommitLogger(self.logger)
-            commit_logger.parse_commits(output, self.name)
-
-            return output
 
         except Exception as e:
             # Vérifier si l'erreur est une erreur d'initialisation connue
