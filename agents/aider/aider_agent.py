@@ -370,21 +370,43 @@ class AiderAgent(AgentBase):
         """Save new prompt content"""
         return self.prompt_handler.save_prompt(self.prompt_file, content)
 
+    def _should_log_error(self, error_message: str) -> bool:
+        """
+        Determine if an error message should be logged
+        
+        Args:
+            error_message: Error message to check
+        
+        Returns:
+            bool: Whether the message should be logged
+        """
+        # Liste des messages à ignorer
+        ignored_messages = [
+            "Can't initialize prompt toolkit: No Windows console found",
+            "https://aider.chat/docs/troubleshooting/edit-errors.html"
+        ]
+        
+        return not any(ignored_msg in error_message for ignored_msg in ignored_messages)
+
     def _handle_error(self, operation: str, error: Exception, context: Dict = None):
         """Centralised error handling"""
         try:
-            error_details = {
-                'agent': self.name,
-                'operation': operation,
-                'mission_dir': self.mission_dir,
-                'context': context or {}
-            }
+            error_message = str(error)
             
-            ErrorHandler.handle_error(
-                error,
-                log_level='error',
-                additional_info=error_details
-            )
+            # Utiliser le filtre avant de logger
+            if self._should_log_error(error_message):
+                error_details = {
+                    'agent': self.name,
+                    'operation': operation,
+                    'mission_dir': self.mission_dir,
+                    'context': context or {}
+                }
+                
+                ErrorHandler.handle_error(
+                    error,
+                    log_level='error',
+                    additional_info=error_details
+                )
             
         except Exception as e:
             self.logger.log(f"Error in error handler: {str(e)}", 'error')
