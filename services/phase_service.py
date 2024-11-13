@@ -56,7 +56,7 @@ class PhaseService(BaseService):
                 new_phase = self.current_phase
                 message = f"Maintaining current phase - Token usage at {usage_percent:.1f}%"
             
-            # Log phase transition if it occurred
+            # Log phase transition ONLY if phase actually changed
             if new_phase != old_phase:
                 self.current_phase = new_phase
                 self.last_transition = datetime.now()
@@ -67,6 +67,9 @@ class PhaseService(BaseService):
                     f"Usage: {usage_percent:.1f}%",
                     'info'
                 )
+            else:
+                # Just update current phase without logging transition
+                self.current_phase = new_phase
             
             return new_phase, message
 
@@ -96,6 +99,7 @@ class PhaseService(BaseService):
         else:
             headroom = self.EXPANSION_TOKENS - self.total_tokens
             
+        # Return status without triggering new phase determination
         return {
             "phase": self.current_phase.value,
             "total_tokens": self.total_tokens,
