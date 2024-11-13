@@ -144,11 +144,11 @@ class TeamService:
             # Generate map first to get token count
             map_service.generate_map()
             
-            # Get phase status info directly without recalculating
+            # Get phase status info directly from phase service
             phase_status = phase_service.get_status_info()
             current_phase = phase_service.current_phase
 
-            # Log phase status once
+            # Log phase status once with actual values from phase service
             self.logger.log(
                 f"Current phase: {current_phase.value}\n"
                 f"Total tokens: {phase_status['total_tokens']}\n"
@@ -157,7 +157,7 @@ class TeamService:
                 'info'
             )
 
-            # Filter agents based on current phase
+            # Filter agents based on current phase from phase service
             filtered_agents = self._filter_agents_by_phase(team['agents'], current_phase.value)
             
             if not filtered_agents:
@@ -230,7 +230,7 @@ class TeamService:
                 'team_id': team['id'],
                 'mission_dir': mission_dir,
                 'agents': started_agents,
-                'phase': current_phase,
+                'phase': current_phase.value,
                 'status': 'started' if started_agents else 'failed'
             }
 
