@@ -299,6 +299,12 @@ class AiderAgent(AgentBase):
         """Prevent agent from stopping"""
         pass  # Ne rien faire - empêcher l'arrêt
 
+    def _truncate_history(self, content: str, max_chars: int = 50000) -> str:
+        """Truncate history content to last N characters"""
+        if len(content) <= max_chars:
+            return content
+        return content[-max_chars:]
+
     def _execute_agent_cycle(self):
         """Execute one cycle of the agent's main loop"""
         try:
@@ -322,17 +328,17 @@ class AiderAgent(AgentBase):
             if os.path.exists(chat_history_file):
                 try:
                     with open(chat_history_file, 'r', encoding='utf-8') as f:
-                        chat_history = f.read()
+                        chat_history = self._truncate_history(f.read())
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error reading chat history: {str(e)}", 'warning')
 
-            # Get input history
+            # Get input history with truncation
             input_history = ""
             input_history_file = f".aider.{self.name}.input.history.md"
             if os.path.exists(input_history_file):
                 try:
                     with open(input_history_file, 'r', encoding='utf-8') as f:
-                        input_history = f.read()
+                        input_history = self._truncate_history(f.read())
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error reading input history: {str(e)}", 'warning')
 
