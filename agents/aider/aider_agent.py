@@ -218,40 +218,37 @@ class AiderAgent(AgentBase):
                     self._log(f"[{self.name}] ❌ Insufficient permissions for: {self.mission_dir}")
                     return None
 
+        try:
+            # Change to mission directory
+            os.chdir(self.mission_dir)
+            self._log(f"[{self.name}] ✓ Changed to mission directory")
+
+            # Build command
+            cmd = [
+                "aider",
+                "--model", "claude-3-5-haiku-20241022",
+                "--yes-always",
+                "--cache-prompts",
+                "--no-pretty",
+                "--architect"
+            ]
+
+            # Read .gitignore patterns
+            gitignore_patterns = []
+            gitignore_path = os.path.join(self.mission_dir, '.gitignore')
+            if os.path.exists(gitignore_path):
                 try:
-                    # Change to mission directory
-                    os.chdir(self.mission_dir)
-                    self._log(f"[{self.name}] ✓ Changed to mission directory")
-
-                    # Build command
-                    cmd = [
-                        "aider",
-                        "--model", "claude-3-5-haiku-20241022",
-                        "--yes-always",
-                        "--cache-prompts",
-                        "--no-pretty",
-                        "--architect"
-                    ]
-
-                    # Read .gitignore patterns
-                    gitignore_patterns = []
-                    gitignore_path = os.path.join(self.mission_dir, '.gitignore')
-                    if os.path.exists(gitignore_path):
-                        try:
-                            with open(gitignore_path, 'r', encoding='utf-8') as f:
-                                gitignore_patterns = f.readlines()
-                            gitignore_patterns = [p.strip() for p in gitignore_patterns if p.strip() and not p.startswith('#')]
-                            from pathspec import PathSpec
-                            from pathspec.patterns import GitWildMatchPattern
-                            spec = PathSpec.from_lines(GitWildMatchPattern, gitignore_patterns)
-                        except Exception as e:
-                            self.logger.log(f"[{self.name}] Warning reading .gitignore: {str(e)}", 'warning')
-                            spec = None
-                    else:
-                        spec = None
+                    with open(gitignore_path, 'r', encoding='utf-8') as f:
+                        gitignore_patterns = f.readlines()
+                    gitignore_patterns = [p.strip() for p in gitignore_patterns if p.strip() and not p.startswith('#')]
+                    from pathspec import PathSpec
+                    from pathspec.patterns import GitWildMatchPattern
+                    spec = PathSpec.from_lines(GitWildMatchPattern, gitignore_patterns)
                 except Exception as e:
-                    self._log(f"[{self.name}] ❌ Error during setup: {str(e)}")
-                    return None
+                    self.logger.log(f"[{self.name}] Warning reading .gitignore: {str(e)}", 'warning')
+                    spec = None
+            else:
+                spec = None
 
                 # Add files, respecting .gitignore
                 files_added = []
