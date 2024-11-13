@@ -180,6 +180,7 @@ class TeamService:
                 try:
                     if i > 0:  # Don't wait for first agent
                         self.logger.log(f"Waiting 5 seconds before starting next agent...", 'info')
+                        try:
                             time.sleep(5)
                             self.logger.log("Wait completed normally", 'debug')
                         except KeyboardInterrupt:
