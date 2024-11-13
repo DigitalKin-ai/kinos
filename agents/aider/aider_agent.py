@@ -260,6 +260,19 @@ class AiderAgent(AgentBase):
                 # Update map after changes
                 self._update_project_map()
 
+            # Log the interaction using ChatLogger
+            from utils.chat_logger import ChatLogger
+            chat_logger = ChatLogger(os.path.basename(self.mission_dir))
+            chat_logger.log_agent_interaction(
+                agent_name=self.name,
+                prompt=prompt,
+                response=output,
+                files_context={
+                    filename: self.mission_files.get(filename, '') 
+                    for filename in list(changes['modified']) + list(changes['added'])
+                }
+            )
+
             return output
 
         except TimeoutError:
