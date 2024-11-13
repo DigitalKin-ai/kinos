@@ -31,6 +31,7 @@ class AgentService:
         self.logger = Logger()
         self.agents = {}
         self.agent_threads = {}
+        self._shutting_down = threading.Event()
         self._cleanup_lock = threading.Lock()
         self._shutting_down = threading.Event()  # Add shutdown flag
 
@@ -408,6 +409,27 @@ List any specific constraints or limitations.
                 self.log_message(f"Failed to initialize agents: {str(e)}", 'error')
     
         return list(self.agents.keys())
+
+    def run_random_agent(self, available_agents: List[str]):
+        """Run a random agent from the list"""
+        try:
+            # Pick random agent
+            agent_name = random.choice(available_agents)
+            
+            # Configure agent
+            config = {
+                'name': agent_name,
+                'mission_dir': os.getcwd(),
+                'prompt_file': os.path.join('prompts', f"{agent_name}.md")
+            }
+            
+            # Create and run agent
+            agent = AiderAgent(config)
+            self.logger.log(f"Running agent: {agent_name}")
+            agent.run()  # Single run
+            
+        except Exception as e:
+            self.logger.log(f"Error running agent: {e}", 'error')
 
     def toggle_agent(self, agent_name: str, action: str, mission_dir: Optional[str] = None) -> bool:
         """Start or stop an agent with improved error handling"""
