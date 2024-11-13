@@ -44,15 +44,10 @@ class PhaseService(BaseService):
         """Determine appropriate phase based on token count"""
         try:
             state = self.get_state()
-            
-            # Store total tokens first
             state['total_tokens'] = max(0, total_tokens)  # Ensure non-negative
             old_phase = state['current_phase']
-            
-            # Calculate usage percentage
             usage_percent = (state['total_tokens'] / self.MODEL_TOKEN_LIMIT) * 100
             
-            # Determine phase based on thresholds
             if usage_percent >= self.CONVERGENCE_THRESHOLD * 100:
                 new_phase = ProjectPhase.CONVERGENCE
                 message = f"Convergence needed - Token usage at {usage_percent:.1f}%"
@@ -60,17 +55,9 @@ class PhaseService(BaseService):
                 new_phase = ProjectPhase.EXPANSION
                 message = f"Expansion phase - Token usage at {usage_percent:.1f}%"
             
-            # Log phase transition ONLY if phase actually changed
             if new_phase != old_phase:
                 state['current_phase'] = new_phase
                 state['last_transition'] = datetime.now()
-                self.logger.log(
-                    f"Phase transition: {old_phase.value} → {new_phase.value}\n"
-                    f"Reason: {message}\n"
-                    f"Total tokens: {state['total_tokens']:,}\n"
-                    f"Usage: {usage_percent:.1f}%",
-                    'info'
-                )
             else:
                 state['current_phase'] = new_phase
             
@@ -84,11 +71,8 @@ class PhaseService(BaseService):
         """Get current phase status information"""
         try:
             state = self.get_state()
-            
-            # Calculate usage percentage
             usage_percent = (state['total_tokens'] / self.MODEL_TOKEN_LIMIT) * 100
             
-            # Determine status based on percentage
             if usage_percent >= self.CONVERGENCE_THRESHOLD * 100:
                 status_icon = "🔴"
                 status_message = "Convergence needed"
@@ -99,13 +83,11 @@ class PhaseService(BaseService):
                 status_icon = "✓"
                 status_message = "Below convergence threshold"
                 
-            # Calculate headroom based on phase
             if state['current_phase'] == ProjectPhase.EXPANSION:
                 headroom = self.CONVERGENCE_TOKENS - state['total_tokens']
             else:
                 headroom = self.MODEL_TOKEN_LIMIT - state['total_tokens']
                 
-            # Return consistent state
             return {
                 "phase": state['current_phase'].value,
                 "total_tokens": state['total_tokens'],
@@ -118,8 +100,7 @@ class PhaseService(BaseService):
                 
         except Exception as e:
             self.logger.log(f"Error getting status info: {str(e)}", 'error')
-            # Return default values on error
-            state = self.get_state()  # Get state even in error case
+            state = self.get_state()
             return {
                 "phase": state['current_phase'].value,
                 "total_tokens": state['total_tokens'],
