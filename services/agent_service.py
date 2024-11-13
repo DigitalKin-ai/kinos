@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional, Union
 from utils.exceptions import AgentError
 import importlib
 import inspect
-from agents.kinos_agent import KinOSAgent
+from agents.base.agent_base import AgentBase
 from agents.aider.aider_agent import AiderAgent
 from utils.path_manager import PathManager
 from utils.validators import validate_agent_name

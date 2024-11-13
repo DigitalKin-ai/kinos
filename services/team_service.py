@@ -305,7 +305,7 @@ class TeamService:
             self.logger.log(f"Error in cleanup: {str(e)}", 'error')
 
 
-    def _run_agent_wrapper(self, agent_name: str, agent: 'KinOSAgent') -> None:
+    def _run_agent_wrapper(self, agent_name: str, agent: 'AgentBase') -> None:
         """
         Wrapper pour exécuter un agent dans un thread avec gestion des erreurs
         
