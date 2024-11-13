@@ -164,23 +164,68 @@ class TeamService:
         return normalized
 
     def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Start a team of agents in the specified directory
+        """Start a team with enhanced tracking and metrics"""
+        metrics = TeamMetrics(
+            start_time=datetime.now(),
+            total_agents=0  # Will be updated after filtering
+        )
         
-        Args:
-            team_id: ID of the team to start
-            base_path: Optional base directory path
+        agent_states: Dict[str, AgentState] = {}
+        
+        try:
+            # Get and validate team config
+            team_config = TeamConfig.from_dict(self._get_team_config(team_id))
+            if not team_config:
+                raise TeamStartupError("Team not found", team_id)
+                
+            valid, error = team_config.validate()
+            if not valid:
+                raise TeamStartupError(error, team_id)
+
+            # Setup and validate mission directory
+            mission_dir = base_path or os.getcwd()
             
-        Returns:
-            Dict containing team startup results
-        """
-        # Initialize tracking collections
-        started_agents = []
-        active_agents = []
-        waiting_agents = []
-        
-        # Save original signal handler
-        original_sigint_handler = signal.getsignal(signal.SIGINT)
+            # Initialize services and get phase
+            phase_status = self._initialize_services(mission_dir)
+            
+            # Filter agents for current phase
+            filtered_agents = self._get_phase_filtered_agents(team_config, phase_status['phase'])
+            metrics.total_agents = len(filtered_agents)
+            
+            # Initialize agent states
+            for agent in filtered_agents:
+                agent_name = agent['name'] if isinstance(agent, dict) else agent
+                agent_states[agent_name] = AgentState(name=agent_name)
+            
+            # Start agents with enhanced tracking
+            startup_result = self._start_agents_with_tracking(
+                filtered_agents,
+                agent_states,
+                metrics,
+                mission_dir
+            )
+            
+            return {
+                'team_id': team_config.id,
+                'mission_dir': mission_dir,
+                'phase': phase_status['phase'],
+                'metrics': metrics.to_dict(),
+                'agent_states': {
+                    name: state.__dict__ 
+                    for name, state in agent_states.items()
+                },
+                'status': 'started' if metrics.success_rate > 0.5 else 'failed'
+            }
+            
+        except TeamStartupError as e:
+            return e.to_dict()
+        except Exception as e:
+            error = TeamStartupError(
+                str(e), 
+                team_id,
+                {'type': type(e).__name__, 'traceback': traceback.format_exc()}
+            )
+            return error.to_dict()
 
         try:
             # Temporarily disable Ctrl+C
@@ -244,6 +289,33 @@ class TeamService:
         finally:
             # Restore original Ctrl+C handler
             signal.signal(signal.SIGINT, original_sigint_handler)
+
+    def get_team_status(self, team_id: str) -> Dict[str, Any]:
+        """Get comprehensive team status"""
+        try:
+            team_config = self._get_team_config(team_id)
+            if not team_config:
+                return {'status': 'not_found', 'team_id': team_id}
+                
+            agent_status = {}
+            for agent in team_config.agents:
+                agent_name = agent['name'] if isinstance(agent, dict) else agent
+                status = self.agent_service.get_agent_status(agent_name)
+                agent_status[agent_name] = status
+                
+            return {
+                'team_id': team_id,
+                'status': 'active' if any(s['running'] for s in agent_status.values()) else 'inactive',
+                'agents': agent_status,
+                'last_update': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            return {
+                'status': 'error',
+                'team_id': team_id,
+                'error': str(e)
+            }
 
     def get_available_teams(self) -> List[Dict[str, Any]]:
         """Get list of available teams"""
