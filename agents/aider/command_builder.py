@@ -35,11 +35,21 @@ class AiderCommandBuilder:
             List of file arguments
         """
         args = []
-        for file in files:
-            # Skip ignored files
-            if any(pattern in file for pattern in ignore_patterns):
-                continue
+        # Filter ignored files first
+        valid_files = [
+            file for file in files 
+            if not any(pattern in file for pattern in ignore_patterns)
+        ]
+        
+        # Limit to 10 random files if needed
+        if len(valid_files) > 10:
+            import random
+            valid_files = random.sample(valid_files, 10)
+            
+        # Add file arguments
+        for file in valid_files:
             args.extend(["--file", file])
+            
         return args
 
     def validate_command(self, cmd: List[str]) -> bool:
