@@ -47,3 +47,15 @@ def get_relative_path(file_path: str, base_path: str) -> str:
         return os.path.relpath(file_path, base_path)
     except ValueError:
         return file_path
+
+# Add a simple PathManager
+class PathManager:
+    @staticmethod
+    def get_project_root() -> str:
+        """Get the project root directory"""
+        return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    
+    @staticmethod
+    def normalize_path(path: str) -> str:
+        """Normalize a file path"""
+        return os.path.normpath(os.path.abspath(path))
