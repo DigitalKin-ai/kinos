@@ -35,18 +35,27 @@ class AiderCommandBuilder:
             List of file arguments
         """
         args = []
+        
         # Filter ignored files first
         valid_files = [
             file for file in files 
             if not any(pattern in file for pattern in ignore_patterns)
         ]
         
-        # Limit to 10 random files if needed
+        # Remove key files from valid_files if present to avoid duplicates
+        valid_files = [f for f in valid_files if f not in ["demande.md", "map (readonly).md"]]
+        
+        # Limit remaining files to 10 random if needed
         if len(valid_files) > 10:
             import random
             valid_files = random.sample(valid_files, 10)
+        
+        # Add key files first
+        key_files = ["demande.md", "map (readonly).md"]
+        for file in key_files:
+            args.extend(["--file", file])
             
-        # Add file arguments
+        # Add selected files
         for file in valid_files:
             args.extend(["--file", file])
             
