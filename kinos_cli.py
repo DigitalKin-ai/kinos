@@ -2,6 +2,7 @@ import sys
 import threading
 import queue
 import time
+import random
 from typing import List, Dict
 import os
 import json
@@ -78,18 +79,42 @@ def run_team_loop(team_name: str):
         
     logger.log(f"Starting team {team_name} with agents: {', '.join(agents)}")
     
-    # Create output queue and active threads dict
+    # Create output queue
     output_queue = queue.Queue()
     active_threads: Dict[int, AgentRunner] = {}
     
     try:
         while True:  # Main loop
-            # Start new threads until we have 3
+            # Select new random agents each time we need to start a thread
             while len(active_threads) < 3:
-                runner = AgentRunner(agent_service, agents, output_queue, logger)
+                # Get current phase weights
+                from services import init_services
+                services = init_services(None)
+                phase_service = services['phase_service']
+                phase_status = phase_service.get_status_info()
+                current_phase = phase_status['phase']
+                phase_weights = phase_service.get_phase_weights(current_phase)
+                
+                # Filter out agents that are already running
+                available_agents = [a for a in agents if not any(
+                    runner.agent_name == a for runner in active_threads.values()
+                )]
+                
+                if not available_agents:
+                    break
+                
+                # Get weights for available agents
+                weights = [phase_weights.get(agent, 0.5) for agent in available_agents]
+                
+                # Select random agent based on weights
+                agent_name = random.choices(available_agents, weights=weights, k=1)[0]
+                
+                # Start new runner with selected agent
+                runner = AgentRunner(agent_service, [agent_name], output_queue, logger)
+                runner.agent_name = agent_name  # Store selected agent name
                 runner.start()
                 active_threads[runner.ident] = runner
-                logger.log(f"Started new agent runner (total: {len(active_threads)})")
+                logger.log(f"Started new agent runner for {agent_name} (total: {len(active_threads)})")
 
             try:
                 # Check queue for messages with timeout
@@ -100,16 +125,17 @@ def run_team_loop(team_name: str):
                     # Log message based on status
                     if msg['status'] == 'completed':
                         logger.log(
-                            f"Agent completed (duration: {msg['duration']:.1f}s)", 
+                            f"Agent {active_threads[thread_id].agent_name} completed "
+                            f"(duration: {msg['duration']:.1f}s)", 
                             'success'
                         )
                     elif msg['status'] == 'error':
                         logger.log(
-                            f"Agent error: {msg['error']}", 
+                            f"Agent {active_threads[thread_id].agent_name} error: {msg['error']}", 
                             'error'
                         )
                     
-                    # Remove completed/failed thread and start new one
+                    # Remove completed/failed thread
                     if thread_id in active_threads:
                         active_threads[thread_id].running = False
                         del active_threads[thread_id]
