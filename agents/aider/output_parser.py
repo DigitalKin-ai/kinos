@@ -48,7 +48,7 @@ class AiderOutputParser:
             # Extract commit hash and message
             parts = line.split()
             if len(parts) < 3:  # Need at least "Commit <hash> <message>"
-                return
+                return True
                 
             commit_hash = parts[1]
             message = ' '.join(parts[2:])
@@ -67,6 +67,9 @@ class AiderOutputParser:
             
             output_lines.append(formatted)
             self.logger.log(formatted, 'info')
+            
+            # Never trigger shutdown regardless of commit message
+            return True
             
         except Exception as e:
             self.logger.log(f"Error parsing commit message: {str(e)}", 'error')
