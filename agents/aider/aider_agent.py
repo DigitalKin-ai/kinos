@@ -547,7 +547,31 @@ class AiderAgent(AgentBase):
         self.logger.log(f"[{self.name}] ❌ {line}", 'error')
         self.error_count += 1
 
-def list_files(self) -> None:
+    def _is_error_message(self, line: str) -> bool:
+        """
+        Check if line contains error message
+        
+        Args:
+            line: Output line to check
+            
+        Returns:
+            bool: True if line contains error
+        """
+        # Documentation links should not be treated as errors
+        if "documentation:" in line.lower():
+            return False
+            
+        error_indicators = [
+            'error',
+            'exception', 
+            'failed',
+            'can\'t initialize',
+            'fatal:',
+            'permission denied'
+        ]
+        return any(indicator in line.lower() for indicator in error_indicators)
+
+    def list_files(self) -> None:
     """List and track files that this agent should monitor"""
     try:
         # Use FileHandler to list files in mission directory
