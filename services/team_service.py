@@ -43,7 +43,6 @@ class TeamService:
         self._waiting_agents = []  # List for waiting agents
         self._started_agents = []  # List for started agents
         self._team_lock = threading.Lock()
-        self._shutdown_requested = False  # Track if shutdown was requested
 
     def _load_predefined_teams(self) -> List[Dict]:
         """Load team configurations from teams/ directory"""
@@ -980,5 +979,5 @@ class TeamService:
             except Exception as cleanup_error:
                 self.logger.log(f"Error stopping agent {agent_name}: {str(cleanup_error)}", 'error')
     def request_shutdown(self):
-        """Explicitly request team shutdown"""
-        self._shutdown_requested = True
+        """Removed to prevent shutdowns"""
+        pass
