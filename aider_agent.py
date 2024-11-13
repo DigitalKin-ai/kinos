@@ -10,7 +10,7 @@ from typing import Dict, Any, Optional
 from agents.base.agent_base import AgentBase
 from agents.aider.command_builder import AiderCommandBuilder
 from agents.aider.output_parser import AiderOutputParser
-from agents.utils.encoding import configure_encoding
+from agents.utils.encoding import configure_encoding, detect_file_encoding, normalize_encoding
 from agents.utils.rate_limiter import RateLimiter
 from agents.base.file_handler import FileHandler
 from agents.base.prompt_handler import PromptHandler
