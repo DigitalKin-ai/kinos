@@ -56,11 +56,8 @@ class AiderAgent(AgentBase):
             # Rate limiting check
             if not self.rate_limiter.should_allow_request():
                 wait_time = self.rate_limiter.get_wait_time()
-                self.logger.log(
-                    f"Rate limit reached. Waiting {wait_time:.1f}s",
-                    'warning'
-                )
-                time.sleep(wait_time)
+                self.logger.log(f"Rate limit reached. Waiting {wait_time:.1f}s", 'warning')
+                return None
             
             # Change to mission directory
             os.chdir(self.mission_dir)

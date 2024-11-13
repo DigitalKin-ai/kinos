@@ -1,44 +1,42 @@
 """
-AiderAgent - Agent générique utilisant Aider pour les modifications de fichiers.
-Chaque instance représente un rôle spécifique (specifications, production, etc.)
-mais partage la même logique d'interaction avec Aider.
-
-GESTION DES CHEMINS:
-Appel à Aider:
-   - Change le dossier courant vers le dossier de la mission
-   - Utilise des chemins relatifs pour tous les fichiers
-   - Revient au dossier original après exécution
+AiderAgent - Core implementation of Aider-based agent functionality
 """
-import traceback
-from utils.exceptions import ServiceError
-from agents.kinos_agent import KinOSAgent
-from utils.path_manager import PathManager
-import traceback
-from utils.exceptions import ServiceError
-from agents.kinos_agent import KinOSAgent
-from utils.path_manager import PathManager
-from utils.logger import Logger
 import os
-import subprocess
-import time
-import asyncio
-from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, Any, Optional
+from agents.base.agent_base import AgentBase
+from agents.aider.command_builder import AiderCommandBuilder
+from agents.aider.output_parser import AiderOutputParser
+from agents.utils.encoding import configure_encoding
+from agents.utils.rate_limiter import RateLimiter
+from agents.base.file_handler import FileHandler
+from agents.base.prompt_handler import PromptHandler
 
-class AiderAgent(KinOSAgent):
-    """Agent using Aider to modify files.
-    Each instance represents a specific role (specifications, production, etc.)
-    but shares the same interaction logic with Aider."""
-    
-    
-    def _handle_agent_error(self, operation: str, error: Exception) -> None:
-        """Centralized error handling for agent operations."""
-        self._log(f"[{self.name}] ❌ Error in {operation}: {str(error)}")
+class AiderAgent(AgentBase):
+    """
+    Agent implementation using Aider for file modifications.
+    Handles:
+    - Command construction and execution 
+    - Output parsing and processing
+    - Rate limiting and retries
+    - Path management and validation
+    """
 
-    def __init__(self, config: Dict):
-        """Initialize agent with minimal configuration"""
-        print("\n=== AIDER AGENT INITIALIZATION STARTING ===")
-        print(f"Config received: {config}")
+    def __init__(self, config: Dict[str, Any]):
+        """Initialize agent with configuration"""
+        super().__init__(config)
+        
+        # Configure UTF-8 encoding
+        configure_encoding()
+        
+        # Initialize components
+        self.command_builder = AiderCommandBuilder()
+        self.output_parser = AiderOutputParser(self.logger)
+        self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
+        self.file_handler = FileHandler(self.mission_dir, self.logger)
+        self.prompt_handler = PromptHandler(self.logger)
+        
+        # Store original directory
+        self.original_dir = os.getcwd()
         
         try:
             # Initialize logger with thread-safe configuration
@@ -698,136 +696,16 @@ class AiderAgent(KinOSAgent):
                     return None
 
     def list_files(self) -> None:
-        """Liste tous les fichiers textuels dans le dossier de la mission"""
-        try:
-            # Use configured mission_dir directly
-            if not self.mission_dir:
-                self._log(f"[{self.name}] ❌ No mission directory configured")
-                self.mission_files = {}
-                return
-
-            # Validate mission directory exists and is accessible
-            if not os.path.exists(self.mission_dir):
-                self._log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}")
-                self.mission_files = {}
-                return
-
-            if not os.access(self.mission_dir, os.R_OK | os.W_OK):
-                self._log(f"[{self.name}] ❌ Insufficient permissions for: {self.mission_dir}")
-                self.mission_files = {}
-                return
-
-            # Liste des extensions à inclure
-            text_extensions = {'.md', '.txt', '.json', '.yaml', '.yml', '.py', '.js', '.html', '.css', '.sh'}
-            
-            # Log directory contents for debugging
-            self._log(f"[{self.name}] 📂 Scanning directory: {self.mission_dir}")
-            
-            # Récupérer tous les fichiers textuels
-            text_files = {}
-            for root, dirs, filenames in os.walk(self.mission_dir):
-                #self._log(f"[{self.name}] 🔍 Scanning subdirectory: {root}")
-                for filename in filenames:
-                    if os.path.splitext(filename)[1].lower() in text_extensions:
-                        file_path = os.path.join(root, filename)
-                        text_files[file_path] = os.path.getmtime(file_path)
-                        self._log(f"[{self.name}] ✓ Found file: {filename}")
-        
-            # Mettre à jour mission_files
-            self.mission_files = text_files
-            
-            # Log final results
-            self._log(f"[{self.name}] 📁 Found {len(self.mission_files)} files in {self.mission_dir}")
-            for file in self.mission_files:
-                rel_path = os.path.relpath(file, self.mission_dir)
-                self._log(f"[{self.name}] 📄 {rel_path}")
-                
-        except Exception as e:
-            self._log(f"[{self.name}] ❌ Error listing files: {str(e)}")
-            self.mission_files = {}
+        """List all text files in mission directory"""
+        self.mission_files = self.file_handler.list_files()
 
     def get_prompt(self) -> str:
-        """Get the current prompt content with caching"""
-        try:
-            if not self.prompt_file:
-                return self.prompt  # Return default prompt if no file specified
-                
-            # Normalize agent name
-            agent_name = self.name.lower().replace('agent', '').strip()
-            
-            # Get KinOS installation directory - it's where this aider_agent.py file is located
-            kinos_root = os.path.dirname(os.path.abspath(__file__))
-            prompts_dir = os.path.join(kinos_root, "prompts")
-            prompt_path = os.path.join(prompts_dir, f"{agent_name}.md")
-            
-            # Log search path for debugging
-            self.logger.log(f"Looking for prompt at: {prompt_path}", 'debug')
-            
-            # Check if prompt exists
-            if not os.path.exists(prompt_path):
-                self.logger.log(f"Prompt file not found: {prompt_path}", 'warning')
-                return self.prompt  # Return default prompt if file not found
-
-            # Check cache first
-            mtime = os.path.getmtime(prompt_path)
-            if prompt_path in self._prompt_cache:
-                cached_time, cached_content = self._prompt_cache[prompt_path]
-                if cached_time == mtime:
-                    return cached_content
-
-            # Load from file if not in cache or cache invalid
-            try:
-                with open(prompt_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    self._prompt_cache[prompt_path] = (mtime, content)
-                    return content
-            except Exception as e:
-                self.logger.log(f"Error reading prompt file: {str(e)}", 'error')
-                return self.prompt  # Fallback to default prompt
-
-        except Exception as e:
-            self.logger.log(f"Error in get_prompt: {str(e)}", 'error')
-            return self.prompt  # Fallback to default prompt
+        """Get the current prompt content"""
+        return self.prompt_handler.get_prompt(self.prompt_file)
 
     def save_prompt(self, content: str) -> bool:
-        """Save new prompt content with validation"""
-        try:
-            if not self.prompt_file:
-                self.logger("No prompt file configured")
-                return False
-                
-            # Validate content
-            if not content or not content.strip():
-                raise ValueError("Prompt content cannot be empty")
-                
-            # Ensure prompts directory exists
-            os.makedirs(os.path.dirname(self.prompt_file), exist_ok=True)
-            
-            # Save to temporary file first
-            temp_file = f"{self.prompt_file}.tmp"
-            try:
-                with open(temp_file, 'w', encoding='utf-8') as f:
-                    f.write(content)
-                    
-                # Rename temp file to actual file (atomic operation)
-                os.replace(temp_file, self.prompt_file)
-                
-                # Update instance prompt and clear cache
-                self.prompt = content
-                if self.prompt_file in self._prompt_cache:
-                    del self._prompt_cache[self.prompt_file]
-                    
-                self._log(f"Prompt saved successfully to {self.prompt_file}")
-                return True
-                
-            finally:
-                # Clean up temp file if it exists
-                if os.path.exists(temp_file):
-                    os.remove(temp_file)
-                    
-        except Exception as e:
-            self._log(f"Error saving prompt: {str(e)}")
-            return False
+        """Save new prompt content"""
+        return self.prompt_handler.save_prompt(self.prompt_file, content)
 
     def _load_prompt(self) -> Optional[str]:
         """Charge le prompt depuis le fichier avec cache"""
@@ -853,16 +731,28 @@ class AiderAgent(KinOSAgent):
             return None
 
     def cleanup(self):
-        """Cleanup method to restore directory if needed"""
+        """Cleanup agent resources"""
         try:
-            if hasattr(self, 'original_dir') and self.original_dir:
+            # Stop agent if running
+            if self.running:
+                self.stop()
+            
+            # Restore original directory
+            if hasattr(self, 'original_dir'):
                 try:
                     os.chdir(self.original_dir)
-                    self._log(f"[{self.name}] 📂 Restored directory during cleanup: {self.original_dir}")
                 except Exception as e:
-                    self._log(f"[{self.name}] ❌ Error restoring directory during cleanup: {str(e)}")
+                    self.logger.log(f"Error restoring directory: {str(e)}", 'error')
+            
+            # Clear caches
+            self.prompt_handler._prompt_cache.clear()
+            self.mission_files.clear()
+            
+            # Base cleanup
+            super().cleanup()
+            
         except Exception as e:
-            self._log(f"[{self.name}] ❌ Error in cleanup: {str(e)}")
+            self.logger.log(f"Error in cleanup: {str(e)}", 'error')
 
     def stop(self):
         """Stop method to ensure cleanup"""
