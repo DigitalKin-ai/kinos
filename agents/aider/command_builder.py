@@ -89,6 +89,11 @@ class AiderCommandBuilder:
         cmd = ["aider"]
         cmd.extend(self.get_model_args())
         cmd.extend(self.get_file_args(files, self.get_ignore_patterns(os.getcwd())))
+        
+        # Add chat history file argument
+        agent_name = os.path.basename(files[0]).split('.')[0] if files else 'default'
+        cmd.extend(["--chat-history-file", f".aider.{agent_name}.chat.history.md"])
+        
         cmd.extend(["--message", prompt])
         
         if not self.validate_command(cmd):
