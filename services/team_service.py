@@ -34,7 +34,9 @@ class TeamService:
         self.predefined_teams = self._load_predefined_teams()
         self.max_concurrent_agents = 3  # Maximum concurrent agents
         self._agent_queue = Queue()  # Agent queue
-        self._active_agents = []  # Changed from set() to list() for active agents tracking
+        self._active_agents = []  # List for active agents
+        self._waiting_agents = []  # List for waiting agents
+        self._started_agents = []  # List for started agents
         self._team_lock = threading.Lock()
 
     def _load_predefined_teams(self) -> List[Dict]:
@@ -105,41 +107,53 @@ class TeamService:
             normalized.append(norm_name)
         return normalized
     
+    def _manage_agent_collections(self, agent_name: str, action: str) -> None:
+        """Helper to safely manage agent collections"""
+        try:
+            if action == 'start':
+                if agent_name not in self._active_agents:
+                    self._active_agents.append(agent_name)
+                if agent_name not in self._started_agents:
+                    self._started_agents.append(agent_name)
+                if agent_name in self._waiting_agents:
+                    self._waiting_agents.remove(agent_name)
+            elif action == 'stop':
+                if agent_name in self._active_agents:
+                    self._active_agents.remove(agent_name)
+                if agent_name not in self._waiting_agents:
+                    self._waiting_agents.append(agent_name)
+        except Exception as e:
+            self.logger.log(f"Error managing agent collections: {str(e)}", 'error')
+
     def _start_agent(self, agent_name: str) -> bool:
-         """
-         Start a single agent with error handling
-
-         Args:
-             agent_name: Name of agent to start
-
-         Returns:
-             bool: True if agent started successfully
-         """
-         try:
-             self.logger.log(f"Starting agent: {agent_name}", 'info')
-
-             # Ignore known Aider initialization errors
-             try:
-                 success = self.agent_service.toggle_agent(agent_name, 'start')
-                 return success
-
-             except Exception as e:
-                 error_msg = str(e)
-                 # Liste des erreurs connues d'Aider à ignorer
-                 known_errors = [
-                     "Can't initialize prompt toolkit",
-                     "No Windows console found",
-                     "aider.chat/docs/troubleshooting/edit-errors.html",
-                     "[Errno 22] Invalid argument"  # Erreur Windows spécifique
-                 ]
-
-                 if not any(err in error_msg for err in known_errors):
-                     self.logger.log(f"Error starting agent {agent_name}: {error_msg}", 'error')
-                 return False
-
-         except Exception as e:
-             self.logger.log(f"Critical error starting agent {agent_name} {str(e)}", 'error')
-             return False
+        """Start a single agent with error handling"""
+        try:
+            self.logger.log(f"Starting agent {agent_name}", 'info')
+            
+            # Ignore known Aider initialization errors
+            try:
+                success = self.agent_service.toggle_agent(agent_name, 'start')
+                if success:
+                    self._manage_agent_collections(agent_name, 'start')
+                return success
+                
+            except Exception as e:
+                error_msg = str(e)
+                # Liste des erreurs connues d'Aider à ignorer
+                known_errors = [
+                    "Can't initialize prompt toolkit",
+                    "No Windows console found",
+                    "aider.chat/docs/troubleshooting/edit-errors.html",
+                    "[Errno 22] Invalid argument"  # Erreur Windows spécifique
+                ]
+                
+                if not any(err in error_msg for err in known_errors):
+                    self.logger.log(f"Error starting agent {agent_name}: {error_msg}", 'error')
+                return False
+                
+        except Exception as e:
+            self.logger.log(f"Critical error starting agent {agent_name}: {str(e)}", 'error')
+            return False
 
     def _normalize_team_id(self, team_id: str) -> str:
         """Normalize team ID to handle different separator styles"""
