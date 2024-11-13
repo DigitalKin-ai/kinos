@@ -202,9 +202,6 @@ class AiderAgent(AgentBase):
             # Execute command
             process = self.command_builder.execute_command(cmd)
             
-            # Parse output
-            return self.output_parser.parse_output(process)
-            
         except Exception as e:
             self._handle_error('run_aider', e, {'prompt': prompt})
             return None
