@@ -147,18 +147,21 @@ class TeamService:
             # Get phase status info directly from phase service
             phase_status = phase_service.get_status_info()
             
+            # Get current phase from phase service
+            current_phase = phase_status['phase']
+            
             # Log phase status with values from phase service
             self.logger.log(
-                f"Current phase: {phase_status['phase']}\n"  # Use phase from status
-                f"Total tokens: {phase_status['total_tokens']:,}\n"  # Use tokens from status
-                f"Usage: {phase_status['usage_percent']:.1f}%\n"  # Use percentage from status
+                f"Current phase: {current_phase}\n"
+                f"Total tokens: {phase_status['total_tokens']:,}\n"
+                f"Usage: {phase_status['usage_percent']:.1f}%\n"
                 f"Status: {phase_status['status_message']}\n"
                 f"Headroom: {phase_status['headroom']:,} tokens", 
                 'info'
             )
 
-            # Filter agents based on current phase from phase status
-            filtered_agents = self._filter_agents_by_phase(team['agents'], phase_status['phase'])  # Use phase from status
+            # Filter agents based on current phase
+            filtered_agents = self._filter_agents_by_phase(team['agents'], current_phase)
             
             if not filtered_agents:
                 self.logger.log(

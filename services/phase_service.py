@@ -54,15 +54,10 @@ class PhaseService(BaseService):
                 new_phase = ProjectPhase.CONVERGENCE
                 message = f"Convergence needed - Token usage at {usage_percent:.1f}%"
                 print(f"[DEBUG] Threshold exceeded, switching to CONVERGENCE")
-            elif usage_percent < self.EXPANSION_THRESHOLD * 100:
+            else:
                 new_phase = ProjectPhase.EXPANSION
                 message = f"Expansion phase - Token usage at {usage_percent:.1f}%"
                 print(f"[DEBUG] Below threshold, switching to EXPANSION")
-            else:
-                # Between thresholds, maintain current phase
-                new_phase = self.current_phase
-                message = f"Maintaining current phase - Token usage at {usage_percent:.1f}%"
-                print(f"[DEBUG] Between thresholds, maintaining phase")
             
             # Log phase transition ONLY if phase actually changed
             if new_phase != old_phase:
