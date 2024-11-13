@@ -19,6 +19,8 @@ from utils.constants import (
     OUTPUT_COLLECTION_TIMEOUT,
     COMMAND_EXECUTION_TIMEOUT
 )
+from agents.base.file_handler import FileHandler
+from agents.base.prompt_handler import PromptHandler
 from utils.constants import (
     DEFAULT_TIMEOUT,
     MAX_RETRIES,
