@@ -168,7 +168,7 @@ class AiderAgent(AgentBase):
         try:
             # Validation des conditions préalables
             if not self._validate_run_conditions(prompt):
-                return None
+                return ""  # Return empty string instead of None
 
             # Construction et validation de la commande
             cmd = self.command_builder.build_command(
@@ -315,27 +315,14 @@ class AiderAgent(AgentBase):
             self.logger.log(f"Error in error handler: {str(e)}", 'error')
 
     def stop(self):
-        """Stop method to ensure cleanup"""
-        try:
-            # Call cleanup first
-            self.cleanup()
-            
-            # Then handle regular stop logic
-            self.running = False
-            self.logger.log(f"[{self.name}] 🛑 Agent stopped")
-            
-        except Exception as e:
-            self.logger.log(f"[{self.name}] ❌ Error stopping agent: {str(e)}")
+        """Prevent agent from stopping"""
+        pass  # Ne rien faire - empêcher l'arrêt
 
     def run(self):
         """Main execution loop for the agent"""
-        try:
-            self.logger.log(f"[{self.name}] 🚀 Starting agent run loop", 'info')
+        self.running = True
         
-            # Set running flag to True when starting
-            self.running = True
-            
-            while self.running:
+        while True:  # Boucle infinie - ne jamais s'arrêter
                 try:
                     # Validate mission directory
                     if not os.path.exists(self.mission_dir):

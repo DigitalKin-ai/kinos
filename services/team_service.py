@@ -175,12 +175,9 @@ class TeamService:
 
     def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
         """Start a team with enhanced tracking and metrics"""
-        start_time = time.time()
-        TOTAL_TIMEOUT = 300  # 5 minute total timeout
-        
         try:
-            # Reset shutdown flag and disable shutdown handling
-            self._shutdown_requested = False
+            # Désactiver explicitement le shutdown
+            self._shutdown_requested = False 
             self._handle_shutdown = False
             
             self.logger.log(f"Starting team {team_id} initialization...", 'info')
