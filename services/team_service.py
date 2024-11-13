@@ -176,57 +176,82 @@ class TeamService:
                     'status': 'no_agents_for_phase'
                 }
 
-            # Initialize filtered agents
-            config = {'mission_dir': mission_dir}
-            self.agent_service.init_agents(config, filtered_agents)
+            # Initialize filtered agents with error handling
+            try:
+                config = {'mission_dir': mission_dir}
+                self.agent_service.init_agents(config, filtered_agents)
+            except Exception as init_error:
+                self.logger.log(f"Error initializing agents: {str(init_error)}", 'error')
+                return {
+                    'team_id': team['id'],
+                    'mission_dir': mission_dir,
+                    'agents': [],
+                    'phase': phase_status['phase'],
+                    'status': 'initialization_failed'
+                }
 
             # Randomize agent order
             random_agents = filtered_agents.copy()
             random.shuffle(random_agents)
 
-            # Create thread pool
+            # Create thread pool with error handling
             with ThreadPoolExecutor(max_workers=self.max_concurrent_agents) as executor:
-                # Function to start an agent
+                # Function to start an agent with better error handling
                 def start_agent(agent_name: str) -> bool:
                     try:
                         self.logger.log(f"Starting agent: {agent_name}", 'info')
-                        success = self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
-                        if success:
-                            with self._team_lock:
-                                started_agents.append(agent_name)
-                        return success
+                        # Ignore known Aider initialization errors
+                        try:
+                            success = self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
+                            if success:
+                                with self._team_lock:
+                                    started_agents.append(agent_name)
+                            return success
+                        except Exception as e:
+                            error_msg = str(e)
+                            if not any(err in error_msg for err in AIDER_INIT_ERRORS):
+                                self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
+                            return False
                     except Exception as e:
-                        self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
+                        self.logger.log(f"Critical error starting agent {agent_name}: {str(e)}", 'error')
                         return False
 
-                # Submit initial batch of agents
+                # Submit initial batch of agents with error handling
                 futures = []
                 initial_batch = random_agents[:self.max_concurrent_agents]
                 remaining_agents = random_agents[self.max_concurrent_agents:]
 
                 for agent_name in initial_batch:
-                    futures.append(executor.submit(start_agent, agent_name))
-                    time.sleep(5)  # Wait 5 seconds between each initial agent
+                    try:
+                        futures.append(executor.submit(start_agent, agent_name))
+                        time.sleep(5)  # Wait 5 seconds between each initial agent
+                    except Exception as e:
+                        self.logger.log(f"Error submitting agent {agent_name}: {str(e)}", 'error')
 
                 # Process results and add new agents as others complete
                 while futures or remaining_agents:
-                    # Wait for an agent to complete
-                    done, futures = concurrent.futures.wait(
-                        futures,
-                        return_when=concurrent.futures.FIRST_COMPLETED
-                    )
+                    try:
+                        # Wait for an agent to complete
+                        done, futures = concurrent.futures.wait(
+                            futures,
+                            return_when=concurrent.futures.FIRST_COMPLETED,
+                            timeout=10  # Add timeout to prevent hanging
+                        )
 
-                    # For each completed agent
-                    for future in done:
-                        try:
-                            success = future.result()
-                            if success and remaining_agents:
-                                # Start next agent
-                                next_agent = remaining_agents.pop(0)
-                                futures.add(executor.submit(start_agent, next_agent))
-                                time.sleep(5)  # Wait 5 seconds before starting next agent
-                        except Exception as e:
-                            self.logger.log(f"Error processing agent result: {str(e)}", 'error')
+                        # For each completed agent
+                        for future in done:
+                            try:
+                                success = future.result(timeout=5)  # Add timeout for result retrieval
+                                if success and remaining_agents:
+                                    # Start next agent
+                                    next_agent = remaining_agents.pop(0)
+                                    futures.add(executor.submit(start_agent, next_agent))
+                                    time.sleep(5)  # Wait 5 seconds before starting next agent
+                            except Exception as e:
+                                self.logger.log(f"Error processing agent result: {str(e)}", 'error')
+                    except Exception as e:
+                        self.logger.log(f"Error in agent processing loop: {str(e)}", 'error')
+                        break
 
             return {
                 'team_id': team['id'],
