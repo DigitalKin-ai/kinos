@@ -14,7 +14,7 @@ class MapService(BaseService):
     def __init__(self, _):  # Keep parameter for compatibility but don't use it
         """Initialize with minimal dependencies"""
         self.logger = Logger()
-        self.map_file = "map.md"
+        self.map_file = "map (readonly).md"
         self.size_limits = {
             'warning': 6000,  # Tokens triggering warning (6k)
             'error': 12000    # Tokens triggering error (12k)
@@ -199,7 +199,7 @@ class MapService(BaseService):
             )
 
     def _format_map_content(self, tree_content: List[str], warnings: List[str]) -> str:
-        """Format complete map.md content with introduction and phase information"""
+        """Format complete map (readonly).md content with introduction and phase information"""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         # Ensure phase service is initialized
