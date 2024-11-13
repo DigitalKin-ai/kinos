@@ -22,9 +22,6 @@ from utils.constants import (
     OUTPUT_COLLECTION_TIMEOUT,
     COMMAND_EXECUTION_TIMEOUT
 )
-from agents.base.file_handler import FileHandler
-from agents.base.prompt_handler import PromptHandler
-from utils.path_manager import PathManager
 
 class AiderAgent(AgentBase):
     """
@@ -40,80 +37,62 @@ class AiderAgent(AgentBase):
         """Initialize agent with configuration"""
         super().__init__(config)
         
-        # Configure UTF-8 encoding
-        configure_encoding()
-        
-        # Initialize components
-        self.command_builder = AiderCommandBuilder()
-        self.output_parser = AiderOutputParser(self.logger)
-        self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
-        self.file_handler = FileHandler(self.mission_dir, self.logger)
-        self.prompt_handler = PromptHandler(self.logger)
-        
-        # Store original directory
-        self.original_dir = os.getcwd()
-        
         try:
-            # Initialize logger with thread-safe configuration
-            from utils.logger import Logger
-            import threading
-            self._log_lock = threading.Lock()
-            self.logger = Logger()
+            # Initialize components
+            self.command_builder = AiderCommandBuilder()
+            self.output_parser = AiderOutputParser(self.logger)
+            self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
+            self.file_handler = FileHandler(self.mission_dir, self.logger)
+            self.prompt_handler = PromptHandler(self.logger)
             
-            # Initialize core attributes
-            self.name = config.get("name")
-            if not self.name:
-                raise ValueError("name must be provided in config")
-                
-            self.mission_dir = config.get("mission_dir")
-            if not self.mission_dir:
-                raise ValueError("mission_dir must be provided in config")
-
             # Store original directory
             self.original_dir = os.getcwd()
             
             # Initialize state tracking
-            self.running = False
-            self.last_run = None
-            self.last_change = None
-            self.consecutive_no_changes = 0
-            self.mission_files = {}
-            self._prompt_cache = {}
+            self._init_state()
             
-            # Load prompt file path
-            self.prompt_file = config.get("prompt_file")
-            self.prompt = config.get("prompt", "")
-
             # Configure UTF-8 encoding
             self._configure_encoding()
             
-            with self._log_lock:
-                self.logger.log(f"[{self.name}] Initialized as {self.name}")
+            self.logger.log(f"[{self.name}] Initialized successfully")
             
-            self._last_request_time = 0
-            self._requests_this_minute = 0
-            self._rate_limit_window = 60  # 1 minute
-            self._max_requests_per_minute = 50  # Adjust based on your rate limit
-                              
         except Exception as e:
-            print(f"Error during initialization: {str(e)}")
+            self.logger.log(f"Error during initialization: {str(e)}", 'error')
             raise
         
+    def _init_state(self):
+        """Initialize agent state tracking"""
+        self.running = False
+        self.last_run = None
+        self.last_change = None
+        self.consecutive_no_changes = 0
+        self.error_count = 0
+        self.mission_files = {}
+        self._prompt_cache = {}
+        self._last_request_time = 0
+        self._requests_this_minute = 0
+        
 
-    def _log(self, message: str, level: str = 'info') -> None:
-        """Centralized logging method"""
-        if hasattr(self, 'logger'):
-            self.logger.log(message, level)
-        else:
-            print(f"[{level.upper()}] {message}")
-
-    def _get_relative_file_path(self, file_path: str) -> str:
-        """Get relative path from mission directory"""
+    def _validate_run_input(self, prompt: str) -> bool:
+        """Validate input before running Aider"""
         try:
-            return os.path.relpath(file_path, self.mission_dir)
+            if not prompt or not prompt.strip():
+                self._log(f"[{self.name}] Empty prompt provided")
+                return False
+
+            if not self.mission_files:
+                self._log(f"[{self.name}] No files to process")
+                return False
+
+            if not os.path.exists(self.mission_dir):
+                self._log(f"[{self.name}] Mission directory not found: {self.mission_dir}")
+                return False
+
+            return True
+
         except Exception as e:
-            self.logger(f"Error getting relative path: {str(e)}")
-            return file_path
+            self._log(f"[{self.name}] Error validating input: {str(e)}")
+            return False
 
 
     def run_aider(self, prompt: str) -> Optional[str]:
