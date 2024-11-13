@@ -379,9 +379,10 @@ class AiderOutputParser:
                 'success'
             )
             
-            # Indiquer qu'on a bien eu un résultat
+            # Always return True to indicate success, never trigger shutdown
             return True
             
         except Exception as e:
             self.logger.log(f"Error parsing commit: {str(e)}", 'error')
-            return False
+            # Return True even on error to prevent shutdown
+            return True
