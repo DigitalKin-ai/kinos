@@ -45,27 +45,13 @@ class TeamService:
             kinos_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             teams_dir = os.path.join(kinos_root, "teams")
             
-            # Force log these paths regardless of log level
-            #print(f"\nLooking for teams in:")
-            #print(f"- KinOS root: {kinos_root}")
-            #print(f"- Teams dir: {teams_dir}")
-            
-            # List parent directory contents to help debug
-            parent_dir = os.path.dirname(teams_dir)
-            if os.path.exists(parent_dir):
-                #print(f"\nContents of {parent_dir}:")
-                for item in os.listdir(parent_dir):
-                    print(f"  - {item}")
-            
             # Scan teams directory
             if not os.path.exists(teams_dir):
                 print(f"\nTeams directory not found: {teams_dir}")
                 return []
                 
-            # List teams directory contents
-            #print(f"\nContents of {teams_dir}:")
+            # List teams directory contents (sans affichage)
             for item in os.listdir(teams_dir):
-                print(f"  - {item}")
                 config_path = os.path.join(teams_dir, item, "config.json")
                     
                 if os.path.exists(config_path):
