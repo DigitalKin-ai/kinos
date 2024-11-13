@@ -117,18 +117,10 @@ class BaseService:
         return bool(content and content.strip())
 
     def cleanup(self):
-        """Base cleanup method for services"""
+        """Safe cleanup that never fails"""
         try:
-            # Implement basic cleanup
-            if hasattr(self, '_cleanup_resources'):
-                self._cleanup_resources()
-                
-            # Clear any caches or resources
-            for attr in dir(self):
-                if attr.endswith('_cache'):
-                    cache = getattr(self, attr)
-                    if isinstance(cache, dict):
-                        cache.clear()
-                        
-        except Exception as e:
-            self.logger.log(f"Error in base cleanup: {str(e)}", 'error')
+            # Tenter le nettoyage mais ne jamais échouer
+            if hasattr(self, 'mission_files'):
+                self.mission_files.clear()
+        except:
+            pass

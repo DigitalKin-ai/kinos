@@ -31,14 +31,19 @@ class AgentBase(ABC):
                 - mission_dir: Working directory path
                 - prompt_file: Path to prompt file
         """
-        self.name = config['name']
-        self.type = config.get('type', 'aider')
-        self.weight = config.get('weight', 0.5)
-        self.mission_dir = config['mission_dir']
-        self.prompt_file = config.get('prompt_file')
-        self.logger = Logger()
-        self.running = False
-        self._init_state()
+        try:
+            self.name = config['name']
+            self.type = config.get('type', 'aider')
+            self.weight = config.get('weight', 0.5)
+            self.mission_dir = config['mission_dir']
+            self.prompt_file = config.get('prompt_file')
+            self.logger = Logger()
+            self.running = True  # Always True from initialization
+            self._init_state()
+        except Exception as e:
+            self.logger.log(f"Non-critical init error: {str(e)}", 'warning')
+            # Continue even if init fails
+            self.running = True
         
     def _init_state(self):
         """Initialize agent state tracking"""

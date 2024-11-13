@@ -177,7 +177,7 @@ class AiderAgent(AgentBase):
             )
             
             if not self.command_builder.validate_command(cmd):
-                return None
+                return ""  # Return empty string instead of None
                 
             # Exécution avec gestion des timeout
             with TimeoutManager.timeout(COMMAND_EXECUTION_TIMEOUT):
