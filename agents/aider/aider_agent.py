@@ -132,34 +132,6 @@ class AiderAgent(AgentBase):
             self.logger.log(f"[{self.name}] Error validating conditions: {str(e)}")
             return False
 
-
-    def run_aider(self, prompt: str) -> Optional[str]:
-        """Version diagnostique de run_aider"""
-        try:
-            self.logger.log(f"[{self.name}] 🔍 Début de run_aider()", 'debug')
-        
-            # Validation des préconditions
-            if not self._validate_run_conditions(prompt):
-                self.logger.log(f"[{self.name}] ❌ Conditions d'exécution non remplies", 'error')
-                return None
-        
-            # Appel du parent avec logging
-            result = self._run_aider(prompt)
-        
-            if result is None:
-                self.logger.log(f"[{self.name}] ⚠️ Aucun résultat de run_aider", 'warning')
-        
-            return result
-    
-        except Exception as e:
-            self.logger.log(
-                f"[{self.name}] 🔥 Erreur dans run_aider:\n"
-                f"{traceback.format_exc()}", 
-                'critical'
-            )
-            return None
-
-
     def _check_rate_limit(self) -> bool:
         """
         Check if we should wait before making another request
@@ -414,7 +386,7 @@ class AiderAgent(AgentBase):
 3. The current state of the project files shown below
 
 Choose ONE specific, concrete task that needs to be done and explain it in detail so that Aider can implement it.
-Focus on practical code changes that move the project forward.
+Focus on practical changes that move the project forward.
 
 Current project files:
 {self._format_files_context(files_context)}
@@ -436,7 +408,7 @@ Format your response as clear instructions that can be sent directly to Aider.""
                         client = Anthropic()
                         response = client.messages.create(
                             model="claude-3-haiku-20240307",
-                            max_tokens=1000,
+                            max_tokens=4000,
                             messages=messages
                         )
                         instructions = response.content[0].text
