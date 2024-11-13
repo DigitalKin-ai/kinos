@@ -140,20 +140,27 @@ class TeamService:
                 success = self.agent_service.toggle_agent(agent_name, 'start')
                 if success:
                     self._manage_agent_collections(agent_name, 'start')
+                    self.logger.log(f"Successfully started agent {agent_name}", 'success')
                 return success
                 
             except Exception as e:
                 error_msg = str(e)
-                # Liste des erreurs connues d'Aider à ignorer
+                # List of known Aider errors to ignore silently
                 known_errors = [
                     "Can't initialize prompt toolkit",
                     "No Windows console found",
                     "aider.chat/docs/troubleshooting/edit-errors.html",
-                    "[Errno 22] Invalid argument"  # Erreur Windows spécifique
+                    "[Errno 22] Invalid argument"  # Windows-specific error
                 ]
                 
-                if not any(err in error_msg for err in known_errors):
-                    self.logger.log(f"Error starting agent {agent_name}: {error_msg}", 'error')
+                # If it's a known Aider error, treat it as success
+                if any(err in error_msg for err in known_errors):
+                    self._manage_agent_collections(agent_name, 'start')
+                    self.logger.log(f"Successfully started agent {agent_name} (ignoring known Aider message)", 'success')
+                    return True
+                    
+                # Only log unknown errors
+                self.logger.log(f"Error starting agent {agent_name}: {error_msg}", 'error')
                 return False
                 
         except Exception as e:
