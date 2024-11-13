@@ -174,19 +174,31 @@ class AiderAgent(AgentBase):
 
 
     def _run_aider(self, prompt: str) -> Optional[str]:
-        """Execute Aider with given prompt and stream output."""
-        attempt = 1
-        max_attempts = 5
+        """Execute Aider with given prompt and handle all outcomes"""
+        if not self._validate_run_input(prompt):
+            return None
 
-        while attempt <= max_attempts:
-            try:
-                # Store original directory
-                original_dir = os.getcwd()
-
-                # Validate input
-                if not prompt or not prompt.strip():
-                    self._log(f"[{self.name}] ❌ Empty prompt")
-                    return None
+        try:
+            # Build command with builder
+            cmd = self.command_builder.build_command(
+                prompt=prompt,
+                files=list(self.mission_files.keys())
+            )
+            
+            # Validate command
+            if not self.command_builder.validate_command(cmd):
+                self.logger.log("Invalid command configuration", 'error')
+                return None
+                
+            # Execute command
+            process = self.command_builder.execute_command(cmd)
+            
+            # Parse output
+            return self.output_parser.parse_output(process)
+            
+        except Exception as e:
+            self._handle_error('run_aider', e, {'prompt': prompt})
+            return None
 
                 # Log start of execution
                 self._log(f"[{self.name}] 🚀 Starting Aider execution")

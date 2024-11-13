@@ -198,12 +198,9 @@ class AiderAgent(AgentBase):
             services['map_service'].update_map()
             
             # Track file modifications with context
-            self._track_file_changes(result)
-            
-            # Track file changes with detailed context
             changes = self._track_file_changes(result)
             
-            # Save changes to dataset if significant
+            # Save to dataset if significant
             if changes and changes['modified_files']:
                 try:
                     self._save_to_dataset(changes, result)
@@ -373,3 +370,89 @@ class AiderAgent(AgentBase):
             self.logger.log(line, 'error')
         else:
             self.logger.log(line, 'info')
+    @TimeoutManager.with_timeout(COMMAND_EXECUTION_TIMEOUT)
+    def _execute_aider_command(self, cmd: List[str]) -> Optional[str]:
+        """Execute Aider command with timeout handling"""
+        try:
+            process = self.command_builder.execute_command(cmd)
+            
+            with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
+                result = self.output_parser.parse_output(process)
+                
+            return result
+            
+        except TimeoutError:
+            self.logger.log("Command execution timed out", 'error')
+            return None
+        except Exception as e:
+            self._handle_error('execute_command', e)
+            return None
+    def _track_file_changes(self, output: str) -> Dict[str, Any]:
+        """Track file modifications with context"""
+        changes = {
+            'modified_files': set(),
+            'added_files': set(),
+            'deleted_files': set(),
+            'context': {}
+        }
+        
+        try:
+            # Parse changes
+            for line in output.splitlines():
+                if "Wrote " in line:
+                    file_path = line.split("Wrote ")[1].split()[0]
+                    changes['modified_files'].add(file_path)
+                    
+                    # Save context
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            changes['context'][file_path] = f.read()
+                    except Exception as e:
+                        self.logger.log(f"Error reading modified file: {str(e)}", 'error')
+                        
+            # Save for fine-tuning if significant
+            if changes['modified_files']:
+                self._save_to_dataset(changes, output)
+                
+            return changes
+            
+        except Exception as e:
+            self._handle_error('track_changes', e)
+            return changes
+    def _handle_anthropic_error(self, error: str, attempt: int, max_attempts: int) -> bool:
+        """Handle Anthropic-specific errors with backoff"""
+        error_str = str(error).lower()
+        
+        # Rate limit errors
+        if any(msg in error_str for msg in ['rate limit', 'too many requests', '429']):
+            if attempt < max_attempts:
+                wait_time = min(30 * attempt, 300)  # Max 5 min wait
+                self.logger.log(
+                    f"Rate limit hit. Waiting {wait_time}s "
+                    f"(attempt {attempt}/{max_attempts})", 
+                    'warning'
+                )
+                time.sleep(wait_time)
+                return True
+                
+        # Context length errors
+        elif any(msg in error_str for msg in ['context length', 'too long']):
+            self.logger.log("Context length exceeded - trying to optimize", 'warning')
+            return self._handle_context_length_error()
+            
+        return False
+
+    def _handle_context_length_error(self) -> bool:
+        """Handle context length errors by optimizing input"""
+        try:
+            # Reduce number of included files
+            if len(self.mission_files) > 5:
+                self.mission_files = dict(list(self.mission_files.items())[:5])
+                self.logger.log("Reduced number of included files", 'info')
+                return True
+                
+            return False
+            
+        except Exception as e:
+            self.logger.log(f"Error handling context length: {str(e)}", 'error')
+            return False
