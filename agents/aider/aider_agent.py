@@ -395,11 +395,6 @@ class AiderAgent(AgentBase):
                         self.consecutive_no_changes = 0
                     else:
                         self.consecutive_no_changes += 1
-                        
-                    # Calculate and wait for next interval
-                    interval = self.calculate_dynamic_interval()
-                    self.logger.log(f"[{self.name}] Waiting {interval}s before next run", 'info')
-                    time.sleep(interval)
                     
                 except Exception as loop_error:
                     # Ignore known Windows stdout flush error
