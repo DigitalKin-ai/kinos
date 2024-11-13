@@ -117,11 +117,15 @@ class AgentService:
             self.log_message(f"Error importing agent class: {str(e)}", 'error')
             return None
 
-    def init_agents(self, config: Dict[str, Any], team_agents: Optional[List[str]] = None) -> None:
+    def init_agents(self, config: Dict[str, Any], team_agents: Optional[List[Union[str, Dict[str, Any]]]] = None) -> None:
         """Initialize agents with minimal configuration"""
         try:
             if not team_agents:
-                team_agents = ['specifications', 'management', 'evaluation']
+                team_agents = [
+                    {'name': 'specifications', 'type': 'aider', 'weight': 0.7},
+                    {'name': 'management', 'type': 'aider', 'weight': 0.6},
+                    {'name': 'evaluation', 'type': 'aider', 'weight': 0.7}
+                ]
 
             mission_dir = config.get('mission_dir')
             if not mission_dir or not os.path.exists(mission_dir):
@@ -130,15 +134,15 @@ class AgentService:
             initialized_agents = {}
             for agent_spec in team_agents:
                 try:
-                    # Handle both string and dict formats
+                    # Normalize agent specification
                     if isinstance(agent_spec, dict):
                         agent_name = agent_spec['name']
                         agent_type = agent_spec.get('type', 'aider')
-                        agent_weight = agent_spec.get('weight', 0.5)
+                        agent_weight = float(agent_spec.get('weight', 0.5))
                     else:
                         agent_name = agent_spec
-                        agent_type = 'aider'  # default type
-                        agent_weight = 0.5    # default weight
+                        agent_type = 'aider'
+                        agent_weight = 0.5
 
                     agent_config = {
                         'name': agent_name,

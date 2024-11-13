@@ -164,13 +164,13 @@ class TeamService:
                 'info'
             )
 
-            # Filter agents based on phase from phase_status
+            # Filter and weight agents based on phase
             filtered_agents = self._filter_agents_by_phase(team['agents'], phase_status['phase'])
             
             if not filtered_agents:
                 self.logger.log(
                     f"No agents available for phase {phase_status['phase']}. "
-                    f"Original agents: {team['agents']}", 
+                    f"Original agents: {[a['name'] if isinstance(a, dict) else a for a in team['agents']]}", 
                     'warning'
                 )
                 return {
@@ -180,6 +180,26 @@ class TeamService:
                     'phase': phase_status['phase'],
                     'status': 'no_agents_for_phase'
                 }
+
+            # Convert string agent names to dict format with weights
+            normalized_agents = []
+            phase_config = team.get('phase_config', {}).get(phase_status['phase'].lower(), {})
+            phase_agents = {a['name']: a.get('weight', 0.5) for a in phase_config.get('active_agents', [])}
+            
+            for agent in filtered_agents:
+                if isinstance(agent, dict):
+                    # Keep existing dict format but override weight if in phase config
+                    agent_copy = agent.copy()
+                    if agent['name'] in phase_agents:
+                        agent_copy['weight'] = phase_agents[agent['name']]
+                    normalized_agents.append(agent_copy)
+                else:
+                    # Convert string to dict with weight from phase config or default
+                    normalized_agents.append({
+                        'name': agent,
+                        'type': 'aider',  # default type
+                        'weight': phase_agents.get(agent, 0.5)
+                    })
 
             # Initialize filtered agents with error handling
             try:

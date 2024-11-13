@@ -664,8 +664,8 @@ class KinOSAgent:
             min_interval = 60  # Minimum 1 minute
             max_interval = 3600  # Maximum 1 hour
             
-            # Get agent weight from config and current phase
-            agent_weight = 0.5  # Default weight
+            # Use configured weight
+            agent_weight = float(self.weight)  # Convert to float for safety
             phase_weight = None
             
             try:
