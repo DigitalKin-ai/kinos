@@ -486,12 +486,8 @@ class AiderAgent(AgentBase):
                                 
                                 # Detect Anthropic rate limit errors
                                 if any(msg in error_str for msg in ['rate limit', 'too many requests', '429']):
-                                    if self._handle_rate_limit_error(attempt, max_attempts):
-                                        attempt += 1
-                                        continue
-                                    else:
-                                        self._log(f"[{self.name}] ❌ Abandoning after {max_attempts} rate limit retries")
-                                        return None
+                                    self._log(f"[{self.name}] Rate limit hit, skipping file", 'warning')
+                                    continue
                                 
                                 # For other errors, log and continue
                                 self._log(f"[{self.name}] ❌ Error reading modified file {file_path}: {str(e)}")
@@ -509,12 +505,8 @@ class AiderAgent(AgentBase):
                                     
                                     # Detect Anthropic rate limit errors
                                     if any(msg in error_str for msg in ['rate limit', 'too many requests', '429']):
-                                        if self._handle_rate_limit_error(attempt, max_attempts):
-                                            attempt += 1
-                                            continue
-                                        else:
-                                            self._log(f"[{self.name}] ❌ Abandoning after {max_attempts} rate limit retries")
-                                            return None
+                                        self._log(f"[{self.name}] Rate limit hit, skipping file", 'warning')
+                                        continue
                                     
                                     # For other errors, log and continue
                                     self._log(f"[{self.name}] ❌ Error reading original file {file_path}: {str(e)}")
@@ -533,12 +525,8 @@ class AiderAgent(AgentBase):
                         
                         # Detect Anthropic rate limit errors
                         if any(msg in error_str for msg in ['rate limit', 'too many requests', '429']):
-                            if self._handle_rate_limit_error(attempt, max_attempts):
-                                attempt += 1
-                                continue
-                            else:
-                                self._log(f"[{self.name}] ❌ Abandoning after {max_attempts} rate limit retries")
-                                return None
+                            self._log(f"[{self.name}] Rate limit hit, skipping operation", 'warning')
+                            return None
                         
                         # For other errors, log and continue
                         self._log(f"[{self.name}] ❌ Error reading files: {str(e)}")
