@@ -34,7 +34,7 @@ class TeamService:
         self.predefined_teams = self._load_predefined_teams()
         self.max_concurrent_agents = 3  # Maximum concurrent agents
         self._agent_queue = Queue()  # Agent queue
-        self._active_agents = set()  # Active agents tracking
+        self._active_agents = []  # Changed from set() to list() for active agents tracking
         self._team_lock = threading.Lock()
 
     def _load_predefined_teams(self) -> List[Dict]:
