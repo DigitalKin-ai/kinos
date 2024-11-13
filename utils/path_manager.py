@@ -3,6 +3,7 @@ import re
 import json
 import traceback
 import platform
+import shutil
 from typing import Optional, Dict, Any
 
 class PathManager:
@@ -56,25 +57,49 @@ class PathManager:
         return normalized.strip('_').strip()
 
     @classmethod
-    def validate_mission_path(cls, path: str) -> bool:
-        """Validate a mission path"""
+    def validate_mission_path(cls, path: str, strict: bool = False) -> bool:
+        """
+        Comprehensive mission path validation
+        
+        Args:
+            path (str): Path to validate
+            strict (bool): Enable stricter validation checks
+        
+        Returns:
+            bool: Whether path is valid for mission use
+        """
         try:
             # Ensure absolute path
             if not os.path.isabs(path):
                 return False
-                
+            
             # Check path exists or is creatable
             try:
                 os.makedirs(path, exist_ok=True)
             except (PermissionError, OSError):
                 return False
-                
+            
             # Check read and write permissions
             if not os.access(path, os.R_OK | os.W_OK):
                 return False
-                
-            return True
             
+            # Optional strict checks
+            if strict:
+                # Prevent use of system directories
+                system_dirs = ['/sys', '/proc', '/dev', '/etc']
+                if any(path.startswith(sys_dir) for sys_dir in system_dirs):
+                    return False
+                
+                # Check free disk space (minimum 100MB)
+                try:
+                    total, used, free = shutil.disk_usage(path)
+                    if free < 100 * 1024 * 1024:  # 100MB in bytes
+                        return False
+                except Exception:
+                    return False
+            
+            return True
+        
         except Exception:
             return False
 
