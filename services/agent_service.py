@@ -1037,16 +1037,39 @@ List any specific constraints or limitations.
         except Exception as e:
             self.logger.log(f"Error restarting agent {name}: {str(e)}", 'error')
 
+    def _start_agent_with_retry(self, agent_name: str, agent_state: AgentState, max_attempts: int = 3) -> bool:
+        """Start agent with retry logic and exponential backoff"""
+        for attempt in range(max_attempts):
+            try:
+                agent_state.mark_active()
+                success = self._start_agent(agent_name)
+                
+                if success:
+                    agent_state.mark_completed()
+                    return True
+                    
+                # If failed but can retry
+                if agent_state.can_retry:
+                    backoff_time = min(30, 2 ** attempt)  # Exponential backoff capped at 30s
+                    self.logger.log(
+                        f"Retrying agent {agent_name} in {backoff_time}s "
+                        f"(Attempt {attempt + 1}/{max_attempts})",
+                        'warning'
+                    )
+                    time.sleep(backoff_time)
+                else:
+                    agent_state.mark_error(f"Failed after {max_attempts} attempts")
+                    return False
+                    
+            except Exception as e:
+                agent_state.mark_error(str(e))
+                if not agent_state.can_retry:
+                    return False
+                    
+        return False
+
     def _start_agent(self, agent_name: str) -> bool:
-        """
-        Start a single agent with error handling
-        
-        Args:
-            agent_name: Name of agent to start
-            
-        Returns:
-            bool: True if agent started successfully
-        """
+        """Start a single agent with error handling"""
         try:
             self.logger.log(f"Starting agent: {agent_name}", 'info')
             

@@ -237,6 +237,51 @@ class TeamService:
         # Save original signal handler
         original_sigint_handler = signal.getsignal(signal.SIGINT)
 
+    def stop_team(self, team_id: str, timeout: int = 30) -> Dict[str, Any]:
+        """Stop team with graceful shutdown and cleanup"""
+        try:
+            team_config = self._get_team_config(team_id)
+            if not team_config:
+                return {'status': 'not_found', 'team_id': team_id}
+
+            shutdown_results = {}
+            start_time = time.time()
+
+            for agent in team_config.agents:
+                agent_name = agent['name'] if isinstance(agent, dict) else agent
+                
+                try:
+                    # Check remaining timeout
+                    elapsed = time.time() - start_time
+                    if elapsed >= timeout:
+                        shutdown_results[agent_name] = 'timeout'
+                        continue
+
+                    # Try to stop agent with remaining time
+                    remaining_timeout = max(1, timeout - elapsed)
+                    with TimeoutManager.timeout(remaining_timeout):
+                        success = self.agent_service.toggle_agent(agent_name, 'stop')
+                        shutdown_results[agent_name] = 'stopped' if success else 'failed'
+
+                except TimeoutError:
+                    shutdown_results[agent_name] = 'timeout'
+                except Exception as e:
+                    shutdown_results[agent_name] = f'error: {str(e)}'
+
+            return {
+                'team_id': team_id,
+                'status': 'stopped',
+                'results': shutdown_results,
+                'duration': time.time() - start_time
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'team_id': team_id,
+                'error': str(e)
+            }
+
     def get_team_status(self, team_id: str) -> Dict[str, Any]:
         """Get comprehensive team status"""
         try:
@@ -463,6 +508,124 @@ class TeamService:
             self.logger.log(f"Error filtering agents: {str(e)}", 'error')
             return [{'name': a, 'type': 'aider', 'weight': 0.5} if isinstance(a, str) else a 
                     for a in agents]
+    def update_team_config(self, team_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+        """Update team configuration with validation"""
+        try:
+            # Get current config
+            current_config = self._get_team_config(team_id)
+            if not current_config:
+                raise TeamStartupError("Team not found", team_id)
+
+            # Create new config with updates
+            updated_config = {**current_config, **updates}
+            
+            # Validate new config
+            team_config = TeamConfig.from_dict(updated_config)
+            valid, error = team_config.validate()
+            if not valid:
+                raise TeamStartupError(error, team_id)
+
+            # Check if team is running
+            team_status = self.get_team_status(team_id)
+            if team_status['status'] == 'active':
+                # Stop team before updating
+                self.stop_team(team_id)
+
+            # Save updated config
+            config_path = os.path.join("teams", team_id, "config.json")
+            os.makedirs(os.path.dirname(config_path), exist_ok=True)
+            
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(updated_config, f, indent=2)
+
+            # Reload predefined teams
+            self.predefined_teams = self._load_predefined_teams()
+
+            return {
+                'team_id': team_id,
+                'status': 'updated',
+                'config': updated_config
+            }
+
+        except TeamStartupError as e:
+            return e.to_dict()
+        except Exception as e:
+            error = TeamStartupError(
+                str(e), 
+                team_id,
+                {'type': type(e).__name__, 'traceback': traceback.format_exc()}
+            )
+            return error.to_dict()
+
+    def check_team_health(self, team_id: str) -> Dict[str, Any]:
+        """Comprehensive team health check"""
+        try:
+            team_config = self._get_team_config(team_id)
+            if not team_config:
+                return {'status': 'not_found', 'team_id': team_id}
+
+            health_metrics = {
+                'agents': {},
+                'system': {
+                    'memory_usage': {},
+                    'cpu_usage': {},
+                    'file_operations': {
+                        'reads': 0,
+                        'writes': 0,
+                        'errors': 0
+                    }
+                }
+            }
+
+            for agent in team_config.agents:
+                agent_name = agent['name'] if isinstance(agent, dict) else agent
+                
+                # Get detailed agent status
+                agent_status = self.agent_service.get_agent_status(agent_name)
+                
+                # Get agent metrics
+                agent_metrics = {
+                    'status': agent_status['status'],
+                    'health': agent_status['health'],
+                    'performance': {
+                        'response_times': agent_status.get('metrics', {}).get('response_times', {}),
+                        'error_rate': agent_status.get('metrics', {}).get('error_rate', 0),
+                        'success_rate': agent_status.get('metrics', {}).get('success_rate', 0)
+                    },
+                    'resources': agent_status.get('resources', {})
+                }
+                
+                health_metrics['agents'][agent_name] = agent_metrics
+                
+                # Aggregate system metrics
+                for metric in ['memory_usage', 'cpu_usage']:
+                    if metric in agent_metrics['resources']:
+                        health_metrics['system'][metric][agent_name] = agent_metrics['resources'][metric]
+
+                # Aggregate file operations
+                if 'file_operations' in agent_metrics.get('resources', {}):
+                    for op_type in ['reads', 'writes', 'errors']:
+                        health_metrics['system']['file_operations'][op_type] += \
+                            agent_metrics['resources']['file_operations'].get(op_type, 0)
+
+            # Calculate overall health score
+            health_score = self._calculate_health_score(health_metrics)
+            
+            return {
+                'team_id': team_id,
+                'timestamp': datetime.now().isoformat(),
+                'health_score': health_score,
+                'metrics': health_metrics,
+                'status': 'healthy' if health_score >= 0.7 else 'degraded'
+            }
+
+        except Exception as e:
+            return {
+                'status': 'error',
+                'team_id': team_id,
+                'error': str(e)
+            }
+
     def _get_team_config(self, team_id: str) -> Optional[Dict]:
         """Get team configuration by ID"""
         normalized_id = self._normalize_team_id(team_id)
