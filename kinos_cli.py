@@ -12,7 +12,11 @@ from services.agent_service import AgentService
 def load_team_config(team_name: str) -> List[str]:
     """Load agent names from team config"""
     try:
-        config_path = os.path.join("teams", team_name, "config.json")
+        # Use PathManager to get KinOS root path
+        from utils.path_manager import PathManager
+        kinos_root = PathManager.get_kinos_root()
+        
+        config_path = os.path.join(kinos_root, "teams", team_name, "config.json")
         with open(config_path, 'r') as f:
             config = json.load(f)
             return [agent['name'] if isinstance(agent, dict) else agent 
