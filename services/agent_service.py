@@ -771,7 +771,7 @@ List any specific constraints or limitations.
             }
         }
         return status_map.get(status_type, status_map['default'])
-    def _run_agent_wrapper(self, name: str, agent: 'KinOSAgent') -> None:
+    def _run_agent_wrapper(self, name: str, agent: 'AgentBase') -> None:
         """Wrapper to execute an agent in a thread with comprehensive error handling"""
         try:
             self.logger.log(f"Starting agent {name}", 'info')
@@ -949,7 +949,7 @@ List any specific constraints or limitations.
             }
         }
 
-    def _restart_agent(self, name: str, agent: 'KinOSAgent') -> None:
+    def _restart_agent(self, name: str, agent: 'AgentBase') -> None:
         """Safely restart a single agent"""
         try:
             # Stop the agent
