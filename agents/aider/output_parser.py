@@ -199,30 +199,32 @@ class AiderOutputParser:
         }
         
         try:
+            # Collect all output first
+            full_output = []
             while True:
                 line = process.stdout.readline()
                 if not line and process.poll() is not None:
                     break
-                    
+                
                 line = line.rstrip()
                 if not line:
                     continue
                     
+                full_output.append(line)
+                
                 # Parse different line types
                 if "Wrote " in line:
                     self._parse_file_modification(line, changes)
-                elif "Commit" in line:
-                    self._parse_commit_message(line, output_lines)
                 elif self._is_error_message(line):
                     self._handle_error_message(line)
                 else:
                     output_lines.append(line)
-                
+
             # Get return code
             return_code = process.wait(timeout=5)
             
             # Combine output
-            output = "\n".join(output_lines)
+            output = "\n".join(full_output)
             
             # Parse changes and errors
             changes = self._parse_file_changes(output)
