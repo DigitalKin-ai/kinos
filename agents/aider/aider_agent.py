@@ -245,12 +245,12 @@ class AiderAgent(AgentBase):
                 error_detected
             )
 
-                # Initialize output collection
-                output_lines = []
-                error_detected = False
-                
-                # Read output while process is running
-                while True:
+            # Initialize output collection
+            output_lines = []
+            error_detected = False
+            
+            # Read output while process is running
+            while True:
                     try:
                         line = process.stdout.readline()
                         if not line and process.poll() is not None:
