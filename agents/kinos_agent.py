@@ -66,14 +66,10 @@ class FileManager:
         except Exception as e:
             self.logger.log(f"Error resetting files: {e}", 'error')
             return False
-import json
 from typing import Dict, Any, Optional, List
-import re
 import time
-import openai
-import anthropic
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import wraps
 
 class KinOSAgent:
@@ -97,31 +93,41 @@ class KinOSAgent:
     def __init__(self, config: Dict[str, Any]):
         """Initialize agent with configuration"""
         try:
+            # Store original directory and configure encoding
             self.original_dir = os.getcwd()
-            
-            # Configure UTF-8 encoding once
             self._configure_encoding()
             
-            # Initialize core attributes first
-            self._init_core_attributes(config)
-            
-            # Initialize logger (needed for all other operations)
+            # Initialize logger first for proper error reporting
             self.logger = self._init_logger(config.get("logger", print))
             
-            # Validate and set paths
-            self._validate_paths()
+            # Validate required config fields
+            required_fields = ['name', 'mission_dir']
+            missing = [f for f in required_fields if f not in config]
+            if missing:
+                raise ValueError(f"Missing required config fields: {', '.join(missing)}")
             
-            # Initialize state tracking
-            self._init_state()
+            # Set core attributes
+            self.name = config['name']
+            self.config = config
+            self.mission_dir = config['mission_dir']
             
-            # Load configuration
+            # Initialize state
+            self.running = False
+            self.last_run = None
+            self.last_change = None
+            self.consecutive_no_changes = 0
+            self.error_count = 0
+            self.mission_files = {}
+            self._prompt_cache = {}
+            
+            # Load configuration and validate paths
             self._load_config()
+            self._validate_paths()
             
             self.logger.log(f"[{self.__class__.__name__}] Initialized as {self.name}")
             
         except Exception as e:
-            # Basic error logging even if logger isn't initialized
-            print(f"Error initializing agent: {str(e)}")
+            print(f"Error initializing agent: {str(e)}")  # Fallback logging
             raise
         
 
