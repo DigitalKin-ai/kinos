@@ -62,6 +62,10 @@ class AiderAgent(AgentBase):
             self.logger.log(f"Error during initialization: {str(e)}", 'error')
             raise
         
+    def _configure_encoding(self):
+        """Configure UTF-8 encoding for the agent"""
+        configure_encoding()
+        
     def _init_state(self):
         """Initialize agent state tracking"""
         self.running = False
