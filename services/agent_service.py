@@ -770,16 +770,31 @@ List any specific constraints or limitations.
             }
 
     def _get_agent_status(self, agent_name: str) -> Dict[str, Any]:
-        """Get status for a specific agent"""
+        """Get comprehensive status for a specific agent"""
         try:
             agent = self.agents.get(agent_name)
             if not agent:
-                return self._get_agent_status_details(None)
-                
-            # Use relative paths for any internal API calls
-            status_url = f"/api/agents/{agent_name}/status"
-            return self._get_agent_status_details(agent)
-            
+                return {
+                    'running': False,
+                    'status': 'not_found',
+                    'last_run': None,
+                    'health': {
+                        'is_healthy': False,
+                        'consecutive_no_changes': 0
+                    }
+                }
+
+            return {
+                'running': getattr(agent, 'running', False),
+                'last_run': agent.last_run.isoformat() if hasattr(agent, 'last_run') and agent.last_run else None,
+                'status': 'active' if getattr(agent, 'running', False) else 'inactive',
+                'health': {
+                    'is_healthy': agent.is_healthy() if hasattr(agent, 'is_healthy') else True,
+                    'consecutive_no_changes': getattr(agent, 'consecutive_no_changes', 0),
+                    'error_count': getattr(agent, 'error_count', 0)
+                }
+            }
+
         except Exception as e:
             self.logger.log(f"Error getting agent status: {str(e)}", 'error')
             return {
@@ -859,37 +874,40 @@ List any specific constraints or limitations.
             self.logger.log(f"Error calculating error rate: {str(e)}", 'error')
             return 0.0
 
-    def _handle_agent_error(self, agent_name: str, error: Exception) -> None:
-        """Handle agent errors with recovery attempts"""
+    def _handle_error(self, error_type: str, error: Exception, context: Dict = None) -> None:
+        """Centralized error handling for both agent and system errors"""
         try:
-            self.logger.log(f"Agent {agent_name} error: {str(error)}", 'error')
+            context = context or {}
+            agent_name = context.get('agent_name')
             
-            # Get agent instance
-            agent = self.agents.get(agent_name)
-            if not agent:
-                return
+            # Log the error with context
+            self.logger.log(
+                f"{error_type} error: {str(error)}\n"
+                f"Context: {context}", 
+                'error'
+            )
+            
+            if error_type == 'agent':
+                if not agent_name or agent_name not in self.agents:
+                    return
+                    
+                agent = self.agents[agent_name]
+                agent.error_count = getattr(agent, 'error_count', 0) + 1
                 
-            # Increment error count
-            agent.error_count = getattr(agent, 'error_count', 0) + 1
-            
-            # Try to recover agent
-            if hasattr(agent, 'recover_from_error'):
-                try:
-                    success = agent.recover_from_error()
-                    if success:
-                        self.logger.log(f"Agent {agent_name} recovered successfully", 'info')
-                    else:
-                        self.logger.log(f"Agent {agent_name} recovery failed", 'warning')
-                except Exception as recovery_error:
-                    self.logger.log(f"Error during agent recovery: {str(recovery_error)}", 'error')
-            
-            # Stop agent if too many errors
-            if agent.error_count > 5:  # Configurable threshold
-                self.logger.log(f"Stopping agent {agent_name} due to too many errors", 'warning')
-                agent.stop()
+                # Try recovery for agent errors
+                if hasattr(agent, 'recover_from_error'):
+                    try:
+                        if agent.recover_from_error():
+                            self.logger.log(f"Agent {agent_name} recovered successfully", 'info')
+                        else:
+                            self.logger.log(f"Agent {agent_name} recovery failed", 'warning')
+                    except Exception as recovery_error:
+                        self.logger.log(f"Recovery error: {str(recovery_error)}", 'error')
                 
-        except Exception as e:
-            self.logger.log(f"Error handling agent error: {str(e)}", 'error')
+                # Stop agent if too many errors
+                if agent.error_count > 5:
+                    self.logger.log(f"Stopping agent {agent_name} due to too many errors", 'warning')
+                    agent.stop()
 
     def _get_response_times(self, agent) -> Dict[str, float]:
         """Get agent response time metrics"""

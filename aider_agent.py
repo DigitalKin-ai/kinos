@@ -91,8 +91,11 @@ class AiderAgent(AgentBase):
         
 
     def _log(self, message: str, level: str = 'info') -> None:
-        """Méthode de logging centralisée"""
-        self.logger.log(message, level)
+        """Centralized logging method"""
+        if hasattr(self, 'logger'):
+            self.logger.log(message, level)
+        else:
+            print(f"[{level.upper()}] {message}")
 
     def _get_relative_file_path(self, file_path: str) -> str:
         """Get relative path from mission directory"""
