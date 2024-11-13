@@ -13,20 +13,34 @@ class PromptHandler:
     def get_prompt(self, prompt_file: str) -> Optional[str]:
         """Get prompt with caching"""
         try:
-            if not prompt_file or not os.path.exists(prompt_file):
+            if not prompt_file:
+                self.logger.log("No prompt file specified", 'error')
+                return None
+
+            # Normalize path and check existence
+            prompt_path = self._resolve_prompt_path(prompt_file)
+            if not prompt_path or not os.path.exists(prompt_path):
+                self.logger.log(f"Prompt file not found: {prompt_file}", 'error')
+                self.logger.log(f"Searched path: {prompt_path}", 'debug')
                 return None
 
             # Check cache first
-            mtime = os.path.getmtime(prompt_file)
-            if prompt_file in self._prompt_cache:
-                cached_time, cached_content = self._prompt_cache[prompt_file]
+            mtime = os.path.getmtime(prompt_path)
+            if prompt_path in self._prompt_cache:
+                cached_time, cached_content = self._prompt_cache[prompt_path]
                 if cached_time == mtime:
                     return cached_content
 
             # Load and cache prompt
-            with open(prompt_file, 'r', encoding='utf-8') as f:
+            with open(prompt_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-            self._prompt_cache[prompt_file] = (mtime, content)
+                
+            if not content.strip():
+                self.logger.log(f"Empty prompt file: {prompt_path}", 'error')
+                return None
+                
+            self._prompt_cache[prompt_path] = (mtime, content)
+            self.logger.log(f"Loaded prompt from: {prompt_path}", 'debug')
             return content
 
         except Exception as e:
@@ -117,3 +131,36 @@ class PromptHandler:
         except Exception as e:
             self.logger.log(f"Error creating backup: {str(e)}", 'error')
             return False
+    def _resolve_prompt_path(self, prompt_file: str) -> Optional[str]:
+        """Resolve prompt file path checking multiple locations"""
+        try:
+            # Check if absolute path
+            if os.path.isabs(prompt_file) and os.path.exists(prompt_file):
+                return prompt_file
+                
+            # Get project root using PathManager
+            from utils.path_manager import PathManager
+            project_root = PathManager.get_project_root()
+            
+            # Possible locations to check
+            search_paths = [
+                prompt_file,  # As provided
+                os.path.join(project_root, prompt_file),  # Relative to root
+                os.path.join(project_root, "prompts", prompt_file),  # In prompts dir
+                os.path.join(project_root, "prompts", os.path.basename(prompt_file)),  # Just filename in prompts
+                os.path.join(project_root, "prompts", "custom", os.path.basename(prompt_file))  # In custom prompts
+            ]
+            
+            # Log search paths
+            self.logger.log(f"Searching for prompt in:\n" + "\n".join(search_paths), 'debug')
+            
+            # Try each path
+            for path in search_paths:
+                if os.path.exists(path):
+                    return path
+                    
+            return None
+            
+        except Exception as e:
+            self.logger.log(f"Error resolving prompt path: {str(e)}", 'error')
+            return None

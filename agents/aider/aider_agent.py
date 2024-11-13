@@ -49,10 +49,19 @@ class AiderAgent(AgentBase):
             self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
             self.file_handler = FileHandler(self.mission_dir, self.logger)
             self.prompt_handler = PromptHandler(self.logger)
-            
+        
             # Store original directory
             self.original_dir = os.getcwd()
-            
+        
+            # Resolve prompt file path
+            if not self.prompt_file:
+                # Try to find default prompt file based on agent name
+                from utils.path_manager import PathManager
+                default_prompt = f"{self.name.lower()}.md"
+                prompts_dir = PathManager.get_prompts_path()
+                self.prompt_file = os.path.join(prompts_dir, default_prompt)
+                self.logger.log(f"Using default prompt file: {self.prompt_file}", 'info')
+        
             # Initialize state tracking
             self._init_state()
             
