@@ -217,6 +217,7 @@ class TeamService:
 
                 for agent_name in initial_batch:
                     futures.append(executor.submit(start_agent, agent_name))
+                    time.sleep(5)  # Wait 5 seconds between each initial agent
 
                 # Process results and add new agents as others complete
                 while futures or remaining_agents:
@@ -234,6 +235,7 @@ class TeamService:
                                 # Start next agent
                                 next_agent = remaining_agents.pop(0)
                                 futures.add(executor.submit(start_agent, next_agent))
+                                time.sleep(5)  # Wait 5 seconds before starting next agent
                         except Exception as e:
                             self.logger.log(f"Error processing agent result: {str(e)}", 'error')
 
