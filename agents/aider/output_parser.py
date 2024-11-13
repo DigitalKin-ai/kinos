@@ -252,6 +252,9 @@ class AiderOutputParser:
                     if line.startswith("Commit "):
                         current_commit = line
                         full_output.append(line)
+                        # Marquer qu'on a des résultats si le commit est parsé avec succès
+                        if self._parse_commit_line(current_commit):
+                            has_results = True
                     # Si on a un commit en cours et que la ligne suivante n'est pas une nouvelle commande
                     elif current_commit and not any(cmd in line for cmd in ["Wrote ", "Created ", "Deleted ", "Running ", "$ git"]):
                         # Ajouter au message de commit précédent
@@ -266,9 +269,6 @@ class AiderOutputParser:
                     if "Wrote " in line:
                         self._parse_file_modification(line, changes)
                         has_results = True
-                    elif line.startswith("Commit "):
-                        if self._parse_commit_line(current_commit or line):
-                            has_results = True
                     elif self._is_error_message(line):
                         self._handle_error_message(line)
                     else:
