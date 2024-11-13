@@ -376,10 +376,13 @@ class AiderAgent(AgentBase):
                         self.logger.log(f"[{self.name}] ⚠️ No prompt available, skipping run", 'warning')
                         time.sleep(60)
                         continue
+
+                    # TODO: faire un call a Claude Haiku pour formuler les instructions
+                    instructions = 
                         
                     # Run Aider with current prompt and handle stdout flush error
                     try:
-                        result = self.run_aider(prompt)
+                        result = self.run_aider(instructions)
                     except OSError as os_error:
                         if "[Errno 22] Invalid argument" in str(os_error):
                             # Ignorer cette erreur spécifique de flush
