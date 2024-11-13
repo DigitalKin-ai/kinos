@@ -138,27 +138,47 @@ class PromptHandler:
             if os.path.isabs(prompt_file) and os.path.exists(prompt_file):
                 return prompt_file
                 
-            # Get project root using PathManager
+            # Get KinOS root and project root
             from utils.path_manager import PathManager
+            kinos_root = PathManager.get_kinos_root()
             project_root = PathManager.get_project_root()
             
-            # Possible locations to check
+            # Possible locations to check, en priorité depuis kinos_root
             search_paths = [
-                prompt_file,  # As provided
-                os.path.join(project_root, prompt_file),  # Relative to root
-                os.path.join(project_root, "prompts", prompt_file),  # In prompts dir
-                os.path.join(project_root, "prompts", os.path.basename(prompt_file)),  # Just filename in prompts
-                os.path.join(project_root, "prompts", "custom", os.path.basename(prompt_file))  # In custom prompts
+                # D'abord chercher dans l'installation KinOS
+                os.path.join(kinos_root, "prompts", os.path.basename(prompt_file)),
+                os.path.join(kinos_root, "prompts", prompt_file),
+                os.path.join(kinos_root, prompt_file),
+                
+                # Puis dans le projet courant
+                os.path.join(project_root, prompt_file),
+                os.path.join(project_root, "prompts", prompt_file),
+                prompt_file,  # Chemin relatif tel quel
             ]
             
             # Log search paths
-            self.logger.log(f"Searching for prompt in:\n" + "\n".join(search_paths), 'debug')
+            self.logger.log(
+                f"Searching for prompt in:\n" + 
+                "\n".join(f"- {p}" for p in search_paths), 
+                'debug'
+            )
             
             # Try each path
             for path in search_paths:
                 if os.path.exists(path):
+                    self.logger.log(f"Found prompt at: {path}", 'debug')
                     return path
                     
+            # Si non trouvé, log détaillé
+            self.logger.log(
+                f"Prompt not found. Details:\n"
+                f"- KinOS root: {kinos_root}\n"
+                f"- Project root: {project_root}\n"
+                f"- Prompt file: {prompt_file}\n"
+                f"- Searched paths:\n" +
+                "\n".join(f"  - {p}" for p in search_paths),
+                'error'
+            )
             return None
             
         except Exception as e:
