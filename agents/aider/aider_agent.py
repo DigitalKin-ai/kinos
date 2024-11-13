@@ -1,6 +1,7 @@
 """
 AiderAgent - Core implementation of Aider-based agent functionality
 """
+# Standard library imports
 import os
 import time
 import subprocess
@@ -8,8 +9,16 @@ import traceback
 import threading
 from datetime import datetime
 from typing import Dict, Any, Optional, List
+
+# Local imports
 from utils.logger import Logger
 from utils.exceptions import AgentError
+from utils.constants import (
+    DEFAULT_TIMEOUT,
+    MAX_RETRIES,
+    RATE_LIMIT_WINDOW,
+    MAX_REQUESTS_PER_MINUTE
+)
 from agents.base.agent_base import AgentBase
 from agents.aider.command_builder import AiderCommandBuilder
 from agents.aider.output_parser import AiderOutputParser

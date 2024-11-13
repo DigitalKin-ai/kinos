@@ -1,10 +1,14 @@
 """PhaseService - Service for managing project phases based on token usage"""
-import os
 from enum import Enum
 from typing import Dict, Any, Tuple
 from datetime import datetime
 from services.base_service import BaseService
 from utils.logger import Logger
+from utils.constants import (
+    MODEL_TOKEN_LIMIT,
+    CONVERGENCE_THRESHOLD,
+    EXPANSION_THRESHOLD
+)
 
 class ProjectPhase(Enum):
     EXPANSION = "EXPANSION"
@@ -12,11 +16,6 @@ class ProjectPhase(Enum):
 
 class PhaseService(BaseService):
     """Manages project phases based on token usage"""
-
-    # System constants
-    MODEL_TOKEN_LIMIT = 128_000
-    CONVERGENCE_THRESHOLD = 0.60
-    EXPANSION_THRESHOLD = 0.50
     
     # Derived values
     CONVERGENCE_TOKENS = int(MODEL_TOKEN_LIMIT * CONVERGENCE_THRESHOLD)
