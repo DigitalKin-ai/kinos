@@ -1,5 +1,4 @@
 # Root package initialization
-# Root package initialization
 # Import key modules or set package-level configurations
 
 from config.global_config import GlobalConfig
