@@ -99,6 +99,59 @@ class ResearchAgent(AgentBase):
         """Execute research mission"""
         # Keep existing implementation...
 
+    def run(self):
+        """Main execution loop for research agent"""
+        try:
+            self.logger.log(f"[{self.name}] 🚀 Starting research agent run loop", 'info')
+            
+            self.running = True
+            while self.running:
+                try:
+                    # Validate mission directory
+                    if not os.path.exists(self.mission_dir):
+                        self.logger.log(f"[{self.name}] ❌ Mission directory not found")
+                        time.sleep(60)
+                        continue
+
+                    # Update file list
+                    self.list_files()
+                    
+                    # Get current prompt
+                    prompt = self.get_prompt()
+                    if not prompt:
+                        self.logger.log(f"[{self.name}] ⚠️ No prompt available")
+                        time.sleep(60)
+                        continue
+                    
+                    # Execute research mission
+                    result = self._run_aider(prompt)
+                    
+                    # Update state based on result
+                    self.last_run = datetime.now()
+                    if result:
+                        self.last_change = datetime.now()
+                        self.consecutive_no_changes = 0
+                    else:
+                        self.consecutive_no_changes += 1
+                        
+                    # Calculate dynamic interval
+                    wait_time = self.calculate_dynamic_interval()
+                    time.sleep(wait_time)
+                    
+                except Exception as loop_error:
+                    self._handle_error('run_loop', loop_error)
+                    time.sleep(5)  # Brief pause before retrying
+
+            self.logger.log(f"[{self.name}] Run loop ended")
+            
+        except Exception as e:
+            self._handle_error('run', e)
+            self.running = False
+            
+        finally:
+            # Ensure cleanup happens
+            self.cleanup()
+
     def cleanup(self):
         """Cleanup research agent resources"""
         # Keep existing implementation...
