@@ -211,42 +211,31 @@ class AiderAgent(AgentBase):
             with TimeoutManager.timeout(COMMAND_EXECUTION_TIMEOUT):
                 process = self.command_builder.execute_command(cmd)
 
-            # Traitement ligne par ligne de la sortie avec streaming
-            output_lines = []
-            while True:
-                # Lire un caractère à la fois pour un vrai streaming
-                char = process.stdout.read(1)
-                if not char and process.poll() is not None:
-                    break
-                    
-                # Accumuler les caractères jusqu'à une nouvelle ligne
-                line_buffer = char
-                while char != '\n' and char:
-                    char = process.stdout.read(1)
-                    if char:
-                        line_buffer += char
-                        
-                # Traiter la ligne complète
-                if line_buffer:
-                    line = line_buffer.rstrip()
-                    if line:
-                        # Traiter et logger immédiatement chaque ligne
-                        self._handle_output_line(line)
-                        output_lines.append(line)
-                        # Forcer le flush du logger pour un affichage immédiat
-                        sys.stdout.flush()
+            # Collection de la sortie
+            with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
+                output = self.output_parser.parse_output(process)
 
-            # Obtenir le code de retour
-            return_code = process.wait(timeout=5)
-            
-            # Combiner la sortie
-            output = "\n".join(output_lines)
-            
-            # Vérifier le code de retour
-            if return_code != 0:
-                self.logger.log(f"[{self.name}] Process failed with code {return_code}", 'error')
-                return None
-                
+            # Si on a une réponse, logger l'interaction
+            if output:
+                # Créer le contexte des fichiers
+                files_context = {}
+                for file_path in self.mission_files.keys():
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            files_context[file_path] = f.read()
+                    except Exception as e:
+                        self.logger.log(f"Error reading file for context: {str(e)}", 'error')
+
+                # Logger l'interaction via ChatLogger
+                from utils.chat_logger import ChatLogger
+                chat_logger = ChatLogger(os.path.basename(self.mission_dir))
+                chat_logger.log_agent_interaction(
+                    agent_name=self.name,
+                    prompt=prompt,
+                    response=output,
+                    files_context=files_context
+                )
+
             return output
 
         except Exception as e:
