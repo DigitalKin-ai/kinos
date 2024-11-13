@@ -774,15 +774,7 @@ List any specific constraints or limitations.
         try:
             agent = self.agents.get(agent_name)
             if not agent:
-                return {
-                    'running': False,
-                    'status': 'not_found',
-                    'last_run': None,
-                    'health': {
-                        'is_healthy': False,
-                        'consecutive_no_changes': 0
-                    }
-                }
+                return self._get_default_agent_status('not_found')
 
             return {
                 'running': getattr(agent, 'running', False),
@@ -797,22 +789,45 @@ List any specific constraints or limitations.
 
         except Exception as e:
             self.logger.log(f"Error getting agent status: {str(e)}", 'error')
-            return {
+            return self._get_default_agent_status('error')
+
+    def _get_default_agent_status(self, status_type: str = 'default') -> Dict[str, Any]:
+        """Generate a default agent status dictionary"""
+        status_map = {
+            'not_found': {
+                'running': False,
+                'status': 'not_found',
+                'last_run': None,
+                'health': {'is_healthy': False, 'consecutive_no_changes': 0}
+            },
+            'error': {
                 'running': False,
                 'status': 'error',
                 'last_run': None,
-                'health': {
-                    'is_healthy': False,
-                    'consecutive_no_changes': 0
-                }
+                'health': {'is_healthy': False, 'consecutive_no_changes': 0}
+            },
+            'default': {
+                'running': False,
+                'status': 'inactive',
+                'last_run': None,
+                'health': {'is_healthy': True, 'consecutive_no_changes': 0}
             }
+        }
+        return status_map.get(status_type, status_map['default'])
     def _run_agent_wrapper(self, name: str, agent: 'KinOSAgent') -> None:
-        """Wrapper pour exécuter un agent dans un thread"""
+        """Wrapper to execute an agent in a thread with comprehensive error handling"""
         try:
-            self.logger.log(f"Starting agent {name}")
+            self.logger.log(f"Starting agent {name}", 'info')
             agent.run()
         except Exception as e:
-            self.logger.log(f"Agent {name} crashed: {str(e)}", 'error')
+            self.logger.log(
+                f"Agent {name} crashed:\n"
+                f"Error: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}", 
+                'error'
+            )
+            # Attempt to restart the agent
+            self._handle_agent_crash(name, agent)
     def _get_detailed_agent_status(self, agent_name: str) -> Dict[str, Any]:
         """Get comprehensive agent status including performance metrics"""
         try:
