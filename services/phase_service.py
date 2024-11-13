@@ -36,38 +36,44 @@ class PhaseService(BaseService):
 
     def determine_phase(self, total_tokens: int) -> Tuple[ProjectPhase, str]:
         """Determine appropriate phase based on token count"""
-        # Store total tokens first
-        self.total_tokens = total_tokens
-        old_phase = self.current_phase
-        
-        # Calculate usage percentage
-        usage_percent = (total_tokens / self.MODEL_TOKEN_LIMIT) * 100
-        
-        # Determine phase based on thresholds
-        if usage_percent >= self.CONVERGENCE_THRESHOLD * 100:  # Use >= for threshold
-            new_phase = ProjectPhase.CONVERGENCE
-            message = f"Convergence needed - Token usage at {usage_percent:.1f}%"
-        elif usage_percent < self.EXPANSION_THRESHOLD * 100:
-            new_phase = ProjectPhase.EXPANSION
-            message = f"Expansion phase - Token usage at {usage_percent:.1f}%"
-        else:
-            # Between thresholds, maintain current phase
-            new_phase = self.current_phase
-            message = f"Maintaining current phase - Token usage at {usage_percent:.1f}%"
-        
-        # Log phase transition if it occurred
-        if new_phase != old_phase:
-            self.current_phase = new_phase
-            self.last_transition = datetime.now()
-            self.logger.log(
-                f"Phase transition: {old_phase.value} → {new_phase.value}\n"
-                f"Reason: {message}\n"
-                f"Total tokens: {total_tokens:,}\n"
-                f"Usage: {usage_percent:.1f}%",
-                'info'
-            )
-        
-        return new_phase, message
+        try:
+            # Store total tokens first
+            self.total_tokens = max(0, total_tokens)  # Ensure non-negative
+            old_phase = self.current_phase
+            
+            # Calculate usage percentage
+            usage_percent = (self.total_tokens / self.MODEL_TOKEN_LIMIT) * 100
+            
+            # Determine phase based on thresholds
+            if usage_percent >= self.CONVERGENCE_THRESHOLD * 100:
+                new_phase = ProjectPhase.CONVERGENCE
+                message = f"Convergence needed - Token usage at {usage_percent:.1f}%"
+            elif usage_percent < self.EXPANSION_THRESHOLD * 100:
+                new_phase = ProjectPhase.EXPANSION
+                message = f"Expansion phase - Token usage at {usage_percent:.1f}%"
+            else:
+                # Between thresholds, maintain current phase
+                new_phase = self.current_phase
+                message = f"Maintaining current phase - Token usage at {usage_percent:.1f}%"
+            
+            # Log phase transition if it occurred
+            if new_phase != old_phase:
+                self.current_phase = new_phase
+                self.last_transition = datetime.now()
+                self.logger.log(
+                    f"Phase transition: {old_phase.value} → {new_phase.value}\n"
+                    f"Reason: {message}\n"
+                    f"Total tokens: {self.total_tokens:,}\n"
+                    f"Usage: {usage_percent:.1f}%",
+                    'info'
+                )
+            
+            return new_phase, message
+
+        except Exception as e:
+            self.logger.log(f"Error determining phase: {str(e)}", 'error')
+            # Return default values on error
+            return ProjectPhase.EXPANSION, f"Error determining phase: {str(e)}"
 
     def get_status_info(self) -> Dict[str, Any]:
         """Get current phase status information"""
