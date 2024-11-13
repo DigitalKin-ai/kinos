@@ -377,19 +377,85 @@ class AiderAgent(AgentBase):
                         time.sleep(60)
                         continue
 
-                    # TODO: faire un call a Claude Haiku pour formuler les instructions
-                    instructions = 
-                        
-                    # Run Aider with current prompt and handle stdout flush error
+                    # Get chat history
+                    chat_history = ""
+                    history_file = f".aider.{self.name}.chat.history.md"
+                    if os.path.exists(history_file):
+                        try:
+                            with open(history_file, 'r', encoding='utf-8') as f:
+                                chat_history = f.read()
+                        except Exception as e:
+                            self.logger.log(f"[{self.name}] Error reading chat history: {str(e)}", 'warning')
+
+                    # Get files context
+                    files_context = {}
+                    for file_path in self.mission_files:
+                        try:
+                            with open(file_path, 'r', encoding='utf-8') as f:
+                                files_context[file_path] = f.read()
+                        except Exception as e:
+                            self.logger.log(f"[{self.name}] Error reading file {file_path}: {str(e)}", 'warning')
+
+                    # Prepare Claude messages
+                    messages = [
+                        {
+                            "role": "system",
+                            "content": prompt
+                        },
+                        {
+                            "role": "assistant",
+                            "content": chat_history
+                        },
+                        {
+                            "role": "user",
+                            "content": f"""Based on:
+1. The system prompt defining my role and responsibilities
+2. The chat history showing previous actions and context
+3. The current state of the project files shown below
+
+Choose ONE specific, concrete task that needs to be done and explain it in detail so that Aider can implement it.
+Focus on practical code changes that move the project forward.
+
+Current project files:
+{self._format_files_context(files_context)}
+
+Instructions:
+1. Analyze the current state and identify a clear next step
+2. Describe ONE specific task in detail
+3. Explain what files need to be modified and how
+4. Keep the task focused and achievable
+5. Provide enough detail for Aider to implement it
+
+Format your response as clear instructions that can be sent directly to Aider."""
+                        }
+                    ]
+
+                    # Call Claude API
+                    try:
+                        from anthropic import Anthropic
+                        client = Anthropic()
+                        response = client.messages.create(
+                            model="claude-3-haiku-20240307",
+                            max_tokens=1000,
+                            messages=messages
+                        )
+                        instructions = response.content[0].text
+                        self.logger.log(f"[{self.name}] Generated instructions:\n{instructions}", 'debug')
+                    except Exception as e:
+                        self.logger.log(f"[{self.name}] Error calling Claude: {str(e)}", 'error')
+                        time.sleep(60)
+                        continue
+                            
+                    # Run Aider with generated instructions
                     try:
                         result = self.run_aider(instructions)
                     except OSError as os_error:
                         if "[Errno 22] Invalid argument" in str(os_error):
                             # Ignorer cette erreur spécifique de flush
                             self.logger.log(f"[{self.name}] Ignoring Windows stdout flush error", 'debug')
-                            result = None  # Continue with None result
+                            result = None
                         else:
-                            raise  # Re-raise other OS errors
+                            raise
                 
                     # Update state based on result
                     self.last_run = datetime.now()
