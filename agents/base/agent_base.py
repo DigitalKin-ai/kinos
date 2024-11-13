@@ -142,22 +142,6 @@ class AgentBase(ABC):
         self.running = False
         self.cleanup()
 
-    def _format_files_context(self, files_context: Dict[str, str]) -> str:
-        """
-        Format files context into a readable string with clear file boundaries
-        
-        Args:
-            files_context: Dictionary mapping filenames to content
-            
-        Returns:
-            str: Formatted string with file content blocks
-        """
-        formatted = []
-        for filename, content in files_context.items():
-            # Get relative path for cleaner output
-            rel_path = os.path.relpath(filename, self.mission_dir)
-            formatted.append(f"File: {rel_path}\n```\n{content}\n```\n")
-        return "\n".join(formatted)
 
     def cleanup(self):
         """Clean up agent resources"""
