@@ -1,6 +1,7 @@
 """
 Base agent functionality providing core agent capabilities.
 """
+import os
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Dict, Any, Optional
