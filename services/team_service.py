@@ -430,14 +430,16 @@ class TeamService:
         """Filter agents based on current phase"""
         # Get team configuration for the phase
         for team in self.predefined_teams:
-            if any(agent in team['agents'] for agent in agents):
+            if any(isinstance(agent, dict) and agent['name'] in agents for agent in team['agents']):
                 # Found matching team, check phase config
                 phase_config = team.get('phase_config', {}).get(phase.lower(), {})
                 active_agents = phase_config.get('active_agents', [])
                 
                 if active_agents:
                     # Filter to keep only active agents that exist in the team
-                    return [agent for agent in agents if agent in active_agents]
+                    # Return agent names only since weights are handled in calculate_dynamic_interval
+                    return [agent['name'] for agent in active_agents 
+                           if agent['name'] in [a['name'] if isinstance(a, dict) else a for a in agents]]
                 
                 # If no phase config or no active_agents defined, return all agents
                 return agents
