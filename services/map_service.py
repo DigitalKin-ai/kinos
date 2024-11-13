@@ -35,19 +35,30 @@ class MapService(BaseService):
     def generate_map(self) -> bool:
         """Generate project map file"""
         try:
+            print("[DEBUG] Starting map generation")
             tree_content, warnings, total_tokens = self._scan_directory(os.getcwd())
+            
+            print(f"[DEBUG] Scan complete - Total tokens: {total_tokens}")
             
             # Ensure phase service is initialized
             self._ensure_phase_service()
             
+            print("[DEBUG] Phase service initialized")
+            
             # Update phase service with total tokens
             self.phase_service.determine_phase(total_tokens)
             
+            print("[DEBUG] Phase determined")
+            
             map_content = self._format_map_content(tree_content, warnings)
             
-            return self._write_map_file(map_content)
+            success = self._write_map_file(map_content)
+            print(f"[DEBUG] Map written: {success}")
+            
+            return success
             
         except Exception as e:
+            print(f"[ERROR] Error generating map: {str(e)}")
             self.logger.log(f"Error generating map: {str(e)}", 'error')
             return False
 
