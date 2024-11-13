@@ -155,6 +155,11 @@ class AiderAgent(AgentBase):
         original_dir = os.getcwd()
         process = None
         
+        # Load gitignore patterns
+        ignore_patterns = self._load_ignore_patterns()
+        if ignore_patterns:
+            self.logger.log(f"Loaded {len(ignore_patterns)} ignore patterns", 'debug')
+        
         try:
             # Change to mission directory
             os.chdir(self.mission_dir)
@@ -198,6 +203,22 @@ class AiderAgent(AgentBase):
             except Exception as e:
                 self.logger.log(f"Error restoring directory: {str(e)}", 'error')
 
+    def _load_ignore_patterns(self) -> List[str]:
+        """Load and parse gitignore patterns"""
+        patterns = []
+        try:
+            for ignore_file in ['.gitignore', '.aiderignore']:
+                ignore_path = os.path.join(self.mission_dir, ignore_file)
+                if os.path.exists(ignore_path):
+                    with open(ignore_path, 'r', encoding='utf-8') as f:
+                        file_patterns = [p.strip() for p in f.readlines() 
+                                       if p.strip() and not p.startswith('#')]
+                        patterns.extend(file_patterns)
+                        self.logger.log(f"Loaded patterns from {ignore_file}", 'debug')
+        except Exception as e:
+            self.logger.log(f"Error loading ignore patterns: {str(e)}", 'error')
+        return patterns
+
     def _update_system_state(self, result: str):
         """Update system state after successful execution"""
         try:
@@ -206,25 +227,60 @@ class AiderAgent(AgentBase):
             services = init_services(None)
             services['map_service'].update_map()
             
-            # Parse modified files
-            modified_files = set()
-            for line in result.splitlines():
-                if "Wrote " in line and ".md" in line:
-                    try:
-                        modified_file = line.split("Wrote ")[1].split()[0]
-                        modified_files.add(modified_file)
-                    except:
-                        continue
+            # Track file modifications with context
+            self._track_file_changes(result)
             
-            # Log changes
-            if modified_files:
-                self.logger.log(
-                    f"Files modified:\n" + "\n".join(modified_files),
-                    'info'
-                )
+            # Track file changes with detailed context
+            changes = self._track_file_changes(result)
+            
+            # Save changes to dataset if significant
+            if changes and changes['modified_files']:
+                try:
+                    self._save_to_dataset(changes, result)
+                except Exception as dataset_error:
+                    self.logger.log(f"Error saving to dataset: {str(dataset_error)}", 'error')
                 
         except Exception as e:
             self.logger.log(f"Error updating system state: {str(e)}", 'error')
+            
+    def _track_file_changes(self, result: str) -> Dict[str, Any]:
+        """Track file modifications with context"""
+        changes = {
+            'modified_files': set(),
+            'added_files': set(),
+            'deleted_files': set(),
+            'file_contents': {},
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        try:
+            # Parse output for file changes
+            for line in result.splitlines():
+                if "Wrote " in line:
+                    try:
+                        file_path = line.split("Wrote ")[1].split()[0]
+                        changes['modified_files'].add(file_path)
+                        # Store file content
+                        full_path = os.path.join(self.mission_dir, file_path)
+                        if os.path.exists(full_path):
+                            with open(full_path, 'r', encoding='utf-8') as f:
+                                changes['file_contents'][file_path] = f.read()
+                    except Exception as e:
+                        self.logger.log(f"Error tracking file {file_path}: {str(e)}", 'error')
+                        continue
+            
+            # Log changes
+            if changes['modified_files']:
+                self.logger.log(
+                    f"Files modified:\n" + "\n".join(changes['modified_files']),
+                    'info'
+                )
+                
+            return changes
+                
+        except Exception as e:
+            self.logger.log(f"Error tracking changes: {str(e)}", 'error')
+            return changes
 
     def _build_command(self, prompt: str) -> List[str]:
         """Build Aider command with current configuration"""
@@ -241,6 +297,12 @@ class AiderAgent(AgentBase):
         """Parse and handle process output with error checking"""
         output_lines = []
         start_time = time.time()
+        anthropic_errors = {
+            'rate_limit': ['rate limit', 'too many requests', '429'],
+            'context_length': ['context length', 'input too long', 'token limit'],
+            'invalid_api_key': ['invalid api key', 'authentication failed'],
+            'service_error': ['service unavailable', '5xx', 'server error']
+        }
         
         try:
             while True:
@@ -254,6 +316,17 @@ class AiderAgent(AgentBase):
                     
                 line = line.rstrip()
                 if line:
+                    # Handle specific errors
+                    lower_line = line.lower()
+                
+                    # Check for Anthropic-specific errors
+                    for error_type, patterns in anthropic_errors.items():
+                        if any(p in lower_line for p in patterns):
+                            self.logger.log(f"Anthropic error ({error_type}): {line}", 'error')
+                            if error_type == 'rate_limit':
+                                time.sleep(30)  # Basic rate limit handling
+                            continue
+                
                     # Handle Windows console warning
                     if "No Windows console found" in line:
                         self.logger.log("Windows console warning (non-critical)", 'warning')
