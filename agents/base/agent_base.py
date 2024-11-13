@@ -26,10 +26,14 @@ class AgentBase(ABC):
         Args:
             config: Configuration dictionary containing:
                 - name: Agent name/identifier
+                - type: Agent type (aider/research)
+                - weight: Agent weight (0.0-1.0)
                 - mission_dir: Working directory path
                 - prompt_file: Path to prompt file
         """
         self.name = config['name']
+        self.type = config.get('type', 'aider')
+        self.weight = config.get('weight', 0.5)
         self.mission_dir = config['mission_dir']
         self.prompt_file = config.get('prompt_file')
         self.logger = Logger()

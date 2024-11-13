@@ -128,16 +128,37 @@ class AgentService:
                 raise ValueError(f"Invalid mission directory: {mission_dir}")
 
             initialized_agents = {}
-            for agent_name in team_agents:
+            for agent_spec in team_agents:
                 try:
+                    # Handle both string and dict formats
+                    if isinstance(agent_spec, dict):
+                        agent_name = agent_spec['name']
+                        agent_type = agent_spec.get('type', 'aider')
+                        agent_weight = agent_spec.get('weight', 0.5)
+                    else:
+                        agent_name = agent_spec
+                        agent_type = 'aider'  # default type
+                        agent_weight = 0.5    # default weight
+
                     agent_config = {
                         'name': agent_name,
+                        'type': agent_type,
+                        'weight': agent_weight,
                         'mission_dir': mission_dir,
                         'prompt_file': os.path.join('prompts', f"{agent_name}.md")
                     }
-                    agent = AiderAgent(agent_config)
+
+                    # Create appropriate agent type
+                    if agent_type == 'research':
+                        from agents.research.research_agent import ResearchAgent
+                        agent = ResearchAgent(agent_config)
+                    else:
+                        from agents.aider.aider_agent import AiderAgent
+                        agent = AiderAgent(agent_config)
+
                     initialized_agents[agent_name] = agent
-                    self.logger.log(f"Initialized agent: {agent_name}")
+                    self.logger.log(f"Initialized {agent_type} agent: {agent_name} (weight: {agent_weight})")
+
                 except Exception as e:
                     self.logger.log(f"Error initializing agent {agent_name}: {str(e)}", 'error')
 
