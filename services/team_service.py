@@ -32,8 +32,10 @@ from services import init_services
 class TeamService:
     """Service simplifié pour la gestion des équipes en CLI"""
     
-    # Timeout constant
+    # Timeout constants
     TOTAL_TIMEOUT = 300  # 5 minutes total timeout
+    AGENT_TIMEOUT = 60   # 60 seconds per agent
+    CLEANUP_TIMEOUT = 30 # 30 seconds for cleanup
 
     def __init__(self, _):  # Keep parameter for compatibility but don't use it
         """Initialize with minimal dependencies"""
