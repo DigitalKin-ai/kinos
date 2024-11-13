@@ -3,6 +3,9 @@ AiderAgent - Core implementation of Aider-based agent functionality
 """
 import os
 import time
+import subprocess
+import traceback
+from datetime import datetime
 from typing import Dict, Any, Optional
 from agents.base.agent_base import AgentBase
 from agents.aider.command_builder import AiderCommandBuilder
@@ -11,6 +14,7 @@ from agents.utils.encoding import configure_encoding
 from agents.utils.rate_limiter import RateLimiter
 from agents.base.file_handler import FileHandler
 from agents.base.prompt_handler import PromptHandler
+from utils.path_manager import PathManager
 
 class AiderAgent(AgentBase):
     """
@@ -93,8 +97,7 @@ class AiderAgent(AgentBase):
     def _get_relative_file_path(self, file_path: str) -> str:
         """Get relative path from mission directory"""
         try:
-            mission_dir = PathManager.get_mission_path(self.file_manager.current_mission)
-            return os.path.relpath(file_path, mission_dir)
+            return os.path.relpath(file_path, self.mission_dir)
         except Exception as e:
             self.logger(f"Error getting relative path: {str(e)}")
             return file_path
