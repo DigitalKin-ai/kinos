@@ -1,68 +1,82 @@
 """Team configuration management"""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
 
 @dataclass
 class TeamConfig:
-    """Team configuration and validation"""
+    """Team configuration with validation"""
     id: str
     name: str
     agents: List[Dict[str, Any]]
     phase_config: Optional[Dict[str, Any]] = None
+    metrics: TeamMetrics = field(default_factory=TeamMetrics)
     
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'TeamConfig':
-        return cls(
-            id=data['id'],
-            name=data.get('name', data['id']),
-            agents=data['agents'],
-            phase_config=data.get('phase_config')
-        )
+    def from_dict(cls, data: Dict[str, Any]) -> Optional['TeamConfig']:
+        """Create TeamConfig from dictionary"""
+        try:
+            # Ensure required fields
+            if not all(k in data for k in ['id', 'name', 'agents']):
+                return None
 
-    def validate(self) -> Tuple[bool, Optional[str]]:
+            # Convert agents to list of dicts if needed
+            agents = []
+            for agent in data['agents']:
+                if isinstance(agent, str):
+                    agents.append({'name': agent, 'type': 'aider', 'weight': 0.5})
+                else:
+                    agents.append(agent)
+
+            return cls(
+                id=data['id'],
+                name=data['name'],
+                agents=agents,
+                phase_config=data.get('phase_config'),
+                metrics=TeamMetrics()
+            )
+        except Exception:
+            return None
+
+    def validate(self) -> tuple[bool, Optional[str]]:
         """Validate team configuration"""
-        if not self.agents:
-            return False, "No agents defined"
-        
-        # Validate each agent
-        for agent in self.agents:
-            if isinstance(agent, dict):
-                if 'name' not in agent:
-                    return False, f"Missing name in agent config: {agent}"
-            elif not isinstance(agent, str):
-                return False, f"Invalid agent specification: {agent}"
-                
-        return True, None
+        try:
+            if not self.id or not isinstance(self.id, str):
+                return False, "Invalid team ID"
 
-@dataclass
+            if not self.name or not isinstance(self.name, str):
+                return False, "Invalid team name"
+
+            if not self.agents:
+                return False, "No agents defined"
+
+            # Validate each agent
+            for agent in self.agents:
+                if isinstance(agent, dict):
+                    if 'name' not in agent:
+                        return False, f"Missing name in agent config: {agent}"
+                elif not isinstance(agent, str):
+                    return False, f"Invalid agent format: {agent}"
+
+            return True, None
+
+        except Exception as e:
+            return False, str(e)
+
+@dataclass 
 class TeamMetrics:
     """Track team startup metrics"""
-    start_time: datetime
-    total_agents: int
+    total_agents: int = 0
     active_agents: int = 0
-    completed_agents: int = 0
-    failed_agents: int = 0
-    
+    healthy_agents: int = 0
+    error_count: int = 0
+    last_update: datetime = field(default_factory=datetime.now)
+
     @property
     def success_rate(self) -> float:
         if self.total_agents == 0:
             return 0.0
-        return self.completed_agents / self.total_agents
-    
-    @property
-    def duration(self) -> float:
-        return (datetime.now() - self.start_time).total_seconds()
-    
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            'duration': self.duration,
-            'total_agents': self.total_agents,
-            'active_agents': self.active_agents,
-            'completed_agents': self.completed_agents,
-            'failed_agents': self.failed_agents,
-            'success_rate': self.success_rate
-        }
+        return self.healthy_agents / self.total_agents
 
 class TeamStartupError(Exception):
     """Custom exception for team startup errors"""
@@ -170,3 +184,18 @@ class TeamConfig:
 
         except Exception as e:
             return False, str(e)
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert config to dictionary format"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'agents': self.agents,
+            'phase_config': self.phase_config,
+            'metrics': {
+                'total_agents': self.metrics.total_agents,
+                'active_agents': self.metrics.active_agents,
+                'healthy_agents': self.metrics.healthy_agents,
+                'error_count': self.metrics.error_count,
+                'last_update': self.metrics.last_update.isoformat()
+            }
+        }
