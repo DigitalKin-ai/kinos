@@ -346,7 +346,7 @@ class AiderAgent(AgentBase):
                         pass
 
                 # If execution was successful, log the changes
-                if return_code == 0 and full_output:
+                if return_code == 0 and output_lines:
                     try:
                         # Read modified files content
                         files_context = {}
