@@ -43,10 +43,7 @@ class PhaseService(BaseService):
     def determine_phase(self, total_tokens: int) -> Tuple[ProjectPhase, str]:
         """Determine appropriate phase based on token count"""
         try:
-            print(f"[DEBUG] determine_phase() called with {total_tokens} tokens")
             state = self.get_state()
-            print(f"[DEBUG] Current phase before update: {state['current_phase'].value}")
-            print(f"[DEBUG] Current total_tokens before update: {state['total_tokens']}")
             
             # Store total tokens first
             state['total_tokens'] = max(0, total_tokens)  # Ensure non-negative
@@ -54,21 +51,17 @@ class PhaseService(BaseService):
             
             # Calculate usage percentage
             usage_percent = (state['total_tokens'] / self.MODEL_TOKEN_LIMIT) * 100
-            print(f"[DEBUG] Usage percent: {usage_percent:.1f}%")
             
             # Determine phase based on thresholds
             if usage_percent >= self.CONVERGENCE_THRESHOLD * 100:
                 new_phase = ProjectPhase.CONVERGENCE
                 message = f"Convergence needed - Token usage at {usage_percent:.1f}%"
-                print(f"[DEBUG] Threshold exceeded, switching to CONVERGENCE")
             else:
                 new_phase = ProjectPhase.EXPANSION
                 message = f"Expansion phase - Token usage at {usage_percent:.1f}%"
-                print(f"[DEBUG] Below threshold, switching to EXPANSION")
             
             # Log phase transition ONLY if phase actually changed
             if new_phase != old_phase:
-                print(f"[DEBUG] Phase changing from {old_phase.value} to {new_phase.value}")
                 state['current_phase'] = new_phase
                 state['last_transition'] = datetime.now()
                 self.logger.log(
@@ -79,16 +72,11 @@ class PhaseService(BaseService):
                     'info'
                 )
             else:
-                print(f"[DEBUG] Phase unchanged: {new_phase.value}")
                 state['current_phase'] = new_phase
-                
-            print(f"[DEBUG] Final phase: {state['current_phase'].value}")
-            print(f"[DEBUG] Final total_tokens: {state['total_tokens']}")
             
             return new_phase, message
 
         except Exception as e:
-            print(f"[ERROR] Error in determine_phase: {str(e)}")
             self.logger.log(f"Error determining phase: {str(e)}", 'error')
             return ProjectPhase.EXPANSION, f"Error determining phase: {str(e)}"
 
@@ -96,11 +84,9 @@ class PhaseService(BaseService):
         """Get current phase status information"""
         try:
             state = self.get_state()
-            print(f"[DEBUG] get_status_info() - Current total_tokens: {state['total_tokens']}")
             
             # Calculate usage percentage
             usage_percent = (state['total_tokens'] / self.MODEL_TOKEN_LIMIT) * 100
-            print(f"[DEBUG] get_status_info() - Usage percent: {usage_percent:.1f}%")
             
             # Determine status based on percentage
             if usage_percent >= self.CONVERGENCE_THRESHOLD * 100:
