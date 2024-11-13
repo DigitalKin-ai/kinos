@@ -76,6 +76,48 @@ import time
 import os
 from datetime import datetime
 from functools import wraps
+from enum import Enum, auto
+from dataclasses import dataclass, field
+import traceback
+import random
+
+class AgentStatus(Enum):
+    """Enum representing different agent states"""
+    INITIALIZING = auto()
+    RUNNING = auto()
+    IDLE = auto()
+    ERROR = auto()
+    RECOVERING = auto()
+
+@dataclass
+class PerformanceMetrics:
+    """Comprehensive performance tracking"""
+    execution_times: List[float] = field(default_factory=list)
+    total_runs: int = 0
+    successful_runs: int = 0
+    failed_runs: int = 0
+    avg_response_time: float = 0.0
+    max_response_time: float = 0.0
+    min_response_time: float = float('inf')
+    
+    def update(self, execution_time: float, success: bool):
+        """Update metrics with new execution data"""
+        self.total_runs += 1
+        self.execution_times.append(execution_time)
+        
+        if success:
+            self.successful_runs += 1
+        else:
+            self.failed_runs += 1
+        
+        # Keep only last 10 execution times
+        self.execution_times = self.execution_times[-10:]
+        
+        # Recalculate metrics
+        if self.execution_times:
+            self.avg_response_time = sum(self.execution_times) / len(self.execution_times)
+            self.max_response_time = max(self.execution_times)
+            self.min_response_time = min(self.execution_times)
 
 class KinOSAgent:
     """
@@ -125,13 +167,24 @@ class KinOSAgent:
             self.mission_files = {}
             self._prompt_cache = {}
             
+            # New status tracking
+            self.status = AgentStatus.INITIALIZING
+            self.MAX_ATTEMPTS = config.get('max_attempts', 3)
+            
+            # Performance tracking
+            self.performance_metrics = PerformanceMetrics()
+            
             # Load configuration and validate paths
             self._load_config()
             self._validate_paths()
             
+            # Update status
+            self.status = AgentStatus.IDLE
+            
             self.logger.log(f"[{self.__class__.__name__}] Initialized as {self.name}")
             
         except Exception as e:
+            self.status = AgentStatus.ERROR
             print(f"Error initializing agent: {str(e)}")  # Fallback logging
             raise
         
