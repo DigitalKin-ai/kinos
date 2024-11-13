@@ -11,6 +11,13 @@ from utils.exceptions import ServiceError
 from services.agent_service import AgentService
 from agents.base.agent_base import AgentBase
 
+# Known Aider initialization error patterns
+AIDER_INIT_ERRORS = [
+    "No Windows console found",
+    "Can't initialize prompt toolkit",
+    "aider.chat/docs/troubleshooting/edit-errors.html"
+]
+
 class TeamService:
     """Service simplifié pour la gestion des équipes en CLI"""
     
@@ -184,13 +191,14 @@ class TeamService:
                             time.sleep(5)
                             self.logger.log("Wait completed normally", 'debug')
                         except KeyboardInterrupt as e:
-                            # Vérifier le message d'erreur directement
                             error_msg = str(e)
-                            if "No Windows console found" in error_msg or "Can't initialize prompt toolkit" in error_msg:
+                            # Check if it's an Aider initialization error
+                            if any(err in error_msg for err in AIDER_INIT_ERRORS):
                                 self.logger.log("Aider initialization warning - continuing", 'debug')
                                 continue
-                            else:
-                                self.logger.log("User interrupted with Ctrl+C", 'warning')
+                    
+                            # If it's a real user interruption
+                            self.logger.log("User interrupted with Ctrl+C", 'warning')
                                 # Stop started agents in reverse order
                                 for started_agent in reversed(started_agents):
                                     try:
