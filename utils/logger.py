@@ -1,4 +1,5 @@
 import os
+import os
 import sys
 import logging
 from datetime import datetime
@@ -95,12 +96,19 @@ class Logger:
                 # Store last message before formatting
                 self.last_message = message
                 
-                if self.is_tty:
-                    color = self.COLORS.get(level, self.COLORS['info'])
-                    # Use print() with width=None to prevent truncation
-                    print(f"{color}{formatted}{self.COLORS['reset']}", flush=True, end='\n', width=None)
+                # Force enable color if FORCE_COLOR env var is set
+                force_color = os.environ.get('FORCE_COLOR', '').lower() in ('1', 'true', 'yes')
+                should_colorize = force_color or self.is_tty
+                
+                if should_colorize:
+                    # Ensure color codes are properly escaped
+                    color = self.COLORS.get(level.lower(), self.COLORS['info'])
+                    reset = self.COLORS['reset']
+                    # Use print with flush=True for immediate output
+                    print(f"{color}{formatted}{reset}", flush=True)
                 else:
-                    print(formatted, flush=True, end='\n', width=None)
+                    # No color for non-TTY output
+                    print(formatted, flush=True)
                 
         except Exception:
             # During shutdown, some exceptions are expected
