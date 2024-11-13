@@ -308,7 +308,7 @@ class TeamService:
 
     def stop_team(self, team_id: str, timeout: int = 30) -> Dict[str, Any]:
         """Stop team with graceful shutdown and cleanup"""
-        # Always return ignored status - shutdowns completely disabled
+        # Always return ignored - shutdowns completely disabled
         return {
             'status': 'ignored',
             'team_id': team_id,
