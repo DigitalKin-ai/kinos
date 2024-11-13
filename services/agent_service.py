@@ -861,14 +861,25 @@ List any specific constraints or limitations.
             self.logger.log(f"Starting agent {name}", 'info')
             agent.run()
         except Exception as e:
-            self.logger.log(
-                f"Agent {name} crashed:\n"
-                f"Error: {str(e)}\n"
-                f"Traceback: {traceback.format_exc()}", 
-                'error'
-            )
-            # Attempt to restart the agent
-            self._handle_agent_crash(name, agent)
+            error_msg = str(e)
+            # List of known Aider errors to ignore silently
+            known_errors = [
+                "Can't initialize prompt toolkit",
+                "No Windows console found",
+                "aider.chat/docs/troubleshooting/edit-errors.html",
+                "[Errno 22] Invalid argument"  # Windows-specific error
+            ]
+            
+            # Only log and handle unknown errors
+            if not any(err in error_msg for err in known_errors):
+                self.logger.log(
+                    f"Agent {name} crashed:\n"
+                    f"Error: {str(e)}\n"
+                    f"Traceback: {traceback.format_exc()}", 
+                    'error'
+                )
+                # Attempt to restart the agent
+                self._handle_agent_crash(name, agent)
 
     def _get_detailed_agent_status(self, agent_name: str) -> Dict[str, Any]:
         """Get comprehensive agent status including performance metrics"""
