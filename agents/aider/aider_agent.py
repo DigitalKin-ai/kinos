@@ -13,6 +13,12 @@ from typing import Dict, Any, Optional, List
 # Local imports
 from utils.logger import Logger
 from utils.exceptions import AgentError
+from utils.managers.timeout_manager import TimeoutManager
+from utils.constants import (
+    DEFAULT_TIMEOUT,
+    OUTPUT_COLLECTION_TIMEOUT,
+    COMMAND_EXECUTION_TIMEOUT
+)
 from utils.constants import (
     DEFAULT_TIMEOUT,
     MAX_RETRIES,
