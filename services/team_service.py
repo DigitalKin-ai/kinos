@@ -147,12 +147,13 @@ class TeamService:
             # Get phase status info directly from phase service
             phase_status = phase_service.get_status_info()
             
-            # Log phase status with actual values from phase service
+            # Log phase status with values from phase service
             self.logger.log(
                 f"Current phase: {phase_status['phase']}\n"
                 f"Total tokens: {phase_status['total_tokens']:,}\n"
                 f"Usage: {phase_status['usage_percent']:.1f}%\n"
-                f"Status: {phase_status['status_message']}", 
+                f"Status: {phase_status['status_message']}\n"
+                f"Headroom: {phase_status['headroom']:,} tokens", 
                 'info'
             )
 
