@@ -73,25 +73,46 @@ class AiderAgent(AgentBase):
         self._requests_this_minute = 0
         
 
-    def _validate_run_input(self, prompt: str) -> bool:
-        """Validate input before running Aider"""
+    def _validate_run_conditions(self, prompt: str) -> bool:
+        """
+        Validate all conditions required for running Aider
+        
+        Args:
+            prompt: Prompt to validate
+            
+        Returns:
+            bool: True if all conditions are met
+        """
         try:
-            if not prompt or not prompt.strip():
-                self._log(f"[{self.name}] Empty prompt provided")
-                return False
-
-            if not self.mission_files:
-                self._log(f"[{self.name}] No files to process")
-                return False
-
+            # Check mission directory
             if not os.path.exists(self.mission_dir):
                 self._log(f"[{self.name}] Mission directory not found: {self.mission_dir}")
                 return False
-
+                
+            # Check permissions
+            if not os.access(self.mission_dir, os.R_OK | os.W_OK):
+                self._log(f"[{self.name}] Insufficient permissions on mission directory")
+                return False
+                
+            # Validate prompt
+            if not prompt or not prompt.strip():
+                self._log(f"[{self.name}] Empty prompt provided")
+                return False
+                
+            # Check for files to process
+            if not self.mission_files:
+                self._log(f"[{self.name}] No files to process")
+                return False
+                
+            # Check rate limiting
+            if not self._check_rate_limit():
+                self._log(f"[{self.name}] Rate limit exceeded")
+                return False
+                
             return True
-
+            
         except Exception as e:
-            self._log(f"[{self.name}] Error validating input: {str(e)}")
+            self._log(f"[{self.name}] Error validating conditions: {str(e)}")
             return False
 
 
@@ -127,21 +148,23 @@ class AiderAgent(AgentBase):
     def _check_rate_limit(self) -> bool:
         """
         Check if we should wait before making another request
-        Returns: True if ok to proceed, False if should wait
+        
+        Returns:
+            bool: True if ok to proceed, False if should wait
         """
         current_time = time.time()
         
         # Reset counter if we're in a new minute
-        if current_time - self._last_request_time > self._rate_limit_window:
+        if current_time - self._last_request_time > self.rate_limiter.time_window:
             self._requests_this_minute = 0
             
         # Check if we're approaching the limit
-        if self._requests_this_minute >= self._max_requests_per_minute:
-            wait_time = self._rate_limit_window - (current_time - self._last_request_time)
+        if self._requests_this_minute >= self.rate_limiter.max_requests:
+            wait_time = self.rate_limiter.get_wait_time()
             if wait_time > 0:
                 self._log(
-                    f"[{self.name}] ⏳ Approaching rate limit. "
-                    f"Waiting {wait_time:.1f}s before next request.",
+                    f"[{self.name}] ⏳ Rate limit approaching. "
+                    f"Waiting {wait_time:.1f}s",
                     'warning'
                 )
                 time.sleep(wait_time)
@@ -660,3 +683,104 @@ class AiderAgent(AgentBase):
         except Exception as e:
             self.logger(f"Error building prompt: {str(e)}")
             return self.prompt  # Fallback to default prompt
+    def _handle_output_line(self, line: str) -> None:
+        """
+        Process a single line of Aider output
+        
+        Args:
+            line: Output line to process
+        """
+        try:
+            # Skip empty lines
+            if not line.strip():
+                return
+                
+            # Parse different line types
+            if "Wrote " in line:
+                self._handle_file_modification(line)
+            elif "Commit" in line:
+                self._handle_commit_message(line)
+            elif self._is_error_message(line):
+                self._handle_error_message(line)
+            else:
+                # Log regular output
+                self._log(f"[{self.name}] 📝 {line}", 'debug')
+                
+        except Exception as e:
+            self._log(f"[{self.name}] Error processing output line: {str(e)}")
+
+    def _handle_file_modification(self, line: str) -> None:
+        """
+        Handle file modification output
+        
+        Args:
+            line: Output line containing file modification
+        """
+        try:
+            file_path = line.split("Wrote ")[1].split()[0]
+            self._log(f"[{self.name}] ✍️ Modified: {file_path}", 'info')
+            
+            # Track modification
+            if hasattr(self, 'modified_files'):
+                self.modified_files.add(file_path)
+                
+        except Exception as e:
+            self._log(f"[{self.name}] Error handling file modification: {str(e)}")
+
+    def _handle_commit_message(self, line: str) -> None:
+        """
+        Handle commit message output
+        
+        Args:
+            line: Output line containing commit message
+        """
+        try:
+            # Extract commit hash and message
+            parts = line.split()
+            commit_hash = parts[1]
+            message = ' '.join(parts[2:])
+            
+            # Detect commit type
+            commit_type = None
+            for known_type in self.output_parser.COMMIT_ICONS:
+                if message.lower().startswith(f"{known_type}:"):
+                    commit_type = known_type
+                    message = message[len(known_type)+1:].strip()
+                    break
+                    
+            # Get icon and log
+            icon = self.output_parser.COMMIT_ICONS.get(commit_type, '🔨')
+            self._log(f"[{self.name}] {icon} {commit_hash}: {message}", 'success')
+            
+        except Exception as e:
+            self._log(f"[{self.name}] Error handling commit message: {str(e)}")
+
+    def _is_error_message(self, line: str) -> bool:
+        """
+        Check if line contains error message
+        
+        Args:
+            line: Output line to check
+            
+        Returns:
+            bool: True if line contains error
+        """
+        error_indicators = [
+            'error',
+            'exception',
+            'failed',
+            'can\'t initialize',
+            'fatal:',
+            'permission denied'
+        ]
+        return any(indicator in line.lower() for indicator in error_indicators)
+
+    def _handle_error_message(self, line: str) -> None:
+        """
+        Handle error message output
+        
+        Args:
+            line: Output line containing error
+        """
+        self._log(f"[{self.name}] ❌ {line}", 'error')
+        self.error_count += 1
