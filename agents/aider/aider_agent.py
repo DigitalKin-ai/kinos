@@ -309,9 +309,10 @@ class AiderAgent(AgentBase):
 
     def run(self):
         """Main execution loop for the agent"""
-        self.running = True
-        
-        while True:  # Boucle infinie - ne jamais s'arrêter
+        try:
+            self.running = True
+            
+            while True:  # Boucle infinie - ne jamais s'arrêter
                 try:
                     # Validate mission directory
                     if not os.path.exists(self.mission_dir):
@@ -454,6 +455,7 @@ Instructions:
                 finally:
                     # Ensure cleanup happens
                     self.cleanup()
+
         except Exception as e:  # Outer try block handler
             self.logger.log(f"[{self.name}] Fatal error in run loop: {str(e)}", 'error')
             self.running = False
