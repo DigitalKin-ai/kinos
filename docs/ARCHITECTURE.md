@@ -406,7 +406,7 @@ Generated: 2024-03-21 15:30:45
 1. **Consultation**
    ```bash
    # Voir la map actuelle
-   cat map.md
+   cat "map (readonly).md"
    ```
 
 2. **Mise à jour Manuelle**
