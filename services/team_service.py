@@ -178,10 +178,12 @@ class TeamService:
             for i, agent_name in enumerate(filtered_agents):
                 try:
                     if i > 0:  # Don't wait for first agent
+                        self.logger.log(f"Waiting 5 seconds before starting next agent...", 'info')
                         try:
                             time.sleep(5)
+                            self.logger.log("Wait completed normally", 'debug')
                         except KeyboardInterrupt:
-                            self.logger.log("Team startup cancelled by user - cleaning up...", 'info')
+                            self.logger.log("Sleep interrupted by Ctrl+C", 'warning')
                             # Stop started agents in reverse order
                             for started_agent in reversed(started_agents):
                                 try:
@@ -195,6 +197,9 @@ class TeamService:
                                 'phase': current_phase,
                                 'status': 'cancelled'
                             }
+                        except Exception as sleep_error:
+                            self.logger.log(f"Sleep interrupted by unexpected error: {str(sleep_error)}", 'error')
+                            raise
                     
                     self.logger.log(f"Starting agent {i+1}/{len(filtered_agents)}: {agent_name}", 'info')
                     if self.agent_service.toggle_agent(agent_name, 'start', mission_dir):
