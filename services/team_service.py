@@ -109,6 +109,8 @@ class TeamService:
 
     def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
         """Start team in current/specified directory"""
+        started_agents = []  # Track started agents for cleanup
+        
         try:
             mission_dir = base_path or os.getcwd()
             
@@ -173,16 +175,29 @@ class TeamService:
             config = {'mission_dir': mission_dir}
             self.agent_service.init_agents(config, filtered_agents)
 
-            # Start agents with delay
+            # Start agents with delay and interruption handling
             for i, agent_name in enumerate(filtered_agents):
                 try:
                     if i > 0:  # Don't wait for first agent
                         self.logger.log(f"Waiting 10 seconds before starting next agent...", 'info')
-                        time.sleep(10)
+                        try:
+                            time.sleep(10)
+                        except KeyboardInterrupt:
+                            raise KeyboardInterrupt("User interrupted team startup")
                     
                     self.logger.log(f"Starting agent {i+1}/{len(filtered_agents)}: {agent_name}", 'info')
                     self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
+                    started_agents.append(agent_name)
                     
+                except KeyboardInterrupt:
+                    self.logger.log("Startup interrupted by user - cleaning up...", 'warning')
+                    # Stop started agents
+                    for started_agent in started_agents:
+                        try:
+                            self.agent_service.toggle_agent(started_agent, 'stop', mission_dir)
+                        except Exception as e:
+                            self.logger.log(f"Error stopping agent {started_agent}: {str(e)}", 'error')
+                    raise
                 except Exception as e:
                     self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
 
@@ -194,8 +209,23 @@ class TeamService:
                 'status': 'started'
             }
 
+        except KeyboardInterrupt:
+            # Cleanup already handled above
+            return {
+                'team_id': team_id,
+                'mission_dir': mission_dir,
+                'agents': started_agents,
+                'phase': current_phase,
+                'status': 'interrupted'
+            }
         except Exception as e:
             self.logger.log(f"Error starting team: {str(e)}", 'error')
+            # Try to stop any started agents
+            for agent_name in started_agents:
+                try:
+                    self.agent_service.toggle_agent(agent_name, 'stop', mission_dir)
+                except:
+                    pass
             raise
 
     def get_available_teams(self) -> List[Dict[str, Any]]:
