@@ -180,8 +180,26 @@ class TeamService:
             for i, agent_name in enumerate(filtered_agents):
                 try:
                     if i > 0:  # Don't wait for first agent
-                        self.logger.log(f"Waiting 10 seconds before starting next agent...", 'info')
-                        time.sleep(10)
+                        self.logger.log(f"Starting next agent in 10 seconds...", 'info')
+                        try:
+                            # Use small sleeps to be more responsive to interruptions
+                            for _ in range(10):
+                                time.sleep(1)
+                        except KeyboardInterrupt:
+                            self.logger.log("Agent startup sequence cancelled by user", 'warning')
+                            # Clean stop of already started agents
+                            for started_agent in started_agents:
+                                try:
+                                    self.agent_service.toggle_agent(started_agent, 'stop', mission_dir)
+                                except:
+                                    pass
+                            return {
+                                'team_id': team['id'],
+                                'mission_dir': mission_dir,
+                                'agents': started_agents,
+                                'phase': current_phase,
+                                'status': 'cancelled'
+                            }
                     
                     # Try starting agent with retries
                     start_attempts = 0
@@ -199,7 +217,10 @@ class TeamService:
                                 break
                             start_attempts += 1
                             if start_attempts < max_start_attempts:
-                                time.sleep(2 ** start_attempts)  # Exponential backoff
+                                # Use small sleeps for backoff too
+                                backoff = 2 ** start_attempts
+                                for _ in range(backoff):
+                                    time.sleep(1)
                         except Exception as e:
                             self.logger.log(
                                 f"Error starting agent {agent_name} (Attempt {start_attempts + 1}): {str(e)}", 
@@ -208,7 +229,9 @@ class TeamService:
                             start_attempts += 1
                             if start_attempts >= max_start_attempts:
                                 break
-                            time.sleep(2 ** start_attempts)  # Exponential backoff
+                            backoff = 2 ** start_attempts
+                            for _ in range(backoff):
+                                time.sleep(1)
                 
                 except Exception as e:
                     self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
