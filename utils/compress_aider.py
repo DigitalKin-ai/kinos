@@ -35,7 +35,7 @@ def summarize_chunk(chunk: str, client: anthropic.Anthropic) -> Optional[str]:
     try:
         prompt = f"""Summarize this Aider conversation chunk while preserving the most important technical details and decisions. Focus on:
 - Key technical decisions and their rationale
-- Important code changes and improvements
+- Important changes and improvements
 - Critical insights and learnings
 - Major refactoring decisions
 
@@ -45,7 +45,7 @@ Conversation chunk:
 Provide a concise but technically detailed summary."""
 
         response = client.messages.create(
-            model="claude-3-haiku-20240307",
+            model="claude-3-5-haiku-20241022",
             max_tokens=4000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -72,7 +72,7 @@ Summaries to combine:
 Create a unified technical summary."""
 
         response = client.messages.create(
-            model="claude-3-haiku-20240307",
+            model="claude-3-5-haiku-20241022",
             max_tokens=4000,
             messages=[{"role": "user", "content": prompt}]
         )
