@@ -63,74 +63,45 @@ class MapService(BaseService):
             return False
 
     def _scan_directory(self, path: str, prefix: str = "") -> Tuple[List[str], List[str], int]:
-        """
-        Scan directory recursively and return tree structure, warnings and total tokens
-        
-        Returns:
-            Tuple[List[str], List[str], int]: (tree_lines, warnings, total_tokens)
-        """
+        """Scan directory recursively and return tree structure, warnings and total tokens"""
         try:
             print(f"[DEBUG] Starting directory scan at: {path}")
             tree_lines = []
             warnings = []
             total_tokens = 0
-            
-            # Load ignore patterns from .gitignore and .aiderignore
-            ignore_patterns = []
-            for ignore_file in ['.gitignore', '.aiderignore']:
-                ignore_path = os.path.join(path, ignore_file)
-                if os.path.exists(ignore_path):
-                    try:
-                        with open(ignore_path, 'r', encoding='utf-8') as f:
-                            patterns = f.readlines()
-                        patterns = [p.strip() for p in patterns if p.strip() and not p.startswith('#')]
-                        ignore_patterns.extend(patterns)
-                    except Exception as e:
-                        self.logger.log(f"Error reading {ignore_file}: {str(e)}", 'warning')
 
-            # Create PathSpec for pattern matching if we have patterns
-            if ignore_patterns:
-                from pathspec import PathSpec
-                from pathspec.patterns import GitWildMatchPattern
-                spec = PathSpec.from_lines(GitWildMatchPattern, ignore_patterns)
-            else:
-                spec = None
-                
+            # Skip .git directory entirely
+            if '.git' in path:
+                print(f"[DEBUG] Skipping .git directory: {path}")
+                return [], [], 0
+
             # Get and sort directory contents
             items = sorted(os.listdir(path))
             
             for i, item in enumerate(items):
+                # Skip .git directory
+                if item == '.git':
+                    continue
+
                 is_last = i == len(items) - 1
                 current_prefix = prefix + ("└── " if is_last else "├── ")
                 full_path = os.path.join(path, item)
                 
-                # Get path relative to root for pattern matching
-                rel_path = os.path.relpath(full_path, os.getcwd())
-                
-                # Skip if path matches ignore patterns
-                if spec and spec.match_file(rel_path):
-                    continue
-                    
                 if os.path.isdir(full_path):
-                    # Skip directory if it matches ignore patterns
-                    if spec and any(spec.match_file(os.path.join(rel_path, "dummy")) for pattern in ignore_patterns):
-                        continue
-                        
                     tree_lines.append(f"{current_prefix}📁 {item}/")
                     sub_prefix = prefix + ("    " if is_last else "│   ")
                     sub_tree, sub_warnings, sub_tokens = self._scan_directory(full_path, sub_prefix)
                     
-                    # Only add directory to tree if it has visible contents
                     if sub_tree:
                         tree_lines.extend(sub_tree)
                         warnings.extend(sub_warnings)
                         total_tokens += sub_tokens
                     else:
-                        # Remove empty directory entry
                         tree_lines.pop()
                     
                 elif item.endswith('.md'):
                     token_count = self._count_tokens(full_path)
+                    print(f"[DEBUG] File {item}: {token_count} tokens")
                     total_tokens += token_count
                     status_icon = self._get_status_icon(token_count)
                     

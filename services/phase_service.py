@@ -38,12 +38,12 @@ class PhaseService(BaseService):
         """Determine appropriate phase based on token count"""
         try:
             print(f"[DEBUG] determine_phase() called with {total_tokens} tokens")
+            print(f"[DEBUG] Current phase before update: {self.current_phase.value}")
+            print(f"[DEBUG] Current total_tokens before update: {self.total_tokens}")
             
             # Store total tokens first
             self.total_tokens = max(0, total_tokens)  # Ensure non-negative
             old_phase = self.current_phase
-            
-            print(f"[DEBUG] Current phase before determination: {old_phase.value}")
             
             # Calculate usage percentage
             usage_percent = (self.total_tokens / self.MODEL_TOKEN_LIMIT) * 100
@@ -73,15 +73,16 @@ class PhaseService(BaseService):
                 )
             else:
                 print(f"[DEBUG] Phase unchanged: {new_phase.value}")
-                # Just update current phase without logging transition
                 self.current_phase = new_phase
+                
+            print(f"[DEBUG] Final phase: {self.current_phase.value}")
+            print(f"[DEBUG] Final total_tokens: {self.total_tokens}")
             
             return new_phase, message
 
         except Exception as e:
             print(f"[ERROR] Error in determine_phase: {str(e)}")
             self.logger.log(f"Error determining phase: {str(e)}", 'error')
-            # Return default values on error
             return ProjectPhase.EXPANSION, f"Error determining phase: {str(e)}"
 
     def get_status_info(self) -> Dict[str, Any]:
