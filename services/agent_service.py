@@ -9,7 +9,7 @@ from utils.exceptions import AgentError
 import importlib
 import inspect
 from agents.kinos_agent import KinOSAgent
-from aider_agent import AiderAgent
+from agents.aider.aider_agent import AiderAgent
 from utils.path_manager import PathManager
 from utils.validators import validate_agent_name
 from utils.logger import Logger
