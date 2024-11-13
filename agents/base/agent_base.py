@@ -1,17 +1,9 @@
 """
 Base agent functionality providing core agent capabilities.
-
-This module defines the abstract base class that all KinOS agents must inherit from.
-It provides common functionality for:
-- Agent lifecycle management (start/stop)
-- State tracking and health monitoring  
-- Dynamic execution timing
-- Error handling and recovery
-- Resource cleanup
 """
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 from utils.logger import Logger
 
 class AgentBase(ABC):
@@ -24,16 +16,6 @@ class AgentBase(ABC):
     - Health monitoring
     - Dynamic timing
     - Error handling
-    
-    Attributes:
-        name (str): Agent name/identifier
-        mission_dir (str): Working directory path
-        logger (Logger): Logger instance
-        running (bool): Current running state
-        last_run (datetime): Timestamp of last execution
-        last_change (datetime): Timestamp of last modification
-        consecutive_no_changes (int): Count of runs without changes
-        error_count (int): Count of consecutive errors
     """
     def __init__(self, config: Dict[str, Any]) -> None:
         """
@@ -43,15 +25,12 @@ class AgentBase(ABC):
             config: Configuration dictionary containing:
                 - name: Agent name/identifier
                 - mission_dir: Working directory path
-                - logger: Optional logger instance
-                - check_interval: Optional execution interval
-
-        Raises:
-            ValueError: If required config fields are missing
+                - prompt_file: Path to prompt file
         """
         self.name = config['name']
         self.mission_dir = config['mission_dir']
-        self.logger = self._init_logger(config.get("logger", print))
+        self.prompt_file = config.get('prompt_file')
+        self.logger = Logger()
         self.running = False
         self._init_state()
         
@@ -61,25 +40,17 @@ class AgentBase(ABC):
         self.last_change = None
         self.consecutive_no_changes = 0
         self.error_count = 0
-
-    def _init_logger(self, logger_func) -> Logger:
-        """Initialize logger with consistent interface"""
-        if isinstance(logger_func, Logger):
-            return logger_func
-        return Logger()
+        self.mission_files = {}
 
     def calculate_dynamic_interval(self) -> float:
         """
         Calculate the dynamic execution interval based on agent activity.
 
-        The interval increases exponentially with consecutive no-changes,
-        up to a maximum value. Error counts also influence the delay.
-
         Returns:
             float: Number of seconds to wait before next execution
         """
         try:
-            base_interval = getattr(self, 'check_interval', 60)
+            base_interval = 60  # Default 1 minute
             min_interval = 60  # Minimum 1 minute
             max_interval = 3600  # Maximum 1 hour
             
@@ -94,25 +65,19 @@ class AgentBase(ABC):
             
         except Exception as e:
             self.logger.log(f"Error calculating interval: {str(e)}", 'error')
-            return 60  # Default 1 minute
+            return 60
 
     def is_healthy(self) -> bool:
         """
         Check if the agent is in a healthy state.
 
-        Evaluates:
-        - Time since last execution
-        - Consecutive errors/no-changes
-        - Resource availability
-        - File access
-
         Returns:
-            bool: True if agent is healthy, False otherwise
+            bool: True if agent is healthy
         """
         try:
             if self.last_run:
                 time_since_last = (datetime.now() - self.last_run).total_seconds()
-                if time_since_last > (getattr(self, 'check_interval', 60) * 2):
+                if time_since_last > 120:  # 2 minutes
                     return False
                     
             if self.consecutive_no_changes > 5:
@@ -126,55 +91,33 @@ class AgentBase(ABC):
 
     @abstractmethod
     def list_files(self) -> None:
-        """
-        List and track files that this agent should monitor.
-        Must be implemented by derived classes.
-        """
+        """List and track files that this agent should monitor"""
         pass
 
     @abstractmethod
     def get_prompt(self) -> str:
-        """
-        Get the current prompt content for this agent.
-        Must be implemented by derived classes.
-
-        Returns:
-            str: Current prompt content
-        """
+        """Get the current prompt content"""
         pass
 
     @abstractmethod
     def _run_aider(self, prompt: str) -> Optional[str]:
-        """
-        Execute Aider with the given prompt.
-        Must be implemented by derived classes.
-
-        Args:
-            prompt: Prompt to send to Aider
-
-        Returns:
-            Optional[str]: Aider output or None on error
-        """
+        """Execute Aider with the given prompt"""
         pass
 
     def start(self) -> None:
-        """
-        Start the agent.
-        
-        - Activates running flag
-        - Resets metrics and state
-        - Prepares agent for execution
-        """
+        """Start the agent"""
         self.running = True
         self._init_state()
 
     def stop(self) -> None:
-        """
-        Stop the agent gracefully.
-        
-        - Deactivates running flag
-        - Completes pending operations
-        - Saves final state
-        - Releases resources
-        """
+        """Stop the agent gracefully"""
         self.running = False
+        self.cleanup()
+
+    def cleanup(self):
+        """Clean up agent resources"""
+        try:
+            self.running = False
+            self.mission_files.clear()
+        except Exception as e:
+            self.logger.log(f"Error in cleanup: {str(e)}", 'error')

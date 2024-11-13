@@ -68,3 +68,51 @@ class PromptHandler:
         except Exception as e:
             self.logger.log(f"Error saving prompt: {str(e)}", 'error')
             return False
+
+    def validate_prompt(self, content: str) -> bool:
+        """Validate prompt content format"""
+        try:
+            if not content or not content.strip():
+                return False
+                
+            # Check minimum size
+            if len(content) < 10:
+                return False
+                
+            # Check required sections
+            required = ["MISSION:", "CONTEXT:", "INSTRUCTIONS:", "RULES:"]
+            for section in required:
+                if section not in content:
+                    self.logger.log(f"Missing required section: {section}", 'warning')
+                    return False
+                    
+            return True
+            
+        except Exception as e:
+            self.logger.log(f"Error validating prompt: {str(e)}", 'error')
+            return False
+
+    def create_backup(self, prompt_file: str) -> bool:
+        """Create backup of current prompt"""
+        try:
+            if not os.path.exists(prompt_file):
+                return True
+                
+            # Create backups directory
+            backup_dir = os.path.join(os.path.dirname(prompt_file), "backups")
+            os.makedirs(backup_dir, exist_ok=True)
+            
+            # Generate backup filename
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_file = os.path.join(backup_dir, f"{os.path.basename(prompt_file)}_{timestamp}")
+            
+            # Copy current prompt
+            import shutil
+            shutil.copy2(prompt_file, backup_file)
+            
+            self.logger.log(f"Created backup: {backup_file}", 'info')
+            return True
+            
+        except Exception as e:
+            self.logger.log(f"Error creating backup: {str(e)}", 'error')
+            return False

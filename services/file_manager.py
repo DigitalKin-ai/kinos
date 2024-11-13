@@ -89,3 +89,44 @@ class FileManager:
             self.logger.log(f"Error resetting files: {e}", 'error')
             return False
             
+    def get_file_content(self, file_path: str) -> Optional[str]:
+        """Get content of a file with caching"""
+        try:
+            if not os.path.exists(file_path):
+                return None
+                
+            with open(file_path, 'r', encoding='utf-8') as f:
+                return f.read()
+                
+        except Exception as e:
+            self.logger.log(f"Error reading file {file_path}: {str(e)}", 'error')
+            return None
+
+    def write_file_content(self, file_path: str, content: str) -> bool:
+        """Write content to a file atomically"""
+        try:
+            # Create directory if needed
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            
+            # Write to temp file first
+            temp_path = f"{file_path}.tmp"
+            try:
+                with open(temp_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                    f.flush()
+                    os.fsync(f.fileno())
+                
+                # Atomic rename
+                os.replace(temp_path, file_path)
+                return True
+                
+            finally:
+                if os.path.exists(temp_path):
+                    try:
+                        os.remove(temp_path)
+                    except:
+                        pass
+                        
+        except Exception as e:
+            self.logger.log(f"Error writing file {file_path}: {str(e)}", 'error')
+            return False
