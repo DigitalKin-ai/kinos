@@ -283,6 +283,10 @@ class AiderAgent(AgentBase):
                 files_context=files_context
             )
 
+            # Parse and log commits
+            commit_logger = CommitLogger(self.logger)
+            commit_logger.parse_commits(output, self.name)
+
             return output
 
         except TimeoutError:
