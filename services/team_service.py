@@ -161,7 +161,7 @@ class TeamService:
             
             if not filtered_agents:
                 self.logger.log(
-                    f"No agents available for phase {current_phase}. "
+                    f"No agents available for phase {phase_status['phase']}. "
                     f"Original agents: {team['agents']}", 
                     'warning'
                 )
