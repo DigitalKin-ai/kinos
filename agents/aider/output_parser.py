@@ -232,28 +232,44 @@ class AiderOutputParser:
         }
         
         try:
-            # Collect all output first
+            # Collect all output with Windows error handling
             full_output = []
             while True:
-                line = process.stdout.readline()
-                if not line and process.poll() is not None:
-                    break
-                
-                line = line.rstrip()
-                if not line:
-                    continue
+                try:
+                    line = process.stdout.readline()
+                    if not line and process.poll() is not None:
+                        break
                     
-                full_output.append(line)
-                
-                # Parse different line types
-                if "Wrote " in line:
-                    self._parse_file_modification(line, changes)
-                elif "Commit " in line:  # Add commit detection
-                    self._parse_commit_line(line)
-                elif self._is_error_message(line):
-                    self._handle_error_message(line)
-                else:
-                    output_lines.append(line)
+                    line = line.rstrip()
+                    if not line:
+                        continue
+                        
+                    full_output.append(line)
+                    
+                    # Parse different line types
+                    if "Wrote " in line:
+                        self._parse_file_modification(line, changes)
+                    elif "Commit " in line:
+                        self._parse_commit_line(line)
+                    elif self._is_error_message(line):
+                        self._handle_error_message(line)
+                    else:
+                        output_lines.append(line)
+                except OSError as os_error:
+                    # Gérer l'erreur de flux Windows
+                    if "[Errno 22] Invalid argument" in str(os_error):
+                        # Essayer de récupérer le reste de la sortie
+                        try:
+                            remaining_output, _ = process.communicate()
+                            if remaining_output:
+                                if isinstance(remaining_output, bytes):
+                                    remaining_output = remaining_output.decode('utf-8')
+                                full_output.extend(remaining_output.splitlines())
+                        except Exception:
+                            pass
+                        break
+                    else:
+                        raise
 
             # Get return code
             return_code = process.wait(timeout=5)
@@ -265,14 +281,6 @@ class AiderOutputParser:
             changes = self._parse_file_changes(output)
             errors = self._parse_error_messages(output)
             
-            # Log results
-            if changes['modified_files']:
-                self.logger.log(f"Modified files: {changes['modified_files']}", 'info')
-            if changes['added_files']:
-                self.logger.log(f"Added files: {changes['added_files']}", 'info')
-            if changes['deleted_files']:
-                self.logger.log(f"Deleted files: {changes['deleted_files']}", 'info')
-                
             if errors:
                 self.logger.log(f"Errors detected:\n" + "\n".join(errors), 'error')
                 return None

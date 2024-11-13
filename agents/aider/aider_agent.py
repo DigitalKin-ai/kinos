@@ -211,9 +211,23 @@ class AiderAgent(AgentBase):
             with TimeoutManager.timeout(COMMAND_EXECUTION_TIMEOUT):
                 process = self.command_builder.execute_command(cmd)
 
-            # Collection de la sortie
-            with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
-                output = self.output_parser.parse_output(process)
+            # Collection de la sortie avec gestion spécifique des erreurs Windows
+            try:
+                with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
+                    output = self.output_parser.parse_output(process)
+            except OSError as os_error:
+                # Gérer spécifiquement l'erreur de flux Windows
+                if "[Errno 22] Invalid argument" in str(os_error):
+                    # Ignorer silencieusement cette erreur spécifique
+                    # et essayer de récupérer la sortie d'une autre manière
+                    try:
+                        output, _ = process.communicate()
+                        if isinstance(output, bytes):
+                            output = output.decode('utf-8')
+                    except Exception:
+                        output = None
+                else:
+                    raise  # Relever les autres erreurs OS
 
             return output
 
@@ -222,7 +236,8 @@ class AiderAgent(AgentBase):
             known_errors = [
                 "Can't initialize prompt toolkit",
                 "No Windows console found",
-                "aider.chat/docs/troubleshooting/edit-errors.html"
+                "aider.chat/docs/troubleshooting/edit-errors.html",
+                "[Errno 22] Invalid argument"  # Ajout de l'erreur Windows
             ]
             
             error_msg = str(e)
