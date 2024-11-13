@@ -353,15 +353,27 @@ class AiderAgent(AgentBase):
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error reading input history: {str(e)}", 'warning')
 
-            # Get files context - limit to 10 random files
+            # Get files context - limit to 10 random files plus key files
             files_context = {}
-            file_paths = list(self.mission_files.keys())
-            if len(file_paths) > 10:
+            
+            # Add key files first
+            key_files = ["demande.md", "map (readonly).md"]
+            for file_path in key_files:
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        files_context[file_path] = f.read()
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error reading key file {file_path}: {str(e)}", 'warning')
+            
+            # Get remaining files
+            remaining_files = [f for f in self.mission_files.keys() if f not in key_files]
+            if len(remaining_files) > 10:
                 import random
-                file_paths = random.sample(file_paths, 10)
+                remaining_files = random.sample(remaining_files, 10)
                 self.logger.log(f"[{self.name}] Sampling 10 random files from {len(self.mission_files)} total files", 'debug')
             
-            for file_path in file_paths:
+            # Add selected files
+            for file_path in remaining_files:
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         files_context[file_path] = f.read()
