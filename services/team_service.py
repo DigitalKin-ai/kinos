@@ -469,6 +469,76 @@ class TeamService:
         except Exception as e:
             self.logger.log(f"Error calculating health score: {str(e)}", 'error')
             return 0.0
+    def _start_agent_with_retry(self, agent_name: str, max_attempts: int = 3) -> bool:
+        """Start agent with retry logic and exponential backoff"""
+        AGENT_TIMEOUT = 60  # 60 second timeout per agent
+        
+        for attempt in range(max_attempts):
+            try:
+                self.logger.log(f"Starting agent {agent_name} (attempt {attempt + 1}/{max_attempts})", 'info')
+                
+                with TimeoutManager.timeout(AGENT_TIMEOUT):
+                    success = self._start_agent(agent_name)
+                    
+                    if success:
+                        self.logger.log(f"Successfully started agent {agent_name}", 'success')
+                        return True
+                        
+                # If failed but can retry
+                if attempt < max_attempts - 1:
+                    backoff_time = min(30, 2 ** attempt)  # Exponential backoff capped at 30s
+                    self.logger.log(
+                        f"Retrying agent {agent_name} in {backoff_time}s "
+                        f"(Attempt {attempt + 1}/{max_attempts})",
+                        'warning'
+                    )
+                    time.sleep(backoff_time)
+                else:
+                    self.logger.log(f"Failed to start agent {agent_name} after {max_attempts} attempts", 'error')
+                    return False
+                    
+            except TimeoutError:
+                self.logger.log(f"Timeout starting agent {agent_name}", 'error')
+                return False
+            except Exception as e:
+                self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
+                if attempt >= max_attempts - 1:
+                    return False
+                    
+        return False
+
+    def _start_agent(self, agent_name: str) -> bool:
+        """Start a single agent with error handling"""
+        try:
+            self.logger.log(f"Initializing agent: {agent_name}", 'info')
+            
+            # Ignore known Aider initialization errors
+            try:
+                success = self.agent_service.toggle_agent(agent_name, 'start')
+                if success:
+                    self.logger.log(f"Agent {agent_name} started successfully", 'success')
+                else:
+                    self.logger.log(f"Agent {agent_name} failed to start", 'error')
+                return success
+                
+            except Exception as e:
+                error_msg = str(e)
+                # List of known Aider errors to ignore
+                known_errors = [
+                    "Can't initialize prompt toolkit",
+                    "No Windows console found",
+                    "aider.chat/docs/troubleshooting/edit-errors.html",
+                    "[Errno 22] Invalid argument"  # Windows-specific error
+                ]
+                
+                if not any(err in error_msg for err in known_errors):
+                    self.logger.log(f"Error starting agent {agent_name}: {error_msg}", 'error')
+                return False
+                
+        except Exception as e:
+            self.logger.log(f"Critical error starting agent {agent_name}: {str(e)}", 'error')
+            return False
+
     def _filter_agents_by_phase(self, agents: List[Union[str, Dict]], phase: str) -> List[Dict]:
         """Filter and configure agents based on current phase"""
         try:
