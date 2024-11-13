@@ -17,14 +17,10 @@ class ProjectPhase(Enum):
 class PhaseService(BaseService):
     """Manages project phases based on token usage"""
     
-    # Add MODEL_TOKEN_LIMIT as a class attribute
+    # Class constants
     MODEL_TOKEN_LIMIT = 128_000
-    
-    # Import constants directly to ensure availability
     CONVERGENCE_THRESHOLD = 0.60
     EXPANSION_THRESHOLD = 0.50
-    
-    # Derived values
     CONVERGENCE_TOKENS = int(MODEL_TOKEN_LIMIT * CONVERGENCE_THRESHOLD)
     EXPANSION_TOKENS = int(MODEL_TOKEN_LIMIT * EXPANSION_THRESHOLD)
 
@@ -35,22 +31,29 @@ class PhaseService(BaseService):
         'last_transition': datetime.now()
     }
 
+    @classmethod
+    def get_state(cls):
+        """Get current state, initializing if needed"""
+        return cls._state
+
     def __init__(self, _):  # Keep parameter for compatibility but don't use it
+        """Initialize with logger only"""
         self.logger = Logger()
 
     def determine_phase(self, total_tokens: int) -> Tuple[ProjectPhase, str]:
         """Determine appropriate phase based on token count"""
         try:
             print(f"[DEBUG] determine_phase() called with {total_tokens} tokens")
-            print(f"[DEBUG] Current phase before update: {self.current_phase.value}")
-            print(f"[DEBUG] Current total_tokens before update: {self.total_tokens}")
+            state = self.get_state()
+            print(f"[DEBUG] Current phase before update: {state['current_phase'].value}")
+            print(f"[DEBUG] Current total_tokens before update: {state['total_tokens']}")
             
             # Store total tokens first
-            self._state['total_tokens'] = max(0, total_tokens)  # Ensure non-negative
-            old_phase = self._state['current_phase']
+            state['total_tokens'] = max(0, total_tokens)  # Ensure non-negative
+            old_phase = state['current_phase']
             
             # Calculate usage percentage
-            usage_percent = (self._state['total_tokens'] / self.MODEL_TOKEN_LIMIT) * 100
+            usage_percent = (state['total_tokens'] / self.MODEL_TOKEN_LIMIT) * 100
             print(f"[DEBUG] Usage percent: {usage_percent:.1f}%")
             
             # Determine phase based on thresholds
@@ -66,21 +69,21 @@ class PhaseService(BaseService):
             # Log phase transition ONLY if phase actually changed
             if new_phase != old_phase:
                 print(f"[DEBUG] Phase changing from {old_phase.value} to {new_phase.value}")
-                self._state['current_phase'] = new_phase
-                self._state['last_transition'] = datetime.now()
+                state['current_phase'] = new_phase
+                state['last_transition'] = datetime.now()
                 self.logger.log(
                     f"Phase transition: {old_phase.value} → {new_phase.value}\n"
                     f"Reason: {message}\n"
-                    f"Total tokens: {self.total_tokens:,}\n"
+                    f"Total tokens: {state['total_tokens']:,}\n"
                     f"Usage: {usage_percent:.1f}%",
                     'info'
                 )
             else:
                 print(f"[DEBUG] Phase unchanged: {new_phase.value}")
-                self._state['current_phase'] = new_phase
+                state['current_phase'] = new_phase
                 
-            print(f"[DEBUG] Final phase: {self.current_phase.value}")
-            print(f"[DEBUG] Final total_tokens: {self.total_tokens}")
+            print(f"[DEBUG] Final phase: {state['current_phase'].value}")
+            print(f"[DEBUG] Final total_tokens: {state['total_tokens']}")
             
             return new_phase, message
 
@@ -92,9 +95,11 @@ class PhaseService(BaseService):
     def get_status_info(self) -> Dict[str, Any]:
         """Get current phase status information"""
         try:
-            print(f"[DEBUG] get_status_info() - Current total_tokens: {self._state['total_tokens']}")
+            state = self.get_state()
+            print(f"[DEBUG] get_status_info() - Current total_tokens: {state['total_tokens']}")
+            
             # Calculate usage percentage
-            usage_percent = (self._state['total_tokens'] / self.MODEL_TOKEN_LIMIT) * 100
+            usage_percent = (state['total_tokens'] / self.MODEL_TOKEN_LIMIT) * 100
             print(f"[DEBUG] get_status_info() - Usage percent: {usage_percent:.1f}%")
             
             # Determine status based on percentage
@@ -109,33 +114,34 @@ class PhaseService(BaseService):
                 status_message = "Below convergence threshold"
                 
             # Calculate headroom based on phase
-            if self._state['current_phase'] == ProjectPhase.EXPANSION:
-                headroom = self.CONVERGENCE_TOKENS - self._state['total_tokens']
+            if state['current_phase'] == ProjectPhase.EXPANSION:
+                headroom = self.CONVERGENCE_TOKENS - state['total_tokens']
             else:
-                headroom = self.MODEL_TOKEN_LIMIT - self._state['total_tokens']
+                headroom = self.MODEL_TOKEN_LIMIT - state['total_tokens']
                 
             # Return consistent state
             return {
-                "phase": self._state['current_phase'].value,
-                "total_tokens": self._state['total_tokens'],
+                "phase": state['current_phase'].value,
+                "total_tokens": state['total_tokens'],
                 "usage_percent": usage_percent,
                 "status_icon": status_icon,
                 "status_message": status_message,
                 "headroom": headroom,
-                "last_transition": self.last_transition.isoformat()
+                "last_transition": state['last_transition'].isoformat()
             }
                 
         except Exception as e:
             self.logger.log(f"Error getting status info: {str(e)}", 'error')
             # Return default values on error
+            state = self.get_state()  # Get state even in error case
             return {
-                "phase": self._state['current_phase'].value,
-                "total_tokens": self._state['total_tokens'],
+                "phase": state['current_phase'].value,
+                "total_tokens": state['total_tokens'],
                 "usage_percent": 0.0,
                 "status_icon": "⚠️",
                 "status_message": "Error getting status",
                 "headroom": 0,
-                "last_transition": self.last_transition.isoformat()
+                "last_transition": state['last_transition'].isoformat()
             }
 
     def force_phase(self, phase: str) -> bool:
