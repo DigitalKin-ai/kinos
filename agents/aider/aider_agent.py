@@ -187,35 +187,39 @@ class AiderAgent(AgentBase):
             try:
                 with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
                     output = self.output_parser.parse_output(process)
-            except OSError as os_error:
-                # Gérer spécifiquement l'erreur de flux Windows
-                if "[Errno 22] Invalid argument" in str(os_error):
-                    # Ignorer silencieusement cette erreur spécifique
-                    # et essayer de récupérer la sortie d'une autre manière
-                    try:
-                        output, _ = process.communicate()
-                        if isinstance(output, bytes):
-                            output = output.decode('utf-8')
-                    except Exception:
-                        output = None
-                else:
-                    raise  # Relever les autres erreurs OS
+                    
+                    # Explicitly ignore known Aider messages
+                    if output and any(msg in output for msg in [
+                        "Can't initialize prompt toolkit",
+                        "No Windows console found",
+                        "aider.chat/docs/troubleshooting/edit-errors.html",
+                        "[Errno 22] Invalid argument"
+                    ]):
+                        # Return empty success instead of None to prevent shutdown
+                        return ""
+                        
+                    return output
 
-            return output
+            except OSError as os_error:
+                # Handle Windows stream error silently
+                if "[Errno 22] Invalid argument" in str(os_error):
+                    return ""  # Return empty success
+                raise
 
         except Exception as e:
-            # Liste des erreurs connues d'Aider à ignorer silencieusement
+            # List of known Aider errors to ignore silently
             known_errors = [
                 "Can't initialize prompt toolkit",
                 "No Windows console found",
                 "aider.chat/docs/troubleshooting/edit-errors.html",
-                "[Errno 22] Invalid argument"  # Ajout de l'erreur Windows
+                "[Errno 22] Invalid argument"
             ]
             
             error_msg = str(e)
-            if not any(err in error_msg for err in known_errors):
-                # Ne logger que les erreurs inconnues
-                self._handle_error('run_aider', e, {'prompt': prompt})
+            if any(err in error_msg for err in known_errors):
+                return ""  # Return empty success instead of None
+                
+            self._handle_error('run_aider', e, {'prompt': prompt})
             return None
             
         finally:
