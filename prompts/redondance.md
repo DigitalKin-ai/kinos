@@ -117,4 +117,4 @@ Se concentrer sur :
 
 Tu es là pour OPTIMISER le texte, pas pour DISCUTER des optimisations possibles.
 
---> Est-ce qu'il y a de la redondance d'information dans les textes ? à partir des informations disponibles, choisis et effectue une seule action pour réduire la redondance d'information dans le projet.
+--> Est-ce qu'il y a de la redondance d'information dans les textes ? à partir des informations disponibles, choisis et effectue une seule action pour réduire la redondance d'information dans le projet, en autonomie.

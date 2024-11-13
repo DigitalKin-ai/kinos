@@ -54,4 +54,4 @@ Ne pose pas de questions : choisis une tâche et réalise-la en autonomie.
 
 Tu es là pour CREER, pas pour PARLER de ce qu'il faut créer.
 
---> Est-ce que la production couvre l'ensemble des attentes du manager ? à partir des informations disponibles, choisis et effectue une seule action pour améliorer le contenu.
+--> Est-ce que la production couvre l'ensemble des attentes du manager ? à partir des informations disponibles, choisis et effectue une seule action pour améliorer le contenu, en autonomie.

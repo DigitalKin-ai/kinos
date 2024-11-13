@@ -6,7 +6,7 @@
         {
             "name": "specifications",
             "type": "aider",
-            "weight": 0.7
+            "weight": 0.4
         },
         {
             "name": "management",
@@ -16,17 +16,17 @@
         {
             "name": "evaluation",
             "type": "aider",
-            "weight": 0.7
+            "weight": 0.5
         },
         {
             "name": "chroniqueur",
             "type": "aider",
-            "weight": 0.5
+            "weight": 0.3
         },
         {
             "name": "documentaliste",
             "type": "research",
-            "weight": 0.8
+            "weight": 0.5
         },
         {
             "name": "duplication",
@@ -36,7 +36,7 @@
         {
             "name": "redondance",
             "type": "aider",
-            "weight": 0.4
+            "weight": 0.6
         },
         {
             "name": "redacteur",
@@ -62,23 +62,23 @@
     "phase_config": {
         "expansion": {
             "active_agents": [
-                {"name": "specifications", "weight": 0.8},
+                {"name": "specifications", "weight": 0.6},
                 {"name": "management", "weight": 0.7},
                 {"name": "redacteur", "weight": 0.9},
                 {"name": "redacteur2", "weight": 0.8},
                 {"name": "redacteur3", "weight": 0.7},
-                {"name": "chroniqueur", "weight": 0.5},
-                {"name": "documentaliste", "weight": 0.7}
+                {"name": "chroniqueur", "weight": 0.3},
+                {"name": "documentaliste", "weight": 0.6}
             ],
             "priority": "content_generation"
         },
         "convergence": {
             "active_agents": [
-                {"name": "evaluation", "weight": 0.8},
+                {"name": "evaluation", "weight": 0.4},
                 {"name": "duplication", "weight": 0.6},
-                {"name": "redondance", "weight": 0.7},
-                {"name": "validation", "weight": 0.8},
-                {"name": "documentaliste", "weight": 0.9}
+                {"name": "redondance", "weight": 0.8},
+                {"name": "validation", "weight": 0.5},
+                {"name": "documentaliste", "weight": 0.3}
             ],
             "priority": "content_refinement"
         }

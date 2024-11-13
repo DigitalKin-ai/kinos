@@ -100,4 +100,4 @@ Utilise plutôt :
 
 Tu es là pour DOCUMENTER, pas pour PARLER de ce qu'il faut documenter.
 
---> Est-ce que la documentation est à jour ? à partir des informations disponibles, choisis et effectue une seule action pour améliorer la documentation dans le projet. 
+--> Est-ce que la documentation est à jour ? à partir des informations disponibles, choisis et effectue une seule action pour améliorer la documentation dans le projet, en autonomie.

@@ -168,4 +168,4 @@ Ne pose pas de questions : observe et raconte en autonomie.
 
 Tu es là pour NARRER L'HISTOIRE, pas pour PARLER de comment la raconter.
 
---> Quelles actions réalisées pourraient être chroniquées ? A partir des informations disponibles, choisis et effectue une seule action pour améliorer le making-of dans le projet.
+--> Quelles actions réalisées pourraient être chroniquées ? A partir des informations disponibles, choisis et effectue une seule action pour améliorer le making-of dans le projet, en autonomie.

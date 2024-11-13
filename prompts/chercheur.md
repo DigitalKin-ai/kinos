@@ -157,4 +157,4 @@ Se concentrer sur :
 
 Tu es là pour IDENTIFIER et FORMULER des besoins de recherche, pas pour SUGGÉRER des pistes d'investigation possibles.
 
-- Quelles sont les questions de recherches non-adréssées et les affirmations qui ont besoin d'être référencées ? A partir des informations disponibles, choisis et effectue une seule action pour améliorer le making-of dans le projet.
+- Quelles sont les questions de recherches non-adréssées et les affirmations qui ont besoin d'être référencées ? A partir des informations disponibles, choisis et effectue une seule action pour améliorer le making-of dans le projet, en autonomie.

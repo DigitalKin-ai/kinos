@@ -351,13 +351,23 @@ class AiderAgent(AgentBase):
 
                     # Get chat history
                     chat_history = ""
-                    history_file = f".aider.{self.name}.chat.history.md"
-                    if os.path.exists(history_file):
+                    chat_history_file = f".aider.{self.name}.chat.history.md"
+                    if os.path.exists(chat_history_file):
                         try:
-                            with open(history_file, 'r', encoding='utf-8') as f:
+                            with open(chat_history_file, 'r', encoding='utf-8') as f:
                                 chat_history = f.read()
                         except Exception as e:
                             self.logger.log(f"[{self.name}] Error reading chat history: {str(e)}", 'warning')
+
+                    # Get input history
+                    input_history = ""
+                    input_history_file = f".aider.{self.name}.input.history.md"
+                    if os.path.exists(input_history_file):
+                        try:
+                            with open(input_history_file, 'r', encoding='utf-8') as f:
+                                input_history = f.read()
+                        except Exception as e:
+                            self.logger.log(f"[{self.name}] Error reading input history: {str(e)}", 'warning')
 
                     # Get files context
                     files_context = {}
@@ -371,21 +381,24 @@ class AiderAgent(AgentBase):
                     # Format context message
                     context_message = f"""Based on:
 1. The system prompt defining my role and responsibilities
-2. The chat history showing previous actions and context
-3. The current state of the project files shown below
+2. The input history showing previous instructions
+3. The production history showing Aider's reactions and productions
+3. The current state of the project files shown below (and demande.md in particular)
 
-Choose ONE specific, concrete task that needs to be done and explain it in detail so that Aider can implement it.
+Choose ONE specific, concrete task that needs to be done by the agent {self.name} and explain it in detail so that Aider can implement it.
 Focus on practical changes that move the project forward.
 
 Current project files:
 {self._format_files_context(files_context)}
 
 Instructions:
-1. Analyze the current state and identify a clear next step
-2. Describe ONE specific task in detail
-3. Explain what files need to be modified and how
-4. Keep the task focused and achievable
-5. Provide enough detail for Aider to implement it"""
+1. Answer any outstanding question raised by Aider in the chat history
+2. Analyze the current state and identify a clear next step
+3. Describe ONE specific task in detail
+4. Explain what files need to be modified and how
+5. Keep the task focused and achievable
+6. Provide enough detail for Aider to implement it autonomously
+7. Ask him specifically to do the task now, making decisions instead of asking for clarifications"""
 
                     # Call Claude API with correct message format
                     try:
@@ -394,9 +407,13 @@ Instructions:
                         
                         messages = []
                         
-                        # Only add chat history if not empty
+                        # Only add input history if not empty
                         if chat_history.strip():
-                            messages.append({"role": "assistant", "content": chat_history})
+                            messages.append({"role": "user", "content": chat_history})
+
+                        # Only add input history if not empty
+                        if input_history.strip():
+                            messages.append({"role": "assistant", "content": input_history})
                             
                         # Add user message
                         messages.append({"role": "user", "content": context_message})

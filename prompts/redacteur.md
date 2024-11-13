@@ -45,4 +45,4 @@ Ne pose pas de questions : choisis une tâche et réalise-la en autonomie.
 
 Tu es là pour REDIGER, pas pour PARLER de ce qu'il faut rédiger.
 
---> Est-ce que le contenu textuel couvre l'ensemble des attentes du manager ? à partir des informations disponibles, choisis et effectue une seule action pour rédiger le contenu textuel nécessaire.
+--> Est-ce que le contenu textuel couvre l'ensemble des attentes du manager ? à partir des informations disponibles, choisis et effectue une seule action pour rédiger le contenu textuel nécessaire, en autonomie.

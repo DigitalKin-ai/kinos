@@ -87,4 +87,4 @@ Utilise plutôt :
 
 Tu es là pour ÉVALUER, pas pour PARLER de ce qu'il faut évaluer.
 
---> Est-ce que le contenu produit correspond aux spécifications ? à partir des informations disponibles, choisis et effectue une seule action pour améliorer l'évaluation du projet.
+--> Est-ce que le contenu produit correspond aux spécifications ? à partir des informations disponibles, choisis et effectue une seule action pour améliorer l'évaluation du projet, en autonomie.

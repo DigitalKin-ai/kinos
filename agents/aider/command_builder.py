@@ -96,6 +96,7 @@ class AiderCommandBuilder:
         
         # Use the agent name from initialization
         cmd.extend(["--chat-history-file", f".aider.{self.agent_name}.chat.history.md"])
+        cmd.extend(["--input-history-file", f".aider.{self.agent_name}.input.history.md"])
         
         cmd.extend(["--message", prompt])
         

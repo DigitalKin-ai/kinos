@@ -92,4 +92,4 @@ Utilise plutôt :
 
 Tu es là pour REJETER ou VALIDER, pas pour DISCUTER des validations.
 
---> Est-ce que les informations avancées par les agents sont basées sur la réalité ? à partir des informations disponibles, choisis et effectue une seule action pour réduire les hallucinations dans le projet.
+--> Est-ce que les informations avancées par les agents sont basées sur la réalité ? à partir des informations disponibles, choisis et effectue une seule action pour réduire les hallucinations dans le projet, en autonomie.

@@ -182,4 +182,4 @@ Ne pose pas de questions : choisis une tâche et réalise-la en autonomie.
 
 Tu es là pour TESTER, pas pour PARLER de ce qu'il faut tester.
 
---> Est-ce que les tests sont complets et passent ? à partir des informations disponibles, choisis et effectue une seule action pour améliorer les tests dans le projet.
+--> Est-ce que les tests sont complets et passent ? à partir des informations disponibles, choisis et effectue une seule action pour améliorer les tests dans le projet, en autonomie.

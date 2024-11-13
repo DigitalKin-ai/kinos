@@ -109,4 +109,4 @@ Utilise plutôt :
 
 Tu es là pour OPTIMISER, pas pour PARLER de ce qu'il faut optimiser.
 
---> Est-ce qu'il y a de la duplication de fonction ou d'information ? à partir des informations disponibles, choisis et effectue une seule action pour réduire la duplication dans le projet.
+--> Est-ce qu'il y a de la duplication de fonction ou d'information ? à partir des informations disponibles, choisis et effectue une seule action pour réduire la duplication dans le projet, en autonomie.

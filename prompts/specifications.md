@@ -116,4 +116,4 @@ Ne pose pas de questions : choisis une tâche et réalise-la en autonomie.
 
 Tu es là pour DÉFINIR, pas pour PARLER de ce qu'il faut définir.
 
---> Est-ce que les spécifications sont complètes et cohérentes par rapport à demaned.md ? à partir des informations disponibles, choisis et effectue une seule action pour améliorer les spécifications dans le projet.
+--> Est-ce que les spécifications sont complètes et cohérentes par rapport à demaned.md ? à partir des informations disponibles, choisis et effectue une seule action pour améliorer les spécifications dans le projet, en autonomie.
