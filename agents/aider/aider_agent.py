@@ -13,6 +13,7 @@ from agents.aider.command_builder import AiderCommandBuilder
 from agents.aider.output_parser import AiderOutputParser
 from agents.utils.encoding import configure_encoding, detect_file_encoding, normalize_encoding
 from agents.utils.rate_limiter import RateLimiter
+from utils.commit_logger import CommitLogger
 from agents.base.file_handler import FileHandler
 from agents.base.prompt_handler import PromptHandler
 from utils.path_manager import PathManager
