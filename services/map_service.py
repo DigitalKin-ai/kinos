@@ -70,22 +70,38 @@ class MapService(BaseService):
             warnings = []
             total_tokens = 0
 
-            # Skip .git directory entirely
-            if '.git' in path:
-                print(f"[DEBUG] Skipping .git directory: {path}")
-                return [], [], 0
+            # Load ignore patterns from .gitignore
+            gitignore_path = os.path.join(os.getcwd(), '.gitignore')
+            ignore_patterns = []
+            if os.path.exists(gitignore_path):
+                try:
+                    with open(gitignore_path, 'r', encoding='utf-8') as f:
+                        ignore_patterns = [
+                            line.strip() for line in f.readlines()
+                            if line.strip() and not line.startswith('#')
+                        ]
+                    print(f"[DEBUG] Loaded {len(ignore_patterns)} ignore patterns from .gitignore")
+                except Exception as e:
+                    print(f"[DEBUG] Error reading .gitignore: {str(e)}")
+
+            # Create PathSpec for pattern matching
+            from pathspec import PathSpec
+            from pathspec.patterns import GitWildMatchPattern
+            spec = PathSpec.from_lines(GitWildMatchPattern, ignore_patterns)
 
             # Get and sort directory contents
             items = sorted(os.listdir(path))
             
             for i, item in enumerate(items):
-                # Skip .git directory
-                if item == '.git':
-                    continue
-
                 is_last = i == len(items) - 1
                 current_prefix = prefix + ("└── " if is_last else "├── ")
                 full_path = os.path.join(path, item)
+                rel_path = os.path.relpath(full_path, os.getcwd())
+
+                # Skip if matches ignore patterns
+                if spec.match_file(rel_path):
+                    print(f"[DEBUG] Skipping ignored path: {rel_path}")
+                    continue
                 
                 if os.path.isdir(full_path):
                     tree_lines.append(f"{current_prefix}📁 {item}/")
@@ -114,7 +130,7 @@ class MapService(BaseService):
                     if warning:
                         warnings.append(warning)
                         
-            print(f"[DEBUG] Scan complete - Found {total_tokens} tokens")
+            print(f"[DEBUG] Directory {path} scan complete - Found {total_tokens} tokens")
             return tree_lines, warnings, total_tokens
             
         except Exception as e:
