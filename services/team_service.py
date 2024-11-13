@@ -230,9 +230,8 @@ class TeamService:
                         try:
                             success = self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
                             if success:
-                                with self._team_lock:
-                                    if agent_name not in started_agents:  # Avoid duplicates
-                                        started_agents.append(agent_name)
+                                if agent_name not in started_agents:  # Avoid duplicates
+                                    started_agents.append(agent_name)
                             return success
                         except Exception as e:
                             error_msg = str(e)
