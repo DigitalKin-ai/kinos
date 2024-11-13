@@ -109,7 +109,7 @@ class AiderAgent(AgentBase):
                 for file in files:
                     if file.endswith(('.md', '.txt', '.py', '.js')):
                         file_path = os.path.join(root, file)
-                        rel_path = get_relative_path(file_path, self.mission_dir)
+                        rel_path = os.path.relpath(file_path, self.mission_dir)
                         
                         # Skip ignored files
                         if any(pattern in rel_path for pattern in ignore_patterns):
