@@ -896,8 +896,17 @@ class KinOSAgent:
             self.logger.log(f"[{self.name}] Run loop ended")
         
         except Exception as e:
-            self._handle_error('run', e)
-            self.running = False
+            # Ignore known benign Aider errors
+            if any(err in str(e) for err in [
+                "Can't initialize prompt toolkit",
+                "No Windows console found",
+                "aider.chat/docs/troubleshooting/edit-errors.html",
+                "[Errno 22] Invalid argument"
+            ]):
+                pass  # Do not stop the agent
+            else:
+                self.logger.log(f"[{self.name}] Critical error in run: {str(e)}", 'error')
+                self.running = False
         
         finally:
             # Ensure cleanup happens

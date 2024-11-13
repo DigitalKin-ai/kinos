@@ -151,26 +151,27 @@ class AiderOutputParser:
     def _is_error_message(self, line: str) -> bool:
         """
         Check if line contains error message
-        
+
         Args:
             line: Output line to check
-            
+
         Returns:
             bool: True if line contains error
         """
-        # Ignorer les erreurs connues d'Aider sur Windows
-        known_aider_errors = [
+        # Ignore known benign Aider errors
+        known_errors = [
             "Can't initialize prompt toolkit",
             "No Windows console found",
-            "aider.chat/docs/troubleshooting/edit-errors.html"
+            "aider.chat/docs/troubleshooting/edit-errors.html",
+            "[Errno 22] Invalid argument"
         ]
-        if any(err in line for err in known_aider_errors):
+        if any(err in line for err in known_errors):
             return False
-            
-        # Documentation links should not be treated as errors
-        if "documentation:" in line.lower():
+
+        # Documentation links and version checks should not be treated as errors
+        if "documentation:" in line.lower() or "Error checking pypi for new version" in line:
             return False
-            
+
         error_indicators = [
             'error',
             'exception', 
