@@ -73,8 +73,7 @@ class ChatLogger:
             if files_context:
                 log_entry += "### 📄 Files Context:\n"
                 for filename, content in files_context.items():
-                    rel_path = os.path.relpath(filename, self.mission_dir)
-                    log_entry += f"#### {rel_path}\n```\n{content}\n```\n\n"
+                    log_entry += f"#### {filename}\n```\n{content}\n```\n\n"
             
             # Add prompt and response with clear separators
             log_entry += "### 💭 Prompt:\n"

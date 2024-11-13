@@ -215,26 +215,24 @@ class AiderAgent(AgentBase):
             with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
                 output = self.output_parser.parse_output(process)
 
-            # Log interaction if we have output
+            # Si on a une réponse, logger l'interaction
             if output:
-                self.logger.log("📝 Processing agent interaction for logging...")
-                
-                # Create files context
+                # Obtenir le nom de la mission depuis le chemin
+                mission_name = os.path.basename(self.mission_dir)
+            
+                # Créer le contexte des fichiers
                 files_context = {}
                 for file_path in self.mission_files.keys():
                     try:
                         with open(file_path, 'r', encoding='utf-8') as f:
                             content = f.read()
-                            files_context[file_path] = content
-                            self.logger.log(f"📄 Added file to context: {file_path}")
+                            # Utiliser le chemin relatif comme clé
+                            rel_path = os.path.relpath(file_path, self.mission_dir)
+                            files_context[rel_path] = content
                     except Exception as e:
-                        self.logger.log(f"❌ Error reading file for context: {str(e)}", 'error')
+                        self.logger.log(f"Error reading file for context: {str(e)}", 'error')
 
-                # Get mission name from directory
-                mission_name = os.path.basename(self.mission_dir)
-                self.logger.log(f"📁 Using mission name: {mission_name}")
-
-                # Log via ChatLogger
+                # Logger l'interaction via ChatLogger
                 try:
                     from utils.chat_logger import ChatLogger
                     chat_logger = ChatLogger(mission_name)
