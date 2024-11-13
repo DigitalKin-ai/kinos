@@ -84,28 +84,6 @@ class AiderAgent(AgentBase):
             print(f"Error during initialization: {str(e)}")
             raise
         
-        # Initialize base attributes
-        self.name = config["name"]
-        self.prompt = config.get("prompt", "")  # Default empty prompt if not specified
-        self.prompt_file = config.get("prompt_file")
-        self.mission_dir = config.get("mission_dir", "")
-        
-        # Initialiser les attributs de suivi
-        self.running = False
-        self.last_run = None
-        self.last_change = None
-        self.consecutive_no_changes = 0
-        
-        # Initialiser les caches et listes
-        self._prompt_cache = {}
-        self.mission_files = {}
-        self.watched_files = []
-        
-        # Initialiser l'intervalle de vérification
-        self.check_interval = config.get('check_interval', 60)  # 60 secondes par défaut
-
-        # Logging d'initialisation
-        self.logger.log(f"[{self.name}] Initialisé comme {self.name}")
 
     def _log(self, message: str, level: str = 'info') -> None:
         """Méthode de logging centralisée"""
@@ -177,35 +155,6 @@ class AiderAgent(AgentBase):
         self._requests_this_minute += 1
         return True
 
-    def _handle_rate_limit_error(self, attempt: int, max_attempts: int = 5) -> bool:
-        """
-        Handle rate limit errors with aggressive exponential backoff
-        
-        Args:
-            attempt: Current attempt number
-            max_attempts: Maximum number of retry attempts
-            
-        Returns:
-            bool: True if should retry, False if max attempts exceeded
-        """
-        if attempt >= max_attempts:
-            self._log(
-                f"[{self.name}] ❌ Max retry attempts ({max_attempts}) exceeded for rate limit",
-                'error'
-            )
-            return False
-            
-        # More aggressive backoff: 5s, 15s, 45s, 135s, 405s
-        wait_time = 5 * (3 ** (attempt - 1))
-        
-        self._log(
-            f"[{self.name}] ⏳ Rate limit hit (attempt {attempt}/{max_attempts}). "
-            f"Waiting {wait_time} seconds before retry...",
-            'warning'
-        )
-        
-        time.sleep(wait_time)
-        return True
 
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Execute Aider with given prompt and stream output."""
