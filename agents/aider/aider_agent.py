@@ -2,6 +2,7 @@
 AiderAgent - Core implementation of Aider-based agent functionality
 """
 import os
+import sys
 import time
 import subprocess
 import traceback
@@ -210,20 +211,30 @@ class AiderAgent(AgentBase):
             with TimeoutManager.timeout(COMMAND_EXECUTION_TIMEOUT):
                 process = self.command_builder.execute_command(cmd)
 
-            # Traitement ligne par ligne de la sortie
+            # Traitement ligne par ligne de la sortie avec streaming
             output_lines = []
             while True:
-                line = process.stdout.readline()
-                if not line and process.poll() is not None:
+                # Lire un caractère à la fois pour un vrai streaming
+                char = process.stdout.read(1)
+                if not char and process.poll() is not None:
                     break
                     
-                line = line.rstrip()
-                if not line:
-                    continue
-                    
-                # Traiter chaque ligne immédiatement
-                self._handle_output_line(line)
-                output_lines.append(line)
+                # Accumuler les caractères jusqu'à une nouvelle ligne
+                line_buffer = char
+                while char != '\n' and char:
+                    char = process.stdout.read(1)
+                    if char:
+                        line_buffer += char
+                        
+                # Traiter la ligne complète
+                if line_buffer:
+                    line = line_buffer.rstrip()
+                    if line:
+                        # Traiter et logger immédiatement chaque ligne
+                        self._handle_output_line(line)
+                        output_lines.append(line)
+                        # Forcer le flush du logger pour un affichage immédiat
+                        sys.stdout.flush()
 
             # Obtenir le code de retour
             return_code = process.wait(timeout=5)
