@@ -135,19 +135,20 @@ class TeamService:
                 )
                 raise ValueError(f"Team {team_id} not found")
 
-            # Get services and determine phase once
+            # Get services once and reuse
             from services import init_services
             services = init_services(None)
-            map_service = services['map_service']
             phase_service = services['phase_service']
+            map_service = services['map_service']
 
-            # Generate map first
+            # Generate map first to get token count
             map_service.generate_map()
             
             # Get phase status info directly without recalculating
             phase_status = phase_service.get_status_info()
             current_phase = phase_service.current_phase
-            
+
+            # Log phase status once
             self.logger.log(
                 f"Current phase: {current_phase.value}\n"
                 f"Total tokens: {phase_status['total_tokens']}\n"
@@ -156,7 +157,7 @@ class TeamService:
                 'info'
             )
 
-            # Filter agents based on determined phase
+            # Filter agents based on current phase
             filtered_agents = self._filter_agents_by_phase(team['agents'], current_phase.value)
             
             if not filtered_agents:
