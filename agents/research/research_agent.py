@@ -47,44 +47,59 @@ class ResearchAgent(AgentBase):
 
     def extract_research_topics(self, content: str) -> List[str]:
         """
-        Extract research questions/topics from content using keyword analysis
+        Extract research topics using Claude to analyze content and identify research needs
         
         Args:
             content: Text content to analyze
-            
+                
         Returns:
             List of research topics/questions
         """
         try:
-            # Split into sentences
-            sentences = [s.strip() for s in content.split('.') if s.strip()]
-            topics = []
-            
-            # Keywords that indicate research topics
-            topic_indicators = [
-                '?', 'how', 'what', 'why', 'when', 'where', 'which',
-                'research', 'investigate', 'analyze', 'study', 'examine',
-                'explore', 'determine', 'identify', 'understand'
-            ]
-            
-            for sentence in sentences:
-                # Check if sentence contains topic indicators
-                if any(indicator in sentence.lower() for indicator in topic_indicators):
-                    # Clean and normalize the topic
-                    topic = sentence.strip('?!.,').strip()
-                    if topic and len(topic) > 10:  # Minimum length threshold
-                        topics.append(topic)
-            
-            # Remove duplicates while preserving order
-            unique_topics = list(dict.fromkeys(topics))
-            
-            if not unique_topics:
-                self.logger.log("No research topics found in content", 'warning')
-                return []
+            # Prepare context with project files
+            files_context = {}
+            for file_path in self.mission_files:
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        files_context[file_path] = f.read()
+                except Exception as e:
+                    self.logger.log(f"Error reading file {file_path}: {str(e)}", 'error')
+
+            # Build prompt for Claude
+            prompt = f"""Analyze the following content and project context to identify ONE specific research topic or question that needs citations and academic references.
+
+Content to analyze:
+{content}
+
+Project context:
+{self._format_files_context(files_context)}
+
+Requirements:
+1. Select ONE clear research question or statement that needs academic citations
+2. The topic should be specific and focused enough for targeted research
+3. Choose a topic that would benefit from academic sources and citations
+4. Format the response as a single research question or statement
+
+Return ONLY the research question/statement, without any explanation or additional text."""
+
+            # Execute Claude query with timeout
+            from utils.managers.timeout_manager import TimeoutManager
+            with TimeoutManager.timeout(30):
+                result = self._run_aider(prompt)
                 
-            self.logger.log(f"Extracted {len(unique_topics)} research topics", 'info')
-            return unique_topics
-            
+            if not result:
+                self.logger.log("No research topics extracted from Claude", 'warning')
+                return []
+
+            # Clean and validate the topic
+            topic = result.strip()
+            if len(topic) < 10:  # Minimum length validation
+                self.logger.log("Extracted topic too short", 'warning')
+                return []
+
+            self.logger.log(f"Extracted research topic: {topic}", 'info')
+            return [topic]
+
         except Exception as e:
             self.logger.log(f"Error extracting topics: {str(e)}", 'error')
             return []
