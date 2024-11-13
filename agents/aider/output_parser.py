@@ -2,7 +2,7 @@
 AiderOutputParser - Parses and processes Aider command output
 """
 import subprocess
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from utils.logger import Logger
 
 class AiderOutputParser:
