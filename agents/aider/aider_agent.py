@@ -188,6 +188,14 @@ class AiderAgent(AgentBase):
                 self._log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}")
                 return None
 
+            if not os.access(self.mission_dir, os.R_OK | os.W_OK):
+                self._log(f"[{self.name}] ❌ Insufficient permissions for: {self.mission_dir}")
+                return None
+
+            # Change to mission directory
+            os.chdir(self.mission_dir)
+            self._log(f"[{self.name}] ✓ Changed to mission directory")
+
             # Build command with builder
             cmd = self.command_builder.build_command(
                 prompt=prompt,
@@ -201,123 +209,41 @@ class AiderAgent(AgentBase):
                 
             # Execute command
             process = self.command_builder.execute_command(cmd)
+
+            # Initialize output collection
+            output_lines = []
+            error_detected = False
             
-        except Exception as e:
-            self._handle_error('run_aider', e, {'prompt': prompt})
-            return None
-
-        # Validate mission directory exists and is accessible
-        if not os.path.exists(self.mission_dir):
-            self._log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}")
-            return None
-            
-        if not os.access(self.mission_dir, os.R_OK | os.W_OK):
-                    self._log(f"[{self.name}] ❌ Insufficient permissions for: {self.mission_dir}")
-                    return None
-
-        try:
-            # Change to mission directory
-            os.chdir(self.mission_dir)
-            self._log(f"[{self.name}] ✓ Changed to mission directory")
-
-            # Build command
-            cmd = [
-                "aider",
-                "--model", "claude-3-5-haiku-20241022",
-                "--yes-always",
-                "--cache-prompts",
-                "--no-pretty",
-                "--architect"
-            ]
-
-            # Read .gitignore patterns
-            gitignore_patterns = []
-            gitignore_path = os.path.join(self.mission_dir, '.gitignore')
-            if os.path.exists(gitignore_path):
+            # Read output while process is running
+            while True:
                 try:
-                    with open(gitignore_path, 'r', encoding='utf-8') as f:
-                        gitignore_patterns = f.readlines()
-                    gitignore_patterns = [p.strip() for p in gitignore_patterns if p.strip() and not p.startswith('#')]
-                    from pathspec import PathSpec
-                    from pathspec.patterns import GitWildMatchPattern
-                    spec = PathSpec.from_lines(GitWildMatchPattern, gitignore_patterns)
+                    line = process.stdout.readline()
+                    if not line and process.poll() is not None:
+                        break
+                        
+                    line = line.rstrip()
+                    if line:
+                        self._handle_output_line(line, output_lines, error_detected)
+
                 except Exception as e:
-                    self.logger.log(f"[{self.name}] Warning reading .gitignore: {str(e)}", 'warning')
-                    spec = None
-            else:
-                spec = None
+                    self._log(f"[{self.name}] Error reading output: {str(e)}")
+                    continue
 
-                # Add files, respecting .gitignore
-                files_added = []
-                for file_path in self.mission_files:
-                    try:
-                        rel_path = os.path.relpath(file_path, self.mission_dir)
-                        
-                        # Skip if file matches gitignore patterns
-                        if spec and spec.match_file(rel_path):
-                            self.logger.log(
-                                f"[{self.name}] Skipping ignored file: {rel_path}", 
-                                'debug'
-                            )
-                            continue
+            # Get return code with timeout handling
+            try:
+                with TimeoutManager.timeout(DEFAULT_TIMEOUT):
+                    return_code = process.wait()
+            except TimeoutError:
+                process.kill()
+                self._log(f"[{self.name}] ⚠️ Process timed out after {DEFAULT_TIMEOUT} seconds", 'warning')
+                return None
 
-                        # Only add if file exists and is in mission directory
-                        if os.path.exists(os.path.join(self.mission_dir, rel_path)):
-                            cmd.extend(["--file", rel_path])
-                            files_added.append(rel_path)
-                            self.logger.log(f"[{self.name}] ➕ Added file: {rel_path}")
-                    except Exception as e:
-                        self.logger.log(f"[{self.name}] ⚠️ Error adding file {file_path}: {str(e)}")
-
-                if not files_added:
-                    self._log(f"[{self.name}] ⚠️ No files added to command")
-                    return None
-                
-                # Add the message/prompt
-                cmd.extend(["--message", prompt])
-
-                # Set environment variables for encoding
-                env = os.environ.copy()
-                env['PYTHONIOENCODING'] = 'utf-8'
-                
-                self._log(f"[{self.name}] 🚀 Lancement Aider...")
-            
-                # Validate command before execution
-                try:
-                    import shutil
-                    aider_path = shutil.which('aider')
-                    if not aider_path:
-                        self._log(f"[{self.name}] ❌ Aider command not found in PATH", 'error')
-                        return None
-                        
-                    self._log(f"[{self.name}] ✓ Found Aider at: {aider_path}", 'debug')
-                    
-                    # Test if we can access the mission directory
-                    if not os.access(self.mission_dir, os.R_OK | os.W_OK):
-                        self._log(
-                            f"[{self.name}] ❌ Cannot access mission directory: {self.mission_dir}", 
-                            'error'
-                        )
-                        return None
-                        
-                except Exception as e:
-                    self._log(f"[{self.name}] ❌ Command validation failed: {str(e)}", 'error')
-                    return None
-
-                # Set timeout duration (5 minutes)
-                TIMEOUT_SECONDS = 300
-
-                # Execute Aider with output streaming
-                process = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,  # Redirect stderr to stdout
-                    text=True,
-                    encoding='utf-8',
-                    errors='replace',
-                    env=env,
-                    bufsize=1
-                )
+            # Process results
+            return self._process_execution_results(
+                return_code,
+                output_lines,
+                error_detected
+            )
 
                 # Initialize output collection
                 output_lines = []
