@@ -249,18 +249,22 @@ class MapService(BaseService):
                 "\n## Document Tree",
                 "📁 Project"
             ])
-        
-        # Add tree structure
-        content.extend(tree_content)
-        
-        # Add warnings if any
-        if warnings:
-            content.extend([
-                "\n## Warnings",
-                *warnings
-            ])
             
-        return "\n".join(content)
+            # Add tree structure
+            content.extend(tree_content)
+            
+            # Add warnings if any
+            if warnings:
+                content.extend([
+                    "\n## Warnings",
+                    *warnings
+                ])
+                
+            return "\n".join(content)
+            
+        except Exception as e:
+            self.logger.log(f"Error formatting map content: {str(e)}", 'error')
+            return ""
 
     def _write_map_file(self, content: str) -> bool:
         """Write content to map file with atomic write"""
