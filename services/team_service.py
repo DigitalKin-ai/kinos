@@ -114,7 +114,7 @@ class TeamService:
     def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
         """Start team in current/specified directory"""
         # Initialize started_agents as a list for tracking
-        started_agents = []  # Track started agents as a list, not a set
+        started_agents = []
         original_sigint_handler = signal.getsignal(signal.SIGINT)  # Save original handler
         
         try:
@@ -244,8 +244,8 @@ class TeamService:
 
                 # Maintain pools of active and waiting agents
                 futures = []
-                active_agents = set()
-                waiting_agents = set(agent['name'] if isinstance(agent, dict) else agent 
+                active_agents = []
+                waiting_agents = list(agent['name'] if isinstance(agent, dict) else agent 
                                    for agent in normalized_agents)
 
                 while waiting_agents or active_agents:
@@ -253,11 +253,9 @@ class TeamService:
                     available_slots = self.max_concurrent_agents - len(active_agents)
 
                     if available_slots > 0 and waiting_agents:
-                        # Convert set to list for random.sample
-                        waiting_agents_list = list(waiting_agents)
                         # Randomly select agents to start
                         agents_to_start = random.sample(
-                            waiting_agents_list,
+                            waiting_agents,
                             min(available_slots, len(waiting_agents))
                         )
                         
@@ -266,7 +264,9 @@ class TeamService:
                             waiting_agents.remove(agent_name)
                             future = executor.submit(start_agent, agent_name)
                             futures.append(future)
-                            active_agents.add(agent_name)
+                            active_agents.append(agent_name)
+                            if agent_name not in started_agents:
+                                started_agents.append(agent_name)
                             time.sleep(5)  # Wait between starts
 
                     # Wait for any agent to complete
@@ -289,7 +289,7 @@ class TeamService:
                             active_agents.remove(completed_agent)
                             # Put completed agent back in waiting pool if not already started
                             if completed_agent not in started_agents:
-                                waiting_agents.add(completed_agent)
+                                waiting_agents.append(completed_agent)
                         except Exception as e:
                             self.logger.log(f"Error processing agent result: {str(e)}", 'error')
 
