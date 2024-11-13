@@ -123,3 +123,38 @@ class PhaseService(BaseService):
         except ValueError:
             self.logger.log(f"Invalid phase: {phase}", 'error')
             return False
+
+    def get_phase_weights(self, phase: str) -> Dict[str, float]:
+        """Get agent weights for current phase"""
+        try:
+            # Get team service
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            
+            # Get active team config
+            active_team = None
+            for team in team_service.predefined_teams:
+                if team.get('phase_config', {}).get(phase.lower()):
+                    active_team = team
+                    break
+                    
+            if not active_team:
+                return {}
+                
+            # Get phase config
+            phase_config = active_team['phase_config'][phase.lower()]
+            
+            # Build weights dictionary
+            weights = {}
+            for agent in phase_config.get('active_agents', []):
+                if isinstance(agent, dict):
+                    weights[agent['name']] = agent.get('weight', 0.5)
+                else:
+                    weights[agent] = 0.5
+                    
+            return weights
+            
+        except Exception as e:
+            self.logger.log(f"Error getting phase weights: {str(e)}", 'error')
+            return {}

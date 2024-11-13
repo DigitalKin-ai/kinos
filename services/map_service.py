@@ -199,39 +199,56 @@ class MapService(BaseService):
             )
 
     def _format_map_content(self, tree_content: List[str], warnings: List[str]) -> str:
-        """Format complete map (readonly).md content with introduction and phase information"""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        # Ensure phase service is initialized
-        self._ensure_phase_service()
-        
-        # Get phase status from PhaseService
-        phase_status = self.phase_service.get_status_info()
-        
-        content = [
-            "# Project Map",
-            "\nCe document est une carte dynamique du projet qui est automatiquement mise à jour pour fournir une vue d'ensemble de la structure et de l'état du projet. Il surveille notamment :",
-            "- L'arborescence complète des fichiers",
-            "- La taille de chaque document en tokens",
-            "- La phase actuelle du projet (EXPANSION/CONVERGENCE)",
-            "- Les alertes et recommandations d'optimisation",
-            "\nLa map est automatiquement mise à jour par le MapService à chaque :",
-            "- Modification de fichier markdown",
-            "- Changement de phase du projet",
-            "- Création ou suppression de fichier",
-            "\nLes indicateurs visuels (✓, ⚠️, 🔴) permettent d'identifier rapidement les fichiers nécessitant une attention particulière.",
-            f"\nGenerated: {timestamp}\n",
-            "## Project Phase",
-            self._get_phase_description(phase_status),
-            "\n## Token Usage",
-            f"Total: {phase_status['total_tokens']/1000:.1f}k/{self.phase_service.MODEL_TOKEN_LIMIT/1000:.0f}k ({phase_status['usage_percent']:.1f}%)",
-            f"Convergence at: {self.phase_service.CONVERGENCE_TOKENS/1000:.1f}k ({self.phase_service.CONVERGENCE_THRESHOLD*100:.0f}%)\n",
-            "## Phase Status",
-            f"{phase_status['status_icon']} {phase_status['status_message']}",
-            f"Headroom: {phase_status['headroom']/1000:.1f}k tokens\n",
-            "## Document Tree",
-            "📁 Project"
-        ]
+        """Format complete map content with phase and agent weights"""
+        try:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # Ensure phase service is initialized
+            self._ensure_phase_service()
+            
+            # Get phase status from PhaseService
+            phase_status = self.phase_service.get_status_info()
+            current_phase = phase_status['phase']
+            
+            # Get agent weights for current phase
+            phase_weights = self.phase_service.get_phase_weights(current_phase)
+            
+            content = [
+                "# Project Map",
+                "\nCe document est une carte dynamique du projet qui est automatiquement mise à jour pour fournir une vue d'ensemble de la structure et de l'état du projet. Il surveille notamment :",
+                "- L'arborescence complète des fichiers",
+                "- La taille de chaque document en tokens",
+                "- La phase actuelle du projet (EXPANSION/CONVERGENCE)",
+                "- Les alertes et recommandations d'optimisation",
+                "\nLa map est automatiquement mise à jour par le MapService à chaque :",
+                "- Modification de fichier markdown",
+                "- Changement de phase du projet",
+                "- Création ou suppression de fichier",
+                "\nLes indicateurs visuels (✓, ⚠️, 🔴) permettent d'identifier rapidement les fichiers nécessitant une attention particulière.",
+                f"\nGenerated: {timestamp}\n",
+                "## Project Phase",
+                self._get_phase_description(phase_status),
+                "\n## Token Usage",
+                f"Total: {phase_status['total_tokens']/1000:.1f}k/{self.phase_service.MODEL_TOKEN_LIMIT/1000:.0f}k ({phase_status['usage_percent']:.1f}%)",
+                f"Convergence at: {self.phase_service.CONVERGENCE_TOKENS/1000:.1f}k ({self.phase_service.CONVERGENCE_THRESHOLD*100:.0f}%)\n",
+                "## Phase Status",
+                f"{phase_status['status_icon']} {phase_status['status_message']}",
+                f"Headroom: {phase_status['headroom']/1000:.1f}k tokens\n"
+            ]
+            
+            # Add agent weights section
+            if phase_weights:
+                content.extend([
+                    "## Active Agents",
+                    "Current agent weights:"
+                ])
+                for agent, weight in phase_weights.items():
+                    content.append(f"- {agent}: {weight:.2f}")
+            
+            content.extend([
+                "\n## Document Tree",
+                "📁 Project"
+            ])
         
         # Add tree structure
         content.extend(tree_content)
