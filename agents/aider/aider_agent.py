@@ -299,60 +299,54 @@ class AiderAgent(AgentBase):
         """Prevent agent from stopping"""
         pass  # Ne rien faire - empêcher l'arrêt
 
-    def run(self):
-        """Main execution loop for the agent"""
+    def _execute_agent_cycle(self):
+        """Execute one cycle of the agent's main loop"""
         try:
-            self.running = True
+            # Validate mission directory
+            if not os.path.exists(self.mission_dir):
+                self.logger.log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}", 'error')
+                return
+
+            # Update file list
+            self.list_files()
             
-            while True:  # Boucle infinie - ne jamais s'arrêter
+            # Get current prompt
+            prompt = self.get_prompt()
+            if not prompt:
+                self.logger.log(f"[{self.name}] ⚠️ No prompt available", 'warning')
+                return
+
+            # Get chat history
+            chat_history = ""
+            chat_history_file = f".aider.{self.name}.chat.history.md"
+            if os.path.exists(chat_history_file):
                 try:
-                    # Validate mission directory
-                    if not os.path.exists(self.mission_dir):
-                        self.logger.log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}", 'error')
-                        time.sleep(60)
-                        continue
+                    with open(chat_history_file, 'r', encoding='utf-8') as f:
+                        chat_history = f.read()
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error reading chat history: {str(e)}", 'warning')
 
-                    # Update file list
-                    self.list_files()
-                    
-                    # Get current prompt
-                    prompt = self.get_prompt()
-                    if not prompt:
-                        self.logger.log(f"[{self.name}] ⚠️ No prompt available, skipping run", 'warning')
-                        time.sleep(60)
-                        continue
+            # Get input history
+            input_history = ""
+            input_history_file = f".aider.{self.name}.input.history.md"
+            if os.path.exists(input_history_file):
+                try:
+                    with open(input_history_file, 'r', encoding='utf-8') as f:
+                        input_history = f.read()
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error reading input history: {str(e)}", 'warning')
 
-                    # Get chat history
-                    chat_history = ""
-                    chat_history_file = f".aider.{self.name}.chat.history.md"
-                    if os.path.exists(chat_history_file):
-                        try:
-                            with open(chat_history_file, 'r', encoding='utf-8') as f:
-                                chat_history = f.read()
-                        except Exception as e:
-                            self.logger.log(f"[{self.name}] Error reading chat history: {str(e)}", 'warning')
+            # Get files context
+            files_context = {}
+            for file_path in self.mission_files:
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        files_context[file_path] = f.read()
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error reading file {file_path}: {str(e)}", 'warning')
 
-                    # Get input history
-                    input_history = ""
-                    input_history_file = f".aider.{self.name}.input.history.md"
-                    if os.path.exists(input_history_file):
-                        try:
-                            with open(input_history_file, 'r', encoding='utf-8') as f:
-                                input_history = f.read()
-                        except Exception as e:
-                            self.logger.log(f"[{self.name}] Error reading input history: {str(e)}", 'warning')
-
-                    # Get files context
-                    files_context = {}
-                    for file_path in self.mission_files:
-                        try:
-                            with open(file_path, 'r', encoding='utf-8') as f:
-                                files_context[file_path] = f.read()
-                        except Exception as e:
-                            self.logger.log(f"[{self.name}] Error reading file {file_path}: {str(e)}", 'warning')
-
-                    # Format context message
-                    context_message = f"""Based on:
+            # Format context message
+            context_message = f"""Based on:
 1. The system prompt defining my role and responsibilities
 2. The input history showing previous instructions
 3. The production history showing Aider's reactions and productions
@@ -373,84 +367,97 @@ Instructions:
 6. Provide enough detail for Aider to implement it autonomously
 7. Ask him specifically to do the task now, making decisions instead of asking for clarifications"""
 
-                    # Call Claude API with correct message format
-                    try:
-                        from anthropic import Anthropic
-                        client = Anthropic()
-                        
-                        messages = []
-                        
-                        # Only add input history if not empty
-                        if chat_history.strip():
-                            messages.append({"role": "user", "content": chat_history})
-
-                        # Only add input history if not empty
-                        if input_history.strip():
-                            messages.append({"role": "assistant", "content": input_history})
-                            
-                        # Add user message
-                        messages.append({"role": "user", "content": context_message})
-                        
-                        response = client.messages.create(
-                            model="claude-3-haiku-20240307",
-                            max_tokens=4000,
-                            system=prompt,  # Set system prompt
-                            messages=messages
-                        )
-                        instructions = response.content[0].text
-                        self.logger.log(f"[{self.name}] Generated instructions:\n{instructions}", 'debug')
-                    except Exception as e:
-                        self.logger.log(f"[{self.name}] Error calling Claude: {str(e)}", 'error')
-                        time.sleep(60)
-                        continue
-                            
-                    # Run Aider with generated instructions
-                    try:
-                        result = self._run_aider(instructions)
-                    except OSError as os_error:
-                        if "[Errno 22] Invalid argument" in str(os_error):
-                            # Ignore this specific Windows error
-                            self.logger.log(f"[{self.name}] Ignoring Windows stdout flush error", 'debug')
-                            continue
-                        else:
-                            raise
-                    except Exception as e:
-                        # Ignore known Aider errors
-                        if any(err in str(e) for err in [
-                            "Can't initialize prompt toolkit",
-                            "No Windows console found",
-                            "aider.chat/docs/troubleshooting/edit-errors.html"
-                        ]):
-                            continue
-                        raise
+            # Call Claude API with correct message format
+            try:
+                from anthropic import Anthropic
+                client = Anthropic()
                 
-                    # Update state based on result
-                    self.last_run = datetime.now()
-                    if result:
-                        self.last_change = datetime.now()
-                        self.consecutive_no_changes = 0
-                    else:
-                        self.consecutive_no_changes += 1
-                    
-                except Exception as e:
-                    # Ignore known benign Aider errors
-                    if any(err in str(e) for err in [
-                        "Can't initialize prompt toolkit",
-                        "No Windows console found",
-                        "aider.chat/docs/troubleshooting/edit-errors.html",
-                        "[Errno 22] Invalid argument"
-                    ]):
-                        pass  # Do not stop the agent
-                    else:
-                        self.logger.log(f"[{self.name}] Critical error in run: {str(e)}", 'error')
-                        self.running = False
-                finally:
-                    # Ensure cleanup happens
-                    self.cleanup()
+                messages = []
+                
+                # Only add input history if not empty
+                if chat_history.strip():
+                    messages.append({"role": "user", "content": chat_history})
 
-        except Exception as e:  # Outer try block handler
-            self.logger.log(f"[{self.name}] Fatal error in run loop: {str(e)}", 'error')
-            self.running = False
+                # Only add input history if not empty
+                if input_history.strip():
+                    messages.append({"role": "assistant", "content": input_history})
+                    
+                # Add user message
+                messages.append({"role": "user", "content": context_message})
+                
+                response = client.messages.create(
+                    model="claude-3-haiku-20240307",
+                    max_tokens=4000,
+                    system=prompt,  # Set system prompt
+                    messages=messages
+                )
+                instructions = response.content[0].text
+                self.logger.log(f"[{self.name}] Generated instructions:\n{instructions}", 'debug')
+            except Exception as e:
+                self.logger.log(f"[{self.name}] Error calling Claude: {str(e)}", 'error')
+                return
+
+            # Run Aider with generated instructions
+            try:
+                result = self._run_aider(instructions)
+            except OSError as os_error:
+                if "[Errno 22] Invalid argument" in str(os_error):
+                    # Ignore this specific Windows error
+                    self.logger.log(f"[{self.name}] Ignoring Windows stdout flush error", 'debug')
+                    return
+                else:
+                    raise
+            except Exception as e:
+                # Ignore known Aider errors
+                if any(err in str(e) for err in [
+                    "Can't initialize prompt toolkit",
+                    "No Windows console found",
+                    "aider.chat/docs/troubleshooting/edit-errors.html"
+                ]):
+                    return
+                raise
+
+            # Update state based on result
+            self.last_run = datetime.now()
+            if result:
+                self.last_change = datetime.now()
+                self.consecutive_no_changes = 0
+            else:
+                self.consecutive_no_changes += 1
+
+        except Exception as e:
+            # Log but never stop
+            self.logger.log(f"[{self.name}] Error in agent cycle: {str(e)}", 'warning')
+
+    def run(self):
+        """Main execution loop for the agent"""
+        try:
+            self.logger.log(f"[{self.name}] 🚀 Starting agent run loop")
+            
+            # Force running state
+            self.running = True
+            
+            # Add immediate first execution
+            self._execute_agent_cycle()
+            
+            while True:  # Boucle infinie - ne jamais s'arrêter
+                try:
+                    # Execute main agent cycle
+                    self._execute_agent_cycle()
+                    
+                    # Small sleep to prevent CPU overload
+                    time.sleep(1)
+                    
+                except Exception as loop_error:
+                    self.logger.log(f"[{self.name}] Non-critical error in run loop: {str(loop_error)}", 'warning')
+                    time.sleep(1)  # Brief pause before retrying
+                    continue  # Always continue the loop
+
+        except Exception as e:
+            # Log but never stop
+            self.logger.log(f"[{self.name}] Handled error in run: {str(e)}", 'warning')
+            time.sleep(1)  # Brief pause
+            self.run()  # Restart the run loop
 
 
     def _format_files_context(self, files_context: Dict[str, str]) -> str:
