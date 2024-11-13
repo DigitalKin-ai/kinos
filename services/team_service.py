@@ -13,8 +13,8 @@ from agents.base.agent_base import AgentBase
 
 # Known Aider initialization error patterns
 AIDER_INIT_ERRORS = [
-    "No Windows console found",
     "Can't initialize prompt toolkit",
+    "No Windows console found", 
     "aider.chat/docs/troubleshooting/edit-errors.html"
 ]
 
@@ -191,10 +191,14 @@ class TeamService:
                             time.sleep(5)
                             self.logger.log("Wait completed normally", 'debug')
                         except KeyboardInterrupt as e:
+                            # Get last error message from logger
+                            last_error = getattr(self.logger, 'last_message', '')
                             error_msg = str(e)
-                            # Check if it's an Aider initialization error
-                            if any(err in error_msg for err in AIDER_INIT_ERRORS):
-                                self.logger.log("Aider initialization warning - continuing", 'debug')
+                    
+                            # Check both current error and last logged message
+                            if any(err in error_msg for err in AIDER_INIT_ERRORS) or \
+                               any(err in last_error for err in AIDER_INIT_ERRORS):
+                                self.logger.log("Aider initialization warning detected - continuing", 'debug')
                                 continue
                     
                             # If it's a real user interruption

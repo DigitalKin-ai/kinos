@@ -23,6 +23,7 @@ class Logger:
         self._log_lock = threading.Lock()
         self._shutting_down = False
         self._level = logging.INFO  # Default level
+        self.last_message = ""  # Track last logged message
         # Register cleanup at exit
         import atexit
         atexit.register(self._cleanup)
@@ -90,6 +91,9 @@ class Logger:
             with self._log_lock:
                 timestamp = datetime.now().strftime("%H:%M:%S")
                 formatted = f"[{timestamp}] [{level.upper()}] {message}"
+                
+                # Store last message before formatting
+                self.last_message = message
                 
                 if self.is_tty:
                     color = self.COLORS.get(level, self.COLORS['info'])
