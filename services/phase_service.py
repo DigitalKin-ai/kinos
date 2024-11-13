@@ -44,13 +44,14 @@ class PhaseService(BaseService):
         usage_percent = (total_tokens / self.MODEL_TOKEN_LIMIT) * 100
         
         # Determine phase based on thresholds
-        if total_tokens > self.CONVERGENCE_TOKENS:
+        if usage_percent >= self.CONVERGENCE_THRESHOLD * 100:  # Use >= for threshold
             new_phase = ProjectPhase.CONVERGENCE
             message = f"Convergence needed - Token usage at {usage_percent:.1f}%"
-        elif total_tokens < self.EXPANSION_TOKENS:
+        elif usage_percent < self.EXPANSION_THRESHOLD * 100:
             new_phase = ProjectPhase.EXPANSION
             message = f"Expansion phase - Token usage at {usage_percent:.1f}%"
         else:
+            # Between thresholds, maintain current phase
             new_phase = self.current_phase
             message = f"Maintaining current phase - Token usage at {usage_percent:.1f}%"
         
