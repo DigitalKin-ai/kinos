@@ -8,6 +8,7 @@ import traceback
 from datetime import datetime
 from typing import Dict, Any, Optional
 from agents.base.agent_base import AgentBase
+from agents.base.file_handler import FileHandler
 from agents.aider.command_builder import AiderCommandBuilder
 from agents.aider.output_parser import AiderOutputParser
 from agents.utils.encoding import configure_encoding, detect_file_encoding, normalize_encoding
