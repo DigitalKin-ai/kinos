@@ -475,21 +475,12 @@ Instructions:
                     else:
                         self.logger.log(f"[{self.name}] Critical error in run: {str(e)}", 'error')
                         self.running = False
-                except Exception as e:
-                    # Ignore known benign Aider errors
-                    if any(err in str(e) for err in [
-                        "Can't initialize prompt toolkit",
-                        "No Windows console found",
-                        "aider.chat/docs/troubleshooting/edit-errors.html",
-                        "[Errno 22] Invalid argument"
-                    ]):
-                        pass  # Do not stop the agent
-                    else:
-                        self.logger.log(f"[{self.name}] Critical error in run: {str(e)}", 'error')
-                        self.running = False
                 finally:
                     # Ensure cleanup happens
                     self.cleanup()
+        except Exception as e:  # Outer try block handler
+            self.logger.log(f"[{self.name}] Fatal error in run loop: {str(e)}", 'error')
+            self.running = False
 
 
     def _format_files_context(self, files_context: Dict[str, str]) -> str:
