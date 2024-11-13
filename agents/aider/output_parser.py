@@ -111,7 +111,7 @@ class AiderOutputParser:
 
     def parse_output(self, process: subprocess.Popen) -> Optional[str]:
         """
-        Parse Aider command output
+        Parse Aider command output with enhanced error handling
         
         Args:
             process: Running Aider process
@@ -120,9 +120,13 @@ class AiderOutputParser:
             Optional[str]: Parsed output or None on error
         """
         output_lines = []
+        changes = {
+            'modified_files': set(),
+            'added_files': set(),
+            'deleted_files': set()
+        }
         
         try:
-            # Read output while process is running
             while True:
                 line = process.stdout.readline()
                 if not line and process.poll() is not None:
@@ -132,19 +136,15 @@ class AiderOutputParser:
                 if not line:
                     continue
                     
-                # Handle Windows console warning
-                if "No Windows console found" in line:
-                    self.logger.log(
-                        "Windows console initialization warning - non-critical",
-                        'warning'
-                    )
-                    continue
-                    
-                # Parse commit messages
-                if "Commit" in line:
-                    self._parse_commit_line(line)
-                    
-                output_lines.append(line)
+                # Parse different line types
+                if "Wrote " in line:
+                    self._parse_file_modification(line, changes)
+                elif "Commit" in line:
+                    self._parse_commit_message(line, output_lines)
+                elif self._is_error_message(line):
+                    self._handle_error_message(line)
+                else:
+                    output_lines.append(line)
                 
             # Get return code
             return_code = process.wait(timeout=5)
