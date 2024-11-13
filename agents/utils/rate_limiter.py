@@ -2,7 +2,7 @@
 Rate limiting implementation
 """
 import time
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from collections import deque
 
 class RateLimiter:
