@@ -174,10 +174,15 @@ class TeamService:
         try:
             self.logger.log(f"Starting team {team_id} initialization...", 'info')
             
-            # Get and validate team config
-            team_config = TeamConfig.from_dict(self._get_team_config(team_id))
-            if not team_config:
+            # Get team config
+            team_dict = self._get_team_config(team_id)
+            if not team_dict:
                 raise TeamStartupError("Team not found", team_id)
+
+            # Convert to TeamConfig object
+            team_config = TeamConfig.from_dict(team_dict)
+            if not team_config:
+                raise TeamStartupError("Invalid team configuration", team_id)
 
             # Setup mission directory
             mission_dir = base_path or os.getcwd()
@@ -187,9 +192,15 @@ class TeamService:
             phase_status = self._initialize_services(mission_dir)
             self.logger.log(f"Current phase: {phase_status['phase']}", 'info')
 
-            # Filter agents for current phase
-            filtered_agents = self._get_phase_filtered_agents(team_config, phase_status['phase'])
-            self.logger.log(f"Filtered agents to start: {[a['name'] if isinstance(a, dict) else a for a in filtered_agents]}", 'info')
+            # Filter agents for current phase - use team_config.agents instead of team_config['agents']
+            filtered_agents = self._get_phase_filtered_agents(
+                {'agents': team_config.agents},  # Pass as dict with agents key
+                phase_status['phase']
+            )
+            self.logger.log(
+                f"Filtered agents to start: {[a['name'] if isinstance(a, dict) else a for a in filtered_agents]}", 
+                'info'
+            )
 
             # Start agents with timeout
             with TimeoutManager.timeout(TOTAL_TIMEOUT):
