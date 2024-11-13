@@ -3,6 +3,8 @@ AiderAgent - Core implementation of Aider-based agent functionality
 """
 import os
 import time
+import subprocess
+import traceback
 import threading
 from datetime import datetime
 from typing import Dict, Any, Optional, List
@@ -12,7 +14,7 @@ from agents.base.agent_base import AgentBase
 from agents.aider.command_builder import AiderCommandBuilder
 from agents.aider.output_parser import AiderOutputParser
 from agents.utils.encoding import configure_encoding
-from agents.utils.path_utils import validate_paths, get_relative_path
+from agents.utils.path_utils import validate_paths, get_relative_path, PathManager
 from agents.utils.rate_limiter import RateLimiter
 
 class AiderAgent(AgentBase):
