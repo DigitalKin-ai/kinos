@@ -65,7 +65,6 @@ class MapService(BaseService):
     def _scan_directory(self, path: str, prefix: str = "") -> Tuple[List[str], List[str], int]:
         """Scan directory recursively and return tree structure, warnings and total tokens"""
         try:
-            print(f"[DEBUG] Starting directory scan at: {path}")
             tree_lines = []
             warnings = []
             total_tokens = 0
@@ -80,9 +79,8 @@ class MapService(BaseService):
                             line.strip() for line in f.readlines()
                             if line.strip() and not line.startswith('#')
                         ]
-                    print(f"[DEBUG] Loaded {len(ignore_patterns)} ignore patterns from .gitignore")
-                except Exception as e:
-                    print(f"[DEBUG] Error reading .gitignore: {str(e)}")
+                except Exception:
+                    pass
 
             # Create PathSpec for pattern matching
             from pathspec import PathSpec
@@ -100,7 +98,6 @@ class MapService(BaseService):
 
                 # Skip if matches ignore patterns
                 if spec.match_file(rel_path):
-                    print(f"[DEBUG] Skipping ignored path: {rel_path}")
                     continue
                 
                 if os.path.isdir(full_path):
@@ -117,7 +114,6 @@ class MapService(BaseService):
                     
                 elif item.endswith('.md'):
                     token_count = self._count_tokens(full_path)
-                    print(f"[DEBUG] File {item}: {token_count} tokens")
                     total_tokens += token_count
                     status_icon = self._get_status_icon(token_count)
                     
@@ -130,7 +126,6 @@ class MapService(BaseService):
                     if warning:
                         warnings.append(warning)
                         
-            print(f"[DEBUG] Directory {path} scan complete - Found {total_tokens} tokens")
             return tree_lines, warnings, total_tokens
             
         except Exception as e:
