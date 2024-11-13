@@ -412,23 +412,43 @@ List any specific constraints or limitations.
         return list(self.agents.keys())
 
     def toggle_agent(self, agent_name: str, action: str, mission_dir: Optional[str] = None) -> bool:
-        """Démarre ou arrête un agent"""
+        """Start or stop an agent with improved error handling"""
         try:
             agent_key = agent_name.lower().replace('agent', '').strip()
             
-            # Obtenir l'agent
+            # Get or create agent
             agent = self.agents.get(agent_key)
             if not agent:
-                self.logger.log(f"Agent {agent_name} not found", 'error')
-                return False
+                if action == 'start':
+                    # Create new agent configuration
+                    agent_config = {
+                        'name': agent_name,
+                        'type': 'aider',
+                        'weight': 0.5,
+                        'mission_dir': mission_dir or os.getcwd(),
+                        'prompt_file': os.path.join('prompts', f"{agent_name}.md")
+                    }
+                    
+                    # Create agent instance
+                    from agents.aider.aider_agent import AiderAgent
+                    agent = AiderAgent(agent_config)
+                    self.agents[agent_key] = agent
+                    self.logger.log(f"Created new agent instance: {agent_name}", 'info')
+                else:
+                    self.logger.log(f"Agent {agent_name} not found", 'error')
+                    return False
 
-            # Mettre à jour le répertoire de mission si fourni
+            # Update mission directory if provided
             if mission_dir:
                 agent.mission_dir = mission_dir
 
-            # Exécuter l'action
+            # Execute action
             if action == 'start':
-                if not agent.running:
+                if agent.running:
+                    self.logger.log(f"Agent {agent_name} already running", 'warning')
+                    return True
+                    
+                try:
                     agent.start()
                     thread = threading.Thread(
                         target=self._run_agent_wrapper,
@@ -437,11 +457,42 @@ List any specific constraints or limitations.
                     )
                     self.agent_threads[agent_name] = thread
                     thread.start()
-                return agent.running
-                
+                    
+                    # Wait briefly to ensure agent starts properly
+                    time.sleep(0.5)
+                    
+                    if agent.running:
+                        self.logger.log(f"Agent {agent_name} started successfully", 'success')
+                        return True
+                    else:
+                        self.logger.log(f"Agent {agent_name} failed to start", 'error')
+                        return False
+                        
+                except Exception as e:
+                    # Handle known Aider errors
+                    error_msg = str(e)
+                    known_errors = [
+                        "Can't initialize prompt toolkit",
+                        "No Windows console found",
+                        "aider.chat/docs/troubleshooting/edit-errors.html",
+                        "[Errno 22] Invalid argument"
+                    ]
+                    
+                    if not any(err in error_msg for err in known_errors):
+                        self.logger.log(f"Error starting agent {agent_name}: {error_msg}", 'error')
+                    return False
+                    
             elif action == 'stop':
-                if agent.running:
-                    agent.stop()
+                if not agent.running:
+                    return True
+                    
+                agent.stop()
+                if agent_name in self.agent_threads:
+                    thread = self.agent_threads[agent_name]
+                    if thread and thread.is_alive():
+                        thread.join(timeout=5)
+                    del self.agent_threads[agent_name]
+                    
                 return not agent.running
 
             return False
