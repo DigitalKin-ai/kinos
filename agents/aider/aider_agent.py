@@ -208,13 +208,13 @@ class AiderAgent(AgentBase):
         except Exception as e:
             self._handle_error('run_aider', e, {'prompt': prompt})
             return None
+
+        # Validate mission directory exists and is accessible
+        if not os.path.exists(self.mission_dir):
+            self._log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}")
+            return None
             
-                # Validate mission directory exists and is accessible
-                if not os.path.exists(self.mission_dir):
-                    self._log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}")
-                    return None
-                
-                if not os.access(self.mission_dir, os.R_OK | os.W_OK):
+        if not os.access(self.mission_dir, os.R_OK | os.W_OK):
                     self._log(f"[{self.name}] ❌ Insufficient permissions for: {self.mission_dir}")
                     return None
 
@@ -634,9 +634,9 @@ class AiderAgent(AgentBase):
                     self._log(f"[{self.name}] Process failed with code {return_code}")
                     return None
 
-            except Exception as e:
-                self._log(f"[{self.name}] Error in _run_aider: {str(e)}")
-                return None
+        except Exception as e:
+            self._log(f"[{self.name}] Error in _run_aider: {str(e)}")
+            return None
 
     def list_files(self) -> None:
         """List all text files in mission directory"""
