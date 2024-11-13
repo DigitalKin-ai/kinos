@@ -146,19 +146,18 @@ class TeamService:
             
             # Get phase status info directly from phase service
             phase_status = phase_service.get_status_info()
-            current_phase = phase_service.current_phase
-
-            # Log phase status once with actual values from phase service
+            
+            # Log phase status with actual values from phase service
             self.logger.log(
-                f"Current phase: {current_phase.value}\n"
-                f"Total tokens: {phase_status['total_tokens']}\n"
+                f"Current phase: {phase_status['phase']}\n"
+                f"Total tokens: {phase_status['total_tokens']:,}\n"
                 f"Usage: {phase_status['usage_percent']:.1f}%\n"
                 f"Status: {phase_status['status_message']}", 
                 'info'
             )
 
-            # Filter agents based on current phase from phase service
-            filtered_agents = self._filter_agents_by_phase(team['agents'], current_phase.value)
+            # Filter agents based on current phase from phase status
+            filtered_agents = self._filter_agents_by_phase(team['agents'], phase_status['phase'])
             
             if not filtered_agents:
                 self.logger.log(
@@ -170,7 +169,7 @@ class TeamService:
                     'team_id': team['id'],
                     'mission_dir': mission_dir,
                     'agents': [],
-                    'phase': current_phase,
+                    'phase': phase_status['phase'],
                     'status': 'no_agents_for_phase'
                 }
 
@@ -230,7 +229,7 @@ class TeamService:
                 'team_id': team['id'],
                 'mission_dir': mission_dir,
                 'agents': started_agents,
-                'phase': current_phase.value,
+                'phase': phase_status['phase'],
                 'status': 'started' if started_agents else 'failed'
             }
 
