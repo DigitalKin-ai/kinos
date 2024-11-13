@@ -199,12 +199,12 @@ class TeamService:
                     
                             # If it's a real user interruption
                             self.logger.log("User interrupted with Ctrl+C", 'warning')
-                                # Stop started agents in reverse order
-                                for started_agent in reversed(started_agents):
-                                    try:
-                                        self.agent_service.toggle_agent(started_agent, 'stop', mission_dir)
-                                    except Exception as cleanup_error:
-                                        self.logger.log(f"Error stopping agent {started_agent}: {str(cleanup_error)}", 'error')
+                            # Stop started agents in reverse order
+                            for started_agent in reversed(started_agents):
+                                try:
+                                    self.agent_service.toggle_agent(started_agent, 'stop', mission_dir)
+                                except Exception as cleanup_error:
+                                    self.logger.log(f"Error stopping agent {started_agent}: {str(cleanup_error)}", 'error')
                                 return {
                                     'team_id': team['id'],
                                     'mission_dir': mission_dir,
