@@ -104,6 +104,42 @@ class TeamService:
             norm_name = agent.lower().replace('agent', '').strip()
             normalized.append(norm_name)
         return normalized
+    
+    def _start_agent(self, agent_name: str) -> bool:
+         """
+         Start a single agent with error handling
+
+         Args:
+             agent_name: Name of agent to start
+
+         Returns:
+             bool: True if agent started successfully
+         """
+         try:
+             self.logger.log(f"Starting agent: {agent_name}", 'info')
+
+             # Ignore known Aider initialization errors
+             try:
+                 success = self.agent_service.toggle_agent(agent_name, 'start')
+                 return success
+
+             except Exception as e:
+                 error_msg = str(e)
+                 # Liste des erreurs connues d'Aider à ignorer
+                 known_errors = [
+                     "Can't initialize prompt toolkit",
+                     "No Windows console found",
+                     "aider.chat/docs/troubleshooting/edit-errors.html",
+                     "[Errno 22] Invalid argument"  # Erreur Windows spécifique
+                 ]
+
+                 if not any(err in error_msg for err in known_errors):
+                     self.logger.log(f"Error starting agent {agent_name}: {error_msg}", 'error')
+                 return False
+
+         except Exception as e:
+             self.logger.log(f"Critical error starting agent {agent_name} {str(e)}", 'error')
+             return False
 
     def _normalize_team_id(self, team_id: str) -> str:
         """Normalize team ID to handle different separator styles"""
