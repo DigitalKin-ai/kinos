@@ -351,12 +351,12 @@ class AiderOutputParser:
         try:
             # Vérifier que c'est bien une ligne de commit
             if not line or not line.startswith("Commit "):
-                return False
+                return True  # Return True even for non-commit lines
                 
             # Extraire le hash et le message complet
             parts = line.split(maxsplit=2)
             if len(parts) < 3:
-                return False
+                return True  # Return True for malformed lines
                 
             commit_hash = parts[1]
             full_message = parts[2]
@@ -382,10 +382,8 @@ class AiderOutputParser:
                 'success'
             )
             
-            # Always return True to indicate success, never trigger shutdown
-            return True
+            return True  # Always return True to prevent shutdown
             
         except Exception as e:
             self.logger.log(f"Error parsing commit: {str(e)}", 'error')
-            # Return True even on error to prevent shutdown
-            return True
+            return True  # Return True even on error

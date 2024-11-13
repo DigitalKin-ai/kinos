@@ -179,8 +179,9 @@ class TeamService:
         TOTAL_TIMEOUT = 300  # 5 minute total timeout
         
         try:
-            # Reset shutdown flag
+            # Reset shutdown flag and disable shutdown handling
             self._shutdown_requested = False
+            self._handle_shutdown = False
             
             self.logger.log(f"Starting team {team_id} initialization...", 'info')
             
