@@ -7,6 +7,29 @@ MODEL_TOKEN_LIMIT = 128_000
 CONVERGENCE_THRESHOLD = 0.60
 EXPANSION_THRESHOLD = 0.50
 
+# Commit type icons
+COMMIT_ICONS = {
+    'feat': '✨',     # New feature
+    'fix': '🐛',      # Bug fix
+    'docs': '📚',     # Documentation
+    'style': '💎',    # Style/formatting
+    'refactor': '♻️',  # Refactoring
+    'perf': '⚡️',     # Performance
+    'test': '🧪',     # Tests
+    'build': '📦',    # Build/dependencies
+    'ci': '🔄',       # CI/CD
+    'chore': '🔧',    # Maintenance
+    'revert': '⏪',    # Revert changes
+    'merge': '🔗',    # Merge changes
+    'update': '📝',   # Content updates
+    'add': '➕',      # Add content/files
+    'remove': '➖',    # Remove content/files
+    'move': '🚚',     # Move/rename content
+    'cleanup': '🧹',  # Code cleanup
+    'format': '🎨',   # Formatting changes
+    'optimize': '🚀'  # Optimizations
+}
+
 # Timeout settings
 DEFAULT_TIMEOUT = 300  # 5 minutes
 PROCESS_CLEANUP_TIMEOUT = 5  # 5 seconds
