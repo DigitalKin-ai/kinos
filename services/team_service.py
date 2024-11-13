@@ -16,6 +16,8 @@ from utils.path_manager import PathManager
 from utils.exceptions import ServiceError
 from services.agent_service import AgentService
 from agents.base.agent_base import AgentBase
+from agents.base.agent_state import AgentState
+from services.team_config import TeamConfig, TeamMetrics, TeamStartupError
 
 # Known Aider initialization error patterns
 AIDER_INIT_ERRORS = [
@@ -227,68 +229,13 @@ class TeamService:
             )
             return error.to_dict()
 
-        try:
-            # Temporarily disable Ctrl+C
-            signal.signal(signal.SIGINT, signal.SIG_IGN)
-            
-            # Setup mission directory
-            mission_dir = base_path or os.getcwd()
-            
-            # Get team configuration
-            team = self._get_team_config(team_id)
-            if not team:
-                return self._build_error_response(team_id, "Team not found")
-
-            # Initialize phase and map services
-            phase_status = self._initialize_services(mission_dir)
-            
-            # Get and filter agents for current phase
-            filtered_agents = self._get_phase_filtered_agents(team, phase_status['phase'])
-            if not filtered_agents:
-                return self._build_phase_response(team_id, mission_dir, phase_status['phase'])
-
-            # Initialize agents
-            if not self._initialize_agents(mission_dir, filtered_agents):
-                return self._build_error_response(team_id, "Agent initialization failed")
-
-            # Randomize agent order for startup
-            random_agents = filtered_agents.copy()
-            random.shuffle(random_agents)
-
-            # Start agents with thread pool
-            futures = []
-            startup_result = self._start_agents_with_pool(
-                filtered_agents,
-                active_agents,
-                waiting_agents,
-                started_agents
-            )
-
-            # Process completed agents with started_agents list
-            self._process_completed_agents(
-                futures,
-                active_agents,
-                waiting_agents,
-                random_agents,
-                started_agents
-            )
-
-            return {
-                'team_id': team['id'],
-                'mission_dir': mission_dir,
-                'agents': started_agents,
-                'phase': phase_status['phase'],
-                'status': 'started' if started_agents else 'failed'
-            }
-
-        except Exception as e:
-            self.logger.log(f"Error starting team: {str(e)}", 'error')
-            self._cleanup_started_agents(started_agents, mission_dir)
-            raise
-
-        finally:
-            # Restore original Ctrl+C handler
-            signal.signal(signal.SIGINT, original_sigint_handler)
+        # Initialize tracking collections
+        started_agents = []
+        active_agents = []
+        waiting_agents = []
+        
+        # Save original signal handler
+        original_sigint_handler = signal.getsignal(signal.SIGINT)
 
     def get_team_status(self, team_id: str) -> Dict[str, Any]:
         """Get comprehensive team status"""
