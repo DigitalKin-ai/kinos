@@ -432,12 +432,16 @@ Instructions:
     def run(self):
         """Main execution loop for the agent"""
         try:
-            self.logger.log(f"[{self.name}] 🚀 Starting agent run loop")
+            self.logger.log(f"[{self.name}] 🚀 Starting agent run loop", 'info')
             
             # Force running state
             self.running = True
             
+            # Log explicit startup
+            self.logger.log(f"[{self.name}] Agent is now running and will start executing tasks", 'success')
+            
             # Add immediate first execution
+            self.logger.log(f"[{self.name}] Executing first agent cycle...", 'info')
             self._execute_agent_cycle()
             
             while True:  # Boucle infinie - ne jamais s'arrêter
