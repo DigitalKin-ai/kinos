@@ -242,11 +242,11 @@ class TeamService:
                         self.logger.log(f"Critical error starting agent {agent_name}: {str(e)}", 'error')
                         return False
 
-                # Maintain pools of active and waiting agents
+                # Maintain pools of active and waiting agents as lists
                 futures = []
-                active_agents = []
-                waiting_agents = list(agent['name'] if isinstance(agent, dict) else agent 
-                                   for agent in normalized_agents)
+                active_agents = []  # Changed from set to list
+                waiting_agents = [agent['name'] if isinstance(agent, dict) else agent 
+                               for agent in random_agents]  # Initialize as list
 
                 while waiting_agents or active_agents:
                     # Calculate how many slots are available
@@ -262,7 +262,7 @@ class TeamService:
                         # Start new agents
                         for agent_name in agents_to_start:
                             waiting_agents.remove(agent_name)
-                            future = executor.submit(start_agent, agent_name)
+                            future = executor.submit(self._start_agent, agent_name)
                             futures.append(future)
                             active_agents.append(agent_name)
                             if agent_name not in started_agents:
@@ -284,7 +284,7 @@ class TeamService:
                             completed_agent = next(
                                 agent for agent in active_agents
                                 if agent in [a['name'] if isinstance(a, dict) else a 
-                                           for a in normalized_agents]
+                                           for a in random_agents]
                             )
                             active_agents.remove(completed_agent)
                             # Put completed agent back in waiting pool if not already started
