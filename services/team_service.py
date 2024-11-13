@@ -577,19 +577,19 @@ class TeamService:
                     
             except Exception as e:
                 error_msg = str(e)
-                # List of known Aider errors to ignore
+                # Known Aider errors to ignore
                 known_errors = [
                     "Can't initialize prompt toolkit",
                     "No Windows console found",
                     "aider.chat/docs/troubleshooting/edit-errors.html",
                     "[Errno 22] Invalid argument"  # Windows-specific error
                 ]
-                
+
                 if any(err in error_msg for err in known_errors):
                     # Treat known Aider errors as success
                     self.logger.log(f"Ignoring known Aider message for {agent_name}", 'info')
                     return True
-                    
+
                 self.logger.log(f"Error starting agent {agent_name}: {error_msg}", 'error')
                 return True  # Return success anyway to prevent shutdown
                     
