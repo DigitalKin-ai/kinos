@@ -8,18 +8,6 @@ from typing import Callable, Any, Optional
 from utils.logger import Logger
 from utils.exceptions import ServiceError, ValidationError
 
-@contextlib.contextmanager
-def timeout(seconds):
-    """Context manager for timeouts"""
-    timer = threading.Timer(seconds, lambda: _thread.interrupt_main())
-    timer.start()
-    try:
-        yield
-    except KeyboardInterrupt:
-        raise TimeoutError(f"Operation timed out after {seconds} seconds")
-    finally:
-        timer.cancel()
-
 def safe_operation(
     max_retries: int = 3, 
     delay: float = 1.0, 

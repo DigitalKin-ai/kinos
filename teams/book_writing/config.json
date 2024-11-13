@@ -16,7 +16,7 @@
         {
             "name": "evaluation",
             "type": "aider",
-            "weight": 0.5
+            "weight": 0.3
         },
         {
             "name": "chroniqueur",
@@ -36,12 +36,12 @@
         {
             "name": "redondance",
             "type": "aider",
-            "weight": 0.3
+            "weight": 0.4
         },
         {
             "name": "redacteur",
             "type": "aider",
-            "weight": 0.9
+            "weight": 1
         },
         {
             "name": "validation",

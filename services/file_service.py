@@ -31,7 +31,7 @@ class FileService(BaseService):
     def _safe_file_operation(self, operation: str, file_path: str, content: str = None) -> Optional[str]:
         """Centralized safe file operations with locking"""
         try:
-            with portalocker.Lock(file_path, 'r' if operation == 'read' else 'w', timeout=10) as lock:
+            with portalocker.Lock(file_path, 'r' if operation == 'read' else 'w') as lock:
                 if operation == 'read':
                     return lock.read()
                 else:

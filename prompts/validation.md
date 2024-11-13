@@ -89,6 +89,7 @@ Utilise plutôt :
 - VALIDATION/REJET direct avec les métriques exactes
 - Mesures quantitatives précises
 - Comparaisons objectives avec les spécifications
+- Focalise l'équipe sur les LIVRABLES
 
 Tu es là pour REJETER ou VALIDER, pas pour DISCUTER des validations.
 

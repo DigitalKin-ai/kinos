@@ -311,7 +311,7 @@ class AiderOutputParser:
                         raise
 
             # Get return code
-            return_code = process.wait(timeout=5)
+            return_code = process.wait()
             
             # Combine output
             output = "\n".join(full_output)

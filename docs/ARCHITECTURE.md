@@ -275,7 +275,6 @@ KinOS uses a single server architecture where both frontend and backend are serv
 
   - Opérations fichiers sécurisées
     * Verrouillage avec portalocker
-    * Timeouts configurables
     * Retry sur échec
     * Nettoyage automatique
     * Validation des chemins
@@ -1184,7 +1183,6 @@ Teams are simple agent groupings optimized for specific tasks:
     * PORT - Port serveur (default: 8000)
     * HOST - Host serveur (default: 0.0.0.0)
     * LOG_LEVEL - Niveau logging
-    * FILE_LOCK_TIMEOUT - Timeout verrous
     * CACHE_DURATION - Durée cache
     * RETRY_ATTEMPTS - Tentatives max
     * RETRY_DELAY - Délai entre tentatives
@@ -1229,7 +1227,6 @@ Teams are simple agent groupings optimized for specific tasks:
 4. Système de fichiers
    - Structure par mission avec FileManager
    - Verrouillage thread-safe via portalocker
-     * Timeouts configurables
      * Retry automatique
      * Nettoyage des verrous
    - Cache de contenu avec invalidation
@@ -1256,7 +1253,6 @@ Teams are simple agent groupings optimized for specific tasks:
      * File d'attente thread-safe
      * Priorités configurables 
      * Batching intelligent
-     * Timeout par message
      * Retry sur échec
      * Métriques de performance
      * Nettoyage périodique
@@ -1329,13 +1325,11 @@ Teams are simple agent groupings optimized for specific tasks:
    - Verrouillage distribué
      * Portalocker pour fichiers
      * Verrous Redis pour cache
-     * Timeouts configurables
      * Retry automatique
      * Détection deadlocks
 
 4. Verrouillage Fichiers
    - Utilisation de portalocker
-   - Gestion des timeouts
    - Recovery automatique
    - Prévention des conflits
 
@@ -1412,7 +1406,6 @@ Seuils :
 
    - Sécurité des fichiers
      * Verrouillage avec portalocker
-     * Timeouts configurables
      * Retry sur échec
      * Nettoyage automatique
      * Chemins sécurisés
@@ -1438,7 +1431,7 @@ Seuils :
      * Cache Redis distribué
      * Cache de session utilisateur
    - Rate limiting adaptatif
-   - Pooling de connexions avec timeouts
+   - Pooling de connexions
    - Compression des réponses
    - Lazy loading des ressources
    - Minification des assets

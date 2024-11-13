@@ -245,7 +245,6 @@ La configuration des agents est maintenant plus flexible et robuste :
 {
     "check_interval": 100,
     "max_retries": 3,
-    "timeout": 300,
     "cache_size": 1000,
     "file_patterns": ["*.md", "*.py", "*.js"],
     "ignore_patterns": [".git/*", "__pycache__/*"],
@@ -636,7 +635,6 @@ Standardized Logging:
 
 Thread-safe File Operations:
 - portalocker integration
-- Configurable timeouts
 - Automatic retries
 - Cleanup handlers
 - Path validation
@@ -696,7 +694,6 @@ Message Queue:
 - Thread-safe queue implementation
 - Configurable priorities
 - Smart batching
-- Message timeouts
 - Automatic retries
 - Performance metrics
 - Periodic cleanup
@@ -790,7 +787,6 @@ Configuration:
 Distributed Locking:
 - portalocker for files
 - Redis locks for cache
-- Configurable timeouts
 - Automatic retries
 - Deadlock detection
 
@@ -803,7 +799,6 @@ Distributed Locking:
 
 #### File Locking
 - portalocker integration
-- Configurable timeouts
 - Automatic retry
 - Deadlock prevention
 - Lock inheritance
@@ -826,7 +821,6 @@ Distributed Locking:
 - Exponential backoff
 - Maximum attempts
 - Retry conditions
-- Timeout handling
 - Circuit breaker
 
 #### Exception Hierarchy
@@ -859,7 +853,6 @@ Base class providing common functionality for all services:
 
 #### File Locking System
 Uses portalocker for thread-safe file operations:
-- Configurable timeouts via FILE_LOCK_TIMEOUT
 - Automatic retry on lock failure
 - Lock cleanup on process exit
 - Deadlock prevention
@@ -904,7 +897,6 @@ COMPRESS_RESPONSES=True
 SESSION_SECRET=your_secret_here
 
 # File Operations
-FILE_LOCK_TIMEOUT=10
 MAX_FILE_SIZE=10485760
 LOCK_CHECK_INTERVAL=100
 LOCK_RETRY_COUNT=3
@@ -930,7 +922,6 @@ ALERT_ON_ERROR=True
 # Notifications
 NOTIFICATION_QUEUE_SIZE=500
 NOTIFICATION_BATCH_SIZE=50
-NOTIFICATION_TIMEOUT=5
 WEBSOCKET_HEARTBEAT=30
 MESSAGE_TTL=3600
 PRIORITY_LEVELS=["high","medium","low"]
@@ -959,7 +950,6 @@ COMPRESS_RESPONSES=True
 SESSION_SECRET=your_secret_here
 
 # File Operations
-FILE_LOCK_TIMEOUT=10
 MAX_FILE_SIZE=10485760
 LOCK_CHECK_INTERVAL=100
 LOCK_RETRY_COUNT=3
@@ -985,7 +975,6 @@ ALERT_ON_ERROR=True
 # Notifications
 NOTIFICATION_QUEUE_SIZE=500
 NOTIFICATION_BATCH_SIZE=50
-NOTIFICATION_TIMEOUT=5
 WEBSOCKET_HEARTBEAT=30
 MESSAGE_TTL=3600
 PRIORITY_LEVELS=["high","medium","low"]
@@ -1023,7 +1012,6 @@ Base class providing common functionality for all services:
 
 #### File Locking System
 Uses portalocker for thread-safe file operations:
-- Configurable timeouts
 - Automatic retry on failure
 - Lock cleanup
 - Deadlock prevention
@@ -1262,7 +1250,6 @@ Fonctionnalités :
 
 2. File Operations:
    - Use portalocker
-   - Handle timeouts
    - Implement retries
    - Validate paths
 
@@ -1302,7 +1289,6 @@ COMPRESS_RESPONSES=True
 SESSION_SECRET=your_secret_here
 
 # File Operations
-FILE_LOCK_TIMEOUT=10
 MAX_FILE_SIZE=10485760
 LOCK_CHECK_INTERVAL=100
 LOCK_RETRY_COUNT=3
@@ -1328,7 +1314,6 @@ ALERT_ON_ERROR=True
 # Notifications
 NOTIFICATION_QUEUE_SIZE=500
 NOTIFICATION_BATCH_SIZE=50
-NOTIFICATION_TIMEOUT=5
 WEBSOCKET_HEARTBEAT=30
 MESSAGE_TTL=3600
 PRIORITY_LEVELS=["high","medium","low"]
@@ -1380,7 +1365,6 @@ CSRF_PROTECTION=True
     * Cache par agent avec _prompt_cache
   - Surveillance des fichiers avec portalocker
     * Verrouillage thread-safe via Lock class
-    * Timeouts configurables via FILE_LOCK_TIMEOUT
     * Retry automatique avec @safe_operation
     * Nettoyage des verrous via context manager
   - Gestion des chemins de fichiers
@@ -1391,7 +1375,6 @@ CSRF_PROTECTION=True
   - Exécution sécurisée des commandes
     * Validation des entrées
     * Capture des erreurs stdout/stderr
-    * Timeouts configurables
     * Retry sur échec avec délai exponentiel
   - Notifications temps réel
     * Envoi via API /api/notifications
@@ -1592,7 +1575,6 @@ CSRF_PROTECTION=True
     * PORT : Port du serveur (default: 8000)
     * HOST : Host du serveur (default: 0.0.0.0)
     * LOG_LEVEL : Niveau de logging (debug/info/warning/error)
-    * FILE_LOCK_TIMEOUT : Timeout verrous fichiers (secondes)
     * CACHE_DURATION : Durée cache prompts (secondes)
     * RETRY_ATTEMPTS : Tentatives opérations (1-5)
     * RETRY_DELAY : Délai entre tentatives (secondes)

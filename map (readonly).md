@@ -149,7 +149,6 @@ Current agent weights:
     ├── 📁 managers/
     │   ├── 📄 cache_manager.py (0.4k tokens) ✓
     │   ├── 📄 health_manager.py (0.7k tokens) ✓
-    │   └── 📄 timeout_manager.py (0.2k tokens) ✓
     ├── 📄 path_manager.py (2.9k tokens) ✓
     ├── 📄 perplexity_client.py (0.5k tokens) ✓
     └── 📄 validators.py (0.1k tokens) ✓

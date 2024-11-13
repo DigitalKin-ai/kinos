@@ -450,6 +450,7 @@ List any specific constraints or limitations.
                 'weight': phase_weights.get(agent_name, 0.5)  # Pass weight to agent
             }
             
+            # TODO : Add If type ResearchAgent
             # Create and run agent
             agent = AiderAgent(config)
             self.logger.log(

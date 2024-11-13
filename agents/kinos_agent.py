@@ -5,8 +5,6 @@ import time
 from typing import Optional, Dict, Any
 from datetime import datetime
 from utils.logger import Logger
-from utils.managers.timeout_manager import TimeoutManager
-from utils.constants import COMMAND_EXECUTION_TIMEOUT
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 
@@ -443,9 +441,8 @@ class KinOSAgent:
                     )
                     return None
 
-                # Execute mission with timeout
-                with TimeoutManager.timeout(COMMAND_EXECUTION_TIMEOUT):
-                    result = self._specific_mission_execution(prompt)
+                # Execute mission
+                result = self._specific_mission_execution(prompt)
 
                 # Performance metrics
                 execution_time = time.time() - attempt_start
@@ -467,14 +464,6 @@ class KinOSAgent:
                     )
 
                 return result
-
-            except TimeoutError:
-                self.logger.log(
-                    f"[{self.name}] Mission execution timed out (Attempt {attempt+1})", 
-                    'error'
-                )
-                attempt += 1
-                time.sleep(2 ** attempt)  # Exponential backoff
 
             except Exception as e:
                 self._handle_error('execute_mission', e, {

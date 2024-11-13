@@ -84,6 +84,7 @@ Ne pose pas de questions : choisis une tâche et réalise-la en autonomie.
 
 Utilise plutôt :
 - Modifications directes sans discussion
+- Focalise l'équipe sur les livrables
 
 Tu es là pour ÉVALUER, pas pour PARLER de ce qu'il faut évaluer.
 

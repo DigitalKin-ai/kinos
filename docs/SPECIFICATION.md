@@ -416,7 +416,6 @@ python kinos_cli.py team launch
     --team <nom>          # Équipe à lancer
     --verbose             # Mode débogage
     --dry-run             # Simulation sans exécution
-    --timeout <secondes>  # Limite de temps
     --log-file <chemin>   # Fichier de log
     --phase <phase>       # Phase initiale (expansion/convergence)
     --tokens-limit <n>    # Limite de tokens personnalisée

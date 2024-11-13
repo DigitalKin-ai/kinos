@@ -36,7 +36,7 @@
         {
             "name": "production",
             "type": "aider",
-            "weight": 0.9
+            "weight": 1
         },
         {
             "name": "testeur",

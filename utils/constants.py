@@ -44,7 +44,6 @@ MIN_INTERVAL = 60  # Minimum 1 minute
 MAX_INTERVAL = 3600  # Maximum 1 hour
 DEFAULT_INTERVAL = 120  # Default 2 minutes
 AGENT_STARTUP_DELAY = 5  # Seconds between agent starts
-AGENT_SHUTDOWN_TIMEOUT = 30  # Seconds to wait for agent shutdown
 
 # Health monitoring
 MAX_ERRORS = 5
@@ -67,7 +66,6 @@ CACHE_CLEANUP_INTERVAL = 300  # Cache cleanup every 5 minutes
 
 # Thread management
 THREAD_POOL_SIZE = 4
-THREAD_TIMEOUT = 60
 THREAD_MONITOR_INTERVAL = 10
 
 # System resources

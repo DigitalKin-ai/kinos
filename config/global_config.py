@@ -33,22 +33,17 @@ class GlobalConfig:
         'core': {
             'verbose': False,
             'log_level': 'INFO',
-            'timeout': 3600,  # 1 hour
             'max_retries': 3,
-            'request_timeout': 10,
             'retry_delay': 1
         },
         'agents': {
             'default_model': 'anthropic/claude-3-5-haiku-20241022',
-            'default_timeout': 300
         },
         'teams': {
             'book-writing': {
-                'default_timeout': 3600,
                 'log_directory': str(LOGS_DIR / 'book-writing')
             },
             'coding': {
-                'default_timeout': 7200,
                 'log_directory': str(LOGS_DIR / 'coding')
             }
         },
