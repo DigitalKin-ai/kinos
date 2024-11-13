@@ -6,6 +6,11 @@ import time
 import subprocess
 import traceback
 from utils.managers.timeout_manager import TimeoutManager
+from utils.constants import (
+    DEFAULT_TIMEOUT,
+    OUTPUT_COLLECTION_TIMEOUT,
+    COMMAND_EXECUTION_TIMEOUT
+)
 from datetime import datetime
 from typing import Dict, Any, Optional
 from agents.base.agent_base import AgentBase
