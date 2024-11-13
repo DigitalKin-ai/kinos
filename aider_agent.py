@@ -607,28 +607,6 @@ class AiderAgent(AgentBase):
         """Save new prompt content"""
         return self.prompt_handler.save_prompt(self.prompt_file, content)
 
-    def _load_prompt(self) -> Optional[str]:
-        """Charge le prompt depuis le fichier avec cache"""
-        try:
-            if not self.prompt_file:
-                return None
-                
-            # Vérifier le cache
-            mtime = os.path.getmtime(self.prompt_file)
-            if self.prompt_file in self._prompt_cache:
-                cached_time, cached_content = self._prompt_cache[self.prompt_file]
-                if cached_time == mtime:
-                    return cached_content
-                    
-            # Charger et mettre en cache
-            with open(self.prompt_file, 'r', encoding='utf-8') as f:
-                content = f.read()
-            self._prompt_cache[self.prompt_file] = (mtime, content)
-            return content
-            
-        except Exception as e:
-            self._log(f"Erreur chargement prompt: {e}")
-            return None
 
     def cleanup(self):
         """Cleanup agent resources"""
@@ -724,30 +702,6 @@ class AiderAgent(AgentBase):
             # Ensure cleanup happens
             self.cleanup()
 
-    def _validate_run_conditions(self, prompt: str) -> bool:
-        """Validate conditions before running Aider"""
-        try:
-            if not prompt or not prompt.strip():
-                self._log(f"[{self.name}] ❌ Prompt vide", 'error')
-                return False
-                
-            if not self.mission_dir:
-                self._log(f"[{self.name}] ❌ Dossier mission non défini", 'error')
-                return False
-                
-            if not os.path.exists(self.mission_dir):
-                self._log(f"[{self.name}] ❌ Dossier mission non trouvé: {self.mission_dir}", 'error')
-                return False
-                
-            if not self.mission_files:
-                self._log(f"[{self.name}] ❌ Aucun fichier mission trouvé", 'warning')
-                return False
-                
-            return True
-            
-        except Exception as e:
-            self._log(f"[{self.name}] ❌ Erreur validation conditions: {str(e)}", 'error')
-            return False
 
     def _build_prompt(self, context: dict = None) -> str:
         """
