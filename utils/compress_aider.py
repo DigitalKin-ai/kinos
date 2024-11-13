@@ -2,13 +2,21 @@
 Script to compress large Aider discussion files using GPT-4 in a map-reduce pattern
 """
 import os
+import sys
 import glob
 import time
 from typing import List, Optional
-import anthropic
 from pathlib import Path
+
+# Add project root to Python path
+project_root = str(Path(__file__).parent.parent)
+if project_root not in sys.path:
+    sys.path.append(project_root)
+
+# Now import KinOS utilities
 from utils.logger import Logger
 from utils.path_manager import PathManager
+import anthropic
 
 def split_content(content: str, chunk_size: int = 50000) -> List[str]:
     """Split content into chunks of approximately equal size"""
