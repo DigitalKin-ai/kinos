@@ -310,7 +310,7 @@ class AiderAgent(AgentBase):
         """Prevent agent from stopping"""
         pass  # Ne rien faire - empêcher l'arrêt
 
-    def _truncate_history(self, content: str, max_chars: int = 15000) -> str:
+    def _truncate_history(self, content: str, max_chars: int = 25000) -> str:
         """Truncate history content to last N characters"""
         if len(content) <= max_chars:
             return content
@@ -384,9 +384,8 @@ class AiderAgent(AgentBase):
             context_message = f"""Based on:
 1. The system prompt defining my role and responsibilities
 2. The Mission in demande.md
-2. The input history showing previous instructions
-3. The production history showing Aider's reactions and productions
-3. The current state of the project files shown below
+3. The chat history showing your previous instructions and Aider's productions
+4. The current state of the project files shown below
 
 Choose ONE specific, concrete task that needs to be done by the agent {self.name} to progress in the mission and explain it in detail so that Aider can implement it.
 Focus on practical changes that move the project forward, directly related to demande.md
@@ -396,7 +395,7 @@ Current project files:
 
 Instructions:
 1. Answer any outstanding question raised by Aider in the chat history
-2. Analyze the current state and identify a clear next step
+2. Analyze the current state and identify a clear next step, preferably different from what's in the chat history (we are following a "Breadth-first" development pattern)
 3. Describe ONE specific task in detail
 4. Explain what files need to be modified and how
 5. Keep the task focused and achievable
@@ -410,13 +409,9 @@ Instructions:
                 
                 messages = []
                 
-                # Only add input history if not empty
+                # Only add chat history if not empty
                 if chat_history.strip():
-                    messages.append({"role": "user", "content": chat_history})
-
-                # Only add input history if not empty
-                if input_history.strip():
-                    messages.append({"role": "assistant", "content": input_history})
+                    messages.append({"role": "assistant", "content": chat_history})
                     
                 # Add user message
                 messages.append({"role": "user", "content": context_message})
