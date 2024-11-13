@@ -21,6 +21,10 @@ from agents.utils.rate_limiter import RateLimiter
 from agents.base.file_handler import FileHandler
 from agents.base.prompt_handler import PromptHandler
 from utils.path_manager import PathManager
+from utils.error_handler import ErrorHandler
+from agents.base.file_handler import FileHandler
+from agents.base.prompt_handler import PromptHandler
+from utils.path_manager import PathManager
 
 class AiderAgent(AgentBase):
     """
@@ -621,10 +625,32 @@ class AiderAgent(AgentBase):
         """List all text files in mission directory"""
         self.mission_files = self.file_handler.list_files()
 
-
+    def get_prompt(self) -> Optional[str]:
+        """Get prompt with caching"""
+        return self.prompt_handler.get_prompt(self.prompt_file)
+        
     def save_prompt(self, content: str) -> bool:
         """Save new prompt content"""
         return self.prompt_handler.save_prompt(self.prompt_file, content)
+
+    def _handle_error(self, operation: str, error: Exception, context: Dict = None):
+        """Centralised error handling"""
+        try:
+            error_details = {
+                'agent': self.name,
+                'operation': operation,
+                'mission_dir': self.mission_dir,
+                'context': context or {}
+            }
+            
+            ErrorHandler.handle_error(
+                error,
+                log_level='error',
+                additional_info=error_details
+            )
+            
+        except Exception as e:
+            self.logger.log(f"Error in error handler: {str(e)}", 'error')
 
 
     def cleanup(self):

@@ -50,15 +50,17 @@ class AiderAgent(AgentBase):
             max_requests=50,
             time_window=60
         )
+        self.file_handler = FileHandler(self.mission_dir, self.logger)
+        self.prompt_handler = PromptHandler(self.logger)
         
         # Store original directory
-        self.original_dir = os.getcwd()
+        self.original_dir = PathManager.get_project_root()
         
         # Initialize state
         self._init_state()
         
         # Validate paths
-        if not validate_paths(self.mission_dir):
+        if not PathManager.validate_mission_path(self.mission_dir):
             raise ValueError(f"Invalid mission directory: {self.mission_dir}")
 
     def _run_aider(self, prompt: str) -> Optional[str]:
