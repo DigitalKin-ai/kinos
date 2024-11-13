@@ -35,6 +35,41 @@ class AiderOutputParser:
         """Initialize with logger"""
         self.logger = logger
         
+    def _parse_commit_message(self, line: str, output_lines: list) -> None:
+        """
+        Parse and format a commit message line
+        
+        Args:
+            line: Line containing commit message
+            output_lines: List to append formatted message to
+        """
+        try:
+            # Extract commit hash and message
+            parts = line.split()
+            if len(parts) < 3:  # Need at least "Commit <hash> <message>"
+                return
+                
+            commit_hash = parts[1]
+            message = ' '.join(parts[2:])
+            
+            # Detect commit type
+            commit_type = None
+            for known_type in self.COMMIT_ICONS:
+                if message.lower().startswith(f"{known_type}:"):
+                    commit_type = known_type
+                    message = message[len(known_type)+1:].strip()
+                    break
+                    
+            # Get icon and format message
+            icon = self.COMMIT_ICONS.get(commit_type, '🔨')
+            formatted = f"{icon} {commit_hash}: {message}"
+            
+            output_lines.append(formatted)
+            self.logger.log(formatted, 'info')
+            
+        except Exception as e:
+            self.logger.log(f"Error parsing commit message: {str(e)}", 'error')
+
     def _parse_file_changes(self, output: str) -> Dict[str, Any]:
         """
         Parse file changes from output
