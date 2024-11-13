@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import sys
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 import traceback
@@ -179,24 +180,28 @@ class TeamService:
                 try:
                     if i > 0:  # Don't wait for first agent
                         self.logger.log(f"Waiting 5 seconds before starting next agent...", 'info')
-                        try:
                             time.sleep(5)
                             self.logger.log("Wait completed normally", 'debug')
                         except KeyboardInterrupt:
-                            self.logger.log("Sleep interrupted by Ctrl+C", 'warning')
-                            # Stop started agents in reverse order
-                            for started_agent in reversed(started_agents):
-                                try:
-                                    self.agent_service.toggle_agent(started_agent, 'stop', mission_dir)
-                                except Exception as cleanup_error:
-                                    self.logger.log(f"Error stopping agent {started_agent}: {str(cleanup_error)}", 'error')
-                            return {
-                                'team_id': team['id'],
-                                'mission_dir': mission_dir,
-                                'agents': [],
-                                'phase': current_phase,
-                                'status': 'cancelled'
-                            }
+                            # Check if it's an Aider initialization error or user interrupt
+                            if "No Windows console found" in str(sys.last_value):
+                                self.logger.log("Aider initialization warning - continuing", 'debug')
+                                continue
+                            else:
+                                self.logger.log("Sleep interrupted by Ctrl+C", 'warning')
+                                # Stop started agents in reverse order
+                                for started_agent in reversed(started_agents):
+                                    try:
+                                        self.agent_service.toggle_agent(started_agent, 'stop', mission_dir)
+                                    except Exception as cleanup_error:
+                                        self.logger.log(f"Error stopping agent {started_agent}: {str(cleanup_error)}", 'error')
+                                return {
+                                    'team_id': team['id'],
+                                    'mission_dir': mission_dir,
+                                    'agents': [],
+                                    'phase': current_phase,
+                                    'status': 'cancelled'
+                                }
                         except Exception as sleep_error:
                             self.logger.log(f"Sleep interrupted by unexpected error: {str(sleep_error)}", 'error')
                             raise
