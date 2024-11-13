@@ -24,10 +24,13 @@
 
 ```bash
 # Lancement dans le répertoire courant
-python kinos_cli.py team launch --team coding
+kin
+
+# Lancement d'une équipe spécifique
+kin book-writing
 
 # Lancement avec un chemin personnalisé
-python kinos_cli.py team launch --team coding --base-path /chemin/specifique
+kin book-writing -p /chemin/specifique/projet
 ```
 
 ### Stratégies de Validation
