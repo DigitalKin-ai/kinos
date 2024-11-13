@@ -149,10 +149,12 @@ class TeamService:
 
     def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
         """Start team in current/specified directory"""
-        # Initialize started_agents as a list for tracking
-        started_agents = []
+        # Initialize all collections as lists
+        started_agents = []  # Liste des agents démarrés
+        active_agents = []   # Liste des agents actifs
+        waiting_agents = []  # Liste des agents en attente
         original_sigint_handler = signal.getsignal(signal.SIGINT)  # Save original handler
-        
+
         try:
             # Temporarily disable Ctrl+C
             signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -182,32 +184,19 @@ class TeamService:
             services = init_services(None)
             phase_service = services['phase_service']
             map_service = services['map_service']
-            
-            print(f"[DEBUG] Services initialized - phase_service id: {id(phase_service)}")
 
             # Generate map first to get token count
             map_service.generate_map()
             
             # Get phase status info directly from phase service
             phase_status = phase_service.get_status_info()
-            
-            # Log phase status with EXACT values from phase_status
-            self.logger.log(
-                f"Current phase: {phase_status['phase']}\n"
-                f"Total tokens: {phase_status['total_tokens']:,}\n"
-                f"Usage: {phase_status['usage_percent']:.1f}%\n"
-                f"Status: {phase_status['status_message']}\n"
-                f"Headroom: {phase_status['headroom']:,} tokens", 
-                'info'
-            )
 
             # Filter and weight agents based on phase
             filtered_agents = self._filter_agents_by_phase(team['agents'], phase_status['phase'])
             
             if not filtered_agents:
                 self.logger.log(
-                    f"No agents available for phase {phase_status['phase']}. "
-                    f"Original agents: {[a['name'] if isinstance(a, dict) else a for a in team['agents']]}", 
+                    f"No agents available for phase {phase_status['phase']}",
                     'warning'
                 )
                 return {
@@ -217,26 +206,6 @@ class TeamService:
                     'phase': phase_status['phase'],
                     'status': 'no_agents_for_phase'
                 }
-
-            # Convert string agent names to dict format with weights
-            normalized_agents = []
-            phase_config = team.get('phase_config', {}).get(phase_status['phase'].lower(), {})
-            phase_agents = {a['name']: a.get('weight', 0.5) for a in phase_config.get('active_agents', [])}
-            
-            for agent in filtered_agents:
-                if isinstance(agent, dict):
-                    # Keep existing dict format but override weight if in phase config
-                    agent_copy = agent.copy()
-                    if agent['name'] in phase_agents:
-                        agent_copy['weight'] = phase_agents[agent['name']]
-                    normalized_agents.append(agent_copy)
-                else:
-                    # Convert string to dict with weight from phase config or default
-                    normalized_agents.append({
-                        'name': agent,
-                        'type': 'aider',  # default type
-                        'weight': phase_agents.get(agent, 0.5)
-                    })
 
             # Initialize filtered agents with error handling
             try:
@@ -256,54 +225,33 @@ class TeamService:
             random_agents = filtered_agents.copy()
             random.shuffle(random_agents)
 
+            # Initialize waiting_agents list from random_agents
+            waiting_agents = [agent['name'] if isinstance(agent, dict) else agent 
+                            for agent in random_agents]
+
             # Create thread pool with error handling
             with ThreadPoolExecutor(max_workers=self.max_concurrent_agents) as executor:
-                # Function to start an agent with better error handling
-                def start_agent(agent_name: str) -> bool:
-                    try:
-                        self.logger.log(f"Starting agent: {agent_name}", 'info')
-                        # Ignore known Aider initialization errors
-                        try:
-                            success = self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
-                            if success:
-                                if agent_name not in started_agents:  # Avoid duplicates
-                                    started_agents.append(agent_name)
-                            return success
-                        except Exception as e:
-                            error_msg = str(e)
-                            if not any(err in error_msg for err in AIDER_INIT_ERRORS):
-                                self.logger.log(f"Error starting agent {agent_name}: {str(e)}", 'error')
-                            return False
-                    except Exception as e:
-                        self.logger.log(f"Critical error starting agent {agent_name}: {str(e)}", 'error')
-                        return False
-
-                # Maintain pools of active and waiting agents as lists
                 futures = []
-                active_agents = []  # Changed from set to list
-                waiting_agents = [agent['name'] if isinstance(agent, dict) else agent 
-                               for agent in random_agents]  # Initialize as list
-
+                
                 while waiting_agents or active_agents:
-                    # Calculate how many slots are available
+                    # Calculate available slots
                     available_slots = self.max_concurrent_agents - len(active_agents)
 
                     if available_slots > 0 and waiting_agents:
-                        # Randomly select agents to start
+                        # Start new agents
                         agents_to_start = random.sample(
                             waiting_agents,
                             min(available_slots, len(waiting_agents))
                         )
                         
-                        # Start new agents
                         for agent_name in agents_to_start:
-                            waiting_agents.remove(agent_name)  # Remove from waiting list
+                            waiting_agents.remove(agent_name)
                             future = executor.submit(self._start_agent, agent_name)
                             futures.append(future)
-                            active_agents.append(agent_name)  # Add to active list
-                            if agent_name not in started_agents:  # Track in started list
+                            active_agents.append(agent_name)
+                            if agent_name not in started_agents:
                                 started_agents.append(agent_name)
-                            time.sleep(5)  # Wait between starts
+                            time.sleep(5)
 
                     # Wait for any agent to complete
                     done, futures = concurrent.futures.wait(
@@ -316,20 +264,18 @@ class TeamService:
                     for future in done:
                         try:
                             success = future.result(timeout=5)
-                            # Find which agent completed
                             completed_agent = next(
                                 agent for agent in active_agents
                                 if agent in [a['name'] if isinstance(a, dict) else a 
                                            for a in random_agents]
                             )
-                            active_agents.remove(completed_agent)  # Remove from active list
-                            # Put completed agent back in waiting pool if not already started
+                            active_agents.remove(completed_agent)
                             if completed_agent not in started_agents:
-                                waiting_agents.append(completed_agent)  # Add to waiting list
+                                waiting_agents.append(completed_agent)
                         except Exception as e:
                             self.logger.log(f"Error processing agent result: {str(e)}", 'error')
 
-                    time.sleep(1)  # Prevent tight loop
+                    time.sleep(1)
 
             return {
                 'team_id': team['id'],
