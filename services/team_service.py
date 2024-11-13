@@ -186,9 +186,10 @@ class TeamService:
             for i, agent_name in enumerate(filtered_agents):
                 try:
                     if i > 0:  # Don't wait for first agent
-                        self.logger.log(f"Waiting 5 seconds before starting next agent...", 'info')
+                        wait_time = 30  # Increase to 30 seconds instead of 5
+                        self.logger.log(f"Waiting {wait_time} seconds before starting next agent...", 'info')
                         try:
-                            time.sleep(5)
+                            time.sleep(wait_time)
                             self.logger.log("Wait completed normally", 'debug')
                         except KeyboardInterrupt:
                             # Ignore interruption and continue startup sequence
