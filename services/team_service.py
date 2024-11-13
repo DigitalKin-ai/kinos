@@ -107,9 +107,10 @@ class TeamService:
         normalized = team_id.lower().replace('_', '-').replace(' ', '-')
         return normalized
 
-    def start_team(self, team_id: str, base_path: Optional[str] = None) -> Dict[str, Any]:
-        """Start team in current/specified directory"""
+    def start_team(self, team_id: str, base_path: Optional[str] = None, max_retries: int = 3) -> Dict[str, Any]:
+        """Start team in current/specified directory with retries"""
         started_agents = []  # Track started agents for cleanup
+        retry_count = 0
         
         try:
             mission_dir = base_path or os.getcwd()
@@ -185,9 +186,32 @@ class TeamService:
                         except KeyboardInterrupt:
                             raise KeyboardInterrupt("User interrupted team startup")
                     
-                    self.logger.log(f"Starting agent {i+1}/{len(filtered_agents)}: {agent_name}", 'info')
-                    self.agent_service.toggle_agent(agent_name, 'start', mission_dir)
-                    started_agents.append(agent_name)
+                    # Try starting agent with retries
+                    start_attempts = 0
+                    max_start_attempts = 3
+                    
+                    while start_attempts < max_start_attempts:
+                        try:
+                            self.logger.log(
+                                f"Starting agent {i+1}/{len(filtered_agents)}: {agent_name} "
+                                f"(Attempt {start_attempts + 1}/{max_start_attempts})", 
+                                'info'
+                            )
+                            if self.agent_service.toggle_agent(agent_name, 'start', mission_dir):
+                                started_agents.append(agent_name)
+                                break
+                            start_attempts += 1
+                            if start_attempts < max_start_attempts:
+                                time.sleep(2 ** start_attempts)  # Exponential backoff
+                        except Exception as e:
+                            self.logger.log(
+                                f"Error starting agent {agent_name} (Attempt {start_attempts + 1}): {str(e)}", 
+                                'error'
+                            )
+                            start_attempts += 1
+                            if start_attempts >= max_start_attempts:
+                                break
+                            time.sleep(2 ** start_attempts)  # Exponential backoff
                     
                 except KeyboardInterrupt:
                     self.logger.log("Startup interrupted by user - cleaning up...", 'warning')

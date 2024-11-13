@@ -119,6 +119,10 @@ class AiderOutputParser:
         Returns:
             bool: True if line contains error
         """
+        # Documentation links should not be treated as errors
+        if "documentation:" in line.lower():
+            return False
+            
         error_indicators = [
             'error',
             'exception', 

@@ -227,9 +227,19 @@ class AiderAgent(AgentBase):
             with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
                 output = self.output_parser.parse_output(process)
                 
-            # Check for specific Aider console error
-            if output and "No Windows console found" in output:
-                self.logger.log(f"[{self.name}] Aider console initialization error - will retry", 'error')
+            # Handle known initialization errors gracefully
+            initialization_errors = [
+                "No Windows console found",
+                "Failed to initialize console",
+                "Could not initialize terminal"
+            ]
+            
+            if output and any(err in output for err in initialization_errors):
+                self.logger.log(
+                    f"[{self.name}] Aider initialization error detected - will retry\n"
+                    f"Error: {output}", 
+                    'warning'
+                )
                 # Don't treat as interruption, just return None
                 return None
 
