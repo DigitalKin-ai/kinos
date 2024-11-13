@@ -9,7 +9,7 @@ import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 from queue import Queue
 from datetime import datetime
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Union
 import traceback
 from utils.logger import Logger
 from utils.path_manager import PathManager
