@@ -55,39 +55,68 @@ class AiderAgent(AgentBase):
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Execute Aider with given prompt"""
         try:
-            # Rate limiting check
-            if not self.rate_limiter.should_allow_request():
-                wait_time = self.rate_limiter.get_wait_time()
-                self.logger.log(f"Rate limit reached. Waiting {wait_time:.1f}s", 'warning')
+            if not self._check_rate_limit():
                 return None
-            
-            # Change to mission directory
-            os.chdir(self.mission_dir)
-            
-            try:
-                # Build command
-                cmd = self.command_builder.build_command(
-                    prompt=prompt,
-                    files=list(self.mission_files.keys())
-                )
                 
-                # Execute command
-                process = self.command_builder.execute_command(cmd)
-                
-                # Parse output
-                result = self.output_parser.parse_output(process)
-                
-                # Update metrics
-                self.rate_limiter.record_request()
-                
-                return result
-                
-            finally:
-                # Restore original directory
-                os.chdir(self.original_dir)
+            return self._execute_aider_command(prompt)
                 
         except Exception as e:
             self.logger.log(f"Error running Aider: {str(e)}", 'error')
+            return None
+
+    def _check_rate_limit(self) -> bool:
+        """Check rate limiting and wait if needed"""
+        if not self.rate_limiter.should_allow_request():
+            wait_time = self.rate_limiter.get_wait_time()
+            self.logger.log(f"Rate limit reached. Waiting {wait_time:.1f}s", 'warning')
+            return False
+        return True
+
+    def _execute_aider_command(self, prompt: str) -> Optional[str]:
+        """Build and execute Aider command with proper directory handling"""
+        original_dir = os.getcwd()
+        try:
+            os.chdir(self.mission_dir)
+            
+            cmd = self._build_command(prompt)
+            process = self._run_process(cmd)
+            result = self._handle_process_output(process)
+            
+            # Update rate limit metrics on success
+            if result:
+                self.rate_limiter.record_request()
+                
+            return result
+            
+        finally:
+            os.chdir(original_dir)
+
+    def _build_command(self, prompt: str) -> List[str]:
+        """Build Aider command with current configuration"""
+        return self.command_builder.build_command(
+            prompt=prompt,
+            files=list(self.mission_files.keys())
+        )
+
+    def _run_process(self, cmd: List[str]) -> subprocess.Popen:
+        """Execute Aider process with proper environment"""
+        return self.command_builder.execute_command(cmd)
+
+    def _handle_process_output(self, process: subprocess.Popen) -> Optional[str]:
+        """Parse and handle process output with error checking"""
+        try:
+            result = self.output_parser.parse_output(process)
+            
+            if result:
+                # Update map after successful changes
+                from services import init_services
+                services = init_services(None)
+                services['map_service'].update_map()
+                
+            return result
+            
+        except Exception as e:
+            self.logger.log(f"Error handling process output: {str(e)}", 'error')
             return None
 
     def list_files(self) -> None:
