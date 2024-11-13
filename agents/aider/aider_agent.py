@@ -158,117 +158,107 @@ class AiderAgent(AgentBase):
             return None
 
         try:
+            # Check rate limiting
+            if not self._check_rate_limit():
+                self._log(f"[{self.name}] Rate limit exceeded, skipping execution")
+                return None
+
             # Log start of execution
             self._log(f"[{self.name}] 🚀 Starting Aider execution")
             self._log(f"[{self.name}] 📂 Mission directory: {self.mission_dir}")
             
-            # Validate mission directory exists and is accessible
-            if not os.path.exists(self.mission_dir):
-                self._log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}")
-                return None
-
-            if not os.access(self.mission_dir, os.R_OK | os.W_OK):
-                self._log(f"[{self.name}] ❌ Insufficient permissions for: {self.mission_dir}")
-                return None
-
             # Change to mission directory
             os.chdir(self.mission_dir)
             self._log(f"[{self.name}] ✓ Changed to mission directory")
 
-            # Build command with builder
+            # Build and validate command
             cmd = self.command_builder.build_command(
                 prompt=prompt,
                 files=list(self.mission_files.keys())
             )
             
-            # Validate command
             if not self.command_builder.validate_command(cmd):
                 self.logger.log("Invalid command configuration", 'error')
                 return None
                 
-            # Execute command
-            process = self.command_builder.execute_command(cmd)
+            # Execute command with timeout
+            with TimeoutManager.timeout(COMMAND_EXECUTION_TIMEOUT):
+                process = self.command_builder.execute_command(cmd)
 
-            # Initialize output collection
-            output_lines = []
-            error_detected = False
-            
-            # Read output while process is running
-            while True:
-                try:
-                    line = process.stdout.readline()
-                    if not line and process.poll() is not None:
-                        break
-                        
-                    line = line.rstrip()
-                    if line:
-                        self._handle_output_line(line, output_lines, error_detected)
-
-                except Exception as e:
-                    self._log(f"[{self.name}] Error reading output: {str(e)}")
-                    continue
-
-            # Get return code with timeout handling
-            try:
-                with TimeoutManager.timeout(DEFAULT_TIMEOUT):
-                    return_code = process.wait()
-            except TimeoutError:
-                process.kill()
-                self._log(f"[{self.name}] ⚠️ Process timed out after {DEFAULT_TIMEOUT} seconds", 'warning')
+            # Parse output with timeout
+            with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
+                output = self.output_parser.parse_output(process)
+                
+            if output is None:
+                self._log(f"[{self.name}] ❌ No valid output from Aider")
                 return None
 
-            # Process results
-            return self._process_execution_results(
-                return_code,
-                output_lines,
-                error_detected
-            )
+            # Process file changes
+            changes = self._process_file_changes(output)
+            if changes['modified'] or changes['added'] or changes['deleted']:
+                self._log(
+                    f"[{self.name}] Changes detected:\n"
+                    f"Modified: {len(changes['modified'])} files\n"
+                    f"Added: {len(changes['added'])} files\n"
+                    f"Deleted: {len(changes['deleted'])} files"
+                )
+                
+                # Update map after changes
+                self._update_project_map()
 
-            # Initialize output collection
-            output_lines = []
-            error_detected = False
+            return output
+
+
+        except TimeoutError:
+            self._log(f"[{self.name}] ⚠️ Operation timed out", 'warning')
+            return None
             
-            # Read output while process is running
-            while True:
-                    try:
-                        line = process.stdout.readline()
-                        if not line and process.poll() is not None:
-                            break
-                            
-                        line = line.rstrip()
-                        if line:
-                            # Handle Windows console warning
-                            if "No Windows console found" in line:
-                                self._log(
-                                    f"[{self.name}] ⚠️ Windows console initialization warning:\n"
-                                    f"This is a known issue and doesn't affect functionality.\n"
-                                    f"Original message: {line}",
-                                    'warning'
-                                )
-                                continue
+        except Exception as e:
+            self._handle_error('run_aider', e, {'prompt': prompt})
+            return None
+            
+        finally:
+            # Always try to restore original directory
+            try:
+                os.chdir(self.original_dir)
+            except Exception as dir_error:
+                self._log(f"[{self.name}] Error restoring directory: {str(dir_error)}")
 
-                            # Commit type icons with descriptions
-                            COMMIT_ICONS = {
-                                'feat': '✨',     # New feature
-                                'fix': '🐛',      # Bug fix
-                                'docs': '📚',     # Documentation
-                                'style': '💎',    # Style/formatting
-                                'refactor': '♻️',  # Refactoring
-                                'perf': '⚡️',     # Performance
-                                'test': '🧪',     # Tests
-                                'build': '📦',    # Build/dependencies
-                                'ci': '🔄',       # CI/CD
-                                'chore': '🔧',    # Maintenance
-                                'revert': '⏪',    # Revert changes
-                                'merge': '🔗',    # Merge changes
-                                'update': '📝',   # Content updates
-                                'add': '➕',      # Add content/files
-                                'remove': '➖',    # Remove content/files
-                                'move': '🚚',     # Move/rename content
-                                'cleanup': '🧹',  # Code cleanup
-                                'format': '🎨',   # Formatting changes
-                                'optimize': '🚀'  # Optimizations
-                            }
+    def _process_file_changes(self, output: str) -> Dict[str, set]:
+        """Process and track file changes from Aider output"""
+        changes = {
+            'modified': set(),
+            'added': set(),
+            'deleted': set()
+        }
+        
+        try:
+            for line in output.splitlines():
+                if "Wrote " in line:
+                    file_path = line.split("Wrote ")[1].split()[0]
+                    changes['modified'].add(file_path)
+                elif "Created " in line:
+                    file_path = line.split("Created ")[1].split()[0]
+                    changes['added'].add(file_path)
+                elif "Deleted " in line:
+                    file_path = line.split("Deleted ")[1].split()[0]
+                    changes['deleted'].add(file_path)
+                    
+            return changes
+            
+        except Exception as e:
+            self._log(f"[{self.name}] Error processing changes: {str(e)}")
+            return changes
+
+    def _update_project_map(self) -> None:
+        """Update project map after file changes"""
+        try:
+            from services import init_services
+            services = init_services(None)
+            services['map_service'].update_map()
+            self._log(f"[{self.name}] Map updated successfully")
+        except Exception as e:
+            self._log(f"[{self.name}] Error updating map: {str(e)}")
 
                             # Log raw output for debugging
                             self._log(f"[{self.name}] 📝 Raw output: {line}", 'debug')
