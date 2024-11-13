@@ -1087,6 +1087,38 @@ List any specific constraints or limitations.
         except Exception as e:
             self.logger.log(f"Error updating global status: {str(e)}", 'error')
 
+    def get_prompt(self) -> Optional[str]:
+        """Get the current prompt content"""
+        try:
+            # Use prompt handler to get prompt
+            return self.prompt_handler.get_prompt(self.prompt_file)
+        except Exception as e:
+            self.logger.log(f"Error getting prompt: {str(e)}", 'error')
+            return None
+
+    def _run_aider(self, prompt: str) -> Optional[str]:
+        """Execute Aider with the given prompt"""
+        try:
+            # Build and execute query
+            query = self.generate_query(prompt)
+            results = self.execute_query(query)
+            
+            if not results:
+                return None
+                
+            # Format results for Aider
+            formatted_results = self._format_research_results([{
+                'topic': prompt,
+                'query': query,
+                'results': results
+            }])
+            
+            return formatted_results
+            
+        except Exception as e:
+            self.logger.log(f"Error running Aider: {str(e)}", 'error')
+            return None
+
     def create_agent(self, agent_config: Dict[str, Any]) -> Optional[AgentBase]:
         """Create appropriate agent instance based on type"""
         try:
