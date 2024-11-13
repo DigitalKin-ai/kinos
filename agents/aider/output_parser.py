@@ -154,6 +154,15 @@ class AiderOutputParser:
         Returns:
             bool: True if line contains error
         """
+        # Ignorer les erreurs connues d'Aider sur Windows
+        known_aider_errors = [
+            "Can't initialize prompt toolkit",
+            "No Windows console found",
+            "aider.chat/docs/troubleshooting/edit-errors.html"
+        ]
+        if any(err in line for err in known_aider_errors):
+            return False
+            
         # Documentation links should not be treated as errors
         if "documentation:" in line.lower():
             return False
@@ -162,7 +171,6 @@ class AiderOutputParser:
             'error',
             'exception', 
             'failed',
-            'can\'t initialize',
             'fatal:',
             'permission denied'
         ]
