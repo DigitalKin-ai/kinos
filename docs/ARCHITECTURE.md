@@ -330,6 +330,173 @@ KinOS uses a single server architecture where both frontend and backend are serv
   - Interface agents
   - Interface clean
 
+### Claude Integration System
+
+#### Overview
+Le système d'intégration avec Claude-3 permet une interaction sophistiquée et contextuelle entre les agents et le modèle. Chaque agent utilise Claude pour :
+- Analyser le contexte du projet
+- Générer des instructions précises
+- Guider les modifications de code
+
+#### Architecture
+
+1. **Collecte de Contexte**
+   ```python
+   {
+       "system": "Prompt spécifique à l'agent",
+       "chat_history": "Historique des interactions",
+       "files_context": {
+           "file1.py": "contenu...",
+           "file2.md": "contenu..."
+       }
+   }
+   ```
+
+2. **Structure des Messages**
+   - Message système : Définit le rôle et les responsabilités
+   - Message assistant : Contient l'historique des interactions
+   - Message utilisateur : Demande d'analyse et instructions
+
+3. **Format de Prompt**
+   ```
+   Based on:
+   1. The system prompt defining my role
+   2. The chat history showing previous actions
+   3. The current state of project files
+
+   Choose ONE specific task and explain it in detail.
+   ```
+
+#### Workflow
+
+1. **Préparation du Contexte**
+   - Lecture de l'historique des chats
+   - Collection des fichiers pertinents
+   - Formatage du contexte
+
+2. **Appel à Claude**
+   ```python
+   response = client.messages.create(
+       model="claude-3-haiku-20240307",
+       max_tokens=4000,
+       messages=[...]
+   )
+   ```
+
+3. **Traitement de la Réponse**
+   - Validation des instructions
+   - Formatage pour Aider
+   - Exécution des modifications
+
+#### Avantages
+
+1. **Contextuel**
+   - Compréhension complète du projet
+   - Prise en compte de l'historique
+   - Décisions informées
+
+2. **Précis**
+   - Instructions détaillées
+   - Tâches concrètes
+   - Modifications ciblées
+
+3. **Adaptatif**
+   - Ajustement aux changements
+   - Apprentissage continu
+   - Optimisation progressive
+
+#### Configuration
+
+1. **Modèle**
+   ```python
+   MODEL_CONFIG = {
+       "name": "claude-3-haiku-20240307",
+       "max_tokens": 4000,
+       "temperature": 0.7
+   }
+   ```
+
+2. **Format des Messages**
+   ```python
+   messages = [
+       {
+           "role": "system",
+           "content": prompt
+       },
+       {
+           "role": "assistant",
+           "content": chat_history
+       },
+       {
+           "role": "user",
+           "content": f"Based on: ..."
+       }
+   ]
+   ```
+
+#### Bonnes Pratiques
+
+1. **Gestion du Contexte**
+   - Limiter la taille du contexte
+   - Prioriser les fichiers pertinents
+   - Nettoyer l'historique régulièrement
+
+2. **Prompts**
+   - Être spécifique et concis
+   - Définir clairement les objectifs
+   - Inclure les contraintes importantes
+
+3. **Traitement des Réponses**
+   - Valider avant exécution
+   - Logger les modifications
+   - Gérer les erreurs gracieusement
+
+#### Intégration avec les Agents
+
+1. **Dans AiderAgent**
+   ```python
+   def run(self):
+       # Collecte du contexte
+       chat_history = self._get_chat_history()
+       files_context = self._get_files_context()
+       
+       # Appel à Claude
+       instructions = self._get_claude_instructions(
+           chat_history, 
+           files_context
+       )
+       
+       # Exécution avec Aider
+       self._run_aider(instructions)
+   ```
+
+2. **Dans ResearchAgent**
+   ```python
+   def _run_aider(self, prompt: str):
+       # Génération de requête
+       query = self.generate_query(prompt)
+       results = self.execute_query(query)
+       
+       # Formatage pour Aider
+       return self._format_research_results(results)
+   ```
+
+#### Monitoring et Logging
+
+1. **Métriques**
+   - Temps de réponse
+   - Taux de succès
+   - Utilisation de tokens
+   - Qualité des modifications
+
+2. **Logs**
+   - Instructions générées
+   - Modifications effectuées
+   - Erreurs et retries
+   - Performance globale
+
+Cette architecture permet une interaction sophistiquée et efficace entre les agents et Claude, assurant des modifications de code précises et contextuelles.
+
 ### Map System
 
 Le système de map fournit une vue d'ensemble structurée du projet et surveille la taille des documents.
