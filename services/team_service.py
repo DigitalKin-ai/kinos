@@ -252,9 +252,11 @@ class TeamService:
                     available_slots = self.max_concurrent_agents - len(active_agents)
 
                     if available_slots > 0 and waiting_agents:
+                        # Convert set to list for random.sample
+                        waiting_agents_list = list(waiting_agents)
                         # Randomly select agents to start
                         agents_to_start = random.sample(
-                            waiting_agents, 
+                            waiting_agents_list,
                             min(available_slots, len(waiting_agents))
                         )
                         
