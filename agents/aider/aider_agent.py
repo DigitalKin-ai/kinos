@@ -368,19 +368,8 @@ class AiderAgent(AgentBase):
                         except Exception as e:
                             self.logger.log(f"[{self.name}] Error reading file {file_path}: {str(e)}", 'warning')
 
-                    # Prepare Claude messages
-                    messages = [
-                        {
-                            "role": "system",
-                            "content": prompt
-                        },
-                        {
-                            "role": "assistant",
-                            "content": chat_history
-                        },
-                        {
-                            "role": "user",
-                            "content": f"""Based on:
+                    # Format context message
+                    context_message = f"""Based on:
 1. The system prompt defining my role and responsibilities
 2. The chat history showing previous actions and context
 3. The current state of the project files shown below
@@ -396,20 +385,20 @@ Instructions:
 2. Describe ONE specific task in detail
 3. Explain what files need to be modified and how
 4. Keep the task focused and achievable
-5. Provide enough detail for Aider to implement it
+5. Provide enough detail for Aider to implement it"""
 
-Format your response as clear instructions that can be sent directly to Aider."""
-                        }
-                    ]
-
-                    # Call Claude API
+                    # Call Claude API with correct message format
                     try:
                         from anthropic import Anthropic
                         client = Anthropic()
                         response = client.messages.create(
                             model="claude-3-haiku-20240307",
                             max_tokens=4000,
-                            messages=messages
+                            system=prompt,  # Set system prompt
+                            messages=[
+                                {"role": "assistant", "content": chat_history},
+                                {"role": "user", "content": context_message}
+                            ]
                         )
                         instructions = response.content[0].text
                         self.logger.log(f"[{self.name}] Generated instructions:\n{instructions}", 'debug')
