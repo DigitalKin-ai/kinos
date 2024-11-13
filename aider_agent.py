@@ -2,6 +2,7 @@
 AiderAgent - Core implementation of Aider-based agent functionality
 """
 import os
+import time
 from typing import Dict, Any, Optional
 from agents.base.agent_base import AgentBase
 from agents.aider.command_builder import AiderCommandBuilder
