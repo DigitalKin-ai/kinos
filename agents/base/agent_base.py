@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Dict, Any, Optional
 from utils.logger import Logger
+from agents.base.file_handler import FileHandler
 
 class AgentBase(ABC):
     """

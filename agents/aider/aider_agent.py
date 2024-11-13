@@ -14,7 +14,6 @@ from agents.utils.encoding import configure_encoding, detect_file_encoding, norm
 from agents.utils.rate_limiter import RateLimiter
 from agents.base.file_handler import FileHandler
 from agents.base.prompt_handler import PromptHandler
-from agents.base.prompt_handler import PromptHandler
 from utils.path_manager import PathManager
 from utils.error_handler import ErrorHandler
 from utils.managers.timeout_manager import TimeoutManager
@@ -23,6 +22,7 @@ from utils.constants import (
     OUTPUT_COLLECTION_TIMEOUT,
     COMMAND_EXECUTION_TIMEOUT
 )
+from utils.constants import COMMIT_ICONS
 
 class AiderAgent(AgentBase):
     """
@@ -283,70 +283,6 @@ class AiderAgent(AgentBase):
             self._log(f"[{self.name}] Map updated successfully")
         except Exception as e:
             self._log(f"[{self.name}] Error updating map: {str(e)}")
-
-            # Log raw output for debugging
-            self._log(f"[{self.name}] 📝 Raw output: {line}", 'debug')
-
-            # Parse commit messages - more robust
-            if "Commit" in line:
-                try:
-                    # Extract commit hash and message
-                    commit_hash = line.split()[1]
-                    message = ' '.join(line.split()[2:])
-                    
-                    # Detect commit type from message
-                    commit_type = None
-                    for known_type in COMMIT_ICONS.keys():
-                        if message.lower().startswith(f"{known_type}:"):
-                            commit_type = known_type
-                            message = message[len(known_type)+1:].strip()
-                            break
-                    
-                    # Get appropriate icon
-                    icon = COMMIT_ICONS.get(commit_type, '🔨') if commit_type else '🔨'
-                    
-                    # Log with consistent format
-                    self.logger.log(
-                        f"[{self.name}] {icon} {commit_hash}: {message}",
-                        'success'
-                    )
-                        
-                except Exception as e:
-                    # Fallback if parsing fails
-                    self._log(f"[{self.name}] 🔨 {line}", 'success')
-            else:
-                # Handle non-commit lines
-                lower_line = line.lower()
-                is_error = any(err in lower_line for err in [
-                    'error', 'exception', 'failed', 'can\'t initialize'
-                ])
-                
-                if is_error:
-                    self._log(f"[{self.name}] ❌ {line}", 'error')
-                    error_detected = True
-                else:
-                    self._log(f"[{self.name}] 📝 {line}", 'info')
-            
-            output_lines.append(line)
-            
-        except Exception as e:
-            self._log(f"[{self.name}] Error reading output: {str(e)}")
-
-            # Get return code with timeout handling
-            try:
-                with TimeoutManager.timeout(DEFAULT_TIMEOUT):
-                    return_code = process.wait()
-            except TimeoutError:
-                process.kill()
-                self._log(f"[{self.name}] ⚠️ Process timed out after {DEFAULT_TIMEOUT} seconds", 'warning')
-                return None
-
-            # Process results
-            return self._process_execution_results(
-                return_code,
-                output_lines,
-                error_detected
-            )
 
     def get_prompt(self) -> Optional[str]:
         """Get prompt with caching"""
