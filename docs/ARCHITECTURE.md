@@ -502,6 +502,239 @@ Cette architecture permet une interaction sophistiquée et efficace entre les ag
 #### Vue d'Ensemble
 Le système de poids permet d'ajuster dynamiquement l'importance et le comportement des agents selon la phase du projet et le contexte d'exécution.
 
+### Research Agent
+
+#### Vue d'Ensemble
+Le ResearchAgent est un agent spécialisé qui utilise l'API Perplexity pour effectuer des recherches ciblées et enrichir le projet avec des références académiques.
+
+#### Architecture
+
+1. **Workflow Principal**
+   ```mermaid
+   graph TD
+      A[Analyse du Contenu] --> B[Extraction des Topics]
+      B --> C[Génération des Requêtes]
+      C --> D[Exécution via Perplexity]
+      D --> E[Sauvegarde des Résultats]
+      E --> F[Intégration dans le Projet]
+   ```
+
+2. **Composants Clés**
+   - Extracteur de topics avec Claude
+   - Générateur de requêtes optimisées
+   - Client Perplexity avec rate limiting
+   - Système de cache des résultats
+   - Gestionnaire de données de recherche
+
+#### Fonctionnalités
+
+1. **Extraction de Topics**
+   ```python
+   def extract_research_topics(self, content: str) -> List[str]:
+       """
+       Analyse le contenu pour identifier les besoins de recherche
+       
+       Utilise Claude pour:
+       - Analyser le contexte du projet
+       - Identifier les questions clés
+       - Prioriser les besoins de recherche
+       """
+   ```
+
+2. **Génération de Requêtes**
+   ```python
+   def generate_query(self, topic: str) -> str:
+       """
+       Optimise les topics pour l'API Perplexity
+       
+       - Reformulation en questions précises
+       - Ajout de qualificateurs académiques
+       - Focus sur les sources vérifiées
+       - Demande d'exemples spécifiques
+       """
+   ```
+
+3. **Exécution des Recherches**
+   ```python
+   def execute_query(self, query: str) -> Optional[Dict[str, Any]]:
+       """
+       Exécute les requêtes avec gestion avancée
+       
+       - Rate limiting intelligent
+       - Cache des résultats
+       - Retry sur erreur
+       - Validation des réponses
+       """
+   ```
+
+#### Gestion des Données
+
+1. **Structure de Stockage**
+   ```python
+   research_data = {
+       "timestamp": "2024-03-21T15:30:45",
+       "topic": "Topic de recherche",
+       "query": "Requête optimisée",
+       "results": {
+           "sources": [...],
+           "findings": [...],
+           "citations": [...]
+       }
+   }
+   ```
+
+2. **Format des Résultats**
+   ```python
+   def _format_research_results(self, results: List[Dict]) -> str:
+       """
+       Formate les résultats pour Aider
+       
+       Structure:
+       - Topic et contexte
+       - Résultats principaux
+       - Citations et références
+       - Suggestions d'intégration
+       """
+   ```
+
+#### Intégration avec Aider
+
+1. **Préparation du Prompt**
+   ```python
+   def _build_prompt(self, research_results: Dict) -> str:
+       """
+       Crée un prompt pour Aider avec:
+       - Contexte de la recherche
+       - Résultats pertinents
+       - Suggestions d'intégration
+       - Format des citations
+       """
+   ```
+
+2. **Exécution des Modifications**
+   ```python
+   def _run_aider(self, prompt: str) -> Optional[str]:
+       """
+       Intègre les résultats de recherche via Aider
+       
+       - Identifie les points d'insertion
+       - Formate les citations
+       - Maintient la cohérence
+       - Valide les modifications
+       """
+   ```
+
+#### Configuration
+
+1. **API Perplexity**
+   ```json
+   {
+       "api_key": "",
+       "default_params": {
+           "max_tokens": 1000,
+           "temperature": 0.7,
+           "model": "pplx-7b-online"
+       },
+       "rate_limits": {
+           "queries_per_minute": 10,
+           "queries_per_hour": 100
+       },
+       "retry_config": {
+           "max_retries": 3,
+           "delay_seconds": 1,
+           "backoff_factor": 2
+       }
+   }
+   ```
+
+2. **Prompt de Recherche**
+   ```markdown
+   # Research Agent
+
+   ## MISSION
+   Analyze content to identify research needs and collect academic references.
+
+   ## CONTEXT
+   - Project state and requirements
+   - Current documentation gaps
+   - Research priorities
+
+   ## INSTRUCTIONS
+   1. Analyze content for research needs
+   2. Generate optimized queries
+   3. Execute targeted research
+   4. Format and integrate findings
+
+   ## RULES
+   - Prioritize verified sources
+   - Maintain academic standards
+   - Ensure proper citations
+   - Respect API limits
+   ```
+
+#### Bonnes Pratiques
+
+1. **Recherche**
+   - Formuler des requêtes précises
+   - Prioriser les sources académiques
+   - Valider la pertinence
+   - Éviter la duplication
+
+2. **Intégration**
+   - Citations standardisées
+   - Contexte approprié
+   - Liens avec le contenu existant
+   - Documentation des sources
+
+3. **Performance**
+   - Cache intelligent
+   - Rate limiting adaptatif
+   - Optimisation des requêtes
+   - Monitoring des ressources
+
+#### Métriques
+
+1. **Performance**
+   - Taux de succès des requêtes
+   - Temps de réponse moyen
+   - Utilisation du cache
+   - Qualité des résultats
+
+2. **Impact**
+   - Citations ajoutées
+   - Améliorations documentaires
+   - Couverture des topics
+   - Feedback utilisateur
+
+#### Gestion des Erreurs
+
+1. **Stratégies de Retry**
+   ```python
+   @retry(max_attempts=3, delay=1.0, backoff=2.0)
+   def execute_query(self, query: str):
+       """
+       Exécution avec retry intelligent:
+       - Délai exponentiel
+       - Validation des réponses
+       - Logging détaillé
+       - Circuit breaker
+       """
+   ```
+
+2. **Validation des Résultats**
+   ```python
+   def validate_research_results(self, results: Dict) -> bool:
+       """
+       Vérifie la qualité des résultats:
+       - Présence de sources
+       - Pertinence du contenu
+       - Format des citations
+       - Cohérence globale
+       """
+   ```
+
+Cette documentation fournit une vue complète du ResearchAgent, de son architecture à son utilisation pratique, en passant par sa configuration et ses bonnes pratiques.
+
 #### Architecture
 
 1. **Configuration des Poids**
