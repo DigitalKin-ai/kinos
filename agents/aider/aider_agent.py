@@ -94,9 +94,15 @@ class AiderAgent(AgentBase):
             
             cmd = self._build_command(prompt)
             process = self._run_process(cmd)
-            result = self._handle_process_output(process)
             
-            # Update rate limit metrics on success
+            # Set timeout duration (5 minutes)
+            try:
+                result = self._handle_process_output(process, timeout=300)
+            except TimeoutError:
+                self.logger.log("Process timed out after 300 seconds", 'error')
+                process.kill()
+                return None
+                
             if result:
                 self.rate_limiter.record_request()
                 
@@ -116,18 +122,50 @@ class AiderAgent(AgentBase):
         """Execute Aider process with proper environment"""
         return self.command_builder.execute_command(cmd)
 
-    def _handle_process_output(self, process: subprocess.Popen) -> Optional[str]:
+    def _handle_process_output(self, process: subprocess.Popen, timeout: int) -> Optional[str]:
         """Parse and handle process output with error checking"""
+        output_lines = []
+        start_time = time.time()
+        
         try:
-            result = self.output_parser.parse_output(process)
-            
-            if result:
-                # Update map after successful changes
+            while True:
+                # Check timeout
+                if time.time() - start_time > timeout:
+                    raise TimeoutError()
+                    
+                line = process.stdout.readline()
+                if not line and process.poll() is not None:
+                    break
+                    
+                line = line.rstrip()
+                if line:
+                    # Handle Windows console warning
+                    if "No Windows console found" in line:
+                        self.logger.log("Windows console warning (non-critical)", 'warning')
+                        continue
+                        
+                    # Parse commit messages with icons
+                    if "Commit" in line:
+                        self._log_commit_message(line)
+                    else:
+                        self._log_output_line(line)
+                        
+                    output_lines.append(line)
+                    
+            # Process remaining output
+            remaining_out, _ = process.communicate(timeout=5)
+            if remaining_out:
+                output_lines.extend(remaining_out.splitlines())
+                
+            # Combine output and update map
+            if process.returncode == 0 and output_lines:
                 from services import init_services
                 services = init_services(None)
                 services['map_service'].update_map()
                 
-            return result
+                return "\n".join(output_lines)
+                
+            return None
             
         except Exception as e:
             self.logger.log(f"Error handling process output: {str(e)}", 'error')
