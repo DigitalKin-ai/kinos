@@ -3,6 +3,7 @@ ResearchAgent - Agent for automated research using Perplexity API
 """
 import os
 import json
+import time
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 from agents.base.agent_base import AgentBase
