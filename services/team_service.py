@@ -311,48 +311,11 @@ class TeamService:
     def stop_team(self, team_id: str, timeout: int = 30) -> Dict[str, Any]:
         """Stop team with graceful shutdown and cleanup"""
         try:
-            # Only proceed with shutdown if explicitly requested or critical error
-            if not self._shutdown_requested:
-                self.logger.log("Ignoring automatic shutdown request", 'info')
-                return {
-                    'status': 'ignored',
-                    'team_id': team_id,
-                    'message': 'Shutdown not explicitly requested'
-                }
-
-            team_config = self._get_team_config(team_id)
-            if not team_config:
-                return {'status': 'not_found', 'team_id': team_id}
-
-            shutdown_results = {}
-            start_time = time.time()
-
-            for agent in team_config.agents:
-                agent_name = agent['name'] if isinstance(agent, dict) else agent
-                
-                try:
-                    # Check remaining timeout
-                    elapsed = time.time() - start_time
-                    if elapsed >= timeout:
-                        shutdown_results[agent_name] = 'timeout'
-                        continue
-
-                    # Try to stop agent with remaining time
-                    remaining_timeout = max(1, timeout - elapsed)
-                    with TimeoutManager.timeout(remaining_timeout):
-                        success = self.agent_service.toggle_agent(agent_name, 'stop')
-                        shutdown_results[agent_name] = 'stopped' if success else 'failed'
-
-                except TimeoutError:
-                    shutdown_results[agent_name] = 'timeout'
-                except Exception as e:
-                    shutdown_results[agent_name] = f'error: {str(e)}'
-
+            # Shutdowns are disabled
             return {
+                'status': 'ignored',
                 'team_id': team_id,
-                'status': 'stopped',
-                'results': shutdown_results,
-                'duration': time.time() - start_time
+                'message': 'Shutdowns are disabled'
             }
 
         except Exception as e:
