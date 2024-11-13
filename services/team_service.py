@@ -183,7 +183,7 @@ class TeamService:
                         try:
                             time.sleep(5)
                             self.logger.log("Wait completed normally", 'debug')
-                        except KeyboardInterrupt:
+                        except KeyboardInterrupt as e:
                             # Vérifier le message d'erreur directement
                             error_msg = str(e)
                             if "No Windows console found" in error_msg or "Can't initialize prompt toolkit" in error_msg:
