@@ -20,6 +20,10 @@ class PhaseService(BaseService):
     # Add MODEL_TOKEN_LIMIT as a class attribute
     MODEL_TOKEN_LIMIT = 128_000
     
+    # Import constants directly to ensure availability
+    CONVERGENCE_THRESHOLD = 0.60
+    EXPANSION_THRESHOLD = 0.50
+    
     # Derived values
     CONVERGENCE_TOKENS = int(MODEL_TOKEN_LIMIT * CONVERGENCE_THRESHOLD)
     EXPANSION_TOKENS = int(MODEL_TOKEN_LIMIT * EXPANSION_THRESHOLD)
