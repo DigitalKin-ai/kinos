@@ -20,8 +20,7 @@ class AiderCommandBuilder:
             "--model", "claude-3-5-haiku-20241022",
             "--yes-always",
             "--cache-prompts",
-            "--no-pretty",
-            "--architect"
+            "--no-pretty"
         ]
 
     def get_file_args(self, files: List[str], ignore_patterns: List[str]) -> List[str]:
@@ -104,7 +103,7 @@ class AiderCommandBuilder:
         cmd.extend(["--chat-history-file", f".aider.{self.agent_name}.chat.history.md"])
         cmd.extend(["--input-history-file", f".aider.{self.agent_name}.input.history.md"])
         
-        cmd.extend(["--message", prompt])
+        cmd.extend(["--message", prompt + " ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."])
         
         if not self.validate_command(cmd):
             raise ValueError("Invalid command configuration")
