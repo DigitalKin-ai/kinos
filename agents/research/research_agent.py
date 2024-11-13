@@ -233,8 +233,9 @@ Return ONLY the research question/statement, without any explanation or addition
             if not topics:
                 self.logger.log("No research topics found", 'warning')
                 return None
-                
-            results = []
+
+            # Format research results for Aider
+            research_results = []
             for topic in topics:
                 # Generate and execute query
                 query = self.generate_query(topic)
@@ -243,12 +244,35 @@ Return ONLY the research question/statement, without any explanation or addition
                 if query_results:
                     # Save research data
                     if self.save_research_data(topic, query, query_results):
-                        results.append(f"Research completed for: {topic}")
-                    else:
-                        self.logger.log(f"Failed to save research data for: {topic}", 'error')
-                        
-            return "\n".join(results) if results else None
-            
+                        research_results.append({
+                            'topic': topic,
+                            'query': query,
+                            'results': query_results
+                        })
+
+            if not research_results:
+                return None
+
+            # Build Aider prompt with research results
+            aider_prompt = f"""Using the research results below, update the relevant project files to include appropriate citations and academic references.
+
+Research Results:
+{self._format_research_results(research_results)}
+
+Original Context:
+{prompt}
+
+Instructions:
+1. Identify appropriate locations in the project files to add these citations
+2. Insert the research findings and references in a clear, academic format
+3. Maintain the existing document structure while adding the new information
+4. Use a consistent citation style throughout
+
+Please update the files to incorporate this research data while maintaining the existing content structure."""
+
+            # Execute Aider with the research-enhanced prompt
+            return self._run_aider(aider_prompt)
+
         except Exception as e:
             self.logger.log(f"Error in research mission: {str(e)}", 'error')
             return None
@@ -260,3 +284,29 @@ Return ONLY the research question/statement, without any explanation or addition
             self.query_cache.clear()
         except Exception as e:
             self.logger.log(f"Error in cleanup: {str(e)}", 'error')
+    def _format_research_results(self, results: List[Dict[str, Any]]) -> str:
+        """Format research results for Aider prompt"""
+        formatted = []
+        for result in results:
+            formatted.append(f"""
+Topic: {result['topic']}
+Query: {result['query']}
+Findings:
+{self._format_findings(result['results'])}
+""")
+        return "\n".join(formatted)
+
+    def _format_findings(self, results: Dict[str, Any]) -> str:
+        """Format query results into readable findings"""
+        # Adapter selon la structure exacte des résultats de Perplexity
+        try:
+            if 'text' in results:
+                return results['text']
+            elif 'answer' in results:
+                return results['answer']
+            elif isinstance(results, str):
+                return results
+            return json.dumps(results, indent=2)
+        except Exception as e:
+            self.logger.log(f"Error formatting findings: {str(e)}", 'error')
+            return str(results)
