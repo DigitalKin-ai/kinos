@@ -310,7 +310,7 @@ class AiderAgent(AgentBase):
         """Prevent agent from stopping"""
         pass  # Ne rien faire - empêcher l'arrêt
 
-    def _truncate_history(self, content: str, max_chars: int = 50000) -> str:
+    def _truncate_history(self, content: str, max_chars: int = 25000) -> str:
         """Truncate history content to last N characters"""
         if len(content) <= max_chars:
             return content
@@ -365,12 +365,13 @@ class AiderAgent(AgentBase):
             # Format context message
             context_message = f"""Based on:
 1. The system prompt defining my role and responsibilities
+2. The Mission in demande.md
 2. The input history showing previous instructions
 3. The production history showing Aider's reactions and productions
-3. The current state of the project files shown below (and demande.md in particular)
+3. The current state of the project files shown below
 
-Choose ONE specific, concrete task that needs to be done by the agent {self.name} and explain it in detail so that Aider can implement it.
-Focus on practical changes that move the project forward.
+Choose ONE specific, concrete task that needs to be done by the agent {self.name} to progress in the mission and explain it in detail so that Aider can implement it.
+Focus on practical changes that move the project forward, directly related to demande.md
 
 Current project files:
 {self._format_files_context(files_context)}
