@@ -4,6 +4,7 @@ Encoding configuration utilities
 import sys
 import codecs
 import locale
+import chardet
 
 def detect_file_encoding(file_path: str) -> str:
     """
@@ -15,8 +16,6 @@ def detect_file_encoding(file_path: str) -> str:
     Returns:
         str: Detected encoding
     """
-    import chardet
-    
     try:
         with open(file_path, 'rb') as f:
             raw = f.read()
