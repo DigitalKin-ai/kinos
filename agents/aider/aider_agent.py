@@ -44,6 +44,9 @@ class AiderAgent(AgentBase):
         super().__init__(config)
         
         try:
+            # Configure UTF-8 encoding first
+            self._configure_encoding()
+            
             # Initialize components
             self.command_builder = AiderCommandBuilder()
             self.output_parser = AiderOutputParser(self.logger)
@@ -56,9 +59,6 @@ class AiderAgent(AgentBase):
             
             # Initialize state tracking
             self._init_state()
-            
-            # Configure UTF-8 encoding
-            self._configure_encoding()
             
             self.logger.log(f"[{self.name}] Initialized successfully")
             
