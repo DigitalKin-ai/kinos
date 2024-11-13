@@ -54,15 +54,29 @@ class AiderAgent(AgentBase):
 
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Execute Aider with given prompt"""
-        try:
-            if not self._check_rate_limit():
+        attempt = 1
+        max_attempts = 5
+        
+        while attempt <= max_attempts:
+            try:
+                if not self._check_rate_limit():
+                    return None
+                    
+                return self._execute_aider_command(prompt)
+                    
+            except Exception as e:
+                error_str = str(e).lower()
+                # Detect Anthropic rate limit errors
+                if any(msg in error_str for msg in ['rate limit', 'too many requests', '429']):
+                    if attempt < max_attempts:
+                        wait_time = min(30 * attempt, 300)  # Max 5 min wait
+                        self.logger.log(f"Rate limit hit. Waiting {wait_time}s (attempt {attempt}/{max_attempts})", 'warning')
+                        time.sleep(wait_time)
+                        attempt += 1
+                        continue
+                        
+                self.logger.log(f"Error running Aider: {str(e)}\n{traceback.format_exc()}", 'error')
                 return None
-                
-            return self._execute_aider_command(prompt)
-                
-        except Exception as e:
-            self.logger.log(f"Error running Aider: {str(e)}", 'error')
-            return None
 
     def _check_rate_limit(self) -> bool:
         """Check rate limiting and wait if needed"""
@@ -175,3 +189,35 @@ class AiderAgent(AgentBase):
             
         except Exception as e:
             self.logger.log(f"Error in cleanup: {str(e)}", 'error')
+    def _log_commit_message(self, line: str):
+        """Log commit message with appropriate icon"""
+        COMMIT_ICONS = {
+            'feat': '✨', 'fix': '🐛', 'docs': '📚', 'style': '💎',
+            'refactor': '♻️', 'perf': '⚡️', 'test': '🧪', 'build': '📦',
+            'ci': '🔄', 'chore': '🔧', 'revert': '⏪', 'merge': '🔗',
+            'update': '📝', 'add': '➕', 'remove': '➖', 'move': '🚚',
+            'cleanup': '🧹', 'format': '🎨', 'optimize': '🚀'
+        }
+        
+        try:
+            parts = line.split()
+            commit_hash = parts[1]
+            message = ' '.join(parts[2:])
+            
+            # Detect commit type
+            commit_type = next((t for t in COMMIT_ICONS if message.lower().startswith(f"{t}:")), None)
+            icon = COMMIT_ICONS.get(commit_type, '🔨')
+            
+            self.logger.log(f"{icon} {commit_hash}: {message}", 'success')
+            
+        except Exception as e:
+            self.logger.log(f"Error parsing commit message: {str(e)}", 'error')
+            self.logger.log(line, 'info')
+
+    def _log_output_line(self, line: str):
+        """Log output line with appropriate level"""
+        lower_line = line.lower()
+        if any(err in lower_line for err in ['error', 'exception', 'failed']):
+            self.logger.log(line, 'error')
+        else:
+            self.logger.log(line, 'info')
