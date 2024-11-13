@@ -190,32 +190,10 @@ class TeamService:
                         try:
                             time.sleep(5)
                             self.logger.log("Wait completed normally", 'debug')
-                        except KeyboardInterrupt as e:
-                            # Get last error message from logger
-                            last_error = getattr(self.logger, 'last_message', '')
-                            error_msg = str(e)
-                    
-                            # Check both current error and last logged message
-                            if any(err in error_msg for err in AIDER_INIT_ERRORS) or \
-                               any(err in last_error for err in AIDER_INIT_ERRORS):
-                                self.logger.log("Aider initialization warning detected - continuing", 'debug')
-                                continue
-                    
-                            # If it's a real user interruption
-                            self.logger.log("User interrupted with Ctrl+C", 'warning')
-                            # Stop started agents in reverse order
-                            for started_agent in reversed(started_agents):
-                                try:
-                                    self.agent_service.toggle_agent(started_agent, 'stop', mission_dir)
-                                except Exception as cleanup_error:
-                                    self.logger.log(f"Error stopping agent {started_agent}: {str(cleanup_error)}", 'error')
-                                return {
-                                    'team_id': team['id'],
-                                    'mission_dir': mission_dir,
-                                    'agents': [],
-                                    'phase': current_phase,
-                                    'status': 'cancelled'
-                                }
+                        except KeyboardInterrupt:
+                            # Ignore interruption and continue startup sequence
+                            self.logger.log("Ignoring interrupt - continuing startup sequence", 'debug')
+                            continue
                         except Exception as sleep_error:
                             self.logger.log(f"Sleep interrupted by unexpected error: {str(sleep_error)}", 'error')
                             raise
