@@ -122,12 +122,7 @@ class DatasetService(BaseService):
                     {"role": "system", "content": prompt},
                     {"role": "user", "content": user_message},
                     {"role": "assistant", "content": aider_response}
-                ],
-                "metadata": {
-                    "timestamp": datetime.now().isoformat(),
-                    "num_files": len(files_context),
-                    "files": list(files_context.keys())
-                }
+                ]
             }
             
             # Append to file with explicit error handling
