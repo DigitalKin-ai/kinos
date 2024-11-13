@@ -244,6 +244,10 @@ class AiderOutputParser:
                     if not line and process.poll() is not None:
                         break
                     
+                    # Skip PyPI version check errors
+                    if "Error checking pypi for new version" in line:
+                        continue
+                        
                     line = line.rstrip()
                     if not line:
                         continue
@@ -270,7 +274,9 @@ class AiderOutputParser:
                         self._parse_file_modification(line, changes)
                         has_results = True
                     elif self._is_error_message(line):
-                        self._handle_error_message(line)
+                        # Skip PyPI version check errors
+                        if not "Error checking pypi for new version" in line:
+                            self._handle_error_message(line)
                     else:
                         output_lines.append(line)
                         
@@ -299,6 +305,9 @@ class AiderOutputParser:
             # Parse changes and errors
             changes = self._parse_file_changes(output)
             errors = self._parse_error_messages(output)
+            
+            # Filter out PyPI version check errors
+            errors = [err for err in errors if not "Error checking pypi for new version" in err]
             
             if errors:
                 self.logger.log(f"Errors detected:\n" + "\n".join(errors), 'error')
