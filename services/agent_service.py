@@ -949,6 +949,46 @@ List any specific constraints or limitations.
             }
         }
 
+    def _handle_agent_crash(self, agent_name: str, agent: 'AgentBase') -> None:
+        """
+        Handle agent crash with recovery attempt
+        
+        Args:
+            agent_name: Name of crashed agent
+            agent: Agent instance that crashed
+        """
+        try:
+            self.logger.log(f"Handling crash of agent {agent_name}", 'warning')
+            
+            # Stop the agent
+            agent.stop()
+            
+            # Wait briefly
+            time.sleep(5)
+            
+            # Try to restart
+            try:
+                agent.start()
+                thread = threading.Thread(
+                    target=self._run_agent_wrapper,
+                    args=(agent_name, agent),
+                    daemon=True,
+                    name=f"Agent-{agent_name}"
+                )
+                self.agent_threads[agent_name] = thread
+                thread.start()
+                
+                self.logger.log(f"Successfully restarted agent {agent_name} after crash", 'success')
+                
+            except Exception as restart_error:
+                self.logger.log(
+                    f"Failed to restart agent {agent_name} after crash: {str(restart_error)}", 
+                    'error'
+                )
+                
+        except Exception as e:
+            self.logger.log(f"Error handling agent crash: {str(e)}", 'error')
+
     def _restart_agent(self, name: str, agent: 'AgentBase') -> None:
         """Safely restart a single agent"""
         try:

@@ -129,16 +129,16 @@ class AiderAgent(AgentBase):
         
             # Validation des préconditions
             if not self._validate_run_conditions(prompt):
-                self._log(f"[{self.name}] ❌ Conditions d'exécution non remplies", 'error')
+                self.logger.log(f"[{self.name}] ❌ Conditions d'exécution non remplies", 'error')
                 return None
         
             # Appel du parent avec logging
             result = self._run_aider(prompt)
         
             if result is None:
-                self._log(f"[{self.name}] ⚠️ Aucun résultat de run_aider", 'warning')
+                self.logger.log(f"[{self.name}] ⚠️ Aucun résultat de run_aider", 'warning')
             else:
-                self._log(f"[{self.name}] ✅ run_aider exécuté avec succès", 'success')
+                self.logger.log(f"[{self.name}] ✅ run_aider exécuté avec succès", 'success')
         
             return result
     
@@ -168,7 +168,7 @@ class AiderAgent(AgentBase):
         if self._requests_this_minute >= self.rate_limiter.max_requests:
             wait_time = self.rate_limiter.get_wait_time()
             if wait_time > 0:
-                self._log(
+                self.logger.log(
                     f"[{self.name}] ⏳ Rate limit approaching. "
                     f"Waiting {wait_time:.1f}s",
                     'warning'
@@ -193,12 +193,12 @@ class AiderAgent(AgentBase):
                 return None
 
             # Log start of execution
-            self._log(f"[{self.name}] 🚀 Starting Aider execution")
-            self._log(f"[{self.name}] 📂 Mission directory: {self.mission_dir}")
+            self.logger.log(f"[{self.name}] 🚀 Starting Aider execution", 'info')
+            self.logger.log(f"[{self.name}] 📂 Mission directory: {self.mission_dir}", 'info')
             
             # Change to mission directory
             os.chdir(self.mission_dir)
-            self._log(f"[{self.name}] ✓ Changed to mission directory")
+            self.logger.log(f"[{self.name}] ✓ Changed to mission directory", 'info')
 
             # Build and validate command
             cmd = self.command_builder.build_command(
