@@ -109,6 +109,26 @@ class AiderOutputParser:
         icon = self.COMMIT_ICONS.get(commit_type, '🔨')
         return f"{icon} {message}"
 
+    def _is_error_message(self, line: str) -> bool:
+        """
+        Check if line contains error message
+        
+        Args:
+            line: Output line to check
+            
+        Returns:
+            bool: True if line contains error
+        """
+        error_indicators = [
+            'error',
+            'exception', 
+            'failed',
+            'can\'t initialize',
+            'fatal:',
+            'permission denied'
+        ]
+        return any(indicator in line.lower() for indicator in error_indicators)
+
     def parse_output(self, process: subprocess.Popen) -> Optional[str]:
         """
         Parse Aider command output with enhanced error handling
