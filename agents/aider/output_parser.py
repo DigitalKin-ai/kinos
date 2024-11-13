@@ -234,6 +234,8 @@ class AiderOutputParser:
         try:
             # Collect all output with Windows error handling
             full_output = []
+            current_commit = None
+            
             while True:
                 try:
                     line = process.stdout.readline()
@@ -244,17 +246,30 @@ class AiderOutputParser:
                     if not line:
                         continue
                         
-                    full_output.append(line)
+                    # Si c'est une nouvelle ligne de commit, sauvegarder la ligne complète
+                    if line.startswith("Commit "):
+                        current_commit = line
+                        full_output.append(line)
+                    # Si on a un commit en cours et que la ligne suivante n'est pas une nouvelle commande
+                    elif current_commit and not any(cmd in line for cmd in ["Wrote ", "Created ", "Deleted ", "Running ", "$ git"]):
+                        # Ajouter au message de commit précédent
+                        current_commit += " " + line
+                        # Mettre à jour la dernière ligne
+                        full_output[-1] = current_commit
+                    else:
+                        current_commit = None
+                        full_output.append(line)
                     
                     # Parse different line types
                     if "Wrote " in line:
                         self._parse_file_modification(line, changes)
-                    elif "Commit " in line:
-                        self._parse_commit_line(line)
+                    elif line.startswith("Commit "):
+                        self._parse_commit_line(current_commit or line)
                     elif self._is_error_message(line):
                         self._handle_error_message(line)
                     else:
                         output_lines.append(line)
+                        
                 except OSError as os_error:
                     # Gérer l'erreur de flux Windows
                     if "[Errno 22] Invalid argument" in str(os_error):
