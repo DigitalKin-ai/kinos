@@ -297,11 +297,11 @@ class TeamService:
                         
                         # Start new agents
                         for agent_name in agents_to_start:
-                            waiting_agents.remove(agent_name)
+                            waiting_agents.remove(agent_name)  # Remove from waiting list
                             future = executor.submit(self._start_agent, agent_name)
                             futures.append(future)
-                            active_agents.append(agent_name)
-                            if agent_name not in started_agents:
+                            active_agents.append(agent_name)  # Add to active list
+                            if agent_name not in started_agents:  # Track in started list
                                 started_agents.append(agent_name)
                             time.sleep(5)  # Wait between starts
 
@@ -322,10 +322,10 @@ class TeamService:
                                 if agent in [a['name'] if isinstance(a, dict) else a 
                                            for a in random_agents]
                             )
-                            active_agents.remove(completed_agent)
+                            active_agents.remove(completed_agent)  # Remove from active list
                             # Put completed agent back in waiting pool if not already started
                             if completed_agent not in started_agents:
-                                waiting_agents.append(completed_agent)
+                                waiting_agents.append(completed_agent)  # Add to waiting list
                         except Exception as e:
                             self.logger.log(f"Error processing agent result: {str(e)}", 'error')
 
