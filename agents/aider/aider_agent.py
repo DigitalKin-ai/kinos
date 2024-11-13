@@ -194,8 +194,8 @@ class AiderAgent(AgentBase):
     def _run_aider(self, prompt: str) -> Optional[str]:
         """Execute Aider with given prompt and handle all outcomes"""
         try:
-            # Ignorer les erreurs spécifiques de console Windows et d'initialisation
-            initialization_errors = [
+            # Liste des messages à ignorer complètement
+            ignored_messages = [
                 "Can't initialize prompt toolkit: No Windows console found",
                 "https://aider.chat/docs/troubleshooting/edit-errors.html",
                 "No Windows console found",
@@ -237,17 +237,18 @@ class AiderAgent(AgentBase):
             with TimeoutManager.timeout(OUTPUT_COLLECTION_TIMEOUT):
                 output = self.output_parser.parse_output(process)
 
-            # Vérifier et filtrer les erreurs d'initialisation
-            if output and any(err in output for err in initialization_errors):
-                # Log silencieux sans afficher l'erreur complète
-                self.logger.log(
-                    f"[{self.name}] Aider initialization warning - will retry", 
-                    'debug'
-                )
-                return None
+            # Filtrer les messages indésirables
+            if output:
+                # Supprimer les lignes contenant des messages ignorés
+                output_lines = [
+                    line for line in output.split('\n') 
+                    if not any(ignored_msg in line for ignored_msg in ignored_messages)
+                ]
+                output = '\n'.join(output_lines).strip()
 
-            if output is None:
-                self.logger.log(f"[{self.name}] ❌ No valid output from Aider")
+            # Vérifier si le résultat est valide après filtrage
+            if not output:
+                self.logger.log(f"[{self.name}] ❌ No valid output from Aider after filtering")
                 return None
 
             # Process file changes
