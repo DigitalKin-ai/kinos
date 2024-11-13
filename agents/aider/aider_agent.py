@@ -190,6 +190,17 @@ class AiderAgent(AgentBase):
                     # Return empty success instead of None to prevent shutdown
                     return ""
                     
+                # Force map update after any Aider execution that produced output
+                if output:
+                    try:
+                        from services import init_services
+                        services = init_services(None)
+                        map_service = services['map_service']
+                        if not map_service.update_map():
+                            self.logger.log(f"[{self.name}] Failed to update map after Aider execution", 'warning')
+                    except Exception as map_error:
+                        self.logger.log(f"[{self.name}] Error updating map: {str(map_error)}", 'error')
+                        
                 return output
 
             except OSError as os_error:
