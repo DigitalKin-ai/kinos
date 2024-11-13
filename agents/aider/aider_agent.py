@@ -451,18 +451,30 @@ Instructions:
                         self.consecutive_no_changes += 1
                     
                 except Exception as loop_error:
-                    # Ignore known Windows stdout flush error
+                    # Ignore known Aider and Windows errors
                     if isinstance(loop_error, OSError) and "[Errno 22] Invalid argument" in str(loop_error):
                         continue
                     
+                    if any(err in str(loop_error) for err in [
+                        "Can't initialize prompt toolkit",
+                        "No Windows console found",
+                        "aider.chat/docs/troubleshooting/edit-errors.html"
+                    ]):
+                        continue
+                
                     self.logger.log(f"[{self.name}] ❌ Error in run loop: {str(loop_error)}", 'error')
                     time.sleep(5)  # Brief pause before retrying
 
             self.logger.log(f"[{self.name}] Run loop ended", 'info')
             
         except Exception as e:
-            # Final error handler also ignores the stdout flush error
-            if not (isinstance(e, OSError) and "[Errno 22] Invalid argument" in str(e)):
+            # Final error handler also ignores known errors
+            if not any(err in str(e) for err in [
+                "Can't initialize prompt toolkit",
+                "No Windows console found",
+                "aider.chat/docs/troubleshooting/edit-errors.html",
+                "[Errno 22] Invalid argument"
+            ]):
                 self.logger.log(f"[{self.name}] Critical error in run: {str(e)}", 'error')
             self.running = False
             
