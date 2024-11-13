@@ -91,35 +91,50 @@ class PhaseService(BaseService):
 
     def get_status_info(self) -> Dict[str, Any]:
         """Get current phase status information"""
-        usage_percent = (self.total_tokens / self.MODEL_TOKEN_LIMIT) * 100
-        
-        # Determine status icon
-        if usage_percent < 55:
-            status_icon = "✓"
-            status_message = "Below convergence threshold"
-        elif usage_percent < 60:
-            status_icon = "⚠️"
-            status_message = "Approaching convergence threshold"
-        else:
-            status_icon = "🔴"
-            status_message = "Convergence needed"
+        try:
+            # Calculate usage percentage
+            usage_percent = (self.total_tokens / self.MODEL_TOKEN_LIMIT) * 100
             
-        # Calculate headroom
-        if self.current_phase == ProjectPhase.EXPANSION:
-            headroom = self.CONVERGENCE_TOKENS - self.total_tokens
-        else:
-            headroom = self.EXPANSION_TOKENS - self.total_tokens
-            
-        # Return status without triggering new phase determination
-        return {
-            "phase": self.current_phase.value,
-            "total_tokens": self.total_tokens,
-            "usage_percent": usage_percent,
-            "status_icon": status_icon,
-            "status_message": status_message,
-            "headroom": headroom,
-            "last_transition": self.last_transition.isoformat()
-        }
+            # Determine status based on percentage
+            if usage_percent >= self.CONVERGENCE_THRESHOLD * 100:
+                status_icon = "🔴"
+                status_message = "Convergence needed"
+            elif usage_percent >= (self.CONVERGENCE_THRESHOLD * 0.9) * 100:
+                status_icon = "⚠️"
+                status_message = "Approaching convergence threshold"
+            else:
+                status_icon = "✓"
+                status_message = "Below convergence threshold"
+                
+            # Calculate headroom based on phase
+            if self.current_phase == ProjectPhase.EXPANSION:
+                headroom = self.CONVERGENCE_TOKENS - self.total_tokens
+            else:
+                headroom = self.MODEL_TOKEN_LIMIT - self.total_tokens
+                
+            # Return consistent state
+            return {
+                "phase": self.current_phase.value,
+                "total_tokens": self.total_tokens,
+                "usage_percent": usage_percent,
+                "status_icon": status_icon,
+                "status_message": status_message,
+                "headroom": headroom,
+                "last_transition": self.last_transition.isoformat()
+            }
+                
+        except Exception as e:
+            self.logger.log(f"Error getting status info: {str(e)}", 'error')
+            # Return default values on error
+            return {
+                "phase": self.current_phase.value,
+                "total_tokens": self.total_tokens,
+                "usage_percent": 0.0,
+                "status_icon": "⚠️",
+                "status_message": "Error getting status",
+                "headroom": 0,
+                "last_transition": self.last_transition.isoformat()
+            }
 
     def force_phase(self, phase: str) -> bool:
         """Force a specific phase (for debugging)"""
