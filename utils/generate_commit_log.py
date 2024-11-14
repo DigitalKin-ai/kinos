@@ -122,6 +122,14 @@ def generate_commit_log():
     """Generate commit.md from git history"""
     logger = Logger()
     try:
+        # Use current directory
+        current_dir = os.getcwd()
+        
+        # Verify it's a git repository
+        if not os.path.exists(os.path.join(current_dir, '.git')):
+            logger.log("Not a git repository", 'error')
+            return
+            
         logger.log("Generating commit log...", 'info')
         
         # Get git log and stats
