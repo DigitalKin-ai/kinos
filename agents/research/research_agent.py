@@ -232,6 +232,18 @@ Instructions:
 
 Please proceed with the updates now."""
 
+            # NEW: Save Claude's response to chat history file
+            chat_history_file = f".aider.{self.name}.chat.history.md"
+            try:
+                with open(chat_history_file, 'a', encoding='utf-8') as f:
+                    # Add timestamp and separator
+                    f.write(f"\n\n--- {datetime.now().isoformat()} ---\n")
+                    f.write(f"**Research Topics:**\n{', '.join(topics)}\n\n")
+                    f.write(f"**Research Results:**\n{formatted_results}\n\n")
+                    f.write(f"**Aider Prompt:**\n{aider_prompt}\n")
+            except Exception as e:
+                self.logger.log(f"Error saving research chat history: {str(e)}", 'warning')
+
             return super()._run_aider(aider_prompt)
             
         except Exception as e:
