@@ -391,6 +391,13 @@ class AiderOutputParser:
                 'success'
             )
             
+            # NEW: Trigger commit log generation
+            try:
+                from utils.generate_commit_log import generate_commit_log
+                generate_commit_log()
+            except Exception as e:
+                self.logger.log(f"Error generating commit log: {str(e)}", 'warning')
+            
             return True  # Always return True to prevent shutdown
             
         except Exception as e:
