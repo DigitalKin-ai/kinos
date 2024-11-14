@@ -32,8 +32,10 @@ class ResearchAgent(AiderAgent):
         self.research_log = os.path.join(self.data_dir, "research_log.jsonl")
         self.query_cache = {}
         
-        # Initialize Perplexity client
-        self.perplexity_client = PerplexityClient()
+        # Initialize Perplexity client using environment variable
+        import os
+        perplexity_api_key = os.getenv('PERPLEXITY_API_KEY')
+        self.perplexity_client = PerplexityClient(api_key=perplexity_api_key)
         
         # Load API configuration
         self.api_config = self._load_api_config()
