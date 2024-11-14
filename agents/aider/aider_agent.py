@@ -327,6 +327,23 @@ class AiderAgent(AgentBase):
             # Update file list
             self.list_files()
             
+            # Create key files if they don't exist
+            key_files = {
+                "map.md": "# Project Map\n\n## Overview\n\n## Key Components\n",
+                "todolist.md": "# Project Todo List\n\n## Pending Tasks\n\n## Completed Tasks\n",
+                "demande.md": "# Mission Request\n\n## Objective\n\n## Scope\n\n## Requirements\n",
+                "directives.md": "# Project Directives\n\n## Guidelines\n\n## Constraints\n"
+            }
+            
+            for filename, default_content in key_files.items():
+                if not os.path.exists(filename):
+                    try:
+                        with open(filename, 'w', encoding='utf-8') as f:
+                            f.write(default_content)
+                        self.logger.log(f"[{self.name}] Created missing key file: {filename}", 'info')
+                    except Exception as e:
+                        self.logger.log(f"[{self.name}] Error creating {filename}: {str(e)}", 'warning')
+
             # Get current prompt
             prompt = self.get_prompt()
             if not prompt:
