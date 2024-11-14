@@ -1339,25 +1339,48 @@ List any specific constraints or limitations.
             return None
 
     def create_agent(self, agent_config: Dict[str, Any]) -> Optional[AgentBase]:
-        """Create appropriate agent instance based on type"""
+        """
+        Create an agent instance based on configuration
+        
+        Args:
+            agent_config: Configuration dictionary for the agent
+        
+        Returns:
+            Instantiated agent or None if creation fails
+        """
         try:
-            agent_type = agent_config.get('type', 'aider')
-            agent_name = agent_config['name']
+            # Extract agent name and type
+            agent_name = agent_config.get('name')
+            agent_type = agent_config.get('type', 'aider').lower()
+            
+            # Import necessary agent classes
+            from agents.aider.aider_agent import AiderAgent
+            from agents.research.research_agent import ResearchAgent
+            
+            # Determine agent class based on type
+            agent_classes = {
+                'aider': AiderAgent,
+                'research': ResearchAgent
+            }
             
             # Validate agent name
             if not validate_agent_name(agent_name):
                 raise ValueError(f"Invalid agent name: {agent_name}")
-                
-            # Create appropriate agent instance
-            if agent_type == 'research':
-                from agents.research.research_agent import ResearchAgent
-                agent = ResearchAgent(agent_config)
-            else:
-                from agents.aider.aider_agent import AiderAgent
-                agent = AiderAgent(agent_config)
-                
+            
+            # Select agent class, default to AiderAgent
+            AgentClass = agent_classes.get(agent_type, AiderAgent)
+            
+            # Prepare configuration
+            config = {
+                **agent_config,
+                'mission_dir': agent_config.get('mission_dir', os.getcwd())
+            }
+            
+            # Instantiate the agent
+            agent = AgentClass(config)
+            
             self.logger.log(
-                f"Created {agent_type} agent: {agent_name} "
+                f"Created {agent_type.upper()} agent: {agent_name} "
                 f"(weight: {agent_config.get('weight', 0.5):.2f})",
                 'success'
             )
@@ -1365,7 +1388,7 @@ List any specific constraints or limitations.
             return agent
             
         except Exception as e:
-            self.logger.log(f"Error creating agent: {str(e)}", 'error')
+            self.logger.log(f"Error creating agent {agent_name}: {str(e)}", 'error')
             return None
 
     def get_agent_prompt(self, agent_id: str) -> Optional[str]:
