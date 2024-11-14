@@ -3,6 +3,7 @@ import threading
 import queue
 import time
 import random
+from cli.commands.commits import commits
 from typing import List, Dict
 import os
 import json
@@ -165,12 +166,23 @@ def run_team_loop(team_name: str):
             
 def main():
     """CLI entry point"""
-    if len(sys.argv) != 2:
-        print("Usage: kin <team_name>")
+    if len(sys.argv) < 2:
+        print("Usage: kin <command>")
         return
-        
-    team_name = sys.argv[1]
-    run_team_loop(team_name)
+
+    command = sys.argv[1]
+    
+    if command == "commits":
+        if len(sys.argv) < 3:
+            print("Usage: kin commits <generate>")
+            return
+        if sys.argv[2] == "generate":
+            from utils.generate_commit_log import generate_commit_log
+            generate_commit_log()
+    else:
+        # Execute team command
+        team_name = command
+        run_team_loop(team_name)
 
 if __name__ == "__main__":
     main()
