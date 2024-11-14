@@ -357,7 +357,7 @@ class AiderAgent(AgentBase):
             files_context = {}
             
             # Add key files first
-            key_files = ["demande.md", "map (readonly).md"]
+            key_files = ["demande.md", "map.md", "todolist.md", "directives.md"]
             for file_path in key_files:
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
@@ -395,8 +395,8 @@ Current project files:
 
 Instructions:
 1. Answer any outstanding question raised by Aider in the chat history
-2. Analyze the current state and identify a clear next step, preferably different from what's in the chat history (we are following a "Breadth-first" development pattern)
-3. Describe ONE specific task in detail
+2. Analyze the current state and identify a clear next action, preferably different from what's in the chat history (we are following a "Breadth-first" development pattern)
+3. Describe this specific task in detail
 4. Explain what files need to be modified and how
 5. Keep the task focused and achievable
 6. Provide enough detail for Aider to implement it autonomously
@@ -417,7 +417,7 @@ Instructions:
                 messages.append({"role": "user", "content": context_message})
                 
                 response = client.messages.create(
-                    model="claude-3-haiku-20240307",
+                    model="claude-3-5-haiku-20241022",
                     max_tokens=4000,
                     system=prompt,  # Set system prompt
                     messages=messages
