@@ -121,7 +121,7 @@ def format_commit_line(hash: str, author: str, date: str, message: str, stats_ma
         return f"- {date} {hash[:7]}: {message}"
 
 def generate_commit_log():
-    """Generate commit.md from git history"""
+    """Generate commits.md from git history and commit it"""
     logger = Logger()
     try:
         # Use current directory
@@ -153,12 +153,20 @@ def generate_commit_log():
                 logger.log(f"Error parsing commit line: {str(e)}", 'error')
                 continue
                 
-        # Write to commit.md
-        with open('commit.md', 'w', encoding='utf-8') as f:
+        # Write to commits.md
+        with open('commits.md', 'w', encoding='utf-8') as f:
             f.write("# Git Commit History\n\n")
             f.write("\n".join(reversed(commits)))  # Newest first
             
-        logger.log(f"Generated commit.md with {len(commits)} commits", 'success')
+        # Add and commit the file
+        try:
+            subprocess.run(['git', 'add', 'commits.md'], check=True)
+            subprocess.run(['git', 'commit', '-m', '📝 update: Regenerate commit history'], check=True)
+            logger.log("Committed commits.md to repository", 'success')
+        except subprocess.CalledProcessError as e:
+            logger.log(f"Error committing commits.md: {str(e)}", 'error')
+            
+        logger.log(f"Generated commits.md with {len(commits)} commits", 'success')
         
     except Exception as e:
         logger.log(f"Error generating commit log: {str(e)}", 'error')
