@@ -55,7 +55,7 @@ Do not include explanations - just the topics/claims themselves.
 """
             
             response = client.messages.create(
-                model="claude-3-haiku-20240307",
+                model="claude-3-5-haiku-20241022",
                 max_tokens=1000,
                 messages=[{"role": "user", "content": prompt}]
             )
@@ -89,7 +89,7 @@ Generate a single search query that:
 Return ONLY the query text, nothing else."""
 
             response = client.messages.create(
-                model="claude-3-haiku-20240307",
+                model="claude-3-5-haiku-20241022",
                 max_tokens=200,
                 messages=[{"role": "user", "content": prompt}]
             )
