@@ -87,7 +87,7 @@ def run_team_loop(team_name: str):
     try:
         while True:  # Main loop
             # Select new random agents each time we need to start a thread
-            while len(active_threads) < 3:
+            while len(active_threads) < 2:
                 # Get current phase weights
                 from services import init_services
                 services = init_services(None)
