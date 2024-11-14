@@ -40,17 +40,19 @@ COMMIT_ICONS = {
 def get_git_log() -> str:
     """Get git log with format: hash, author, date, message and numstat"""
     try:
-        # First get the log entries
+        # First get the log entries - add --all to get all commits
         cmd = [
             'git', 'log',
+            '--all',  # Get all commits from all branches
             '--pretty=format:%H|%an|%ad|%s',
             '--date=iso'
         ]
         log_result = subprocess.run(cmd, capture_output=True, text=True)
         
-        # Then get the numstat for each commit
+        # Then get the numstat for all commits
         cmd_stats = [
             'git', 'log',
+            '--all',  # Get all commits from all branches
             '--pretty=format:%H',  # Just the hash
             '--numstat'  # Get number statistics
         ]
