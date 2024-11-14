@@ -444,7 +444,8 @@ List any specific constraints or limitations.
 
             # Determine agent type based on mission/agent name
             agent_type = 'research' if any(keyword in agent_name.lower() for keyword in [
-                'research', 'literature', 'review', 'study', 'analyse', 'documentation'
+                'research', 'literature', 'review', 'study', 'analyse', 
+                'documentation', 'chercheur', 'recherche'
             ]) else 'aider'
 
             # Configure agent
