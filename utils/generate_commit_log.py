@@ -38,18 +38,56 @@ COMMIT_ICONS = {
 }
 
 def get_git_log() -> str:
-    """Get git log with format: hash, author, date, message"""
+    """Get git log with format: hash, author, date, message and numstat"""
     try:
+        # First get the log entries
         cmd = [
             'git', 'log',
             '--pretty=format:%H|%an|%ad|%s',
             '--date=iso'
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        return result.stdout
+        log_result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        # Then get the numstat for each commit
+        cmd_stats = [
+            'git', 'log',
+            '--pretty=format:%H',  # Just the hash
+            '--numstat'  # Get number statistics
+        ]
+        stats_result = subprocess.run(cmd_stats, capture_output=True, text=True)
+        
+        # Create a mapping of commit hash to stats
+        stats_map = {}
+        current_hash = None
+        current_stats = []
+        
+        for line in stats_result.stdout.split('\n'):
+            if line.strip():
+                if len(line) == 40:  # This is a hash
+                    if current_hash:
+                        # Calculate total changes for previous commit
+                        added = sum(int(s[0]) for s in current_stats if s[0].isdigit())
+                        deleted = sum(int(s[1]) for s in current_stats if s[1].isdigit())
+                        stats_map[current_hash] = (added, deleted)
+                    current_hash = line
+                    current_stats = []
+                else:
+                    # Parse stats line: additions, deletions, filename
+                    parts = line.split('\t')
+                    if len(parts) == 3:
+                        current_stats.append((parts[0], parts[1]))
+        
+        # Don't forget the last commit
+        if current_hash and current_stats:
+            added = sum(int(s[0]) for s in current_stats if s[0].isdigit())
+            deleted = sum(int(s[1]) for s in current_stats if s[1].isdigit())
+            stats_map[current_hash] = (added, deleted)
+        
+        return log_result.stdout, stats_map
+        
     except Exception as e:
         print(f"Error getting git log: {str(e)}")
-        return ""
+        return "", {}
 
 def parse_commit_message(message: str) -> tuple:
     """Parse commit message to extract type and description"""
@@ -59,8 +97,8 @@ def parse_commit_message(message: str) -> tuple:
             return commit_type, message[len(commit_type)+1:].strip()
     return None, message
 
-def format_commit_line(hash: str, author: str, date: str, message: str) -> str:
-    """Format a commit line with icon"""
+def format_commit_line(hash: str, author: str, date: str, message: str, stats_map: dict) -> str:
+    """Format a commit line with icon and change statistics"""
     try:
         # Parse date to datetime
         dt = datetime.fromisoformat(date.replace(' ', 'T'))
@@ -70,8 +108,12 @@ def format_commit_line(hash: str, author: str, date: str, message: str) -> str:
         commit_type, description = parse_commit_message(message)
         icon = COMMIT_ICONS.get(commit_type, '🔨')
         
+        # Get stats if available
+        stats = stats_map.get(hash, (0, 0))
+        stats_text = f" (+{stats[0]}, -{stats[1]} chars)" if stats[0] or stats[1] else ""
+        
         # Format line
-        return f"- {formatted_date} [{author}] {icon} {hash[:7]}: {description}"
+        return f"- {formatted_date} [{author}] {icon} {hash[:7]}: {description}{stats_text}"
     except Exception as e:
         print(f"Error formatting commit: {str(e)}")
         return f"- {date} {hash[:7]}: {message}"
@@ -82,8 +124,8 @@ def generate_commit_log():
     try:
         logger.log("Generating commit log...", 'info')
         
-        # Get git log
-        git_log = get_git_log()
+        # Get git log and stats
+        git_log, stats_map = get_git_log()
         if not git_log:
             logger.log("No git history found", 'error')
             return
@@ -95,7 +137,7 @@ def generate_commit_log():
                 continue
             try:
                 hash, author, date, message = line.split('|')
-                formatted = format_commit_line(hash, author, date, message)
+                formatted = format_commit_line(hash, author, date, message, stats_map)
                 commits.append(formatted)
             except Exception as e:
                 logger.log(f"Error parsing commit line: {str(e)}", 'error')
