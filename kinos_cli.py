@@ -110,6 +110,15 @@ def run_team_loop(team_name: str):
                 # Select random agent based on weights
                 agent_name = random.choices(available_agents, weights=weights, k=1)[0]
                 
+                # Detailed logging for agent launch
+                logger.log(
+                    f"🚀 Launching agent: {agent_name}\n"
+                    f"  Phase: {current_phase}\n"
+                    f"  Weight: {phase_weights.get(agent_name, 0.5):.2f}\n"
+                    f"  Available agents: {', '.join(available_agents)}", 
+                    'info'
+                )
+                
                 # Start new runner with selected agent
                 runner = AgentRunner(agent_service, [agent_name], output_queue, logger)
                 runner.agent_name = agent_name  # Store selected agent name
