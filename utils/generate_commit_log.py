@@ -47,7 +47,13 @@ def get_git_log() -> str:
             '--pretty=format:%H|%an|%ad|%s',
             '--date=iso'
         ]
-        log_result = subprocess.run(cmd, capture_output=True, text=True)
+        # Add UTF-8 encoding handling
+        log_result = subprocess.run(
+            cmd, 
+            capture_output=True, 
+            text=True,
+            encoding='utf-8'  # Explicitly specify UTF-8
+        )
         
         # Then get the numstat for all commits
         cmd_stats = [
@@ -56,7 +62,13 @@ def get_git_log() -> str:
             '--pretty=format:%H',  # Just the hash
             '--numstat'  # Get number statistics
         ]
-        stats_result = subprocess.run(cmd_stats, capture_output=True, text=True)
+        # Add UTF-8 encoding handling
+        stats_result = subprocess.run(
+            cmd_stats, 
+            capture_output=True, 
+            text=True,
+            encoding='utf-8'  # Explicitly specify UTF-8
+        )
         
         # Create a mapping of commit hash to stats
         stats_map = {}
