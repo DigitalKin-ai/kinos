@@ -414,7 +414,7 @@ List any specific constraints or limitations.
     def run_random_agent(self, team_agents: List[str]):
         """
         Run a random agent from the team based on weights
-        
+    
         Args:
             team_agents: List of agent names from team config
         """
@@ -428,7 +428,7 @@ List any specific constraints or limitations.
 
             # Get phase-specific weights
             phase_weights = phase_service.get_phase_weights(current_phase)
-            
+        
             if not phase_weights:
                 # Fallback to default weights if no phase config
                 weights = [0.5] * len(team_agents)
@@ -442,24 +442,37 @@ List any specific constraints or limitations.
                     weights = [w/total for w in weights]
                 agent_name = random.choices(team_agents, weights=weights, k=1)[0]
 
+            # Determine agent type based on mission/agent name
+            agent_type = 'research' if any(keyword in agent_name.lower() for keyword in [
+                'research', 'literature', 'review', 'study', 'analyse', 'documentation'
+            ]) else 'aider'
+
             # Configure agent
             config = {
                 'name': agent_name,
                 'mission_dir': os.getcwd(),
                 'prompt_file': os.path.join('prompts', f"{agent_name}.md"),
+                'type': agent_type,  # Add type to config
                 'weight': phase_weights.get(agent_name, 0.5)  # Pass weight to agent
             }
-            
-            # TODO : Add If type ResearchAgent
+        
+            # Dynamically select agent class
+            if agent_type == 'research':
+                from agents.research.research_agent import ResearchAgent
+                AgentClass = ResearchAgent
+            else:
+                from agents.aider.aider_agent import AiderAgent
+                AgentClass = AiderAgent
+        
             # Create and run agent
-            agent = AiderAgent(config)
+            agent = AgentClass(config)
             self.logger.log(
-                f"Running agent {agent_name} (weight: {config['weight']:.2f}) "
-                f"in {current_phase} phase", 
+                f"Running {agent_type.upper()} agent {agent_name} "
+                f"(weight: {config['weight']:.2f}) in {current_phase} phase", 
                 'info'
             )
             agent.run()  # Single run
-            
+        
         except Exception as e:
             self.logger.log(f"Error running agent: {str(e)}", 'error')
 
