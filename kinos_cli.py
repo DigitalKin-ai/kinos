@@ -119,27 +119,40 @@ def run_team_loop(team_name: str):
                 # Select random agent based on weights
                 agent_name = random.choices(available_agents, weights=weights, k=1)[0]
                 
-                # EXPLICIT RESEARCH TYPE DETECTION
+                # COMPREHENSIVE AGENT TYPE DETECTION
+                agent_type = 'aider'  # Default type
+                
+                # 1. Check research agents list (highest priority)
                 if agent_name.lower() in [a.lower() for a in research_agents]:
                     agent_type = 'research'
-                    logger.log(f"Agent {agent_name} explicitly set to research type", 'debug')
-                else:
-                    # EXPLICIT RESEARCH TYPE DETECTION
-                    if agent_name.lower() in [a.lower() for a in research_agents]:
-                        agent_type = 'research'
-                        logger.log(f"Agent {agent_name} explicitly set to research type", 'debug')
-
-                    # Check team configuration for type
-                    agent_type = 'aider'
-                    for team in services['team_service'].predefined_teams:
-                        for agent in team.get('agents', []):
-                            if isinstance(agent, dict) and agent['name'] == agent_name:
-                                agent_type = agent.get('type', 'aider').lower()
-                                break
+                    logger.log(
+                        f"Agent {agent_name} explicitly set to research type "
+                        f"(matched research agents list)", 
+                        'debug'
+                    )
                 
-                # Normalize agent type
+                # 2. Check team configuration
+                for team in services['team_service'].predefined_teams:
+                    for agent in team.get('agents', []):
+                        if isinstance(agent, dict) and agent['name'] == agent_name:
+                            # Override type from team config if specified
+                            detected_type = agent.get('type', 'aider').lower()
+                            if detected_type != agent_type:
+                                logger.log(
+                                    f"Agent {agent_name} type updated from {agent_type} "
+                                    f"to {detected_type} (team config)", 
+                                    'debug'
+                                )
+                                agent_type = detected_type
+                            break
+                
+                # 3. Validate and normalize agent type
                 if agent_type not in ['aider', 'research']:
                     agent_type = 'aider'
+                    logger.log(
+                        f"Agent {agent_name} type normalized to 'aider'", 
+                        'debug'
+                    )
                 
                 # Detailed logging for agent launch
                 logger.log(
