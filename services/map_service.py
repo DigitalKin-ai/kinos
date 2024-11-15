@@ -359,9 +359,46 @@ class MapService(BaseService):
             self.logger.log(f"Error writing map file: {str(e)}", 'error')
             return False
 
+    def _ensure_map_file_writeable(self) -> bool:
+        """Ensure map file is writable"""
+        try:
+            map_path = os.path.join(os.getcwd(), self.map_file)
+            
+            # Create file if it doesn't exist
+            if not os.path.exists(map_path):
+                try:
+                    with open(map_path, 'w', encoding='utf-8') as f:
+                        f.write("# Project Map\n\nInitial map generation.")
+                    self.logger.log("Created new map file", 'info')
+                    return True
+                except Exception as create_error:
+                    self.logger.log(f"Error creating map file: {str(create_error)}", 'error')
+                    return False
+            
+            # Remove read-only attribute
+            import stat
+            try:
+                current_permissions = os.stat(map_path).st_mode
+                os.chmod(map_path, current_permissions | stat.S_IWRITE)
+                self.logger.log("Removed read-only attribute from map file", 'debug')
+                return True
+            except Exception as perm_error:
+                self.logger.log(f"Error modifying map file permissions: {str(perm_error)}", 'error')
+                return False
+            
+        except Exception as e:
+            self.logger.log(f"Error ensuring map file writability: {str(e)}", 'error')
+            return False
+
     def update_map(self) -> bool:
         """Update map after file changes with comprehensive logging"""
         try:
+            # Ensure map file is writable first
+            if not self._ensure_map_file_writeable():
+                self.logger.log("Could not make map file writable", 'error')
+                return False
+            
+            # Rest of the existing update_map method...
             self.logger.log("Starting comprehensive map update", 'debug')
             
             # Validate mission directory

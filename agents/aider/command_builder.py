@@ -86,6 +86,7 @@ class AiderCommandBuilder:
         
         # Add read-only files first with --read flag
         for file in readonly_files:
+            # Ensure map.md is always added with --read
             args.extend(["--read", file])
             
         # Add key files that should be editable
