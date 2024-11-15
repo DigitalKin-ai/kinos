@@ -17,12 +17,44 @@ class ProjectPhase(Enum):
 class PhaseService(BaseService):
     """Manages project phases based on token usage"""
     
+    def get_model_token_limit(self) -> int:
+        """Get token limit for current model"""
+        try:
+            from services import init_services
+            services = init_services(None)
+            model_router = services['model_router']
+            
+            # Model-specific limits
+            limits = {
+                "claude-3-opus-20240229": 200000,
+                "claude-3-sonnet-20240229": 150000,
+                "claude-3-haiku-20240307": 128000,
+                "gpt-4-0125-preview": 128000,
+                "gpt-4-turbo-preview": 128000,
+                "gpt-3.5-turbo": 16000,
+                "llama-3.1-sonar-large-128k-chat": 128000
+            }
+            
+            return limits.get(model_router.current_model, 128000)  # Default to 128k
+            
+        except Exception:
+            return 128000  # Conservative default
+
     # Class constants
-    MODEL_TOKEN_LIMIT = 128_000
     CONVERGENCE_THRESHOLD = 0.60
     EXPANSION_THRESHOLD = 0.50
-    CONVERGENCE_TOKENS = int(MODEL_TOKEN_LIMIT * CONVERGENCE_THRESHOLD)
-    EXPANSION_TOKENS = int(MODEL_TOKEN_LIMIT * EXPANSION_THRESHOLD)
+
+    @property
+    def MODEL_TOKEN_LIMIT(self) -> int:
+        return self.get_model_token_limit()
+
+    @property 
+    def CONVERGENCE_TOKENS(self) -> int:
+        return int(self.MODEL_TOKEN_LIMIT * self.CONVERGENCE_THRESHOLD)
+
+    @property
+    def EXPANSION_TOKENS(self) -> int:
+        return int(self.MODEL_TOKEN_LIMIT * self.EXPANSION_THRESHOLD)
 
     # Class-level state storage
     _state = {
