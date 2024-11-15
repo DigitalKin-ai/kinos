@@ -294,6 +294,36 @@ def run_multi_team_loop(model: Optional[str] = None):
     
     if not team_dirs:
         logger.log("No teams found!", 'error')
+        logger.log(f"Full directory contents: {os.listdir(teams_dir)}", 'debug')
+        logger.log(f"Team types directory path: {teams_dir}", 'debug')
+        
+        # Additional diagnostic checks
+        try:
+            # Check directory permissions
+            logger.log(f"Directory readable: {os.access(teams_dir, os.R_OK)}", 'debug')
+            logger.log(f"Directory writable: {os.access(teams_dir, os.W_OK)}", 'debug')
+            
+            # List all files/directories with full paths
+            full_paths = [
+                os.path.join(teams_dir, item) 
+                for item in os.listdir(teams_dir)
+            ]
+            logger.log("Full paths:", 'debug')
+            for path in full_paths:
+                logger.log(f"- {path} (exists: {os.path.exists(path)}, is_dir: {os.path.isdir(path)})", 'debug')
+                
+                # If it's a directory, list its contents
+                if os.path.isdir(path):
+                    try:
+                        dir_contents = os.listdir(path)
+                        logger.log(f"  Contents of {path}:", 'debug')
+                        for item in dir_contents:
+                            logger.log(f"  - {item}", 'debug')
+                    except Exception as dir_error:
+                        logger.log(f"  Error listing contents of {path}: {str(dir_error)}", 'debug')
+        except Exception as e:
+            logger.log(f"Error during diagnostic checks: {str(e)}", 'error')
+        
         return []
     
     # Create output queue and thread management
