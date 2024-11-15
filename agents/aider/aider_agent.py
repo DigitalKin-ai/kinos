@@ -397,7 +397,7 @@ class AiderAgent(AgentBase):
         try:
             # Defensive config access with multiple fallbacks
             specific_name = (
-                self.config.get('name') or  # First try config
+                getattr(self, 'config', {}).get('name') or  # First try config
                 getattr(self, 'name', None) or  # Then try instance attribute 
                 'unnamed_agent'  # Final fallback
             )
