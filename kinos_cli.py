@@ -112,9 +112,9 @@ def run_team_loop(team_name: str):
             
             # Always try to maintain several active threads
             while True:  # Main loop
-            # Clean up finished threads
-            active_threads = {tid: runner for tid, runner in active_threads.items() 
-                            if runner.is_alive()}
+                # Clean up finished threads
+                active_threads = {tid: runner for tid, runner in active_threads.items() 
+                                if runner.is_alive()}
             
             logger.log(f"Active threads: {len(active_threads)}", 'debug')
             
