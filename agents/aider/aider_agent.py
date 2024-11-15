@@ -578,6 +578,50 @@ Instructions:
                 self.logger.log(f"[{self.name}] Error in run: {str(e)}", 'error')
 
 
+    def execute_mission(self, prompt: str) -> Optional[str]:
+        """Execute one mission iteration"""
+        try:
+            self.logger.log(f"[{self.name}] 🔄 Starting mission execution", 'debug')
+            
+            # Validate run conditions
+            if not self._validate_run_conditions(prompt):
+                return None
+
+            # Get chat history
+            chat_history = ""
+            chat_history_file = f".aider.{self.name}.chat.history.md"
+            if os.path.exists(chat_history_file):
+                try:
+                    with open(chat_history_file, 'r', encoding='utf-8') as f:
+                        chat_history = self._truncate_history(f.read())
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error reading chat history: {str(e)}", 'warning')
+
+            # Get files context
+            files_context = {}
+            for file_path in self.mission_files:
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        files_context[file_path] = f.read()
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error reading {file_path}: {str(e)}", 'warning')
+
+            # Run Aider with the prompt
+            result = self._run_aider(prompt)
+            
+            # Update state based on result
+            if result:
+                self.last_change = datetime.now()
+                self.consecutive_no_changes = 0
+            else:
+                self.consecutive_no_changes += 1
+
+            return result
+
+        except Exception as e:
+            self.logger.log(f"[{self.name}] Error in mission execution: {str(e)}", 'error')
+            return None
+
     def _format_files_context(self, files_context: Dict[str, str]) -> str:
         """
         Format files context into a readable string with clear file boundaries
