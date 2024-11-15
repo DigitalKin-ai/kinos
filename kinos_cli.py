@@ -72,10 +72,14 @@ class AgentRunner(threading.Thread):
 def run_team_loop(team_name: str):
     """Main team execution loop"""
     logger = Logger()
+    logger.log(f"🚀 Starting team loop for: {team_name}", 'debug')
+    
     agent_service = AgentService(None)
     
-    # Load team configuration
+    # Load team configuration with enhanced logging
     agents = load_team_config(team_name)
+    logger.log(f"Loaded {len(agents)} agents: {', '.join(agents)}", 'debug')
+    
     if not agents:
         logger.log(f"No agents found for team: {team_name}", 'error')
         return
@@ -95,15 +99,21 @@ def run_team_loop(team_name: str):
     
     try:
         while True:  # Main loop
+            logger.log("Checking agent initialization conditions", 'debug')
+            
             # Always try to maintain several active threads
             while len(active_threads) < 3:
-                # Get current phase weights
+                # Get current phase weights with logging
                 from services import init_services
                 services = init_services(None)
                 phase_service = services['phase_service']
                 phase_status = phase_service.get_status_info()
                 current_phase = phase_status['phase']
+                
+                logger.log(f"Current project phase: {current_phase}", 'debug')
+                
                 phase_weights = phase_service.get_phase_weights(current_phase)
+                logger.log(f"Phase weights: {phase_weights}", 'debug')
                 
                 # Filter out agents that are already running
                 available_agents = [a for a in agents if not any(
