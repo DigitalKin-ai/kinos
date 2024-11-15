@@ -127,39 +127,6 @@ Give some context explanation.
             self.logger.log(f"Error extracting topics: {str(e)}", 'error')
             return []
 
-    def _generate_query(self, topic: str) -> str:
-        """Generate an optimized Perplexity query for a topic"""
-        try:
-            from anthropic import Anthropic
-            client = Anthropic()
-            
-            prompt = f"""Convert this research topic into an optimized search query for Perplexity for finding academic/reliable sources:
-
-Topic: {topic}
-
-Generate a single search query that:
-1. Is in natural language
-2. Uses relevant academic/technical terms
-3. Is focused and specific
-4. Give the context and goal of the research
-
-Return ONLY the query text, nothing else."""
-
-            response = client.messages.create(
-                model="claude-3-5-haiku-20241022",
-                max_tokens=200,
-                messages=[{"role": "user", "content": prompt}]
-            )
-            
-            query = response.content[0].text.strip()
-            self.logger.log(f"Generated query: {query}", 'info')
-
-            # TODO: Ajouter la réponse dans le fichier de chat 
-            return query
-            
-        except Exception as e:
-            self.logger.log(f"Error generating query: {str(e)}", 'error')
-            return topic
 
     def _execute_query(self, query: str) -> Optional[Dict[str, Any]]:
         """Execute query using Perplexity API"""
@@ -268,12 +235,11 @@ Return ONLY the query text, nothing else."""
 
             # Step 1: Extract research topics using Claude
             topics = self._extract_research_topics(content)
+            if not topics:
+                return None
 
-            # Step 2: Generate optimized query using Claude
-            query = self._generate_query(topics[0])  # Use first/main topic
-            
-            # Execute single query to Perplexity
-            results = self.perplexity_client.execute_query(query)
+            # Execute query directly with the topic from Claude
+            results = self.perplexity_client.execute_query(topics[0])  # Use first/main topic
             if not results:
                 self.logger.log(f"[{self.name}] No research results found", 'info')
                 return None
@@ -300,7 +266,6 @@ Please proceed with the updates now."""
                 with open(chat_history_file, 'a', encoding='utf-8') as f:
                     f.write(f"\n\n--- {datetime.now().isoformat()} ---\n")
                     f.write(f"**Research Topic:**\n{topics[0]}\n\n")
-                    f.write(f"**Research Query:**\n{query}\n\n")
                     f.write(f"**Research Results:**\n{results['response']}\n\n")
                     f.write(f"**Aider Prompt:**\n{aider_prompt}\n")
             except Exception as e:
