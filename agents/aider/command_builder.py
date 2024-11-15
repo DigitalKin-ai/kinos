@@ -16,12 +16,27 @@ class AiderCommandBuilder:
 
     def get_model_args(self) -> List[str]:
         """Get model-specific command arguments"""
-        return [
-            "--model", "claude-3-5-haiku-20241022",
-            "--yes-always",
-            "--cache-prompts",
-            "--no-pretty"
-        ]
+        try:
+            # Get current model from ModelRouter
+            from services import init_services
+            services = init_services(None)
+            model_router = services['model_router']
+            current_model = model_router.current_model
+            
+            return [
+                "--model", current_model,
+                "--yes-always",
+                "--cache-prompts",
+                "--no-pretty"
+            ]
+        except Exception:
+            # Fallback to default model if ModelRouter not available
+            return [
+                "--model", "claude-3-haiku-20240307",
+                "--yes-always",
+                "--cache-prompts",
+                "--no-pretty"
+            ]
 
     def get_file_args(self, files: List[str], ignore_patterns: List[str]) -> List[str]:
         """

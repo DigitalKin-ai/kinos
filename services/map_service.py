@@ -7,6 +7,7 @@ from typing import Dict, List, Tuple
 from services.base_service import BaseService
 from anthropic import Anthropic
 from utils.logger import Logger
+from utils.model_router import ModelProvider
 
 class MapService(BaseService):
     """Manages project documentation mapping and size monitoring"""
@@ -165,12 +166,24 @@ class MapService(BaseService):
             return [], [], 0
 
     def _count_tokens(self, file_path: str) -> int:
-        """Count number of tokens in a file using Anthropic tokenizer"""
+        """Count number of tokens in a file using current model's tokenizer"""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-                # Use Anthropic's tokenizer to count tokens
-                return self.anthropic.count_tokens(content)
+                
+            # Use ModelRouter's current model for tokenization
+            from services import init_services
+            services = init_services(None)
+            model_router = services['model_router']
+            
+            if model_router.current_provider == ModelProvider.ANTHROPIC:
+                return model_router.clients['anthropic'].count_tokens(content)
+            elif model_router.current_provider == ModelProvider.OPENAI:
+                return len(model_router.clients['openai'].tokenize(content))
+            else:
+                # Fallback estimation
+                return len(content.split()) * 1.3
+                
         except Exception:
             return 0
 
