@@ -37,33 +37,21 @@ class MapService(BaseService):
         """Generate project map file with enhanced debugging"""
         try:
             self.logger.log("[MapService] Starting map generation", 'debug')
-            
-            # Validate current working directory
-            current_dir = os.getcwd()
-            self.logger.log(f"Current directory: {current_dir}", 'debug')
-            
+        
             # Scan directory
-            tree_content, warnings, total_tokens = self._scan_directory(current_dir)
-            
+            tree_content, warnings, total_tokens = self._scan_directory(os.getcwd())
+        
             self.logger.log(f"Scan complete - Total tokens: {total_tokens}", 'debug')
-            self.logger.log(f"Tree content lines: {len(tree_content)}", 'debug')
-            self.logger.log(f"Warnings: {len(warnings)}", 'debug')
-            
-            # Ensure phase service is initialized
-            self._ensure_phase_service()
-            
-            # Update phase service with total tokens
-            self.phase_service.determine_phase(total_tokens)
-            
+        
             # Format and write map content
             map_content = self._format_map_content(tree_content, warnings)
-            
+        
             success = self._write_map_file(map_content)
-            
+        
             self.logger.log(f"Map write result: {success}", 'debug')
-            
+        
             return success
-            
+        
         except Exception as e:
             import traceback
             self.logger.log(f"Map generation error: {str(e)}\n{traceback.format_exc()}", 'critical')
@@ -263,69 +251,28 @@ class MapService(BaseService):
         return f"{icon} {agent_name} (type: {agent_type}, weight: {weight:.2f})"
 
     def _format_map_content(self, tree_content: List[str], warnings: List[str]) -> str:
-        """Format complete map content with phase and agent weights"""
+        """Format complete map content"""
         try:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
-            # Ensure phase service is initialized
-            self._ensure_phase_service()
-            
-            # Get phase status from PhaseService
-            phase_status = self.phase_service.get_status_info()
-            current_phase = phase_status['phase']
-            
-            # Get agent weights for current phase
-            phase_weights = self.phase_service.get_phase_weights(current_phase)
-            
+        
             content = [
                 "# Project Map (READONLY FILE)",
-                "\nCe document est une carte dynamique du projet qui est automatiquement mise à jour pour fournir une vue d'ensemble de la structure et de l'état du projet. Il surveille notamment :",
-                "- L'arborescence complète des fichiers",
-                "- La taille de chaque document en tokens",
-                "- La phase actuelle du projet (EXPANSION/CONVERGENCE)",
-                "- Les alertes et recommandations d'optimisation",
-                "\nLa map est automatiquement mise à jour par le MapService à chaque :",
-                "- Modification de fichier markdown",
-                "- Changement de phase du projet",
-                "- Création ou suppression de fichier",
-                "\nLes indicateurs visuels (✓, ⚠️, 🔴) permettent d'identifier rapidement les fichiers nécessitant une attention particulière.",
+                "\nCe document est une carte dynamique du projet qui est automatiquement mise à jour.",
                 f"\nGenerated: {timestamp}\n",
-                "## Project Phase",
-                self._get_phase_description(phase_status),
-                "\n## Token Usage",
-                f"Total: {phase_status['total_tokens']/1000:.1f}k/{self.phase_service.MODEL_TOKEN_LIMIT/1000:.0f}k ({phase_status['usage_percent']:.1f}%)",
-                f"Convergence at: {self.phase_service.CONVERGENCE_TOKENS/1000:.1f}k ({self.phase_service.CONVERGENCE_THRESHOLD*100:.0f}%)\n",
-                "## Phase Status",
-                f"{phase_status['status_icon']} {phase_status['status_message']}",
-                f"Headroom: {phase_status['headroom']/1000:.1f}k tokens\n"
-            ]
-            
-            # Add agent weights section
-            if phase_weights:
-                content.extend([
-                    "## Active Agents",
-                    "Current agent weights:"
-                ])
-                for agent, weight in phase_weights.items():
-                    content.append(f"- {agent}: {weight:.2f}")
-            
-            content.extend([
                 "\n## Document Tree",
                 "📁 Project"
-            ])
-            
-            # Add tree structure
+            ]
+        
             content.extend(tree_content)
-            
-            # Add warnings if any
+        
             if warnings:
                 content.extend([
                     "\n## Warnings",
                     *warnings
                 ])
-                
-            return "\n".join(content)
             
+            return "\n".join(content)
+        
         except Exception as e:
             self.logger.log(f"Error formatting map content: {str(e)}", 'error')
             return ""

@@ -652,64 +652,36 @@ class KinOSAgent:
             print(f"Error storing error log: {str(e)}")
 
     def should_run(self) -> bool:
-        """Determine if agent should execute based on time and phase"""
+        """Determine if agent should execute based on time"""
         try:
-            # Get current phase first
-            from services import init_services
-            services = init_services(None)
-            phase_service = services['phase_service']
-            phase_status = phase_service.get_status_info()
-            current_phase = phase_status['phase']
-
-            # Get team configuration
-            team_service = services['team_service']
-            active_team = None
-            for team in team_service.predefined_teams:
-                if self.name in team.get('agents', []):
-                    active_team = team
-                    break
-
-            if active_team and 'phase_config' in active_team:
-                phase_config = active_team['phase_config'].get(current_phase.lower(), {})
-                active_agents = phase_config.get('active_agents', [])
-                
-                # If agent list is specified and this agent is not in it, don't run
-                if active_agents and self.name.lower() not in [a.lower() for a in active_agents]:
-                    self.logger.log(
-                        f"[{self.__class__.__name__}] ⏸️ Inactive in {current_phase} phase", 
-                        'debug'
-                    )
-                    return False
-
-            # Continue with existing time-based checks
             now = datetime.now()
-            
+        
             # First run
             if self.last_run is None:
                 self.logger.log(f"[{self.__class__.__name__}] 🔄 First run")
                 return True
-                
+            
             # Calculate dynamic delay
             delay = self.calculate_dynamic_interval()
-            
+        
             # Check if enough time has elapsed
             time_since_last = (now - self.last_run).total_seconds()
             should_execute = time_since_last >= delay
-            
+        
             if should_execute:
                 self.logger.log(
                     f"[{self.__class__.__name__}] ✓ Should run "
-                    f"(time since last: {time_since_last:.1f}s, phase: {current_phase})"
+                    f"(time since last: {time_since_last:.1f}s)"
                 )
             else:
                 self.logger.log(
                     f"[{self.__class__.__name__}] ⏳ Waiting "
-                    f"({time_since_last:.1f}s/{delay}s, phase: {current_phase})", 
+                    f"({time_since_last:.1f}s/{delay}s)", 
                     'debug'
                 )
-                
-            return should_execute
             
+            return should_execute
+        
         except Exception as e:
             self.logger.log(f"[{self.__class__.__name__}] ❌ Error in should_run: {str(e)}")
             return False
@@ -817,23 +789,10 @@ class KinOSAgent:
             return False
 
     def get_effective_weight(self) -> float:
-        """Get effective weight considering phase and base weights"""
+        """Get effective weight"""
         try:
-            # Get phase service
-            from services import init_services
-            services = init_services(None)
-            phase_service = services['phase_service']
-            
-            # Get current phase
-            phase_status = phase_service.get_status_info()
-            current_phase = phase_status['phase']
-            
-            # Get phase-specific weights
-            phase_weights = phase_service.get_phase_weights(current_phase)
-            
-            # Return phase weight if available, otherwise base weight
-            return phase_weights.get(self.name, self.weight)
-            
+            return self.weight
+        
         except Exception as e:
             self.logger.log(f"Error getting effective weight: {str(e)}", 'error')
             return self.weight
