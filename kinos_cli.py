@@ -86,8 +86,8 @@ def run_team_loop(team_name: str):
     
     try:
         while True:  # Main loop
-            # Always try to maintain 2 active threads
-            while len(active_threads) < 2:
+            # Always try to maintain several active threads
+            while len(active_threads) < 3:
                 # Get current phase weights
                 from services import init_services
                 services = init_services(None)
