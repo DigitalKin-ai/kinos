@@ -6,7 +6,7 @@ import random
 import argparse
 import traceback
 from cli.commands.commits import commits
-from typing import List, Dict
+from typing import List, Dict, Optional
 import os
 import json
 from datetime import datetime
@@ -268,11 +268,106 @@ def run_team_loop(team_name: str, specific_name: str = None):
         for runner in active_threads.values():
             runner.join(timeout=1.0)
             
+def run_multi_team_loop(model: Optional[str] = None):
+    """
+    Run agents across multiple teams with optional model specification
+    
+    Args:
+        model: Optional model to use for all agents
+    """
+    logger = Logger()
+    logger.log("🌐 Starting multi-team agent execution", 'debug')
+    
+    # Initialize services
+    from services import init_services
+    services = init_services(None)
+    
+    # Set model if specified
+    if model:
+        model_router = services['model_router']
+        if not model_router.set_model(model):
+            logger.log(f"Model {model} not found. Available models:", 'warning')
+            for provider, models in model_router.get_available_models().items():
+                logger.log(f"{provider}: {', '.join(models)}", 'info')
+            return
+
+    team_service = services['team_service']
+    agent_service = services['agent_service']
+    phase_service = services['phase_service']
+    
+    # Find all team directories
+    teams_dir = os.path.join('teams')
+    team_dirs = [d for d in os.listdir(teams_dir) if d.startswith('team_')]
+    
+    if not team_dirs:
+        logger.log("No teams found!", 'error')
+        return
+    
+    # Create output queue and thread management
+    output_queue = queue.Queue()
+    active_threads = {}
+    
+    try:
+        while True:
+            # Clean up finished threads
+            active_threads = {tid: runner for tid, runner in active_threads.items() 
+                              if runner.is_alive()}
+            
+            # Start new threads if needed
+            while len(active_threads) < 3:
+                # Select random team
+                team_name = random.choice(team_dirs).replace('team_', '')
+                
+                # Load team configuration
+                team_config = team_service.get_team_config(team_name)
+                if not team_config:
+                    logger.log(f"Could not load team config for {team_name}", 'warning')
+                    continue
+                
+                # Get current phase weights
+                phase_status = phase_service.get_status_info()
+                current_phase = phase_status['phase']
+                phase_weights = phase_service.get_phase_weights(current_phase)
+                
+                # Select agent based on phase weights
+                agents = team_service.get_team_agents(team_name)
+                weights = [phase_weights.get(agent, 0.5) for agent in agents]
+                agent_name = random.choices(agents, weights=weights, k=1)[0]
+                
+                logger.log(f"Selected team: {team_name}, Agent: {agent_name}", 'debug')
+                
+                # Create and start runner
+                runner = AgentRunner(agent_service, agents, output_queue, logger)
+                runner.start()
+                active_threads[runner.ident] = runner
+                
+                logger.log(f"Started new agent runner (total: {len(active_threads)})")
+            
+            # Process output queue
+            try:
+                msg = output_queue.get(timeout=0.1)
+                logger.log(f"Received message from queue: {msg['status']}", 'warning')
+            except queue.Empty:
+                pass
+            
+            time.sleep(0.1)  # Brief sleep to prevent CPU spinning
+                
+    except KeyboardInterrupt:
+        logger.log("Stopping multi-team execution...")
+        
+        # Stop all threads
+        for runner in active_threads.values():
+            runner.running = False
+            
+        # Wait for threads to finish
+        for runner in active_threads.values():
+            runner.join(timeout=1.0)
+
 def main():
     """CLI entry point"""
     parser = argparse.ArgumentParser(description='KinOS CLI')
     parser.add_argument('command', help='Command to execute')
-    parser.add_argument('--name', help='Specific agent or team name for file context', required=True)
+    parser.add_argument('--name', help='Specific agent or team name for file context')
     parser.add_argument('--model', help='Model to use (e.g. "claude-3-haiku", "gpt-4", etc.)')
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging')
     args = parser.parse_args()
@@ -282,7 +377,16 @@ def main():
     if args.verbose:
         logger.set_level('debug')
 
-    # Validation du nom
+    # New run command for multi-team execution
+    if args.command == "run":
+        # Validate model if provided
+        if args.model:
+            run_multi_team_loop(args.model)
+        else:
+            run_multi_team_loop()
+        return
+
+    # Existing team command logic
     if not args.name:
         logger.log("Error: --name is required", 'error')
         sys.exit(1)
