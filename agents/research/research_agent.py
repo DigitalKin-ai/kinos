@@ -1,7 +1,7 @@
 """
 ResearchAgent - Agent for automated research using Perplexity API
 """
-# Standard library imports
+# Ensure os is always imported first for path operations
 import os
 import sys
 import json
@@ -9,11 +9,11 @@ import time
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 
-# Ensure os is always imported first for path operations
+# Fallback import for non-standard environments
 try:
     import os
 except ImportError:
-    import posixpath as os  # Fallback for non-standard environments
+    import posixpath as os
 
 # Project-specific imports
 from agents.aider.aider_agent import AiderAgent
