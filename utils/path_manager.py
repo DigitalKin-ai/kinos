@@ -190,13 +190,6 @@ class PathManager:
         return os.path.join(logs_dir, f"{log_type}.log")
 
     @staticmethod
-    def get_custom_prompts_path() -> str:
-        """Retourne le chemin vers les prompts personnalisés"""
-        custom_prompts = os.path.join(PathManager.get_prompts_path(), "custom")
-        os.makedirs(custom_prompts, exist_ok=True)
-        return custom_prompts
-
-    @staticmethod
     def get_cache_file_path(cache_key: str) -> str:
         """Retourne le chemin vers un fichier de cache"""
         cache_dir = os.path.join(PathManager.get_temp_path(), "cache")
