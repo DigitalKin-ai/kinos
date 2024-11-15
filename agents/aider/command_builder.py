@@ -25,6 +25,7 @@ class AiderCommandBuilder:
             
             return [
                 "--model", current_model,
+                "--edit-format", "diff",
                 "--yes-always",
                 "--cache-prompts",
                 "--no-pretty"
@@ -33,6 +34,7 @@ class AiderCommandBuilder:
             # Fallback to default model if ModelRouter not available
             return [
                 "--model", "claude-3-5-haiku-20241022",
+                "--edit-format", "diff",
                 "--yes-always",
                 "--cache-prompts",
                 "--no-pretty"
