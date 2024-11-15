@@ -486,7 +486,6 @@ Instructions:
                 import asyncio
                 instructions = asyncio.run(model_router.generate_response(
                     messages=messages,
-                    config_name="default",  # Use default Claude config
                     system=prompt  # System prompt
                 ))
                 
