@@ -322,67 +322,98 @@ class PathManager:
     @staticmethod
     def get_team_path(team_id: Optional[str] = None, team_name: Optional[str] = None) -> str:
         """
-        Get the path for a specific team with detailed logging
-    
+        Get the path for a specific team with comprehensive logging and error handling
+        
         Args:
             team_id: Optional team identifier
             team_name: Optional team name for logging context
-    
+        
         Returns:
             str: Path to the team directory
         """
+        # Prepare logging context
+        log_context = f"[{team_name or 'unknown_team'}]"
+        
         try:
-            # Use team_name in logging if provided, otherwise use a default
-            log_context = f"[{team_name or 'unknown_team'}]"
-            print(f"{log_context} DEBUG: get_team_path called with team_id: {team_id}")
-        
-            # If no team_id is provided, use the current working directory
-            if not team_id:
+            # Validate input
+            if team_id is None:
+                print(f"{log_context} WARNING: No team_id provided, returning current directory")
                 return os.getcwd()
-        
+            
             # Normalize team_id
             team_id = team_id.lower().replace('team_', '')
-        
-            # Search locations for team directories
+            
+            # Comprehensive search locations with detailed logging
             search_locations = [
                 os.getcwd(),  # Current mission directory
                 os.path.dirname(os.getcwd()),  # Parent of current directory
                 os.path.join(PathManager.get_kinos_root(), 'teams'),  # KinOS teams directory
                 os.path.join(PathManager.get_kinos_root(), 'team_types')  # Team types directory
             ]
-        
-            # Search patterns
+            
+            # Detailed search patterns
             search_patterns = [
-                f"team_{team_id}",
-                f"{team_id}",
-                team_id
+                f"team_{team_id}",  # Explicit team_ prefix
+                f"{team_id}",        # Exact match
+                team_id.replace('_', '')  # Remove underscores
             ]
-        
-            # Search through locations
+            
+            # Logging search strategy
+            print(f"{log_context} DEBUG: Searching for team path")
+            print(f"{log_context} DEBUG: Search Locations: {search_locations}")
+            print(f"{log_context} DEBUG: Search Patterns: {search_patterns}")
+            
+            # Comprehensive search
+            matched_paths = []
             for base_dir in search_locations:
                 if not os.path.exists(base_dir):
+                    print(f"{log_context} DEBUG: Skipping non-existent directory: {base_dir}")
                     continue
-            
+                
                 try:
                     directory_contents = os.listdir(base_dir)
-                except Exception:
+                except PermissionError:
+                    print(f"{log_context} WARNING: Permission denied accessing {base_dir}")
                     continue
-            
+                except Exception as list_error:
+                    print(f"{log_context} ERROR: Error listing directory {base_dir}: {str(list_error)}")
+                    continue
+                
+                # Detailed directory matching
                 for item in directory_contents:
-                    # Check if item matches any search pattern
-                    if any(pattern in item.lower() for pattern in search_patterns):
-                        full_path = os.path.join(base_dir, item)
+                    full_path = os.path.join(base_dir, item)
                     
-                        if os.path.isdir(full_path):
-                            print(f"{log_context} DEBUG: Found team path: {full_path}")
-                            return full_path
-        
-            # If no match found, return current directory
-            print(f"{log_context} DEBUG: No team path found, returning current directory")
+                    # Check if path matches search criteria
+                    path_matches = any(
+                        pattern in item.lower() or 
+                        pattern == item.lower().replace('team_', '').replace('_', '')
+                        for pattern in search_patterns
+                    )
+                    
+                    if path_matches and os.path.isdir(full_path):
+                        print(f"{log_context} DEBUG: Potential match found: {full_path}")
+                        matched_paths.append(full_path)
+            
+            # Select best match
+            if matched_paths:
+                # Prefer exact matches or team_types directory
+                preferred_paths = [
+                    path for path in matched_paths 
+                    if any(pattern == os.path.basename(path).lower().replace('team_', '') 
+                           for pattern in search_patterns)
+                ]
+                
+                selected_path = preferred_paths[0] if preferred_paths else matched_paths[0]
+                print(f"{log_context} DEBUG: Selected team path: {selected_path}")
+                return selected_path
+            
+            # Fallback to current directory with warning
+            print(f"{log_context} WARNING: No team path found for {team_id}, returning current directory")
             return os.getcwd()
-    
+        
         except Exception as e:
-            print(f"{log_context} DEBUG: Error in get_team_path: {str(e)}")
+            print(f"{log_context} CRITICAL ERROR in get_team_path: {str(e)}")
+            print(f"{log_context} Traceback: {traceback.format_exc()}")
             return os.getcwd()
 
     @staticmethod

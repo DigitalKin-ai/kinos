@@ -203,59 +203,100 @@ class PathManager:
             return None
 
     @classmethod
-    def get_prompt_file(cls, agent_name: str, team_id: Optional[str] = None) -> Optional[str]:
+    def get_prompt_file(cls, agent_name: str, team_id: Optional[str] = None, team_name: Optional[str] = None) -> Optional[str]:
         """
-        Get prompt file path for an agent
+        Get prompt file path for an agent with comprehensive logging and error handling
         
         Args:
             agent_name: Name of the agent
             team_id: Optional team ID to narrow search
+            team_name: Optional team name for logging context
         
         Returns:
             str: Path to the prompt file, or None if not found
         """
+        # Prepare logging context
+        log_context = f"[{team_name or 'unknown_team'}]"
+        
         try:
-            # If team_id is provided, search in that team's directory first
+            # Validate inputs
+            if not agent_name:
+                print(f"{log_context} ERROR: No agent name provided")
+                return None
+            
+            # Normalize inputs
+            normalized_agent_name = agent_name.lower()
+            
+            # Comprehensive prompt filename variations
+            prompt_filename_options = [
+                f"{normalized_agent_name}.md",
+                f"{normalized_agent_name}_prompt.md",
+                f"{agent_name}.md",
+                f"{agent_name}_prompt.md"
+            ]
+            
+            # Logging search strategy
+            print(f"{log_context} DEBUG: Searching for prompt file")
+            print(f"{log_context} DEBUG: Agent Name: {agent_name}")
+            print(f"{log_context} DEBUG: Team ID: {team_id}")
+            print(f"{log_context} DEBUG: Prompt Filename Options: {prompt_filename_options}")
+            
+            # Search directories
+            search_directories = []
+            
+            # If team_id is provided, prioritize team-specific directories
             if team_id:
-                # Try both teams and team_types directories
-                search_dirs = [
+                search_directories.extend([
                     os.path.join(cls.get_kinos_root(), "teams", team_id),
                     os.path.join(cls.get_team_types_root(), f"team_{team_id}")
+                ])
+            
+            # Add fallback search locations
+            search_directories.extend([
+                os.path.join(cls.get_kinos_root(), "teams"),
+                os.path.join(cls.get_team_types_root())
+            ])
+            
+            # Comprehensive search
+            matched_paths = []
+            for search_dir in search_directories:
+                if not os.path.exists(search_dir):
+                    print(f"{log_context} DEBUG: Skipping non-existent directory: {search_dir}")
+                    continue
+                
+                try:
+                    # Search through all subdirectories
+                    for root, _, files in os.walk(search_dir):
+                        for filename in prompt_filename_options:
+                            prompt_path = os.path.join(root, filename)
+                            if os.path.exists(prompt_path):
+                                print(f"{log_context} DEBUG: Found potential prompt file: {prompt_path}")
+                                matched_paths.append(prompt_path)
+                
+                except PermissionError:
+                    print(f"{log_context} WARNING: Permission denied accessing {search_dir}")
+                except Exception as search_error:
+                    print(f"{log_context} ERROR: Error searching directory {search_dir}: {str(search_error)}")
+            
+            # Select best match
+            if matched_paths:
+                # Prefer exact matches or files in team-specific directories
+                preferred_paths = [
+                    path for path in matched_paths 
+                    if any(team_id in path for team_id in [team_id or ''])
                 ]
                 
-                prompt_filename_options = [
-                    f"{agent_name.lower()}.md",
-                    f"{agent_name}.md",
-                    f"{agent_name.lower()}_prompt.md",
-                    f"{agent_name}_prompt.md"
-                ]
-                
-                for search_dir in search_dirs:
-                    if os.path.exists(search_dir):
-                        for filename in prompt_filename_options:
-                            prompt_path = os.path.join(search_dir, filename)
-                            if os.path.exists(prompt_path):
-                                return prompt_path
+                selected_path = preferred_paths[0] if preferred_paths else matched_paths[0]
+                print(f"{log_context} DEBUG: Selected prompt file: {selected_path}")
+                return selected_path
             
-            # If no team_id or file not found, search in all team directories
-            for base_dir in ["teams", "team_types"]:
-                search_root = os.path.join(cls.get_kinos_root(), base_dir)
-                
-                if os.path.exists(search_root):
-                    for team_folder in os.listdir(search_root):
-                        team_dir = os.path.join(search_root, team_folder)
-                        if not os.path.isdir(team_dir):
-                            continue
-                            
-                        for filename in prompt_filename_options:
-                            prompt_path = os.path.join(team_dir, filename)
-                            if os.path.exists(prompt_path):
-                                return prompt_path
-            
+            # No prompt file found
+            print(f"{log_context} WARNING: No prompt file found for agent {agent_name}")
             return None
-            
+        
         except Exception as e:
-            print(f"Error getting prompt file: {str(e)}")
+            print(f"{log_context} CRITICAL ERROR in get_prompt_file: {str(e)}")
+            print(f"{log_context} Traceback: {traceback.format_exc()}")
             return None
 
     @staticmethod
