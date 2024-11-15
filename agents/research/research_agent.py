@@ -100,13 +100,13 @@ class ResearchAgent(AiderAgent):
             from anthropic import Anthropic
             client = Anthropic()
             
-            prompt = f"""Analyze the following content and identify topics or claims that need research and references:
+            prompt = f"""Analyze the following content and identify ONE topic or claim that need research and references:
 
 {content}
 
-List ONLY the specific topics or claims that need references, one per line.
+List the specific topic or claim that need references.
 Focus on factual claims, statistics, or technical concepts that should be supported by sources.
-Do not include explanations - just the topics/claims themselves.
+Give some context explanation.
 """
             
             response = client.messages.create(
@@ -133,15 +133,15 @@ Do not include explanations - just the topics/claims themselves.
             from anthropic import Anthropic
             client = Anthropic()
             
-            prompt = f"""Convert this research topic into an optimized search query for finding academic/reliable sources:
+            prompt = f"""Convert this research topic into an optimized search query for Perplexity for finding academic/reliable sources:
 
 Topic: {topic}
 
 Generate a single search query that:
-1. Uses relevant academic/technical terms
-2. Includes key qualifiers for reliable sources
+1. Is in natural language
+2. Uses relevant academic/technical terms
 3. Is focused and specific
-4. Uses appropriate search operators if needed
+4. Give the context and goal of the research
 
 Return ONLY the query text, nothing else."""
 
