@@ -278,7 +278,15 @@ def run_multi_team_loop(model: Optional[str] = None):
     
     # Validate teams directory exists
     if not os.path.exists(teams_dir):
-        logger.log(f"Team types directory not found: {teams_dir}", 'error')
+        logger.log(f"❌ No team types found at: {teams_dir}", 'error')
+        logger.log("To resolve this issue:", 'info')
+        logger.log("1. Ensure 'team_types' directory exists in the project root", 'info')
+        logger.log("2. Create at least one team type configuration", 'info')
+        logger.log("3. Each team type should have a 'config.json' file", 'info')
+        logger.log("Example team type structure:", 'info')
+        logger.log("team_types/", 'info')
+        logger.log("└── team_default/", 'info')
+        logger.log("    └── config.json", 'info')
         return []
     
     # Find all team directories
