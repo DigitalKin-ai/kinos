@@ -694,7 +694,7 @@ class KinOSAgent:
             min_interval = 60  # Minimum 1 minute
             max_interval = 3600  # Maximum 1 hour
             
-            # Get effective weight for current phase
+            # Get effective weight
             weight = self.get_effective_weight()
             
             # Calculate multiplier based on activity and weight

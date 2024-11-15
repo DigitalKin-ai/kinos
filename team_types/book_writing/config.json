@@ -48,27 +48,5 @@
             "type": "aider",
             "weight": 0.3
         }
-    ],
-    "phase_config": {
-        "expansion": {
-            "active_agents": [
-                {"name": "specifications", "weight": 0.3},
-                {"name": "management", "weight": 0.4},
-                {"name": "redacteur", "weight": 0.9},
-                {"name": "chroniqueur", "weight": 0.1},
-                {"name": "documentaliste", "weight": 0.3}
-            ],
-            "priority": "content_generation"
-        },
-        "convergence": {
-            "active_agents": [
-                {"name": "evaluation", "weight": 0.4},
-                {"name": "duplication", "weight": 0.6},
-                {"name": "redondance", "weight": 0.8},
-                {"name": "validation", "weight": 0.5},
-                {"name": "documentaliste", "weight": 0.3}
-            ],
-            "priority": "content_refinement"
-        }
-    }
+    ]
 }

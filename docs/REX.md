@@ -24,11 +24,6 @@ Ce document capture les apprentissages et observations issus de l'interaction di
    - Le système de retry avec backoff exponentiel permet une bonne résilience
    - Les agents s'adaptent automatiquement à leur environnement d'exécution
 
-2. **Système de Phases**
-   - Transition fluide entre phases EXPANSION (<60% tokens) et CONVERGENCE (>60%)
-   - Les agents adaptent leur comportement selon la phase
-   - Le système maintient une marge de tokens (headroom) pour la stabilité
-
 3. **Gestion des Ressources**
    - Utilisation intelligente du rate limiting pour les API
    - Cache à plusieurs niveaux pour optimiser les performances

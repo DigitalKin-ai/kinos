@@ -499,7 +499,7 @@ Cette architecture permet une interaction sophistiquée et efficace entre les ag
 ### Weight System
 
 #### Vue d'Ensemble
-Le système de poids permet d'ajuster dynamiquement l'importance et le comportement des agents selon la phase du projet et le contexte d'exécution.
+Le système de poids permet d'ajuster dynamiquement l'importance et le comportement des agents selon le contexte d'exécution.
 
 ### Research Agent
 
@@ -738,24 +738,18 @@ Cette documentation fournit une vue complète du ResearchAgent, de son architect
 
 1. **Configuration des Poids**
    ```json
-   {
-     "phase_config": {
-       "expansion": {
-         "active_agents": [
-           {"name": "specifications", "weight": 0.9},
-           {"name": "production", "weight": 0.8},
-           {"name": "chroniqueur", "weight": 0.5}
-         ]
-       },
-       "convergence": {
-         "active_agents": [
-           {"name": "validation", "weight": 0.9},
-           {"name": "duplication", "weight": 0.8},
-           {"name": "documentaliste", "weight": 0.7}
-         ]
-       }
-     }
-   }
+{
+    "id": "literature-review",
+    "name": "Literature Review Team", 
+    "description": "Research and analysis",
+    "agents": [
+        {
+            "name": "specifications",
+            "type": "aider",
+            "weight": 0.7
+        }
+    ]
+}
    ```
 
 2. **Impact des Poids**
@@ -773,7 +767,7 @@ def calculate_dynamic_interval(self) -> float:
     min_interval = 60  # Minimum 1 minute
     max_interval = 3600  # Maximum 1 hour
     
-    # Get effective weight for current phase
+    # Get effective weight
     weight = self.get_effective_weight()
     
     # Calculate multiplier based on activity and weight
@@ -793,36 +787,17 @@ def calculate_dynamic_interval(self) -> float:
     return max(min_interval, min(max_interval, interval))
 ```
 
-#### Phases et Poids
-
-1. **Phase EXPANSION** (< 60% tokens)
-   - Agents de création prioritaires
-     * SpecificationsAgent: 0.9
-     * ProductionAgent: 0.8
-     * ChroniqueurAgent: 0.5
-   - Focus sur la génération de contenu
-   - Intervalles courts pour développement rapide
-
-2. **Phase CONVERGENCE** (> 60% tokens)
-   - Agents d'optimisation prioritaires
-     * ValidationAgent: 0.9
-     * DuplicationAgent: 0.8
-     * DocumentalisteAgent: 0.7
-   - Focus sur la qualité et l'optimisation
-   - Intervalles plus longs pour analyse approfondie
-
 #### Ajustement Dynamique
 
 1. **Facteurs d'Ajustement**
    - Poids de base de l'agent
-   - Phase actuelle du projet
    - Historique des modifications
    - Taux de succès
    - Utilisation des ressources
 
 2. **Formule de Calcul**
    ```python
-   effective_weight = base_weight * phase_multiplier * success_rate
+   effective_weight = base_weight * success_rate
    ```
 
 #### Métriques et Monitoring
@@ -841,23 +816,6 @@ def calculate_dynamic_interval(self) -> float:
 
 #### Configuration
 
-1. **Par Équipe**
-   ```json
-   {
-     "team": "coding",
-     "phase_weights": {
-       "expansion": {
-         "production": 0.9,
-         "testeur": 0.7
-       },
-       "convergence": {
-         "validation": 0.9,
-         "duplication": 0.8
-       }
-     }
-   }
-   ```
-
 2. **Par Agent**
    ```python
    agent_config = {
@@ -872,7 +830,7 @@ def calculate_dynamic_interval(self) -> float:
 #### Bonnes Pratiques
 
 1. **Configuration des Poids**
-   - Adapter les poids aux objectifs de phase
+   - Adapter les poids aux objectifs
    - Maintenir une somme cohérente
    - Éviter les changements brusques
    - Documenter les ajustements
@@ -888,28 +846,6 @@ def calculate_dynamic_interval(self) -> float:
    - Identifier les goulots d'étranglement
    - Ajuster les seuils dynamiquement
    - Maintenir l'équilibre global
-
-#### Intégration
-
-1. **Dans TeamService**
-   ```python
-   def get_phase_weights(self, phase: str) -> Dict[str, float]:
-       """Get agent weights for current phase"""
-       phase_config = self.team_config['phase_config'][phase]
-       return {
-           agent['name']: agent['weight']
-           for agent in phase_config['active_agents']
-       }
-   ```
-
-2. **Dans AgentService**
-   ```python
-   def calculate_effective_weight(self, agent_name: str) -> float:
-       """Calculate effective weight based on phase and performance"""
-       base_weight = self.get_agent_weight(agent_name)
-       phase_multiplier = self.get_phase_multiplier()
-       return base_weight * phase_multiplier
-   ```
 
 ### Map System
 
@@ -1044,33 +980,6 @@ Generated: 2024-03-21 15:30:45
   - Retry logic
 
 ### Teams Management
-
-#### Phase-Based Agent Execution
-Each team's agents are activated or deactivated based on the current project phase:
-
-1. **EXPANSION Phase** (< 60% tokens)
-   - Focus on content creation and development
-   - Active agents prioritize:
-     * Specifications and planning
-     * Content production
-     * Initial documentation
-     * Progress tracking
-   - Example: In coding team, ProductionAgent and TesteurAgent are most active
-
-2. **CONVERGENCE Phase** (> 60% tokens)
-   - Focus on optimization and refinement
-   - Active agents prioritize:
-     * Code/content optimization
-     * Duplication detection
-     * Quality validation
-     * Documentation consolidation
-   - Example: In coding team, DuplicationAgent and ValidationAgent take priority
-
-The phase system automatically manages which agents run based on token usage:
-- Each team defines phase-specific agent lists in its config
-- Agents check their activation status before each run
-- Smooth transitions as phases change
-- Automatic workload optimization
 
 #### Predefined Teams
 Teams are simple agent groupings optimized for specific tasks:
@@ -1345,24 +1254,6 @@ Le MapService est un composant central qui :
 - ✓ OK : < 6k tokens
 - ⚠️ Long : > 6k tokens 
 - 🔴 Trop long : > 12k tokens
-
-### Phase System
-Le système de phases optimise l'utilisation des ressources :
-
-- **EXPANSION** (< 60% tokens)
-  * Création libre de contenu
-  * Développement de nouvelles fonctionnalités
-  * Documentation extensive
-
-- **CONVERGENCE** (> 60% tokens)
-  * Optimisation du contenu existant
-  * Réduction de la duplication
-  * Consolidation des documents
-
-Seuils :
-- Limite totale : 128k tokens
-- CONVERGENCE : > 76.8k tokens (60%)
-- Retour EXPANSION : < 64k tokens (50%)
 
 ## Points d'Extension
 

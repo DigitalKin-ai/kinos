@@ -37,7 +37,6 @@ def init_services(_) -> Dict[str, Any]:
         from services.team_service import TeamService
         from services.agent_service import AgentService
         from services.map_service import MapService
-        from services.phase_service import PhaseService
         from utils.model_router import ModelRouter  # Add ModelRouter import
 
         logger.log("Services imported successfully", 'debug')
@@ -49,7 +48,6 @@ def init_services(_) -> Dict[str, Any]:
             'file_service': FileService(None),
             'team_service': TeamService(None),
             'agent_service': AgentService(None),
-            'phase_service': PhaseService(None),
             'model_router': ModelRouter()  # Add ModelRouter initialization
         }
 

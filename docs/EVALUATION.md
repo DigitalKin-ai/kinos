@@ -29,8 +29,6 @@ Métriques clés:
 - ✓ Taux d'erreur < 0.1%
 - ✓ Utilisation tokens < 60% (76.8k/128k)
 - ✓ Dataset collection rate: 98%
-- ✓ Phase transitions: < 2 par heure
-- ✓ Token headroom: > 40k en phase EXPANSION
 
 ### 2. Agents Autonomes (✓)
 Spécification: "Chaque agent opère de manière indépendante"
@@ -88,6 +86,6 @@ Implémentation:
 - ✓ Gestion robuste des erreurs
 
 ## Conclusion
-Le contenu produit correspond aux spécifications à 95%. Les fonctionnalités principales sont toutes implémentées conformément aux exigences, y compris les systèmes de Dataset et de Phases récemment ajoutés. Les métriques de performance sont maintenant complètes et précises.
+Le contenu produit correspond aux spécifications à 95%. Les fonctionnalités principales sont toutes implémentées conformément aux exigences, y compris les systèmes de Dataset récemment ajoutés. Les métriques de performance sont maintenant complètes et précises.
 
 [status: VALIDATED]

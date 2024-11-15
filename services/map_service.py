@@ -208,29 +208,6 @@ class MapService(BaseService):
             return f"⚠️ {filename} approaching limit (>{self.size_limits['warning']/1000:.1f}k tokens)"
         return ""
 
-    def _get_phase_description(self, phase_status: dict) -> str:
-        """Get descriptive text about current phase and its implications"""
-        phase = phase_status['phase']
-        
-        if phase == "EXPANSION":
-            return (
-                "🌱 EXPANSION PHASE\n"
-                "In this phase, agents focus on content creation and development:\n"
-                "- Free to create new content and sections\n"
-                "- Normal operation of all agents\n"
-                "- Regular token monitoring\n"
-                "- Will transition to CONVERGENCE at 12k tokens"
-            )
-        else:  # CONVERGENCE
-            return (
-                "🔄 CONVERGENCE PHASE\n"
-                "In this phase, agents focus on optimization and consolidation:\n"
-                "- Limited new content creation\n"
-                "- Focus on reducing token usage\n"
-                "- Emphasis on content optimization\n"
-                "- Can return to EXPANSION below 6k tokens"
-            )
-
     def _format_agent_info(self, agent_name: str, weight: float, agent_type: str) -> str:
         """Format agent information for map display"""
         type_icons = {

@@ -274,11 +274,11 @@ def run_multi_team_loop(model: Optional[str] = None):
     agent_service = services['agent_service']
     
     # Use PathManager to get team types directory    
-    teams_dir = PathManager.get_team_types_root()
+    team_types_dir = PathManager.get_team_types_root()
     
     # Validate teams directory exists
-    if not os.path.exists(teams_dir):
-        logger.log(f"❌ No team types found at: {teams_dir}", 'error')
+    if not os.path.exists(team_types_dir):
+        logger.log(f"❌ No team types found at: {team_types_dir}", 'error')
         logger.log("To resolve this issue:", 'info')
         logger.log("1. Ensure 'team_types' directory exists in the project root", 'info')
         logger.log("2. Create at least one team type configuration", 'info')
@@ -290,23 +290,23 @@ def run_multi_team_loop(model: Optional[str] = None):
         return []
     
     # Find all team directories
-    team_dirs = [d for d in os.listdir(teams_dir) if d.startswith('team_')]
+    team_type_dirs = [d for d in os.listdir(team_types_dir)]
     
-    if not team_dirs:
+    if not team_type_dirs:
         logger.log("No teams found!", 'error')
-        logger.log(f"Full directory contents: {os.listdir(teams_dir)}", 'debug')
-        logger.log(f"Team types directory path: {teams_dir}", 'debug')
+        logger.log(f"Full directory contents: {os.listdir(team_types_dir)}", 'debug')
+        logger.log(f"Team types directory path: {team_types_dir}", 'debug')
         
         # Additional diagnostic checks
         try:
             # Check directory permissions
-            logger.log(f"Directory readable: {os.access(teams_dir, os.R_OK)}", 'debug')
-            logger.log(f"Directory writable: {os.access(teams_dir, os.W_OK)}", 'debug')
+            logger.log(f"Directory readable: {os.access(team_types_dir, os.R_OK)}", 'debug')
+            logger.log(f"Directory writable: {os.access(team_types_dir, os.W_OK)}", 'debug')
             
             # List all files/directories with full paths
             full_paths = [
-                os.path.join(teams_dir, item) 
-                for item in os.listdir(teams_dir)
+                os.path.join(team_types_dir, item) 
+                for item in os.listdir(team_types_dir)
             ]
             logger.log("Full paths:", 'debug')
             for path in full_paths:
@@ -339,7 +339,7 @@ def run_multi_team_loop(model: Optional[str] = None):
             # Start new threads if needed
             while len(active_threads) < 3:
                 # Select random team
-                team_name = random.choice(team_dirs).replace('team_', '')
+                team_name = random.choice(team_type_dirs).replace('team_', '')
                 
                 # Load team configuration
                 team_config = team_service.get_team_config(team_name)

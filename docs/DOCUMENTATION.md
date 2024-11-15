@@ -567,18 +567,9 @@ services = init_services()
 - Uses current directory as mission context
 - Manages its own resources and state
 - Handles its own error recovery
-- Integrates with the phase system
 ```
 
 Key Services:
-1. **PhaseService**
-   - Manages project phases (EXPANSION/CONVERGENCE)
-   - Monitors token usage (128k limit)
-   - Triggers phase transitions:
-     * CONVERGENCE at >60% tokens (76.8k)
-     * Return to EXPANSION at <50% tokens (64k)
-   - Provides headroom metrics
-   - Guides agent behavior
 
 2. **DatasetService**
    - Collects fine-tuning data
@@ -596,7 +587,6 @@ Key Services:
 4. **AgentService**
    - Manages agent lifecycle
    - Uses relative paths
-   - Integrates with phases
    - Provides health metrics
 
 Error Handling:
@@ -654,19 +644,6 @@ Automatic Retries:
 - Retry logging
 - Configurable retry policies
 - Distributed locking with Redis
-
-#### Phase System
-Le système de phases optimise automatiquement l'utilisation des ressources :
-
-- **EXPANSION** (< 60% tokens)
-  * Création libre de contenu
-  * Développement de nouvelles fonctionnalités
-  * Documentation extensive
-
-- **CONVERGENCE** (> 60% tokens)
-  * Optimisation du contenu existant
-  * Réduction de la duplication
-  * Consolidation des documents
 
 #### Path Management
 Le système utilise le répertoire courant comme contexte :

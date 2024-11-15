@@ -149,7 +149,7 @@ Give some context explanation.
                 self.logger.log(f"[{self.name}] Perplexity response: {results['response']}", 'info')
                 
                 # Save to chat history
-                chat_history_file = f".aider.{self.name}.chat.history.md"
+                chat_history_file = f".kinos.{self.name}.chat.history.md"
                 try:
                     with open(chat_history_file, 'a', encoding='utf-8') as f:
                         f.write(f"\n\n--- {datetime.now().isoformat()} ---\n")

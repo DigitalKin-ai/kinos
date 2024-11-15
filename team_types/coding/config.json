@@ -53,28 +53,5 @@
             "type": "aider",
             "weight": 0.4
         }
-    ],
-    "phase_config": {
-        "expansion": {
-            "active_agents": [
-                {"name": "specifications", "weight": 0.4},
-                {"name": "production", "weight": 0.9},
-                {"name": "testeur", "weight": 0.7},
-                {"name": "chroniqueur", "weight": 0.3},
-                {"name": "documentaliste", "weight": 0.4}
-            ],
-            "priority": "development"
-        },
-        "convergence": {
-            "active_agents": [
-                {"name": "evaluation", "weight": 0.4},
-                {"name": "duplication", "weight": 0.8},
-                {"name": "validation", "weight": 0.4},
-                {"name": "testeur", "weight": 0.9},
-                {"name": "documentaliste", "weight": 0.6},
-                {"name": "cleaner", "weight": 0.8}
-            ],
-            "priority": "code_quality"
-        }
-    }
+    ]
 }

@@ -3,33 +3,19 @@
 Ce document est une carte dynamique du projet qui est automatiquement mise à jour pour fournir une vue d'ensemble de la structure et de l'état du projet. Il surveille notamment :
 - L'arborescence complète des fichiers
 - La taille de chaque document en tokens
-- La phase actuelle du projet (EXPANSION/CONVERGENCE)
 - Les alertes et recommandations d'optimisation
 
 La map est automatiquement mise à jour par le MapService à chaque :
 - Modification de fichier markdown
-- Changement de phase du projet
 - Création ou suppression de fichier
 
 Les indicateurs visuels (✓, ⚠️, 🔴) permettent d'identifier rapidement les fichiers nécessitant une attention particulière.
 
 Generated: 2024-11-13 11:04:21
 
-## Project Phase
-🔄 CONVERGENCE PHASE
-In this phase, agents focus on optimization and consolidation:
-- Limited new content creation
-- Focus on reducing token usage
-- Emphasis on content optimization
-- Can return to EXPANSION below 64.0k tokens
-
 ## Token Usage
 Total: 118.3k/128k (92.4%)
 Convergence at: 76.8k (60%)
-
-## Phase Status
-🔴 Convergence needed
-Headroom: 9.7k tokens
 
 ## Active Agents
 Current agent weights:
@@ -100,7 +86,6 @@ Current agent weights:
 │   ├── 📄 file_manager.py (1.0k tokens) ✓
 │   ├── 📄 file_service.py (1.1k tokens) ✓
 │   ├── 📄 map_service.py (3.4k tokens) ✓
-│   ├── 📄 phase_service.py (1.4k tokens) ✓
 │   └── 📄 team_service.py (4.3k tokens) ✓
 ├── 📄 setup.py (0.2k tokens) ✓
 ├── 📄 start.sh (0.0k tokens) ✓

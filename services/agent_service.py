@@ -429,19 +429,10 @@ List any specific constraints or limitations.
             # Get current phase first
             from services import init_services
             services = init_services(None)
-            phase_service = services['phase_service']
-            phase_status = phase_service.get_status_info()
-            current_phase = phase_status['phase']
             
-            # Detailed phase and weight logging
-            self.logger.log(f"📍 Current Project Phase: {current_phase}", 'debug')
-            
-            # Get phase-specific weights
-            phase_weights = phase_service.get_phase_weights(current_phase)
-            self.logger.log(f"⚖️ Phase Weights: {json.dumps(phase_weights, indent=2)}", 'debug')
             
             # Agent selection logging
-            weights = [phase_weights.get(agent, 0.5) for agent in team_agents]
+            weights = [get_weights.get(agent, 0.5) for agent in team_agents]
             total_weight = sum(weights)
             normalized_weights = [w/total_weight for w in weights]
             
@@ -503,7 +494,7 @@ List any specific constraints or limitations.
                 'mission_dir': os.getcwd(),
                 'prompt_file': os.path.join('prompts', f"{agent_name}.md"),
                 'type': agent_type,  # Explicitly set type from configuration
-                'weight': phase_weights.get(agent_name, 0.5)  # Pass weight to agent
+                'weight': weights.get(agent_name, 0.5)  # Pass weight to agent
             }
 
             self.logger.log(f"Final agent configuration: {config}", 'debug')
@@ -540,7 +531,7 @@ List any specific constraints or limitations.
             )
             self.logger.log(
                 f"Running {agent_type.upper()} agent {agent_name} "
-                f"(weight: {config['weight']:.2f}) in {current_phase} phase", 
+                f"(weight: {config['weight']:.2f})", 
                 'info'
             )
     
@@ -1354,61 +1345,6 @@ List any specific constraints or limitations.
         except Exception as e:
             self.logger.log(f"Critical error starting agent {agent_name}: {str(e)}", 'error')
             return False
-
-    def _filter_agents_by_phase(self, agents: List[Union[str, Dict]], phase: str) -> List[Dict]:
-        """Filter and configure agents based on current phase"""
-        try:
-            # Get team configuration for the phase
-            active_team = None
-            for team in self.predefined_teams:
-                if any(isinstance(a, dict) and a['name'] in [ag['name'] if isinstance(ag, dict) else ag for ag in agents] 
-                      for a in team.get('agents', [])):
-                    active_team = team
-                    break
-
-            if not active_team:
-                # Return default configuration if no matching team
-                return [{'name': a, 'type': 'aider', 'weight': 0.5} if isinstance(a, str) else a.copy() 
-                       for a in agents]
-
-            # Get phase configuration
-            phase_config = active_team.get('phase_config', {}).get(phase.lower(), {})
-            active_agents = phase_config.get('active_agents', [])
-
-            if not active_agents:
-                # Use default weights if no phase-specific config
-                return [{'name': a, 'type': 'aider', 'weight': 0.5} if isinstance(a, str) else a.copy() 
-                       for a in agents]
-
-            # Build filtered and configured agents list
-            filtered_agents = []
-            phase_weights = {a['name']: a.get('weight', 0.5) for a in active_agents}
-
-            for agent in agents:
-                agent_name = agent['name'] if isinstance(agent, dict) else agent
-                if agent_name in phase_weights:
-                    # Create or update agent configuration
-                    agent_config = agent.copy() if isinstance(agent, dict) else {'name': agent}
-                    agent_config.update({
-                        'type': agent_config.get('type', 'aider'),
-                        'weight': phase_weights[agent_name]
-                    })
-                    filtered_agents.append(agent_config)
-
-            self.logger.log(
-                f"Filtered agents for phase {phase}:\n" +
-                "\n".join(f"- {a['name']} (type: {a['type']}, weight: {a['weight']:.2f})" 
-                         for a in filtered_agents),
-                'debug'
-            )
-
-            return filtered_agents
-
-        except Exception as e:
-            self.logger.log(f"Error filtering agents: {str(e)}", 'error')
-            # Return default configuration on error
-            return [{'name': a, 'type': 'aider', 'weight': 0.5} if isinstance(a, str) else a.copy() 
-                    for a in agents]
 
     def _update_global_status(self, status_updates: Dict[str, Dict], system_metrics: Dict, health_score: float) -> None:
         """Update global system status based on agent states"""

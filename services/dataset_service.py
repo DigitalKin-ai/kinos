@@ -78,7 +78,7 @@ class DatasetService(BaseService):
             for filename, content in files_context.items()
         )
 
-    async def add_interaction_async(self, prompt: str, files_context: Dict[str, str], 
+    async def add_interaction_async(self, instructions: str, files_context: Dict[str, str], 
                                   aider_response: str, weight: float = 0) -> None:
         """Asynchronously add an interaction to the dataset"""
         try:
@@ -89,7 +89,7 @@ class DatasetService(BaseService):
             
             # Count tokens for interaction based on provider
             if model_router.current_provider == ModelProvider.ANTHROPIC:
-                prompt_tokens = model_router.clients['anthropic'].count_tokens(prompt)
+                prompt_tokens = model_router.clients['anthropic'].count_tokens(instructions)
                 context_tokens = model_router.clients['anthropic'].count_tokens(
                     self._format_files_context(files_context)
                 )
@@ -98,12 +98,12 @@ class DatasetService(BaseService):
                 # Use tiktoken for OpenAI token counting
                 import tiktoken
                 encoding = tiktoken.encoding_for_model(model_router.current_model)
-                prompt_tokens = len(encoding.encode(prompt))
+                prompt_tokens = len(encoding.encode(instructions))
                 context_tokens = len(encoding.encode(self._format_files_context(files_context)))
                 response_tokens = len(encoding.encode(aider_response))
             else:
                 # Fallback estimation
-                prompt_tokens = int(len(prompt.split()) * 1.3)
+                prompt_tokens = int(len(instructions.split()) * 1.3)
                 context_tokens = int(len(str(files_context).split()) * 1.3)
                 response_tokens = int(len(aider_response.split()) * 1.3)
             
@@ -121,19 +121,19 @@ class DatasetService(BaseService):
             )
             
             # Validate inputs
-            if not prompt or not files_context or not aider_response:
+            if not instructions or not files_context or not aider_response:
                 raise ValueError("Missing required interaction data")
 
             # Format files context
             formatted_context = self._format_files_context(files_context)
             
             # Format user message with context
-            user_message = f"Context:\n{formatted_context}\n\nTask:\n{prompt}"
+            user_message = f"Context:\n{formatted_context}\n\nTask:\n{instructions}"
             
             # Create dataset entry with token metrics
             entry = {
                 "messages": [
-                    {"role": "system", "content": prompt},
+                    {"role": "system", "content": instructions},
                     {"role": "user", "content": user_message},
                     {"role": "assistant", "content": aider_response}
                 ],
