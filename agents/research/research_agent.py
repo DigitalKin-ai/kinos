@@ -241,7 +241,7 @@ Return ONLY the query text, nothing else."""
         return "\n".join(findings)
 
     def execute_mission(self, prompt: str) -> Optional[str]:
-        """Execute research mission with single query to Perplexity"""
+        """Execute research mission with topic extraction and querying"""
         try:
             self.logger.log(f"[{self.name}] 🔍 Starting research mission", 'debug')
             
@@ -255,18 +255,51 @@ Return ONLY the query text, nothing else."""
                 except Exception as e:
                     self.logger.log(f"Error reading {file_path}: {str(e)}", 'warning')
 
-            # Execute single query with full content
-            results = self.perplexity_client.execute_query(content)
-            
-            if not results:
+            # Step 1: Extract research topics using Claude
+            topics = self._extract_research_topics(content)
+            if not topics:
+                self.logger.log(f"[{self.name}] No research topics found", 'info')
+                return None
+
+            self.logger.log(f"[{self.name}] Found {len(topics)} research topics", 'info')
+
+            # Step 2: Generate and execute query for each topic
+            research_results = []
+            for topic in topics:
+                self.logger.log(f"[{self.name}] Researching topic: {topic}", 'info')
+                
+                # Generate optimized query
+                query = self._generate_query(topic)
+                
+                # Execute query with rate limiting
+                if hasattr(self, '_last_query_time'):
+                    time_since_last = time.time() - getattr(self, '_last_query_time', 0)
+                    if time_since_last < 2:  # Minimum 2 seconds between queries
+                        time.sleep(2 - time_since_last)
+                
+                results = self._execute_query(query)
+                setattr(self, '_last_query_time', time.time())
+                
+                if results:
+                    research_results.append({
+                        'topic': topic,
+                        'query': query,
+                        'results': results
+                    })
+                    self.logger.log(f"[{self.name}] Got results for: {topic}", 'info')
+
+            if not research_results:
                 self.logger.log(f"[{self.name}] No research results found", 'info')
                 return None
 
-            # Format for Aider
+            # Format results for Aider
+            formatted_results = self._format_research_results(research_results)
+            
+            # Create Aider prompt
             aider_prompt = f"""Based on the research results below, update the relevant files to add appropriate references and citations.
 
 Research Results:
-{results['response']}
+{formatted_results}
 
 Instructions:
 1. Insert references at appropriate locations in the text
@@ -282,8 +315,8 @@ Please proceed with the updates now."""
             try:
                 with open(chat_history_file, 'a', encoding='utf-8') as f:
                     f.write(f"\n\n--- {datetime.now().isoformat()} ---\n")
-                    f.write(f"**Research Query:**\n{content}\n\n")
-                    f.write(f"**Research Results:**\n{results['response']}\n\n")
+                    f.write(f"**Research Topics:**\n{', '.join(topics)}\n\n")
+                    f.write(f"**Research Results:**\n{formatted_results}\n\n")
                     f.write(f"**Aider Prompt:**\n{aider_prompt}\n")
             except Exception as e:
                 self.logger.log(f"Error saving research chat history: {str(e)}", 'warning')
