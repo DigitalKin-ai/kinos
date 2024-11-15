@@ -34,11 +34,19 @@ class AiderAgent(AgentBase):
 
     def __init__(self, config: Dict[str, Any]):
         """Initialize agent with configuration"""
-        super().__init__(config)
+        # Ensure config exists before parent constructor
+        if not hasattr(self, 'config'):
+            self.config = config if config is not None else {}
+        
+        # Call parent constructor
+        super().__init__(self.config)
         
         try:
             # Configure UTF-8 encoding first
             self._configure_encoding()
+            
+            # Defensive config access
+            specific_name = self.config.get('name', self.name)
             
             # Initialize components with agent name
             self.command_builder = AiderCommandBuilder(self.name)
