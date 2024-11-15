@@ -45,6 +45,20 @@ class AiderCommandBuilder:
         # Define read-only files
         readonly_files = ["demande.md", "map.md"]
         
+        # Get agent's prompt file path
+        from utils.path_manager import PathManager
+        kinos_root = PathManager.get_kinos_root()
+        
+        # Find team directory containing the prompt
+        teams_dir = os.path.join(kinos_root, "teams")
+        prompt_path = None
+        
+        for team_dir in os.listdir(teams_dir):
+            possible_path = os.path.join(teams_dir, team_dir, f"{self.agent_name}.md")
+            if os.path.exists(possible_path):
+                prompt_path = possible_path
+                break
+        
         # Remove readonly files from valid_files if present to avoid duplicates
         valid_files = [f for f in valid_files if f not in readonly_files]
         
@@ -56,6 +70,10 @@ class AiderCommandBuilder:
         # Add read-only files first with --read flag
         for file in readonly_files:
             args.extend(["--read", file])
+            
+        # Add agent prompt as read-only if found
+        if prompt_path:
+            args.extend(["--read", prompt_path])
             
         # Add key files that should be editable
         key_files = ["todolist.md", "directives.md"]
