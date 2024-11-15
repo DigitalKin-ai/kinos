@@ -100,7 +100,7 @@ class ResearchAgent(AiderAgent):
             from anthropic import Anthropic
             client = Anthropic()
             
-            prompt = f"""Analyze the following content and identify ONE topic or claim that need research and references:
+            prompt = f"""Analyze the following content and identify ONE claim or question that need research and references:
 
 {content}
 
@@ -109,18 +109,15 @@ Focus on factual claims, statistics, or technical concepts that should be suppor
 Give some context explanation.
 """
             
-            response = client.messages.create(
+            topics = client.messages.create(
                 model="claude-3-5-haiku-20241022",
                 max_tokens=1000,
                 messages=[{"role": "user", "content": prompt}]
             )
             
-            # Split response into individual topics
-            topics = [t.strip() for t in response.content[0].text.split('\n') if t.strip()]
-
             # TODO: Ajouter la réponse dans le fichier de chat 
             
-            self.logger.log(f"Extracted {len(topics)} research topics", 'info')
+            self.logger.log(f"[{self.name}] Research topics : {topics}", 'info')
             return topics
             
         except Exception as e:
@@ -257,11 +254,6 @@ Return ONLY the query text, nothing else."""
 
             # Step 1: Extract research topics using Claude
             topics = self._extract_research_topics(content)
-            if not topics:
-                self.logger.log(f"[{self.name}] No research topics found", 'info')
-                return None
-
-            self.logger.log(f"[{self.name}] Found {len(topics)} research topics", 'info')
 
             # Step 2: Generate optimized query using Claude
             query = self._generate_query(topics[0])  # Use first/main topic
