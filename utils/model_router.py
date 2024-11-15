@@ -189,23 +189,15 @@ class ModelRouter:
         # Anthropic models
         if 'anthropic' in self.clients:
             available['anthropic'] = [
-                "claude-3-opus-20240229",
-                "claude-3-sonnet-20240229",
-                "claude-3-haiku-20240307"
+                "claude-3-5-sonnet-20241022",
+                "claude-3-5-haiku-20241022"
             ]
-            
+                
         # OpenAI models    
         if 'openai' in self.clients:
             available['openai'] = [
-                "gpt-4-0125-preview",
-                "gpt-4-turbo-preview",
-                "gpt-3.5-turbo"
-            ]
-            
-        # Perplexity models
-        if 'perplexity' in self.clients:
-            available['perplexity'] = [
-                "llama-3.1-sonar-large-128k-chat"
+                "gpt-4o",
+                "gpt-4o-mini"
             ]
             
         return available
