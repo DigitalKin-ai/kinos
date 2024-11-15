@@ -212,8 +212,8 @@ def main():
     # Configure parser
     parser = argparse.ArgumentParser(description='KinOS CLI')
     parser.add_argument('command', help='Command to execute')
+    parser.add_argument('--name', help='Specific agent or team name for file context', required=True)
     parser.add_argument('--model', help='Model to use (e.g. "claude-3-haiku", "gpt-4", etc.)')
-    parser.add_argument('--name', help='Specific agent or team name for file context')
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging')
     args = parser.parse_args()
 
@@ -221,6 +221,11 @@ def main():
     logger = Logger()
     if args.verbose:
         logger.set_level('debug')
+
+    # Validate name
+    if not args.name:
+        logger.log("Error: --name is required", 'error')
+        sys.exit(1)
 
     # If model is specified, update ModelRouter
     if args.model:

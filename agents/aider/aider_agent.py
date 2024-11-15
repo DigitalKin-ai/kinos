@@ -395,40 +395,40 @@ class AiderAgent(AgentBase):
     def _execute_agent_cycle(self):
         """Execute one cycle of the agent's main loop"""
         try:
-            # Récupérer le nom de l'équipe et de l'agent
+            # Récupérer le nom spécifique de la configuration
+            specific_name = self.config.get('name')
+            if not specific_name:
+                raise ValueError("No specific name provided for agent")
+
+            # Récupérer le nom de l'équipe
             from services import init_services
             services = init_services(None)
             team_service = services['team_service']
             
-            # Trouver l'équipe de l'agent
             agent_team = None
             for team in team_service.predefined_teams:
                 if self.name in team.get('agents', []):
                     agent_team = team['id']
                     break
 
-            # Définir les noms de fichiers spécifiques si un nom est fourni
-            team_name = agent_team  # Utiliser le nom de l'équipe par défaut
-            specific_name = self.config.get('name')  # Récupérer le nom spécifique s'il existe
-
             # Mise à jour des noms de fichiers clés
             key_files = {
-                f"team_{team_name}_{specific_name}_map.md" if specific_name else "map.md": 
+                f"team_{agent_team}_{specific_name}_map.md": 
                 "# Project Map\n\n## Overview\n\n## Key Components\n",
                 
-                f"team_{team_name}_{specific_name}_todolist.md" if specific_name else "todolist.md": 
+                f"team_{agent_team}_{specific_name}_todolist.md": 
                 "# Project Todo List\n\n## Pending Tasks\n\n## Completed Tasks\n",
                 
-                f"team_{team_name}_{specific_name}_demande.md" if specific_name else "demande.md": 
+                f"team_{agent_team}_{specific_name}_demande.md": 
                 "# Mission Request\n\n## Objective\n\n## Scope\n\n## Requirements\n",
                 
-                f"team_{team_name}_{specific_name}_directives.md" if specific_name else "directives.md": 
+                f"team_{agent_team}_{specific_name}_directives.md": 
                 "# Project Directives\n\n## Guidelines\n\n## Constraints\n"
             }
 
             # Chemins des fichiers d'historique
-            chat_history_file = f".aider.{team_name}_{specific_name}.chat.history.md" if specific_name else f".aider.{self.name}.chat.history.md"
-            input_history_file = f".aider.{team_name}_{specific_name}.input.history.md" if specific_name else f".aider.{self.name}.input.history.md"
+            chat_history_file = f".aider.{agent_team}_{specific_name}.chat.history.md"
+            input_history_file = f".aider.{agent_team}_{specific_name}.input.history.md"
 
             # Créer les fichiers clés si nécessaire
             for filename, default_content in key_files.items():

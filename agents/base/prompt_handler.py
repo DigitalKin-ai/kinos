@@ -134,21 +134,21 @@ class PromptHandler:
     def _resolve_prompt_path(self, prompt_file: str) -> Optional[str]:
         """Resolve prompt file path checking multiple locations"""
         try:
-            # Check if absolute path
-            if os.path.isabs(prompt_file) and os.path.exists(prompt_file):
-                return prompt_file
-                
+            # Récupérer le nom spécifique
+            specific_name = self.config.get('name')
+            if not specific_name:
+                raise ValueError("No specific name provided")
+
             # Get KinOS root and project root
             from utils.path_manager import PathManager
             kinos_root = PathManager.get_kinos_root()
             project_root = PathManager.get_project_root()
             
-            # Récupérer le nom de l'équipe et de l'agent depuis la configuration
+            # Récupérer le nom de l'équipe
             from services import init_services
             services = init_services(None)
             team_service = services['team_service']
             
-            # Trouver l'équipe de l'agent
             agent_team = None
             for team in team_service.predefined_teams:
                 if self.logger.name in team.get('agents', []):
@@ -156,18 +156,11 @@ class PromptHandler:
                     break
             
             # Chemins de recherche avec priorité pour les fichiers spécifiques à l'agent/équipe
-            search_paths = []
-            
-            # Si une équipe est trouvée, ajouter des chemins spécifiques
-            if agent_team:
-                search_paths.extend([
-                    # Fichiers spécifiques à l'agent dans l'équipe
-                    os.path.join(kinos_root, "teams", agent_team, f"{self.logger.name}_{prompt_file}"),
-                    os.path.join(kinos_root, "teams", agent_team, f"team_{agent_team}_{self.logger.name}_{prompt_file}"),
-                    
-                    # Fichiers génériques de l'équipe
-                    os.path.join(kinos_root, "teams", agent_team, f"team_{agent_team}_{prompt_file}"),
-                ])
+            search_paths = [
+                # Fichiers spécifiques à l'agent dans l'équipe
+                os.path.join(kinos_root, "teams", agent_team, f"{specific_name}_{prompt_file}"),
+                os.path.join(kinos_root, "teams", agent_team, f"team_{agent_team}_{specific_name}_{prompt_file}"),
+            ]
             
             # Chemins de recherche standard
             standard_paths = [
