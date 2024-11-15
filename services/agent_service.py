@@ -446,14 +446,26 @@ List any specific constraints or limitations.
             agent_config = None
             for team in services['team_service'].predefined_teams:
                 for agent in team.get('agents', []):
+                    # Handle both string and dictionary agent configurations
                     if isinstance(agent, dict) and agent['name'] == agent_name:
                         agent_config = agent
+                        break
+                    elif isinstance(agent, str) and agent == agent_name:
+                        agent_config = {'name': agent_name}
                         break
                 if agent_config:
                     break
 
-            # Determine agent type from configuration
-            agent_type = agent_config.get('type', 'aider')
+            # Determine agent type with fallback and case-insensitive check
+            if agent_config and isinstance(agent_config, dict):
+                agent_type = agent_config.get('type', 'aider').lower()
+            else:
+                # Default fallback
+                agent_type = 'aider'
+
+            # Normalize agent type
+            if agent_type not in ['aider', 'research']:
+                agent_type = 'aider'
 
             # Configure agent
             config = {
@@ -479,7 +491,7 @@ List any specific constraints or limitations.
                 f"(weight: {config['weight']:.2f}) in {current_phase} phase", 
                 'info'
             )
-        
+    
             try:
                 agent.run()  # Single run
             except Exception as run_error:
