@@ -363,13 +363,6 @@ class AiderOutputParser:
             commit_hash = parts[1]
             full_message = parts[2]
             
-            # Gérer les messages multi-lignes
-            while True:
-                next_line = self.process.stdout.readline().strip()
-                if not next_line or next_line.startswith("Commit "):
-                    break
-                full_message += " " + next_line
-        
             # Detect commit type from message
             commit_type = None
             message = full_message
