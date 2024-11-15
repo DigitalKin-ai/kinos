@@ -124,6 +124,11 @@ def run_team_loop(team_name: str):
                     agent_type = 'research'
                     logger.log(f"Agent {agent_name} explicitly set to research type", 'debug')
                 else:
+                    # EXPLICIT RESEARCH TYPE DETECTION
+                    if agent_name.lower() in [a.lower() for a in research_agents]:
+                        agent_type = 'research'
+                        logger.log(f"Agent {agent_name} explicitly set to research type", 'debug')
+
                     # Check team configuration for type
                     agent_type = 'aider'
                     for team in services['team_service'].predefined_teams:
