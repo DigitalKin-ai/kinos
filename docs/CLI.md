@@ -24,9 +24,8 @@ kin -p /chemin                            # Dossier spécifique
 kin --model <model-name>   # Utiliser un modèle spécifique
 
 Modèles disponibles :
-- Anthropic : claude-3-opus-20240229, claude-3-sonnet-20240229, claude-3-haiku-20240307
-- OpenAI : gpt-4-0125-preview, gpt-4-turbo-preview, gpt-3.5-turbo
-- Perplexity : llama-3.1-sonar-large-128k-chat
+- Anthropic : claude-3-5-sonnet-20241022, claude-3-5-haiku-20241022
+- OpenAI : gpt-4o, gpt-4o-mini
 
 # Système de Phases
 kin phase                 # Voir statut actuel

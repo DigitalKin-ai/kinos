@@ -26,13 +26,10 @@ class PhaseService(BaseService):
             
             # Model-specific limits
             limits = {
-                "claude-3-opus-20240229": 200000,
-                "claude-3-sonnet-20240229": 150000,
-                "claude-3-haiku-20240307": 128000,
-                "gpt-4-0125-preview": 128000,
-                "gpt-4-turbo-preview": 128000,
-                "gpt-3.5-turbo": 16000,
-                "llama-3.1-sonar-large-128k-chat": 128000
+                "claude-3-5-sonnet-20241022": 150000,
+                "claude-3-5-haiku-20241022": 128000,
+                "gpt-4o": 128000,
+                "gpt-4o-mini": 128000
             }
             
             return limits.get(model_router.current_model, 128000)  # Default to 128k
