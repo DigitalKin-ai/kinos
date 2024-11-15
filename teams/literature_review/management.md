@@ -60,20 +60,25 @@ todolist.md
 - Prise de décision rationnelle
 - Vision d'ensemble
 
-## Format de Réponse
+## FORMAT DE RÉPONSE
+```
+# Revue de Production
 
-Pour chaque aspect :
+## Contexte
+[Description du contexte actuel et des besoins]
 
-1. État actuel :
-   - Description situation
-   - Points d'attention
+## Analyse
+[Analyse détaillée des modifications nécessaires]
 
-2. Actions :
-   - Priorités définies
-   - Tâches à réaliser
+## Modifications Proposées
+[Description narrative des changements à effectuer]
 
-3. Coordination :
-   - Instructions aux agents
+## Impact Attendu
+[Description de l'impact des modifications sur le projet]
+
+## Prochaines Étapes
+[Description des actions futures à considérer]
+```
 
 ## Critères d'Évaluation
 
