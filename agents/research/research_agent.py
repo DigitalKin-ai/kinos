@@ -152,7 +152,7 @@ Return ONLY the query text, nothing else."""
             )
             
             query = response.content[0].text.strip()
-            self.logger.log(f"Generated query: {query}", 'debug')
+            self.logger.log(f"Generated query: {query}", 'info')
 
             # TODO: Ajouter la réponse dans le fichier de chat 
             return query
