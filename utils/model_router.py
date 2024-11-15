@@ -127,7 +127,7 @@ class ModelRouter:
             model=self.current_model,
             messages=messages,
             max_tokens=kwargs.get('max_tokens', 4000),
-            temperature=kwargs.get('temperature', 0.7)
+            temperature=kwargs.get('temperature', 0.3)
         )
         return response.content[0].text
 
@@ -147,7 +147,7 @@ class ModelRouter:
             model=self.current_model,
             messages=messages,
             max_tokens=kwargs.get('max_tokens', 4000),
-            temperature=kwargs.get('temperature', 0.7)
+            temperature=kwargs.get('temperature', 0.3)
         )
         return response.choices[0].message.content
 
@@ -166,7 +166,7 @@ class ModelRouter:
             model=self.current_model,
             messages=messages,
             max_tokens=kwargs.get('max_tokens', 4000),
-            temperature=kwargs.get('temperature', 0.7)
+            temperature=kwargs.get('temperature', 0.3)
         )
         return response.choices[0].message.content
 
