@@ -320,13 +320,20 @@ class AiderAgent(AgentBase):
     def _execute_agent_cycle(self):
         """Execute one cycle of the agent's main loop"""
         try:
-            # Validate mission directory
+            self.logger.log(f"[{self.name}] 🔄 Starting agent cycle", 'debug')
+            
+            # Log mission directory validation
             if not os.path.exists(self.mission_dir):
                 self.logger.log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}", 'error')
                 return
 
-            # Update file list
+            # Log file listing
             self.list_files()
+            self.logger.log(
+                f"[{self.name}] 📁 Monitoring {len(self.mission_files)} files:\n" + 
+                "\n".join(f"  - {os.path.relpath(f, self.mission_dir)}" for f in self.mission_files.keys()), 
+                'debug'
+            )
             
             # Create key files if they don't exist
             key_files = {
@@ -475,8 +482,13 @@ Instructions:
                 self.consecutive_no_changes += 1
 
         except Exception as e:
-            # Log but never stop
-            self.logger.log(f"[{self.name}] Error in agent cycle: {str(e)}", 'warning')
+            self.logger.log(
+                f"[{self.name}] 💥 Comprehensive error in agent cycle:\n"
+                f"Type: {type(e)}\n"
+                f"Error: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}",
+                'critical'
+            )
 
     def run(self):
         """Main execution loop for the agent"""

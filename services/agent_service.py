@@ -420,33 +420,38 @@ List any specific constraints or limitations.
             team_agents: List of agent names from team config
         """
         try:
+            # Comprehensive logging for agent selection
+            self.logger.log(f"🎲 Selecting agent from team: {team_agents}", 'debug')
+            
             # Get current phase first
             from services import init_services
             services = init_services(None)
             phase_service = services['phase_service']
             phase_status = phase_service.get_status_info()
             current_phase = phase_status['phase']
-
-            # Debug logging
-            self.logger.log(f"Running random agent. Team agents: {team_agents}", 'debug')
-            self.logger.log(f"Current phase: {current_phase}", 'debug')
-
+            
+            # Detailed phase and weight logging
+            self.logger.log(f"📍 Current Project Phase: {current_phase}", 'debug')
+            
             # Get phase-specific weights
             phase_weights = phase_service.get_phase_weights(current_phase)
-            self.logger.log(f"Phase weights: {phase_weights}", 'debug')
-
-            if not phase_weights:
-                # Fallback to default weights if no phase config
-                weights = [0.5] * len(team_agents)
-                agent_name = random.choice(team_agents)
-            else:
-                # Use phase weights for selection
-                weights = [phase_weights.get(agent, 0.5) for agent in team_agents]
-                # Normalize weights
-                total = sum(weights)
-                if total > 0:
-                    weights = [w/total for w in weights]
-                agent_name = random.choices(team_agents, weights=weights, k=1)[0]
+            self.logger.log(f"⚖️ Phase Weights: {json.dumps(phase_weights, indent=2)}", 'debug')
+            
+            # Agent selection logging
+            weights = [phase_weights.get(agent, 0.5) for agent in team_agents]
+            total_weight = sum(weights)
+            normalized_weights = [w/total_weight for w in weights]
+            
+            self.logger.log(
+                "Agent Selection Details:\n" +
+                "\n".join(f"- {agent}: Weight = {weight:.2f}" 
+                          for agent, weight in zip(team_agents, normalized_weights)),
+                'debug'
+            )
+            
+            # Select agent with logging
+            agent_name = random.choices(team_agents, weights=normalized_weights, k=1)[0]
+            self.logger.log(f"🎯 Selected Agent: {agent_name}", 'debug')
 
             self.logger.log(f"Selected agent: {agent_name}", 'debug')
 
