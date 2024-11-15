@@ -307,11 +307,15 @@ Please proceed with the updates now."""
     def run(self):
         """Main execution loop for research agent"""
         try:
+            self.logger.log(f"[{self.name}] DEBUG: Entering research agent run method", 'debug')
+            
             self.logger.log(f"[{self.name}] 🚀 Starting research agent run loop", 'info')
             
             self.running = True
             while self.running:
                 try:
+                    self.logger.log(f"[{self.name}] DEBUG: Top of research agent run loop", 'debug')
+                    
                     # Validate mission directory
                     if not os.path.exists(self.mission_dir):
                         self.logger.log(f"[{self.name}] ❌ Mission directory not found")
@@ -344,6 +348,13 @@ Please proceed with the updates now."""
                     time.sleep(wait_time)
                     
                 except Exception as loop_error:
+                    self.logger.log(
+                        f"[{self.name}] CRITICAL: Comprehensive error in run method:\n"
+                        f"Type: {type(loop_error)}\n"
+                        f"Error: {str(loop_error)}\n"
+                        f"Traceback: {traceback.format_exc()}",
+                        'critical'
+                    )
                     self._handle_error('run_loop', loop_error)
                     time.sleep(5)  # Brief pause before retrying
 
