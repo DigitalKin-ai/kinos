@@ -108,14 +108,16 @@ class AgentService:
             self.log_message(f"Error discovering agents: {str(e)}", 'error')
             return []
 
-    def _get_agent_class(self, agent_name: str):
+    def _get_agent_class(self, agent_type: str):
         """Get the appropriate agent class based on name"""
         try:
-            # Import the AiderAgent class dynamically
-            from aider_agent import AiderAgent
-            
-            # All agents use AiderAgent as base class
-            return AiderAgent
+            # Import agent classes based on type
+            if agent_type.lower() == 'research':
+                from agents.research.research_agent import ResearchAgent
+                return ResearchAgent
+            else:  # Default to AiderAgent
+                from agents.aider.aider_agent import AiderAgent
+                return AiderAgent
             
         except ImportError as e:
             self.log_message(f"Error importing agent class: {str(e)}", 'error')
