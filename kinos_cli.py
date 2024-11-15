@@ -13,12 +13,12 @@ from datetime import datetime
 from utils.logger import Logger
 from services.agent_service import AgentService
 from utils.model_router import ModelRouter
+from utils.path_manager import PathManager
 
 def load_team_config(team_name: str) -> List[str]:
     """Load agent names from team config"""
     try:
         # Use PathManager to get KinOS root path
-        from utils.path_manager import PathManager  # Ensure correct import
         kinos_root = PathManager.get_kinos_root()
         
         config_path = os.path.join(kinos_root, "team_types", team_name, "config.json")
@@ -273,8 +273,7 @@ def run_multi_team_loop(model: Optional[str] = None):
     team_service = services['team_service']
     agent_service = services['agent_service']
     
-    # Use PathManager to get team types directory
-    from utils.path_manager import PathManager
+    # Use PathManager to get team types directory    
     teams_dir = PathManager.get_team_types_root()
     
     # Validate teams directory exists
