@@ -131,10 +131,6 @@ class PathManager:
         
         return missions
 
-    @staticmethod
-    def get_prompts_path() -> str:
-        """Retourne le chemin vers le dossier des prompts"""
-        return os.path.join(PathManager.get_project_root(), "prompts")
 
     @staticmethod
     def get_config_path() -> str:

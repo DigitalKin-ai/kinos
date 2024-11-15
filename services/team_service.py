@@ -190,6 +190,20 @@ class TeamService(BaseService):
             self.logger.log(f"Error getting agent prompt path: {str(e)}", 'error')
             return None
 
+    def get_agent_prompt_path(self, team_id: str, agent_name: str) -> Optional[str]:
+        """Get prompt file path for an agent in a team"""
+        try:
+            team_dir = os.path.join(PathManager.get_kinos_root(), "teams", team_id)
+            prompt_file = os.path.join(team_dir, f"{agent_name.lower()}.md")
+            
+            if os.path.exists(prompt_file):
+                return prompt_file
+            return None
+            
+        except Exception as e:
+            self.logger.log(f"Error getting agent prompt path: {str(e)}", 'error')
+            return None
+
     def cleanup(self):
         """Cleanup team service resources"""
         try:
