@@ -154,21 +154,9 @@ def run_team_loop(team_name: str):
                 phase_weights = phase_service.get_phase_weights(current_phase)
                 logger.log(f"Phase weights: {phase_weights}", 'debug')
                 
-                # Filter available agents
-                available_agents = [a for a in agents if not any(
-                    runner.agent_name == a for runner in active_threads.values()
-                )]
-                
-                if not available_agents:
-                    logger.log("No available agents, waiting...", 'debug')
-                    time.sleep(1)
-                    break
-                
-                # Get weights for available agents
-                weights = [phase_weights.get(agent, 0.5) for agent in available_agents]
-                
                 # Select random agent based on weights
-                agent_name = random.choices(available_agents, weights=weights, k=1)[0]
+                weights = [phase_weights.get(agent, 0.5) for agent in agents]
+                agent_name = random.choices(agents, weights=weights, k=1)[0]
                 
                 logger.log(f"Selected agent: {agent_name}", 'debug')
                 
