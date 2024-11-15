@@ -293,7 +293,6 @@ def run_multi_team_loop(model: Optional[str] = None):
 
     team_service = services['team_service']
     agent_service = services['agent_service']
-    phase_service = services['phase_service']
     
     # Find all team directories
     teams_dir = os.path.join('teams')
@@ -324,15 +323,9 @@ def run_multi_team_loop(model: Optional[str] = None):
                     logger.log(f"Could not load team config for {team_name}", 'warning')
                     continue
                 
-                # Get current phase weights
-                phase_status = phase_service.get_status_info()
-                current_phase = phase_status['phase']
-                phase_weights = phase_service.get_phase_weights(current_phase)
-                
-                # Select agent based on phase weights
+                # Select random agent from the team
                 agents = team_service.get_team_agents(team_name)
-                weights = [phase_weights.get(agent, 0.5) for agent in agents]
-                agent_name = random.choices(agents, weights=weights, k=1)[0]
+                agent_name = random.choice(agents)
                 
                 logger.log(f"Selected team: {team_name}, Agent: {agent_name}", 'debug')
                 
