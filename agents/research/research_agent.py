@@ -109,16 +109,19 @@ Focus on factual claims, statistics, or technical concepts that should be suppor
 Give some context explanation.
 """
             
-            topics = client.messages.create(
+            response = client.messages.create(
                 model="claude-3-5-haiku-20241022",
                 max_tokens=1000,
                 messages=[{"role": "user", "content": prompt}]
             )
             
+            # Extract text from response correctly
+            topics = response.content[0].text
+            
             # TODO: Ajouter la réponse dans le fichier de chat 
             
             self.logger.log(f"[{self.name}] Research topics : {topics}", 'info')
-            return topics
+            return [topics]  # Return as list since code expects list
             
         except Exception as e:
             self.logger.log(f"Error extracting topics: {str(e)}", 'error')
