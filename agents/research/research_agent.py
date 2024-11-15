@@ -233,27 +233,36 @@ Return ONLY the query text, nothing else."""
             
         return "\n".join(findings)
 
-    def _specific_mission_execution(self, prompt: str) -> Optional[str]:
-        """Execute research mission"""
+    def execute_mission(self, prompt: str) -> Optional[str]:
+        """Execute research mission with topic extraction and querying"""
         try:
+            self.logger.log(f"[{self.name}] 🔍 Starting research mission", 'debug')
+            
             # Get current content
             content = ""
             for file_path in self.mission_files:
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content += f.read() + "\n\n"
+                    self.logger.log(f"[{self.name}] Read content from: {file_path}", 'debug')
                 except Exception as e:
                     self.logger.log(f"Error reading {file_path}: {str(e)}", 'warning')
                     
             # Extract research topics
+            self.logger.log(f"[{self.name}] Extracting research topics...", 'debug')
             topics = self._extract_research_topics(content)
+            
             if not topics:
-                self.logger.log("No research topics found", 'info')
+                self.logger.log(f"[{self.name}] No research topics found", 'info')
                 return None
                 
+            self.logger.log(f"[{self.name}] Found {len(topics)} research topics", 'info')
+            
             # Process each topic
             research_results = []
             for topic in topics:
+                self.logger.log(f"[{self.name}] Researching topic: {topic}", 'debug')
+                
                 # Generate and execute query
                 query = self._generate_query(topic)
                 results = self._execute_query(query)
@@ -264,8 +273,10 @@ Return ONLY the query text, nothing else."""
                         'query': query,
                         'results': results
                     })
+                    self.logger.log(f"[{self.name}] Got results for: {topic}", 'debug')
                     
             if not research_results:
+                self.logger.log(f"[{self.name}] No research results found", 'info')
                 return None
                 
             # Format results for Aider
@@ -307,15 +318,11 @@ Please proceed with the updates now."""
     def run(self):
         """Main execution loop for research agent"""
         try:
-            self.logger.log(f"[{self.name}] DEBUG: Entering research agent run method", 'debug')
-            
             self.logger.log(f"[{self.name}] 🚀 Starting research agent run loop", 'info')
             
             self.running = True
             while self.running:
                 try:
-                    self.logger.log(f"[{self.name}] DEBUG: Top of research agent run loop", 'debug')
-                    
                     # Validate mission directory
                     if not os.path.exists(self.mission_dir):
                         self.logger.log(f"[{self.name}] ❌ Mission directory not found")
@@ -332,8 +339,8 @@ Please proceed with the updates now."""
                         time.sleep(60)
                         continue
                     
-                    # Execute research mission
-                    result = self._run_aider(prompt)
+                    # Execute research mission instead of normal Aider execution
+                    result = self.execute_mission(prompt)
                     
                     # Update state based on result
                     self.last_run = datetime.now()
@@ -342,10 +349,6 @@ Please proceed with the updates now."""
                         self.consecutive_no_changes = 0
                     else:
                         self.consecutive_no_changes += 1
-                        
-                    # Calculate dynamic interval
-                    wait_time = self.calculate_dynamic_interval()
-                    time.sleep(wait_time)
                     
                 except Exception as loop_error:
                     self.logger.log(
