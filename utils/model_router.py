@@ -134,15 +134,16 @@ class ModelRouter:
     async def _generate_openai(
         self,
         client: openai.OpenAI,
-        messages: List[Dict[str, str]],
+        messages: List[Dict[str, str]], 
         system: Optional[str] = None,
         **kwargs
     ) -> str:
         """Generate response using OpenAI"""
         if system:
             messages = [{"role": "system", "content": system}] + messages
-            
-        response = await client.chat.completions.create(
+        
+        # Use acreate for proper async call
+        response = await client.chat.completions.acreate(
             model=self.current_model,
             messages=messages,
             max_tokens=kwargs.get('max_tokens', 4000),
