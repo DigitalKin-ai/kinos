@@ -208,13 +208,39 @@ class AiderAgent(AgentBase):
                 # Force map update after any Aider execution that produced output
                 if output:
                     try:
+                        # Get services
                         from services import init_services
                         services = init_services(None)
+                        
+                        # Update map
                         map_service = services['map_service']
                         if not map_service.update_map():
                             self.logger.log(f"[{self.name}] Failed to update map after Aider execution", 'warning')
-                    except Exception as map_error:
-                        self.logger.log(f"[{self.name}] Error updating map: {str(map_error)}", 'error')
+                            
+                        # Save to dataset
+                        dataset_service = services['dataset_service']
+                        
+                        # Get current files context
+                        files_context = {}
+                        for file_path in self.mission_files:
+                            try:
+                                with open(file_path, 'r', encoding='utf-8') as f:
+                                    files_context[file_path] = f.read()
+                            except Exception as e:
+                                self.logger.log(f"[{self.name}] Error reading {file_path}: {str(e)}", 'warning')
+                        
+                        # Add interaction to dataset asynchronously
+                        import asyncio
+                        asyncio.run(dataset_service.add_interaction_async(
+                            prompt=prompt,
+                            files_context=files_context,
+                            aider_response=output
+                        ))
+                        
+                        self.logger.log(f"[{self.name}] Interaction saved to dataset", 'debug')
+                        
+                    except Exception as service_error:
+                        self.logger.log(f"[{self.name}] Error with services: {str(service_error)}", 'error')
                         
                 return output
 
