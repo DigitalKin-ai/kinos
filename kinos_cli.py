@@ -182,7 +182,7 @@ def run_team_loop(team_name: str):
             # Process output queue
             try:
                 msg = output_queue.get(timeout=0.1)
-                logger.log(f"Received message from queue: {msg['status']}", 'debug')
+                logger.log(f"Received message from queue: {msg['status']}", 'warning')
             except queue.Empty:
                 pass
             
