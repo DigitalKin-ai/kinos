@@ -414,7 +414,7 @@ List any specific constraints or limitations.
     def run_random_agent(self, team_agents: List[str]):
         """
         Run a random agent from the team based on weights
-    
+
         Args:
             team_agents: List of agent names from team config
         """
@@ -428,7 +428,7 @@ List any specific constraints or limitations.
 
             # Get phase-specific weights
             phase_weights = phase_service.get_phase_weights(current_phase)
-        
+    
             if not phase_weights:
                 # Fallback to default weights if no phase config
                 weights = [0.5] * len(team_agents)
@@ -456,7 +456,7 @@ List any specific constraints or limitations.
                 'type': agent_type,  # Add type to config
                 'weight': phase_weights.get(agent_name, 0.5)  # Pass weight to agent
             }
-        
+    
             # Dynamically select agent class
             if agent_type == 'research':
                 from agents.research.research_agent import ResearchAgent
@@ -464,7 +464,7 @@ List any specific constraints or limitations.
             else:
                 from agents.aider.aider_agent import AiderAgent
                 AgentClass = AiderAgent
-        
+    
             # Create and run agent
             agent = AgentClass(config)
             self.logger.log(
@@ -472,10 +472,27 @@ List any specific constraints or limitations.
                 f"(weight: {config['weight']:.2f}) in {current_phase} phase", 
                 'info'
             )
-            agent.run()  # Single run
         
+            try:
+                agent.run()  # Single run
+            except Exception as run_error:
+                # Enhanced error logging
+                self.logger.log(
+                    f"Error running agent {agent_name}:\n"
+                    f"Type: {type(run_error)}\n"
+                    f"Error: {str(run_error)}\n"
+                    f"Traceback: {traceback.format_exc()}",
+                    'error'
+                )
+    
         except Exception as e:
-            self.logger.log(f"Error running agent: {str(e)}", 'error')
+            self.logger.log(
+                f"Comprehensive error running agent:\n"
+                f"Type: {type(e)}\n"
+                f"Error: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}",
+                'error'
+            )
 
     def toggle_agent(self, agent_name: str, action: str, mission_dir: Optional[str] = None) -> bool:
         """Start or stop an agent with improved error handling"""
@@ -921,21 +938,35 @@ List any specific constraints or limitations.
         while True:  # Keep trying to run the agent
             try:
                 self.logger.log(f"Starting agent {name}", 'info')
+            
+                # Capture start time
+                start_time = time.time()
+            
+                # Execute agent run
                 agent.run()
-                
-                # If run() returns normally, wait before retrying
+            
+                # Log successful run
+                run_duration = time.time() - start_time
+                self.logger.log(
+                    f"Agent {name} completed run successfully "
+                    f"(duration: {run_duration:.2f}s)", 
+                    'success'
+                )
+            
+                # Wait before potential retry
                 time.sleep(5)
                 continue
-                
+            
             except Exception as e:
-                # Log but ALWAYS continue
+                # Comprehensive error logging
                 self.logger.log(
-                    f"Agent {name} error (will retry):\n"
+                    f"Agent {name} critical error (will retry):\n"
+                    f"Type: {type(e)}\n"
                     f"Error: {str(e)}\n"
                     f"Traceback: {traceback.format_exc()}",
-                    'warning'
+                    'critical'
                 )
-                
+            
                 # Always wait before retrying
                 time.sleep(5)
                 continue
