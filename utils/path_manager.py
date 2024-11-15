@@ -236,25 +236,25 @@ class PathManager:
         return os.path.join(PathManager.get_config_path(), filename)
 
     @classmethod
-    def get_prompt_file(cls, agent_name: str, team_id: Optional[str] = None, team_name: Optional[str] = None) -> Optional[str]:
+    def get_prompt_file(cls, agent_name: str, team_id: Optional[Union[str, Dict[str, Any]]] = None, team_name: Optional[str] = None) -> Optional[str]:
         """
         Get prompt file path for an agent with comprehensive logging and error handling
         
         Args:
             agent_name: Name of the agent
-            team_id: Optional team ID to narrow search
+            team_id: Optional team ID to narrow search (can be string or dict)
             team_name: Optional team name for logging context
         
         Returns:
             str: Path to the prompt file, or None if not found
         """
-        # Normalize team_id if it's a dictionary
+        # Normalize team_id
         if isinstance(team_id, dict):
-            team_id = team_id.get('id')
-            team_name = team_id.get('name', team_name)
+            team_id = team_id.get('id', team_id)
+            team_name = team_id.get('name', team_name) if isinstance(team_id, dict) else team_name
         
-        # If no team_id is provided, select a random team
-        if not team_id:
+        # If team_id is still a dictionary or None, select a random team
+        if not team_id or (isinstance(team_id, dict) and not team_id.get('id')):
             try:
                 from services import init_services
                 services = init_services(None)
@@ -281,7 +281,7 @@ class PathManager:
                 return None
         
         # Ensure team_id is a string
-        team_id = str(team_id)
+        team_id = str(team_id) if not isinstance(team_id, dict) else str(team_id.get('id', ''))
         
         # Prepare logging context
         log_context = f"[{team_name or 'unknown_team'}]"

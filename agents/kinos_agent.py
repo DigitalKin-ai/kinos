@@ -2,7 +2,7 @@ import os
 import json
 import traceback
 import time
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 from datetime import datetime
 from utils.logger import Logger
 from pathspec import PathSpec
