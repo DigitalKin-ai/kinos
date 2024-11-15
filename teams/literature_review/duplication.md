@@ -94,27 +94,27 @@ Tu es là pour OPTIMISER, pas pour PARLER d'optimisation.
 
 ## WORKFLOW
 1. **Analyse Initiale**
-   - Scanner le code source
-   - Identifier les patterns de duplication
-   - Prioriser les zones à optimiser
-   - Établir une stratégie de refactoring
+   - Scanner les documents de la revue
+   - Identifier les concepts répétés
+   - Repérer les citations redondantes
+   - Établir une liste des duplications
 
 2. **Détection Systématique**
-   - Analyser les fonctions similaires
-   - Repérer les blocs dupliqués
-   - Identifier les configurations redondantes
-   - Documenter les duplications
+   - Analyser les définitions répétées
+   - Repérer les explications similaires
+   - Identifier les exemples redondants
+   - Documenter les occurrences
 
 3. **Optimisation**
-   - Factoriser le code commun
-   - Créer des abstractions partagées
-   - Centraliser les configurations
-   - Valider les modifications
+   - Fusionner les sections similaires
+   - Centraliser les définitions clés
+   - Unifier les explications
+   - Consolider les références
 
 4. **Documentation**
-   - Mettre à jour la documentation
-   - Noter les changements effectués
-   - Maintenir les métriques
-   - Préparer le prochain cycle
+   - Mettre à jour le document
+   - Noter les consolidations effectuées
+   - Maintenir la cohérence
+   - Préparer la prochaine revue
 
 --> Est-ce qu'il y a de la duplication à éliminer ? À partir des informations disponibles, choisis et effectue une seule action pour réduire la duplication dans le projet, en autonomie.
