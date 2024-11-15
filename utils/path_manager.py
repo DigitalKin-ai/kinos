@@ -290,9 +290,6 @@ class PathManager:
             # Comprehensive prompt filename variations
             prompt_filename_options = [
                 f"{normalized_agent_name}.md",
-                f"{normalized_agent_name}_prompt.md",
-                f"{agent_name}.md",
-                f"{agent_name}_prompt.md"
             ]
             
             # Logging search strategy
@@ -306,14 +303,11 @@ class PathManager:
             # Add team-specific directories if team_id exists
             if team_id:
                 search_directories.extend([
-                    os.path.join(cls.get_kinos_root(), "teams", team_id),
-                    os.path.join(cls.get_kinos_root(), "team_types", f"team_{team_id}"),
-                    os.path.join(cls.get_kinos_root(), "team_types", team_id)
+                    os.path.join(cls.get_team_path(team_id), "team_"+team_id)
                 ])
             
             # Add fallback search paths
             search_directories.extend([
-                os.path.join(cls.get_kinos_root(), "teams"),
                 os.path.join(cls.get_kinos_root(), "team_types"),
                 cls.get_kinos_root()
             ])
@@ -396,115 +390,8 @@ class PathManager:
         Returns:
             str: Path to the team directory
         """
-        # Prepare logging context
-        log_context = f"[{team_name or 'unknown_team'}]"
-        
-        # If no team_id is provided, select a random team
-        if team_id is None:
-            try:
-                from services import init_services
-                services = init_services(None)
-                team_service = services['team_service']
-                
-                # Get list of predefined teams
-                predefined_teams = team_service.predefined_teams
-                
-                if not predefined_teams:
-                    print(f"{log_context} ERROR: No teams found")
-                    return os.getcwd()
-                
-                # Select a random team
-                import random
-                random_team = random.choice(predefined_teams)
-                
-                team_id = random_team.get('id')
-                team_name = random_team.get('name', 'random_team')
-                
-                print(f"{log_context} Selected random team: {team_name} (ID: {team_id})")
-                
-            except Exception as e:
-                print(f"{log_context} ERROR: Could not retrieve random team: {str(e)}")
-                return os.getcwd()
-        
-        try:
-            # Normalize team_id
-            team_id = team_id.lower().replace('team_', '').replace('-', '_')
-            
-            # Comprehensive search locations with detailed logging
-            search_locations = [
-                os.path.join(PathManager.get_kinos_root(), 'team_types', f'team_{team_id}'),
-                os.path.join(PathManager.get_kinos_root(), 'team_types', team_id),
-                os.path.join(PathManager.get_kinos_root(), 'teams', team_id),
-                os.path.join(PathManager.get_project_root(), 'team_types', f'team_{team_id}'),
-                os.path.join(PathManager.get_project_root(), 'team_types', team_id),
-                os.path.join(PathManager.get_project_root(), 'teams', team_id)
-            ]
-            
-            # Remove duplicates while preserving order
-            search_locations = list(dict.fromkeys(search_locations))
-            
-            # Logging search strategy
-            print(f"{log_context} DEBUG: Searching for team path")
-            print(f"{log_context} DEBUG: Search Locations: {search_locations}")
-            
-            # Comprehensive search
-            for location in search_locations:
-                if os.path.exists(location) and os.path.isdir(location):
-                    print(f"{log_context} DEBUG: Found team path: {location}")
-                    return location
-            
-            # Fallback: create directory in team_types
-            fallback_path = os.path.join(PathManager.get_kinos_root(), 'team_types', f'team_{team_id}')
-            try:
-                os.makedirs(fallback_path, exist_ok=True)
-                print(f"{log_context} DEBUG: Created fallback team path: {fallback_path}")
-                return fallback_path
-            except Exception as e:
-                print(f"{log_context} ERROR: Could not create fallback path: {str(e)}")
-                return os.getcwd()
-            
-            # Initialize variables
-            base_dir = os.path.join(PathManager.get_kinos_root(), 'team_types')
-            directory_contents = os.listdir(base_dir)
-            matched_paths = []
-            search_patterns = [team_id] if team_id else []
-            
-            # Detailed directory matching
-            for item in directory_contents:
-                full_path = os.path.join(base_dir, item)
-                
-                # Check if path matches search criteria
-                path_matches = any(
-                    pattern in item.lower() or 
-                    pattern == item.lower().replace('team_', '').replace('_', '')
-                    for pattern in search_patterns
-                )
-                
-                if path_matches and os.path.isdir(full_path):
-                    print(f"{log_context} DEBUG: Potential match found: {full_path}")
-                    matched_paths.append(full_path)
-        
-            # Select best match
-            if matched_paths:
-                # Prefer exact matches or team_types directory
-                preferred_paths = [
-                    path for path in matched_paths 
-                    if any(pattern == os.path.basename(path).lower().replace('team_', '') 
-                           for pattern in search_patterns)
-                ]
-                
-                selected_path = preferred_paths[0] if preferred_paths else matched_paths[0]
-                print(f"{log_context} DEBUG: Selected team path: {selected_path}")
-                return selected_path
-            
-            # Fallback to current directory with warning
-            print(f"{log_context} WARNING: No team path found for {team_id}, returning current directory")
-            return os.getcwd()
-        
-        except Exception as e:
-            print(f"{log_context} CRITICAL ERROR in get_team_path: {str(e)}")
-            print(f"{log_context} Traceback: {traceback.format_exc()}")
-            return os.getcwd()
+        print(f"TEAM Traceback: {os.path.join(PathManager.get_project_root(), f'team_{team_id}')}")
+        return os.path.join(PathManager.get_project_root(), f'team_{team_id}')
 
     @staticmethod
     def get_log_file(service_name: str) -> str:
