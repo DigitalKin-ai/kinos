@@ -171,20 +171,24 @@ class MapService(BaseService):
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
                 
-            # Use ModelRouter's current model for tokenization
+            # Get ModelRouter for token counting
             from services import init_services
             services = init_services(None)
             model_router = services['model_router']
             
+            # Use appropriate tokenizer based on provider
             if model_router.current_provider == ModelProvider.ANTHROPIC:
-                return model_router.clients['anthropic'].count_tokens(content)
+                return len(model_router.clients['anthropic'].count_tokens(content))
             elif model_router.current_provider == ModelProvider.OPENAI:
-                return len(model_router.clients['openai'].tokenize(content))
+                import tiktoken
+                encoding = tiktoken.encoding_for_model(model_router.current_model)
+                return len(encoding.encode(content))
             else:
                 # Fallback estimation
                 return len(content.split()) * 1.3
                 
-        except Exception:
+        except Exception as e:
+            self.logger.log(f"Error counting tokens in {file_path}: {str(e)}", 'error')
             return 0
 
     def _should_ignore_file(self, file_path: str) -> bool:
