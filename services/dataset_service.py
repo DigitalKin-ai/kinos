@@ -81,11 +81,27 @@ class DatasetService(BaseService):
                                   aider_response: str, weight: float = 0) -> None:
         """Asynchronously add an interaction to the dataset"""
         try:
+            # Get ModelRouter for token counting
+            from services import init_services
+            services = init_services(None)
+            model_router = services['model_router']
+            
+            # Count tokens for interaction
+            prompt_tokens = len(model_router.clients[model_router.current_provider.value].tokenize(prompt))
+            context_tokens = len(model_router.clients[model_router.current_provider.value].tokenize(
+                self._format_files_context(files_context)
+            ))
+            response_tokens = len(model_router.clients[model_router.current_provider.value].tokenize(aider_response))
+            
+            total_tokens = prompt_tokens + context_tokens + response_tokens
+            
             self.logger.log(
                 f"💾 Starting dataset interaction processing:\n"
-                f"Prompt length: {len(prompt)}\n"
+                f"Total tokens: {total_tokens}\n"
+                f"Prompt tokens: {prompt_tokens}\n"
+                f"Context tokens: {context_tokens}\n"
+                f"Response tokens: {response_tokens}\n"
                 f"Number of files: {len(files_context)}\n"
-                f"Response length: {len(aider_response)}\n"
                 f"Dataset file: {self.dataset_file}",
                 'debug'
             )
@@ -100,13 +116,22 @@ class DatasetService(BaseService):
             # Format user message with context
             user_message = f"Context:\n{formatted_context}\n\nTask:\n{prompt}"
             
-            # Create dataset entry
+            # Create dataset entry with token metrics
             entry = {
                 "messages": [
                     {"role": "system", "content": prompt},
                     {"role": "user", "content": user_message},
                     {"role": "assistant", "content": aider_response}
-                ]
+                ],
+                "metadata": {
+                    "timestamp": datetime.now().isoformat(),
+                    "total_tokens": total_tokens,
+                    "prompt_tokens": prompt_tokens,
+                    "context_tokens": context_tokens,
+                    "response_tokens": response_tokens,
+                    "num_files": len(files_context),
+                    "weight": weight
+                }
             }
             
             # Append to file with explicit error handling
@@ -118,7 +143,7 @@ class DatasetService(BaseService):
                     os.fsync(f.fileno())  # Ensure it's written to disk
                     
                 self.logger.log(
-                    f"Added interaction to dataset (files: {len(files_context)})", 
+                    f"Added interaction to dataset (tokens: {total_tokens})", 
                     'success'
                 )
                 
