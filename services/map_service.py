@@ -69,18 +69,20 @@ class MapService(BaseService):
             warnings = []
             total_tokens = 0
 
-            # Load ignore patterns from .gitignore
-            gitignore_path = os.path.join(os.getcwd(), '.gitignore')
+            # Load ignore patterns from both .gitignore and .aiderignore
             ignore_patterns = []
-            if os.path.exists(gitignore_path):
-                try:
-                    with open(gitignore_path, 'r', encoding='utf-8') as f:
-                        ignore_patterns = [
-                            line.strip() for line in f.readlines()
-                            if line.strip() and not line.startswith('#')
-                        ]
-                except Exception as e:
-                    self.logger.log(f"Error reading .gitignore: {str(e)}", 'warning')
+            for ignore_file in ['.gitignore', '.aiderignore']:
+                ignore_path = os.path.join(os.getcwd(), ignore_file)
+                if os.path.exists(ignore_path):
+                    try:
+                        with open(ignore_path, 'r', encoding='utf-8') as f:
+                            patterns = [
+                                line.strip() for line in f.readlines()
+                                if line.strip() and not line.startswith('#')
+                            ]
+                            ignore_patterns.extend(patterns)
+                    except Exception as e:
+                        self.logger.log(f"Error reading {ignore_file}: {str(e)}", 'warning')
 
             # Create PathSpec for pattern matching
             from pathspec import PathSpec
@@ -103,13 +105,14 @@ class MapService(BaseService):
                 full_path = os.path.join(path, item)
                 rel_path = os.path.relpath(full_path, os.getcwd())
 
-                # Skip if matches ignore patterns
+                # Skip if matches ignore patterns - don't even add to tree
                 if spec.match_file(rel_path):
                     continue
             
                 if os.path.isdir(full_path):
                     # Skip certain directories
-                    if item in {'__pycache__', 'node_modules', '.git', '.idea', 'venv'}:
+                    if item in {'__pycache__', 'node_modules', '.git', '.idea', 'venv',
+                              '.pytest_cache', '__pycache__', '.mypy_cache'}:
                         continue
                         
                     tree_lines.append(f"{current_prefix}📁 {item}/")
@@ -124,21 +127,26 @@ class MapService(BaseService):
                         tree_lines.pop()
                 
                 elif any(item.endswith(ext) for ext in tracked_extensions):
-                    try:
-                        token_count = self._count_tokens(full_path)
-                        total_tokens += token_count
-                        status_icon = self._get_status_icon(token_count)
-                    
-                        size_k = token_count / 1000
-                        tree_lines.append(
-                            f"{current_prefix}📄 {item} ({size_k:.1f}k tokens) {status_icon}"
-                        )
-                    
-                        warning = self._check_file_size(item, token_count)
-                        if warning:
-                            warnings.append(warning)
-                    except Exception as e:
-                        self.logger.log(f"Error processing file {item}: {str(e)}", 'warning')
+                    # Double check that file isn't ignored before counting tokens
+                    if not spec.match_file(rel_path):
+                        try:
+                            token_count = self._count_tokens(full_path)
+                            total_tokens += token_count
+                            status_icon = self._get_status_icon(token_count)
+                        
+                            size_k = token_count / 1000
+                            tree_lines.append(
+                                f"{current_prefix}📄 {item} ({size_k:.1f}k tokens) {status_icon}"
+                            )
+                        
+                            warning = self._check_file_size(item, token_count)
+                            if warning:
+                                warnings.append(warning)
+                        except Exception as e:
+                            self.logger.log(f"Error processing file {item}: {str(e)}", 'warning')
+                    else:
+                        # File matches ignore pattern - add to tree but don't count tokens
+                        tree_lines.append(f"{current_prefix}📄 {item} (ignored)")
                         
             return tree_lines, warnings, total_tokens
             
