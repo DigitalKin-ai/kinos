@@ -6,13 +6,20 @@ import json
 import requests
 from typing import Dict, Any, Optional
 from utils.logger import Logger
+from dotenv import load_dotenv
 
 class PerplexityClient:
     """Client for making Perplexity API requests"""
     
     def __init__(self, api_key: Optional[str] = None):
         """Initialize client with API key"""
+        # Load environment variables from .env file
+        load_dotenv()
+        
         self.api_key = api_key or os.environ.get('PERPLEXITY_API_KEY')
+        if not self.api_key:
+            raise ValueError("No Perplexity API key found in .env file or environment variables")
+            
         self.logger = Logger()
         self.base_url = "https://api.perplexity.ai/v1"
         

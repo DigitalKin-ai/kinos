@@ -81,8 +81,14 @@ class ResearchAgent(AiderAgent):
         self.research_log = os.path.join(self.data_dir, "research_log.jsonl")
         self.query_cache = {}
         
-        # Initialize Perplexity client using environment variable
+        # Load environment variables and initialize Perplexity client
+        from dotenv import load_dotenv
+        load_dotenv()
+        
         perplexity_api_key = os.environ.get('PERPLEXITY_API_KEY')
+        if not perplexity_api_key:
+            raise ValueError("PERPLEXITY_API_KEY not found in .env file")
+            
         self.perplexity_client = PerplexityClient(api_key=perplexity_api_key)
         
         # Load API configuration
