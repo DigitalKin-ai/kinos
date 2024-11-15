@@ -150,6 +150,17 @@ def initialize_team_structure(team_name: str, specific_name: str = None):
                 f.write(content)
             logger.log(f"Created {filename}", 'info')
     
+    # Créer le fichier .gitignore
+    gitignore_path = os.path.join(team_dir, '.gitignore')
+    gitignore_content = """# Ignore Aider and KinOS history files
+.aider*
+.kinos*
+"""
+    
+    with open(gitignore_path, 'w', encoding='utf-8') as f:
+        f.write(gitignore_content)
+    logger.log("Created .gitignore", 'info')
+    
     # Déterminer le chemin racine du projet
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
