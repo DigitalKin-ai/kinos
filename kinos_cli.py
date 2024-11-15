@@ -130,10 +130,10 @@ def run_team_loop(team_name: str):
                     phase_status = phase_service.get_status_info()
                     current_phase = phase_status['phase']
                 
-                logger.log(f"Current project phase: {current_phase}", 'debug')
+                    logger.log(f"Current project phase: {current_phase}", 'debug')
                 
-                phase_weights = phase_service.get_phase_weights(current_phase)
-                logger.log(f"Phase weights: {phase_weights}", 'debug')
+                    phase_weights = phase_service.get_phase_weights(current_phase)
+                    logger.log(f"Phase weights: {phase_weights}", 'debug')
                 
                     # Filter out agents that are already running
                     available_agents = [a for a in agents if not any(
