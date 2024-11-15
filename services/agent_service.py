@@ -524,21 +524,25 @@ List any specific constraints or limitations.
                 'info'
             )
     
+            # Add global error tracking
             try:
-                agent.run()  # Single run
-            except Exception as run_error:
-                # Enhanced error logging
+                agent.run()
+            except Exception as agent_error:
                 self.logger.log(
-                    f"Error running agent {agent_name}:\n"
-                    f"Type: {type(run_error)}\n"
-                    f"Error: {str(run_error)}\n"
+                    f"Agent {agent_name} execution error:\n"
+                    f"Type: {type(agent_error)}\n"
+                    f"Error: {str(agent_error)}\n"
                     f"Traceback: {traceback.format_exc()}",
-                    'error'
+                    'critical'
                 )
+                
+                # Optional: Attempt recovery or restart
+                if hasattr(agent, 'recover_from_error'):
+                    agent.recover_from_error()
 
         except Exception as e:
             self.logger.log(
-                f"Comprehensive error running agent:\n"
+                f"❌ Comprehensive error running agent:\n"
                 f"Type: {type(e)}\n"
                 f"Error: {str(e)}\n"
                 f"Traceback: {traceback.format_exc()}",

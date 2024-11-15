@@ -11,7 +11,7 @@ _configs_loaded = False
 
 def init_services(_):  # Keep parameter for compatibility but don't use it
     """Initialize all services with minimal dependencies"""
-    global _configs_loaded
+    global _initialized_services, _configs_loaded
     
     print("[DEBUG] Entering init_services()")
     print(f"[DEBUG] _initialized_services exists: {bool(_initialized_services)}")
@@ -48,7 +48,7 @@ def init_services(_):  # Keep parameter for compatibility but don't use it
         print("[DEBUG] Services created")
 
         # Store in cache
-        _initialized_services.update(services)
+        _initialized_services = services
         print("[DEBUG] Services cached")
 
         # Charger les configurations une seule fois
