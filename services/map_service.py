@@ -14,7 +14,7 @@ class MapService(BaseService):
     def __init__(self, _):  # Keep parameter for compatibility but don't use it
         """Initialize with minimal dependencies"""
         self.logger = Logger()
-        self.map_file = "map (readonly).md"
+        self.map_file = "map.md"
         self.size_limits = {
             'warning': 6000,  # Tokens triggering warning (6k)
             'error': 12000    # Tokens triggering error (12k)
@@ -230,7 +230,7 @@ class MapService(BaseService):
             phase_weights = self.phase_service.get_phase_weights(current_phase)
             
             content = [
-                "# Project Map",
+                "# Project Map (READONLY FILE)",
                 "\nCe document est une carte dynamique du projet qui est automatiquement mise à jour pour fournir une vue d'ensemble de la structure et de l'état du projet. Il surveille notamment :",
                 "- L'arborescence complète des fichiers",
                 "- La taille de chaque document en tokens",

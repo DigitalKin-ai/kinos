@@ -11,7 +11,7 @@
         {
             "name": "chercheur",
             "type": "research",
-            "weight": 0.5
+            "weight": 1
         },
         {
             "name": "management",
@@ -31,7 +31,7 @@
         {
             "name": "documentaliste",
             "type": "research",
-            "weight": 0.3
+            "weight": 0.7
         },
         {
             "name": "duplication",
@@ -50,7 +50,7 @@
         },
         {
             "name": "validation",
-            "type": "aider",
+            "type": "research",
             "weight": 0.4
         }
     ],
@@ -58,19 +58,21 @@
         "expansion": {
             "active_agents": [
                 {"name": "specifications", "weight": 0.2},
-                {"name": "chercheur", "weight": 0.5},
-                {"name": "redacteur", "weight": 0.9},
-                {"name": "chroniqueur", "weight": 0.1}
+                {"name": "chercheur", "weight": 1},
+                {"name": "redacteur", "weight": 1},
+                {"name": "chroniqueur", "weight": 0.1},
+                {"name": "manager", "weight": 0.5}
             ],
             "priority": "research"
         },
         "convergence": {
             "active_agents": [
                 {"name": "evaluation", "weight": 0.5},
-                {"name": "duplication", "weight": 0.7},
-                {"name": "redondance", "weight": 0.8},
-                {"name": "validation", "weight": 0.4},
-                {"name": "documentaliste", "weight": 0.3}
+                {"name": "manager", "weight": 0.5},
+                {"name": "duplication", "weight": 1},
+                {"name": "redondance", "weight": 1},
+                {"name": "validation", "weight": 1},
+                {"name": "documentaliste", "weight": 1}
             ],
             "priority": "synthesis"
         }

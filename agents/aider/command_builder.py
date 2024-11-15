@@ -43,7 +43,7 @@ class AiderCommandBuilder:
         ]
         
         # Remove key files from valid_files if present to avoid duplicates
-        valid_files = [f for f in valid_files if f not in ["demande.md", "map (readonly).md"]]
+        valid_files = [f for f in valid_files if f not in ["demande.md", "map.md", "todolist.md", "directives.md"]]
         
         # Limit remaining files to 10 random if needed
         if len(valid_files) > 10:
@@ -51,7 +51,7 @@ class AiderCommandBuilder:
             valid_files = random.sample(valid_files, 10)
         
         # Add key files first
-        key_files = ["demande.md", "map (readonly).md"]
+        key_files = ["demande.md", "map.md", "todolist.md", "directives.md"]
         for file in key_files:
             args.extend(["--file", file])
             

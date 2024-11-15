@@ -45,11 +45,11 @@ class PerplexityClient:
             
             # Prepare request data according to API spec
             data = {
-                "model": "llama-3.1-sonar-small-128k-online",
+                "model": "llama-3.1-sonar-large-128k-chat",
                 "messages": [
                     {
                         "role": "system",
-                        "content": "Be precise and concise."
+                        "content": "Be precise and thorough. Always include the complete citation, with verbatim if possible."
                     },
                     {
                         "role": "user",
@@ -59,7 +59,6 @@ class PerplexityClient:
                 "temperature": 0.2,
                 "top_p": 0.9,
                 "return_citations": True,
-                "search_domain_filter": ["perplexity.ai"],
                 "return_images": False,
                 "return_related_questions": False,
                 "search_recency_filter": "month",
@@ -82,6 +81,9 @@ class PerplexityClient:
                 result = response.json()
                 # Extract content from response
                 content = result['choices'][0]['message']['content']
+
+                # TODO : Add it to chat history
+
                 return {
                     'query': query,
                     'response': content,

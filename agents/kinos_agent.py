@@ -40,8 +40,8 @@ class FileManager:
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(content)
                 
-            # Update map after any file change except map (readonly).md itself
-            if file_name != 'map (readonly).md':
+            # Update map after any file change except map.md itself
+            if file_name != 'map.md':
                 # Get services and update map
                 from services import init_services
                 services = init_services(None)

@@ -72,7 +72,7 @@ class FileService(BaseService):
                 os.replace(temp_path, file_path)
                 
                 # Mise à jour explicite de la map sauf pour le fichier map lui-même
-                if file_name != 'map (readonly).md':
+                if file_name != 'map.md':
                     try:
                         from services import init_services
                         services = init_services(None)

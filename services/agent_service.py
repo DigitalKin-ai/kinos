@@ -473,9 +473,8 @@ List any specific constraints or limitations.
 
             # EXPLICIT RESEARCH TYPE FOR SPECIFIC AGENTS
             research_agents = [
-                'management', 'specifications', 'chercheur', 
-                'evaluation', 'chroniqueur', 'documentaliste', 
-                'duplication', 'redondance', 'validation', 'redacteur'
+                'chercheur', 
+                'documentaliste'
             ]
             
             # Determine agent type with fallback and case-insensitive check

@@ -51,8 +51,8 @@ class FileManager:
                 # Atomic rename
                 os.replace(temp_path, file_path)
                 
-                # Update map after any file change except map (readonly).md itself
-                if file_name != 'map (readonly).md':
+                # Update map after any file change except map.md itself
+                if file_name != 'map.md':
                     from services import init_services
                     services = init_services(None)
                     services['map_service'].update_map()

@@ -74,7 +74,7 @@ Current agent weights:
 ├── 📄 kin.bat (0.0k tokens) ✓
 ├── 📄 kinos_cli.py (2.9k tokens) ✓
 ├── 📄 main.py (0.2k tokens) ✓
-├── 📄 map (readonly).md (2.8k tokens) ✓
+├── 📄 map.md (2.8k tokens) ✓
 ├── 📄 package-lock.json (0.0k tokens) ✓
 ├── 📁 prompts/
 │   ├── 📄 chercheur.md (1.3k tokens) ✓
