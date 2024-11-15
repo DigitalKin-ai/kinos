@@ -273,8 +273,11 @@ def run_multi_team_loop(model: Optional[str] = None):
     team_service = services['team_service']
     agent_service = services['agent_service']
     
+    # Use PathManager to get team types directory
+    from utils.path_manager import PathManager
+    teams_dir = PathManager.get_team_types_root()
+    
     # Find all team directories
-    teams_dir = os.path.join('teams')
     team_dirs = [d for d in os.listdir(teams_dir) if d.startswith('team_')]
     
     if not team_dirs:
