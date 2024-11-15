@@ -427,8 +427,8 @@ class AiderAgent(AgentBase):
             }
 
             # Chemins des fichiers d'historique
-            chat_history_file = f".aider.{agent_team}_{specific_name}.chat.history.md"
-            input_history_file = f".aider.{agent_team}_{specific_name}.input.history.md"
+            chat_history_file = f".kinos.{agent_team}_{specific_name}.chat.history.md"
+            input_history_file = f".kinos.{agent_team}_{specific_name}.input.history.md"
 
             # Créer les fichiers clés si nécessaire
             for filename, default_content in key_files.items():
