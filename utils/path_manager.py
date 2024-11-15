@@ -428,40 +428,40 @@ class PathManager:
         
         try:
             # Normalize team_id
-            team_id = team_id.lower().replace('team_', '')
+            team_id = team_id.lower().replace('team_', '').replace('-', '_')
             
             # Comprehensive search locations with detailed logging
             search_locations = [
-                os.getcwd(),  # Current mission directory
-                os.path.dirname(os.getcwd()),  # Parent of current directory
-                os.path.join(PathManager.get_kinos_root(), 'teams'),  # KinOS teams directory
-                os.path.join(PathManager.get_kinos_root(), 'team_types')  # Team types directory
+                os.path.join(PathManager.get_kinos_root(), 'team_types', f'team_{team_id}'),
+                os.path.join(PathManager.get_kinos_root(), 'team_types', team_id),
+                os.path.join(PathManager.get_kinos_root(), 'teams', team_id),
+                os.path.join(PathManager.get_project_root(), 'team_types', f'team_{team_id}'),
+                os.path.join(PathManager.get_project_root(), 'team_types', team_id),
+                os.path.join(PathManager.get_project_root(), 'teams', team_id)
             ]
             
-            # Detailed search patterns
-            search_patterns = [
-                f"team_{team_id}",  # Explicit team_ prefix
-                f"{team_id}",        # Exact match
-                team_id.replace('_', '')  # Remove underscores
-            ]
+            # Remove duplicates while preserving order
+            search_locations = list(dict.fromkeys(search_locations))
             
             # Logging search strategy
             print(f"{log_context} DEBUG: Searching for team path")
             print(f"{log_context} DEBUG: Search Locations: {search_locations}")
-            print(f"{log_context} DEBUG: Search Patterns: {search_patterns}")
             
             # Comprehensive search
-            matched_paths = []
-            for base_dir in search_locations:
-                if not os.path.exists(base_dir):
-                    print(f"{log_context} DEBUG: Skipping non-existent directory: {base_dir}")
-                    continue
-                
-                try:
-                    directory_contents = os.listdir(base_dir)
-                except PermissionError:
-                    print(f"{log_context} WARNING: Permission denied accessing {base_dir}")
-                    continue
+            for location in search_locations:
+                if os.path.exists(location) and os.path.isdir(location):
+                    print(f"{log_context} DEBUG: Found team path: {location}")
+                    return location
+            
+            # Fallback: create directory in team_types
+            fallback_path = os.path.join(PathManager.get_kinos_root(), 'team_types', f'team_{team_id}')
+            try:
+                os.makedirs(fallback_path, exist_ok=True)
+                print(f"{log_context} DEBUG: Created fallback team path: {fallback_path}")
+                return fallback_path
+            except Exception as e:
+                print(f"{log_context} ERROR: Could not create fallback path: {str(e)}")
+                return os.getcwd()
                 except Exception as list_error:
                     print(f"{log_context} ERROR: Error listing directory {base_dir}: {str(list_error)}")
                     continue
