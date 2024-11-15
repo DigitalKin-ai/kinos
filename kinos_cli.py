@@ -141,7 +141,7 @@ def run_team_loop(team_name: str):
             logger.log(f"Active threads: {len(active_threads)}", 'debug')
             
             # Start new threads if needed
-            while len(active_threads) < 2:
+            while len(active_threads) < 3:
                 # Get current phase weights
                 from services import init_services
                 services = init_services(None)
