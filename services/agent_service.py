@@ -1445,11 +1445,9 @@ List any specific constraints or limitations.
             return None
 
     def execute_mission(self, prompt: str) -> Optional[str]:
-        """
-        Execute research mission with topic extraction and querying
-        """
+        """Execute research mission with single query to Perplexity"""
         try:
-            self.logger.log(f"[{self.name}] Starting research mission", 'info')
+            self.logger.log(f"[{self.name}] 🔍 Starting research mission", 'debug')
             
             # Get current content
             content = ""
@@ -1457,40 +1455,22 @@ List any specific constraints or limitations.
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content += f.read() + "\n\n"
+                    self.logger.log(f"[{self.name}] Read content from: {file_path}", 'debug')
                 except Exception as e:
                     self.logger.log(f"Error reading {file_path}: {str(e)}", 'warning')
-                    
-            # Extract research topics
-            topics = self._extract_research_topics(content)
-            if not topics:
-                self.logger.log("No research topics found", 'info')
-                return None
-                
-            # Process each topic
-            research_results = []
-            for topic in topics:
-                # Generate and execute query
-                query = self._generate_query(topic)
-                results = self._execute_query(query)
-                
-                if results:
-                    research_results.append({
-                        'topic': topic,
-                        'query': query,
-                        'results': results
-                    })
-                    
-            if not research_results:
-                return None
-                
-            # Format results for Aider
-            formatted_results = self._format_research_results(research_results)
+
+            # Execute single query with full content
+            results = self.perplexity_client.execute_query(content)
             
-            # Call Aider to insert references
+            if not results:
+                self.logger.log(f"[{self.name}] No research results found", 'info')
+                return None
+
+            # Format for Aider
             aider_prompt = f"""Based on the research results below, update the relevant files to add appropriate references and citations.
 
 Research Results:
-{formatted_results}
+{results['response']}
 
 Instructions:
 1. Insert references at appropriate locations in the text
@@ -1500,6 +1480,17 @@ Instructions:
 5. Only add the new references - don't modify other content
 
 Please proceed with the updates now."""
+
+            # Save to chat history
+            chat_history_file = f".aider.{self.name}.chat.history.md"
+            try:
+                with open(chat_history_file, 'a', encoding='utf-8') as f:
+                    f.write(f"\n\n--- {datetime.now().isoformat()} ---\n")
+                    f.write(f"**Research Query:**\n{content}\n\n")
+                    f.write(f"**Research Results:**\n{results['response']}\n\n")
+                    f.write(f"**Aider Prompt:**\n{aider_prompt}\n")
+            except Exception as e:
+                self.logger.log(f"Error saving research chat history: {str(e)}", 'warning')
 
             return super()._run_aider(aider_prompt)
             
