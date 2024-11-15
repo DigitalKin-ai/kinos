@@ -143,17 +143,16 @@ class PromptHandler:
             kinos_root = PathManager.get_kinos_root()
             project_root = PathManager.get_project_root()
             
-            # Possible locations to check, en priorité depuis kinos_root
+            # Possible locations to check, prioritizing team-specific prompts
             search_paths = [
-                # D'abord chercher dans l'installation KinOS
-                os.path.join(kinos_root, "prompts", os.path.basename(prompt_file)),
-                os.path.join(kinos_root, "prompts", prompt_file),
-                os.path.join(kinos_root, prompt_file),
+                # First check in teams directory
+                os.path.join(kinos_root, "teams", "*", os.path.basename(prompt_file)),
+                os.path.join(kinos_root, "teams", "*", prompt_file),
                 
-                # Puis dans le projet courant
+                # Then check project root
                 os.path.join(project_root, prompt_file),
                 os.path.join(project_root, "prompts", prompt_file),
-                prompt_file,  # Chemin relatif tel quel
+                prompt_file,  # Relative path as-is
             ]
             
             # Log search paths
@@ -163,13 +162,22 @@ class PromptHandler:
                 'debug'
             )
             
-            # Try each path
-            for path in search_paths:
-                if os.path.exists(path):
-                    self.logger.log(f"Found prompt at: {path}", 'debug')
-                    return path
+            # Try each path, handling wildcards for team directories
+            for path_pattern in search_paths:
+                if '*' in path_pattern:
+                    # Handle team directory wildcards
+                    import glob
+                    matching_paths = glob.glob(path_pattern)
+                    for path in matching_paths:
+                        if os.path.exists(path):
+                            self.logger.log(f"Found prompt at: {path}", 'debug')
+                            return path
+                else:
+                    if os.path.exists(path_pattern):
+                        self.logger.log(f"Found prompt at: {path_pattern}", 'debug')
+                        return path_pattern
                     
-            # Si non trouvé, log détaillé
+            # If not found, log detailed info
             self.logger.log(
                 f"Prompt not found. Details:\n"
                 f"- KinOS root: {kinos_root}\n"
