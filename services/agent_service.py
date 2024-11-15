@@ -428,7 +428,7 @@ List any specific constraints or limitations.
 
             # Get phase-specific weights
             phase_weights = phase_service.get_phase_weights(current_phase)
-    
+
             if not phase_weights:
                 # Fallback to default weights if no phase config
                 weights = [0.5] * len(team_agents)
@@ -442,21 +442,36 @@ List any specific constraints or limitations.
                     weights = [w/total for w in weights]
                 agent_name = random.choices(team_agents, weights=weights, k=1)[0]
 
-            # Determine agent type based on mission/agent name
-            agent_type = 'research' if any(keyword in agent_name.lower() for keyword in [
-                'research', 'literature', 'review', 'study', 'analyse', 
-                'documentation', 'chercheur', 'recherche'
-            ]) else 'aider'
+            # Find the agent configuration in the team config
+            agent_config = None
+            for team in services['team_service'].predefined_teams:
+                for agent in team.get('agents', []):
+                    if isinstance(agent, dict) and agent['name'] == agent_name:
+                        agent_config = agent
+                        break
+                if agent_config:
+                    break
+
+            # Determine agent type from configuration or dynamically
+            agent_type = 'aider'
+            if agent_config and 'type' in agent_config:
+                agent_type = agent_config['type']
+            else:
+                # Fallback detection
+                agent_type = 'research' if any(keyword in agent_name.lower() for keyword in [
+                    'research', 'literature', 'review', 'study', 'analyse', 
+                    'documentation', 'chercheur', 'recherche'
+                ]) else 'aider'
 
             # Configure agent
             config = {
                 'name': agent_name,
                 'mission_dir': os.getcwd(),
                 'prompt_file': os.path.join('prompts', f"{agent_name}.md"),
-                'type': agent_type,  # Add type to config
+                'type': agent_type,  # Explicitly set type from configuration
                 'weight': phase_weights.get(agent_name, 0.5)  # Pass weight to agent
             }
-    
+
             # Dynamically select agent class
             if agent_type == 'research':
                 from agents.research.research_agent import ResearchAgent
@@ -464,7 +479,7 @@ List any specific constraints or limitations.
             else:
                 from agents.aider.aider_agent import AiderAgent
                 AgentClass = AiderAgent
-    
+
             # Create and run agent
             agent = AgentClass(config)
             self.logger.log(
@@ -484,7 +499,7 @@ List any specific constraints or limitations.
                     f"Traceback: {traceback.format_exc()}",
                     'error'
                 )
-    
+
         except Exception as e:
             self.logger.log(
                 f"Comprehensive error running agent:\n"
