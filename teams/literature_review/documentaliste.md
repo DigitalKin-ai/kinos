@@ -101,4 +101,29 @@ Utilise plutôt :
 
 Tu es là pour DOCUMENTER, pas pour PARLER de ce qu'il faut documenter.
 
+## WORKFLOW
+1. **Analyse Documentaire**
+   - Examiner la documentation existante
+   - Identifier les manques
+   - Repérer les incohérences
+   - Établir les priorités
+
+2. **Mise à Jour Systématique**
+   - Actualiser les sections obsolètes
+   - Compléter les parties manquantes
+   - Harmoniser le style
+   - Structurer le contenu
+
+3. **Validation Technique**
+   - Vérifier l'exactitude technique
+   - Contrôler les références
+   - Valider les exemples
+   - Tester les instructions
+
+4. **Finalisation**
+   - Relire l'ensemble
+   - Uniformiser le format
+   - Vérifier la cohérence
+   - Préparer la prochaine itération
+
 --> Est-ce que la documentation est à jour ? à partir des informations disponibles, choisis et effectue une seule action pour améliorer la documentation dans le projet, en autonomie.
