@@ -1,31 +1,37 @@
 """Services package initialization"""
-import os
-import sys
 import traceback
-from utils.path_manager import PathManager
+from typing import Dict, Any, Optional
+from utils.logger import Logger
 from utils.exceptions import ServiceError
 
-# Cache des services initialisés
-_initialized_services = {}
+# Use a more robust caching mechanism
+_services_cache: Optional[Dict[str, Any]] = None
 _configs_loaded = False
 
-def init_services(_):  # Keep parameter for compatibility but don't use it
-    """Initialize all services with minimal dependencies"""
-    global _initialized_services, _configs_loaded
+def init_services(_) -> Dict[str, Any]:
+    """
+    Initialize services with improved caching and error handling
     
-    print("[DEBUG] Entering init_services()")
-    print(f"[DEBUG] _initialized_services exists: {bool(_initialized_services)}")
-    print(f"[DEBUG] _configs_loaded: {_configs_loaded}")
+    Args:
+        _: Compatibility parameter (unused)
     
-    # Si les services sont déjà initialisés, retourner le cache directement
-    if _initialized_services:
-        print("[DEBUG] Returning cached services")
-        return _initialized_services
-        
+    Returns:
+        Dict of initialized services
+    """
+    global _services_cache, _configs_loaded
+    
+    # Create logger
+    logger = Logger()
+    
+    # If services are already initialized, return cached services
+    if _services_cache is not None:
+        logger.log("Returning cached services", 'debug')
+        return _services_cache
+    
     try:
-        print("[DEBUG] Starting service initialization")
+        logger.log("Starting service initialization", 'debug')
         
-        # Import services only when needed to avoid circular imports
+        # Import services dynamically to avoid circular imports
         from services.dataset_service import DatasetService
         from services.file_service import FileService
         from services.team_service import TeamService
@@ -33,9 +39,9 @@ def init_services(_):  # Keep parameter for compatibility but don't use it
         from services.map_service import MapService
         from services.phase_service import PhaseService
 
-        print("[DEBUG] Services imported successfully")
+        logger.log("Services imported successfully", 'debug')
 
-        # Create services without circular dependencies
+        # Create services with minimal dependencies
         services = {
             'map_service': MapService(None),
             'dataset_service': DatasetService(None),
@@ -45,23 +51,68 @@ def init_services(_):  # Keep parameter for compatibility but don't use it
             'phase_service': PhaseService(None)
         }
 
-        print("[DEBUG] Services created")
+        logger.log("Services created", 'debug')
 
-        # Store in cache
-        _initialized_services = services
-        print("[DEBUG] Services cached")
-
-        # Charger les configurations une seule fois
+        # Load team configurations only once
         if not _configs_loaded:
-            print("[DEBUG] Loading team configurations")
-            for team_config in ['book-writing', 'coding', 'default', 'literature-review']:
-                print(f"Loaded team configuration: {team_config}")
+            logger.log("Loading team configurations", 'debug')
+            team_configs = [
+                'book-writing', 
+                'coding', 
+                'default', 
+                'literature-review'
+            ]
+            for config in team_configs:
+                logger.log(f"Loaded team configuration: {config}", 'debug')
             _configs_loaded = True
-            print("[DEBUG] Team configurations loaded")
 
-        return _initialized_services
+        # Cache services
+        _services_cache = services
+        logger.log("Services cached", 'debug')
+
+        return services
 
     except Exception as e:
-        print(f"[ERROR] Service initialization failed: {str(e)}")
-        print(f"[ERROR] Traceback: {traceback.format_exc()}")
-        raise ServiceError(f"Service initialization failed: {str(e)}")
+        # Log detailed error
+        logger.log(
+            f"Service initialization failed:\n"
+            f"Error: {str(e)}\n"
+            f"Traceback: {traceback.format_exc()}",
+            'error'
+        )
+        
+        # Raise a specific service error
+        raise ServiceError(f"Failed to initialize services: {str(e)}") from e
+
+def get_service(service_name: str) -> Any:
+    """
+    Retrieve a specific service from the initialized services
+    
+    Args:
+        service_name: Name of the service to retrieve
+    
+    Returns:
+        Requested service instance
+    
+    Raises:
+        ServiceError if services not initialized or service not found
+    """
+    global _services_cache
+    
+    # Ensure services are initialized
+    if _services_cache is None:
+        init_services(None)
+    
+    # Retrieve service
+    if service_name not in _services_cache:
+        raise ServiceError(f"Service '{service_name}' not found")
+    
+    return _services_cache[service_name]
+
+def reset_services():
+    """
+    Reset the services cache, forcing re-initialization on next call
+    """
+    global _services_cache, _configs_loaded
+    _services_cache = None
+    _configs_loaded = False
