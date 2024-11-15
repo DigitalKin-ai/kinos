@@ -154,6 +154,8 @@ Give some context explanation.
                         f.write(f"**Perplexity Response:**\n{results['response']}\n")
                 except Exception as e:
                     self.logger.log(f"Error saving Perplexity response to chat: {str(e)}", 'warning')
+            else:
+                self.logger.log(f"[{self.name}] ❌ No response from Perplexity API for query: {query}", 'error')
                 
             return results
             
