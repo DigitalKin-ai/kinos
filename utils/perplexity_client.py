@@ -21,7 +21,7 @@ class PerplexityClient:
             raise ValueError("No Perplexity API key found in .env file or environment variables")
             
         self.logger = Logger()
-        self.base_url = "https://api.perplexity.ai/v1"
+        self.base_url = "https://api.perplexity.ai"
         
     def execute_query(self, query: str, **kwargs) -> Optional[Dict[str, Any]]:
         """
@@ -45,11 +45,11 @@ class PerplexityClient:
             
             # Prepare request data according to API spec
             data = {
-                "model": "llama-3.1-sonar-small-128k-online",  # Use appropriate model
+                "model": "llama-3.1-sonar-small-128k-online",
                 "messages": [
                     {
                         "role": "system",
-                        "content": "You are a helpful research assistant. Provide accurate and detailed information."
+                        "content": "Be precise and concise."
                     },
                     {
                         "role": "user",
@@ -59,7 +59,14 @@ class PerplexityClient:
                 "temperature": 0.2,
                 "top_p": 0.9,
                 "return_citations": True,
+                "search_domain_filter": ["perplexity.ai"],
+                "return_images": False,
+                "return_related_questions": False,
                 "search_recency_filter": "month",
+                "top_k": 0,
+                "stream": False,
+                "presence_penalty": 0,
+                "frequency_penalty": 1,
                 **kwargs
             }
             
