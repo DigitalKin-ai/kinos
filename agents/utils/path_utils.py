@@ -215,6 +215,33 @@ class PathManager:
         Returns:
             str: Path to the prompt file, or None if not found
         """
+        # If no team_id is provided, select a random team
+        if not team_id:
+            try:
+                from services import init_services
+                services = init_services(None)
+                team_service = services['team_service']
+                
+                # Get list of predefined teams
+                predefined_teams = team_service.predefined_teams
+                
+                if not predefined_teams:
+                    print("[unknown_team] ERROR: No teams found")
+                    return None
+                
+                # Select a random team
+                import random
+                random_team = random.choice(predefined_teams)
+                
+                team_id = random_team.get('id')
+                team_name = random_team.get('name', 'random_team')
+                
+                print(f"[random_team] Selected random team: {team_name} (ID: {team_id})")
+                
+            except Exception as e:
+                print(f"[unknown_team] ERROR: Could not retrieve random team: {str(e)}")
+                return None
+        
         # Prepare logging context
         log_context = f"[{team_name or 'unknown_team'}]"
         
