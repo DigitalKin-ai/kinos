@@ -111,11 +111,10 @@ Focus on factual claims, statistics, or technical concepts that should be suppor
 Give some context explanation.
 """
             
-            # Use model router with research configuration
+            # Use model router with simple async call
             import asyncio
             response = asyncio.run(model_router.generate_response(
                 messages=[{"role": "user", "content": prompt}],
-                config_name="research",  # Use research-optimized config
                 max_tokens=1000
             ))
             
