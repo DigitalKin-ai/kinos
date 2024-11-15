@@ -144,7 +144,7 @@ class AiderCommandBuilder:
         Build Aider command with arguments
         
         Args:
-            instructions: Instructions to send to Aider
+            instructions: ModelRouter-generated instructions to send to Aider
             files: List of files to include
             
         Returns:
@@ -165,6 +165,7 @@ class AiderCommandBuilder:
         cmd.extend(["--input-history-file", f".aider.{self.agent_name}.input.history.md"])
         
         # Stringify the instructions with robust escaping
+        # Ensure instructions are from ModelRouter's generated response
         stringified_instructions = instructions.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
         cmd.extend(["--message", f'"{stringified_instructions} ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."'])
         
