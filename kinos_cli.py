@@ -121,17 +121,27 @@ def run_team_loop(team_name: str, specific_name: str = None):
     logger = Logger()
     logger.log(f"🚀 Starting team loop for: {team_name}", 'debug')
     
-    # If a specific name is provided, modify file loading
+    # Créer la structure de dossiers si elle n'existe pas
+    team_dir = os.path.join('teams', f'team_{team_name}')
+    os.makedirs(os.path.join(team_dir, 'history'), exist_ok=True)
+    os.makedirs(os.path.join(team_dir, 'prompts'), exist_ok=True)
+
+    # Copier les fichiers spécifiques si un nom est fourni
     if specific_name:
-        # Update file paths to use team-specific naming
-        for filename in ['demande', 'map', 'directives']:
-            team_specific_file = f"team_{team_name}_{specific_name}_{filename}.md"
-            if os.path.exists(team_specific_file):
-                # Replace or create the standard file
-                with open(f"{filename}.md", 'w', encoding='utf-8') as f:
-                    with open(team_specific_file, 'r', encoding='utf-8') as source:
-                        f.write(source.read())
-                logger.log(f"Loaded team-specific {filename} file", 'info')
+        specific_files = [
+            (f'team_{team_name}_{specific_name}_map.md', 'map.md'),
+            (f'team_{team_name}_{specific_name}_todolist.md', 'todolist.md'),
+            (f'team_{team_name}_{specific_name}_demande.md', 'demande.md'),
+            (f'team_{team_name}_{specific_name}_directives.md', 'directives.md')
+        ]
+        
+        for source, dest in specific_files:
+            source_path = os.path.join(team_dir, source)
+            dest_path = os.path.join(team_dir, dest)
+            
+            if os.path.exists(source_path):
+                shutil.copy(source_path, dest_path)
+                logger.log(f"Loaded team-specific {dest}", 'info')
 
     agent_service = AgentService(None)
     
