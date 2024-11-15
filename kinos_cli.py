@@ -36,25 +36,34 @@ class AgentRunner(threading.Thread):
                  output_queue: queue.Queue, logger: Logger):
         super().__init__(daemon=True)
         self.agent_service = agent_service
-        self.team_agents = team_agents
+        self.team_agents = team_agents  # Liste complète des agents de l'équipe
         self.output_queue = output_queue
         self.logger = logger
         self.running = True
-        self.agent_name = None
         self.agent_type = 'aider'  # Default type
 
     def run(self):
         while self.running:
             try:
+                # Sélectionner un nouvel agent aléatoirement à chaque itération
+                from services import init_services
+                services = init_services(None)
+                phase_service = services['phase_service']
+                phase_status = phase_service.get_status_info()
+                current_phase = phase_status['phase']
+                
+                phase_weights = phase_service.get_phase_weights(current_phase)
+                weights = [phase_weights.get(agent, 0.5) for agent in self.team_agents]
+                self.agent_name = random.choices(self.team_agents, weights=weights, k=1)[0]
+                
+                self.logger.log(f"Selected agent for execution: {self.agent_name}", 'debug')
+
                 # Log start of agent execution
                 self.logger.log(f"Starting agent execution: {self.agent_name}", 'debug')
                 
                 # Capture start time
                 start_time = datetime.now()
             
-                # Run agent with explicit logging
-                self.logger.log(f"Running agent {self.agent_name} with team agents: {self.team_agents}", 'debug')
-                
                 # Initialize agent
                 agent = self.agent_service.create_agent(self.agent_name)
                 if not agent:
@@ -161,11 +170,10 @@ def run_team_loop(team_name: str):
                 logger.log(f"Selected agent: {agent_name}", 'debug')
                 
                 # Start new runner
-                runner = AgentRunner(agent_service, [agent_name], output_queue, logger)
-                runner.agent_name = agent_name
+                runner = AgentRunner(agent_service, agents, output_queue, logger)
                 runner.start()
                 active_threads[runner.ident] = runner
-                logger.log(f"Started new agent runner for {agent_name} (total: {len(active_threads)})")
+                logger.log(f"Started new agent runner (total: {len(active_threads)})")
             
             # Process output queue
             try:
