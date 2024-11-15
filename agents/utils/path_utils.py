@@ -201,8 +201,8 @@ class PathManager:
             print(f"Error getting prompts path: {str(e)}")
             return None
 
-    @staticmethod
-    def get_prompt_file(agent_name: str, team_id: Optional[str] = None) -> Optional[str]:
+    @classmethod
+    def get_prompt_file(cls, agent_name: str, team_id: Optional[str] = None) -> Optional[str]:
         """
         Get prompt file path for an agent
         
@@ -218,8 +218,8 @@ class PathManager:
             if team_id:
                 # Try both teams and team_types directories
                 search_dirs = [
-                    os.path.join(PathManager.get_kinos_root(), "teams", team_id),
-                    os.path.join(PathManager.get_team_types_root(), f"team_{team_id}")
+                    os.path.join(cls.get_kinos_root(), "teams", team_id),
+                    os.path.join(cls.get_team_types_root(), f"team_{team_id}")
                 ]
                 
                 prompt_filename_options = [
@@ -238,7 +238,7 @@ class PathManager:
             
             # If no team_id or file not found, search in all team directories
             for base_dir in ["teams", "team_types"]:
-                search_root = os.path.join(PathManager.get_kinos_root(), base_dir)
+                search_root = os.path.join(cls.get_kinos_root(), base_dir)
                 
                 if os.path.exists(search_root):
                     for team_folder in os.listdir(search_root):
