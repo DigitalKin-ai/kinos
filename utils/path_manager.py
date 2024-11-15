@@ -248,6 +248,11 @@ class PathManager:
         Returns:
             str: Path to the prompt file, or None if not found
         """
+        # Normalize team_id if it's a dictionary
+        if isinstance(team_id, dict):
+            team_id = team_id.get('id')
+            team_name = team_id.get('name', team_name)
+        
         # If no team_id is provided, select a random team
         if not team_id:
             try:
@@ -274,6 +279,9 @@ class PathManager:
             except Exception as e:
                 print(f"[unknown_team] ERROR: Could not retrieve random team: {str(e)}")
                 return None
+        
+        # Ensure team_id is a string
+        team_id = str(team_id)
         
         # Prepare logging context
         log_context = f"[{team_name or 'unknown_team'}]"
