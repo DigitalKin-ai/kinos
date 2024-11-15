@@ -70,7 +70,17 @@ class MapService(BaseService):
             total_tokens = 0
 
             # Load ignore patterns from both .gitignore and .aiderignore
-            ignore_patterns = []
+            ignore_patterns = [
+                '.aider*',  # Explicitly ignore all .aider files
+                '.git/',
+                '__pycache__/',
+                'node_modules/',
+                '.env',
+                '*.pyc',
+                '*.log'
+            ]
+        
+            # Add patterns from .gitignore and .aiderignore
             for ignore_file in ['.gitignore', '.aiderignore']:
                 ignore_path = os.path.join(os.getcwd(), ignore_file)
                 if os.path.exists(ignore_path):
