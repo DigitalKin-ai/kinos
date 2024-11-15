@@ -126,10 +126,9 @@ class AgentBase(ABC):
                 'error'
             )
 
-    @abstractmethod
     def get_prompt(self) -> str:
         """
-        Retrieve the current prompt for the agent
+        Retrieve the current prompt for the AiderAgent
         
         Raises:
             ValueError: If no prompt file is found
