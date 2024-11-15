@@ -52,12 +52,26 @@ class AiderAgent(AgentBase):
         
             # Resolve prompt file path
             if not self.prompt_file:
-                # Try to find default prompt file based on agent name
-                from utils.path_manager import PathManager
-                default_prompt = f"{self.name.lower()}.md"
-                prompts_dir = PathManager.get_prompts_path()
-                self.prompt_file = os.path.join(prompts_dir, default_prompt)
-                self.logger.log(f"Using default prompt file: {self.prompt_file}", 'info')
+                # Try to find team-specific prompt file based on agent name
+                from services import init_services
+                services = init_services(None)
+                team_service = services['team_service']
+                
+                # Get active team or find team containing this agent
+                active_team = team_service.get_active_team()
+                if not active_team:
+                    for team in team_service.predefined_teams:
+                        if self.name in team_service.get_team_agents(team['id']):
+                            active_team = team
+                            break
+                
+                if active_team:
+                    team_dir = os.path.join(PathManager.get_kinos_root(), "teams", active_team['id'])
+                    default_prompt = f"{self.name.lower()}.md"
+                    self.prompt_file = os.path.join(team_dir, default_prompt)
+                    self.logger.log(f"Using team prompt file: {self.prompt_file}", 'info')
+                else:
+                    raise ValueError(f"Could not find team for agent {self.name}")
         
             # Initialize state tracking
             self._init_state()
