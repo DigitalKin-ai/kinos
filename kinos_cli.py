@@ -150,17 +150,30 @@ def initialize_team_structure(team_name: str, specific_name: str = None):
                 f.write(content)
             logger.log(f"Created {filename}", 'info')
     
-    # Créer un fichier de configuration d'équipe
-    config_path = os.path.join(team_dir, 'config.json')
-    if not os.path.exists(config_path):
-        config = {
-            "team_name": team_name,
-            "agents": [],
-            "created_at": datetime.now().isoformat()
-        }
-        with open(config_path, 'w', encoding='utf-8') as f:
-            json.dump(config, f, indent=2)
-        logger.log(f"Created team config for {team_name}", 'info')
+    # Déterminer le chemin racine du projet
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    # Créer le fichier de configuration .kinos.config.json
+    config_path = os.path.join(team_dir, '.kinos.config.json')
+    
+    # Configuration par défaut
+    kinos_config = {
+        "team_name": team_name,
+        "team_type": "default",
+        "paths": {
+            "prompts": os.path.join(project_root, "teams", "prompts"),
+            "history": os.path.join(team_dir, "history"),
+            "map": os.path.join(team_dir, "map")
+        },
+        "agents": [],
+        "created_at": datetime.now().isoformat()
+    }
+    
+    # Écrire le fichier de configuration
+    with open(config_path, 'w', encoding='utf-8') as f:
+        json.dump(kinos_config, f, indent=2)
+    
+    logger.log(f"Created .kinos.config.json for team {team_name}", 'info')
 
 def run_team_loop(team_name: str, specific_name: str = None):
     """Main team execution loop"""
