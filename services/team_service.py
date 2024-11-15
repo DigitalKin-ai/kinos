@@ -19,7 +19,7 @@ class TeamService(BaseService):
         """Load predefined team configurations"""
         try:
             teams = []
-            teams_dir = os.path.join(PathManager.get_kinos_root(), "teams")
+            teams_dir = os.path.join(PathManager.get_kinos_root(), "team_types")
             
             if not os.path.exists(teams_dir):
                 self.logger.log("Teams directory not found", 'warning')

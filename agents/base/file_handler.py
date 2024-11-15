@@ -27,7 +27,7 @@ class FileHandler:
                     break
 
             # Chemins de recherche spécifiques
-            team_dir = os.path.join('teams', f'team_{agent_team}')
+            team_dir = os.path.join('team_types', f'team_{agent_team}')
             search_paths = [
                 self.mission_dir,
                 team_dir

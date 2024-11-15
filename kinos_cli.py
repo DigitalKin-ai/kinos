@@ -21,7 +21,7 @@ def load_team_config(team_name: str) -> List[str]:
         from utils.path_manager import PathManager
         kinos_root = PathManager.get_kinos_root()
         
-        config_path = os.path.join(kinos_root, "teams", team_name, "config.json")
+        config_path = os.path.join(kinos_root, "team_types", team_name, "config.json")
         with open(config_path, 'r') as f:
             config = json.load(f)
             return [agent['name'] if isinstance(agent, dict) else agent 
@@ -119,7 +119,7 @@ def initialize_team_structure(team_name: str, specific_name: str = None):
     logger = Logger()
     
     # Créer la structure de base de l'équipe
-    team_dir = os.path.join('teams', f'team_{team_name}')
+    team_dir = os.path.join('team_types', f'team_{team_name}')
     subdirs = ['history', 'prompts', 'map']
     
     for subdir in subdirs:
