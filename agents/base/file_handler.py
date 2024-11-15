@@ -13,57 +13,58 @@ class FileHandler:
         self.mission_files = {}
 
     def list_files(self) -> Dict[str, float]:
-        """List and track mission files"""
         try:
-            if not os.path.exists(self.mission_dir):
-                self.logger.log(f"Mission directory not found: {self.mission_dir}", 'error')
-                return {}
-
-            # Récupérer le nom de l'agent
             from services import init_services
             services = init_services(None)
             team_service = services['team_service']
             
             # Trouver l'équipe de l'agent
-            agent_name = None
+            agent_name = None  # À remplacer par le nom réel de l'agent
             agent_team = None
             for team in team_service.predefined_teams:
                 if agent_name in team.get('agents', []):
                     agent_team = team['id']
                     break
 
-            # Load ignore patterns
+            # Chemins de recherche spécifiques
+            team_dir = os.path.join('teams', f'team_{agent_team}')
+            search_paths = [
+                self.mission_dir,
+                team_dir
+            ]
+
+            # Charger les modèles d'exclusion
             ignore_patterns = self._load_ignore_patterns()
             spec = PathSpec.from_lines(GitWildMatchPattern, ignore_patterns) if ignore_patterns else None
 
-            # Track text files
+            # Extensions de fichiers texte
             text_extensions = {'.md', '.txt', '.json', '.yaml', '.yml', '.py', '.js', '.html', '.css', '.sh'}
             text_files = {}
 
-            for root, _, filenames in os.walk(self.mission_dir):
-                for filename in filenames:
-                    if os.path.splitext(filename)[1].lower() in text_extensions:
-                        file_path = os.path.join(root, filename)
-                        rel_path = os.path.relpath(file_path, self.mission_dir)
-                        
-                        # Skip if matches ignore patterns
-                        if spec and spec.match_file(rel_path):
-                            continue
-                        
-                        # Priorité aux fichiers spécifiques à l'agent/équipe
-                        if agent_team and agent_name:
-                            # Vérifier les noms de fichiers spécifiques
-                            specific_patterns = [
-                                f"team_{agent_team}_{agent_name}_{filename}",
-                                f"{agent_name}_{filename}",
-                                f"team_{agent_team}_{filename}"
-                            ]
-                            if any(pattern in filename for pattern in specific_patterns):
+            for base_path in search_paths:
+                for root, _, filenames in os.walk(base_path):
+                    for filename in filenames:
+                        if os.path.splitext(filename)[1].lower() in text_extensions:
+                            file_path = os.path.join(root, filename)
+                            rel_path = os.path.relpath(file_path, base_path)
+                            
+                            # Ignorer les fichiers correspondant aux modèles
+                            if spec and spec.match_file(rel_path):
+                                continue
+                            
+                            # Priorité aux fichiers spécifiques de l'agent/équipe
+                            if agent_team and agent_name:
+                                specific_patterns = [
+                                    f"team_{agent_team}_{agent_name}_{filename}",
+                                    f"{agent_name}_{filename}",
+                                    f"team_{agent_team}_{filename}"
+                                ]
+                                if any(pattern in filename for pattern in specific_patterns):
+                                    text_files[file_path] = os.path.getmtime(file_path)
+                            
+                            # Ajouter les fichiers génériques si pas déjà ajouté
+                            if file_path not in text_files:
                                 text_files[file_path] = os.path.getmtime(file_path)
-                        
-                        # Ajouter les fichiers génériques si pas déjà ajouté
-                        if file_path not in text_files:
-                            text_files[file_path] = os.path.getmtime(file_path)
 
             self.mission_files = text_files
             return text_files

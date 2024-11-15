@@ -116,32 +116,61 @@ class AgentRunner(threading.Thread):
             
                 time.sleep(5)  # Brief pause on error
 
+def initialize_team_structure(team_name: str, specific_name: str = None):
+    """
+    Initialise la structure de dossiers pour une équipe
+    
+    Args:
+        team_name: Nom de l'équipe
+        specific_name: Nom spécifique de l'agent (optionnel)
+    """
+    logger = Logger()
+    
+    # Créer la structure de base de l'équipe
+    team_dir = os.path.join('teams', f'team_{team_name}')
+    subdirs = ['history', 'prompts', 'map']
+    
+    for subdir in subdirs:
+        os.makedirs(os.path.join(team_dir, subdir), exist_ok=True)
+    
+    # Fichiers par défaut
+    default_files = {
+        'map.md': '# Project Map\n\n## Overview\n',
+        'todolist.md': '# Todo List\n\n## Pending Tasks\n',
+        'demande.md': '# Mission Request\n\n## Objective\n',
+        'directives.md': '# Project Directives\n\n## Guidelines\n'
+    }
+    
+    # Créer les fichiers avec des noms spécifiques si un nom est fourni
+    if specific_name:
+        for filename, content in default_files.items():
+            specific_filename = f'team_{team_name}_{specific_name}_{filename}'
+            specific_path = os.path.join(team_dir, specific_filename)
+            
+            if not os.path.exists(specific_path):
+                with open(specific_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                logger.log(f"Created {specific_filename}", 'info')
+    
+    # Créer un fichier de configuration d'équipe
+    config_path = os.path.join(team_dir, 'config.json')
+    if not os.path.exists(config_path):
+        config = {
+            "team_name": team_name,
+            "agents": [],
+            "created_at": datetime.now().isoformat()
+        }
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=2)
+        logger.log(f"Created team config for {team_name}", 'info')
+
 def run_team_loop(team_name: str, specific_name: str = None):
     """Main team execution loop"""
     logger = Logger()
     logger.log(f"🚀 Starting team loop for: {team_name}", 'debug')
     
-    # Créer la structure de dossiers si elle n'existe pas
-    team_dir = os.path.join('teams', f'team_{team_name}')
-    os.makedirs(os.path.join(team_dir, 'history'), exist_ok=True)
-    os.makedirs(os.path.join(team_dir, 'prompts'), exist_ok=True)
-
-    # Copier les fichiers spécifiques si un nom est fourni
-    if specific_name:
-        specific_files = [
-            (f'team_{team_name}_{specific_name}_map.md', 'map.md'),
-            (f'team_{team_name}_{specific_name}_todolist.md', 'todolist.md'),
-            (f'team_{team_name}_{specific_name}_demande.md', 'demande.md'),
-            (f'team_{team_name}_{specific_name}_directives.md', 'directives.md')
-        ]
-        
-        for source, dest in specific_files:
-            source_path = os.path.join(team_dir, source)
-            dest_path = os.path.join(team_dir, dest)
-            
-            if os.path.exists(source_path):
-                shutil.copy(source_path, dest_path)
-                logger.log(f"Loaded team-specific {dest}", 'info')
+    # Initialiser la structure de l'équipe
+    initialize_team_structure(team_name, specific_name)
 
     agent_service = AgentService(None)
     
@@ -219,7 +248,6 @@ def run_team_loop(team_name: str, specific_name: str = None):
             
 def main():
     """CLI entry point"""
-    # Configure parser
     parser = argparse.ArgumentParser(description='KinOS CLI')
     parser.add_argument('command', help='Command to execute')
     parser.add_argument('--name', help='Specific agent or team name for file context', required=True)
@@ -227,15 +255,18 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging')
     args = parser.parse_args()
 
-    # Configure logger for debug logs if verbose
+    # Configuration du logger
     logger = Logger()
     if args.verbose:
         logger.set_level('debug')
 
-    # Validate name
+    # Validation du nom
     if not args.name:
         logger.log("Error: --name is required", 'error')
         sys.exit(1)
+
+    # Initialiser la structure de l'équipe
+    initialize_team_structure(args.command, args.name)
 
     # If model is specified, update ModelRouter
     if args.model:
