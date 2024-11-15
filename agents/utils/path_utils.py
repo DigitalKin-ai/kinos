@@ -56,6 +56,21 @@ class PathManager:
         return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     
     @staticmethod
+    def get_kinos_root() -> str:
+        """Get the KinOS root directory"""
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    @staticmethod
+    def get_team_types_root() -> str:
+        """Get the team types configuration directory"""
+        return os.path.join(PathManager.get_kinos_root(), "team_types")
+
+    @staticmethod
+    def get_teams_root() -> str:
+        """Get the runtime teams working directory"""
+        return os.path.join(os.getcwd(), "teams")
+    
+    @staticmethod
     def normalize_path(path: str) -> str:
         """Normalize a file path"""
         return os.path.normpath(os.path.abspath(path))
