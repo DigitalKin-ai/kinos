@@ -19,6 +19,19 @@ class FileHandler:
                 self.logger.log(f"Mission directory not found: {self.mission_dir}", 'error')
                 return {}
 
+            # Récupérer le nom de l'agent
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            
+            # Trouver l'équipe de l'agent
+            agent_name = None
+            agent_team = None
+            for team in team_service.predefined_teams:
+                if agent_name in team.get('agents', []):
+                    agent_team = team['id']
+                    break
+
             # Load ignore patterns
             ignore_patterns = self._load_ignore_patterns()
             spec = PathSpec.from_lines(GitWildMatchPattern, ignore_patterns) if ignore_patterns else None
@@ -36,8 +49,21 @@ class FileHandler:
                         # Skip if matches ignore patterns
                         if spec and spec.match_file(rel_path):
                             continue
-                            
-                        text_files[file_path] = os.path.getmtime(file_path)
+                        
+                        # Priorité aux fichiers spécifiques à l'agent/équipe
+                        if agent_team and agent_name:
+                            # Vérifier les noms de fichiers spécifiques
+                            specific_patterns = [
+                                f"team_{agent_team}_{agent_name}_{filename}",
+                                f"{agent_name}_{filename}",
+                                f"team_{agent_team}_{filename}"
+                            ]
+                            if any(pattern in filename for pattern in specific_patterns):
+                                text_files[file_path] = os.path.getmtime(file_path)
+                        
+                        # Ajouter les fichiers génériques si pas déjà ajouté
+                        if file_path not in text_files:
+                            text_files[file_path] = os.path.getmtime(file_path)
 
             self.mission_files = text_files
             return text_files

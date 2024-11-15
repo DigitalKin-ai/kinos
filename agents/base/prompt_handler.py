@@ -143,29 +143,57 @@ class PromptHandler:
             kinos_root = PathManager.get_kinos_root()
             project_root = PathManager.get_project_root()
             
-            # Possible locations to check, prioritizing team-specific prompts
-            search_paths = [
-                # First check in teams directory
+            # Récupérer le nom de l'équipe et de l'agent depuis la configuration
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            
+            # Trouver l'équipe de l'agent
+            agent_team = None
+            for team in team_service.predefined_teams:
+                if self.logger.name in team.get('agents', []):
+                    agent_team = team['id']
+                    break
+            
+            # Chemins de recherche avec priorité pour les fichiers spécifiques à l'agent/équipe
+            search_paths = []
+            
+            # Si une équipe est trouvée, ajouter des chemins spécifiques
+            if agent_team:
+                search_paths.extend([
+                    # Fichiers spécifiques à l'agent dans l'équipe
+                    os.path.join(kinos_root, "teams", agent_team, f"{self.logger.name}_{prompt_file}"),
+                    os.path.join(kinos_root, "teams", agent_team, f"team_{agent_team}_{self.logger.name}_{prompt_file}"),
+                    
+                    # Fichiers génériques de l'équipe
+                    os.path.join(kinos_root, "teams", agent_team, f"team_{agent_team}_{prompt_file}"),
+                ])
+            
+            # Chemins de recherche standard
+            standard_paths = [
+                # D'abord dans les équipes
                 os.path.join(kinos_root, "teams", "*", os.path.basename(prompt_file)),
                 os.path.join(kinos_root, "teams", "*", prompt_file),
                 
-                # Then check project root
+                # Puis dans le projet
                 os.path.join(project_root, prompt_file),
                 os.path.join(project_root, "prompts", prompt_file),
-                prompt_file,  # Relative path as-is
+                prompt_file,  # Chemin relatif tel quel
             ]
             
-            # Log search paths
+            search_paths.extend(standard_paths)
+            
+            # Log des chemins de recherche
             self.logger.log(
                 f"Searching for prompt in:\n" + 
                 "\n".join(f"- {p}" for p in search_paths), 
                 'debug'
             )
             
-            # Try each path, handling wildcards for team directories
+            # Recherche des fichiers
             for path_pattern in search_paths:
                 if '*' in path_pattern:
-                    # Handle team directory wildcards
+                    # Gestion des caractères génériques pour les répertoires d'équipe
                     import glob
                     matching_paths = glob.glob(path_pattern)
                     for path in matching_paths:
@@ -177,7 +205,7 @@ class PromptHandler:
                         self.logger.log(f"Found prompt at: {path_pattern}", 'debug')
                         return path_pattern
                     
-            # If not found, log detailed info
+            # Si non trouvé, log des informations détaillées
             self.logger.log(
                 f"Prompt not found. Details:\n"
                 f"- KinOS root: {kinos_root}\n"
