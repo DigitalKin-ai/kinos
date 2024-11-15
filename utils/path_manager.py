@@ -399,12 +399,34 @@ class PathManager:
         # Prepare logging context
         log_context = f"[{team_name or 'unknown_team'}]"
         
-        try:
-            # Validate input
-            if team_id is None:
-                print(f"{log_context} WARNING: No team_id provided, returning current directory")
+        # If no team_id is provided, select a random team
+        if team_id is None:
+            try:
+                from services import init_services
+                services = init_services(None)
+                team_service = services['team_service']
+                
+                # Get list of predefined teams
+                predefined_teams = team_service.predefined_teams
+                
+                if not predefined_teams:
+                    print(f"{log_context} ERROR: No teams found")
+                    return os.getcwd()
+                
+                # Select a random team
+                import random
+                random_team = random.choice(predefined_teams)
+                
+                team_id = random_team.get('id')
+                team_name = random_team.get('name', 'random_team')
+                
+                print(f"{log_context} Selected random team: {team_name} (ID: {team_id})")
+                
+            except Exception as e:
+                print(f"{log_context} ERROR: Could not retrieve random team: {str(e)}")
                 return os.getcwd()
-            
+        
+        try:
             # Normalize team_id
             team_id = team_id.lower().replace('team_', '')
             
