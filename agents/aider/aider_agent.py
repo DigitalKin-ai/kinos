@@ -172,16 +172,16 @@ class AiderAgent(AgentBase):
         return True
 
 
-    def _run_aider(self, prompt: str) -> Optional[str]:
+    def _run_aider(self, instructions: str) -> Optional[str]:
         """Execute Aider command with streamed output processing"""
         try:
             # Validation des conditions préalables
-            if not self._validate_run_conditions(prompt):
+            if not self._validate_run_conditions(instructions):
                 return ""  # Return empty string instead of None
 
             # Construction et validation de la commande
             cmd = self.command_builder.build_command(
-                prompt=prompt,
+                instructions=instructions,
                 files=list(self.mission_files.keys())
             )
             
@@ -232,7 +232,7 @@ class AiderAgent(AgentBase):
                         # Add interaction to dataset asynchronously
                         import asyncio
                         asyncio.run(dataset_service.add_interaction_async(
-                            prompt=prompt,
+                            instructions=instructions,
                             files_context=files_context,
                             aider_response=output
                         ))
