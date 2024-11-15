@@ -110,8 +110,7 @@ class CommitLogger:
         try:
             # Format commit message
             message = (
-                f"[{commit['agent']}] "
-                f"{commit['emoji']} {commit['hash']}: {commit['message']}"
+                f"{commit['emoji']} [{commit['type']}]: {commit['message']}"
             )
             
             # Log to console

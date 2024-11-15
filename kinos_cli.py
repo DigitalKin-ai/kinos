@@ -113,7 +113,7 @@ def run_team_loop(team_name: str):
             logger.log("Checking agent initialization conditions", 'debug')
             
             # Always try to maintain several active threads
-            while len(active_threads) < 3:
+            while len(active_threads) < 2:
                 # Get current phase weights with logging
                 from services import init_services
                 services = init_services(None)
