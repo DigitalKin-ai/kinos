@@ -17,7 +17,6 @@ from agents.utils.encoding import configure_encoding, detect_file_encoding, norm
 from agents.utils.rate_limiter import RateLimiter
 from utils.commit_logger import CommitLogger
 from agents.base.file_handler import FileHandler
-from agents.base.prompt_handler import PromptHandler
 from utils.path_manager import PathManager
 from utils.error_handler import ErrorHandler
 from utils.constants import COMMIT_ICONS
@@ -53,7 +52,6 @@ class AiderAgent(AgentBase):
             self.output_parser = AiderOutputParser(self.logger, self.name)
             self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
             self.file_handler = FileHandler(self.mission_dir, self.logger)
-            self.prompt_handler = PromptHandler(self.logger)
         
             # Store original directory
             self.original_dir = os.getcwd()
@@ -74,9 +72,7 @@ class AiderAgent(AgentBase):
                             break
                 
                 if active_team:
-                    team_dir = os.path.join(PathManager.get_kinos_root(), "teams", active_team['id'])
-                    default_prompt = f"{self.name.lower()}.md"
-                    self.prompt_file = os.path.join(team_dir, default_prompt)
+                    self.prompt_file = PathManager.get_prompt_file(self.name)
                     self.logger.log(f"Using team prompt file: {self.prompt_file}", 'info')
                 else:
                     raise ValueError(f"Could not find team for agent {self.name}")
@@ -105,79 +101,6 @@ class AiderAgent(AgentBase):
         self._prompt_cache = {}
         self._last_request_time = 0
         self._requests_this_minute = 0
-        
-
-    def _validate_run_conditions(self, prompt: str) -> bool:
-        """
-        Validate all conditions required for running Aider
-        
-        Args:
-            prompt: Prompt to validate
-            
-        Returns:
-            bool: True if all conditions are met
-        """
-        try:
-            # Check mission directory
-            if not os.path.exists(self.mission_dir):
-                self.logger.log(f"[{self.name}] Mission directory not found: {self.mission_dir}")
-                return False
-                
-            # Check permissions
-            if not os.access(self.mission_dir, os.R_OK | os.W_OK):
-                self.logger.log(f"[{self.name}] Insufficient permissions on mission directory")
-                return False
-                
-            # Validate prompt
-            if not prompt or not prompt.strip():
-                self.logger.log(f"[{self.name}] Empty prompt provided")
-                return False
-                
-            # Check for files to process
-            if not self.mission_files:
-                self.logger.log(f"[{self.name}] No files to process")
-                return False
-                
-            # Check rate limiting
-            if not self._check_rate_limit():
-                self.logger.log(f"[{self.name}] Rate limit exceeded")
-                return False
-                
-            return True
-            
-        except Exception as e:
-            self.logger.log(f"[{self.name}] Error validating conditions: {str(e)}")
-            return False
-
-    def _check_rate_limit(self) -> bool:
-        """
-        Check if we should wait before making another request
-        
-        Returns:
-            bool: True if ok to proceed, False if should wait
-        """
-        current_time = time.time()
-        
-        # Reset counter if we're in a new minute
-        if current_time - self._last_request_time > self.rate_limiter.time_window:
-            self._requests_this_minute = 0
-            
-        # Check if we're approaching the limit
-        if self._requests_this_minute >= self.rate_limiter.max_requests:
-            wait_time = self.rate_limiter.get_backoff_time()  # Use exponential backoff
-            if wait_time > 0:
-                self.logger.log(
-                    f"[{self.name}] ⏳ Rate limit reached. "
-                    f"Backing off for {wait_time:.1f}s",
-                    'warning'
-                )
-                time.sleep(wait_time)
-                self._requests_this_minute = 0
-                return False  # Signal that we hit the limit
-                
-        self._last_request_time = current_time
-        self._requests_this_minute += 1
-        return True
 
 
     def _run_aider(self, instructions: str) -> Optional[str]:
@@ -202,10 +125,6 @@ class AiderAgent(AgentBase):
             chat_history_file = f".kinos.{agent_team}_{specific_name}.chat.history.md" if specific_name else f".kinos.{self.name}.chat.history.md"
             input_history_file = f".kinos.{agent_team}_{specific_name}.input.history.md" if specific_name else f".kinos.{self.name}.input.history.md"
 
-            # Validation des conditions préalables
-            if not self._validate_run_conditions(instructions):
-                return ""  # Return empty string instead of None
-
             # Construction et validation de la commande
             cmd = self.command_builder.build_command(
                 instructions=instructions,
@@ -217,10 +136,7 @@ class AiderAgent(AgentBase):
                 "--chat-history-file", chat_history_file,
                 "--input-history-file", input_history_file
             ])
-            
-            if not self.command_builder.validate_command(cmd):
-                return ""  # Return empty string instead of None
-                
+
             # Execute command
             process = self.command_builder.execute_command(cmd)
 
@@ -341,14 +257,6 @@ class AiderAgent(AgentBase):
         except Exception as e:
             self.logger.log(f"[{self.name}] Error updating map: {str(e)}")
 
-    def get_prompt(self) -> Optional[str]:
-        """Get prompt with caching"""
-        return self.prompt_handler.get_prompt(self.prompt_file)
-        
-    def save_prompt(self, content: str) -> bool:
-        """Save new prompt content"""
-        return self.prompt_handler.save_prompt(self.prompt_file, content)
-
     def _should_log_error(self, error_message: str) -> bool:
         """
         Determine if an error message should be logged
@@ -451,10 +359,7 @@ class AiderAgent(AgentBase):
                         self.logger.log(f"[{self.name}] Error creating {filename}: {str(e)}", 'warning')
 
             # Get current prompt
-            prompt = self.get_prompt()
-            if not prompt:
-                self.logger.log(f"[{self.name}] ⚠️ No prompt available", 'warning')
-                return
+            prompt = PathManager.get_prompt_file(self.name)
 
             # Get chat history
             chat_history = ""
