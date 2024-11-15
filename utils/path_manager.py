@@ -462,21 +462,28 @@ class PathManager:
             except Exception as e:
                 print(f"{log_context} ERROR: Could not create fallback path: {str(e)}")
                 return os.getcwd()
-                # Detailed directory matching
-                for item in directory_contents:
-                    full_path = os.path.join(base_dir, item)
-                    
-                    # Check if path matches search criteria
-                    path_matches = any(
-                        pattern in item.lower() or 
-                        pattern == item.lower().replace('team_', '').replace('_', '')
-                        for pattern in search_patterns
-                    )
-                    
-                    if path_matches and os.path.isdir(full_path):
-                        print(f"{log_context} DEBUG: Potential match found: {full_path}")
-                        matched_paths.append(full_path)
             
+            # Initialize variables
+            base_dir = os.path.join(PathManager.get_kinos_root(), 'team_types')
+            directory_contents = os.listdir(base_dir)
+            matched_paths = []
+            search_patterns = [team_id] if team_id else []
+            
+            # Detailed directory matching
+            for item in directory_contents:
+                full_path = os.path.join(base_dir, item)
+                
+                # Check if path matches search criteria
+                path_matches = any(
+                    pattern in item.lower() or 
+                    pattern == item.lower().replace('team_', '').replace('_', '')
+                    for pattern in search_patterns
+                )
+                
+                if path_matches and os.path.isdir(full_path):
+                    print(f"{log_context} DEBUG: Potential match found: {full_path}")
+                    matched_paths.append(full_path)
+        
             # Select best match
             if matched_paths:
                 # Prefer exact matches or team_types directory
