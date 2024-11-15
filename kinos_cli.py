@@ -117,32 +117,35 @@ def run_team_loop(team_name: str):
             
             # Always try to maintain several active threads
             while True:  # Main loop
-                # Clean up finished threads
-                active_threads = {tid: runner for tid, runner in active_threads.items() 
-                                if runner.is_alive()}
+            # Clean up finished threads
+            active_threads = {tid: runner for tid, runner in active_threads.items() 
+                            if runner.is_alive()}
+            
+            logger.log(f"Active threads: {len(active_threads)}", 'debug')
+            
+            # Start new threads if needed
+            while len(active_threads) < 2:
+                # Get current phase weights
+                from services import init_services
+                services = init_services(None)
+                phase_service = services['phase_service']
+                phase_status = phase_service.get_status_info()
+                current_phase = phase_status['phase']
                 
-                # Start new threads if needed
-                while len(active_threads) < 2:
-                    # Get current phase weights with logging
-                    from services import init_services
-                    services = init_services(None)
-                    phase_service = services['phase_service']
-                    phase_status = phase_service.get_status_info()
-                    current_phase = phase_status['phase']
+                logger.log(f"Current phase: {current_phase}", 'debug')
                 
-                    logger.log(f"Current project phase: {current_phase}", 'debug')
+                phase_weights = phase_service.get_phase_weights(current_phase)
+                logger.log(f"Phase weights: {phase_weights}", 'debug')
                 
-                    phase_weights = phase_service.get_phase_weights(current_phase)
-                    logger.log(f"Phase weights: {phase_weights}", 'debug')
+                # Filter available agents
+                available_agents = [a for a in agents if not any(
+                    runner.agent_name == a for runner in active_threads.values()
+                )]
                 
-                    # Filter out agents that are already running
-                    available_agents = [a for a in agents if not any(
-                        runner.agent_name == a for runner in active_threads.values()
-                    )]
-                    
-                    if not available_agents:
-                        time.sleep(1)  # Wait if all agents are busy
-                        break  # Exit inner loop to clean up threads again
+                if not available_agents:
+                    logger.log("No available agents, waiting...", 'debug')
+                    time.sleep(1)
+                    break
                 
                 # Get weights for available agents
                 weights = [phase_weights.get(agent, 0.5) for agent in available_agents]
@@ -150,94 +153,23 @@ def run_team_loop(team_name: str):
                 # Select random agent based on weights
                 agent_name = random.choices(available_agents, weights=weights, k=1)[0]
                 
-                # COMPREHENSIVE AGENT TYPE DETECTION
-                agent_type = 'aider'  # Default type
+                logger.log(f"Selected agent: {agent_name}", 'debug')
                 
-                # 1. Check research agents list (highest priority)
-                if agent_name.lower() in [a.lower() for a in research_agents]:
-                    agent_type = 'research'
-                    logger.log(
-                        f"Agent {agent_name} explicitly set to research type "
-                        f"(matched research agents list)", 
-                        'debug'
-                    )
-                
-                # 2. Check team configuration
-                for team in services['team_service'].predefined_teams:
-                    for agent in team.get('agents', []):
-                        if isinstance(agent, dict) and agent['name'] == agent_name:
-                            # Override type from team config if specified
-                            detected_type = agent.get('type', 'aider').lower()
-                            if detected_type != agent_type:
-                                logger.log(
-                                    f"Agent {agent_name} type updated from {agent_type} "
-                                    f"to {detected_type} (team config)", 
-                                    'debug'
-                                )
-                                agent_type = detected_type
-                            break
-                
-                # 3. Validate and normalize agent type
-                if agent_type not in ['aider', 'research']:
-                    agent_type = 'aider'
-                    logger.log(
-                        f"Agent {agent_name} type normalized to 'aider'", 
-                        'debug'
-                    )
-                
-                # Detailed logging for agent launch
-                logger.log(
-                    f"🚀 Launching agent: {agent_name}\n"
-                    f"  Phase: {current_phase}\n"
-                    f"  Weight: {phase_weights.get(agent_name, 0.5):.2f}\n"
-                    f"  Type: {agent_type}\n"
-                    f"  Available agents: {', '.join(available_agents)}", 
-                    'info'
-                )
-                
-                # Start new runner with selected agent
+                # Start new runner
                 runner = AgentRunner(agent_service, [agent_name], output_queue, logger)
-                runner.agent_name = agent_name  # Store selected agent name
-                runner.agent_type = agent_type  # Store agent type
+                runner.agent_name = agent_name
                 runner.start()
                 active_threads[runner.ident] = runner
                 logger.log(f"Started new agent runner for {agent_name} (total: {len(active_threads)})")
-
+            
+            # Process output queue
             try:
-                # Check queue for messages with timeout
-                try:
-                    msg = output_queue.get(timeout=0.1)
-                    thread_id = msg['thread_id']
-                    
-                    # Log message based on status
-                    if msg['status'] == 'completed':
-                        logger.log(
-                            f"Agent {active_threads[thread_id].agent_name} completed "
-                            f"(duration: {msg['duration']:.1f}s)", 
-                            'success'
-                        )
-                    elif msg['status'] == 'error':
-                        logger.log(
-                            f"Agent {active_threads[thread_id].agent_name} error: {msg['error']}", 
-                            'error'
-                        )
-                    
-                    # Remove completed/failed thread
-                    if thread_id in active_threads:
-                        active_threads[thread_id].running = False
-                        del active_threads[thread_id]
-                        
-                except queue.Empty:
-                    pass  # No messages
-                    
-            except KeyboardInterrupt:
-                raise  # Re-raise to outer try
-                
-            except Exception as e:
-                logger.log(f"Error processing agent output: {str(e)}", 'error')
-                
-            # Brief sleep to prevent CPU spinning
-            time.sleep(0.1)
+                msg = output_queue.get(timeout=0.1)
+                logger.log(f"Received message from queue: {msg['status']}", 'debug')
+            except queue.Empty:
+                pass
+            
+            time.sleep(0.1)  # Brief sleep to prevent CPU spinning
                 
     except KeyboardInterrupt:
         logger.log("Stopping team execution...")
