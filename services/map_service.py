@@ -79,8 +79,8 @@ class MapService(BaseService):
                             line.strip() for line in f.readlines()
                             if line.strip() and not line.startswith('#')
                         ]
-                except Exception:
-                    pass
+                except Exception as e:
+                    self.logger.log(f"Error reading .gitignore: {str(e)}", 'warning')
 
             # Create PathSpec for pattern matching
             from pathspec import PathSpec
@@ -108,6 +108,10 @@ class MapService(BaseService):
                     continue
             
                 if os.path.isdir(full_path):
+                    # Skip certain directories
+                    if item in {'__pycache__', 'node_modules', '.git', '.idea', 'venv'}:
+                        continue
+                        
                     tree_lines.append(f"{current_prefix}📁 {item}/")
                     sub_prefix = prefix + ("    " if is_last else "│   ")
                     sub_tree, sub_warnings, sub_tokens = self._scan_directory(full_path, sub_prefix)
@@ -120,18 +124,21 @@ class MapService(BaseService):
                         tree_lines.pop()
                 
                 elif any(item.endswith(ext) for ext in tracked_extensions):
-                    token_count = self._count_tokens(full_path)
-                    total_tokens += token_count
-                    status_icon = self._get_status_icon(token_count)
-                
-                    size_k = token_count / 1000
-                    tree_lines.append(
-                        f"{current_prefix}📄 {item} ({size_k:.1f}k tokens) {status_icon}"
-                    )
-                
-                    warning = self._check_file_size(item, token_count)
-                    if warning:
-                        warnings.append(warning)
+                    try:
+                        token_count = self._count_tokens(full_path)
+                        total_tokens += token_count
+                        status_icon = self._get_status_icon(token_count)
+                    
+                        size_k = token_count / 1000
+                        tree_lines.append(
+                            f"{current_prefix}📄 {item} ({size_k:.1f}k tokens) {status_icon}"
+                        )
+                    
+                        warning = self._check_file_size(item, token_count)
+                        if warning:
+                            warnings.append(warning)
+                    except Exception as e:
+                        self.logger.log(f"Error processing file {item}: {str(e)}", 'warning')
                         
             return tree_lines, warnings, total_tokens
             
@@ -346,17 +353,6 @@ class MapService(BaseService):
         except Exception as e:
             self.logger.log(f"Error updating map: {str(e)}", 'error')
             return False
-
-    def get_map_content(self) -> str:
-        """Get current map content"""
-        try:
-            if os.path.exists(self.map_file):
-                with open(self.map_file, 'r', encoding='utf-8') as f:
-                    return f.read()
-            return ""
-        except Exception as e:
-            self.logger.log(f"Error reading map file: {str(e)}", 'error')
-            return ""
 
     def get_map_content(self) -> str:
         """Get current map content"""
