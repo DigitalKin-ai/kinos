@@ -30,6 +30,7 @@ class AgentService:
 
     def __init__(self, _):  # Keep parameter for compatibility but don't use it
         self.logger = Logger()
+        self.logger.set_level('debug')  # Assurez-vous que le debug est activé
         self.agents = {}
         self.agent_threads = {}
         self._shutting_down = threading.Event()

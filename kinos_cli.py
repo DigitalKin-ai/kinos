@@ -221,6 +221,10 @@ def run_team_loop(team_name: str):
             
 def main():
     """CLI entry point"""
+    # Configurer le logger pour afficher les logs de debug
+    logger = Logger()
+    logger.set_level('debug')  # Ajoutez cette ligne
+
     if len(sys.argv) < 2:
         print("Usage: kin <command>")
         return
