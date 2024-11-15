@@ -22,28 +22,28 @@ class AgentBase(ABC):
     def __init__(self, config: Dict[str, Any]) -> None:
         """
         Initialize base agent with configuration.
-
-        Args:
-            config: Configuration dictionary containing:
-                - name: Agent name/identifier
-                - type: Agent type (aider/research)
-                - weight: Agent weight (0.0-1.0)
-                - mission_dir: Working directory path
-                - prompt_file: Path to prompt file
         """
         try:
-            self.name = config['name']
+            # Use the pre-set config
+            config = config if config is not None else {}
+        
+            # Fallback values if not in config
+            self.name = config.get('name', 'unnamed_agent')
             self.type = config.get('type', 'aider')
             self.weight = config.get('weight', 0.5)
-            self.mission_dir = config['mission_dir']
+            self.mission_dir = config.get('mission_dir', os.getcwd())
             self.prompt_file = config.get('prompt_file')
+        
             self.logger = Logger()
             self.running = True  # Always True from initialization
             self._init_state()
         except Exception as e:
-            self.logger.log(f"Non-critical init error: {str(e)}", 'warning')
-            # Continue even if init fails
-            self.running = True
+            # Fallback logging
+            print(f"Critical error in AgentBase init: {str(e)}")
+            # Ensure minimal initialization
+            self.name = 'unnamed_agent'
+            self.logger = Logger()
+            self.logger.log(f"Agent initialization failed: {str(e)}", 'error')
         
     def _init_state(self):
         """Initialize agent state tracking"""
