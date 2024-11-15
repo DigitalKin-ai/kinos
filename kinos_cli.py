@@ -45,13 +45,16 @@ class AgentRunner(threading.Thread):
             try:
                 # Capture start time
                 start_time = datetime.now()
-                
+            
+                # Enhanced logging
+                self.logger.log(f"Running agent: {self.team_agents}", 'debug')
+            
                 # Run agent and capture output
                 self.agent_service.run_random_agent(self.team_agents)
-                
+            
                 # Calculate duration
                 duration = (datetime.now() - start_time).total_seconds()
-                
+            
                 # Put completion message in queue
                 self.output_queue.put({
                     'thread_id': threading.get_ident(),
@@ -59,14 +62,22 @@ class AgentRunner(threading.Thread):
                     'duration': duration,
                     'timestamp': datetime.now().isoformat()
                 })
-                
+            
             except Exception as e:
                 self.output_queue.put({
                     'thread_id': threading.get_ident(),
                     'status': 'error',
                     'error': str(e),
+                    'traceback': traceback.format_exc(),
                     'timestamp': datetime.now().isoformat()
                 })
+            
+                # Log detailed error
+                self.logger.log(
+                    f"Agent runner error:\n{traceback.format_exc()}",
+                    'error'
+                )
+            
                 time.sleep(5)  # Brief pause on error
 
 def run_team_loop(team_name: str):

@@ -110,26 +110,46 @@ class AiderOutputParser:
 
     def _parse_error_messages(self, output: str) -> List[str]:
         """
-        Extract error messages from output
-        
+        Extract and filter error messages from output
+    
         Args:
             output: Command output string
-            
+        
         Returns:
-            List of error messages
+            List of filtered error messages
         """
         errors = []
-        
+    
         try:
             for line in output.splitlines():
                 lower_line = line.lower()
-                if any(err in lower_line for err in [
-                    'error', 'exception', 'failed', 'can\'t initialize'
-                ]):
-                    errors.append(line.strip())
-                    
-            return errors
             
+                # Ignore specific Aider-related non-critical errors
+                ignore_patterns = [
+                    'search/replace block failed to match',
+                    'searchreplacenomatch',
+                    'can\'t initialize prompt toolkit',
+                    'no windows console found',
+                    'aider.chat/docs/troubleshooting/edit-errors.html'
+                ]
+            
+                if any(err in lower_line for err in ignore_patterns):
+                    self.logger.log(f"Ignored non-critical error: {line}", 'debug')
+                    continue
+            
+                error_indicators = [
+                    'error', 
+                    'exception', 
+                    'failed',
+                    'fatal:',
+                    'permission denied'
+                ]
+            
+                if any(indicator in lower_line for indicator in error_indicators):
+                    errors.append(line.strip())
+                
+            return errors
+        
         except Exception as e:
             self.logger.log(f"Error parsing errors: {str(e)}", 'error')
             return errors
