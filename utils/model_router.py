@@ -15,6 +15,14 @@ class ModelProvider(Enum):
     OPENAI = "openai"
     PERPLEXITY = "perplexity"
 
+class ModelConfig:
+    """Model configuration"""
+    def __init__(self, provider: ModelProvider, model_id: str, max_tokens: int = 4000, temperature: float = 0.7):
+        self.provider = provider
+        self.model_id = model_id
+        self.max_tokens = max_tokens
+        self.temperature = temperature
+
 class ModelRouter:
     """Routes requests to appropriate LLM providers"""
 
