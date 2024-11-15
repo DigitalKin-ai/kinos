@@ -88,10 +88,6 @@ class AiderCommandBuilder:
         for file in readonly_files:
             args.extend(["--read", file])
             
-        # Add agent prompt as read-only if found
-        if prompt_path:
-            args.extend(["--read", prompt_path])
-            
         # Add key files that should be editable
         key_files = ["todolist.md", "directives.md"]
         for file in key_files:
@@ -169,7 +165,7 @@ class AiderCommandBuilder:
         cmd.extend(["--message", f'"{stringified_prompt} ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."'])
         
         # Log the full command for debugging
-        print(f"DEBUG: Aider Command for {self.agent_name}: {' '.join(cmd)}")
+        #print(f"DEBUG: Aider Command for {self.agent_name}: {' '.join(cmd)}")
         
         if not self.validate_command(cmd):
             print(f"DEBUG: Invalid command configuration for {self.agent_name}")
