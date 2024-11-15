@@ -236,73 +236,99 @@ class PathManager:
         return os.path.join(PathManager.get_config_path(), filename)
 
     @classmethod
-    def get_prompt_file(cls, agent_name: str, team_id: Optional[str] = None) -> Optional[str]:
+    def get_prompt_file(cls, agent_name: str, team_id: Optional[str] = None, team_name: Optional[str] = None) -> Optional[str]:
         """
-        Get prompt file path for an agent with detailed logging
+        Get prompt file path for an agent with comprehensive logging and error handling
         
         Args:
             agent_name: Name of the agent
             team_id: Optional team ID to narrow search
+            team_name: Optional team name for logging context
         
         Returns:
             str: Path to the prompt file, or None if not found
         """
-        print(f"DEBUG: get_prompt_file called with agent_name: {agent_name}, team_id: {team_id}")
+        # Prepare logging context
+        log_context = f"[{team_name or 'unknown_team'}]"
         
         try:
-            # Define prompt filename options first
+            # Validate inputs
+            if not agent_name:
+                print(f"{log_context} ERROR: No agent name provided")
+                return None
+            
+            # Normalize inputs
+            normalized_agent_name = agent_name.lower()
+            
+            # Comprehensive prompt filename variations
             prompt_filename_options = [
-                f"{agent_name.lower()}.md",
+                f"{normalized_agent_name}.md",
+                f"{normalized_agent_name}_prompt.md",
                 f"{agent_name}.md",
-                f"{agent_name.lower()}_prompt.md",
                 f"{agent_name}_prompt.md"
             ]
-            print(f"DEBUG: Prompt filename options: {prompt_filename_options}")
             
-            # If team_id is provided, search in that team's directory first
-            if team_id:
-                # Try both teams and team_types directories
-                search_dirs = [
-                    os.path.join(cls.get_kinos_root(), "teams", team_id),
-                    os.path.join(cls.get_team_types_root(), f"team_{team_id}")
+            # Logging search strategy
+            print(f"{log_context} DEBUG: Searching for prompt file for agent: {agent_name}")
+            print(f"{log_context} DEBUG: Prompt Filename Options: {prompt_filename_options}")
+            
+            # Search directories
+            search_directories = []
+            
+            # Add search locations
+            search_directories.extend([
+                os.path.join(cls.get_kinos_root(), "teams"),  # Teams directory
+                os.path.join(cls.get_kinos_root(), "team_types"),  # Team types directory
+                cls.get_kinos_root(),  # Root directory as fallback
+            ])
+            
+            # Comprehensive search
+            matched_paths = []
+            for search_dir in search_directories:
+                if not os.path.exists(search_dir):
+                    print(f"{log_context} DEBUG: Skipping non-existent directory: {search_dir}")
+                    continue
+                
+                try:
+                    # Search through all subdirectories
+                    for root, _, files in os.walk(search_dir):
+                        for filename in prompt_filename_options:
+                            prompt_path = os.path.join(root, filename)
+                            if os.path.exists(prompt_path):
+                                print(f"{log_context} DEBUG: Found potential prompt file: {prompt_path}")
+                                matched_paths.append(prompt_path)
+                
+                except PermissionError:
+                    print(f"{log_context} WARNING: Permission denied accessing {search_dir}")
+                except Exception as search_error:
+                    print(f"{log_context} ERROR: Error searching directory {search_dir}: {str(search_error)}")
+            
+            # Select best match
+            if matched_paths:
+                # Prioritize paths that match the exact agent name
+                exact_match_paths = [
+                    path for path in matched_paths 
+                    if os.path.splitext(os.path.basename(path))[0].lower() == normalized_agent_name
                 ]
                 
-                print(f"DEBUG: Search directories with team_id: {search_dirs}")
+                # If exact matches exist, use those
+                if exact_match_paths:
+                    selected_path = exact_match_paths[0]
+                    print(f"{log_context} DEBUG: Selected exact match prompt file: {selected_path}")
+                    return selected_path
                 
-                for search_dir in search_dirs:
-                    print(f"DEBUG: Checking directory: {search_dir} (exists: {os.path.exists(search_dir)})")
-                    if os.path.exists(search_dir):
-                        for filename in prompt_filename_options:
-                            prompt_path = os.path.join(search_dir, filename)
-                            print(f"DEBUG: Checking prompt path: {prompt_path} (exists: {os.path.exists(prompt_path)})")
-                            if os.path.exists(prompt_path):
-                                print(f"DEBUG: Found prompt file: {prompt_path}")
-                                return prompt_path
+                # If no exact match, use the first found path
+                selected_path = matched_paths[0]
+                print(f"{log_context} DEBUG: Selected first found prompt file: {selected_path}")
+                return selected_path
             
-            # If no team_id or file not found, search in all team directories
-            for base_dir in ["teams", "team_types"]:
-                search_root = os.path.join(cls.get_kinos_root(), base_dir)
-                
-                print(f"DEBUG: Searching in base directory: {search_root} (exists: {os.path.exists(search_root)})")
-                
-                if os.path.exists(search_root):
-                    for team_folder in os.listdir(search_root):
-                        team_dir = os.path.join(search_root, team_folder)
-                        if not os.path.isdir(team_dir):
-                            continue
-                            
-                        for filename in prompt_filename_options:
-                            prompt_path = os.path.join(team_dir, filename)
-                            print(f"DEBUG: Checking prompt path: {prompt_path} (exists: {os.path.exists(prompt_path)})")
-                            if os.path.exists(prompt_path):
-                                print(f"DEBUG: Found prompt file: {prompt_path}")
-                                return prompt_path
-            
-            print(f"DEBUG: No prompt file found for agent {agent_name}")
+            # No prompt file found
+            print(f"{log_context} WARNING: No prompt file found for agent {agent_name}")
             return None
-            
+        
         except Exception as e:
-            print(f"DEBUG: Error getting prompt file: {str(e)}")
+            print(f"{log_context} CRITICAL ERROR in get_prompt_file: {str(e)}")
+            print(f"{log_context} Traceback: {traceback.format_exc()}")
             return None
 
     @classmethod
