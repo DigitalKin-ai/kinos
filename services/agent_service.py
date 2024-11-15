@@ -1497,57 +1497,45 @@ Please proceed with the updates now."""
             self.logger.log(f"Error in research mission: {str(e)}", 'error')
             return None
 
-    def create_agent(self, agent_config: Dict[str, Any]) -> Optional[AgentBase]:
+    def create_agent(self, agent_config: Union[str, Dict[str, Any]]) -> Optional[BaseAgent]:
         """
-        Create an agent instance based on configuration
+        Create an agent instance from configuration
         
         Args:
-            agent_config: Configuration dictionary for the agent
-        
+            agent_config: Either agent name as string or full config dict
+            
         Returns:
-            Instantiated agent or None if creation fails
+            Created agent instance or None on error
         """
         try:
-            # Extract agent name and type
-            agent_name = agent_config.get('name')
-            agent_type = agent_config.get('type', 'aider').lower()
-            
-            # Import necessary agent classes
-            from agents.aider.aider_agent import AiderAgent
-            from agents.research.research_agent import ResearchAgent
-            
-            # Determine agent class based on type
-            agent_classes = {
-                'aider': AiderAgent,
-                'research': ResearchAgent
-            }
-            
-            # Validate agent name
-            if not validate_agent_name(agent_name):
-                raise ValueError(f"Invalid agent name: {agent_name}")
-            
-            # Select agent class, default to AiderAgent
-            AgentClass = agent_classes.get(agent_type, AiderAgent)
-            
-            # Prepare configuration
-            config = {
-                **agent_config,
-                'mission_dir': agent_config.get('mission_dir', os.getcwd())
-            }
-            
-            # Instantiate the agent
-            agent = AgentClass(config)
-            
-            self.logger.log(
-                f"Created {agent_type.upper()} agent: {agent_name} "
-                f"(weight: {agent_config.get('weight', 0.5):.2f})",
-                'success'
-            )
-            
+            # Handle string input (agent name)
+            if isinstance(agent_config, str):
+                agent_name = agent_config
+                # Create basic config dict
+                agent_config = {
+                    'name': agent_name,
+                    'type': 'aider',  # Default type
+                    'mission_dir': os.getcwd(),  # Use current directory
+                    'weight': 0.5  # Default weight
+                }
+            else:
+                agent_name = agent_config.get('name')
+                if not agent_name:
+                    raise ValueError("Missing agent name in config")
+
+            # Get agent class based on type
+            agent_type = agent_config.get('type', 'aider')
+            agent_class = self._get_agent_class(agent_type)
+            if not agent_class:
+                raise ValueError(f"Unknown agent type: {agent_type}")
+
+            # Create agent instance
+            agent = agent_class(agent_config)
+            self.logger.log(f"Created agent: {agent_name} (type: {agent_type})", 'success')
             return agent
-            
+
         except Exception as e:
-            self.logger.log(f"Error creating agent {agent_name}: {str(e)}", 'error')
+            self.logger.log(f"Error creating agent {agent_config}: {str(e)}", 'error')
             return None
 
     def get_agent_prompt(self, agent_id: str) -> Optional[str]:
