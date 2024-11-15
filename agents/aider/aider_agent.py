@@ -216,7 +216,7 @@ class AiderAgent(AgentBase):
                         map_service = services['map_service']
                         if not map_service.update_map():
                             self.logger.log(f"[{self.name}] Failed to update map after Aider execution", 'warning')
-                            
+                        
                         # Save to dataset
                         dataset_service = services['dataset_service']
                         
@@ -241,6 +241,16 @@ class AiderAgent(AgentBase):
                         
                     except Exception as service_error:
                         self.logger.log(f"[{self.name}] Error with services: {str(service_error)}", 'error')
+                        
+                    # Explicitly update map after all other operations
+                    try:
+                        from services import init_services
+                        services = init_services(None)
+                        map_service = services['map_service']
+                        if not map_service.update_map():
+                            self.logger.log(f"[{self.name}] Failed to update map after Aider execution", 'warning')
+                    except Exception as map_error:
+                        self.logger.log(f"[{self.name}] Error updating map: {str(map_error)}", 'error')
                         
                 return output
 

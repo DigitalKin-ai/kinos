@@ -34,33 +34,39 @@ class MapService(BaseService):
             self.phase_service = PhaseService(None)
 
     def generate_map(self) -> bool:
-        """Generate project map file"""
+        """Generate project map file with enhanced debugging"""
         try:
-            print("[DEBUG] Starting map generation")
-            tree_content, warnings, total_tokens = self._scan_directory(os.getcwd())
+            self.logger.log("[MapService] Starting map generation", 'debug')
             
-            print(f"[DEBUG] Scan complete - Total tokens: {total_tokens}")
+            # Validate current working directory
+            current_dir = os.getcwd()
+            self.logger.log(f"Current directory: {current_dir}", 'debug')
+            
+            # Scan directory
+            tree_content, warnings, total_tokens = self._scan_directory(current_dir)
+            
+            self.logger.log(f"Scan complete - Total tokens: {total_tokens}", 'debug')
+            self.logger.log(f"Tree content lines: {len(tree_content)}", 'debug')
+            self.logger.log(f"Warnings: {len(warnings)}", 'debug')
             
             # Ensure phase service is initialized
             self._ensure_phase_service()
             
-            print("[DEBUG] Phase service initialized")
-            
             # Update phase service with total tokens
             self.phase_service.determine_phase(total_tokens)
             
-            print("[DEBUG] Phase determined")
-            
+            # Format and write map content
             map_content = self._format_map_content(tree_content, warnings)
             
             success = self._write_map_file(map_content)
-            print(f"[DEBUG] Map written: {success}")
+            
+            self.logger.log(f"Map write result: {success}", 'debug')
             
             return success
             
         except Exception as e:
-            print(f"[ERROR] Error generating map: {str(e)}")
-            self.logger.log(f"Error generating map: {str(e)}", 'error')
+            import traceback
+            self.logger.log(f"Map generation error: {str(e)}\n{traceback.format_exc()}", 'critical')
             return False
 
     def _scan_directory(self, path: str, prefix: str = "") -> Tuple[List[str], List[str], int]:
@@ -354,22 +360,35 @@ class MapService(BaseService):
             return False
 
     def update_map(self) -> bool:
-        """Update map after file changes with enhanced error handling"""
+        """Update map after file changes with comprehensive logging"""
         try:
-            self.logger.log("Starting map update", 'debug')
+            self.logger.log("Starting comprehensive map update", 'debug')
+            
+            # Validate mission directory
+            mission_dir = os.getcwd()
+            if not os.path.exists(mission_dir):
+                self.logger.log(f"Mission directory not found: {mission_dir}", 'error')
+                return False
+            
+            # Ensure map file can be written
+            map_path = os.path.join(mission_dir, self.map_file)
+            try:
+                # Check write permissions
+                if os.path.exists(map_path) and not os.access(map_path, os.W_OK):
+                    self.logger.log(f"Map file not writable: {map_path}", 'error')
+                    return False
+            except Exception as perm_error:
+                self.logger.log(f"Permission check error: {str(perm_error)}", 'error')
+                return False
             
             # Vérifier si le fichier existe et est accessible en écriture
             if os.path.exists(self.map_file):
-                if not os.access(self.map_file, os.W_OK):
-                    self.logger.log(f"Map file not writable: {self.map_file}", 'error')
-                    return False
-                    
                 # Sauvegarder la dernière modification
                 last_modified = os.path.getmtime(self.map_file)
             else:
                 last_modified = 0
 
-            # Générer la nouvelle map
+            # Generate map with comprehensive error handling
             success = self.generate_map()
             
             if success:
@@ -379,14 +398,21 @@ class MapService(BaseService):
                     if new_modified <= last_modified:
                         self.logger.log("Map file not updated - forcing regeneration", 'warning')
                         # Forcer une nouvelle génération
-                        return self.generate_map()
+                        success = self.generate_map()
                 except Exception as check_error:
                     self.logger.log(f"Error checking map update: {str(check_error)}", 'error')
-                    
+                    success = False
+            
+            if success:
+                self.logger.log("Map successfully updated", 'info')
+            else:
+                self.logger.log("Map update failed", 'warning')
+            
             return success
-
+        
         except Exception as e:
-            self.logger.log(f"Error updating map: {str(e)}", 'error')
+            import traceback
+            self.logger.log(f"Comprehensive map update error: {str(e)}\n{traceback.format_exc()}", 'critical')
             return False
 
     def get_map_content(self) -> str:
