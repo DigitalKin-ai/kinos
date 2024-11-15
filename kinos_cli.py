@@ -254,32 +254,19 @@ def main():
     if args.verbose:
         logger.set_level('debug')
 
-    # If model is specified, update the default config
+    # If model is specified, update ModelRouter
     if args.model:
         try:
             from services import init_services
             services = init_services(None)
             model_router = services['model_router']
-            
-            # Get provider and validate model exists
-            available_models = model_router.get_available_models()
-            model_found = False
-            
-            for provider, models in available_models.items():
-                if args.model in models:
-                    # Update default config with specified model
-                    model_router.configs["default"].model_id = args.model
-                    model_router.configs["default"].provider = provider
-                    logger.log(f"Using model: {args.model} from {provider}", 'info')
-                    model_found = True
-                    break
                     
-            if not model_found:
+            if not model_router.set_model(args.model):
                 logger.log(f"Model {args.model} not found. Available models:", 'warning')
-                for provider, models in available_models.items():
+                for provider, models in model_router.get_available_models().items():
                     logger.log(f"{provider}: {', '.join(models)}", 'info')
                 return
-                
+                        
         except Exception as e:
             logger.log(f"Error setting model: {str(e)}", 'error')
             return

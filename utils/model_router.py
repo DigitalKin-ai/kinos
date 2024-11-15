@@ -4,7 +4,6 @@ ModelRouter - Centralized LLM provider management and routing
 import os
 from typing import Dict, Any, Optional, List
 from enum import Enum
-from dataclasses import dataclass
 from anthropic import Anthropic
 import openai
 from utils.logger import Logger
@@ -16,53 +15,16 @@ class ModelProvider(Enum):
     OPENAI = "openai"
     PERPLEXITY = "perplexity"
 
-@dataclass
-class ModelConfig:
-    """Model configuration"""
-    provider: ModelProvider
-    model_id: str
-    max_tokens: int
-    temperature: float = 0.7
-    top_p: float = 0.9
-    frequency_penalty: float = 0.0
-    presence_penalty: float = 0.0
-
 class ModelRouter:
     """Routes requests to appropriate LLM providers"""
 
-    DEFAULT_CONFIGS = {
-        "default": ModelConfig(
-            provider=ModelProvider.ANTHROPIC,
-            model_id="claude-3-haiku-20240307",
-            max_tokens=4000,
-            temperature=0.7
-        ),
-        "fast": ModelConfig(
-            provider=ModelProvider.OPENAI,
-            model_id="gpt-4-0125-preview",
-            max_tokens=4000,
-            temperature=0.7
-        ),
-        "research": ModelConfig(
-            provider=ModelProvider.PERPLEXITY,
-            model_id="llama-3.1-sonar-large-128k-chat",
-            max_tokens=4000,
-            temperature=0.2
-        )
-    }
-
     def __init__(self):
-        """Initialize router with API keys and configs"""
+        """Initialize router with API keys"""
         self.logger = Logger()
-        
-        # Load API keys
         self.api_keys = self._load_api_keys()
-        
-        # Initialize clients
         self.clients = self._initialize_clients()
-        
-        # Load custom configurations
-        self.configs = self._load_custom_configs()
+        self.current_model = "claude-3-haiku-20240307"  # Default model
+        self.current_provider = ModelProvider.ANTHROPIC  # Default provider
 
     def _load_api_keys(self) -> Dict[str, str]:
         """Load API keys from environment"""
@@ -102,65 +64,42 @@ class ModelRouter:
                 
         return clients
 
-    def _load_custom_configs(self) -> Dict[str, ModelConfig]:
-        """Load custom model configurations"""
-        # Start with default configs
-        configs = self.DEFAULT_CONFIGS.copy()
+    def set_model(self, model_name: str) -> bool:
+        """Set current model if valid"""
+        available = self.get_available_models()
         
-        # Load custom configs from file if exists
-        config_path = os.path.join("config", "model_configs.json")
-        if os.path.exists(config_path):
-            try:
-                import json
-                with open(config_path, 'r') as f:
-                    custom_configs = json.load(f)
-                    
-                for name, config in custom_configs.items():
-                    configs[name] = ModelConfig(**config)
-                    
-            except Exception as e:
-                self.logger.log(f"Error loading custom configs: {str(e)}", 'error')
+        for provider, models in available.items():
+            if model_name in models:
+                self.current_model = model_name
+                self.current_provider = ModelProvider(provider)
+                self.logger.log(f"Using model: {model_name} from {provider}", 'info')
+                return True
                 
-        return configs
+        return False
 
     async def generate_response(
         self,
         messages: List[Dict[str, str]],
-        config_name: str = "default",
+        system: Optional[str] = None,
         **kwargs
     ) -> Optional[str]:
-        """
-        Generate response using specified model configuration
-        
-        Args:
-            messages: List of message dictionaries with 'role' and 'content'
-            config_name: Name of model configuration to use
-            **kwargs: Additional model parameters
-            
-        Returns:
-            Generated response text or None on error
-        """
+        """Generate response using current model"""
         try:
-            # Get model config
-            config = self.configs.get(config_name, self.DEFAULT_CONFIGS["default"])
-            
-            # Get appropriate client
-            client = self.clients.get(config.provider.value)
+            client = self.clients.get(self.current_provider.value)
             if not client:
-                raise ServiceError(f"No client available for provider {config.provider.value}")
-                
-            # Route to appropriate provider
-            if config.provider == ModelProvider.ANTHROPIC:
-                response = await self._generate_anthropic(client, messages, config, **kwargs)
-            elif config.provider == ModelProvider.OPENAI:
-                response = await self._generate_openai(client, messages, config, **kwargs)
-            elif config.provider == ModelProvider.PERPLEXITY:
-                response = await self._generate_perplexity(client, messages, config, **kwargs)
+                raise ServiceError(f"No client available for provider {self.current_provider.value}")
+
+            if self.current_provider == ModelProvider.ANTHROPIC:
+                response = await self._generate_anthropic(client, messages, system, **kwargs)
+            elif self.current_provider == ModelProvider.OPENAI:
+                response = await self._generate_openai(client, messages, system, **kwargs)
+            elif self.current_provider == ModelProvider.PERPLEXITY:
+                response = await self._generate_perplexity(client, messages, system, **kwargs)
             else:
-                raise ValueError(f"Unsupported provider: {config.provider}")
-                
+                raise ValueError(f"Unsupported provider: {self.current_provider}")
+
             return response
-            
+
         except Exception as e:
             self.logger.log(f"Error generating response: {str(e)}", 'error')
             return None
@@ -169,16 +108,18 @@ class ModelRouter:
         self,
         client: Anthropic,
         messages: List[Dict[str, str]],
-        config: ModelConfig,
+        system: Optional[str] = None,
         **kwargs
     ) -> str:
         """Generate response using Anthropic's Claude"""
+        if system:
+            messages = [{"role": "system", "content": system}] + messages
+            
         response = await client.messages.create(
-            model=config.model_id,
-            max_tokens=config.max_tokens,
+            model=self.current_model,
             messages=messages,
-            temperature=config.temperature,
-            **kwargs
+            max_tokens=kwargs.get('max_tokens', 4000),
+            temperature=kwargs.get('temperature', 0.7)
         )
         return response.content[0].text
 
@@ -186,16 +127,18 @@ class ModelRouter:
         self,
         client: openai.OpenAI,
         messages: List[Dict[str, str]],
-        config: ModelConfig,
+        system: Optional[str] = None,
         **kwargs
     ) -> str:
         """Generate response using OpenAI"""
+        if system:
+            messages = [{"role": "system", "content": system}] + messages
+            
         response = await client.chat.completions.create(
-            model=config.model_id,
+            model=self.current_model,
             messages=messages,
-            max_tokens=config.max_tokens,
-            temperature=config.temperature,
-            **kwargs
+            max_tokens=kwargs.get('max_tokens', 4000),
+            temperature=kwargs.get('temperature', 0.7)
         )
         return response.choices[0].message.content
 
@@ -203,16 +146,18 @@ class ModelRouter:
         self,
         client: Any,
         messages: List[Dict[str, str]],
-        config: ModelConfig,
+        system: Optional[str] = None,
         **kwargs
     ) -> str:
         """Generate response using Perplexity"""
+        if system:
+            messages = [{"role": "system", "content": system}] + messages
+            
         response = await client.chat.completions.create(
-            model=config.model_id,
+            model=self.current_model,
             messages=messages,
-            max_tokens=config.max_tokens,
-            temperature=config.temperature,
-            **kwargs
+            max_tokens=kwargs.get('max_tokens', 4000),
+            temperature=kwargs.get('temperature', 0.7)
         )
         return response.choices[0].message.content
 
