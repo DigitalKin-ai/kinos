@@ -177,7 +177,18 @@ Return ONLY the query text, nothing else."""
                 self.query_cache[query] = results
                 self._save_research_data(query, results)
 
-                # TODO: Ajouter la réponse dans le fichier de chat 
+                # Log the response
+                self.logger.log(f"[{self.name}] Perplexity response: {results['response']}", 'info')
+                
+                # Save to chat history
+                chat_history_file = f".aider.{self.name}.chat.history.md"
+                try:
+                    with open(chat_history_file, 'a', encoding='utf-8') as f:
+                        f.write(f"\n\n--- {datetime.now().isoformat()} ---\n")
+                        f.write(f"**Perplexity Query:**\n{query}\n\n")
+                        f.write(f"**Perplexity Response:**\n{results['response']}\n")
+                except Exception as e:
+                    self.logger.log(f"Error saving Perplexity response to chat: {str(e)}", 'warning')
                 
             return results
             
