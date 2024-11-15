@@ -248,6 +248,22 @@ class PathManager:
         Returns:
             str: Path to the prompt file, or None if not found
         """
+        # If no team_id is provided, try to find it dynamically
+        if not team_id:
+            try:
+                from services import init_services
+                services = init_services(None)
+                team_service = services['team_service']
+                
+                # Find the team containing this agent
+                for team in team_service.predefined_teams:
+                    if agent_name in team.get('agents', []):
+                        team_id = team.get('id')
+                        team_name = team.get('name')
+                        break
+            except Exception as e:
+                print(f"[unknown_team] ERROR: Could not retrieve team ID: {str(e)}")
+        
         # Prepare logging context
         log_context = f"[{team_name or 'unknown_team'}]"
         
@@ -270,17 +286,29 @@ class PathManager:
             
             # Logging search strategy
             print(f"{log_context} DEBUG: Searching for prompt file for agent: {agent_name}")
+            print(f"{log_context} DEBUG: Team ID: {team_id}")
             print(f"{log_context} DEBUG: Prompt Filename Options: {prompt_filename_options}")
             
-            # Search directories
+            # Search directories with priority
             search_directories = []
             
-            # Add search locations
+            # Add team-specific directories if team_id exists
+            if team_id:
+                search_directories.extend([
+                    os.path.join(cls.get_kinos_root(), "teams", team_id),
+                    os.path.join(cls.get_kinos_root(), "team_types", f"team_{team_id}"),
+                    os.path.join(cls.get_kinos_root(), "team_types", team_id)
+                ])
+            
+            # Add fallback search paths
             search_directories.extend([
-                os.path.join(cls.get_kinos_root(), "teams"),  # Teams directory
-                os.path.join(cls.get_kinos_root(), "team_types"),  # Team types directory
-                cls.get_kinos_root(),  # Root directory as fallback
+                os.path.join(cls.get_kinos_root(), "teams"),
+                os.path.join(cls.get_kinos_root(), "team_types"),
+                cls.get_kinos_root()
             ])
+            
+            # Remove duplicate and None values
+            search_directories = list(dict.fromkeys(d for d in search_directories if d is not None))
             
             # Comprehensive search
             matched_paths = []
@@ -305,13 +333,13 @@ class PathManager:
             
             # Select best match
             if matched_paths:
-                # Prioritize paths that match the exact agent name
+                # Prioritize exact matches
                 exact_match_paths = [
                     path for path in matched_paths 
                     if os.path.splitext(os.path.basename(path))[0].lower() == normalized_agent_name
                 ]
                 
-                # If exact matches exist, use those
+                # If exact matches exist, use the first one
                 if exact_match_paths:
                     selected_path = exact_match_paths[0]
                     print(f"{log_context} DEBUG: Selected exact match prompt file: {selected_path}")
