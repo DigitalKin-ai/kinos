@@ -320,24 +320,29 @@ class PathManager:
         return cls.get_prompt_file(agent_name, team_id)
 
     @staticmethod
-    def get_team_path(team_id: Optional[str] = None) -> str:
+    def get_team_path(team_id: Optional[str] = None, team_name: Optional[str] = None) -> str:
         """
-        Get the path for a specific team
-        
+        Get the path for a specific team with detailed logging
+    
         Args:
             team_id: Optional team identifier
-        
+            team_name: Optional team name for logging context
+    
         Returns:
             str: Path to the team directory
         """
         try:
+            # Use team_name in logging if provided, otherwise use a default
+            log_context = f"[{team_name or 'unknown_team'}]"
+            print(f"{log_context} DEBUG: get_team_path called with team_id: {team_id}")
+        
             # If no team_id is provided, use the current working directory
             if not team_id:
                 return os.getcwd()
-            
+        
             # Normalize team_id
             team_id = team_id.lower().replace('team_', '')
-            
+        
             # Search locations for team directories
             search_locations = [
                 os.getcwd(),  # Current mission directory
@@ -345,38 +350,39 @@ class PathManager:
                 os.path.join(PathManager.get_kinos_root(), 'teams'),  # KinOS teams directory
                 os.path.join(PathManager.get_kinos_root(), 'team_types')  # Team types directory
             ]
-            
+        
             # Search patterns
             search_patterns = [
                 f"team_{team_id}",
                 f"{team_id}",
                 team_id
             ]
-            
+        
             # Search through locations
             for base_dir in search_locations:
                 if not os.path.exists(base_dir):
                     continue
-                
+            
                 try:
                     directory_contents = os.listdir(base_dir)
                 except Exception:
                     continue
-                
+            
                 for item in directory_contents:
                     # Check if item matches any search pattern
                     if any(pattern in item.lower() for pattern in search_patterns):
                         full_path = os.path.join(base_dir, item)
-                        
+                    
                         if os.path.isdir(full_path):
+                            print(f"{log_context} DEBUG: Found team path: {full_path}")
                             return full_path
         
             # If no match found, return current directory
+            print(f"{log_context} DEBUG: No team path found, returning current directory")
             return os.getcwd()
-        
+    
         except Exception as e:
-            # Fallback to current directory
-            print(f"Error in get_team_path: {str(e)}")
+            print(f"{log_context} DEBUG: Error in get_team_path: {str(e)}")
             return os.getcwd()
 
     @staticmethod
