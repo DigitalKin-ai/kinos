@@ -142,12 +142,12 @@ class ModelRouter:
         if system:
             messages = [{"role": "system", "content": system}] + messages
         
-        # Use acreate for proper async call
-        response = await client.chat.completions.acreate(
+        # Use synchronous create as OpenAI handles async internally
+        response = client.chat.completions.create(
             model=self.current_model,
             messages=messages,
             max_tokens=kwargs.get('max_tokens', 4000),
-            temperature=kwargs.get('temperature', 0.3)
+            temperature=kwargs.get('temperature', 0.7)
         )
         return response.choices[0].message.content
 
