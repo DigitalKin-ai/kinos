@@ -248,19 +248,20 @@ class PathManager:
             str: Path to the prompt file, or None if not found
         """
         try:
+            # Define prompt filename options first
+            prompt_filename_options = [
+                f"{agent_name.lower()}.md",
+                f"{agent_name}.md",
+                f"{agent_name.lower()}_prompt.md",
+                f"{agent_name}_prompt.md"
+            ]
+            
             # If team_id is provided, search in that team's directory first
             if team_id:
                 # Try both teams and team_types directories
                 search_dirs = [
                     os.path.join(cls.get_kinos_root(), "teams", team_id),
                     os.path.join(cls.get_team_types_root(), f"team_{team_id}")
-                ]
-                
-                prompt_filename_options = [
-                    f"{agent_name.lower()}.md",
-                    f"{agent_name}.md",
-                    f"{agent_name.lower()}_prompt.md",
-                    f"{agent_name}_prompt.md"
                 ]
                 
                 for search_dir in search_dirs:
