@@ -549,7 +549,7 @@ Instructions:
         """Execute one iteration of the agent's task"""
         try:
             self.logger.log(f"[{self.name}] 🔄 Starting agent iteration", 'debug')
-            
+        
             # Validate mission directory
             if not os.path.exists(self.mission_dir):
                 self.logger.log(f"[{self.name}] ❌ Mission directory not found")
@@ -557,16 +557,10 @@ Instructions:
 
             # Update file list
             self.list_files()
-        
-            # Get current prompt
-            prompt = self.get_prompt()
-            if not prompt:
-                self.logger.log(f"[{self.name}] ⚠️ No prompt available")
-                return
-            
-            # Execute mission
-            result = self.execute_mission(prompt)
-        
+    
+            # Call _execute_agent_cycle instead of execute_mission
+            result = self._execute_agent_cycle()
+    
             # Update state based on result
             self.last_run = datetime.now()
             if result:
