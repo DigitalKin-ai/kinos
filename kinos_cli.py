@@ -18,7 +18,7 @@ def load_team_config(team_name: str) -> List[str]:
     """Load agent names from team config"""
     try:
         # Use PathManager to get KinOS root path
-        from utils.path_manager import PathManager
+        from utils.path_manager import PathManager  # Ensure correct import
         kinos_root = PathManager.get_kinos_root()
         
         config_path = os.path.join(kinos_root, "team_types", team_name, "config.json")
