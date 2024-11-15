@@ -62,37 +62,38 @@ class ResearchAgent(AiderAgent):
 
     def __init__(self, config: Dict[str, Any]):
         """Initialize research agent"""
-        # Ensure os is available before using it
-        if not hasattr(os, 'path'):
-            raise ImportError("Could not import a valid path module")
-
-        # Call parent constructor first
-        super().__init__(config)
-        
-        # Initialize research-specific attributes
-        self.data_dir = os.path.join(self.mission_dir, "research_data")
-        
-        # Ensure data directory exists
         try:
-            os.makedirs(self.data_dir, exist_ok=True)
-        except Exception as e:
-            self.logger.log(f"Error creating research data directory: {str(e)}", 'error')
-        
-        self.research_log = os.path.join(self.data_dir, "research_log.jsonl")
-        self.query_cache = {}
-        
-        # Load environment variables and initialize Perplexity client
-        from dotenv import load_dotenv
-        load_dotenv()
-        
-        perplexity_api_key = os.environ.get('PERPLEXITY_API_KEY')
-        if not perplexity_api_key:
-            raise ValueError("PERPLEXITY_API_KEY not found in .env file")
+            # Call parent constructor first
+            super().__init__(config)
             
-        self.perplexity_client = PerplexityClient(api_key=perplexity_api_key)
-        
-        # Load API configuration
-        self.api_config = self._load_api_config()
+            # Initialize research-specific attributes
+            self.data_dir = os.path.join(self.mission_dir, "research_data")
+            
+            # Ensure data directory exists
+            try:
+                os.makedirs(self.data_dir, exist_ok=True)
+            except Exception as e:
+                self.logger.log(f"Error creating research data directory: {str(e)}", 'error')
+            
+            self.research_log = os.path.join(self.data_dir, "research_log.jsonl")
+            self.query_cache = {}
+            
+            # Load environment variables and initialize Perplexity client
+            from dotenv import load_dotenv
+            load_dotenv()
+            
+            perplexity_api_key = os.environ.get('PERPLEXITY_API_KEY')
+            if not perplexity_api_key:
+                raise ValueError("PERPLEXITY_API_KEY not found in .env file")
+                
+            self.perplexity_client = PerplexityClient(api_key=perplexity_api_key)
+            
+            # Load API configuration
+            self.api_config = self._load_api_config()
+            
+        except Exception as e:
+            self.logger.log(f"Error initializing research agent: {str(e)}", 'error')
+            raise
 
     def _extract_research_topics(self, content: str) -> List[str]:
         """Extract research topics using Claude"""

@@ -176,19 +176,71 @@ class TeamService(BaseService):
             self.logger.log(f"Error getting team metrics: {str(e)}", 'error')
             return {}
 
-    def get_agent_prompt_path(self, team_id: str, agent_name: str) -> Optional[str]:
-        """Get prompt file path for an agent in a team"""
+    def load_team_prompts(self, team_id: str) -> Dict[str, str]:
+        """Load all prompt files for a team"""
         try:
+            prompts = {}
             team_dir = os.path.join(PathManager.get_kinos_root(), "teams", team_id)
-            prompt_file = os.path.join(team_dir, f"{agent_name.lower()}.md")
             
-            if os.path.exists(prompt_file):
-                return prompt_file
-            return None
+            if not os.path.exists(team_dir):
+                self.logger.log(f"Team directory not found: {team_id}", 'warning')
+                return prompts
+                
+            # Load each .md file as a prompt
+            for file in os.listdir(team_dir):
+                if file.endswith('.md'):
+                    prompt_path = os.path.join(team_dir, file)
+                    try:
+                        with open(prompt_path, 'r', encoding='utf-8') as f:
+                            agent_name = file[:-3]  # Remove .md extension
+                            prompts[agent_name] = f.read()
+                    except Exception as e:
+                        self.logger.log(f"Error loading prompt {file}: {str(e)}", 'warning')
+                        
+            return prompts
             
         except Exception as e:
-            self.logger.log(f"Error getting agent prompt path: {str(e)}", 'error')
-            return None
+            self.logger.log(f"Error loading team prompts: {str(e)}", 'error')
+            return {}
+
+    def validate_team_prompts(self, team_id: str) -> Dict[str, List[str]]:
+        """Validate all prompts for a team"""
+        validation_results = {
+            'valid': [],
+            'invalid': [],
+            'missing': []
+        }
+        
+        try:
+            team_config = self.get_team_config(team_id)
+            if not team_config:
+                return validation_results
+                
+            # Get expected agents
+            expected_agents = self.get_team_agents(team_id)
+            
+            # Load and validate each prompt
+            prompts = self.load_team_prompts(team_id)
+            
+            for agent in expected_agents:
+                if agent not in prompts:
+                    validation_results['missing'].append(agent)
+                    continue
+                    
+                # Basic validation - check for required sections
+                prompt_content = prompts[agent]
+                required_sections = ['MISSION:', 'CONTEXT:', 'INSTRUCTIONS:', 'RULES:']
+                
+                if all(section in prompt_content for section in required_sections):
+                    validation_results['valid'].append(agent)
+                else:
+                    validation_results['invalid'].append(agent)
+                    
+            return validation_results
+            
+        except Exception as e:
+            self.logger.log(f"Error validating team prompts: {str(e)}", 'error')
+            return validation_results
 
     def get_agent_prompt_path(self, team_id: str, agent_name: str) -> Optional[str]:
         """Get prompt file path for an agent in a team"""
