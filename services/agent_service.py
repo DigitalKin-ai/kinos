@@ -452,16 +452,8 @@ List any specific constraints or limitations.
                 if agent_config:
                     break
 
-            # Determine agent type from configuration or dynamically
-            agent_type = 'aider'
-            if agent_config and 'type' in agent_config:
-                agent_type = agent_config['type']
-            else:
-                # Fallback detection
-                agent_type = 'research' if any(keyword in agent_name.lower() for keyword in [
-                    'research', 'literature', 'review', 'study', 'analyse', 
-                    'documentation', 'chercheur', 'recherche'
-                ]) else 'aider'
+            # Determine agent type from configuration
+            agent_type = agent_config.get('type', 'aider')
 
             # Configure agent
             config = {
