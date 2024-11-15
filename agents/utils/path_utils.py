@@ -2,7 +2,7 @@
 Path management utilities
 """
 import os
-from typing import List
+from typing import List, Optional
 
 def validate_paths(mission_dir: str) -> bool:
     """
@@ -74,3 +74,38 @@ class PathManager:
     def normalize_path(path: str) -> str:
         """Normalize a file path"""
         return os.path.normpath(os.path.abspath(path))
+
+    @staticmethod
+    def get_agent_prompt_path(team_id: str, agent_name: str) -> Optional[str]:
+        """
+        Get prompt file path for an agent in a team
+        
+        Args:
+            team_id: ID of the team
+            agent_name: Name of the agent
+        
+        Returns:
+            str: Path to the prompt file, or None if not found
+        """
+        try:
+            # Construct path to team's prompts directory
+            team_prompts_dir = os.path.join(PathManager.get_kinos_root(), "teams", team_id)
+            
+            # Try different filename variations
+            prompt_filename_options = [
+                f"{agent_name.lower()}.md",
+                f"{agent_name}.md",
+                f"{agent_name.lower()}_prompt.md",
+                f"{agent_name}_prompt.md"
+            ]
+            
+            for filename in prompt_filename_options:
+                prompt_path = os.path.join(team_prompts_dir, filename)
+                if os.path.exists(prompt_path):
+                    return prompt_path
+            
+            return None
+            
+        except Exception as e:
+            print(f"Error getting agent prompt path: {str(e)}")
+            return None
