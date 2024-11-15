@@ -510,14 +510,32 @@ List any specific constraints or limitations.
             if agent_type == 'research':
                 from agents.research.research_agent import ResearchAgent
                 AgentClass = ResearchAgent
-                self.logger.log(f"Using ResearchAgent for {agent_name}", 'debug')
+                self.logger.log(
+                    f"🔍 Explicitly creating ResearchAgent for {agent_name}\n"
+                    f"Config: {json.dumps(config, indent=2)}\n"
+                    f"Agent Type: {type(AgentClass).__name__}", 
+                    'debug'
+                )
             else:
                 from agents.aider.aider_agent import AiderAgent
                 AgentClass = AiderAgent
-                self.logger.log(f"Using AiderAgent for {agent_name}", 'debug')
+                self.logger.log(
+                    f"🔧 Creating AiderAgent for {agent_name}\n"
+                    f"Config: {json.dumps(config, indent=2)}\n"
+                    f"Agent Type: {type(AgentClass).__name__}", 
+                    'debug'
+                )
 
             # Create and run agent
             agent = AgentClass(config)
+
+            # Add explicit type checking log
+            self.logger.log(
+                f"Agent instantiated: {agent_name}\n"
+                f"Actual Agent Type: {type(agent).__name__}\n"
+                f"Expected Type: {AgentClass.__name__}", 
+                'debug'
+            )
             self.logger.log(
                 f"Running {agent_type.upper()} agent {agent_name} "
                 f"(weight: {config['weight']:.2f}) in {current_phase} phase", 
