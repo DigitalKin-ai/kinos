@@ -116,23 +116,33 @@ def run_team_loop(team_name: str):
             logger.log("Checking agent initialization conditions", 'debug')
             
             # Always try to maintain several active threads
-            while len(active_threads) < 2:
-                # Get current phase weights with logging
-                from services import init_services
-                services = init_services(None)
-                phase_service = services['phase_service']
-                phase_status = phase_service.get_status_info()
-                current_phase = phase_status['phase']
+            while True:  # Main loop
+                # Clean up finished threads
+                active_threads = {tid: runner for tid, runner in active_threads.items() 
+                                if runner.is_alive()}
+                
+                # Start new threads if needed
+                while len(active_threads) < 2:
+                    # Get current phase weights with logging
+                    from services import init_services
+                    services = init_services(None)
+                    phase_service = services['phase_service']
+                    phase_status = phase_service.get_status_info()
+                    current_phase = phase_status['phase']
                 
                 logger.log(f"Current project phase: {current_phase}", 'debug')
                 
                 phase_weights = phase_service.get_phase_weights(current_phase)
                 logger.log(f"Phase weights: {phase_weights}", 'debug')
                 
-                # Filter out agents that are already running
-                available_agents = [a for a in agents if not any(
-                    runner.agent_name == a for runner in active_threads.values()
-                )]
+                    # Filter out agents that are already running
+                    available_agents = [a for a in agents if not any(
+                        runner.agent_name == a for runner in active_threads.values()
+                    )]
+                    
+                    if not available_agents:
+                        time.sleep(1)  # Wait if all agents are busy
+                        break  # Exit inner loop to clean up threads again
                 
                 # Get weights for available agents
                 weights = [phase_weights.get(agent, 0.5) for agent in available_agents]
