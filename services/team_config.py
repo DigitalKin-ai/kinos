@@ -71,9 +71,9 @@ class TeamConfig:
                         return False, f"Missing name in agent config: {agent}"
                 elif not isinstance(agent, str):
                     return False, f"Invalid agent format: {agent}"
-
+                    
             return True, None
-
+            
         except Exception as e:
             return False, str(e)
 
