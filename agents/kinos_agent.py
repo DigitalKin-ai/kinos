@@ -386,6 +386,29 @@ class KinOSAgent:
             return False
 
 
+    def validate_prompt(self, content: str) -> bool:
+        """Validate prompt content format"""
+        try:
+            if not content or not content.strip():
+                return False
+                
+            # Check minimum size
+            if len(content) < 10:
+                return False
+                
+            # Check required sections
+            required = ["MISSION:", "CONTEXT:", "INSTRUCTIONS:", "RULES:"]
+            for section in required:
+                if section not in content:
+                    self.logger.log(f"Missing required section: {section}", 'warning')
+                    return False
+                    
+            return True
+            
+        except Exception as e:
+            self.logger.log(f"Error validating prompt: {str(e)}", 'error')
+            return False
+
     def cleanup(self):
         """Cleanup agent resources properly"""
         try:
