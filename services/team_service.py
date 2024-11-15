@@ -20,14 +20,19 @@ class TeamService(BaseService):
         try:
             teams = []
             teams_dir = PathManager.get_team_types_root()
-            
+        
             if not os.path.exists(teams_dir):
                 self.logger.log("Teams directory not found", 'warning')
                 return []
-                
+            
             # Load each team config
             for team_dir in os.listdir(teams_dir):
-                config_path = os.path.join(teams_dir, team_dir, "config.json")
+                # Check if it's a directory
+                full_path = os.path.join(teams_dir, team_dir)
+                if not os.path.isdir(full_path):
+                    continue
+            
+                config_path = os.path.join(full_path, "config.json")
                 if os.path.exists(config_path):
                     try:
                         with open(config_path, 'r', encoding='utf-8') as f:
