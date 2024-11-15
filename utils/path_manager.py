@@ -239,6 +239,11 @@ class PathManager:
     def get_prompt_file(agent_name: str) -> str:
         """Retourne le chemin vers le fichier prompt d'un agent"""
         return os.path.join(PathManager.get_prompts_path(), f"{agent_name}.md")
+    
+    @staticmethod
+    def get_prompt_path(agent_name: str) -> str:
+        """Retourne le chemin vers le fichier prompt d'un agent"""
+        return os.path.join(PathManager.get_prompts_path(), f"{agent_name}.md")
 
     @staticmethod
     def get_log_file(service_name: str) -> str:
