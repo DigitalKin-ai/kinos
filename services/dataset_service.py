@@ -12,6 +12,7 @@ from utils.path_manager import PathManager
 from services.base_service import BaseService
 from utils.exceptions import ServiceError
 from utils.logger import Logger
+from utils.model_router import ModelProvider
 
 class DatasetService(BaseService):
     """Manages dataset creation for fine-tuning"""
