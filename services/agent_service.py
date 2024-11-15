@@ -12,6 +12,7 @@ import importlib
 import inspect
 from agents.base.agent_base import AgentBase
 from agents.aider.aider_agent import AiderAgent
+from agents.base.agent_base import AgentBase as BaseAgent
 from utils.path_manager import PathManager
 from utils.validators import validate_agent_name
 from utils.logger import Logger
