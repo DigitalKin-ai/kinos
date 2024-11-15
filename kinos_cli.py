@@ -3,6 +3,7 @@ import threading
 import queue
 import time
 import random
+import argparse
 from cli.commands.commits import commits
 from typing import List, Dict
 import os
@@ -10,6 +11,7 @@ import json
 from datetime import datetime
 from utils.logger import Logger
 from services.agent_service import AgentService
+from utils.model_router import ModelRouter
 
 def load_team_config(team_name: str) -> List[str]:
     """Load agent names from team config"""
@@ -239,17 +241,49 @@ def run_team_loop(team_name: str):
             
 def main():
     """CLI entry point"""
-    # Configurer le logger pour afficher les logs de debug
+    # Configure parser
+    parser = argparse.ArgumentParser(description='KinOS CLI')
+    parser.add_argument('command', help='Command to execute')
+    parser.add_argument('--model', help='Model to use (e.g. "claude-3-haiku", "gpt-4", etc.)')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging')
+    args = parser.parse_args()
+
+    # Configure logger for debug logs if verbose
     logger = Logger()
-    logger.set_level('debug')  # Ajoutez cette ligne
+    if args.verbose:
+        logger.set_level('debug')
 
-    if len(sys.argv) < 2:
-        print("Usage: kin <command>")
-        return
+    # If model is specified, update the default config
+    if args.model:
+        try:
+            from services import init_services
+            services = init_services(None)
+            model_router = services['model_router']
+            
+            # Get provider and validate model exists
+            available_models = model_router.get_available_models()
+            model_found = False
+            
+            for provider, models in available_models.items():
+                if args.model in models:
+                    # Update default config with specified model
+                    model_router.configs["default"].model_id = args.model
+                    model_router.configs["default"].provider = provider
+                    logger.log(f"Using model: {args.model} from {provider}", 'info')
+                    model_found = True
+                    break
+                    
+            if not model_found:
+                logger.log(f"Model {args.model} not found. Available models:", 'warning')
+                for provider, models in available_models.items():
+                    logger.log(f"{provider}: {', '.join(models)}", 'info')
+                return
+                
+        except Exception as e:
+            logger.log(f"Error setting model: {str(e)}", 'error')
+            return
 
-    command = sys.argv[1]
-    
-    if command == "commits":
+    if args.command == "commits":
         if len(sys.argv) < 3:
             print("Usage: kin commits <generate>")
             return
@@ -258,7 +292,7 @@ def main():
             generate_commit_log()
     else:
         # Execute team command
-        team_name = command
+        team_name = args.command
         run_team_loop(team_name)
 
 if __name__ == "__main__":

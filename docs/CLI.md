@@ -17,8 +17,10 @@ kin book        # Équipe de rédaction
 kin review      # Équipe de revue
 
 # Options globales
-kin -v          # Mode verbeux
-kin -p /chemin  # Dossier spécifique
+kin -v                                    # Mode verbeux
+kin -p /chemin                            # Dossier spécifique
+kin --model claude-3-haiku-20240307      # Utiliser un modèle spécifique
+kin --model gpt-4-0125-preview           # Utiliser GPT-4
 
 # Système de Phases
 kin phase                 # Voir statut actuel
@@ -92,6 +94,11 @@ kin tokens usage     # Utilisation totale
 # Démarrer dans un projet
 cd mon-projet
 kin
+
+# Utiliser un modèle spécifique
+kin coding --model claude-3-haiku-20240307    # Utiliser Claude 3 Haiku
+kin book --model gpt-4-0125-preview           # Utiliser GPT-4
+kin review --model invalid-model              # Voir les modèles disponibles
 
 # Surveiller l'utilisation des tokens
 kin phase status
