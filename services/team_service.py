@@ -57,15 +57,34 @@ class TeamService(BaseService):
             return []
 
     def get_team_config(self, team_id: str) -> Optional[Dict[str, Any]]:
-        """Get configuration for a specific team"""
+        """
+        Get configuration for a specific team with flexible matching
+        
+        Args:
+            team_id: Team identifier to match
+        
+        Returns:
+            Team configuration dictionary or None if not found
+        """
         try:
-            for team in self.predefined_teams:
-                if team.get('id') == team_id:
-                    return team
-            return None
+            # Normalize team_id for comparison
+            normalized_team_id = team_id.lower().replace('team_', '').replace('-', '_')
             
+            for team in self.predefined_teams:
+                # Normalize team's ID for comparison
+                team_config_id = str(team.get('id', '')).lower().replace('team_', '').replace('-', '_')
+                
+                # Check for exact or normalized match
+                if (team_config_id == normalized_team_id or 
+                    normalized_team_id in team_config_id):
+                    return team
+            
+            # Fallback logging if no match found
+            self.logger.log(f"No team configuration found for: {team_id}", 'warning')
+            return None
+                
         except Exception as e:
-            self.logger.log(f"Error getting team config: {str(e)}", 'error')
+            self.logger.log(f"Error getting team config for {team_id}: {str(e)}", 'error')
             return None
 
     def set_active_team(self, team_id: str) -> bool:
