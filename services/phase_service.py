@@ -84,11 +84,27 @@ class PhaseService(BaseService):
                 new_phase = ProjectPhase.EXPANSION
                 message = f"Expansion phase - Token usage at {usage_percent:.1f}%"
             
+            # Log détaillé de la transition de phase
             if new_phase != old_phase:
-                state['current_phase'] = new_phase
-                state['last_transition'] = datetime.now()
+                self.logger.log(
+                    f"[DEBUG] Phase transition: {old_phase.value} -> {new_phase.value}\n"
+                    f"Total tokens: {total_tokens:,}\n"
+                    f"Usage: {usage_percent:.1f}%\n"
+                    f"Threshold: {self.CONVERGENCE_THRESHOLD * 100:.1f}%",
+                    'debug'
+                )
             else:
-                state['current_phase'] = new_phase
+                self.logger.log(
+                    f"[DEBUG] Phase maintained: {new_phase.value}\n"
+                    f"Total tokens: {total_tokens:,}\n"
+                    f"Usage: {usage_percent:.1f}%\n"
+                    f"Threshold: {self.CONVERGENCE_THRESHOLD * 100:.1f}%",
+                    'debug'
+                )
+            
+            state['current_phase'] = new_phase
+            if new_phase != old_phase:
+                state['last_transition'] = datetime.now()
             
             return new_phase, message
 
