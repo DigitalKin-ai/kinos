@@ -238,8 +238,8 @@ Give some context explanation.
             if not topics:
                 return None
 
-            # Execute query directly with the topic from Claude
-            results = self.perplexity_client.execute_query(topics[0])  # Use first/main topic
+            # Execute query using internal method for the topic from Claude
+            results = self._execute_query(topics[0])  # Use first/main topic
             if not results:
                 self.logger.log(f"[{self.name}] No research results found", 'info')
                 return None
