@@ -175,6 +175,25 @@ class AiderAgent(AgentBase):
     def _run_aider(self, instructions: str) -> Optional[str]:
         """Execute Aider command with streamed output processing"""
         try:
+            # Récupérer le nom de l'équipe et de l'agent
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            
+            # Trouver l'équipe de l'agent
+            agent_team = None
+            for team in team_service.predefined_teams:
+                if self.name in team.get('agents', []):
+                    agent_team = team['id']
+                    break
+
+            # Définir les noms de fichiers spécifiques si un nom est fourni
+            specific_name = self.config.get('name')  # Récupérer le nom spécifique s'il existe
+
+            # Chemins des fichiers d'historique
+            chat_history_file = f".aider.{agent_team}_{specific_name}.chat.history.md" if specific_name else f".aider.{self.name}.chat.history.md"
+            input_history_file = f".aider.{agent_team}_{specific_name}.input.history.md" if specific_name else f".aider.{self.name}.input.history.md"
+
             # Validation des conditions préalables
             if not self._validate_run_conditions(instructions):
                 return ""  # Return empty string instead of None
@@ -184,6 +203,12 @@ class AiderAgent(AgentBase):
                 instructions=instructions,
                 files=list(self.mission_files.keys())
             )
+            
+            # Modifier la construction de la commande
+            cmd.extend([
+                "--chat-history-file", chat_history_file,
+                "--input-history-file", input_history_file
+            ])
             
             if not self.command_builder.validate_command(cmd):
                 return ""  # Return empty string instead of None
@@ -370,29 +395,42 @@ class AiderAgent(AgentBase):
     def _execute_agent_cycle(self):
         """Execute one cycle of the agent's main loop"""
         try:
-            self.logger.log(f"[{self.name}] 🔄 Starting agent cycle", 'debug')
+            # Récupérer le nom de l'équipe et de l'agent
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
             
-            # Log mission directory validation
-            if not os.path.exists(self.mission_dir):
-                self.logger.log(f"[{self.name}] ❌ Mission directory not found: {self.mission_dir}", 'error')
-                return
+            # Trouver l'équipe de l'agent
+            agent_team = None
+            for team in team_service.predefined_teams:
+                if self.name in team.get('agents', []):
+                    agent_team = team['id']
+                    break
 
-            # Log file listing
-            self.list_files()
-            self.logger.log(
-                f"[{self.name}] 📁 Monitoring {len(self.mission_files)} files:\n" + 
-                "\n".join(f"  - {os.path.relpath(f, self.mission_dir)}" for f in self.mission_files.keys()), 
-                'debug'
-            )
-            
-            # Create key files if they don't exist
+            # Définir les noms de fichiers spécifiques si un nom est fourni
+            team_name = agent_team  # Utiliser le nom de l'équipe par défaut
+            specific_name = self.config.get('name')  # Récupérer le nom spécifique s'il existe
+
+            # Mise à jour des noms de fichiers clés
             key_files = {
-                "map.md": "# Project Map\n\n## Overview\n\n## Key Components\n",
-                "todolist.md": "# Project Todo List\n\n## Pending Tasks\n\n## Completed Tasks\n",
-                "demande.md": "# Mission Request\n\n## Objective\n\n## Scope\n\n## Requirements\n",
-                "directives.md": "# Project Directives\n\n## Guidelines\n\n## Constraints\n"
+                f"team_{team_name}_{specific_name}_map.md" if specific_name else "map.md": 
+                "# Project Map\n\n## Overview\n\n## Key Components\n",
+                
+                f"team_{team_name}_{specific_name}_todolist.md" if specific_name else "todolist.md": 
+                "# Project Todo List\n\n## Pending Tasks\n\n## Completed Tasks\n",
+                
+                f"team_{team_name}_{specific_name}_demande.md" if specific_name else "demande.md": 
+                "# Mission Request\n\n## Objective\n\n## Scope\n\n## Requirements\n",
+                
+                f"team_{team_name}_{specific_name}_directives.md" if specific_name else "directives.md": 
+                "# Project Directives\n\n## Guidelines\n\n## Constraints\n"
             }
-            
+
+            # Chemins des fichiers d'historique
+            chat_history_file = f".aider.{team_name}_{specific_name}.chat.history.md" if specific_name else f".aider.{self.name}.chat.history.md"
+            input_history_file = f".aider.{team_name}_{specific_name}.input.history.md" if specific_name else f".aider.{self.name}.input.history.md"
+
+            # Créer les fichiers clés si nécessaire
             for filename, default_content in key_files.items():
                 if not os.path.exists(filename):
                     try:
