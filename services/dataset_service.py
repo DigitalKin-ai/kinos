@@ -86,12 +86,25 @@ class DatasetService(BaseService):
             services = init_services(None)
             model_router = services['model_router']
             
-            # Count tokens for interaction
-            prompt_tokens = len(model_router.clients[model_router.current_provider.value].tokenize(prompt))
-            context_tokens = len(model_router.clients[model_router.current_provider.value].tokenize(
-                self._format_files_context(files_context)
-            ))
-            response_tokens = len(model_router.clients[model_router.current_provider.value].tokenize(aider_response))
+            # Count tokens for interaction based on provider
+            if model_router.current_provider == ModelProvider.ANTHROPIC:
+                prompt_tokens = model_router.clients['anthropic'].count_tokens(prompt)
+                context_tokens = model_router.clients['anthropic'].count_tokens(
+                    self._format_files_context(files_context)
+                )
+                response_tokens = model_router.clients['anthropic'].count_tokens(aider_response)
+            elif model_router.current_provider == ModelProvider.OPENAI:
+                # Use tiktoken for OpenAI token counting
+                import tiktoken
+                encoding = tiktoken.encoding_for_model(model_router.current_model)
+                prompt_tokens = len(encoding.encode(prompt))
+                context_tokens = len(encoding.encode(self._format_files_context(files_context)))
+                response_tokens = len(encoding.encode(aider_response))
+            else:
+                # Fallback estimation
+                prompt_tokens = int(len(prompt.split()) * 1.3)
+                context_tokens = int(len(str(files_context).split()) * 1.3)
+                response_tokens = int(len(aider_response.split()) * 1.3)
             
             total_tokens = prompt_tokens + context_tokens + response_tokens
             
