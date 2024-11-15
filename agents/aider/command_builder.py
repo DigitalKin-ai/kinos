@@ -42,16 +42,23 @@ class AiderCommandBuilder:
             if not any(pattern in file for pattern in ignore_patterns)
         ]
         
-        # Remove key files from valid_files if present to avoid duplicates
-        valid_files = [f for f in valid_files if f not in ["demande.md", "map.md", "todolist.md", "directives.md"]]
+        # Define read-only files
+        readonly_files = ["demande.md", "map.md"]
+        
+        # Remove readonly files from valid_files if present to avoid duplicates
+        valid_files = [f for f in valid_files if f not in readonly_files]
         
         # Limit remaining files to 10 random if needed
         if len(valid_files) > 10:
             import random
             valid_files = random.sample(valid_files, 10)
         
-        # Add key files first
-        key_files = ["demande.md", "map.md", "todolist.md", "directives.md"]
+        # Add read-only files first with --read flag
+        for file in readonly_files:
+            args.extend(["--read", file])
+            
+        # Add key files that should be editable
+        key_files = ["todolist.md", "directives.md"]
         for file in key_files:
             args.extend(["--file", file])
             
