@@ -307,6 +307,68 @@ class PathManager:
         return cls.get_prompt_file(agent_name, team_id)
 
     @staticmethod
+    def get_team_path(team_id: Optional[str] = None) -> str:
+        """
+        Get the path for a specific team or the current team
+        
+        Args:
+            team_id: Optional team identifier
+        
+        Returns:
+            str: Path to the team directory
+        """
+        try:
+            # If no team_id is provided, use the current working directory
+            if not team_id:
+                return os.getcwd()
+            
+            # Normalize team_id
+            team_id = team_id.lower().replace('team_', '')
+            
+            # Search locations for team directories
+            search_locations = [
+                os.getcwd(),  # Current mission directory
+                os.path.dirname(os.getcwd()),  # Parent of current directory
+                os.path.join(PathManager.get_kinos_root(), 'teams'),  # KinOS teams directory
+                os.path.join(PathManager.get_kinos_root(), 'team_types')  # Team types directory
+            ]
+            
+            # Search patterns
+            search_patterns = [
+                f"team_{team_id}",
+                f"{team_id}",
+                team_id
+            ]
+            
+            # Search through locations
+            for base_dir in search_locations:
+                if not os.path.exists(base_dir):
+                    continue
+                
+                try:
+                    directory_contents = os.listdir(base_dir)
+                except Exception:
+                    continue
+                
+                for item in directory_contents:
+                    # Check if item matches any search pattern
+                    if any(pattern in item.lower() for pattern in search_patterns):
+                        full_path = os.path.join(base_dir, item)
+                        
+                        if os.path.isdir(full_path):
+                            return full_path
+            
+            # Fallback: create team directory in current mission directory
+            fallback_path = os.path.join(os.getcwd(), f"team_{team_id}")
+            os.makedirs(fallback_path, exist_ok=True)
+            return fallback_path
+            
+        except Exception as e:
+            # Fallback to current directory
+            print(f"Error in get_team_path: {str(e)}")
+            return os.getcwd()
+
+    @staticmethod
     def get_log_file(service_name: str) -> str:
         """Retourne le chemin vers un fichier de log spécifique"""
         return os.path.join(PathManager.get_logs_path(), f"{service_name}.log")
