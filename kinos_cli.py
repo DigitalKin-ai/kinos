@@ -104,12 +104,7 @@ def run_team_loop(team_name: str):
     output_queue = queue.Queue()
     active_threads: Dict[int, AgentRunner] = {}
     
-    # RESEARCH AGENT DETECTION LIST
-    research_agents = [
-        'management', 'specifications', 'chercheur', 
-        'evaluation', 'chroniqueur', 'documentaliste', 
-        'duplication', 'redondance', 'validation', 'redacteur'
-    ]
+    logger.log("Entering main loop", 'debug')
     
     try:
         while True:  # Main loop
