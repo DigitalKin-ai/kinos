@@ -24,7 +24,6 @@ class TeamConfig:
     id: str
     name: str
     agents: List[Dict[str, Any]]
-    phase_config: Optional[Dict[str, Any]] = None
     metrics: TeamMetrics = field(default_factory=TeamMetrics)
     
     @classmethod

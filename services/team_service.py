@@ -125,15 +125,6 @@ class TeamService(BaseService):
                 elif not isinstance(agent, str):
                     return False, f"Invalid agent format: {agent}"
                     
-            # Validate phase config if present
-            if 'phase_config' in config:
-                phase_config = config['phase_config']
-                for phase in ['expansion', 'convergence']:
-                    if phase in phase_config:
-                        phase_data = phase_config[phase]
-                        if not isinstance(phase_data.get('active_agents', []), list):
-                            return False, f"Invalid {phase} phase configuration"
-                            
             return True, None
             
         except Exception as e:

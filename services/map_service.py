@@ -22,16 +22,6 @@ class MapService(BaseService):
         }
         # Initialize Anthropic client for tokenization
         self.anthropic = Anthropic()
-        
-        # Initialize phase_service as None - will be loaded on demand
-        self.phase_service = None
-
-    def _ensure_phase_service(self):
-        """Lazy initialization of phase service"""
-        if self.phase_service is None:
-            # Import locally to avoid circular import
-            from services.phase_service import PhaseService
-            self.phase_service = PhaseService(None)
 
     def generate_map(self) -> bool:
         """Generate project map file with enhanced debugging"""
@@ -229,7 +219,7 @@ class MapService(BaseService):
                 "- Free to create new content and sections\n"
                 "- Normal operation of all agents\n"
                 "- Regular token monitoring\n"
-                f"- Will transition to CONVERGENCE at {self.phase_service.CONVERGENCE_TOKENS/1000:.1f}k tokens"
+                "- Will transition to CONVERGENCE at 12k tokens"
             )
         else:  # CONVERGENCE
             return (
@@ -238,7 +228,7 @@ class MapService(BaseService):
                 "- Limited new content creation\n"
                 "- Focus on reducing token usage\n"
                 "- Emphasis on content optimization\n"
-                f"- Can return to EXPANSION below {self.phase_service.EXPANSION_TOKENS/1000:.1f}k tokens"
+                "- Can return to EXPANSION below 6k tokens"
             )
 
     def _format_agent_info(self, agent_name: str, weight: float, agent_type: str) -> str:
