@@ -120,9 +120,6 @@ def run_team_loop(team_name: str):
                     runner.agent_name == a for runner in active_threads.values()
                 )]
                 
-                if not available_agents:
-                    break
-                
                 # Get weights for available agents
                 weights = [phase_weights.get(agent, 0.5) for agent in available_agents]
                 
