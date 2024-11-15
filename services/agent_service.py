@@ -1444,27 +1444,67 @@ List any specific constraints or limitations.
             self.logger.log(f"Error getting prompt: {str(e)}", 'error')
             return None
 
-    def _run_aider(self, prompt: str) -> Optional[str]:
-        """Execute Aider with the given prompt"""
+    def execute_mission(self, prompt: str) -> Optional[str]:
+        """
+        Execute research mission with topic extraction and querying
+        """
         try:
-            # Build and execute query
-            query = self.generate_query(prompt)
-            results = self.execute_query(query)
+            self.logger.log(f"[{self.name}] Starting research mission", 'info')
             
-            if not results:
+            # Get current content
+            content = ""
+            for file_path in self.mission_files:
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content += f.read() + "\n\n"
+                except Exception as e:
+                    self.logger.log(f"Error reading {file_path}: {str(e)}", 'warning')
+                    
+            # Extract research topics
+            topics = self._extract_research_topics(content)
+            if not topics:
+                self.logger.log("No research topics found", 'info')
+                return None
+                
+            # Process each topic
+            research_results = []
+            for topic in topics:
+                # Generate and execute query
+                query = self._generate_query(topic)
+                results = self._execute_query(query)
+                
+                if results:
+                    research_results.append({
+                        'topic': topic,
+                        'query': query,
+                        'results': results
+                    })
+                    
+            if not research_results:
                 return None
                 
             # Format results for Aider
-            formatted_results = self._format_research_results([{
-                'topic': prompt,
-                'query': query,
-                'results': results
-            }])
+            formatted_results = self._format_research_results(research_results)
             
-            return formatted_results
+            # Call Aider to insert references
+            aider_prompt = f"""Based on the research results below, update the relevant files to add appropriate references and citations.
+
+Research Results:
+{formatted_results}
+
+Instructions:
+1. Insert references at appropriate locations in the text
+2. Use a consistent citation format
+3. Add a References/Bibliography section if needed
+4. Preserve existing content and formatting
+5. Only add the new references - don't modify other content
+
+Please proceed with the updates now."""
+
+            return super()._run_aider(aider_prompt)
             
         except Exception as e:
-            self.logger.log(f"Error running Aider: {str(e)}", 'error')
+            self.logger.log(f"Error in research mission: {str(e)}", 'error')
             return None
 
     def create_agent(self, agent_config: Dict[str, Any]) -> Optional[AgentBase]:
