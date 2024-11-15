@@ -86,8 +86,11 @@ class AiderCommandBuilder:
         
         # Add read-only files first with --read flag
         for file in readonly_files:
-            # Ensure map.md is always added with --read
             args.extend(["--read", file])
+            
+        # Add agent prompt as read-only if found
+        if prompt_path:
+            args.extend(["--read", prompt_path])
             
         # Add key files that should be editable
         key_files = ["todolist.md", "directives.md"]
@@ -136,12 +139,12 @@ class AiderCommandBuilder:
         except Exception:
             return False
 
-    def build_command(self, prompt: str, files: List[str]) -> List[str]:
+    def build_command(self, instructions: str, files: List[str]) -> List[str]:
         """
         Build Aider command with arguments
         
         Args:
-            prompt: Prompt to send to Aider
+            instructions: Instructions to send to Aider
             files: List of files to include
             
         Returns:
@@ -161,12 +164,12 @@ class AiderCommandBuilder:
         cmd.extend(["--chat-history-file", f".aider.{self.agent_name}.chat.history.md"])
         cmd.extend(["--input-history-file", f".aider.{self.agent_name}.input.history.md"])
         
-        # Stringify the prompt with robust escaping
-        stringified_prompt = prompt.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
-        cmd.extend(["--message", f'"{stringified_prompt} ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."'])
+        # Stringify the instructions with robust escaping
+        stringified_instructions = instructions.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
+        cmd.extend(["--message", f'"{stringified_instructions} ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."'])
         
         # Log the full command for debugging
-        #print(f"DEBUG: Aider Command for {self.agent_name}: {' '.join(cmd)}")
+        print(f"DEBUG: Aider Command for {self.agent_name}: {' '.join(cmd)}")
         
         if not self.validate_command(cmd):
             print(f"DEBUG: Invalid command configuration for {self.agent_name}")
