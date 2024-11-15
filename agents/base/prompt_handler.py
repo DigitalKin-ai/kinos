@@ -134,71 +134,48 @@ class PromptHandler:
     def _resolve_prompt_path(self, prompt_file: str) -> Optional[str]:
         """Resolve prompt file path checking multiple locations"""
         try:
-            specific_name = self.config.get('name')
-            if not specific_name:
-                raise ValueError("No specific name provided")
-
             from services import init_services
+            from utils.path_manager import PathManager
+            
             services = init_services(None)
             team_service = services['team_service']
-        
+            
+            # Find the team containing this agent
             agent_team = None
             for team in team_service.predefined_teams:
-                if self.name in team.get('agents', []):
+                if any(agent == prompt_file.replace('.md', '') for agent in team.get('agents', [])):
                     agent_team = team['id']
                     break
-
-            # Chemins de recherche avec priorité
-            team_dir = os.path.join('teams', f'team_{agent_team}')
+            
+            # If no team found, use a default search strategy
+            if not agent_team:
+                agent_team = 'default'
+            
+            # Search paths with priority
             search_paths = [
-                os.path.join(team_dir, 'prompts', f'{self.name}.md'),
-                os.path.join(team_dir, 'prompts', 'team_prompt.md'),
-                os.path.join(team_dir, prompt_file)
+                # Specific agent prompt in team directory
+                os.path.join(PathManager.get_kinos_root(), 'teams', agent_team, f'{prompt_file}'),
+                
+                # Team-level prompt
+                os.path.join(PathManager.get_kinos_root(), 'teams', agent_team, 'prompts', prompt_file),
+                
+                # Global prompts directory
+                os.path.join(PathManager.get_kinos_root(), 'teams', 'prompts', prompt_file),
+                
+                # Fallback to current directory
+                os.path.join(os.getcwd(), prompt_file)
             ]
-
-            # Recherche des fichiers
+            
+            # Search for existing files
             for path in search_paths:
                 if os.path.exists(path):
+                    self.logger.log(f"Found prompt at: {path}", 'debug')
                     return path
-
-            # Log détaillé si aucun fichier trouvé
+            
+            # Detailed logging if no file found
             self.logger.log(
                 f"Prompt not found. Searched paths:\n" + 
-                "\n".join(search_paths), 
-                'error'
-            )
-            return None
-            
-            # Log des chemins de recherche
-            self.logger.log(
-                f"Searching for prompt in:\n" + 
                 "\n".join(f"- {p}" for p in search_paths), 
-                'debug'
-            )
-            
-            # Recherche des fichiers
-            for path_pattern in search_paths:
-                if '*' in path_pattern:
-                    # Gestion des caractères génériques pour les répertoires d'équipe
-                    import glob
-                    matching_paths = glob.glob(path_pattern)
-                    for path in matching_paths:
-                        if os.path.exists(path):
-                            self.logger.log(f"Found prompt at: {path}", 'debug')
-                            return path
-                else:
-                    if os.path.exists(path_pattern):
-                        self.logger.log(f"Found prompt at: {path_pattern}", 'debug')
-                        return path_pattern
-                    
-            # Si non trouvé, log des informations détaillées
-            self.logger.log(
-                f"Prompt not found. Details:\n"
-                f"- KinOS root: {kinos_root}\n"
-                f"- Project root: {project_root}\n"
-                f"- Prompt file: {prompt_file}\n"
-                f"- Searched paths:\n" +
-                "\n".join(f"  - {p}" for p in search_paths),
                 'error'
             )
             return None
