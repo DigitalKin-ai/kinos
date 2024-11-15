@@ -395,10 +395,12 @@ class AiderAgent(AgentBase):
     def _execute_agent_cycle(self):
         """Execute one cycle of the agent's main loop"""
         try:
-            # Récupérer le nom spécifique de la configuration
-            specific_name = self.config.get('name', self.name)  # Fallback to self.name if not in config
-            if not specific_name:
-                raise ValueError("No specific name provided for agent")
+            # Defensive config access with multiple fallbacks
+            specific_name = (
+                self.config.get('name') or  # First try config
+                getattr(self, 'name', None) or  # Then try instance attribute 
+                'unnamed_agent'  # Final fallback
+            )
 
             # Récupérer le nom de l'équipe
             from services import init_services
