@@ -28,6 +28,10 @@ class PathManager:
         # Le fichier path_manager.py est dans utils/, donc remonter de 2 niveaux
         return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+    @classmethod
+    def get_team_types_root(cls) -> str:
+        """Get the team types configuration directory"""
+        return os.path.join(cls.get_kinos_root(), "team_types")
 
     @staticmethod
     def get_config_path() -> str:
