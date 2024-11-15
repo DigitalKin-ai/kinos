@@ -935,9 +935,12 @@ List any specific constraints or limitations.
         return status_map.get(status_type, status_map['default'])
     def _run_agent_wrapper(self, name: str, agent: 'AgentBase') -> None:
         """Wrapper to execute an agent in a thread with comprehensive error handling"""
-        while True:  # Keep trying to run the agent
+        max_retries = 3
+        retry_count = 0
+
+        while retry_count < max_retries:
             try:
-                self.logger.log(f"Starting agent {name}", 'info')
+                self.logger.log(f"Starting agent {name} (Attempt {retry_count + 1}/{max_retries})", 'info')
             
                 # Capture start time
                 start_time = time.time()
@@ -953,23 +956,31 @@ List any specific constraints or limitations.
                     'success'
                 )
             
-                # Wait before potential retry
-                time.sleep(5)
-                continue
+                # If successful, break the retry loop
+                break
             
             except Exception as e:
+                retry_count += 1
+            
                 # Comprehensive error logging
                 self.logger.log(
-                    f"Agent {name} critical error (will retry):\n"
+                    f"Agent {name} error (Attempt {retry_count}/{max_retries}):\n"
                     f"Type: {type(e)}\n"
                     f"Error: {str(e)}\n"
                     f"Traceback: {traceback.format_exc()}",
                     'critical'
                 )
             
-                # Always wait before retrying
-                time.sleep(5)
-                continue
+                # Exponential backoff
+                wait_time = min(30, 2 ** retry_count)
+                self.logger.log(f"Waiting {wait_time}s before retry", 'warning')
+                time.sleep(wait_time)
+    
+        if retry_count == max_retries:
+            self.logger.log(
+                f"FATAL: Agent {name} failed after {max_retries} attempts", 
+                'critical'
+            )
 
     def _get_detailed_agent_status(self, agent_name: str) -> Dict[str, Any]:
         """Get comprehensive agent status including performance metrics"""
