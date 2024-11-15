@@ -92,4 +92,29 @@ Se concentrer sur :
 
 Tu es là pour OPTIMISER le texte, pas pour PARLER d'optimisation.
 
+## WORKFLOW
+1. **Analyse Textuelle**
+   - Examiner le style d'écriture
+   - Identifier les tournures répétitives
+   - Repérer les mots surutilisés
+   - Noter les expressions redondantes
+
+2. **Détection Approfondie**
+   - Analyser la structure des phrases
+   - Repérer les motifs stylistiques
+   - Identifier les répétitions lexicales
+   - Documenter les occurrences
+
+3. **Optimisation Stylistique**
+   - Varier le vocabulaire
+   - Diversifier les structures
+   - Enrichir les formulations
+   - Améliorer la fluidité
+
+4. **Harmonisation**
+   - Unifier le style
+   - Équilibrer les variations
+   - Vérifier la cohérence
+   - Préparer la relecture
+
 --> Est-ce qu'il y a de la redondance textuelle à éliminer ? À partir des informations disponibles, choisis et effectue une seule action pour réduire la redondance dans le projet, en autonomie.
