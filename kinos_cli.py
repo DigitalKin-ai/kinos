@@ -46,15 +46,7 @@ class AgentRunner(threading.Thread):
         while self.running:
             try:
                 # Sélectionner un nouvel agent aléatoirement à chaque itération
-                from services import init_services
-                services = init_services(None)
-                phase_service = services['phase_service']
-                phase_status = phase_service.get_status_info()
-                current_phase = phase_status['phase']
-                
-                phase_weights = phase_service.get_phase_weights(current_phase)
-                weights = [phase_weights.get(agent, 0.5) for agent in self.team_agents]
-                self.agent_name = random.choices(self.team_agents, weights=weights, k=1)[0]
+                self.agent_name = random.choice(self.team_agents)
                 
                 self.logger.log(f"Selected agent for execution: {self.agent_name}", 'debug')
 
@@ -224,21 +216,8 @@ def run_team_loop(team_name: str, specific_name: str = None):
             
             # Start new threads if needed
             while len(active_threads) < 3:
-                # Get current phase weights
-                from services import init_services
-                services = init_services(None)
-                phase_service = services['phase_service']
-                phase_status = phase_service.get_status_info()
-                current_phase = phase_status['phase']
-                
-                logger.log(f"Current phase: {current_phase}", 'debug')
-                
-                phase_weights = phase_service.get_phase_weights(current_phase)
-                logger.log(f"Phase weights: {phase_weights}", 'debug')
-                
-                # Select random agent based on weights
-                weights = [phase_weights.get(agent, 0.5) for agent in agents]
-                agent_name = random.choices(agents, weights=weights, k=1)[0]
+                # Select random agent
+                agent_name = random.choice(agents)
                 
                 logger.log(f"Selected agent: {agent_name}", 'debug')
                 
