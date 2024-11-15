@@ -4,6 +4,7 @@ import queue
 import time
 import random
 import argparse
+import traceback
 from cli.commands.commits import commits
 from typing import List, Dict
 import os
