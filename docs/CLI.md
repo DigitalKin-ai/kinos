@@ -19,8 +19,14 @@ kin review      # Équipe de revue
 # Options globales
 kin -v                                    # Mode verbeux
 kin -p /chemin                            # Dossier spécifique
-kin --model claude-3-haiku-20240307      # Utiliser un modèle spécifique
-kin --model gpt-4-0125-preview           # Utiliser GPT-4
+
+# Options de Modèle
+kin --model <model-name>   # Utiliser un modèle spécifique
+
+Modèles disponibles :
+- Anthropic : claude-3-opus-20240229, claude-3-sonnet-20240229, claude-3-haiku-20240307
+- OpenAI : gpt-4-0125-preview, gpt-4-turbo-preview, gpt-3.5-turbo
+- Perplexity : llama-3.1-sonar-large-128k-chat
 
 # Système de Phases
 kin phase                 # Voir statut actuel

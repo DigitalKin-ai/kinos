@@ -169,6 +169,19 @@ class ModelRouter:
         )
         return response.choices[0].message.content
 
+    def get_current_tokenizer(self):
+        """Get tokenizer for current model"""
+        try:
+            client = self.clients.get(self.current_provider.value)
+            if not client:
+                raise ServiceError(f"No client available for provider {self.current_provider.value}")
+                
+            return client
+            
+        except Exception as e:
+            self.logger.log(f"Error getting tokenizer: {str(e)}", 'error')
+            return None
+
     def get_available_models(self) -> Dict[str, List[str]]:
         """Get list of available models per provider"""
         available = {}
