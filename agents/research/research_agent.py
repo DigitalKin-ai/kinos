@@ -4,6 +4,7 @@ ResearchAgent - Agent for automated research using Perplexity API
 # Defensive import strategy for os
 import sys
 import importlib
+import traceback
 
 # Try multiple import strategies
 def import_os():
