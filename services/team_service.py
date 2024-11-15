@@ -19,7 +19,7 @@ class TeamService(BaseService):
         """Load predefined team configurations"""
         try:
             teams = []
-            teams_dir = os.path.join(PathManager.get_kinos_root(), "team_types")
+            teams_dir = PathManager.get_team_types_root()
             
             if not os.path.exists(teams_dir):
                 self.logger.log("Teams directory not found", 'warning')
@@ -171,7 +171,7 @@ class TeamService(BaseService):
         """Load all prompt files for a team"""
         try:
             prompts = {}
-            team_dir = os.path.join(PathManager.get_kinos_root(), "teams", team_id)
+            team_dir = os.path.join(PathManager.get_teams_root(), team_id)
             
             if not os.path.exists(team_dir):
                 self.logger.log(f"Team directory not found: {team_id}", 'warning')
