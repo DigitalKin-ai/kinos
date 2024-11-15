@@ -172,7 +172,7 @@ class PathManager:
         """Normalize a file path"""
         return os.path.normpath(os.path.abspath(path))
 
-    @staticmethod
+    @staticmethod 
     def get_prompts_path(team_id: str) -> Optional[str]:
         """
         Get the prompts directory for a specific team
@@ -184,11 +184,17 @@ class PathManager:
             str: Path to the team's prompts directory, or None if not found
         """
         try:
+            # Use teams directory under KinOS root
             prompts_dir = os.path.join(PathManager.get_kinos_root(), "teams", team_id)
             
             if os.path.exists(prompts_dir):
                 return prompts_dir
-            
+                
+            # Try alternate location under team_types
+            alt_dir = os.path.join(PathManager.get_team_types_root(), f"team_{team_id}")
+            if os.path.exists(alt_dir):
+                return alt_dir
+                
             return None
             
         except Exception as e:
@@ -208,11 +214,14 @@ class PathManager:
             str: Path to the prompt file, or None if not found
         """
         try:
-            # If team_id is provided, search in that team's directory
+            # If team_id is provided, search in that team's directory first
             if team_id:
-                team_prompts_dir = os.path.join(PathManager.get_kinos_root(), "teams", team_id)
+                # Try both teams and team_types directories
+                search_dirs = [
+                    os.path.join(PathManager.get_kinos_root(), "teams", team_id),
+                    os.path.join(PathManager.get_team_types_root(), f"team_{team_id}")
+                ]
                 
-                # Try different filename variations
                 prompt_filename_options = [
                     f"{agent_name.lower()}.md",
                     f"{agent_name}.md",
@@ -220,30 +229,27 @@ class PathManager:
                     f"{agent_name}_prompt.md"
                 ]
                 
-                for filename in prompt_filename_options:
-                    prompt_path = os.path.join(team_prompts_dir, filename)
-                    if os.path.exists(prompt_path):
-                        return prompt_path
+                for search_dir in search_dirs:
+                    if os.path.exists(search_dir):
+                        for filename in prompt_filename_options:
+                            prompt_path = os.path.join(search_dir, filename)
+                            if os.path.exists(prompt_path):
+                                return prompt_path
             
             # If no team_id or file not found, search in all team directories
-            teams_dir = os.path.join(PathManager.get_kinos_root(), "teams")
-            
-            if os.path.exists(teams_dir):
-                for team_folder in os.listdir(teams_dir):
-                    team_prompts_dir = os.path.join(teams_dir, team_folder)
-                    
-                    # Try different filename variations
-                    prompt_filename_options = [
-                        f"{agent_name.lower()}.md",
-                        f"{agent_name}.md",
-                        f"{agent_name.lower()}_prompt.md",
-                        f"{agent_name}_prompt.md"
-                    ]
-                    
-                    for filename in prompt_filename_options:
-                        prompt_path = os.path.join(team_prompts_dir, filename)
-                        if os.path.exists(prompt_path):
-                            return prompt_path
+            for base_dir in ["teams", "team_types"]:
+                search_root = os.path.join(PathManager.get_kinos_root(), base_dir)
+                
+                if os.path.exists(search_root):
+                    for team_folder in os.listdir(search_root):
+                        team_dir = os.path.join(search_root, team_folder)
+                        if not os.path.isdir(team_dir):
+                            continue
+                            
+                        for filename in prompt_filename_options:
+                            prompt_path = os.path.join(team_dir, filename)
+                            if os.path.exists(prompt_path):
+                                return prompt_path
             
             return None
             
