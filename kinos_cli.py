@@ -141,16 +141,14 @@ def initialize_team_structure(team_name: str, specific_name: str = None):
         'directives.md': '# Project Directives\n\n## Guidelines\n'
     }
     
-    # Créer les fichiers avec des noms spécifiques si un nom est fourni
-    if specific_name:
-        for filename, content in default_files.items():
-            specific_filename = f'team_{team_name}_{specific_name}_{filename}'
-            specific_path = os.path.join(team_dir, specific_filename)
-            
-            if not os.path.exists(specific_path):
-                with open(specific_path, 'w', encoding='utf-8') as f:
-                    f.write(content)
-                logger.log(f"Created {specific_filename}", 'info')
+    # Créer les fichiers de base de l'équipe
+    for filename, content in default_files.items():
+        file_path = os.path.join(team_dir, filename)
+        
+        if not os.path.exists(file_path):
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            logger.log(f"Created {filename}", 'info')
     
     # Créer un fichier de configuration d'équipe
     config_path = os.path.join(team_dir, 'config.json')
