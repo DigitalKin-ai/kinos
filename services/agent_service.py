@@ -426,8 +426,13 @@ List any specific constraints or limitations.
             phase_status = phase_service.get_status_info()
             current_phase = phase_status['phase']
 
+            # Debug logging
+            self.logger.log(f"Running random agent. Team agents: {team_agents}", 'debug')
+            self.logger.log(f"Current phase: {current_phase}", 'debug')
+
             # Get phase-specific weights
             phase_weights = phase_service.get_phase_weights(current_phase)
+            self.logger.log(f"Phase weights: {phase_weights}", 'debug')
 
             if not phase_weights:
                 # Fallback to default weights if no phase config
@@ -441,6 +446,8 @@ List any specific constraints or limitations.
                 if total > 0:
                     weights = [w/total for w in weights]
                 agent_name = random.choices(team_agents, weights=weights, k=1)[0]
+
+            self.logger.log(f"Selected agent: {agent_name}", 'debug')
 
             # Find the agent configuration in the team config
             agent_config = None
@@ -456,25 +463,31 @@ List any specific constraints or limitations.
                 if agent_config:
                     break
 
+            self.logger.log(f"Agent config found: {agent_config}", 'debug')
+
             # EXPLICIT RESEARCH TYPE FOR SPECIFIC AGENTS
             research_agents = [
                 'management', 'specifications', 'chercheur', 
                 'evaluation', 'chroniqueur', 'documentaliste', 
-                'duplication', 'redondance', 'validation'
+                'duplication', 'redondance', 'validation', 'redacteur'
             ]
             
             # Determine agent type with fallback and case-insensitive check
             if agent_name.lower() in research_agents:
                 agent_type = 'research'
+                self.logger.log(f"Agent {agent_name} explicitly set to research type", 'debug')
             elif agent_config and isinstance(agent_config, dict):
                 agent_type = agent_config.get('type', 'aider').lower()
+                self.logger.log(f"Agent type from config: {agent_type}", 'debug')
             else:
                 # Default fallback
                 agent_type = 'aider'
+                self.logger.log(f"Agent type defaulted to: {agent_type}", 'debug')
 
             # Normalize agent type
             if agent_type not in ['aider', 'research']:
                 agent_type = 'aider'
+                self.logger.log(f"Normalized agent type to: {agent_type}", 'debug')
 
             # Configure agent
             config = {
@@ -485,13 +498,17 @@ List any specific constraints or limitations.
                 'weight': phase_weights.get(agent_name, 0.5)  # Pass weight to agent
             }
 
+            self.logger.log(f"Final agent configuration: {config}", 'debug')
+
             # Dynamically select agent class
             if agent_type == 'research':
                 from agents.research.research_agent import ResearchAgent
                 AgentClass = ResearchAgent
+                self.logger.log(f"Using ResearchAgent for {agent_name}", 'debug')
             else:
                 from agents.aider.aider_agent import AiderAgent
                 AgentClass = AiderAgent
+                self.logger.log(f"Using AiderAgent for {agent_name}", 'debug')
 
             # Create and run agent
             agent = AgentClass(config)
