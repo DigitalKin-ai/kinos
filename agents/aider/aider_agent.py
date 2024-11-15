@@ -494,15 +494,15 @@ Instructions:
                 
                 # Use model router instead of direct Anthropic call
                 import asyncio
-                instructions = asyncio.run(model_router.generate_response(
+                model_response = asyncio.run(model_router.generate_response(
                     messages=messages,
                     system=prompt  # System prompt
                 ))
                 
-                if not instructions:
+                if not model_response:
                     raise ValueError("No response from model")
                     
-                self.logger.log(f"[{self.name}] Generated instructions:\n{instructions}", 'debug')
+                self.logger.log(f"[{self.name}] Generated instructions:\n{model_response}", 'debug')
                 
             except Exception as e:
                 self.logger.log(f"[{self.name}] Error calling LLM: {str(e)}", 'error')
@@ -510,7 +510,7 @@ Instructions:
 
             # Run Aider with generated instructions
             try:
-                result = self._run_aider(instructions)
+                result = self._run_aider(model_response)
             except OSError as os_error:
                 if "[Errno 22] Invalid argument" in str(os_error):
                     # Ignore this specific Windows error
