@@ -166,7 +166,11 @@ class AiderCommandBuilder:
         
         cmd.extend(["--message", prompt + " ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."])
         
+        # Log the full command for debugging
+        print(f"DEBUG: Aider Command for {self.agent_name}: {' '.join(cmd)}")
+        
         if not self.validate_command(cmd):
+            print(f"DEBUG: Invalid command configuration for {self.agent_name}")
             raise ValueError("Invalid command configuration")
             
         return cmd
