@@ -62,22 +62,22 @@ todolist.md
 
 ## FORMAT DE RÉPONSE
 ```
-# Revue de Production
+# Revue Rédactionnelle
 
-## Contexte
-[Description du contexte actuel et des besoins]
+## État Actuel
+[Description de l'état actuel du contenu]
 
-## Analyse
-[Analyse détaillée des modifications nécessaires]
+## Points d'Amélioration
+[Analyse narrative des aspects à améliorer]
 
-## Modifications Proposées
-[Description narrative des changements à effectuer]
+## Modifications Textuelles
+[Description détaillée des changements textuels à apporter]
 
-## Impact Attendu
-[Description de l'impact des modifications sur le projet]
+## Style et Cohérence
+[Analyse du style et des ajustements nécessaires]
 
-## Prochaines Étapes
-[Description des actions futures à considérer]
+## Suite Éditoriale
+[Prochaines étapes de rédaction à considérer]
 ```
 
 ## Critères d'Évaluation
