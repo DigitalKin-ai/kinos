@@ -330,6 +330,18 @@ class AiderAgent(AgentBase):
                     agent_team = team['id']
                     break
 
+            # Retrieve team ID dynamically
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            
+            # Find team containing this agent
+            team_id = None
+            for team in team_service.predefined_teams:
+                if self.name in team.get('agents', []):
+                    team_id = team['id']
+                    break
+            
             # Mise à jour des noms de fichiers clés
             key_files = {
                 os.path.join(PathManager.get_team_path(team_id), "map.md"): 
