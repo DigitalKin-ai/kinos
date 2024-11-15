@@ -118,9 +118,7 @@ Give some context explanation.
             # Extract text from response correctly
             topics = response.content[0].text
             
-            # TODO: Ajouter la réponse dans le fichier de chat 
-            
-            self.logger.log(f"[{self.name}] Research topics : {topics}", 'info')
+            #self.logger.log(f"[{self.name}] Research topics : {topics}", 'info')
             return [topics]  # Return as list since code expects list
             
         except Exception as e:
@@ -229,7 +227,7 @@ Give some context explanation.
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content += f.read() + "\n\n"
-                    self.logger.log(f"[{self.name}] Read content from: {file_path}", 'debug')
+                    #self.logger.log(f"[{self.name}] Read content from: {file_path}", 'debug')
                 except Exception as e:
                     self.logger.log(f"Error reading {file_path}: {str(e)}", 'warning')
 
@@ -266,8 +264,7 @@ Please proceed with the updates now."""
                 with open(chat_history_file, 'a', encoding='utf-8') as f:
                     f.write(f"\n\n--- {datetime.now().isoformat()} ---\n")
                     f.write(f"**Research Topic:**\n{topics[0]}\n\n")
-                    f.write(f"**Research Results:**\n{results['response']}\n\n")
-                    f.write(f"**Aider Prompt:**\n{aider_prompt}\n")
+                    f.write(f"**Found Research Results:**\n{results['response']}\n\n")
             except Exception as e:
                 self.logger.log(f"Error saving research chat history: {str(e)}", 'warning')
 
