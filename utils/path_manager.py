@@ -462,10 +462,6 @@ class PathManager:
             except Exception as e:
                 print(f"{log_context} ERROR: Could not create fallback path: {str(e)}")
                 return os.getcwd()
-                except Exception as list_error:
-                    print(f"{log_context} ERROR: Error listing directory {base_dir}: {str(list_error)}")
-                    continue
-                
                 # Detailed directory matching
                 for item in directory_contents:
                     full_path = os.path.join(base_dir, item)
