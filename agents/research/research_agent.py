@@ -1,19 +1,47 @@
 """
 ResearchAgent - Agent for automated research using Perplexity API
 """
-# Ensure os is always imported first for path operations
-import os
+# Defensive import strategy for os
 import sys
+import importlib
+
+# Try multiple import strategies
+def import_os():
+    try:
+        import os
+        return os
+    except ImportError:
+        try:
+            import posixpath as os
+            return os
+        except ImportError:
+            # Fallback to a minimal path handling
+            class MinimalOSPath:
+                @staticmethod
+                def join(*args):
+                    return '/'.join(str(arg).replace('\\', '/') for arg in args)
+                
+                @staticmethod
+                def path():
+                    return MinimalOSPath()
+                
+                def exists(self, path):
+                    try:
+                        with open(path, 'r'):
+                            return True
+                    except IOError:
+                        return False
+            
+            return MinimalOSPath()
+
+# Import os with fallback
+os = import_os()
+
+# Rest of the imports
 import json
 import time
 from datetime import datetime
 from typing import Dict, Any, Optional, List
-
-# Fallback import for non-standard environments
-try:
-    import os
-except ImportError:
-    import posixpath as os
 
 # Project-specific imports
 from agents.aider.aider_agent import AiderAgent
