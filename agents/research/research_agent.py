@@ -1,11 +1,21 @@
 """
 ResearchAgent - Agent for automated research using Perplexity API
 """
+# Standard library imports
 import os
+import sys
 import json
 import time
 from datetime import datetime
 from typing import Dict, Any, Optional, List
+
+# Ensure os is always imported first for path operations
+try:
+    import os
+except ImportError:
+    import posixpath as os  # Fallback for non-standard environments
+
+# Project-specific imports
 from agents.aider.aider_agent import AiderAgent
 from utils.perplexity_client import PerplexityClient
 from utils.logger import Logger
