@@ -536,37 +536,46 @@ Instructions:
             )
 
     def run(self):
-        """Main execution loop for the agent"""
+        """Execute one iteration of the agent's task"""
         try:
-            self.logger.log(f"[{self.name}] 🚀 Starting Aider agent run loop", 'info')
+            self.logger.log(f"[{self.name}] 🔄 Starting agent iteration", 'debug')
             
-            # Force running state
-            self.running = True
+            # Validate mission directory
+            if not os.path.exists(self.mission_dir):
+                self.logger.log(f"[{self.name}] ❌ Mission directory not found")
+                return
+
+            # Update file list
+            self.list_files()
+        
+            # Get current prompt
+            prompt = self.get_prompt()
+            if not prompt:
+                self.logger.log(f"[{self.name}] ⚠️ No prompt available")
+                return
             
-            # Log explicit startup
-            self.logger.log(f"[{self.name}] Agent is now running and will start executing tasks", 'success')
-            
-            # Add immediate first execution
-            self._execute_agent_cycle()
-            
-            while True:  # Boucle infinie - ne jamais s'arrêter
-                try:
-                    # Execute main agent cycle
-                    self._execute_agent_cycle()
-                    
-                    # Small sleep to prevent CPU overload
-                    time.sleep(1)
-                    
-                except Exception as loop_error:
-                    self.logger.log(f"[{self.name}] Non-critical error in run loop: {str(loop_error)}", 'warning')
-                    time.sleep(1)  # Brief pause before retrying
-                    continue  # Always continue the loop
+            # Execute mission
+            result = self.execute_mission(prompt)
+        
+            # Update state based on result
+            self.last_run = datetime.now()
+            if result:
+                self.last_change = datetime.now()
+                self.consecutive_no_changes = 0
+            else:
+                self.consecutive_no_changes += 1
 
         except Exception as e:
-            # Log but never stop
-            self.logger.log(f"[{self.name}] Handled error in run: {str(e)}", 'warning')
-            time.sleep(1)  # Brief pause
-            self.run()  # Restart the run loop
+            # Ignore known benign Aider errors
+            if any(err in str(e) for err in [
+                "Can't initialize prompt toolkit",
+                "No Windows console found",
+                "aider.chat/docs/troubleshooting/edit-errors.html",
+                "[Errno 22] Invalid argument"
+            ]):
+                pass  # Do not stop the agent
+            else:
+                self.logger.log(f"[{self.name}] Error in run: {str(e)}", 'error')
 
 
     def _format_files_context(self, files_context: Dict[str, str]) -> str:
