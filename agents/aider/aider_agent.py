@@ -332,16 +332,16 @@ class AiderAgent(AgentBase):
 
             # Mise à jour des noms de fichiers clés
             key_files = {
-                f"team_{agent_team}_{specific_name}_map.md": 
+                os.path.join(PathManager.get_team_path(), f"map.md"): 
                 "# Project Map\n\n## Overview\n\n## Key Components\n",
                 
-                f"team_{agent_team}_{specific_name}_todolist.md": 
+                os.path.join(PathManager.get_team_path(), f"todolist.md")": 
                 "# Project Todo List\n\n## Pending Tasks\n\n## Completed Tasks\n",
                 
-                f"team_{agent_team}_{specific_name}_demande.md": 
+                os.path.join(PathManager.get_team_path(), f"demande.md"): 
                 "# Mission Request\n\n## Objective\n\n## Scope\n\n## Requirements\n",
                 
-                f"team_{agent_team}_{specific_name}_directives.md": 
+                os.path.join(PathManager.get_team_path(), f"directives.md"): 
                 "# Project Directives\n\n## Guidelines\n\n## Constraints\n"
             }
 
