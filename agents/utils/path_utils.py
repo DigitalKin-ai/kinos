@@ -3,6 +3,7 @@ Path management utilities
 """
 import os
 from typing import List, Optional
+import os
 
 def validate_paths(mission_dir: str) -> bool:
     """Validate mission directory path"""
