@@ -203,6 +203,25 @@ class AgentBase(ABC):
             self.logger.log(f"Error calling LLM: {str(e)}", 'error')
             return None
 
+    async def _call_llm(self, messages: List[Dict[str, str]], system: Optional[str] = None, **kwargs) -> Optional[str]:
+        """Helper method for LLM calls using ModelRouter"""
+        try:
+            from services import init_services
+            services = init_services(None)
+            model_router = services['model_router']
+            
+            response = await model_router.generate_response(
+                messages=messages,
+                system=system,
+                **kwargs
+            )
+            
+            return response
+            
+        except Exception as e:
+            self.logger.log(f"Error calling LLM: {str(e)}", 'error')
+            return None
+
     def cleanup(self):
         """Safe cleanup that never fails"""
         try:
