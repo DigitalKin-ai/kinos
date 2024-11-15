@@ -4,7 +4,7 @@ import json
 import traceback
 import platform
 import shutil
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 class PathManager:
     """Centralized and secure path management for KinOS"""
@@ -235,15 +235,75 @@ class PathManager:
         """Retourne le chemin vers un fichier de configuration spécifique"""
         return os.path.join(PathManager.get_config_path(), filename)
 
-    @staticmethod
-    def get_prompt_file(agent_name: str) -> str:
-        """Retourne le chemin vers le fichier prompt d'un agent"""
-        return os.path.join(PathManager.get_prompts_path(), f"{agent_name}.md")
-    
-    @staticmethod
-    def get_prompt_path(agent_name: str) -> str:
-        """Retourne le chemin vers le fichier prompt d'un agent"""
-        return os.path.join(PathManager.get_prompts_path(), f"{agent_name}.md")
+    @classmethod
+    def get_prompt_file(cls, agent_name: str, team_id: Optional[str] = None) -> Optional[str]:
+        """
+        Get prompt file path for an agent
+        
+        Args:
+            agent_name: Name of the agent
+            team_id: Optional team ID to narrow search
+        
+        Returns:
+            str: Path to the prompt file, or None if not found
+        """
+        try:
+            # If team_id is provided, search in that team's directory first
+            if team_id:
+                # Try both teams and team_types directories
+                search_dirs = [
+                    os.path.join(cls.get_kinos_root(), "teams", team_id),
+                    os.path.join(cls.get_team_types_root(), f"team_{team_id}")
+                ]
+                
+                prompt_filename_options = [
+                    f"{agent_name.lower()}.md",
+                    f"{agent_name}.md",
+                    f"{agent_name.lower()}_prompt.md",
+                    f"{agent_name}_prompt.md"
+                ]
+                
+                for search_dir in search_dirs:
+                    if os.path.exists(search_dir):
+                        for filename in prompt_filename_options:
+                            prompt_path = os.path.join(search_dir, filename)
+                            if os.path.exists(prompt_path):
+                                return prompt_path
+            
+            # If no team_id or file not found, search in all team directories
+            for base_dir in ["teams", "team_types"]:
+                search_root = os.path.join(cls.get_kinos_root(), base_dir)
+                
+                if os.path.exists(search_root):
+                    for team_folder in os.listdir(search_root):
+                        team_dir = os.path.join(search_root, team_folder)
+                        if not os.path.isdir(team_dir):
+                            continue
+                            
+                        for filename in prompt_filename_options:
+                            prompt_path = os.path.join(team_dir, filename)
+                            if os.path.exists(prompt_path):
+                                return prompt_path
+            
+            return None
+            
+        except Exception as e:
+            print(f"Error getting prompt file: {str(e)}")
+            return None
+
+    @classmethod
+    def get_prompt_path(cls, agent_name: str, team_id: Optional[str] = None) -> Optional[str]:
+        """
+        Get prompt file path for an agent
+        
+        Args:
+            agent_name: Name of the agent
+            team_id: Optional team ID to narrow search
+        
+        Returns:
+            str: Path to the prompt file, or None if not found
+        """
+        return cls.get_prompt_file(agent_name, team_id)
 
     @staticmethod
     def get_log_file(service_name: str) -> str:
