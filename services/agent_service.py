@@ -1021,12 +1021,16 @@ List any specific constraints or limitations.
                 start_time = time.time()
             
                 # Execute agent run
-                agent.run()
+                result = agent.run()
+                
+                # Log if no result
+                if not result:
+                    self.logger.log(f"⚠️ No result from agent {name}", 'warning')
             
                 # Log successful run
                 run_duration = time.time() - start_time
                 self.logger.log(
-                    f"Agent {name} completed run successfully "
+                    f"Agent {name} completed run "
                     f"(duration: {run_duration:.2f}s)", 
                     'success'
                 )
