@@ -116,11 +116,23 @@ class AgentRunner(threading.Thread):
             
                 time.sleep(5)  # Brief pause on error
 
-def run_team_loop(team_name: str):
+def run_team_loop(team_name: str, specific_name: str = None):
     """Main team execution loop"""
     logger = Logger()
     logger.log(f"🚀 Starting team loop for: {team_name}", 'debug')
     
+    # If a specific name is provided, modify file loading
+    if specific_name:
+        # Update file paths to use team-specific naming
+        for filename in ['demande', 'map', 'directives']:
+            team_specific_file = f"team_{team_name}_{specific_name}_{filename}.md"
+            if os.path.exists(team_specific_file):
+                # Replace or create the standard file
+                with open(f"{filename}.md", 'w', encoding='utf-8') as f:
+                    with open(team_specific_file, 'r', encoding='utf-8') as source:
+                        f.write(source.read())
+                logger.log(f"Loaded team-specific {filename} file", 'info')
+
     agent_service = AgentService(None)
     
     # Load team configuration with enhanced logging
@@ -201,6 +213,7 @@ def main():
     parser = argparse.ArgumentParser(description='KinOS CLI')
     parser.add_argument('command', help='Command to execute')
     parser.add_argument('--model', help='Model to use (e.g. "claude-3-haiku", "gpt-4", etc.)')
+    parser.add_argument('--name', help='Specific agent or team name for file context')
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging')
     args = parser.parse_args()
 
@@ -236,7 +249,7 @@ def main():
     else:
         # Execute team command
         team_name = args.command
-        run_team_loop(team_name)
+        run_team_loop(team_name, args.name)
 
 if __name__ == "__main__":
     main()
