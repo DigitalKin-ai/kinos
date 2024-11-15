@@ -309,7 +309,7 @@ class PathManager:
     @staticmethod
     def get_team_path(team_id: Optional[str] = None) -> str:
         """
-        Get the path for a specific team or the current team
+        Get the path for a specific team
         
         Args:
             team_id: Optional team identifier
@@ -357,12 +357,10 @@ class PathManager:
                         
                         if os.path.isdir(full_path):
                             return full_path
-            
-            # Fallback: create team directory in current mission directory
-            fallback_path = os.path.join(os.getcwd(), f"team_{team_id}")
-            os.makedirs(fallback_path, exist_ok=True)
-            return fallback_path
-            
+        
+            # If no match found, return current directory
+            return os.getcwd()
+        
         except Exception as e:
             # Fallback to current directory
             print(f"Error in get_team_path: {str(e)}")
