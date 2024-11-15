@@ -128,8 +128,47 @@ class AgentBase(ABC):
 
     @abstractmethod
     def get_prompt(self) -> str:
-        """Get the current prompt content"""
-        pass
+        """
+        Retrieve the current prompt for the agent
+        
+        Raises:
+            ValueError: If no prompt file is found
+        
+        Returns:
+            str: Prompt content
+        """
+        try:
+            # Use PathManager to get prompt file path
+            from utils.path_manager import PathManager
+            
+            # Get team service to find the team
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            
+            # Find the team containing this agent
+            agent_team = None
+            for team in team_service.predefined_teams:
+                if self.name in team.get('agents', []):
+                    agent_team = team['id']
+                    break
+            
+            if not agent_team:
+                raise ValueError(f"No team found for agent {self.name}")
+            
+            # Get prompt path using PathManager
+            prompt_path = PathManager.get_agent_prompt_path(agent_team, self.name)
+            
+            if not prompt_path or not os.path.exists(prompt_path):
+                raise ValueError(f"Prompt file not found for agent {self.name} in team {agent_team}")
+            
+            # Read and return prompt content
+            with open(prompt_path, 'r', encoding='utf-8') as f:
+                return f.read()
+            
+        except Exception as e:
+            self.logger.log(f"Error retrieving prompt: {str(e)}", 'error')
+            raise
 
     @abstractmethod
     def _run_aider(self, prompt: str) -> Optional[str]:
