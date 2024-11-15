@@ -96,10 +96,11 @@ class ResearchAgent(AiderAgent):
             raise
 
     def _extract_research_topics(self, content: str) -> List[str]:
-        """Extract research topics using Claude"""
+        """Extract research topics using ModelRouter"""
         try:
-            from anthropic import Anthropic
-            client = Anthropic()
+            from services import init_services
+            services = init_services(None)
+            model_router = services['model_router']
             
             prompt = f"""Analyze the following content and identify ONE claim or question that need research and references:
 
@@ -110,16 +111,18 @@ Focus on factual claims, statistics, or technical concepts that should be suppor
 Give some context explanation.
 """
             
-            response = client.messages.create(
-                model="claude-3-5-haiku-20241022",
-                max_tokens=1000,
-                messages=[{"role": "user", "content": prompt}]
-            )
+            # Use model router with research configuration
+            import asyncio
+            response = asyncio.run(model_router.generate_response(
+                messages=[{"role": "user", "content": prompt}],
+                config_name="research",  # Use research-optimized config
+                max_tokens=1000
+            ))
             
-            # Extract text from response correctly
-            topics = response.content[0].text
-            
-            #self.logger.log(f"[{self.name}] Research topics : {topics}", 'info')
+            if not response:
+                raise ValueError("No response from model")
+                
+            topics = response
             return [topics]  # Return as list since code expects list
             
         except Exception as e:

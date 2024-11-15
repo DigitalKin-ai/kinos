@@ -467,10 +467,11 @@ Instructions:
 6. Provide enough detail for Aider to implement it autonomously
 7. Ask him specifically to do the task now, making decisions instead of asking for clarifications"""
 
-            # Call Claude API with correct message format
+            # Use ModelRouter for LLM calls
             try:
-                from anthropic import Anthropic
-                client = Anthropic()
+                from services import init_services
+                services = init_services(None)
+                model_router = services['model_router']
                 
                 messages = []
                 
@@ -481,16 +482,21 @@ Instructions:
                 # Add user message
                 messages.append({"role": "user", "content": context_message})
                 
-                response = client.messages.create(
-                    model="claude-3-5-haiku-20241022",
-                    max_tokens=4000,
-                    system=prompt,  # Set system prompt
-                    messages=messages
-                )
-                instructions = response.content[0].text
+                # Use model router instead of direct Anthropic call
+                import asyncio
+                instructions = asyncio.run(model_router.generate_response(
+                    messages=messages,
+                    config_name="default",  # Use default Claude config
+                    system=prompt  # System prompt
+                ))
+                
+                if not instructions:
+                    raise ValueError("No response from model")
+                    
                 self.logger.log(f"[{self.name}] Generated instructions:\n{instructions}", 'debug')
+                
             except Exception as e:
-                self.logger.log(f"[{self.name}] Error calling Claude: {str(e)}", 'error')
+                self.logger.log(f"[{self.name}] Error calling LLM: {str(e)}", 'error')
                 return
 
             # Run Aider with generated instructions
