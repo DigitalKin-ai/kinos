@@ -384,10 +384,10 @@ class AiderOutputParser:
                 'success'
             )
             
-            # NEW: Trigger commit log generation
+            # NEW: Generate commit log without committing
             try:
                 from utils.generate_commit_log import generate_commit_log
-                generate_commit_log()
+                generate_commit_log(commit=False)  # Pass commit=False to prevent auto-commit
             except Exception as e:
                 self.logger.log(f"Error generating commit log: {str(e)}", 'warning')
             
