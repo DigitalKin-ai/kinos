@@ -155,7 +155,7 @@ class AiderCommandBuilder:
         # Add the PYTHONPATH environment variable when executing
         # to ensure your modified aider version is found
         os.environ["PYTHONPATH"] = os.path.join(os.environ.get("PYTHONPATH", ""), 
-                                            r"C:\Users\conta\parallagon")
+                                        r"C:\Users\conta\parallagon")
         
         cmd.extend(self.get_model_args())
         cmd.extend(self.get_file_args(files, self.get_ignore_patterns(os.getcwd())))
@@ -164,7 +164,9 @@ class AiderCommandBuilder:
         cmd.extend(["--chat-history-file", f".aider.{self.agent_name}.chat.history.md"])
         cmd.extend(["--input-history-file", f".aider.{self.agent_name}.input.history.md"])
         
-        cmd.extend(["--message", prompt + " ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."])
+        # Stringify the prompt with robust escaping
+        stringified_prompt = prompt.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
+        cmd.extend(["--message", f'"{stringified_prompt} ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."'])
         
         # Log the full command for debugging
         print(f"DEBUG: Aider Command for {self.agent_name}: {' '.join(cmd)}")
