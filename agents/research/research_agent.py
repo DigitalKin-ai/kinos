@@ -61,18 +61,27 @@ class ResearchAgent(AiderAgent):
 
     def __init__(self, config: Dict[str, Any]):
         """Initialize research agent"""
+        # Ensure os is available before using it
+        if not hasattr(os, 'path'):
+            raise ImportError("Could not import a valid path module")
+
+        # Call parent constructor first
         super().__init__(config)
         
         # Initialize research-specific attributes
         self.data_dir = os.path.join(self.mission_dir, "research_data")
-        os.makedirs(self.data_dir, exist_ok=True)
+        
+        # Ensure data directory exists
+        try:
+            os.makedirs(self.data_dir, exist_ok=True)
+        except Exception as e:
+            self.logger.log(f"Error creating research data directory: {str(e)}", 'error')
         
         self.research_log = os.path.join(self.data_dir, "research_log.jsonl")
         self.query_cache = {}
         
         # Initialize Perplexity client using environment variable
-        import os
-        perplexity_api_key = os.getenv('PERPLEXITY_API_KEY')
+        perplexity_api_key = os.environ.get('PERPLEXITY_API_KEY')
         self.perplexity_client = PerplexityClient(api_key=perplexity_api_key)
         
         # Load API configuration
