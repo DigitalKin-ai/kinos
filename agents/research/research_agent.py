@@ -86,6 +86,7 @@ class ResearchAgent(AiderAgent):
         
         # Load API configuration
         self.api_config = self._load_api_config()
+
     def _extract_research_topics(self, content: str) -> List[str]:
         """Extract research topics using Claude"""
         try:
@@ -109,6 +110,8 @@ Do not include explanations - just the topics/claims themselves.
             
             # Split response into individual topics
             topics = [t.strip() for t in response.content[0].text.split('\n') if t.strip()]
+
+            # TODO: Ajouter la réponse dans le fichier de chat 
             
             self.logger.log(f"Extracted {len(topics)} research topics", 'info')
             return topics
@@ -143,6 +146,8 @@ Return ONLY the query text, nothing else."""
             
             query = response.content[0].text.strip()
             self.logger.log(f"Generated query: {query}", 'debug')
+
+            # TODO: Ajouter la réponse dans le fichier de chat 
             return query
             
         except Exception as e:
@@ -164,6 +169,8 @@ Return ONLY the query text, nothing else."""
                 # Cache results
                 self.query_cache[query] = results
                 self._save_research_data(query, results)
+
+                # TODO: Ajouter la réponse dans le fichier de chat 
                 
             return results
             
@@ -296,26 +303,6 @@ Please proceed with the updates now."""
         except Exception as e:
             self.logger.log(f"Error in research mission: {str(e)}", 'error')
             return None
-
-    def extract_research_topics(self, content: str) -> List[str]:
-        """Extract research topics using Claude"""
-        # Keep existing implementation...
-
-    def generate_query(self, topic: str) -> str:
-        """Generate an optimized Perplexity query for a topic"""
-        # Keep existing implementation...
-
-    def execute_query(self, query: str) -> Optional[Dict[str, Any]]:
-        """Execute query using Perplexity API"""
-        # Keep existing implementation...
-
-    def save_research_data(self, topic: str, query: str, results: Dict[str, Any]) -> bool:
-        """Save research results to disk"""
-        # Keep existing implementation...
-
-    def _specific_mission_execution(self, prompt: str) -> Optional[str]:
-        """Execute research mission"""
-        # Keep existing implementation...
 
     def run(self):
         """Main execution loop for research agent"""
