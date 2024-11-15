@@ -335,7 +335,7 @@ class AiderAgent(AgentBase):
                 os.path.join(PathManager.get_team_path(), f"map.md"): 
                 "# Project Map\n\n## Overview\n\n## Key Components\n",
                 
-                os.path.join(PathManager.get_team_path(), f"todolist.md")": 
+                os.path.join(PathManager.get_team_path(), f"todolist.md"): 
                 "# Project Todo List\n\n## Pending Tasks\n\n## Completed Tasks\n",
                 
                 os.path.join(PathManager.get_team_path(), f"demande.md"): 
