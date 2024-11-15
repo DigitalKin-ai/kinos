@@ -37,6 +37,8 @@ class AgentRunner(threading.Thread):
         self.output_queue = output_queue
         self.logger = logger
         self.running = True
+        self.agent_name = None
+        self.agent_type = 'aider'  # Default type
 
     def run(self):
         while self.running:
@@ -84,6 +86,13 @@ def run_team_loop(team_name: str):
     output_queue = queue.Queue()
     active_threads: Dict[int, AgentRunner] = {}
     
+    # RESEARCH AGENT DETECTION LIST
+    research_agents = [
+        'management', 'specifications', 'chercheur', 
+        'evaluation', 'chroniqueur', 'documentaliste', 
+        'duplication', 'redondance', 'validation', 'redacteur'
+    ]
+    
     try:
         while True:  # Main loop
             # Always try to maintain several active threads
@@ -110,11 +119,29 @@ def run_team_loop(team_name: str):
                 # Select random agent based on weights
                 agent_name = random.choices(available_agents, weights=weights, k=1)[0]
                 
+                # EXPLICIT RESEARCH TYPE DETECTION
+                if agent_name.lower() in [a.lower() for a in research_agents]:
+                    agent_type = 'research'
+                    logger.log(f"Agent {agent_name} explicitly set to research type", 'debug')
+                else:
+                    # Check team configuration for type
+                    agent_type = 'aider'
+                    for team in services['team_service'].predefined_teams:
+                        for agent in team.get('agents', []):
+                            if isinstance(agent, dict) and agent['name'] == agent_name:
+                                agent_type = agent.get('type', 'aider').lower()
+                                break
+                
+                # Normalize agent type
+                if agent_type not in ['aider', 'research']:
+                    agent_type = 'aider'
+                
                 # Detailed logging for agent launch
                 logger.log(
                     f"🚀 Launching agent: {agent_name}\n"
                     f"  Phase: {current_phase}\n"
                     f"  Weight: {phase_weights.get(agent_name, 0.5):.2f}\n"
+                    f"  Type: {agent_type}\n"
                     f"  Available agents: {', '.join(available_agents)}", 
                     'info'
                 )
@@ -122,6 +149,7 @@ def run_team_loop(team_name: str):
                 # Start new runner with selected agent
                 runner = AgentRunner(agent_service, [agent_name], output_queue, logger)
                 runner.agent_name = agent_name  # Store selected agent name
+                runner.agent_type = agent_type  # Store agent type
                 runner.start()
                 active_threads[runner.ident] = runner
                 logger.log(f"Started new agent runner for {agent_name} (total: {len(active_threads)})")
