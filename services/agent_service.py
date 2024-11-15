@@ -456,8 +456,17 @@ List any specific constraints or limitations.
                 if agent_config:
                     break
 
+            # EXPLICIT RESEARCH TYPE FOR SPECIFIC AGENTS
+            research_agents = [
+                'management', 'specifications', 'chercheur', 
+                'evaluation', 'chroniqueur', 'documentaliste', 
+                'duplication', 'redondance', 'validation'
+            ]
+            
             # Determine agent type with fallback and case-insensitive check
-            if agent_config and isinstance(agent_config, dict):
+            if agent_name.lower() in research_agents:
+                agent_type = 'research'
+            elif agent_config and isinstance(agent_config, dict):
                 agent_type = agent_config.get('type', 'aider').lower()
             else:
                 # Default fallback
