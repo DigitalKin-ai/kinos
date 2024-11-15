@@ -396,7 +396,7 @@ class AiderAgent(AgentBase):
         """Execute one cycle of the agent's main loop"""
         try:
             # Récupérer le nom spécifique de la configuration
-            specific_name = self.config.get('name')
+            specific_name = self.config.get('name', self.name)  # Fallback to self.name if not in config
             if not specific_name:
                 raise ValueError("No specific name provided for agent")
 
