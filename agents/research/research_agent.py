@@ -268,7 +268,7 @@ Return ONLY the query text, nothing else."""
             # Process each topic
             research_results = []
             for topic in topics:
-                self.logger.log(f"[{self.name}] Researching topic: {topic}", 'debug')
+                self.logger.log(f"[{self.name}] Researching topic: {topic}", 'info')
                 
                 # Generate and execute query
                 query = self._generate_query(topic)
@@ -280,7 +280,7 @@ Return ONLY the query text, nothing else."""
                         'query': query,
                         'results': results
                     })
-                    self.logger.log(f"[{self.name}] Got results for: {topic}", 'debug')
+                    self.logger.log(f"[{self.name}] Got results for: {topic}", 'info')
                     
             if not research_results:
                 self.logger.log(f"[{self.name}] No research results found", 'info')
