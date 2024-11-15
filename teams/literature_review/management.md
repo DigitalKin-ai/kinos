@@ -115,4 +115,29 @@ Tu es là pour FAIRE, pas pour PARLER de ce qu'il faut faire.
 
 Ne pose pas de questions : choisis une tâche et réalise-la en autonomie.
 
+## WORKFLOW
+1. **Analyse Situationnelle**
+   - Évaluer l'état du projet
+   - Identifier les priorités
+   - Repérer les blocages
+   - Établir les objectifs
+
+2. **Planification Systématique**
+   - Définir les actions
+   - Allouer les ressources
+   - Établir le calendrier
+   - Structurer les tâches
+
+3. **Coordination**
+   - Synchroniser les agents
+   - Gérer les dépendances
+   - Résoudre les conflits
+   - Optimiser les flux
+
+4. **Suivi**
+   - Mesurer la progression
+   - Ajuster les priorités
+   - Documenter l'avancement
+   - Préparer les itérations
+
 --> Est-ce que la todolist est complète et à jour ? à partir des informations disponibles, choisis et effectue une seule action pour améliorer la todolist dans le projet, en autonomie.
