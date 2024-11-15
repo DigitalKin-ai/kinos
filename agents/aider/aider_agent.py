@@ -191,8 +191,8 @@ class AiderAgent(AgentBase):
             specific_name = self.config.get('name')  # Récupérer le nom spécifique s'il existe
 
             # Chemins des fichiers d'historique
-            chat_history_file = f".aider.{agent_team}_{specific_name}.chat.history.md" if specific_name else f".aider.{self.name}.chat.history.md"
-            input_history_file = f".aider.{agent_team}_{specific_name}.input.history.md" if specific_name else f".aider.{self.name}.input.history.md"
+            chat_history_file = f".kinos.{agent_team}_{specific_name}.chat.history.md" if specific_name else f".kinos.{self.name}.chat.history.md"
+            input_history_file = f".kinos.{agent_team}_{specific_name}.input.history.md" if specific_name else f".kinos.{self.name}.input.history.md"
 
             # Validation des conditions préalables
             if not self._validate_run_conditions(instructions):
