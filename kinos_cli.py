@@ -277,12 +277,17 @@ def run_multi_team_loop(model: Optional[str] = None):
     from utils.path_manager import PathManager
     teams_dir = PathManager.get_team_types_root()
     
+    # Validate teams directory exists
+    if not os.path.exists(teams_dir):
+        logger.log(f"Team types directory not found: {teams_dir}", 'error')
+        return []
+    
     # Find all team directories
     team_dirs = [d for d in os.listdir(teams_dir) if d.startswith('team_')]
     
     if not team_dirs:
         logger.log("No teams found!", 'error')
-        return
+        return []
     
     # Create output queue and thread management
     output_queue = queue.Queue()
