@@ -43,22 +43,44 @@ class PerplexityClient:
                 "Content-Type": "application/json"
             }
             
-            # Prepare request data
+            # Prepare request data according to API spec
             data = {
-                "query": query,
+                "model": "llama-3.1-sonar-small-128k-online",  # Use appropriate model
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are a helpful research assistant. Provide accurate and detailed information."
+                    },
+                    {
+                        "role": "user",
+                        "content": query
+                    }
+                ],
+                "temperature": 0.2,
+                "top_p": 0.9,
+                "return_citations": True,
+                "search_recency_filter": "month",
                 **kwargs
             }
             
-            # Make API request
+            # Make API request to correct endpoint
             response = requests.post(
-                f"{self.base_url}/query",
+                f"{self.base_url}/chat/completions",
                 headers=headers,
                 json=data
             )
             
             # Handle response
             if response.status_code == 200:
-                return response.json()
+                result = response.json()
+                # Extract content from response
+                content = result['choices'][0]['message']['content']
+                return {
+                    'query': query,
+                    'response': content,
+                    'citations': result.get('citations', []),
+                    'usage': result.get('usage', {})
+                }
             else:
                 self.logger.log(
                     f"API error: {response.status_code} - {response.text}",
