@@ -46,21 +46,44 @@ class AgentRunner(threading.Thread):
     def run(self):
         while self.running:
             try:
+                # Log start of agent execution
+                self.logger.log(f"Starting agent execution: {self.agent_name}", 'debug')
+                
                 # Capture start time
                 start_time = datetime.now()
             
-                # Enhanced logging
-                self.logger.log(f"Running agent: {self.team_agents}", 'debug')
-            
-                # Run agent and capture output
-                self.agent_service.run_random_agent(self.team_agents)
-            
+                # Run agent with explicit logging
+                self.logger.log(f"Running agent {self.agent_name} with team agents: {self.team_agents}", 'debug')
+                
+                # Initialize agent
+                agent = self.agent_service.create_agent(self.agent_name)
+                if not agent:
+                    self.logger.log(f"Failed to create agent: {self.agent_name}", 'error')
+                    continue
+                    
+                self.logger.log(f"Agent {self.agent_name} created successfully", 'debug')
+                
+                # Start agent
+                try:
+                    agent.start()
+                    self.logger.log(f"Agent {self.agent_name} started", 'debug')
+                except Exception as start_error:
+                    self.logger.log(f"Error starting agent {self.agent_name}: {str(start_error)}", 'error')
+                    continue
+                
+                # Run agent's main loop
+                try:
+                    agent.run()
+                except Exception as run_error:
+                    self.logger.log(f"Error in agent {self.agent_name} run loop: {str(run_error)}", 'error')
+                
                 # Calculate duration
                 duration = (datetime.now() - start_time).total_seconds()
             
                 # Put completion message in queue
                 self.output_queue.put({
                     'thread_id': threading.get_ident(),
+                    'agent_name': self.agent_name,
                     'status': 'completed',
                     'duration': duration,
                     'timestamp': datetime.now().isoformat()
@@ -69,6 +92,7 @@ class AgentRunner(threading.Thread):
             except Exception as e:
                 self.output_queue.put({
                     'thread_id': threading.get_ident(),
+                    'agent_name': self.agent_name,
                     'status': 'error',
                     'error': str(e),
                     'traceback': traceback.format_exc(),
@@ -77,7 +101,7 @@ class AgentRunner(threading.Thread):
             
                 # Log detailed error
                 self.logger.log(
-                    f"Agent runner error:\n{traceback.format_exc()}",
+                    f"Agent runner error for {self.agent_name}:\n{traceback.format_exc()}",
                     'error'
                 )
             
