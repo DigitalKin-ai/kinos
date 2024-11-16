@@ -139,8 +139,8 @@ class AiderAgent(AgentBase):
             specific_name = self.config.get('name')  # Récupérer le nom spécifique s'il existe
 
             # Chemins des fichiers d'historique
-            chat_history_file = os.path.join(PathManager.get_team_path(agent_team), "history", f".kinos.{self.name}.chat.history.md")
-            input_history_file = os.path.join(PathManager.get_team_path(agent_team), "history", f".kinos.{self.name}.input.history.md")
+            chat_history_file = os.path.join(PathManager.get_team_path(agent_team), "history", f".aider.{self.name}.chat.history.md")
+            input_history_file = os.path.join(PathManager.get_team_path(agent_team), "history", f".aider.{self.name}.input.history.md")
 
             # Construction et validation de la commande
             cmd = self.command_builder.build_command(
@@ -372,8 +372,8 @@ class AiderAgent(AgentBase):
                 history_dir = os.path.join(team_dir, "history")
                 os.makedirs(history_dir, exist_ok=True)
                 
-                chat_history_file = os.path.join(history_dir, f".kinos.{self.name}.chat.history.md")
-                input_history_file = os.path.join(history_dir, f".kinos.{self.name}.input.history.md")
+                chat_history_file = os.path.join(history_dir, f".aider.{self.name}.chat.history.md")
+                input_history_file = os.path.join(history_dir, f".aider.{self.name}.input.history.md")
 
             # Créer les fichiers clés si nécessaire
             for filename, default_content in key_files.items():
@@ -407,8 +407,8 @@ class AiderAgent(AgentBase):
 
             # Define history files in current directory
             history_dir = os.path.join(os.getcwd(), "history")
-            chat_history_file = os.path.join(history_dir, f".kinos.{self.name}.chat.history.md")
-            input_history_file = os.path.join(history_dir, f".kinos.{self.name}.input.history.md")
+            chat_history_file = os.path.join(history_dir, f".aider.{self.name}.chat.history.md")
+            input_history_file = os.path.join(history_dir, f".aider.{self.name}.input.history.md")
 
             # Get chat history
             chat_history = ""
