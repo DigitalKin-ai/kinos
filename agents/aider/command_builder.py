@@ -26,34 +26,30 @@ class AiderCommandBuilder:
         active_team = team_service.get_active_team()
         if active_team and isinstance(active_team, dict):
             self.team = active_team.get('id')
-            self.logger.log(f"[{self.agent_name}] Using active team: {active_team.get('name', self.team)}", 'debug')
-            return
-
-        # If no active team, find team containing this agent
-        for team in team_service.team_types:
-            # Skip if team is not a dictionary
-            if not isinstance(team, dict):
-                continue
-                
-            # Get agents list, handling both string and dict formats
-            team_agents = team.get('agents', [])
-            for agent in team_agents:
-                # Normalize agent name
-                agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
-                
-                if self.agent_name == agent_name_to_check:
-                    self.team = team.get('id')
-                    # Log team assignment with more details
-                    self.logger.log(
-                        f"[{self.agent_name}] Found in team {team.get('name', 'Unknown')} (id: {team.get('id')})", 
-                        'info'
-                    )
-                    return
-                    
-        # Only default to 'default' if absolutely no team is found
-        if not hasattr(self, 'team') or not self.team:
-            self.logger.log(f"[{self.agent_name}] ⚠️ No team found, defaulting to 'default'", 'warning')
+            self.team_name = active_team.get('name', self.team)
+            self.logger.log(f"[{self.agent_name}] Using active team: {self.team_name}", 'debug')
+        else:
+            # Find team containing this agent
+            for team in team_service.team_types:
+                if isinstance(team, dict):
+                    team_agents = team.get('agents', [])
+                    for agent in team_agents:
+                        agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
+                        if self.agent_name == agent_name_to_check:
+                            self.team = team.get('id')
+                            self.team_name = team.get('name', self.team)
+                            break
+                    if hasattr(self, 'team'):
+                        break
+        
+        # Default to 'default' if no team found
+        if not hasattr(self, 'team'):
             self.team = 'default'
+            self.team_name = 'Default Team'
+            self.logger.log(f"[{self.agent_name}] ⚠️ No team found, defaulting to 'default'", 'warning')
+
+        # Get mission directory from current working directory
+        self.mission_dir = os.getcwd()
 
     def get_model_args(self) -> List[str]:
         """Get model-specific command arguments"""
@@ -186,24 +182,27 @@ class AiderCommandBuilder:
         
         # Add model args
         cmd.extend(self.get_model_args())
-        cmd.extend(self.get_file_args(files, self.get_ignore_patterns(os.getcwd())))
+        cmd.extend(self.get_file_args(files, self.get_ignore_patterns(self.mission_dir)))
         
-        # Get team path and ensure history directory exists
-        team_path = PathManager.get_team_path(self.team)
-        history_path = os.path.join(team_path, "history")
-        os.makedirs(history_path, exist_ok=True)
+        # Create team directory path in mission directory
+        team_dir = os.path.join(self.mission_dir, f"team_{self.team}")
+        history_dir = os.path.join(team_dir, "history")
+        
+        # Create directories
+        os.makedirs(history_dir, exist_ok=True)
         
         # Create history files with empty content if they don't exist
-        chat_history = os.path.join(history_path, f".aider.{self.agent_name}.chat.history.md")
-        input_history = os.path.join(history_path, f".aider.{self.agent_name}.input.history.md")
+        chat_history = os.path.join(history_dir, f".aider.{self.agent_name}.chat.history.md")
+        input_history = os.path.join(history_dir, f".aider.{self.agent_name}.input.history.md")
         
         for history_file in [chat_history, input_history]:
             if not os.path.exists(history_file):
                 try:
                     with open(history_file, 'w', encoding='utf-8') as f:
                         f.write("")
+                    self.logger.log(f"Created history file: {history_file}", 'debug')
                 except Exception as e:
-                    print(f"Error creating history file {history_file}: {str(e)}")
+                    self.logger.log(f"Error creating history file {history_file}: {str(e)}", 'error')
         
         # Add history file arguments
         cmd.extend([

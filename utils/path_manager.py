@@ -202,8 +202,9 @@ class PathManager:
             print(f"{log_prefix} DEBUG: Searching for prompt file for agent: {agent_name}")
             print(f"{log_prefix} DEBUG: Team folder: {team_folder}")
 
-            # Ensure team directory structure exists
-            team_dir = os.path.join(os.getcwd(), f"team_{team_folder}")
+            # Ensure team directory structure exists in mission directory
+            mission_dir = os.getcwd()
+            team_dir = os.path.join(mission_dir, f"team_{team_folder}")
             history_dir = os.path.join(team_dir, "history")
             os.makedirs(history_dir, exist_ok=True)
 
