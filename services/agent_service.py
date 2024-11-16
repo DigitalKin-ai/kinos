@@ -239,10 +239,6 @@ class AgentService:
         """
         try:
             if not prompt_file or not os.path.exists(prompt_file):
-                self.log_message(
-                    f"Prompt file not found: {prompt_file}", 
-                    'error'
-                )
                 return None
                 
             with open(prompt_file, 'r', encoding='utf-8') as f:
@@ -451,7 +447,7 @@ List any specific constraints or limitations.
 
             # Find the agent configuration in the team config
             agent_config = None
-            for team in services['team_service'].predefined_teams:
+            for team in services['team_service'].team_types:
                 for agent in team.get('agents', []):
                     # Handle both string and dictionary agent configurations
                     if isinstance(agent, dict) and agent['name'] == agent_name:

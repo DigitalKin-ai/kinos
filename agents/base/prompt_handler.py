@@ -20,7 +20,6 @@ class PromptHandler:
             # Normalize path and check existence
             prompt_path = self._resolve_prompt_path(prompt_file)
             if not prompt_path or not os.path.exists(prompt_path):
-                self.logger.log(f"Prompt file not found: {prompt_file}", 'error')
                 self.logger.log(f"Searched path: {prompt_path}", 'debug')
                 return None
 
@@ -142,7 +141,7 @@ class PromptHandler:
             
             # Find the team containing this agent
             agent_team = None
-            for team in team_service.predefined_teams:
+            for team in team_service.team_types:
                 if any(agent == prompt_file.replace('.md', '') for agent in team.get('agents', [])):
                     agent_team = team['id']
                     break
