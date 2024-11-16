@@ -37,19 +37,20 @@ def init_services(_) -> Dict[str, Any]:
         from services.team_service import TeamService
         from services.agent_service import AgentService
         from services.map_service import MapService
-        from utils.model_router import ModelRouter  # Add ModelRouter import
+        from utils.model_router import ModelRouter
 
         logger.log("Services imported successfully", 'debug')
 
-        # Create services with minimal dependencies
-        services = {
-            'map_service': MapService(None),
-            'dataset_service': DatasetService(None),
-            'file_service': FileService(None),
-            'team_service': TeamService(None),
-            'agent_service': AgentService(None),
-            'model_router': ModelRouter()  # Add ModelRouter initialization
-        }
+        # Create services dictionary first
+        services = {}
+        
+        # Initialize services in dependency order
+        services['team_service'] = TeamService(None)
+        services['model_router'] = ModelRouter()
+        services['map_service'] = MapService(None)
+        services['dataset_service'] = DatasetService(None)
+        services['file_service'] = FileService(None)
+        services['agent_service'] = AgentService(None)
 
         logger.log("Services created", 'debug')
 
