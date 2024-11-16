@@ -217,6 +217,8 @@ class AiderCommandBuilder:
         stringified_instructions = instructions.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
         cmd.extend(["--message", f'"{stringified_instructions} ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."'])
         
+        self.logger.log(f"Aider command: {cmd}", 'info')
+
         if not self.validate_command(cmd):
             print(f"DEBUG: Invalid command configuration for {self.agent_name}")
             raise ValueError("Invalid command configuration")

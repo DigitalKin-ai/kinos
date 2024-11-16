@@ -251,8 +251,6 @@ class PathManager:
                             if os.path.exists(prompt_path):
                                 print(f"{log_prefix} DEBUG: Found prompt file: {prompt_path}")
                                 matched_paths.append(prompt_path)
-                            else:
-                                print(f"{log_prefix} DEBUG: Prompt file not found at: {prompt_path}")
                 except Exception as search_error:
                     print(f"{log_prefix} ERROR: Error searching directory {search_dir}: {str(search_error)}")
 
