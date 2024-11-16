@@ -116,7 +116,8 @@ class CommitLogger:
             # Find team for this agent
             team_name = 'Unknown Team'
             for team in team_service.team_types:
-                if commit['agent'] in team_service.get_team_agents(team.get('id', '')):
+                team_agents = team_service.get_team_agents(team.get('id', ''))
+                if commit['agent'] in team_agents:
                     team_name = team.get('name', team.get('id', 'Unknown Team'))
                     break
             
