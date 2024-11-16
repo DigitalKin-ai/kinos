@@ -339,30 +339,25 @@ class AiderAgent(AgentBase):
             services = init_services(None)
             team_service = services['team_service']
             
-            # Get list of teams
-            teams = PathManager.list_teams()
-            
             # Find team containing this agent
             agent_team = None
-            for team_id in teams:  # teams is a list of strings
-                # Get full team config
-                team_config = team_service.get_team_config(team_id)
-                if not team_config:
+            for team in team_service.team_types:
+                # Skip if team is not a dictionary
+                if not isinstance(team, dict):
                     continue
+                
+                # Get agents list, defaulting to empty list
+                team_agents = team.get('agents', [])
+                
+                # Handle both string and dictionary agent representations
+                for agent in team_agents:
+                    # Normalize agent name
+                    agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
                     
-                # Get agents list with fallback
-                agents = team_config.get('agents', [])
-                if not agents:
-                    continue
-                    
-                # Check each agent
-                for agent in agents:
-                    # Handle both string and dict agent formats
-                    agent_name = agent.get('name', agent) if isinstance(agent, dict) else agent
-                    if self.name == agent_name:
-                        agent_team = team_id
+                    if self.name == agent_name_to_check:
+                        agent_team = team.get('id')
                         break
-                        
+                
                 if agent_team:
                     break
 
