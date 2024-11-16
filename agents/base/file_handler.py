@@ -1,6 +1,7 @@
 """File operations and monitoring"""
 import os
-from typing import Dict, Optional
+import os
+from typing import Dict, Optional, List
 from utils.logger import Logger
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
