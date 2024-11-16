@@ -206,26 +206,26 @@ class PathManager:
             search_paths = []
             
             # 1. Current mission team directory
-        if team_folder:
-            mission_team_dir = os.path.join(os.getcwd(), f"team_{team_folder}")
-            search_paths.append(mission_team_dir)
-            print(f"{log_prefix} DEBUG: Checking mission team dir: {mission_team_dir}")
+            if team_folder:
+                mission_team_dir = os.path.join(os.getcwd(), f"team_{team_folder}")
+                search_paths.append(mission_team_dir)
+                print(f"{log_prefix} DEBUG: Checking mission team dir: {mission_team_dir}")
+                
+            # 2. Team types directory
+            team_types_dir = cls.get_team_types_root()
+            if team_folder:
+                team_type_dir = os.path.join(team_types_dir, team_folder)
+                search_paths.append(team_type_dir)
+                print(f"{log_prefix} DEBUG: Checking team type dir: {team_type_dir}")
+                
+            # 3. Default team types directory
+            default_dir = os.path.join(team_types_dir, "default")
+            search_paths.append(default_dir)
+            print(f"{log_prefix} DEBUG: Checking default dir: {default_dir}")
             
-        # 2. Team types directory
-        team_types_dir = cls.get_team_types_root()
-        if team_folder:
-            team_type_dir = os.path.join(team_types_dir, team_folder)
-            search_paths.append(team_type_dir)
-            print(f"{log_prefix} DEBUG: Checking team type dir: {team_type_dir}")
-            
-        # 3. Default team types directory
-        default_dir = os.path.join(team_types_dir, "default")
-        search_paths.append(default_dir)
-        print(f"{log_prefix} DEBUG: Checking default dir: {default_dir}")
-        
-        # 4. Root team types directory
-        search_paths.append(team_types_dir)
-        print(f"{log_prefix} DEBUG: Checking root dir: {team_types_dir}")
+            # 4. Root team types directory
+            search_paths.append(team_types_dir)
+            print(f"{log_prefix} DEBUG: Checking root dir: {team_types_dir}")
 
         # Normalize agent name for matching
         normalized_agent_name = agent_name.lower()
