@@ -4,7 +4,7 @@ import json
 import traceback
 import platform
 import shutil
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any, Union, List
 
 class PathManager:
     """Centralized and secure path management for KinOS"""
@@ -357,6 +357,52 @@ class PathManager:
             return mission_chats_dir
         
         return chats_dir
+
+    @classmethod
+    def list_teams(cls) -> List[str]:
+        """
+        List all teams in the mission directory
+        
+        Returns:
+            List of team names
+        """
+        try:
+            # Get the mission directory
+            mission_dir = os.getcwd()
+            
+            # List all directories in the mission directory
+            all_dirs = [d for d in os.listdir(mission_dir) if os.path.isdir(os.path.join(mission_dir, d))]
+            
+            # Filter directories that start with "team_"
+            team_dirs = [d[5:] for d in all_dirs if d.startswith("team_")]
+            
+            # Optional: use logger if available
+            try:
+                from utils.logger import Logger
+                logger = Logger()
+                if team_dirs:
+                    logger.log(f"Found teams: {', '.join(team_dirs)}", 'info')
+                else:
+                    logger.log("No teams found in mission directory", 'warning')
+            except:
+                # Fallback to print if logger not available
+                if team_dirs:
+                    print(f"Found teams: {', '.join(team_dirs)}")
+                else:
+                    print("No teams found in mission directory")
+            
+            return team_dirs
+        
+        except Exception as e:
+            # Fallback error handling
+            try:
+                from utils.logger import Logger
+                logger = Logger()
+                logger.log(f"Error listing teams: {str(e)}", 'error')
+            except:
+                print(f"Error listing teams: {str(e)}")
+            
+            return []
 
     @staticmethod
     def validate_path(path: str) -> bool:
