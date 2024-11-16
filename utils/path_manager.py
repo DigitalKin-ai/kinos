@@ -14,19 +14,24 @@ class PathManager:
     
     @classmethod
     def get_project_root(cls) -> str:
-        """Returns the current working directory as project root"""
-        return os.getcwd()
+        """Returns the current team directory as project root"""
+        current_dir = os.getcwd()
+        team_dir = next((d for d in os.listdir(current_dir) if d.startswith('team_')), current_dir)
+        return os.path.join(current_dir, team_dir)
 
     @classmethod
     def get_mission_path(cls, mission_name: str = None) -> str:
-        """Get mission path, defaulting to current directory"""
-        return os.getcwd()
+        """Get mission path within current team directory"""
+        current_dir = os.getcwd()
+        team_dir = next((d for d in os.listdir(current_dir) if d.startswith('team_')), current_dir)
+        return os.path.join(current_dir, team_dir)
 
     @classmethod
     def get_kinos_root(cls) -> str:
-        """Returns the KinOS installation directory"""
-        # Le fichier path_manager.py est dans utils/, donc remonter de 2 niveaux
-        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        """Returns the current team's root directory"""
+        current_dir = os.getcwd()
+        team_dir = next((d for d in os.listdir(current_dir) if d.startswith('team_')), current_dir)
+        return os.path.join(current_dir, team_dir)
 
     @classmethod
     def get_team_types_root(cls) -> str:
