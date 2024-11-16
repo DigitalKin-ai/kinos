@@ -14,35 +14,24 @@ class FileHandler:
 
     def list_files(self) -> Dict[str, float]:
         try:
-            from services import init_services
-            services = init_services(None)
-            team_service = services['team_service']
-            
-            # Find agent's team
-            agent_name = getattr(self, 'name', None)  # Get agent name if available
-            agent_team = None
-            for team in team_service.team_types:
-                if isinstance(team, dict):
-                    team_agents = team.get('agents', [])
-                    for agent in team_agents:
-                        agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
-                        if agent_name == agent_name_to_check:
-                            agent_team = team.get('id')
-                            break
-                if agent_team:
-                    break
-
-            # Search paths using team_types directory
-            team_dir = os.path.join('team_types', agent_team) if agent_team else None
+            # Use current working directory as base
             search_paths = [self.mission_dir]
-            if team_dir and os.path.exists(team_dir):
-                search_paths.append(team_dir)
-
-            # Charger les modèles d'exclusion
+            
+            # Check for team-specific directories
+            current_dir = os.getcwd()
+            team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
+            
+            # Add team directories to search paths
+            for team_dir in team_dirs:
+                full_team_path = os.path.join(current_dir, team_dir)
+                if full_team_path not in search_paths:
+                    search_paths.append(full_team_path)
+            
+            # Load ignore patterns
             ignore_patterns = self._load_ignore_patterns()
             spec = PathSpec.from_lines(GitWildMatchPattern, ignore_patterns) if ignore_patterns else None
 
-            # Extensions de fichiers texte
+            # Extensions of text files to track
             text_extensions = {'.md', '.txt', '.json', '.yaml', '.yml', '.py', '.js', '.html', '.css', '.sh'}
             text_files = {}
 
@@ -53,25 +42,12 @@ class FileHandler:
                             file_path = os.path.join(root, filename)
                             rel_path = os.path.relpath(file_path, base_path)
                             
-                            # Ignorer les fichiers correspondant aux modèles
+                            # Skip ignored files
                             if spec and spec.match_file(rel_path):
                                 continue
                             
-                            # Priorité aux fichiers spécifiques de l'agent/équipe
-                            if agent_team and agent_name:
-                                specific_patterns = [
-                                    f"team_{agent_team}_{agent_name}_{filename}",
-                                    f"{agent_name}_{filename}",
-                                    f"team_{agent_team}_{filename}"
-                                ]
-                                if any(pattern in filename for pattern in specific_patterns):
-                                    text_files[file_path] = os.path.getmtime(file_path)
-                            
-                            # Ajouter les fichiers génériques si pas déjà ajouté
-                            if file_path not in text_files:
-                                text_files[file_path] = os.path.getmtime(file_path)
+                            text_files[file_path] = os.path.getmtime(file_path)
 
-            self.mission_files = text_files
             return text_files
 
         except Exception as e:

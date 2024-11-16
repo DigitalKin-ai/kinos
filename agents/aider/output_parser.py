@@ -388,6 +388,11 @@ class AiderOutputParser:
     def _parse_commit_line(self, line: str) -> bool:
         """Parse and log a commit line"""
         try:
+            # Detect team from current directory
+            current_dir = os.getcwd()
+            team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
+            team_name = team_dirs[0][5:] if team_dirs else 'default'
+
             # Vérifier que c'est bien une ligne de commit
             if not line or not line.startswith("Commit "):
                 return True  # Return True even for non-commit lines
@@ -414,21 +419,6 @@ class AiderOutputParser:
             # Get icon and format commit type
             icon = self.COMMIT_ICONS.get(commit_type, '🔨')
             commit_type_str = f"[{commit_type}]" if commit_type else ""
-            
-            # Get team name from project folder
-            team_name = "Unknown Team"
-            try:
-                # Get current working directory
-                current_dir = os.getcwd()
-                
-                # Find the team directory (should start with 'team_')
-                for item in os.listdir(current_dir):
-                    if item.startswith('team_') and os.path.isdir(os.path.join(current_dir, item)):
-                        # Remove 'team_' prefix to get the team name
-                        team_name = item[5:]  # Remove 'team_' prefix
-                        break
-            except Exception as e:
-                self.logger.log(f"Error extracting team name: {str(e)}", 'warning')
 
             # Log with team name
             self.logger.log(
