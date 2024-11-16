@@ -21,7 +21,7 @@ class FileHandler:
             # Trouver l'équipe de l'agent
             agent_name = None  # À remplacer par le nom réel de l'agent
             agent_team = None
-            for team in team_service.predefined_teams:
+            for team in team_service.team_types:
                 if agent_name in team.get('agents', []):
                     agent_team = team['id']
                     break
