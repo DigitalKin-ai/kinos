@@ -373,8 +373,8 @@ class PathManager:
             # List all directories in the mission directory
             all_dirs = [d for d in os.listdir(mission_dir) if os.path.isdir(os.path.join(mission_dir, d))]
             
-            # Filter directories that start with "team_"
-            team_dirs = [d[5:] for d in all_dirs if d.startswith("team_")]
+            # Filter directories that start with "team_" and remove None values
+            team_dirs = [d[5:] for d in all_dirs if d.startswith("team_") and d[5:]]
             
             # Optional: use logger if available
             try:
