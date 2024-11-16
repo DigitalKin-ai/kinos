@@ -55,13 +55,9 @@ class MapService(BaseService):
             # Log team info
             self.logger.log(f"[MapService] 🔍 Initializing for team: {team_id}", 'info')
 
-            # Construct team directory name
-            team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
-            self.logger.log(f"[MapService] 📁 Team directory name: {team_dir}", 'debug')
-            
-            # Create full team directory path
-            team_path = os.path.join(os.getcwd(), team_dir)
-            self.logger.log(f"[MapService] 🛠️ Full team path: {team_path}", 'debug')
+            # Use PathManager to get correct team path
+            team_path = PathManager.get_team_path(team_id)
+            self.logger.log(f"[MapService] 🛠️ Using team path: {team_path}", 'debug')
             
             # Ensure team directory exists
             if not os.path.exists(team_path):
