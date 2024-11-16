@@ -41,10 +41,17 @@ class MapService(BaseService):
             team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
             
             # Ensure team directory exists
-            team_path = os.path.join(os.getcwd(), team_dir)
+            # Validate and secure team path
+            from utils.path_manager import PathManager
+            team_path = PathManager.get_team_path(team_id)
+            if not team_path:
+                self.logger.log(f"Invalid team path for team {team_id}", 'error')
+                return False
+                
+            # Ensure team directory exists
             os.makedirs(team_path, exist_ok=True)
             
-            # Set map file path in team directory
+            # Set map file path in team directory using PathManager
             self.map_file = os.path.join(team_path, "map.md")
         
             # Scan directory with team context
@@ -126,6 +133,31 @@ class MapService(BaseService):
                 '.h', '.c', '.cs', '.php', '.rb', '.go', '.rs', '.ts'
             }
         
+            # Get team directory path using PathManager
+            team_path = PathManager.get_team_path(team_id) if team_id else None
+            
+            # Add team-specific files to scan
+            if team_path and os.path.exists(team_path):
+                team_files = ["map.md", "todolist.md", "demande.md", "directives.md"]
+                for file in team_files:
+                    file_path = os.path.join(team_path, file)
+                    if os.path.exists(file_path):
+                        try:
+                            token_count = self._count_tokens(file_path)
+                            total_tokens += token_count
+                            status_icon = self._get_status_icon(token_count)
+                            
+                            size_k = token_count / 1000
+                            tree_lines.append(
+                                f"{prefix}📄 {file} ({size_k:.1f}k tokens) {status_icon}"
+                            )
+                            
+                            warning = self._check_file_size(file, token_count)
+                            if warning:
+                                warnings.append(warning)
+                        except Exception as e:
+                            self.logger.log(f"Error processing team file {file}: {str(e)}", 'warning')
+
             for i, item in enumerate(items):
                 is_last = i == len(items) - 1
                 current_prefix = prefix + ("└── " if is_last else "├── ")
@@ -279,22 +311,25 @@ class MapService(BaseService):
     def _write_map_file(self, content: str) -> bool:
         """Write content to map file with atomic write"""
         try:
-            # Écrire d'abord dans un fichier temporaire
+            # Ensure map file directory exists
+            os.makedirs(os.path.dirname(self.map_file), exist_ok=True)
+            
+            # Write to temporary file first
             temp_file = f"{self.map_file}.tmp"
             try:
                 with open(temp_file, 'w', encoding='utf-8') as f:
                     f.write(content)
                     f.flush()
-                    os.fsync(f.fileno())  # Force l'écriture sur le disque
+                    os.fsync(f.fileno())  # Force write to disk
                     
-                # Renommage atomique
+                # Atomic rename
                 os.replace(temp_file, self.map_file)
                 
                 self.logger.log("Map file updated successfully", 'debug')
                 return True
                 
             finally:
-                # Nettoyer le fichier temporaire si il existe encore
+                # Clean up temp file if it exists
                 if os.path.exists(temp_file):
                     try:
                         os.remove(temp_file)
