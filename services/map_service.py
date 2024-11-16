@@ -23,7 +23,17 @@ class MapService(BaseService):
         # Initialize Anthropic client for tokenization
         self.anthropic = Anthropic()
         
-        # Initialize map_file based on active team
+        # Initialize map_file with default value
+        self.map_file = "map.md"  # Default value
+        
+        # Defer team-based initialization to first use
+        self._initialized = False
+
+    def _initialize_map_file(self) -> None:
+        """Initialize map file path based on active team"""
+        if self._initialized:
+            return
+            
         try:
             from services import init_services
             services = init_services(None)
@@ -36,18 +46,15 @@ class MapService(BaseService):
                 if team_path:
                     self.map_file = os.path.join(team_path, "map.md")
                     self.logger.log(f"Initialized map file path: {self.map_file}", 'debug')
-                else:
-                    self.map_file = "map.md"  # Fallback to current directory
-            else:
-                self.map_file = "map.md"  # Fallback to current directory
-                
         except Exception as e:
             self.logger.log(f"Error initializing map file path: {str(e)}", 'warning')
-            self.map_file = "map.md"  # Fallback to current directory
+            
+        self._initialized = True
 
     def generate_map(self) -> bool:
         """Generate project map file with enhanced debugging"""
         try:
+            self._initialize_map_file()  # Initialize if needed
             self.logger.log("[MapService] Starting map generation", 'debug')
             
             # Get active team from TeamService
@@ -392,6 +399,7 @@ class MapService(BaseService):
     def _ensure_map_file_writeable(self) -> bool:
         """Ensure map file is writable"""
         try:
+            self._initialize_map_file()  # Initialize if needed
             if not hasattr(self, 'map_file') or not self.map_file:
                 self.logger.log("Map file path not yet initialized", 'warning')
                 return False
@@ -427,6 +435,7 @@ class MapService(BaseService):
     def update_map(self) -> bool:
         """Update map after file changes with comprehensive logging"""
         try:
+            self._initialize_map_file()  # Initialize if needed
             # Ensure map file path is set
             if not self._ensure_map_file_path():
                 self.logger.log("Could not determine map file path", 'error')
