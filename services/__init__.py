@@ -56,9 +56,9 @@ def init_services(_) -> Dict[str, Any]:
             team_found = False
             for item in os.listdir(current_dir):
                 if item.startswith('team_'):
-                    team_id = item.replace('team_', '')
-                    if team_service.set_active_team(team_id):
-                        logger.log(f"Set active team to '{team_id}' from directory", 'info')
+                    team_name = item.replace('team_', '')
+                    if team_service.set_active_team(team_name):
+                        logger.log(f"Set active team to '{team_name}' from directory", 'info')
                         team_found = True
                         break
             
