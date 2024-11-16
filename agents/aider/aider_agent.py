@@ -372,13 +372,13 @@ class AiderAgent(AgentBase):
                 services = init_services(None)
                 team_service = services['team_service']
                 active_team = team_service.get_active_team()
-                team_id = active_team.get('id') if active_team else teams[0] if teams else None
+                team_name = active_team.get('name') if active_team else teams[0] if teams else None
             except Exception as e:
                 self.logger.log(f"Error getting active team: {str(e)}", 'warning')
-                team_id = teams[0] if teams else None
+                team_name = teams[0] if teams else None
 
             # Get team directory path using PathManager
-            team_dir = PathManager.get_team_path(team_id)
+            team_dir = PathManager.get_team_path(team_name)
             if not os.path.exists(team_dir):
                 os.makedirs(team_dir, exist_ok=True)
                 self.logger.log(f"[{self.name}] Created team directory: {team_dir}", 'info')

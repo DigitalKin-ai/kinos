@@ -400,13 +400,13 @@ class MapService(BaseService):
                 self.logger.log("No active team found for map file path", 'warning')
                 return False
                 
-            team_id = active_team.get('id')
-            if not team_id:
+            team_name = active_team.get('name')
+            if not team_name:
                 self.logger.log("No team ID found", 'warning')
                 return False
                 
             # Construct team directory name with "team_" prefix if not present
-            team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
+            team_dir = f"team_{team_name}" if not team_name.startswith('team_') else team_name
             
             # Create full path for map file in team directory
             self.map_file = os.path.join(os.getcwd(), team_dir, "map.md")

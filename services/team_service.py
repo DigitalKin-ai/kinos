@@ -210,8 +210,8 @@ class TeamService(BaseService):
                 team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
                 
                 for team_dir in team_dirs:
-                    team_id = team_dir.replace('team_', '')
-                    team_config = self.get_team_config(team_id)
+                    team_name = team_dir.replace('team_', '')
+                    team_config = self.get_team_config(team_name)
                     if team_config:
                         self.active_team = team_config
                         break
@@ -281,14 +281,14 @@ class TeamService(BaseService):
         except Exception as e:
             return False, str(e)
 
-    def load_team_prompts(self, team_id: str) -> Dict[str, str]:
+    def load_team_prompts(self, team_name: str) -> Dict[str, str]:
         """Load all prompt files for a team"""
         try:
             prompts = {}
-            team_dir = os.path.join(PathManager.get_teams_root(), team_id)
+            team_dir = os.path.join(PathManager.get_teams_root(), team_name)
             
             if not os.path.exists(team_dir):
-                self.logger.log(f"Team directory not found: {team_id}", 'warning')
+                self.logger.log(f"Team directory not found: {team_name}", 'warning')
                 return prompts
                 
             # Load each .md file as a prompt
