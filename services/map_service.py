@@ -23,8 +23,27 @@ class MapService(BaseService):
         # Initialize Anthropic client for tokenization
         self.anthropic = Anthropic()
         
-        # Initialize map_file attribute
-        self.map_file = None  # Will be set in generate_map()
+        # Initialize map_file based on active team
+        try:
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            active_team = team_service.get_active_team()
+            
+            if active_team:
+                team_id = active_team.get('id')
+                team_path = PathManager.get_team_path(team_id)
+                if team_path:
+                    self.map_file = os.path.join(team_path, "map.md")
+                    self.logger.log(f"Initialized map file path: {self.map_file}", 'debug')
+                else:
+                    self.map_file = "map.md"  # Fallback to current directory
+            else:
+                self.map_file = "map.md"  # Fallback to current directory
+                
+        except Exception as e:
+            self.logger.log(f"Error initializing map file path: {str(e)}", 'warning')
+            self.map_file = "map.md"  # Fallback to current directory
 
     def generate_map(self) -> bool:
         """Generate project map file with enhanced debugging"""
@@ -344,6 +363,32 @@ class MapService(BaseService):
             self.logger.log(f"Error writing map file: {str(e)}", 'error')
             return False
 
+    def _ensure_map_file_path(self) -> bool:
+        """Ensure map file path is properly set"""
+        try:
+            if not self.map_file or not os.path.dirname(self.map_file):
+                from services import init_services
+                services = init_services(None)
+                team_service = services['team_service']
+                active_team = team_service.get_active_team()
+                
+                if active_team:
+                    team_id = active_team.get('id')
+                    team_path = PathManager.get_team_path(team_id)
+                    if team_path:
+                        self.map_file = os.path.join(team_path, "map.md")
+                        self.logger.log(f"Reset map file path to: {self.map_file}", 'debug')
+                        return True
+                
+                self.logger.log("Could not determine team path for map file", 'warning')
+                return False
+                
+            return True
+            
+        except Exception as e:
+            self.logger.log(f"Error ensuring map file path: {str(e)}", 'error')
+            return False
+
     def _ensure_map_file_writeable(self) -> bool:
         """Ensure map file is writable"""
         try:
@@ -382,26 +427,22 @@ class MapService(BaseService):
     def update_map(self) -> bool:
         """Update map after file changes with comprehensive logging"""
         try:
-            # Ensure map file is writable first
-            if not hasattr(self, 'map_file') or not self.map_file:
-                # Try to initialize map file path
-                from services import init_services
-                services = init_services(None)
-                team_service = services['team_service']
-                active_team = team_service.get_active_team()
+            # Ensure map file path is set
+            if not self._ensure_map_file_path():
+                self.logger.log("Could not determine map file path", 'error')
+                return False
                 
-                if active_team:
-                    team_id = active_team.get('id')
-                    team_path = PathManager.get_team_path(team_id)
-                    if team_path:
-                        self.map_file = os.path.join(team_path, "map.md")
-            
+            # Ensure map file is writable
             if not self._ensure_map_file_writeable():
                 self.logger.log("Could not make map file writable", 'error')
                 return False
+                
+            # Generate new map
+            return self.generate_map()
             
-            # Rest of the existing update_map method...
-            self.logger.log("Starting comprehensive map update", 'debug')
+        except Exception as e:
+            self.logger.log(f"Error updating map: {str(e)}", 'error')
+            return False
             
             # Validate mission directory
             mission_dir = os.getcwd()
