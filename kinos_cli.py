@@ -124,16 +124,16 @@ def initialize_team_structure(team_name: str, specific_name: str = None):
     
     # Create team directory with "team_" prefix if not already present
     team_dir_name = f"team_{team_name}" if not team_name.startswith("team_") else team_name
-    team_dir = os.path.join(os.getcwd(), team_dir_name)  # Use absolute path in current directory
+    team_dir = os.path.join(os.getcwd(), team_dir_name)
     
-    # Create team subdirectories
-    subdirs = ['history', 'prompts', 'map']
+    # Create team subdirectories (excluding 'map' since we want map.md in team root)
+    subdirs = ['history', 'prompts']
     for subdir in subdirs:
         os.makedirs(os.path.join(team_dir, subdir), exist_ok=True)
     
-    # Default files with their content - now in team directory
+    # Default files with their content - map.md directly in team directory
     default_files = {
-        'map.md': '# Project Map\n\n## Overview\n',
+        'map.md': '# Project Map\n\n## Overview\n',  # Place map.md in team root
         'todolist.md': '# Todo List\n\n## Pending Tasks\n',
         'demande.md': '# Mission Request\n\n## Objective\n',
         'directives.md': '# Project Directives\n\n## Guidelines\n'
@@ -168,8 +168,7 @@ def initialize_team_structure(team_name: str, specific_name: str = None):
         "type": "book_writing",
         "paths": {
             "prompts": os.path.join(team_dir, "prompts"),
-            "history": os.path.join(team_dir, "history"),
-            "map": os.path.join(team_dir, "map")
+            "history": os.path.join(team_dir, "history")
         },
         "created_at": datetime.now().isoformat()
     }
