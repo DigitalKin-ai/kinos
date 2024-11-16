@@ -255,3 +255,32 @@ class TeamService(BaseService):
             self.team_types.clear()
         except Exception as e:
             self.logger.log(f"Error cleaning up team service: {str(e)}", 'error')
+
+    def list_teams(self) -> List[str]:
+        """
+        List all teams in the mission directory
+        
+        Returns:
+            List of team names
+        """
+        try:
+            # Get the mission directory
+            mission_dir = os.getcwd()
+            
+            # List all directories in the mission directory
+            all_dirs = [d for d in os.listdir(mission_dir) if os.path.isdir(os.path.join(mission_dir, d))]
+            
+            # Filter directories that start with "team_"
+            team_dirs = [d[5:] for d in all_dirs if d.startswith("team_")]
+            
+            # Log the found teams
+            if team_dirs:
+                self.logger.log(f"Found teams: {', '.join(team_dirs)}", 'info')
+            else:
+                self.logger.log("No teams found in mission directory", 'warning')
+            
+            return team_dirs
+        
+        except Exception as e:
+            self.logger.log(f"Error listing teams: {str(e)}", 'error')
+            return []
