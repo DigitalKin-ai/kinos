@@ -44,21 +44,33 @@ def init_services(_) -> Dict[str, Any]:
         # Create services dictionary first
         services = {}
         
-        # Initialize services in dependency order
-        services['team_service'] = TeamService(None)  # Initialize first
+        # Initialize TeamService first
+        services['team_service'] = TeamService(None)
+        team_service = services['team_service']
         
         # Set active team to 'default' if none is set
-        team_service = services['team_service']
         if not team_service.get_active_team():
-            # Check if default team exists in team_types
-            team_config = team_service.get_team_config('default')
-            if team_config:
-                if team_service.set_active_team('default'):
-                    logger.log("Set active team to 'default'", 'info')
+            # Try to detect team from current directory first
+            current_dir = os.getcwd()
+            team_found = False
+            for item in os.listdir(current_dir):
+                if item.startswith('team_'):
+                    team_id = item.replace('team_', '')
+                    if team_service.set_active_team(team_id):
+                        logger.log(f"Set active team to '{team_id}' from directory", 'info')
+                        team_found = True
+                        break
+            
+            # Fall back to default if no team found
+            if not team_found:
+                team_config = team_service.get_team_config('default')
+                if team_config:
+                    if team_service.set_active_team('default'):
+                        logger.log("Set active team to 'default'", 'info')
+                    else:
+                        logger.log("Failed to set active team to 'default'", 'error')
                 else:
-                    logger.log("Failed to set active team to 'default'", 'error')
-            else:
-                logger.log("Default team configuration not found", 'error')
+                    logger.log("Default team configuration not found", 'error')
         
         services['model_router'] = ModelRouter()
         services['dataset_service'] = DatasetService(None)
