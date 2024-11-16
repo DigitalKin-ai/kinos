@@ -372,33 +372,24 @@ class MapService(BaseService):
     def _ensure_map_file_path(self) -> bool:
         """Ensure map file path is properly set"""
         try:
-            if self.map_file and os.path.exists(os.path.dirname(self.map_file)):
-                return True
-                
             # Get active team from team service
             active_team = self.team_service.get_active_team()
             if not active_team:
                 self.logger.log("No active team found for map file path", 'warning')
-                self.map_file = "map.md"  # Fallback to default
                 return False
                 
             team_id = active_team.get('id')
             if not team_id:
                 self.logger.log("No team ID found", 'warning')
-                self.map_file = "map.md"  # Fallback to default
                 return False
                 
-            # Get team path using PathManager
-            team_path = PathManager.get_team_path(team_id)
-            if not team_path:
-                self.logger.log(f"Could not get team path for {team_id}", 'warning')
-                self.map_file = "map.md"  # Fallback to default
-                return False
-                
-            # Set map file path in team directory
-            self.map_file = os.path.join(team_path, "map.md")
+            # Construct team directory name with "team_" prefix if not present
+            team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
             
-            # Ensure directory exists
+            # Create full path for map file in team directory
+            self.map_file = os.path.join(os.getcwd(), team_dir, "map.md")
+            
+            # Ensure team directory exists
             os.makedirs(os.path.dirname(self.map_file), exist_ok=True)
             
             self.logger.log(f"Map file path set to: {self.map_file}", 'debug')
@@ -406,7 +397,6 @@ class MapService(BaseService):
             
         except Exception as e:
             self.logger.log(f"Error ensuring map file path: {str(e)}", 'error')
-            self.map_file = "map.md"  # Fallback to default
             return False
 
     def _ensure_map_file_writeable(self) -> bool:
