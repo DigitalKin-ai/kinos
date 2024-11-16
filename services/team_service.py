@@ -99,9 +99,75 @@ class TeamService(BaseService):
             self.logger.log(f"Error loading predefined teams: {str(e)}", 'error')
             return []
 
+    def _generate_default_config(self, team_id: str) -> Dict[str, Any]:
+        """
+        Generate default team configuration
+        
+        Args:
+            team_id: Team identifier
+            
+        Returns:
+            Dict with default team configuration
+        """
+        try:
+            # Generate team name from ID
+            team_name = team_id.replace('_', ' ').title()
+            
+            # Default agent configuration
+            default_agents = [
+                {
+                    "name": "specifications",
+                    "type": "aider",
+                    "weight": 0.4
+                },
+                {
+                    "name": "management",
+                    "type": "aider", 
+                    "weight": 0.6
+                },
+                {
+                    "name": "evaluation",
+                    "type": "aider",
+                    "weight": 0.3
+                },
+                {
+                    "name": "redacteur",
+                    "type": "aider",
+                    "weight": 1.0
+                },
+                {
+                    "name": "documentaliste",
+                    "type": "research",
+                    "weight": 0.2
+                }
+            ]
+            
+            # Create config structure
+            config = {
+                "id": team_id,
+                "name": team_name,
+                "description": f"Auto-generated team configuration for {team_name}",
+                "agents": default_agents
+            }
+            
+            # Save config file
+            config_dir = os.path.join(PathManager.get_team_types_root(), team_id)
+            os.makedirs(config_dir, exist_ok=True)
+            
+            config_path = os.path.join(config_dir, "config.json")
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(config, f, indent=4)
+                
+            self.logger.log(f"Generated new config file for team {team_id}", 'info')
+            return config
+            
+        except Exception as e:
+            self.logger.log(f"Error generating config for team {team_id}: {str(e)}", 'error')
+            return None
+
     def get_team_config(self, team_id: str) -> Optional[Dict[str, Any]]:
         """
-        Get configuration for a specific team with flexible type loading
+        Get configuration for a specific team with config generation
     
         Args:
             team_id: Team identifier to match
@@ -111,49 +177,17 @@ class TeamService(BaseService):
         """
         try:
             # First, try to find the team's specific config
-            team_dir = os.path.join(PathManager.get_team_types_root(), f"team_{team_id}")
+            team_dir = os.path.join(PathManager.get_team_types_root(), team_id)
             config_path = os.path.join(team_dir, "config.json")
         
-            # If no specific team config exists, load book-writing config
+            # If no specific team config exists, generate one
             if not os.path.exists(config_path):
-                book_writing_config_path = os.path.join(PathManager.get_team_types_root(), "book_writing", "config.json")
-            
-                if os.path.exists(book_writing_config_path):
-                    with open(book_writing_config_path, 'r', encoding='utf-8') as f:
-                        default_config = json.load(f)
-                
-                    self.logger.log(f"Defaulted to book-writing config for team {team_id}", 'info')
-                    return default_config
-            
-                # If book-writing config is not found either
-                self.logger.log(f"No config found for team {team_id}", 'warning')
-                return None
+                return self._generate_default_config(team_id)
         
             # Load the specific team config
             with open(config_path, 'r', encoding='utf-8') as f:
                 team_config = json.load(f)
         
-            # Check if a specific type is defined
-            team_type = team_config.get('type')
-        
-            if team_type:
-                # If type is specified, load from that type's directory
-                type_config_path = os.path.join(PathManager.get_team_types_root(), team_type, "config.json")
-            
-                if os.path.exists(type_config_path):
-                    with open(type_config_path, 'r', encoding='utf-8') as f:
-                        type_config = json.load(f)
-                
-                    # Merge configs, with team-specific config taking precedence
-                    merged_config = type_config.copy()
-                    merged_config.update(team_config)
-                
-                    self.logger.log(f"Loaded config for team {team_id} with type {team_type}", 'info')
-                    return merged_config
-                else:
-                    self.logger.log(f"Type config not found for type: {team_type}", 'warning')
-        
-            # Fallback to original team config
             return team_config
         
         except Exception as e:
