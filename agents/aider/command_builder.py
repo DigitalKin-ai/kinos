@@ -207,8 +207,8 @@ class AiderCommandBuilder:
         os.makedirs(history_path, exist_ok=True)
         
         # Use the correct paths for history files
-        chat_history = os.path.join(history_path, f".kinos.{self.agent_name}.chat.history.md")
-        input_history = os.path.join(history_path, f".kinos.{self.agent_name}.input.history.md")
+        chat_history = os.path.join(history_path, f".aider.{self.agent_name}.chat.history.md")
+        input_history = os.path.join(history_path, f".aider.{self.agent_name}.input.history.md")
         
         # Create empty history files if they don't exist
         for history_file in [chat_history, input_history]:
