@@ -341,17 +341,10 @@ class AiderAgent(AgentBase):
             
             # Find team containing this agent
             agent_team = None
-            for team_name in team_service.team_types:
-                # Get full team config if team_name is just a string
-                if isinstance(team_name, str):
-                    team_config = team_service.get_team_config(team_name)
-                    if not team_config:
-                        continue
-                else:
-                    team_config = team_name
-                    
-                # Skip if not a valid dictionary
-                if not isinstance(team_config, dict):
+            for team_id in teams:  # teams is now a list of strings
+                # Get full team config
+                team_config = team_service.get_team_config(team_id)
+                if not team_config:
                     continue
                     
                 # Get agents list with fallback
@@ -364,7 +357,7 @@ class AiderAgent(AgentBase):
                     # Handle both string and dict agent formats
                     agent_name = agent.get('name', agent) if isinstance(agent, dict) else agent
                     if self.name == agent_name:
-                        agent_team = team_config.get('id', team_name)
+                        agent_team = team_id
                         break
                         
                 if agent_team:
