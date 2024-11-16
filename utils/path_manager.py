@@ -248,7 +248,7 @@ class PathManager:
                             if os.path.exists(prompt_path):
                                 matched_paths.append(prompt_path)
                 except Exception as search_error:
-                    print(f"{log_context} ERROR: Error searching directory {search_dir}: {str(search_error)}")
+                    print(f"{log_prefix} ERROR: Error searching directory {search_dir}: {str(search_error)}")
 
             # Select best match
             if matched_paths:
@@ -259,14 +259,14 @@ class PathManager:
                 ]
                 
                 selected_path = exact_match_paths[0] if exact_match_paths else matched_paths[0]
-                print(f"{log_context} DEBUG: Selected prompt file: {selected_path}")
+                print(f"{log_prefix} DEBUG: Selected prompt file: {selected_path}")
                 return selected_path
 
-            print(f"{log_context} WARNING: No prompt file found for agent {agent_name}")
+            print(f"{log_prefix} WARNING: No prompt file found for agent {agent_name}")
             return None
             
         except Exception as e:
-            print(f"{log_context} CRITICAL ERROR in get_prompt_file: {str(e)}")
+            print(f"{log_prefix} CRITICAL ERROR in get_prompt_file: {str(e)}")
             return None
 
     @classmethod
