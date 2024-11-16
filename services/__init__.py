@@ -52,6 +52,7 @@ def init_services(_) -> Dict[str, Any]:
         # Set active team by checking existing team directories first
         current_dir = os.getcwd()
         team_found = False
+        active_team_name = None
         
         # First look for non-default teams
         for item in os.listdir(current_dir):
@@ -60,17 +61,24 @@ def init_services(_) -> Dict[str, Any]:
                 if team_service.set_active_team(team_name):
                     logger.log(f"Set active team to '{team_name}' from directory", 'info')
                     team_found = True
+                    active_team_name = team_name
                     break
-        
+
         # If no other team found, fall back to default
         if not team_found:
             if team_service.set_active_team('default'):
                 logger.log("Set active team to 'default'", 'info')
+                active_team_name = 'default'
             else:
                 logger.log("Failed to set active team to 'default'", 'error')
-        
+
         services['model_router'] = ModelRouter()
-        services['dataset_service'] = DatasetService(None)
+        
+        # Initialize DatasetService with active team path
+        dataset_path = os.path.join(current_dir, f"team_{active_team_name}", "data", "fine-tuning.jsonl")
+        services['dataset_service'] = DatasetService(dataset_path)
+        
+        # Initialize remaining services
         services['file_service'] = FileService(None)
         services['agent_service'] = AgentService(None)
         
