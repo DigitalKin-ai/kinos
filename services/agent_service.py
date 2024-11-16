@@ -427,9 +427,35 @@ List any specific constraints or limitations.
             services = init_services(None)
             
             
-            # Agent selection logging
-            weights = [get_weights.get(agent, 0.5) for agent in team_agents]
-            total_weight = sum(weights)
+            # Get weights from team config
+            weights = []
+            for agent in team_agents:
+                # Try to get weight from team config
+                try:
+                    from services import init_services
+                    services = init_services(None)
+                    team_service = services['team_service']
+                    active_team = team_service.get_active_team()
+                    
+                    # Find agent in team config
+                    agent_config = None
+                    for team_agent in active_team.get('agents', []):
+                        if isinstance(team_agent, dict) and team_agent.get('name') == agent:
+                            agent_config = team_agent
+                            break
+                        elif isinstance(team_agent, str) and team_agent == agent:
+                            agent_config = {'name': agent, 'weight': 0.5}
+                            break
+                    
+                    # Get weight with fallback
+                    weight = agent_config.get('weight', 0.5) if agent_config else 0.5
+                    weights.append(weight)
+                    
+                except Exception:
+                    weights.append(0.5)  # Default weight on error
+            
+            # Calculate normalized weights
+            total_weight = sum(weights) if weights else len(team_agents)  # Avoid division by zero
             normalized_weights = [w/total_weight for w in weights]
             
             self.logger.log(
