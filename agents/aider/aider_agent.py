@@ -337,33 +337,43 @@ class AiderAgent(AgentBase):
 
             # Get list of team directories
             teams = PathManager.list_teams()
-            
-            # Log available teams
-            self.logger.log(f"Found teams: {', '.join(teams)}", 'info')
-            
-            # Create team directory name for history files
-            team_dir = f"team_{teams[0]}" if teams else None  # Use first team found
-            
-            # Mise à jour des noms de fichiers clés
-            base_dir = team_dir if team_dir else os.getcwd()
-            key_files = {
-                os.path.join(base_dir, "map.md"): 
-                "# Project Map\n\n## Overview\n\n## Key Components\n",
-                
-                os.path.join(base_dir, "todolist.md"): 
-                "# Project Todo List\n\n## Pending Tasks\n\n## Completed Tasks\n",
-                
-                os.path.join(base_dir, "demande.md"): 
-                "# Mission Request\n\n## Objective\n\n## Scope\n\n## Requirements\n",
-                
-                os.path.join(base_dir, "directives.md"): 
-                "# Project Directives\n\n## Guidelines\n\n## Constraints\n"
-            }
 
-            # Define history files in team directory or current directory
+            # Get active team from TeamService
+            try:
+                from services import init_services
+                services = init_services(None)
+                team_service = services['team_service']
+                active_team = team_service.get_active_team()
+                team_id = active_team.get('id') if active_team else teams[0] if teams else None
+            except Exception as e:
+                self.logger.log(f"Error getting active team: {str(e)}", 'warning')
+                team_id = teams[0] if teams else None
+
+            # Create team directory path
+            team_dir = f"team_{team_id}" if team_id else None
+
+            # Mise à jour des noms de fichiers clés avec le chemin complet de l'équipe
             if team_dir:
-                chat_history_file = os.path.join(base_dir, "history", f".kinos.{self.name}.chat.history.md")
-                input_history_file = os.path.join(base_dir, "history", f".kinos.{self.name}.input.history.md")
+                key_files = {
+                    os.path.join(team_dir, "map.md"): 
+                    "# Project Map\n\n## Overview\n\n## Key Components\n",
+                    
+                    os.path.join(team_dir, "todolist.md"): 
+                    "# Project Todo List\n\n## Pending Tasks\n\n## Completed Tasks\n",
+                    
+                    os.path.join(team_dir, "demande.md"): 
+                    "# Mission Request\n\n## Objective\n\n## Scope\n\n## Requirements\n",
+                    
+                    os.path.join(team_dir, "directives.md"): 
+                    "# Project Directives\n\n## Guidelines\n\n## Constraints\n"
+                }
+
+                # Define history files in team directory
+                history_dir = os.path.join(team_dir, "history")
+                os.makedirs(history_dir, exist_ok=True)
+                
+                chat_history_file = os.path.join(history_dir, f".kinos.{self.name}.chat.history.md")
+                input_history_file = os.path.join(history_dir, f".kinos.{self.name}.input.history.md")
 
             # Créer les fichiers clés si nécessaire
             for filename, default_content in key_files.items():
