@@ -174,79 +174,54 @@ class PathManager:
         Returns:
             str: Path to the prompt file, or None if not found
         """
-        # Normalize team_id and team_name
+        # Normalize team folder name
+        team_folder = None
         if isinstance(team_id, dict):
             team_name = team_id.get('name', team_name)
-            team_id = team_id.get('id')
+            team_folder = team_id.get('id', '').replace('team_', '')
         elif team_id:
-            team_id = str(team_id)
+            team_folder = str(team_id).replace('team_', '')
             
-        # Get logging context - use team name or ID for context
-        log_context = f"[{team_name or team_id or 'unknown_team'}]"
-        
-        # If team_id is None, select a random team
-        if not team_id:
-            try:
-                from services import init_services
-                services = init_services(None)
-                team_service = services['team_service']
-                
-                # Get list of predefined teams
-                team_types = team_service.team_types
-                
-                if not team_types:
-                    print(f"{log_context} ERROR: No teams found")
-                    return None
-                
-                # Select a random team
-                import random
-                random_team = random.choice(team_types)
-                
-                team_id = random_team.get('id')
-                team_name = random_team.get('name')
-                
-                # Update logging context with selected team
-                log_context = f"[{team_name or team_id}]"
-                
-                print(f"{log_context} Selected team: {team_name} (ID: {team_id})")
-                
-            except Exception as e:
-                print(f"{log_context} ERROR: Could not retrieve random team: {str(e)}")
-                return None
-        
-        # Ensure team_id is a string
-        team_id = str(team_id) if not isinstance(team_id, dict) else str(team_id.get('id', ''))
-        
-        # Prepare logging context
-        log_context = f"[{team_name or 'unknown_team'}]"
+        # Get logging context using team name
+        log_context = f"[{team_name or team_folder or 'unknown_team'}]"
         
         try:
-            # Validate inputs
-            if not agent_name:
-                print(f"{log_context} ERROR: No agent name provided")
-                return None
-            
-            # Normalize inputs
-            normalized_agent_name = agent_name.lower()
-            
-            # Comprehensive prompt filename variations
-            prompt_filename_options = [
-                f"{normalized_agent_name}.md",
-            ]
-            
-            # Logging search strategy
+            # If no team specified, select a random team
+            if not team_folder:
+                try:
+                    # List available team folders directly
+                    team_types_dir = cls.get_team_types_root()
+                    available_teams = [d for d in os.listdir(team_types_dir) 
+                                     if os.path.isdir(os.path.join(team_types_dir, d))]
+                    
+                    if not available_teams:
+                        print(f"{log_context} ERROR: No team folders found")
+                        return None
+                    
+                    # Select random team folder
+                    import random
+                    team_folder = random.choice(available_teams)
+                    team_name = team_folder.replace('_', ' ').title()
+                    
+                    # Update logging context
+                    log_context = f"[{team_name}]"
+                    print(f"{log_context} Selected team folder: {team_folder}")
+                    
+                except Exception as e:
+                    print(f"{log_context} ERROR: Could not select team folder: {str(e)}")
+                    return None
+
             print(f"{log_context} DEBUG: Searching for prompt file for agent: {agent_name}")
-            print(f"{log_context} DEBUG: Team ID: {team_id}")
-            print(f"{log_context} DEBUG: Prompt Filename Options: {prompt_filename_options}")
-            
-            # Search directories with priority
+            print(f"{log_context} DEBUG: Team folder: {team_folder}")
+
+            # Search directories with priority using folder names
             search_directories = []
             
-            # Add team-specific directories if team_id exists
-            if team_id:
+            # Add team-specific directories if team folder exists
+            if team_folder:
                 search_directories.extend([
-                    os.path.join(cls.get_project_root(), team_id),  # Current mission team dir
-                    os.path.join(cls.get_team_types_root(), team_id)  # Team types dir
+                    os.path.join(cls.get_project_root(), team_folder),  # Current mission team dir
+                    os.path.join(cls.get_team_types_root(), team_folder)  # Team types dir
                 ])
             
             # Add fallback search paths
