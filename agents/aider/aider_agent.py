@@ -334,78 +334,39 @@ class AiderAgent(AgentBase):
                 'unnamed_agent'  # Final fallback
             )
 
-            # Get team service
-            from services import init_services
-            services = init_services(None)
-            team_service = services['team_service']
+            # Get list of team directories
+            teams = PathManager.list_teams()
             
-            # Find team containing this agent
-            agent_team = None
-            for team in team_service.team_types:
-                # Skip if team is not a dictionary
-                if not isinstance(team, dict):
-                    continue
-                
-                # Get agents list, defaulting to empty list
-                team_agents = team.get('agents', [])
-                
-                # Handle both string and dictionary agent representations
-                for agent in team_agents:
-                    # Normalize agent name
-                    agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
-                    
-                    if self.name == agent_name_to_check:
-                        agent_team = team.get('id')
-                        break
-                
-                if agent_team:
-                    break
-
-            # Get team service
-            from services import init_services
-            services = init_services(None)
-            team_service = services['team_service']
+            # Log available teams
+            self.logger.log(f"Found teams: {', '.join(teams)}", 'info')
             
-            # Find team containing this agent
-            team_id = "default"
-            for team in team_service.team_types:
-                # Skip if team is not a dictionary
-                if not isinstance(team, dict):
-                    continue
-                
-                # Get agents list, defaulting to empty list
-                team_agents = team.get('agents', [])
-                
-                # Handle both string and dictionary agent representations
-                for agent in team_agents:
-                    # Normalize agent name
-                    agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
-                    
-                    if self.name == agent_name_to_check:
-                        team_id = team.get('id')
-                        break
-                
-                if team_id != "default":
-                    break
+            # Create team directory name for history files
+            team_dir = f"team_{teams[0]}" if teams else None  # Use first team found
             
             # Mise à jour des noms de fichiers clés
+            base_dir = team_dir if team_dir else os.getcwd()
             key_files = {
-                os.path.join(PathManager.get_team_path(team_id), "map.md"): 
+                os.path.join(base_dir, "map.md"): 
                 "# Project Map\n\n## Overview\n\n## Key Components\n",
                 
-                os.path.join(PathManager.get_team_path(team_id), "todolist.md"): 
+                os.path.join(base_dir, "todolist.md"): 
                 "# Project Todo List\n\n## Pending Tasks\n\n## Completed Tasks\n",
                 
-                os.path.join(PathManager.get_team_path(team_id), "demande.md"): 
+                os.path.join(base_dir, "demande.md"): 
                 "# Mission Request\n\n## Objective\n\n## Scope\n\n## Requirements\n",
                 
-                os.path.join(PathManager.get_team_path(team_id), "directives.md"): 
+                os.path.join(base_dir, "directives.md"): 
                 "# Project Directives\n\n## Guidelines\n\n## Constraints\n"
             }
 
-            # Chemins des fichiers d'historique
-            chat_history_file = f".kinos.{agent_team}_{specific_name}.chat.history.md"
-            input_history_file = f".kinos.{agent_team}_{specific_name}.input.history.md"
+            # Define history files in team directory or current directory
+            if team_dir:
+                chat_history_file = os.path.join(team_dir, f".kinos.{self.name}.chat.history.md")
+                input_history_file = os.path.join(team_dir, f".kinos.{self.name}.input.history.md")
+            else:
+                # Fallback to current directory
+                chat_history_file = f".kinos.{self.name}.chat.history.md"
+                input_history_file = f".kinos.{self.name}.input.history.md"
 
             # Créer les fichiers clés si nécessaire
             for filename, default_content in key_files.items():
