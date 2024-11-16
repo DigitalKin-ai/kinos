@@ -1,4 +1,5 @@
 """Services package initialization"""
+import os
 import traceback
 from typing import Dict, Any, Optional
 from utils.logger import Logger
