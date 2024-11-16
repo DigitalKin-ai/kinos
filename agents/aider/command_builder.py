@@ -196,20 +196,31 @@ class AiderCommandBuilder:
         cmd.extend(self.get_model_args())
         cmd.extend(self.get_file_args(files, self.get_ignore_patterns(os.getcwd())))
         
-        # Use team_teamname/history directory structure
-        history_path = os.path.join('team_' + self.team, 'history')
+        # Get correct team path using PathManager
+        from utils.path_manager import PathManager
+        team_path = PathManager.get_team_path(self.team)
         
-        # Create history directory if it doesn't exist
+        # Create history directory structure
+        history_path = os.path.join(team_path, "history")
         os.makedirs(history_path, exist_ok=True)
         
         # Use the correct paths for history files
+        chat_history = os.path.join(history_path, f".kinos.{self.agent_name}.chat.history.md")
+        input_history = os.path.join(history_path, f".kinos.{self.agent_name}.input.history.md")
+        
+        # Create empty history files if they don't exist
+        for history_file in [chat_history, input_history]:
+            if not os.path.exists(history_file):
+                try:
+                    with open(history_file, 'w', encoding='utf-8') as f:
+                        f.write("")  # Create empty file
+                except Exception as e:
+                    print(f"Error creating history file {history_file}: {str(e)}")
+        
+        # Add history file arguments
         cmd.extend([
-            "--chat-history-file", 
-            os.path.join(history_path, f".kinos.{self.agent_name}.chat.history.md")
-        ])
-        cmd.extend([
-            "--input-history-file", 
-            os.path.join(history_path, f".kinos.{self.agent_name}.input.history.md")
+            "--chat-history-file", chat_history,
+            "--input-history-file", input_history
         ])
         
         # Stringify the instructions with robust escaping

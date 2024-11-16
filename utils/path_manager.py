@@ -174,6 +174,29 @@ class PathManager:
         Returns:
             str: Path to the prompt file, or None if not found
         """
+        # Get team service to find the team if not provided
+        if not team_id:
+            try:
+                from services import init_services
+                services = init_services(None)
+                team_service = services['team_service']
+                
+                # Find team containing this agent
+                for team in team_service.team_types:
+                    if isinstance(team, dict):
+                        team_agents = team.get('agents', [])
+                        for agent in team_agents:
+                            agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
+                            if agent_name == agent_name_to_check:
+                                team_id = team.get('id')
+                                team_name = team.get('name')
+                                break
+                        if team_id:
+                            break
+
+            except Exception as e:
+                print(f"Error finding team for agent {agent_name}: {str(e)}")
+
         # Normalize team folder name
         team_folder = None
         if isinstance(team_id, dict):
