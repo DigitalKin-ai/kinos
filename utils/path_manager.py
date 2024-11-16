@@ -320,14 +320,15 @@ class PathManager:
         Get the path for a specific team with comprehensive logging and error handling
         
         Args:
-            team_id: Optional team identifier
+            team_id: Optional team identifier (folder name)
             team_name: Optional team name for logging context
         
         Returns:
             str: Path to the team directory
         """
-        print(f"TEAM Traceback: {os.path.join(PathManager.get_project_root(), f'team_{team_id}')}")
-        return os.path.join(PathManager.get_project_root(), f'team_{team_id}')
+        # Use the team_id directly as the folder name, without adding "team_" prefix
+        team_folder = team_id if team_id else ""
+        return os.path.join(PathManager.get_project_root(), team_folder)
 
     @staticmethod
     def get_log_file(service_name: str) -> str:
