@@ -70,19 +70,19 @@ class TeamService(BaseService):
             self.logger.log(f"Error loading teams: {str(e)}", 'error')
             return []
 
-    def _generate_default_config(self, team_id: str) -> Dict[str, Any]:
+    def _generate_default_config(self, name: str) -> Dict[str, Any]:
         """
         Generate default team configuration
         
         Args:
-            team_id: Team identifier
+            name: Team name
             
         Returns:
             Dict with default team configuration
         """
         try:
-            # Generate team name from ID
-            team_name = team_id.replace('_', ' ').title()
+            # Generate display name from team name
+            display_name = name.replace('_', ' ').title()
             
             # Default agent configuration
             default_agents = [
@@ -115,9 +115,9 @@ class TeamService(BaseService):
             
             # Create config structure
             config = {
-                "id": team_id,
-                "name": team_name,
-                "description": f"Auto-generated team configuration for {team_name}",
+                "name": name,
+                "display_name": display_name,
+                "description": f"Auto-generated team configuration for {display_name}",
                 "agents": default_agents
             }
             
@@ -136,24 +136,24 @@ class TeamService(BaseService):
             self.logger.log(f"Error generating config for team {team_id}: {str(e)}", 'error')
             return None
 
-    def get_team_config(self, team_id: str) -> Optional[Dict[str, Any]]:
+    def get_team_config(self, name: str) -> Optional[Dict[str, Any]]:
         """
         Get configuration for a specific team with config generation
     
         Args:
-            team_id: Team identifier to match
+            name: Team name
     
         Returns:
             Team configuration dictionary or None if not found
         """
         try:
             # First, try to find the team's specific config
-            team_dir = os.path.join(os.getcwd(), f"team_{team_id}")
+            team_dir = os.path.join(os.getcwd(), f"team_{name}")
             config_path = os.path.join(team_dir, "config.json")
         
             # If no specific team config exists, generate one
             if not os.path.exists(config_path):
-                return self._generate_default_config(team_id)
+                return self._generate_default_config(name)
         
             # Load the specific team config
             with open(config_path, 'r', encoding='utf-8') as f:
@@ -162,28 +162,28 @@ class TeamService(BaseService):
             return team_config
         
         except Exception as e:
-            self.logger.log(f"Error getting team config for {team_id}: {str(e)}", 'error')
+            self.logger.log(f"Error getting team config for {name}: {str(e)}", 'error')
             return None
 
-    def set_active_team(self, team_id: str) -> bool:
+    def set_active_team(self, name: str) -> bool:
         """Set the active team configuration"""
         try:
-            # Normalize team_id by removing 'team_' prefix if present
-            normalized_id = team_id.replace('team_', '')
+            # Normalize team name by removing 'team_' prefix if present
+            normalized_name = name.replace('team_', '')
             
             # Get team config
-            team_config = self.get_team_config(normalized_id)
+            team_config = self.get_team_config(normalized_name)
             if not team_config:
                 # Try to generate default config if none exists
-                team_config = self._generate_default_config(normalized_id)
+                team_config = self._generate_default_config(normalized_name)
                 if not team_config:
-                    raise ServiceError(f"Team not found and couldn't create default: {normalized_id}")
+                    raise ServiceError(f"Team not found and couldn't create default: {normalized_name}")
             
             # Store active team
             self.active_team = team_config
             
             # Create team directory if it doesn't exist
-            team_dir = os.path.join(os.getcwd(), f"team_{normalized_id}")
+            team_dir = os.path.join(os.getcwd(), f"team_{normalized_name}")
             os.makedirs(team_dir, exist_ok=True)
             
             # Create history directory for team
@@ -194,7 +194,7 @@ class TeamService(BaseService):
             for subdir in ['chat', 'input', 'output', 'agents']:
                 os.makedirs(os.path.join(history_dir, subdir), exist_ok=True)
             
-            self.logger.log(f"Active team set to: {normalized_id} ({team_config.get('name', normalized_id)})", 'success')
+            self.logger.log(f"Active team set to: {normalized_name} ({team_config.get('display_name', normalized_name)})", 'success')
             return True
             
         except Exception as e:
