@@ -18,14 +18,17 @@ from utils.path_manager import PathManager
 def load_team_config(team_name: str) -> List[str]:
     """Load agent names from team config"""
     try:
-        # Use PathManager to get KinOS root path
-        kinos_root = PathManager.get_kinos_root()
+        # Use PathManager to get team path
+        team_path = os.path.join(os.getcwd(), f"team_{team_name}")
+        config_path = os.path.join(team_path, "config.json")
         
-        config_path = os.path.join(kinos_root, "team_types", team_name, "config.json")
-        with open(config_path, 'r') as f:
-            config = json.load(f)
-            return [agent['name'] if isinstance(agent, dict) else agent 
-                   for agent in config.get('agents', [])]
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+                return [agent['name'] if isinstance(agent, dict) else agent 
+                       for agent in config.get('agents', [])]
+        return []
+        
     except Exception as e:
         print(f"Error loading team config: {e}")
         return []
