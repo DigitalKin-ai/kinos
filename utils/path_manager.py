@@ -174,68 +174,63 @@ class PathManager:
         Returns:
             str: Path to the prompt file, or None if not found
         """
-        # Get team service to find the team if not provided
-        if not team_id:
-            try:
+        try:
+            # Get team service to find the team if not provided
+            if not team_id:
                 from services import init_services
                 services = init_services(None)
                 team_service = services['team_service']
                 
-                # Find team containing this agent
-                for team in team_service.team_types:
-                    if isinstance(team, dict):
-                        team_agents = team.get('agents', [])
-                        for agent in team_agents:
-                            agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
-                            if agent_name == agent_name_to_check:
-                                team_id = team.get('id')
-                                team_name = team.get('name')
+                # Get active team first
+                active_team = team_service.get_active_team()
+                if active_team and isinstance(active_team, dict):
+                    team_id = active_team.get('id')
+                    team_name = active_team.get('name')
+                else:
+                    # Find team containing this agent
+                    for team in team_service.team_types:
+                        if isinstance(team, dict):
+                            team_agents = team.get('agents', [])
+                            for agent in team_agents:
+                                agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
+                                if agent_name == agent_name_to_check:
+                                    team_id = team.get('id')
+                                    team_name = team.get('name')
+                                    break
+                            if team_id:
                                 break
-                        if team_id:
-                            break
 
-            except Exception as e:
-                print(f"Error finding team for agent {agent_name}: {str(e)}")
-
-        # Normalize team folder name
-        team_folder = None
-        if isinstance(team_id, dict):
-            team_name = team_id.get('name', team_name)
-            team_folder = team_id.get('id', '').replace('team_', '')
-        elif team_id:
-            team_folder = str(team_id).replace('team_', '')
-            
-        # Get logging context using team name
-        log_context = f"[{team_name or team_folder or 'unknown_team'}]"
-        
-        try:
-            # If no team specified, select a random team
-            if not team_folder:
-                try:
-                    # List available team folders directly
-                    team_types_dir = cls.get_team_types_root()
-                    available_teams = [d for d in os.listdir(team_types_dir) 
-                                     if os.path.isdir(os.path.join(team_types_dir, d))]
-                    
-                    if not available_teams:
-                        print(f"{log_context} ERROR: No team folders found")
-                        return None
-                    
-                    # Select random team folder
-                    import random
-                    team_folder = random.choice(available_teams)
-                    team_name = team_folder.replace('_', ' ').title()
-                    
-                    # Update logging context
-                    log_context = f"[{team_name}]"
-                    print(f"{log_context} Selected team folder: {team_folder}")
-                    
-                except Exception as e:
-                    print(f"{log_context} ERROR: Could not select team folder: {str(e)}")
-                    return None
-
+            # Normalize team folder name
+            team_folder = None
+            if isinstance(team_id, dict):
+                team_name = team_id.get('name', team_name)
+                team_folder = team_id.get('id', '').replace('team_', '')
+            elif team_id:
+                team_folder = str(team_id).replace('team_', '')
+                
+            # Get logging context using team name
+            log_context = f"[{team_name or team_folder or 'unknown_team'}]"
             print(f"{log_context} DEBUG: Searching for prompt file for agent: {agent_name}")
             print(f"{log_context} DEBUG: Team folder: {team_folder}")
+
+            # Define search paths in priority order
+            search_paths = []
+            
+            # 1. Current mission team directory
+            if team_folder:
+                mission_team_dir = os.path.join(os.getcwd(), f"team_{team_folder}")
+                search_paths.append(mission_team_dir)
+                
+            # 2. Team types directory
+            team_types_dir = cls.get_team_types_root()
+            if team_folder:
+                search_paths.append(os.path.join(team_types_dir, team_folder))
+                
+            # 3. Default team types directory
+            search_paths.append(os.path.join(team_types_dir, "default"))
+            
+            # 4. Root team types directory
+            search_paths.append(team_types_dir)
 
             # Normalize agent name for matching
             normalized_agent_name = agent_name.lower()
@@ -246,46 +241,22 @@ class PathManager:
                 f"{agent_name}.md"  # Also try original case
             ]
 
-            # Search directories with priority using folder names
-            search_directories = []
-            
-            # Add team-specific directories if team folder exists
-            if team_folder:
-                search_directories.extend([
-                    os.path.join(cls.get_project_root(), team_folder),  # Current mission team dir
-                    os.path.join(cls.get_team_types_root(), team_folder)  # Team types dir
-                ])
-            
-            # Add fallback search paths
-            search_directories.extend([
-                os.path.join(cls.get_team_types_root(), "default"),  # Default prompts
-                cls.get_team_types_root()  # Root prompts dir
-            ])
-            
-            # Remove duplicate and None values
-            search_directories = list(dict.fromkeys(d for d in search_directories if d is not None))
-            
-            # Comprehensive search
+            # Search through paths
             matched_paths = []
-            for search_dir in search_directories:
+            for search_dir in search_paths:
                 if not os.path.exists(search_dir):
-                    #print(f"{log_context} DEBUG: Skipping non-existent directory: {search_dir}")
                     continue
-                
+                    
                 try:
                     # Search through all subdirectories
                     for root, _, files in os.walk(search_dir):
                         for filename in prompt_filename_options:
                             prompt_path = os.path.join(root, filename)
                             if os.path.exists(prompt_path):
-                                #print(f"{log_context} DEBUG: Found potential prompt file: {prompt_path}")
                                 matched_paths.append(prompt_path)
-                
-                except PermissionError:
-                    print(f"{log_context} WARNING: Permission denied accessing {search_dir}")
                 except Exception as search_error:
                     print(f"{log_context} ERROR: Error searching directory {search_dir}: {str(search_error)}")
-            
+
             # Select best match
             if matched_paths:
                 # Prioritize exact matches
@@ -294,24 +265,15 @@ class PathManager:
                     if os.path.splitext(os.path.basename(path))[0].lower() == normalized_agent_name
                 ]
                 
-                # If exact matches exist, use the first one
-                if exact_match_paths:
-                    selected_path = exact_match_paths[0]
-                    print(f"{log_context} DEBUG: Selected exact match prompt file: {selected_path}")
-                    return selected_path
-                
-                # If no exact match, use the first found path
-                selected_path = matched_paths[0]
-                print(f"{log_context} DEBUG: Selected first found prompt file: {selected_path}")
+                selected_path = exact_match_paths[0] if exact_match_paths else matched_paths[0]
+                print(f"{log_context} DEBUG: Selected prompt file: {selected_path}")
                 return selected_path
-            
-            # No prompt file found
+
             print(f"{log_context} WARNING: No prompt file found for agent {agent_name}")
             return None
-        
+            
         except Exception as e:
             print(f"{log_context} CRITICAL ERROR in get_prompt_file: {str(e)}")
-            print(f"{log_context} Traceback: {traceback.format_exc()}")
             return None
 
     @classmethod
