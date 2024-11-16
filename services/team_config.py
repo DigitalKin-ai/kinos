@@ -93,16 +93,16 @@ class TeamMetrics:
 
 class TeamStartupError(Exception):
     """Custom exception for team startup errors"""
-    def __init__(self, message: str, team_id: str, details: Optional[Dict] = None):
+    def __init__(self, message: str, team_name: str, details: Optional[Dict] = None):
         super().__init__(message)
-        self.team_id = team_id
+        self.team_name = team_name
         self.details = details or {}
         self.timestamp = datetime.now()
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             'error': str(self),
-            'team_id': self.team_id,
+            'team_name': self.team_name,
             'details': self.details,
             'timestamp': self.timestamp.isoformat()
         }

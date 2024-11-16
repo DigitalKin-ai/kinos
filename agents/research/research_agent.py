@@ -150,7 +150,7 @@ Give some context explanation.
                 
                 # Save to chat history
                 from utils.path_manager import PathManager
-                chat_history_file = PathManager.get_chat_history_path(team_id=self.team, agent_name=self.name)
+                chat_history_file = PathManager.get_chat_history_path(team_name=self.team, agent_name=self.name)
                 try:
                     with open(chat_history_file, 'a', encoding='utf-8') as f:
                         f.write(f"\n\n--- {datetime.now().isoformat()} ---\n")
