@@ -1,7 +1,6 @@
 {
     "id": "book-writing",
-    "name": "Book Writing Team",
-    "display_name": "Book Writing Team",
+    "type": "Book Writing Type",
     "description": "Content creation and documentation team specialized in book writing and documentation tasks",
     "agents": [
         {
