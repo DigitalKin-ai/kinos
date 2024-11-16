@@ -50,8 +50,15 @@ def init_services(_) -> Dict[str, Any]:
         # Set active team to 'default' if none is set
         team_service = services['team_service']
         if not team_service.get_active_team():
-            team_service.set_active_team('default')
-            logger.log("Set active team to 'default'", 'info')
+            # Check if default team exists in team_types
+            team_config = team_service.get_team_config('default')
+            if team_config:
+                if team_service.set_active_team('default'):
+                    logger.log("Set active team to 'default'", 'info')
+                else:
+                    logger.log("Failed to set active team to 'default'", 'error')
+            else:
+                logger.log("Default team configuration not found", 'error')
         
         services['model_router'] = ModelRouter()
         services['dataset_service'] = DatasetService(None)
