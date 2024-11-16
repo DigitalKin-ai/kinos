@@ -176,8 +176,6 @@ class PathManager:
                 if active_team and isinstance(active_team, dict):
                     team_id = active_team.get('id')
                     team_name = active_team.get('name', team_id)
-                    print(f"[{team_name}] DEBUG: Searching for prompt file for agent: {agent_name}")
-                    print(f"[{team_name}] DEBUG: Team folder: {team_id}")
                 else:
                     # Find team containing this agent
                     for team in team_service.team_types:
@@ -188,7 +186,6 @@ class PathManager:
                                 if agent_name == agent_name_to_check:
                                     team_id = team.get('id')
                                     team_name = team.get('name', team_id)
-                                    print(f"[{team_name}] DEBUG: Found agent in team: {team_name}")
                                     break
                             if team_id:
                                 break
@@ -201,10 +198,11 @@ class PathManager:
             elif team_id:
                 team_folder = str(team_id).replace('team_', '')
 
-            # Use consistent logging format
+            # Use consistent logging format with proper team name
             log_prefix = f"[{team_name or 'Unknown Team'}]"
             print(f"{log_prefix} DEBUG: Searching for prompt file for agent: {agent_name}")
-            print(f"{log_prefix} DEBUG: Team folder: {team_folder}")
+            if team_folder:
+                print(f"{log_prefix} DEBUG: Team folder: {team_folder}")
 
             # Define search paths in priority order
             search_paths = []
