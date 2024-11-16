@@ -62,7 +62,8 @@ class MapService(BaseService):
                 'node_modules/',
                 '.env',
                 '*.pyc',
-                '*.log'
+                '*.log',
+                'team_*/'  # Add pattern to ignore team_* folders
             ]
         
             # Add patterns from .gitignore and .aiderignore
