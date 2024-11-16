@@ -4,7 +4,7 @@ import json
 import traceback
 import platform
 import shutil
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, Union
 
 class PathManager:
     """Centralized and secure path management for KinOS"""
@@ -61,80 +61,6 @@ class PathManager:
         
         # Remove leading/trailing underscores and whitespace
         return normalized.strip('_').strip()
-
-    @classmethod
-    def validate_mission_path(cls, path: str, strict: bool = False) -> bool:
-        """
-        Comprehensive mission path validation
-        
-        Args:
-            path (str): Path to validate
-            strict (bool): Enable stricter validation checks
-        
-        Returns:
-            bool: Whether path is valid for mission use
-        """
-        try:
-            # Ensure absolute path
-            if not os.path.isabs(path):
-                return False
-            
-            # Check path exists or is creatable
-            try:
-                os.makedirs(path, exist_ok=True)
-            except (PermissionError, OSError):
-                return False
-            
-            # Check read and write permissions
-            if not os.access(path, os.R_OK | os.W_OK):
-                return False
-            
-            # Optional strict checks
-            if strict:
-                # Prevent use of system directories
-                system_dirs = ['/sys', '/proc', '/dev', '/etc']
-                if any(path.startswith(sys_dir) for sys_dir in system_dirs):
-                    return False
-                
-                # Check free disk space (minimum 100MB)
-                try:
-                    total, used, free = shutil.disk_usage(path)
-                    if free < 100 * 1024 * 1024:  # 100MB in bytes
-                        return False
-                except Exception:
-                    return False
-            
-            return True
-        
-        except Exception:
-            return False
-
-    @classmethod
-    def list_missions(cls, base_path: Optional[str] = None) -> Dict[str, str]:
-        """
-        List all available missions
-        
-        Args:
-            base_path (Optional[str]): Custom base path to search for missions
-        
-        Returns:
-            Dict[str, str]: Dictionary of mission names and their paths
-        """
-        missions = {}
-        
-        # Use provided base path or default missions directory
-        search_path = base_path or cls._DEFAULT_MISSIONS_DIR
-        
-        try:
-            for mission_name in os.listdir(search_path):
-                mission_path = os.path.join(search_path, mission_name)
-                if os.path.isdir(mission_path) and cls.validate_mission_path(mission_path):
-                    missions[mission_name] = mission_path
-        except Exception as e:
-            print(f"Error listing missions: {e}")
-        
-        return missions
-
 
     @staticmethod
     def get_config_path() -> str:
