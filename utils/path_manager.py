@@ -14,7 +14,7 @@ class PathManager:
     
     @classmethod
     def get_project_root(cls) -> str:
-        """Returns the current team directory as project root"""
+        """Returns the current team directory"""
         current_dir = os.getcwd()
         team_dir = next((d for d in os.listdir(current_dir) if d.startswith('team_')), current_dir)
         return os.path.join(current_dir, team_dir)
@@ -22,21 +22,18 @@ class PathManager:
     @classmethod
     def get_mission_path(cls, mission_name: str = None) -> str:
         """Get mission path within current team directory"""
-        current_dir = os.getcwd()
-        team_dir = next((d for d in os.listdir(current_dir) if d.startswith('team_')), current_dir)
-        return os.path.join(current_dir, team_dir)
+        return cls.get_project_root()
 
     @classmethod
     def get_kinos_root(cls) -> str:
-        """Returns the current team's root directory"""
-        current_dir = os.getcwd()
-        team_dir = next((d for d in os.listdir(current_dir) if d.startswith('team_')), current_dir)
-        return os.path.join(current_dir, team_dir)
+        """Returns the current team directory"""
+        return cls.get_project_root()
 
     @classmethod
     def get_team_types_root(cls) -> str:
-        """Get the team types configuration directory"""
-        return os.path.join(cls.get_kinos_root(), "team_types")
+        """Get team types configuration directory within current team"""
+        team_root = cls.get_project_root()
+        return os.path.join(team_root, "team_types")
 
     @staticmethod
     def get_config_path() -> str:
@@ -292,44 +289,34 @@ class PathManager:
         """
         return cls.get_prompt_file(agent_name, team_id)
 
-    @staticmethod
-    def get_team_path(team_id: Optional[str] = None, team_name: Optional[str] = None) -> str:
+    @classmethod
+    def get_team_path(cls, team_id: Optional[str] = None) -> str:
         """
-        Get the path for a specific team with comprehensive logging and error handling
+        Get the path for a specific team or current team
         
         Args:
-            team_id: Optional team identifier (folder name)
-            team_name: Optional team name for logging context
+            team_id: Optional team identifier
         
         Returns:
             str: Path to the team directory
         """
-        try:
-            # Get current working directory as project root
-            project_root = os.getcwd()
-            
-            # If no team_id is provided, try to find from current directory
-            if not team_id:
-                for item in os.listdir(project_root):
-                    if item.startswith('team_'):
-                        team_id = item.replace('team_', '')
-                        break
-            
-            # Add "team_" prefix if not present
-            team_folder = f"team_{team_id}" if team_id and not team_id.startswith('team_') else team_id
-
-            # Create full path
-            team_path = os.path.join(project_root, team_folder) if team_folder else project_root
-            
-            # Create directory if it doesn't exist
-            os.makedirs(team_path, exist_ok=True)
-            
-            return team_path
-            
-        except Exception as e:
-            # Fallback to print since logger may not be available
-            print(f"Error getting team path: {str(e)}")
-            return os.getcwd()  # Return current directory as fallback
+        current_dir = os.getcwd()
+        
+        # If no team_id provided, find the first team directory
+        if not team_id:
+            team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
+            if not team_dirs:
+                return current_dir
+            team_id = team_dirs[0][5:]  # Remove 'team_' prefix
+        
+        # Normalize team_id
+        team_folder = f"team_{team_id}" if not team_id.startswith('team_') else team_id
+        team_path = os.path.join(current_dir, team_folder)
+        
+        # Create directory if it doesn't exist
+        os.makedirs(team_path, exist_ok=True)
+        
+        return team_path
 
     @staticmethod
     def get_log_file(service_name: str) -> str:
