@@ -393,10 +393,10 @@ class PathManager:
     @classmethod
     def list_teams(cls) -> List[str]:
         """
-        List all teams in the mission directory
+        List team directories in current working directory
         
         Returns:
-            List of team names
+            List of team names (without 'team_' prefix)
         """
         try:
             # Get the mission directory
