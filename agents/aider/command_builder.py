@@ -181,43 +181,27 @@ class AiderCommandBuilder:
             return False
 
     def build_command(self, instructions: str, files: List[str]) -> List[str]:
-        """
-        Build Aider command with arguments
-        
-        Args:
-            instructions: ModelRouter-generated instructions to send to Aider
-            files: List of files to include
-            
-        Returns:
-            List of command arguments
-        """
+        """Build Aider command with arguments"""
         cmd = ["python", "-m", "aider"]
         
-        # Add the PYTHONPATH environment variable when executing
-        os.environ["PYTHONPATH"] = os.path.join(os.environ.get("PYTHONPATH", ""), 
-                                        r"C:\Users\conta\parallagon")
-        
+        # Add model args
         cmd.extend(self.get_model_args())
         cmd.extend(self.get_file_args(files, self.get_ignore_patterns(os.getcwd())))
         
-        # Get correct team path using PathManager
-        from utils.path_manager import PathManager
+        # Get team path and ensure history directory exists
         team_path = PathManager.get_team_path(self.team)
-        
-        # Create history directory structure
         history_path = os.path.join(team_path, "history")
         os.makedirs(history_path, exist_ok=True)
         
-        # Use the correct paths for history files
+        # Create history files with empty content if they don't exist
         chat_history = os.path.join(history_path, f".aider.{self.agent_name}.chat.history.md")
         input_history = os.path.join(history_path, f".aider.{self.agent_name}.input.history.md")
         
-        # Create empty history files if they don't exist
         for history_file in [chat_history, input_history]:
             if not os.path.exists(history_file):
                 try:
                     with open(history_file, 'w', encoding='utf-8') as f:
-                        f.write("")  # Create empty file
+                        f.write("")
                 except Exception as e:
                     print(f"Error creating history file {history_file}: {str(e)}")
         
@@ -227,7 +211,7 @@ class AiderCommandBuilder:
             "--input-history-file", input_history
         ])
         
-        # Stringify the instructions with robust escaping
+        # Add instructions
         stringified_instructions = instructions.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
         cmd.extend(["--message", f'"{stringified_instructions} ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."'])
         

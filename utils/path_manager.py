@@ -166,43 +166,57 @@ class PathManager:
         """Get prompt file path for an agent"""
         try:
             # Get team service to find the team if not provided
-            if not team_id:
-                from services import init_services
-                services = init_services(None)
-                team_service = services['team_service']
-                
-                # Get active team first
-                active_team = team_service.get_active_team()
-                if active_team and isinstance(active_team, dict):
-                    team_id = active_team.get('id')
-                    team_name = active_team.get('name', team_id)
-                else:
-                    # Find team containing this agent
-                    for team in team_service.team_types:
-                        if isinstance(team, dict):
-                            team_agents = team.get('agents', [])
-                            for agent in team_agents:
-                                agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
-                                if agent_name == agent_name_to_check:
-                                    team_id = team.get('id')
-                                    team_name = team.get('name', team_id)
-                                    break
-                            if team_id:
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            
+            # Get active team first
+            active_team = team_service.get_active_team()
+            if active_team and isinstance(active_team, dict):
+                team_id = active_team.get('id')
+                team_name = active_team.get('name', team_id)
+            else:
+                # Find team containing this agent
+                for team in team_service.team_types:
+                    if isinstance(team, dict):
+                        team_agents = team.get('agents', [])
+                        for agent in team_agents:
+                            agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
+                            if agent_name == agent_name_to_check:
+                                team_id = team.get('id')
+                                team_name = team.get('name', team_id)
                                 break
+                        if team_id:
+                            break
+
+            # If still no team found, use default
+            if not team_id:
+                team_id = 'default'
+                team_name = 'Default Team'
 
             # Normalize team folder name
-            team_folder = None
-            if isinstance(team_id, dict):
-                team_name = team_id.get('name', team_name)
-                team_folder = team_id.get('id', '').replace('team_', '')
-            elif team_id:
-                team_folder = str(team_id).replace('team_', '')
+            team_folder = str(team_id).replace('team_', '')
 
-            # Use consistent logging format with proper team name
-            log_prefix = f"[{team_name or 'Unknown Team'}]"
+            # Use consistent logging format
+            log_prefix = f"[{team_name}]"
             print(f"{log_prefix} DEBUG: Searching for prompt file for agent: {agent_name}")
-            if team_folder:
-                print(f"{log_prefix} DEBUG: Team folder: {team_folder}")
+            print(f"{log_prefix} DEBUG: Team folder: {team_folder}")
+
+            # Ensure team directory structure exists
+            team_dir = os.path.join(os.getcwd(), f"team_{team_folder}")
+            history_dir = os.path.join(team_dir, "history")
+            os.makedirs(history_dir, exist_ok=True)
+
+            # Create empty history files if they don't exist
+            history_files = [
+                f".aider.{agent_name}.chat.history.md",
+                f".aider.{agent_name}.input.history.md"
+            ]
+            for history_file in history_files:
+                file_path = os.path.join(history_dir, history_file)
+                if not os.path.exists(file_path):
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write("")
 
             # Define search paths in priority order
             search_paths = []
