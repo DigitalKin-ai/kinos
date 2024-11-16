@@ -214,6 +214,15 @@ class PathManager:
             print(f"{log_context} DEBUG: Searching for prompt file for agent: {agent_name}")
             print(f"{log_context} DEBUG: Team folder: {team_folder}")
 
+            # Normalize agent name for matching
+            normalized_agent_name = agent_name.lower()
+
+            # Define prompt filename options
+            prompt_filename_options = [
+                f"{normalized_agent_name}.md",
+                f"{agent_name}.md"  # Also try original case
+            ]
+
             # Search directories with priority using folder names
             search_directories = []
             
