@@ -197,12 +197,25 @@ class TeamService(BaseService):
     def set_active_team(self, team_id: str) -> bool:
         """Set the active team configuration"""
         try:
-            team_config = self.get_team_config(team_id)
+            # Normalize team_id by removing 'team_' prefix if present
+            normalized_id = team_id.replace('team_', '')
+            
+            # Get team config
+            team_config = self.get_team_config(normalized_id)
             if not team_config:
-                raise ServiceError(f"Team not found: {team_id}")
-                
+                # Try to generate default config if none exists
+                team_config = self._generate_default_config(normalized_id)
+                if not team_config:
+                    raise ServiceError(f"Team not found and couldn't create default: {normalized_id}")
+            
+            # Store active team
             self.active_team = team_config
-            self.logger.log(f"Active team set to: {team_id}", 'success')
+            
+            # Create team directory if it doesn't exist
+            team_dir = os.path.join(os.getcwd(), f"team_{normalized_id}")
+            os.makedirs(team_dir, exist_ok=True)
+            
+            self.logger.log(f"Active team set to: {normalized_id} ({team_config.get('name', normalized_id)})", 'success')
             return True
             
         except Exception as e:
@@ -211,7 +224,26 @@ class TeamService(BaseService):
 
     def get_active_team(self) -> Optional[Dict[str, Any]]:
         """Get the currently active team configuration"""
-        return self.active_team
+        try:
+            # If no active team, try to set default
+            if not self.active_team:
+                # First try to find any team directory in current path
+                current_dir = os.getcwd()
+                for item in os.listdir(current_dir):
+                    if item.startswith('team_'):
+                        team_id = item.replace('team_', '')
+                        if self.set_active_team(team_id):
+                            break
+                
+                # If still no active team, use default
+                if not self.active_team:
+                    self.set_active_team('default')
+            
+            return self.active_team
+            
+        except Exception as e:
+            self.logger.log(f"Error getting active team: {str(e)}", 'error')
+            return None
 
     def get_team_agents(self, team_id: Optional[str] = None) -> List[str]:
         """Get list of agent names for a team"""
