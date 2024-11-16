@@ -46,6 +46,13 @@ def init_services(_) -> Dict[str, Any]:
         
         # Initialize services in dependency order
         services['team_service'] = TeamService(None)  # Initialize first
+        
+        # Set active team to 'default' if none is set
+        team_service = services['team_service']
+        if not team_service.get_active_team():
+            team_service.set_active_team('default')
+            logger.log("Set active team to 'default'", 'info')
+        
         services['model_router'] = ModelRouter()
         services['dataset_service'] = DatasetService(None)
         services['file_service'] = FileService(None)
