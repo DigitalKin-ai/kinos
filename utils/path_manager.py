@@ -29,11 +29,6 @@ class PathManager:
         """Returns the current team directory"""
         return cls.get_project_root()
 
-    @classmethod
-    def get_team_types_root(cls) -> str:
-        """Get team types configuration directory within current team"""
-        team_root = cls.get_project_root()
-        return os.path.join(team_root, "team_types")
 
     @staticmethod
     def get_config_path() -> str:
@@ -163,7 +158,7 @@ class PathManager:
         """Retourne le chemin vers un fichier de configuration spécifique"""
         return os.path.join(PathManager.get_config_path(), filename)
 
-    @classmethod
+    @classmethod 
     def get_prompt_file(cls, agent_name: str, team_id: Optional[Union[str, Dict[str, Any]]] = None, team_name: Optional[str] = None) -> Optional[str]:
         """Get prompt file path for an agent"""
         try:
@@ -177,21 +172,8 @@ class PathManager:
             if active_team and isinstance(active_team, dict):
                 team_id = active_team.get('id')
                 team_name = active_team.get('name', team_id)
-            else:
-                # Find team containing this agent
-                for team in team_service.team_types:
-                    if isinstance(team, dict):
-                        team_agents = team.get('agents', [])
-                        for agent in team_agents:
-                            agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
-                            if agent_name == agent_name_to_check:
-                                team_id = team.get('id')
-                                team_name = team.get('name', team_id)
-                                break
-                    if team_id:
-                        break
 
-            # If still no team found, use default
+            # If no team found, use default
             if not team_id:
                 team_id = 'default'
                 team_name = 'Default Team'
@@ -204,31 +186,10 @@ class PathManager:
             print(f"{log_prefix} DEBUG: Searching for prompt file for agent: {agent_name}")
             print(f"{log_prefix} DEBUG: Team folder: {team_folder}")
 
-            # Define search paths in priority order
-            search_paths = []
+            # Only search in team directory
+            team_dir = os.path.join(os.getcwd(), f"team_{team_folder}")
+            prompts_dir = os.path.join(team_dir, "prompts")
             
-            # 1. Current mission team directory
-            if team_folder:
-                mission_team_dir = os.path.join(os.getcwd(), f"team_{team_folder}")
-                search_paths.append(mission_team_dir)
-                print(f"{log_prefix} DEBUG: Checking mission team dir: {mission_team_dir}")
-                
-            # 2. Team types directory
-            team_types_dir = cls.get_team_types_root()
-            if team_folder:
-                team_type_dir = os.path.join(team_types_dir, team_folder)
-                search_paths.append(team_type_dir)
-                print(f"{log_prefix} DEBUG: Checking team type dir: {team_type_dir}")
-                
-            # 3. Default team types directory
-            default_dir = os.path.join(team_types_dir, "default")
-            search_paths.append(default_dir)
-            print(f"{log_prefix} DEBUG: Checking default dir: {default_dir}")
-            
-            # 4. Root team types directory
-            search_paths.append(team_types_dir)
-            print(f"{log_prefix} DEBUG: Checking root dir: {team_types_dir}")
-
             # Normalize agent name for matching
             normalized_agent_name = agent_name.lower()
 
@@ -238,23 +199,13 @@ class PathManager:
                 f"{agent_name}.md"  # Also try original case
             ]
 
-            # Search through paths
+            # Search for prompt file
             matched_paths = []
-            for search_dir in search_paths:
-                if not os.path.exists(search_dir):
-                    print(f"{log_prefix} DEBUG: Directory does not exist: {search_dir}")
-                    continue
-                    
-                try:
-                    # Search through all subdirectories
-                    for root, _, files in os.walk(search_dir):
-                        for filename in prompt_filename_options:
-                            prompt_path = os.path.join(root, filename)
-                            if os.path.exists(prompt_path):
-                                print(f"{log_prefix} DEBUG: Found prompt file: {prompt_path}")
-                                matched_paths.append(prompt_path)
-                except Exception as search_error:
-                    print(f"{log_prefix} ERROR: Error searching directory {search_dir}: {str(search_error)}")
+            for filename in prompt_filename_options:
+                prompt_path = os.path.join(prompts_dir, filename)
+                if os.path.exists(prompt_path):
+                    print(f"{log_prefix} DEBUG: Found prompt file: {prompt_path}")
+                    matched_paths.append(prompt_path)
 
             # Select best match
             if matched_paths:

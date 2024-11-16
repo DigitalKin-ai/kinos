@@ -18,23 +18,21 @@ class TeamService(BaseService):
         self.team_types = self._load_team_types()
 
     def _load_team_types(self) -> List[Dict[str, Any]]:
-        """Load predefined team configurations"""
+        """Load team configurations from team directories"""
         try:
             teams = []
-            teams_dir = PathManager.get_team_types_root()
-        
-            if not os.path.exists(teams_dir):
-                self.logger.log("Teams directory not found", 'warning')
-                return []
+            current_dir = os.getcwd()
             
-            # Load each team config
-            for team_dir in os.listdir(teams_dir):
-                # Skip non-directory entries
-                full_path = os.path.join(teams_dir, team_dir)
-                if not os.path.isdir(full_path):
+            # Look for team_* directories
+            for item in os.listdir(current_dir):
+                if not item.startswith('team_'):
                     continue
-        
-                config_path = os.path.join(full_path, "config.json")
+                    
+                team_dir = os.path.join(current_dir, item)
+                if not os.path.isdir(team_dir):
+                    continue
+
+                config_path = os.path.join(team_dir, "config.json")
                 if os.path.exists(config_path):
                     try:
                         with open(config_path, 'r', encoding='utf-8') as f:
@@ -42,12 +40,12 @@ class TeamService(BaseService):
                         
                         # Ensure config is a dictionary
                         if not isinstance(config, dict):
-                            self.logger.log(f"Skipping invalid team config in {team_dir}: not a dictionary", 'warning')
+                            self.logger.log(f"Skipping invalid team config in {item}: not a dictionary", 'warning')
                             continue
                         
                         # Ensure config has an ID
                         if 'id' not in config:
-                            config['id'] = team_dir.replace('team_', '')
+                            config['id'] = item.replace('team_', '')
                         
                         # Validate and normalize agents
                         if 'agents' in config:
@@ -76,27 +74,19 @@ class TeamService(BaseService):
                             teams.append(config)
                         else:
                             self.logger.log(
-                                f"Invalid team config {team_dir}: {error}",
+                                f"Invalid team config {item}: {error}",
                                 'warning'
                             )
                     except Exception as e:
                         self.logger.log(
-                            f"Error loading team {team_dir}: {str(e)}", 
+                            f"Error loading team {item}: {str(e)}", 
                             'error'
                         )
-            
-            # Filter out any non-dictionary entries and entries without agents
-            teams = [
-                team for team in teams 
-                if isinstance(team, dict) and 
-                   team.get('agents') and 
-                   isinstance(team.get('agents'), list)
-            ]
             
             return teams
 
         except Exception as e:
-            self.logger.log(f"Error loading predefined teams: {str(e)}", 'error')
+            self.logger.log(f"Error loading teams: {str(e)}", 'error')
             return []
 
     def _generate_default_config(self, team_id: str) -> Dict[str, Any]:
