@@ -334,15 +334,40 @@ class AiderAgent(AgentBase):
                 'unnamed_agent'  # Final fallback
             )
 
-            # Récupérer le nom de l'équipe
+            # Get team service
             from services import init_services
             services = init_services(None)
             team_service = services['team_service']
             
+            # Find team containing this agent
             agent_team = None
-            for team in team_service.team_types:
-                if self.name in team.get('agents', []):
-                    agent_team = team['id']
+            for team_name in team_service.team_types:
+                # Get full team config if team_name is just a string
+                if isinstance(team_name, str):
+                    team_config = team_service.get_team_config(team_name)
+                    if not team_config:
+                        continue
+                else:
+                    team_config = team_name
+                    
+                # Skip if not a valid dictionary
+                if not isinstance(team_config, dict):
+                    continue
+                    
+                # Get agents list with fallback
+                agents = team_config.get('agents', [])
+                if not agents:
+                    continue
+                    
+                # Check each agent
+                for agent in agents:
+                    # Handle both string and dict agent formats
+                    agent_name = agent.get('name', agent) if isinstance(agent, dict) else agent
+                    if self.name == agent_name:
+                        agent_team = team_config.get('id', team_name)
+                        break
+                        
+                if agent_team:
                     break
 
             # Retrieve team ID dynamically
