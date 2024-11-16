@@ -414,9 +414,23 @@ class AiderOutputParser:
             icon = self.COMMIT_ICONS.get(commit_type, '🔨')
             commit_type_str = f"[{commit_type}]" if commit_type else ""
             
-            # Log avec le nom de l'agent et le type de commit
+            # Get team name from agent
+            team_name = "Unknown Team"
+            try:
+                from services import init_services
+                services = init_services(None)
+                team_service = services['team_service']
+                
+                for team in team_service.team_types:
+                    if self.agent_name in team_service.get_team_agents(team.get('id')):
+                        team_name = team.get('name', team.get('id', 'Unknown Team'))
+                        break
+            except Exception:
+                pass
+
+            # Log with team name
             self.logger.log(
-                f"[{self.agent_name}] {icon} {commit_type_str} {message}",
+                f"[{team_name}] [{self.agent_name}] {icon} {commit_type_str} {message}",
                 'success'
             )
             
