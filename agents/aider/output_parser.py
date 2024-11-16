@@ -414,26 +414,20 @@ class AiderOutputParser:
             icon = self.COMMIT_ICONS.get(commit_type, '🔨')
             commit_type_str = f"[{commit_type}]" if commit_type else ""
             
-            # Get team name from agent
+            # Get team name from project folder
             team_name = "Unknown Team"
             try:
-                from services import init_services
-                services = init_services(None)
-                team_service = services['team_service']
+                # Get current working directory
+                current_dir = os.getcwd()
                 
-                # Get active team first
-                active_team = team_service.get_active_team()
-                if active_team:
-                    team_name = active_team.get('name', active_team.get('id', 'Unknown Team'))
-                
-                # Fallback to searching through team types
-                if team_name == "Unknown Team":
-                    for team in team_service.team_types:
-                        if self.agent_name in team_service.get_team_agents(team.get('id')):
-                            team_name = team.get('name', team.get('id', 'Unknown Team'))
-                            break
+                # Find the team directory (should start with 'team_')
+                for item in os.listdir(current_dir):
+                    if item.startswith('team_') and os.path.isdir(os.path.join(current_dir, item)):
+                        # Remove 'team_' prefix to get the team name
+                        team_name = item[5:]  # Remove 'team_' prefix
+                        break
             except Exception as e:
-                self.logger.log(f"Error getting team name: {str(e)}", 'warning')
+                self.logger.log(f"Error extracting team name: {str(e)}", 'warning')
 
             # Log with team name
             self.logger.log(
