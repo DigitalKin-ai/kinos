@@ -189,13 +189,13 @@ class PathManager:
                     if team_id:
                         break
 
-        # If still no team found, use default
-        if not team_id:
-            team_id = 'default'
-            team_name = 'Default Team'
+            # If still no team found, use default
+            if not team_id:
+                team_id = 'default'
+                team_name = 'Default Team'
 
-        # Normalize team folder name
-        team_folder = str(team_id).replace('team_', '')
+            # Normalize team folder name
+            team_folder = str(team_id).replace('team_', '')
 
         # Use consistent logging format
         log_prefix = f"[{team_name}]"
