@@ -37,31 +37,64 @@ class MapService(BaseService):
             return
             
         try:
-            from services import init_services
-            services = init_services(None)
-            team_service = services['team_service']
-            active_team = team_service.get_active_team()
+            # Get active team from injected TeamService
+            active_team = self.team_service.get_active_team()
+            if not active_team:
+                self.logger.log("No active team found", 'warning')
+                return
+
+            team_id = active_team.get('id')
+            if not team_id:
+                self.logger.log("No team ID found in active team", 'warning')
+                return
+
+            # Construct team directory name
+            team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
             
-            if active_team:
-                team_id = active_team.get('id')
-                team_path = PathManager.get_team_path(team_id)
-                if team_path:
-                    self.map_file = os.path.join(team_path, "map.md")
-                    self.logger.log(f"Initialized map file path: {self.map_file}", 'debug')
+            # Create full team directory path
+            team_path = os.path.join(os.getcwd(), team_dir)
+            
+            # Ensure team directory exists
+            os.makedirs(team_path, exist_ok=True)
+            
+            # Set map file path
+            self.map_file = os.path.join(team_path, "map.md")
+            
+            # Create initial map file if it doesn't exist
+            if not os.path.exists(self.map_file):
+                initial_content = (
+                    "# Project Map (READONLY FILE)\n\n"
+                    "Ce document est une carte dynamique du projet qui est automatiquement mise à jour.\n\n"
+                    f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                    "## Document Tree\n"
+                    "📁 Project\n"
+                )
+                with open(self.map_file, 'w', encoding='utf-8') as f:
+                    f.write(initial_content)
+                self.logger.log(f"Created new map file: {self.map_file}", 'info')
+                
+            self.logger.log(f"Initialized map file path: {self.map_file}", 'debug')
+            self._initialized = True
+            
         except Exception as e:
-            self.logger.log(f"Error initializing map file path: {str(e)}", 'warning')
-            
-        self._initialized = True
+            self.logger.log(f"Error initializing map file: {str(e)}", 'error')
+            self._initialized = False
 
     def generate_map(self) -> bool:
         """Generate project map file with enhanced debugging"""
         try:
-            self._initialize_map_file()  # Initialize if needed
+            # Initialize if needed
+            if not self._initialized:
+                self._initialize_map_file()
+                
+            if not self.map_file:
+                self.logger.log("Map file path not initialized", 'error')
+                return False
+                
             self.logger.log("[MapService] Starting map generation", 'debug')
             
             # Get active team from injected TeamService
             active_team = self.team_service.get_active_team()
-            
             if not active_team:
                 self.logger.log("No active team found", 'warning')
                 return False
@@ -70,18 +103,8 @@ class MapService(BaseService):
             team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
             
             # Ensure team directory exists
-            # Validate and secure team path
-            from utils.path_manager import PathManager
-            team_path = PathManager.get_team_path(team_id)
-            if not team_path:
-                self.logger.log(f"Invalid team path for team {team_id}", 'error')
-                return False
-                
-            # Ensure team directory exists
+            team_path = os.path.join(os.getcwd(), team_dir)
             os.makedirs(team_path, exist_ok=True)
-            
-            # Set map file path in team directory using PathManager
-            self.map_file = os.path.join(team_path, "map.md")
         
             # Scan directory with team context
             tree_content, warnings, total_tokens = self._scan_directory(
