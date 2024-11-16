@@ -119,11 +119,14 @@ class AiderAgent(AgentBase):
                 if not isinstance(team, dict):
                     continue
                 
-                # Check if the agent is in the team's agents
-                agents = team.get('agents', [])
-                for agent in agents:
-                    # Handle both dict and string agent representations
+                # Get agents list, defaulting to empty list
+                team_agents = team.get('agents', [])
+                
+                # Handle both string and dictionary agent representations
+                for agent in team_agents:
+                    # Normalize agent name
                     agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
+                    
                     if self.name == agent_name_to_check:
                         agent_team = team.get('id')
                         break
