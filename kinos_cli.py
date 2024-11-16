@@ -161,18 +161,17 @@ def initialize_team_structure(team_name: str, specific_name: str = None):
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
     # Créer le fichier de configuration .kinos.config.json
-    config_path = os.path.join(team_dir, '.kinos.config.json')
+    config_path = os.path.join(team_dir, 'config.json')
     
     # Configuration par défaut
     kinos_config = {
-        "team_name": team_name,
-        "team_type": "default",
+        "name": team_name,
+        "type": "book_writing",
         "paths": {
             "prompts": os.path.join(project_root, "teams", "prompts"),
             "history": os.path.join(team_dir, "history"),
             "map": os.path.join(team_dir, "map")
         },
-        "agents": [],
         "created_at": datetime.now().isoformat()
     }
     
