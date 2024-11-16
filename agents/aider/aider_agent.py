@@ -339,9 +339,12 @@ class AiderAgent(AgentBase):
             services = init_services(None)
             team_service = services['team_service']
             
+            # Get list of teams
+            teams = PathManager.list_teams()
+            
             # Find team containing this agent
             agent_team = None
-            for team_id in teams:  # teams is now a list of strings
+            for team_id in teams:  # List of team IDs
                 # Get full team config
                 team_config = team_service.get_team_config(team_id)
                 if not team_config:
