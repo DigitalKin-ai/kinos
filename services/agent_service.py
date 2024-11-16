@@ -128,7 +128,7 @@ class AgentService:
         try:
             # If no team_agents provided, load from default team config
             if not team_agents:
-                default_team_path = os.path.join(PathManager.get_kinos_root(), "teams", "default", "config.json")
+                default_team_path = os.path.join(os.getcwd(), "team_default", "config.json")
                 try:
                     with open(default_team_path, 'r', encoding='utf-8') as f:
                         default_team = json.load(f)
