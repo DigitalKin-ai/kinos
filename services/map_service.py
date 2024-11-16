@@ -34,62 +34,34 @@ class MapService(BaseService):
 
     def _initialize_map_file(self) -> None:
         """Initialize map file path based on active team"""
-        if self._initialized:
-            self.logger.log("[MapService] Map file already initialized", 'debug')
-            return
-            
         try:
-            self.logger.log("[MapService] Starting map file initialization...", 'info')
+            # Détecter dynamiquement l'équipe active
+            current_dir = os.getcwd()
+            team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
             
-            # Get active team from injected TeamService
-            active_team = self.team_service.get_active_team()
-            if not active_team:
-                self.logger.log("[MapService] ⚠️ No active team found", 'warning')
-                return
-
-            team_id = active_team.get('id')
-            if not team_id:
-                self.logger.log("[MapService] ⚠️ No team ID found in active team", 'warning')
-                return
-
-            # Log team info
-            self.logger.log(f"[MapService] 🔍 Initializing for team: {team_id}", 'info')
-
-            # Use PathManager to get correct team path
-            team_path = PathManager.get_team_path(team_id)
-            self.logger.log(f"[MapService] 🛠️ Using team path: {team_path}", 'debug')
-            
-            # Ensure team directory exists
-            if not os.path.exists(team_path):
-                self.logger.log(f"[MapService] 📂 Creating team directory: {team_path}", 'info')
-                os.makedirs(team_path, exist_ok=True)
-            
-            # Set map file path
-            self.map_file = os.path.join(team_path, "map.md")
-            self.logger.log(f"[MapService] 📍 Map file path set to: {self.map_file}", 'info')
-            
-            # Create initial map file if it doesn't exist
-            if not os.path.exists(self.map_file):
-                self.logger.log(f"[MapService] ✨ Creating new map file", 'info')
-                initial_content = (
-                    "# Project Map (READONLY FILE)\n\n"
-                    "Ce document est une carte dynamique du projet qui est automatiquement mise à jour.\n\n"
-                    f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
-                    "## Document Tree\n"
-                    "📁 Project\n"
-                )
-                with open(self.map_file, 'w', encoding='utf-8') as f:
-                    f.write(initial_content)
-                self.logger.log(f"[MapService] ✅ Created new map file: {self.map_file}", 'success')
+            # Utiliser la première équipe trouvée ou créer une équipe par défaut
+            if team_dirs:
+                team_id = team_dirs[0][5:]  # Enlever 'team_'
             else:
-                self.logger.log(f"[MapService] ℹ️ Map file already exists", 'info')
-                
-            self.logger.log("[MapService] ✅ Map file initialization complete", 'success')
+                team_id = 'default'
+                # Créer le dossier de l'équipe par défaut
+                os.makedirs(os.path.join(current_dir, f"team_{team_id}"), exist_ok=True)
+            
+            # Utiliser PathManager pour obtenir le chemin de l'équipe
+            team_path = PathManager.get_team_path(team_id)
+            
+            # Définir le chemin du fichier map
+            self.map_file = os.path.join(team_path, "map.md")
+            
+            # Créer le fichier map s'il n'existe pas
+            if not os.path.exists(self.map_file):
+                with open(self.map_file, 'w', encoding='utf-8') as f:
+                    f.write("# Project Map\n\n## Dynamic Team Mapping\n")
+            
             self._initialized = True
             
         except Exception as e:
-            self.logger.log(f"[MapService] 💥 Error initializing map file: {str(e)}", 'error')
-            self.logger.log(f"[MapService] Stack trace:\n{traceback.format_exc()}", 'debug')
+            self.logger.log(f"Error initializing map file: {str(e)}", 'error')
             self._initialized = False
 
     def generate_map(self) -> bool:

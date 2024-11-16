@@ -46,6 +46,25 @@ Les agents collaborent automatiquement selon les besoins :
 - **ChroniqueurAgent** - Suivi des changements
 - **TesteurAgent** - Tests automatisés
 
+## 🏗️ Structure du Projet
+
+KinOS utilise désormais une structure de projet team-local :
+
+```
+mon_projet/
+├── team_default/
+│   ├── config.json      # Configuration de l'équipe
+│   ├── history/         # Historique des interactions
+│   ├── prompts/         # Prompts spécifiques à l'équipe
+│   └── team_types/      # Types d'équipes personnalisés
+├── team_coding/         # Autres équipes possibles
+└── main.py
+```
+
+- Chaque équipe a sa propre configuration
+- Les fichiers sont locaux à l'équipe
+- Détection dynamique des équipes
+
 ## 📋 Prérequis
 
 - Python 3.8+

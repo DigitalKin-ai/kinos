@@ -12,20 +12,29 @@ class FileHandler:
         self.logger = logger
         self.mission_files = {}
 
+    def _detect_team_directories(self) -> List[str]:
+        """
+        Détecte dynamiquement les répertoires d'équipes
+        
+        Returns:
+            Liste des chemins des répertoires d'équipes
+        """
+        try:
+            current_dir = os.getcwd()
+            team_dirs = [
+                os.path.join(current_dir, d) 
+                for d in os.listdir(current_dir) 
+                if d.startswith('team_') and os.path.isdir(os.path.join(current_dir, d))
+            ]
+            return team_dirs
+        except Exception as e:
+            self.logger.log(f"Erreur de détection des répertoires d'équipes : {str(e)}", 'error')
+            return []
+
     def list_files(self) -> Dict[str, float]:
         try:
-            # Use current working directory as base
-            search_paths = [self.mission_dir]
-            
-            # Check for team-specific directories
-            current_dir = os.getcwd()
-            team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
-            
-            # Add team directories to search paths
-            for team_dir in team_dirs:
-                full_team_path = os.path.join(current_dir, team_dir)
-                if full_team_path not in search_paths:
-                    search_paths.append(full_team_path)
+            # Détecter dynamiquement les répertoires d'équipes
+            search_paths = [self.mission_dir] + self._detect_team_directories()
             
             # Load ignore patterns
             ignore_patterns = self._load_ignore_patterns()
@@ -51,7 +60,7 @@ class FileHandler:
             return text_files
 
         except Exception as e:
-            self.logger.log(f"Error listing files: {str(e)}", 'error')
+            self.logger.log(f"Erreur de listage des fichiers : {str(e)}", 'error')
             return {}
 
     def _load_ignore_patterns(self) -> list:
