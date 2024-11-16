@@ -158,72 +158,36 @@ class PathManager:
         """Retourne le chemin vers un fichier de configuration spécifique"""
         return os.path.join(PathManager.get_config_path(), filename)
 
-    @classmethod 
-    def get_prompt_file(cls, agent_name: str, team_id: Optional[Union[str, Dict[str, Any]]] = None, team_name: Optional[str] = None) -> Optional[str]:
-        """Get prompt file path for an agent"""
+    @classmethod
+    def get_prompt_file(cls, agent_name: str, team_id: Optional[str] = None) -> Optional[str]:
+        """Get prompt file path for an agent in the team's prompts directory"""
         try:
-            # Get team service to find the team if not provided
-            from services import init_services
-            services = init_services(None)
-            team_service = services['team_service']
-            
-            # Get active team first
-            active_team = team_service.get_active_team()
-            if active_team and isinstance(active_team, dict):
-                team_id = active_team.get('id')
-                team_name = active_team.get('name', team_id)
+            # Get current team directory
+            current_dir = os.getcwd()
+            if team_id:
+                team_dir = os.path.join(current_dir, f"team_{team_id}")
+            else:
+                # Find first team directory
+                team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
+                if not team_dirs:
+                    return None
+                team_dir = os.path.join(current_dir, team_dirs[0])
 
-            # If no team found, use default
-            if not team_id:
-                team_id = 'default'
-                team_name = 'Default Team'
-
-            # Normalize team folder name
-            team_folder = str(team_id).replace('team_', '')
-
-            # Use consistent logging format
-            log_prefix = f"[{team_name}]"
-            print(f"{log_prefix} DEBUG: Searching for prompt file for agent: {agent_name}")
-            print(f"{log_prefix} DEBUG: Team folder: {team_folder}")
-
-            # Only search in team directory
-            team_dir = os.path.join(os.getcwd(), f"team_{team_folder}")
+            # Look for prompt file in team's prompts directory
             prompts_dir = os.path.join(team_dir, "prompts")
-            
-            # Normalize agent name for matching
-            normalized_agent_name = agent_name.lower()
+            if not os.path.exists(prompts_dir):
+                return None
 
-            # Define prompt filename options
-            prompt_filename_options = [
-                f"{normalized_agent_name}.md",
-                f"{agent_name}.md"  # Also try original case
-            ]
-
-            # Search for prompt file
-            matched_paths = []
-            for filename in prompt_filename_options:
+            # Try normalized and original agent name
+            for filename in [f"{agent_name.lower()}.md", f"{agent_name}.md"]:
                 prompt_path = os.path.join(prompts_dir, filename)
                 if os.path.exists(prompt_path):
-                    print(f"{log_prefix} DEBUG: Found prompt file: {prompt_path}")
-                    matched_paths.append(prompt_path)
+                    return prompt_path
 
-            # Select best match
-            if matched_paths:
-                # Prioritize exact matches
-                exact_match_paths = [
-                    path for path in matched_paths 
-                    if os.path.splitext(os.path.basename(path))[0].lower() == normalized_agent_name
-                ]
-                
-                selected_path = exact_match_paths[0] if exact_match_paths else matched_paths[0]
-                print(f"{log_prefix} DEBUG: Selected prompt file: {selected_path}")
-                return selected_path
-
-            print(f"{log_prefix} WARNING: No prompt file found for agent {agent_name}")
             return None
-            
+
         except Exception as e:
-            print(f"{log_prefix} CRITICAL ERROR in get_prompt_file: {str(e)}")
+            print(f"Error finding prompt file for {agent_name}: {str(e)}")
             return None
 
     @classmethod
