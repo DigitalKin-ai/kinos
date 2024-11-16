@@ -67,17 +67,8 @@ class TeamService(BaseService):
             Team configuration dictionary or None if not found
         """
         try:
-            # Normalize team_id for comparison
-            normalized_team_id = team_id.lower().replace('team_', '').replace('-', '_')
-            
-            for team in self.team_types:
-                # Normalize team's ID for comparison
-                team_config_id = str(team.get('id', '')).lower().replace('team_', '').replace('-', '_')
-                
-                # Check for exact or normalized match
-                if (team_config_id == normalized_team_id or 
-                    normalized_team_id in team_config_id):
-                    return team
+            # TODO: So get_team_config is supposed to look into the config.json file in its team folder for "type",
+            # if a type is set, it will load the config in the corresponding team type. Otherwise, it defaults to the value of the "book_writing" type
             
             # Fallback logging if no match found
             self.logger.log(f"No team configuration found for: {team_id}", 'warning')
@@ -255,32 +246,3 @@ class TeamService(BaseService):
             self.team_types.clear()
         except Exception as e:
             self.logger.log(f"Error cleaning up team service: {str(e)}", 'error')
-
-    def list_teams(self) -> List[str]:
-        """
-        List all teams in the mission directory
-        
-        Returns:
-            List of team names
-        """
-        try:
-            # Get the mission directory
-            mission_dir = os.getcwd()
-            
-            # List all directories in the mission directory
-            all_dirs = [d for d in os.listdir(mission_dir) if os.path.isdir(os.path.join(mission_dir, d))]
-            
-            # Filter directories that start with "team_"
-            team_dirs = [d[5:] for d in all_dirs if d.startswith("team_")]
-            
-            # Log the found teams
-            if team_dirs:
-                self.logger.log(f"Found teams: {', '.join(team_dirs)}", 'info')
-            else:
-                self.logger.log("No teams found in mission directory", 'warning')
-            
-            return team_dirs
-        
-        except Exception as e:
-            self.logger.log(f"Error listing teams: {str(e)}", 'error')
-            return []
