@@ -45,8 +45,36 @@ class AiderAgent(AgentBase):
             # Configure UTF-8 encoding first
             self._configure_encoding()
             
-            # Defensive config access
-            specific_name = self.config.get('name', self.name)
+            # Get team name from current directory
+            try:
+                current_dir = os.getcwd()
+                team_dir = next((item for item in os.listdir(current_dir) if item.startswith('team_')), None)
+                
+                if team_dir:
+                    team_name = team_dir.replace('team_', '')
+                else:
+                    team_name = 'default'
+                
+                # Use team service to set and validate team
+                from services import init_services
+                services = init_services(None)
+                team_service = services['team_service']
+                
+                if team_service.set_active_team(team_name):
+                    active_team = team_service.get_active_team()
+                    self.team = active_team.get('name', team_name)
+                    self.team_name = active_team.get('display_name', team_name)
+                else:
+                    # Fallback
+                    self.team = team_name
+                    self.team_name = team_name
+                    
+            except Exception as e:
+                from utils.logger import Logger
+                logger = Logger()
+                logger.log(f"Error detecting team: {str(e)}", 'warning')
+                self.team = 'default'
+                self.team_name = 'Default Team'
             
             # Initialize components with agent name
             self.command_builder = AiderCommandBuilder(self.name)
