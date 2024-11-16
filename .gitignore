@@ -1,5 +1,6 @@
 # Environment and Secrets
 .env
+*.env
 .aider*
 *.secret
 secrets.yaml
@@ -43,17 +44,25 @@ ENV/
 *~
 .sublime-project
 .sublime-workspace
+*.sublime-*
 
 # Logs and Databases
 *.log
 *.sqlite3
 *.db
 *.jsonl
+*.large
+*.data
+*.csv
 
 # Project Data
 data/
 temp/
 cache/
+.kinos-cache/
+.kinos-state
+.kinos-metrics
+.kinos-config
 
 # Frontend
 node_modules/
@@ -76,12 +85,25 @@ Thumbs.db
 *.ori
 *.orig
 *.tmp
+*.tmp
 
 # Specific to KinOS
 config/secrets.yaml
-.kinos-cache/
-# KinOS History Files
-**/history/**/*.md
-**/history/**/*.log
-**/history/**/*.json
-**/history/**/*.txt
+config.local.yaml
+local_settings.py
+
+# KinOS History and Team Files
+**/team_*/history/**
+**/team_*/logs/**
+**/history/**
+**/logs/**
+
+# Generated Documentation
+docs/_build/
+docs/generated/
+
+# Temporary and Configuration Files
+*.bak
+*.tmp
+cache/
+temp/

@@ -12,3 +12,11 @@
         "redacteur": 95
     }
 }
+{
+    "default": 60,
+    "intervals": {
+        "aider": 90,
+        "research": 120,
+        "validation": 45
+    }
+}

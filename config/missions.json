@@ -1,0 +1,8 @@
+{
+    "default_mission": {
+        "name": "Default Mission",
+        "description": "A template mission configuration",
+        "agents": [],
+        "resources": {}
+    }
+}
