@@ -26,8 +26,8 @@ class PathManager:
 
     @classmethod
     def get_kinos_root(cls) -> str:
-        """Returns the current team directory"""
-        return cls.get_project_root()
+        """Returns the current working directory"""
+        return os.getcwd()
 
 
     @staticmethod

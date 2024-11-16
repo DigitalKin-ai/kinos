@@ -18,7 +18,7 @@ class TeamService(BaseService):
         self.team_types = self._load_team_types()
 
     def _load_team_types(self) -> List[Dict[str, Any]]:
-        """Load team configurations from team_* directories in current directory"""
+        """Load team configurations from local team directories"""
         try:
             teams = []
             current_dir = os.getcwd()
