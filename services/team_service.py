@@ -121,11 +121,11 @@ class TeamService(BaseService):
                 "agents": default_agents
             }
             
-            # Save config file
-            config_dir = os.path.join(PathManager.get_team_types_root(), team_id)
-            os.makedirs(config_dir, exist_ok=True)
+            # Save config file in team directory
+            team_dir = os.path.join(os.getcwd(), f"team_{team_id}")
+            os.makedirs(team_dir, exist_ok=True)
             
-            config_path = os.path.join(config_dir, "config.json")
+            config_path = os.path.join(team_dir, "config.json")
             with open(config_path, 'w', encoding='utf-8') as f:
                 json.dump(config, f, indent=4)
                 
@@ -186,11 +186,11 @@ class TeamService(BaseService):
             team_dir = os.path.join(os.getcwd(), f"team_{normalized_id}")
             os.makedirs(team_dir, exist_ok=True)
             
-            # Créer le dossier history pour l'équipe
+            # Create history directory for team
             history_dir = os.path.join(team_dir, "history")
             os.makedirs(history_dir, exist_ok=True)
             
-            # Créer des sous-dossiers si nécessaire
+            # Create subdirectories if needed
             for subdir in ['chat', 'input', 'output', 'agents']:
                 os.makedirs(os.path.join(history_dir, subdir), exist_ok=True)
             
