@@ -20,7 +20,7 @@ def init_services(_) -> Dict[str, Any]:
     """
     global _services_cache, _configs_loaded
     
-    # Create logger
+    # Create logger first
     logger = Logger()
     
     # If services are already initialized, return cached services
