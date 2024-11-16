@@ -274,57 +274,7 @@ def run_multi_team_loop(model: Optional[str] = None):
     agent_service = services['agent_service']
     
     # Use PathManager to get team types directory    
-    team_types_dir = PathManager.get_team_types_root()
-    
-    # Validate teams directory exists
-    if not os.path.exists(team_types_dir):
-        logger.log(f"❌ No team types found at: {team_types_dir}", 'error')
-        logger.log("To resolve this issue:", 'info')
-        logger.log("1. Ensure 'team_types' directory exists in the project root", 'info')
-        logger.log("2. Create at least one team type configuration", 'info')
-        logger.log("3. Each team type should have a 'config.json' file", 'info')
-        logger.log("Example team type structure:", 'info')
-        logger.log("team_types/", 'info')
-        logger.log("└── team_default/", 'info')
-        logger.log("    └── config.json", 'info')
-        return []
-    
-    # Find all team directories
-    team_type_dirs = [d for d in os.listdir(team_types_dir)]
-    
-    if not team_type_dirs:
-        logger.log("No teams found!", 'error')
-        logger.log(f"Full directory contents: {os.listdir(team_types_dir)}", 'debug')
-        logger.log(f"Team types directory path: {team_types_dir}", 'debug')
-        
-        # Additional diagnostic checks
-        try:
-            # Check directory permissions
-            logger.log(f"Directory readable: {os.access(team_types_dir, os.R_OK)}", 'debug')
-            logger.log(f"Directory writable: {os.access(team_types_dir, os.W_OK)}", 'debug')
-            
-            # List all files/directories with full paths
-            full_paths = [
-                os.path.join(team_types_dir, item) 
-                for item in os.listdir(team_types_dir)
-            ]
-            logger.log("Full paths:", 'debug')
-            for path in full_paths:
-                logger.log(f"- {path} (exists: {os.path.exists(path)}, is_dir: {os.path.isdir(path)})", 'debug')
-                
-                # If it's a directory, list its contents
-                if os.path.isdir(path):
-                    try:
-                        dir_contents = os.listdir(path)
-                        logger.log(f"  Contents of {path}:", 'debug')
-                        for item in dir_contents:
-                            logger.log(f"  - {item}", 'debug')
-                    except Exception as dir_error:
-                        logger.log(f"  Error listing contents of {path}: {str(dir_error)}", 'debug')
-        except Exception as e:
-            logger.log(f"Error during diagnostic checks: {str(e)}", 'error')
-        
-        return []
+    teams = PathManager.list_teams()
     
     # Create output queue and thread management
     output_queue = queue.Queue()
@@ -339,7 +289,7 @@ def run_multi_team_loop(model: Optional[str] = None):
             # Start new threads if needed
             while len(active_threads) < 3:
                 # Select random team
-                team_name = random.choice(team_type_dirs).replace('team_', '')
+                team_name = random.choice(teams)
                 
                 # Load team configuration
                 team_config = team_service.get_team_config(team_name)
