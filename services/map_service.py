@@ -54,6 +54,17 @@ class MapService(BaseService):
             warnings = []
             total_tokens = 0
 
+            # Get active team from TeamService
+            try:
+                from services import init_services
+                services = init_services(None)
+                team_service = services['team_service']
+                active_team = team_service.get_active_team()
+                active_team_id = active_team.get('id') if active_team else None
+            except Exception as e:
+                self.logger.log(f"Error getting active team: {str(e)}", 'warning')
+                active_team_id = None
+
             # Load ignore patterns from both .gitignore and .aiderignore
             ignore_patterns = [
                 '.aider*',  # Explicitly ignore all .aider files
@@ -62,9 +73,18 @@ class MapService(BaseService):
                 'node_modules/',
                 '.env',
                 '*.pyc',
-                '*.log',
-                'team_*/'  # Add pattern to ignore team_* folders
+                '*.log'
             ]
+
+            # Add pattern to ignore all team folders except active team
+            if active_team_id:
+                # Ignore all team_ folders except the active one
+                for item in os.listdir(os.getcwd()):
+                    if item.startswith('team_') and not item.endswith(active_team_id):
+                        ignore_patterns.append(f"{item}/")
+            else:
+                # If no active team, ignore all team_ folders
+                ignore_patterns.append('team_*/')
         
             # Add patterns from .gitignore and .aiderignore
             for ignore_file in ['.gitignore', '.aiderignore']:
