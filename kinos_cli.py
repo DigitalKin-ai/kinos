@@ -258,6 +258,14 @@ def run_multi_team_loop(model: Optional[str] = None):
     logger = Logger()
     logger.log("🌐 Starting multi-team agent execution", 'debug')
     
+    # Dynamically detect teams in current directory
+    current_dir = os.getcwd()
+    team_dirs = [d.replace('team_', '') for d in os.listdir(current_dir) if d.startswith('team_')]
+    
+    # Ensure default team is available
+    if 'default' not in team_dirs:
+        team_dirs.append('default')
+    
     # Initialize services
     from services import init_services
     services = init_services(None)
@@ -274,13 +282,6 @@ def run_multi_team_loop(model: Optional[str] = None):
     team_service = services['team_service']
     agent_service = services['agent_service']
     
-    # Use PathManager to get team types directory    
-    teams = PathManager.list_teams()
-    
-    # Ensure default team is available
-    if 'default' not in teams:
-        teams.append('default')
-    
     # Create output queue and thread management
     output_queue = queue.Queue()
     active_threads = {}
@@ -294,7 +295,7 @@ def run_multi_team_loop(model: Optional[str] = None):
             # Start new threads if needed
             while len(active_threads) < 3:
                 # Select random team
-                team_name = random.choice(teams)
+                team_name = random.choice(team_dirs)
                 
                 # Important: Set active team before creating agents
                 if not team_service.set_active_team(team_name):
