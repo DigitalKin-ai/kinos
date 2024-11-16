@@ -344,7 +344,7 @@ class AiderAgent(AgentBase):
             
             # Find team containing this agent
             agent_team = None
-            for team_id in teams:  # List of team IDs
+            for team_id in teams:  # teams is a list of strings
                 # Get full team config
                 team_config = team_service.get_team_config(team_id)
                 if not team_config:
