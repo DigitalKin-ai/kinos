@@ -410,9 +410,12 @@ class AiderAgent(AgentBase):
             # Get current prompt
             prompt = PathManager.get_prompt_file(self.name, specific_name)
 
+            # Define history files in current directory
+            chat_history_file = f".kinos.{self.name}.chat.history.md"
+            input_history_file = f".kinos.{self.name}.input.history.md"
+
             # Get chat history
             chat_history = ""
-            chat_history_file = f".kinos.{self.name}.chat.history.md"
             if os.path.exists(chat_history_file):
                 try:
                     with open(chat_history_file, 'r', encoding='utf-8') as f:
@@ -420,9 +423,8 @@ class AiderAgent(AgentBase):
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error reading chat history: {str(e)}", 'warning')
 
-            # Get input history with truncation
+            # Get input history
             input_history = ""
-            input_history_file = f".kinos.{self.name}.input.history.md"
             if os.path.exists(input_history_file):
                 try:
                     with open(input_history_file, 'r', encoding='utf-8') as f:
