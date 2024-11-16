@@ -115,8 +115,20 @@ class AiderAgent(AgentBase):
             # Trouver l'équipe de l'agent
             agent_team = None
             for team in team_service.team_types:
-                if self.name in team.get('agents', []):
-                    agent_team = team['id']
+                # Skip if team is not a dictionary
+                if not isinstance(team, dict):
+                    continue
+                
+                # Check if the agent is in the team's agents
+                agents = team.get('agents', [])
+                for agent in agents:
+                    # Handle both dict and string agent representations
+                    agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
+                    if self.name == agent_name_to_check:
+                        agent_team = team.get('id')
+                        break
+                
+                if agent_team:
                     break
 
             # Définir les noms de fichiers spécifiques si un nom est fourni
