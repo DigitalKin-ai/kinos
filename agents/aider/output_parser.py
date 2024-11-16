@@ -53,6 +53,17 @@ class AiderOutputParser:
             commit_hash = parts[1]
             message = ' '.join(parts[2:])
             
+            # Get team ID from agent name using team service
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            
+            team_id = None
+            for team in team_service.team_types:
+                if self.agent_name in team_service.get_team_agents(team['id']):
+                    team_id = team['id']
+                    break
+            
             # Detect commit type
             commit_type = None
             for known_type in self.COMMIT_ICONS:
@@ -61,9 +72,12 @@ class AiderOutputParser:
                     message = message[len(known_type)+1:].strip()
                     break
                     
-            # Get icon and format message
+            # Get icon and format message with team
             icon = self.COMMIT_ICONS.get(commit_type, '🔨')
-            formatted = f"{icon} {commit_hash}: {message}"
+            team_tag = f"[{team_id}]" if team_id else "[no-team]"
+            
+            # Format final message with team tag first
+            formatted = f"{team_tag} [{self.agent_name}] {icon} {commit_hash}: {message}"
             
             output_lines.append(formatted)
             self.logger.log(formatted, 'info')
