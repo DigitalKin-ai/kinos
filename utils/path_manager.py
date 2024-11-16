@@ -203,9 +203,9 @@ class PathManager:
             print(f"{log_prefix} DEBUG: Team folder: {team_folder}")
 
             # Define search paths in priority order
-        search_paths = []
-        
-        # 1. Current mission team directory
+            search_paths = []
+            
+            # 1. Current mission team directory
         if team_folder:
             mission_team_dir = os.path.join(os.getcwd(), f"team_{team_folder}")
             search_paths.append(mission_team_dir)
