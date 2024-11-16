@@ -166,9 +166,6 @@ class AiderCommandBuilder:
         cmd.extend(self.get_model_args())
         cmd.extend(self.get_file_args(files, self.get_ignore_patterns(os.getcwd())))
         
-        # Use team_types directory
-        team_types_dir = os.path.join(PathManager.get_kinos_root(), "team_types")
-        
         # Get team ID from agent name using team service
         from services import init_services
         services = init_services(None)
@@ -181,8 +178,11 @@ class AiderCommandBuilder:
                 break
         
         if team_id:
-            # Use team_types directory for history files
-            history_path = os.path.join(team_types_dir, team_id)
+            # Use team_teamname/history directory structure
+            history_path = os.path.join('team_' + team_id, 'history')
+            
+            # Create history directory if it doesn't exist
+            os.makedirs(history_path, exist_ok=True)
         else:
             # Fallback to current directory if team not found
             history_path = os.getcwd()
@@ -202,7 +202,7 @@ class AiderCommandBuilder:
         cmd.extend(["--message", f'"{stringified_instructions} ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."'])
         
         if not self.validate_command(cmd):
-            self.logger.log(f"Invalid command configuration for {self.agent_name}", 'error')
+            print(f"DEBUG: Invalid command configuration for {self.agent_name}")
             raise ValueError("Invalid command configuration")
             
         return cmd
