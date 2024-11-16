@@ -61,7 +61,7 @@ class AiderCommandBuilder:
         ]
         
         # Define read-only files
-        readonly_files = ["demande.md", "map.md"]
+        readonly_files = [os.path.join(PathManager.get_team_path(self.team), f"demande.md"), os.path.join(PathManager.get_team_path(self.team), f"map.md")]
         
         # Get agent's prompt file path using team_types directory
         from utils.path_manager import PathManager
@@ -100,7 +100,7 @@ class AiderCommandBuilder:
             args.extend(["--read", prompt_path])
             
         # Add key files that should be editable
-        key_files = ["todolist.md", "directives.md"]
+        key_files = [os.path.join(PathManager.get_team_path(self.team), f"todolist.md"), os.path.join(PathManager.get_team_path(self.team), f"directives.md")]
         for file in key_files:
             args.extend(["--file", file])
             
