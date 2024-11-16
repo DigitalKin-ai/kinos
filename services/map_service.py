@@ -34,34 +34,46 @@ class MapService(BaseService):
     def _initialize_map_file(self) -> None:
         """Initialize map file path based on active team"""
         if self._initialized:
+            self.logger.log("[MapService] Map file already initialized", 'debug')
             return
             
         try:
+            self.logger.log("[MapService] Starting map file initialization...", 'info')
+            
             # Get active team from injected TeamService
             active_team = self.team_service.get_active_team()
             if not active_team:
-                self.logger.log("No active team found", 'warning')
+                self.logger.log("[MapService] ⚠️ No active team found", 'warning')
                 return
 
             team_id = active_team.get('id')
             if not team_id:
-                self.logger.log("No team ID found in active team", 'warning')
+                self.logger.log("[MapService] ⚠️ No team ID found in active team", 'warning')
                 return
+
+            # Log team info
+            self.logger.log(f"[MapService] 🔍 Initializing for team: {team_id}", 'info')
 
             # Construct team directory name
             team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
+            self.logger.log(f"[MapService] 📁 Team directory name: {team_dir}", 'debug')
             
             # Create full team directory path
             team_path = os.path.join(os.getcwd(), team_dir)
+            self.logger.log(f"[MapService] 🛠️ Full team path: {team_path}", 'debug')
             
             # Ensure team directory exists
-            os.makedirs(team_path, exist_ok=True)
+            if not os.path.exists(team_path):
+                self.logger.log(f"[MapService] 📂 Creating team directory: {team_path}", 'info')
+                os.makedirs(team_path, exist_ok=True)
             
             # Set map file path
             self.map_file = os.path.join(team_path, "map.md")
+            self.logger.log(f"[MapService] 📍 Map file path set to: {self.map_file}", 'info')
             
             # Create initial map file if it doesn't exist
             if not os.path.exists(self.map_file):
+                self.logger.log(f"[MapService] ✨ Creating new map file", 'info')
                 initial_content = (
                     "# Project Map (READONLY FILE)\n\n"
                     "Ce document est une carte dynamique du projet qui est automatiquement mise à jour.\n\n"
@@ -71,61 +83,77 @@ class MapService(BaseService):
                 )
                 with open(self.map_file, 'w', encoding='utf-8') as f:
                     f.write(initial_content)
-                self.logger.log(f"Created new map file: {self.map_file}", 'info')
+                self.logger.log(f"[MapService] ✅ Created new map file: {self.map_file}", 'success')
+            else:
+                self.logger.log(f"[MapService] ℹ️ Map file already exists", 'info')
                 
-            self.logger.log(f"Initialized map file path: {self.map_file}", 'debug')
+            self.logger.log("[MapService] ✅ Map file initialization complete", 'success')
             self._initialized = True
             
         except Exception as e:
-            self.logger.log(f"Error initializing map file: {str(e)}", 'error')
+            self.logger.log(f"[MapService] 💥 Error initializing map file: {str(e)}", 'error')
+            self.logger.log(f"[MapService] Stack trace:\n{traceback.format_exc()}", 'debug')
             self._initialized = False
 
     def generate_map(self) -> bool:
         """Generate project map file with enhanced debugging"""
         try:
+            self.logger.log("[MapService] 🚀 Starting map generation...", 'info')
+            
             # Initialize if needed
             if not self._initialized:
+                self.logger.log("[MapService] 🔄 Initializing map file...", 'info')
                 self._initialize_map_file()
                 
             if not self.map_file:
-                self.logger.log("Map file path not initialized", 'error')
+                self.logger.log("[MapService] ❌ Map file path not initialized", 'error')
                 return False
                 
-            self.logger.log("[MapService] Starting map generation", 'debug')
+            self.logger.log(f"[MapService] 📝 Using map file: {self.map_file}", 'debug')
             
             # Get active team from injected TeamService
             active_team = self.team_service.get_active_team()
             if not active_team:
-                self.logger.log("No active team found", 'warning')
+                self.logger.log("[MapService] ⚠️ No active team found", 'warning')
                 return False
                 
             team_id = active_team.get('id')
+            self.logger.log(f"[MapService] 👥 Generating map for team: {team_id}", 'info')
+            
             team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
             
             # Ensure team directory exists
             team_path = os.path.join(os.getcwd(), team_dir)
-            os.makedirs(team_path, exist_ok=True)
-        
+            if not os.path.exists(team_path):
+                self.logger.log(f"[MapService] 📂 Creating team directory: {team_path}", 'info')
+                os.makedirs(team_path, exist_ok=True)
+            
             # Scan directory with team context
+            self.logger.log("[MapService] 🔍 Scanning directory...", 'info')
             tree_content, warnings, total_tokens = self._scan_directory(
                 os.getcwd(),
                 team_id=team_id
             )
-        
-            self.logger.log(f"Scan complete - Total tokens: {total_tokens}", 'debug')
-        
+            
+            self.logger.log(f"[MapService] 📊 Scan complete - {total_tokens} tokens, {len(warnings)} warnings", 'info')
+            
             # Format and write map content
+            self.logger.log("[MapService] 📝 Formatting map content...", 'debug')
             map_content = self._format_map_content(tree_content, warnings)
-        
+            
+            self.logger.log("[MapService] 💾 Writing map file...", 'debug')
             success = self._write_map_file(map_content)
-        
-            self.logger.log(f"Map write result: {success}", 'debug')
-        
+            
+            if success:
+                self.logger.log("[MapService] ✅ Map generation complete", 'success')
+            else:
+                self.logger.log("[MapService] ❌ Map generation failed", 'error')
+            
             return success
-        
+            
         except Exception as e:
-            import traceback
-            self.logger.log(f"Map generation error: {str(e)}\n{traceback.format_exc()}", 'critical')
+            self.logger.log(f"[MapService] 💥 Map generation error: {str(e)}", 'critical')
+            self.logger.log(f"[MapService] Stack trace:\n{traceback.format_exc()}", 'debug')
             return False
 
     def _scan_directory(self, path: str, prefix: str = "", team_id: str = None) -> Tuple[List[str], List[str], int]:
