@@ -361,16 +361,31 @@ class AiderAgent(AgentBase):
                 if agent_team:
                     break
 
-            # Retrieve team ID dynamically
+            # Get team service
             from services import init_services
             services = init_services(None)
-            teams = PathManager.list_teams()
+            team_service = services['team_service']
             
             # Find team containing this agent
             team_id = "default"
-            for team in teams:
-                if self.name in team.get('agents', []):
-                    team_id = team['id']
+            for team in team_service.team_types:
+                # Skip if team is not a dictionary
+                if not isinstance(team, dict):
+                    continue
+                
+                # Get agents list, defaulting to empty list
+                team_agents = team.get('agents', [])
+                
+                # Handle both string and dictionary agent representations
+                for agent in team_agents:
+                    # Normalize agent name
+                    agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
+                    
+                    if self.name == agent_name_to_check:
+                        team_id = team.get('id')
+                        break
+                
+                if team_id != "default":
                     break
             
             # Mise à jour des noms de fichiers clés
