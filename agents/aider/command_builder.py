@@ -23,13 +23,33 @@ class AiderCommandBuilder:
         self.team = None
         # Find team containing this agent
         for team in team_service.team_types:
-            if self.agent_name in team_service.get_team_agents(team['id']):
-                self.team = team['id']
+            # Skip if team is not a dictionary
+            if not isinstance(team, dict):
+                continue
+                
+            # Get agents list, defaulting to empty list
+            team_agents = team.get('agents', [])
+            
+            # Handle both string and dictionary agent representations
+            for agent in team_agents:
+                # Normalize agent name
+                agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
+                
+                if self.agent_name == agent_name_to_check:
+                    self.team = team.get('id')
+                    break
+                    
+            if self.team:
                 break
                 
         if not self.team:
             # Default to 'default' team if no team found
             self.team = 'default'
+            
+        # Log team assignment
+        from utils.logger import Logger
+        logger = Logger()
+        logger.log(f"[{self.agent_name}] Assigned to team: {self.team}", 'debug')
 
     def get_model_args(self) -> List[str]:
         """Get model-specific command arguments"""
