@@ -67,13 +67,13 @@ class AiderAgent(AgentBase):
                 # Get active team or find team containing this agent
                 active_team = team_service.get_active_team()
                 if not active_team:
-                    for team in team_service.predefined_teams:
+                    for team in team_service.team_types:
                         if self.name in team_service.get_team_agents(team['id']):
                             active_team = team
                             break
                 
                 if active_team:
-                    self.prompt_file = PathManager.get_prompt_file(self.name)
+                    self.prompt_file = PathManager.get_prompt_file(self.name, active_team)
                     self.logger.log(f"Using team prompt file: {self.prompt_file}", 'info')
                 else:
                     raise ValueError(f"Could not find team for agent {self.name}")
@@ -114,7 +114,7 @@ class AiderAgent(AgentBase):
             
             # Trouver l'équipe de l'agent
             agent_team = None
-            for team in team_service.predefined_teams:
+            for team in team_service.team_types:
                 if self.name in team.get('agents', []):
                     agent_team = team['id']
                     break
@@ -325,7 +325,7 @@ class AiderAgent(AgentBase):
             team_service = services['team_service']
             
             agent_team = None
-            for team in team_service.predefined_teams:
+            for team in team_service.team_types:
                 if self.name in team.get('agents', []):
                     agent_team = team['id']
                     break
@@ -333,11 +333,11 @@ class AiderAgent(AgentBase):
             # Retrieve team ID dynamically
             from services import init_services
             services = init_services(None)
-            team_service = services['team_service']
+            teams = PathManager.list_teams()
             
             # Find team containing this agent
-            team_id = None
-            for team in team_service.predefined_teams:
+            team_id = "default"
+            for team in teams:
                 if self.name in team.get('agents', []):
                     team_id = team['id']
                     break
@@ -372,7 +372,7 @@ class AiderAgent(AgentBase):
                         self.logger.log(f"[{self.name}] Error creating {filename}: {str(e)}", 'warning')
 
             # Get current prompt
-            prompt = PathManager.get_prompt_file(self.name)
+            prompt = PathManager.get_prompt_file(self.name, specific_name)
 
             # Get chat history
             chat_history = ""

@@ -187,15 +187,15 @@ class PathManager:
                 team_service = services['team_service']
                 
                 # Get list of predefined teams
-                predefined_teams = team_service.predefined_teams
+                team_types = team_service.team_types
                 
-                if not predefined_teams:
+                if not team_types:
                     print("[unknown_team] ERROR: No teams found")
                     return None
                 
                 # Select a random team
                 import random
-                random_team = random.choice(predefined_teams)
+                random_team = random.choice(team_types)
                 
                 team_id = random_team.get('id')
                 team_name = random_team.get('name', 'random_team')
