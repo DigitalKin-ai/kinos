@@ -389,8 +389,9 @@ class AiderAgent(AgentBase):
             prompt = PathManager.get_prompt_file(self.name, specific_name)
 
             # Define history files in current directory
-            chat_history_file = os.path.join(base_dir, "history", f".kinos.{self.name}.chat.history.md")
-            input_history_file = os.path.join(base_dir, "history", f".kinos.{self.name}.input.history.md")
+            history_dir = os.path.join(os.getcwd(), "history")
+            chat_history_file = os.path.join(history_dir, f".kinos.{self.name}.chat.history.md")
+            input_history_file = os.path.join(history_dir, f".kinos.{self.name}.input.history.md")
 
             # Get chat history
             chat_history = ""
