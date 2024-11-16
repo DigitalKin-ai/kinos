@@ -227,50 +227,50 @@ class PathManager:
             search_paths.append(team_types_dir)
             print(f"{log_prefix} DEBUG: Checking root dir: {team_types_dir}")
 
-        # Normalize agent name for matching
-        normalized_agent_name = agent_name.lower()
+            # Normalize agent name for matching
+            normalized_agent_name = agent_name.lower()
 
-        # Define prompt filename options
-        prompt_filename_options = [
-            f"{normalized_agent_name}.md",
-            f"{agent_name}.md"  # Also try original case
-        ]
-
-        # Search through paths
-        matched_paths = []
-        for search_dir in search_paths:
-            if not os.path.exists(search_dir):
-                print(f"{log_prefix} DEBUG: Directory does not exist: {search_dir}")
-                continue
-                
-            try:
-                # Search through all subdirectories
-                for root, _, files in os.walk(search_dir):
-                    for filename in prompt_filename_options:
-                        prompt_path = os.path.join(root, filename)
-                        if os.path.exists(prompt_path):
-                            print(f"{log_prefix} DEBUG: Found prompt file: {prompt_path}")
-                            matched_paths.append(prompt_path)
-                        else:
-                            print(f"{log_prefix} DEBUG: Prompt file not found at: {prompt_path}")
-            except Exception as search_error:
-                print(f"{log_prefix} ERROR: Error searching directory {search_dir}: {str(search_error)}")
-
-        # Select best match
-        if matched_paths:
-            # Prioritize exact matches
-            exact_match_paths = [
-                path for path in matched_paths 
-                if os.path.splitext(os.path.basename(path))[0].lower() == normalized_agent_name
+            # Define prompt filename options
+            prompt_filename_options = [
+                f"{normalized_agent_name}.md",
+                f"{agent_name}.md"  # Also try original case
             ]
-            
-            selected_path = exact_match_paths[0] if exact_match_paths else matched_paths[0]
-            print(f"{log_prefix} DEBUG: Selected prompt file: {selected_path}")
-            return selected_path
 
-        print(f"{log_prefix} WARNING: No prompt file found for agent {agent_name}")
-        return None
-        
+            # Search through paths
+            matched_paths = []
+            for search_dir in search_paths:
+                if not os.path.exists(search_dir):
+                    print(f"{log_prefix} DEBUG: Directory does not exist: {search_dir}")
+                    continue
+                    
+                try:
+                    # Search through all subdirectories
+                    for root, _, files in os.walk(search_dir):
+                        for filename in prompt_filename_options:
+                            prompt_path = os.path.join(root, filename)
+                            if os.path.exists(prompt_path):
+                                print(f"{log_prefix} DEBUG: Found prompt file: {prompt_path}")
+                                matched_paths.append(prompt_path)
+                            else:
+                                print(f"{log_prefix} DEBUG: Prompt file not found at: {prompt_path}")
+                except Exception as search_error:
+                    print(f"{log_prefix} ERROR: Error searching directory {search_dir}: {str(search_error)}")
+
+            # Select best match
+            if matched_paths:
+                # Prioritize exact matches
+                exact_match_paths = [
+                    path for path in matched_paths 
+                    if os.path.splitext(os.path.basename(path))[0].lower() == normalized_agent_name
+                ]
+                
+                selected_path = exact_match_paths[0] if exact_match_paths else matched_paths[0]
+                print(f"{log_prefix} DEBUG: Selected prompt file: {selected_path}")
+                return selected_path
+
+            print(f"{log_prefix} WARNING: No prompt file found for agent {agent_name}")
+            return None
+            
         except Exception as e:
             print(f"{log_prefix} CRITICAL ERROR in get_prompt_file: {str(e)}")
             return None
