@@ -168,22 +168,16 @@ class TeamService(BaseService):
     def set_active_team(self, name: str) -> bool:
         """Set the active team configuration"""
         try:
-            # Normalize team name by removing 'team_' prefix if present
-            normalized_name = name.replace('team_', '')
-            
-            # Get team config
-            team_config = self.get_team_config(normalized_name)
+            # Get team config using new lookup method
+            team_config = self.get_team_by_name(name)
             if not team_config:
-                # Try to generate default config if none exists
-                team_config = self._generate_default_config(normalized_name)
-                if not team_config:
-                    raise ServiceError(f"Team not found and couldn't create default: {normalized_name}")
+                raise ServiceError(f"Team not found and couldn't create default: {name}")
             
             # Store active team
             self.active_team = team_config
             
             # Create team directory if it doesn't exist
-            team_dir = os.path.join(os.getcwd(), f"team_{normalized_name}")
+            team_dir = os.path.join(os.getcwd(), f"team_{name}")
             os.makedirs(team_dir, exist_ok=True)
             
             # Create history directory for team
@@ -194,7 +188,7 @@ class TeamService(BaseService):
             for subdir in ['chat', 'input', 'output', 'agents']:
                 os.makedirs(os.path.join(history_dir, subdir), exist_ok=True)
             
-            self.logger.log(f"Active team set to: {normalized_name} ({team_config.get('display_name', normalized_name)})", 'success')
+            self.logger.log(f"Active team set to: {name} ({team_config.get('display_name', name)})", 'success')
             return True
             
         except Exception as e:
@@ -230,7 +224,10 @@ class TeamService(BaseService):
         """Get list of agent names for a team"""
         try:
             # Use active team if no name provided
-            config = self.get_team_config(team_name) if team_name else self.active_team
+            if team_name:
+                config = self.get_team_by_name(team_name)
+            else:
+                config = self.active_team
         
             if not config:
                 self.logger.log(f"No configuration found for team: {team_name}", 'warning')
@@ -373,6 +370,48 @@ class TeamService(BaseService):
             
         except Exception as e:
             self.logger.log(f"Error getting agent prompt path: {str(e)}", 'error')
+            return None
+
+    def get_team_by_name(self, team_name: str) -> Optional[Dict[str, Any]]:
+        """
+        Get team configuration by name
+        
+        Args:
+            team_name: Name of the team to find
+            
+        Returns:
+            Optional[Dict[str, Any]]: Team configuration or None if not found
+        """
+        try:
+            # Normalize team name by removing 'team_' prefix if present
+            normalized_name = team_name.replace('team_', '')
+            
+            # First check if this is the active team
+            if self.active_team and self.active_team.get('name') == normalized_name:
+                return self.active_team
+                
+            # Look through team configurations
+            for team in self.team_types:
+                if team.get('name') == normalized_name:
+                    return team
+                    
+            # If not found, try to load from filesystem
+            team_dir = os.path.join(os.getcwd(), f"team_{normalized_name}")
+            if os.path.exists(team_dir):
+                config_path = os.path.join(team_dir, "config.json")
+                if os.path.exists(config_path):
+                    try:
+                        with open(config_path, 'r', encoding='utf-8') as f:
+                            config = json.load(f)
+                        return config
+                    except Exception as e:
+                        self.logger.log(f"Error loading team config: {str(e)}", 'error')
+                        
+            # If still not found, try to generate default config
+            return self._generate_default_config(normalized_name)
+            
+        except Exception as e:
+            self.logger.log(f"Error getting team by name: {str(e)}", 'error')
             return None
 
     def cleanup(self):
