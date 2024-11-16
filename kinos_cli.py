@@ -122,14 +122,16 @@ def initialize_team_structure(team_name: str, specific_name: str = None):
     """
     logger = Logger()
     
-    # Créer la structure de base de l'équipe
-    team_dir = os.path.join('team_types', f'team_{team_name}')
-    subdirs = ['history', 'prompts', 'map']
+    # Create team directory with "team_" prefix if not already present
+    team_dir_name = f"team_{team_name}" if not team_name.startswith("team_") else team_name
+    team_dir = os.path.join(os.getcwd(), team_dir_name)  # Use absolute path in current directory
     
+    # Create team subdirectories
+    subdirs = ['history', 'prompts', 'map']
     for subdir in subdirs:
         os.makedirs(os.path.join(team_dir, subdir), exist_ok=True)
     
-    # Fichiers par défaut
+    # Default files with their content - now in team directory
     default_files = {
         'map.md': '# Project Map\n\n## Overview\n',
         'todolist.md': '# Todo List\n\n## Pending Tasks\n',
@@ -137,16 +139,16 @@ def initialize_team_structure(team_name: str, specific_name: str = None):
         'directives.md': '# Project Directives\n\n## Guidelines\n'
     }
     
-    # Créer les fichiers de base de l'équipe
+    # Create default files in team directory
     for filename, content in default_files.items():
         file_path = os.path.join(team_dir, filename)
         
         if not os.path.exists(file_path):
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(content)
-            logger.log(f"Created {filename}", 'info')
+            logger.log(f"Created {filename} in {team_dir_name}", 'info')
     
-    # Créer le fichier .gitignore
+    # Create .gitignore in team directory
     gitignore_path = os.path.join(team_dir, '.gitignore')
     gitignore_content = """# Ignore Aider and KinOS history files
 .aider*
@@ -155,12 +157,9 @@ def initialize_team_structure(team_name: str, specific_name: str = None):
     
     with open(gitignore_path, 'w', encoding='utf-8') as f:
         f.write(gitignore_content)
-    logger.log("Created .gitignore", 'info')
+    logger.log(f"Created .gitignore in {team_dir_name}", 'info')
     
-    # Déterminer le chemin racine du projet
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    
-    # Créer le fichier de configuration .kinos.config.json
+    # Create team config file
     config_path = os.path.join(team_dir, 'config.json')
     
     # Configuration par défaut
@@ -168,18 +167,18 @@ def initialize_team_structure(team_name: str, specific_name: str = None):
         "name": team_name,
         "type": "book_writing",
         "paths": {
-            "prompts": os.path.join(project_root, "teams", "prompts"),
+            "prompts": os.path.join(team_dir, "prompts"),
             "history": os.path.join(team_dir, "history"),
             "map": os.path.join(team_dir, "map")
         },
         "created_at": datetime.now().isoformat()
     }
     
-    # Écrire le fichier de configuration
+    # Write config file
     with open(config_path, 'w', encoding='utf-8') as f:
         json.dump(kinos_config, f, indent=2)
     
-    logger.log(f"Created .kinos.config.json for team {team_name}", 'info')
+    logger.log(f"Created config.json in {team_dir_name}", 'info')
 
 def run_team_loop(team_name: str, specific_name: str = None):
     """Main team execution loop"""
