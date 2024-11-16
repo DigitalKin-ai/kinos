@@ -197,12 +197,12 @@ class PathManager:
             # Normalize team folder name
             team_folder = str(team_id).replace('team_', '')
 
-        # Use consistent logging format
-        log_prefix = f"[{team_name}]"
-        print(f"{log_prefix} DEBUG: Searching for prompt file for agent: {agent_name}")
-        print(f"{log_prefix} DEBUG: Team folder: {team_folder}")
+            # Use consistent logging format
+            log_prefix = f"[{team_name}]"
+            print(f"{log_prefix} DEBUG: Searching for prompt file for agent: {agent_name}")
+            print(f"{log_prefix} DEBUG: Team folder: {team_folder}")
 
-        # Define search paths in priority order
+            # Define search paths in priority order
         search_paths = []
         
         # 1. Current mission team directory
