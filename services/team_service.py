@@ -13,9 +13,9 @@ class TeamService(BaseService):
         """Initialize with minimal dependencies"""
         super().__init__(_)
         self.active_team = None
-        self.predefined_teams = self._load_predefined_teams()
+        self.team_types = self._load_team_types()
 
-    def _load_predefined_teams(self) -> List[Dict[str, Any]]:
+    def _load_team_types(self) -> List[Dict[str, Any]]:
         """Load predefined team configurations"""
         try:
             teams = []
@@ -70,7 +70,7 @@ class TeamService(BaseService):
             # Normalize team_id for comparison
             normalized_team_id = team_id.lower().replace('team_', '').replace('-', '_')
             
-            for team in self.predefined_teams:
+            for team in self.team_types:
                 # Normalize team's ID for comparison
                 team_config_id = str(team.get('id', '')).lower().replace('team_', '').replace('-', '_')
                 
@@ -153,43 +153,6 @@ class TeamService(BaseService):
             
         except Exception as e:
             return False, str(e)
-
-    def get_team_metrics(self, team_id: Optional[str] = None) -> Dict[str, Any]:
-        """Get metrics for a team"""
-        try:
-            # Use active team if no ID provided
-            config = self.get_team_config(team_id) if team_id else self.active_team
-            
-            if not config:
-                return {}
-                
-            # Get agent service
-            from services import init_services
-            services = init_services(None)
-            agent_service = services['agent_service']
-            
-            # Collect metrics
-            metrics = {
-                'total_agents': len(config['agents']),
-                'active_agents': 0,
-                'healthy_agents': 0,
-                'error_count': 0
-            }
-            
-            # Get status for each agent
-            for agent_name in self.get_team_agents(team_id):
-                status = agent_service.get_agent_status(agent_name)
-                if status['running']:
-                    metrics['active_agents'] += 1
-                if status['health']['is_healthy']:
-                    metrics['healthy_agents'] += 1
-                metrics['error_count'] += getattr(status, 'error_count', 0)
-                
-            return metrics
-            
-        except Exception as e:
-            self.logger.log(f"Error getting team metrics: {str(e)}", 'error')
-            return {}
 
     def load_team_prompts(self, team_id: str) -> Dict[str, str]:
         """Load all prompt files for a team"""
@@ -289,6 +252,6 @@ class TeamService(BaseService):
         """Cleanup team service resources"""
         try:
             self.active_team = None
-            self.predefined_teams.clear()
+            self.team_types.clear()
         except Exception as e:
             self.logger.log(f"Error cleaning up team service: {str(e)}", 'error')
