@@ -17,20 +17,26 @@ class AiderCommandBuilder:
         
         # Get team ID from agent name using team service
         from services import init_services
+        from utils.logger import Logger
         services = init_services(None)
         team_service = services['team_service']
+        self.logger = Logger()
         
-        self.team = None
-        # Find team containing this agent
+        # Get active team first
+        active_team = team_service.get_active_team()
+        if active_team and isinstance(active_team, dict):
+            self.team = active_team.get('id')
+            self.logger.log(f"[{self.agent_name}] Using active team: {active_team.get('name', self.team)}", 'debug')
+            return
+
+        # If no active team, find team containing this agent
         for team in team_service.team_types:
             # Skip if team is not a dictionary
             if not isinstance(team, dict):
                 continue
                 
-            # Get agents list, defaulting to empty list
+            # Get agents list, handling both string and dict formats
             team_agents = team.get('agents', [])
-            
-            # Handle both string and dictionary agent representations
             for agent in team_agents:
                 # Normalize agent name
                 agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
@@ -38,19 +44,15 @@ class AiderCommandBuilder:
                 if self.agent_name == agent_name_to_check:
                     self.team = team.get('id')
                     # Log team assignment with more details
-                    from utils.logger import Logger
-                    logger = Logger()
-                    logger.log(f"[{self.agent_name}] Found in team {team.get('name', 'Unknown')} (id: {team.get('id')})", 'debug')
-                    break
+                    self.logger.log(
+                        f"[{self.agent_name}] Found in team {team.get('name', 'Unknown')} (id: {team.get('id')})", 
+                        'info'
+                    )
+                    return
                     
-            if self.team:
-                break
-                
-        if not self.team:
-            # Log warning when defaulting
-            from utils.logger import Logger
-            logger = Logger()
-            logger.log(f"[{self.agent_name}] No team found, defaulting to 'default'", 'warning')
+        # Only default to 'default' if absolutely no team is found
+        if not hasattr(self, 'team') or not self.team:
+            self.logger.log(f"[{self.agent_name}] ⚠️ No team found, defaulting to 'default'", 'warning')
             self.team = 'default'
 
     def get_model_args(self) -> List[str]:
