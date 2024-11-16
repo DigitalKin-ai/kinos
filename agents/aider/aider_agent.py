@@ -349,22 +349,22 @@ class AiderAgent(AgentBase):
                 self.logger.log(f"Error getting active team: {str(e)}", 'warning')
                 team_id = teams[0] if teams else None
 
-            # Create team directory path
-            team_dir = f"team_{team_id}" if team_id else None
+            # Create team directory path with "team_" prefix if not present
+            team_dir = f"team_{team_id}" if team_id and not team_id.startswith('team_') else team_id
 
-            # Mise à jour des noms de fichiers clés avec le chemin complet de l'équipe
+            # Ensure absolute paths for key files in team directory
             if team_dir:
                 key_files = {
-                    os.path.join(team_dir, "map.md"): 
+                    os.path.join(os.getcwd(), team_dir, "map.md"): 
                     "# Project Map\n\n## Overview\n\n## Key Components\n",
                     
-                    os.path.join(team_dir, "todolist.md"): 
+                    os.path.join(os.getcwd(), team_dir, "todolist.md"): 
                     "# Project Todo List\n\n## Pending Tasks\n\n## Completed Tasks\n",
                     
-                    os.path.join(team_dir, "demande.md"): 
+                    os.path.join(os.getcwd(), team_dir, "demande.md"): 
                     "# Mission Request\n\n## Objective\n\n## Scope\n\n## Requirements\n",
                     
-                    os.path.join(team_dir, "directives.md"): 
+                    os.path.join(os.getcwd(), team_dir, "directives.md"): 
                     "# Project Directives\n\n## Guidelines\n\n## Constraints\n"
                 }
 
