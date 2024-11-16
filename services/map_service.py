@@ -156,6 +156,12 @@ class MapService(BaseService):
     def _scan_directory(self, path: str, prefix: str = "", team_id: str = None) -> Tuple[List[str], List[str], int]:
         """Scan directory recursively with team context"""
         try:
+            # Dynamically detect current team if not provided
+            if not team_id:
+                current_dir = os.getcwd()
+                team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
+                team_id = team_dirs[0][5:] if team_dirs else 'default'
+
             tree_lines = []
             warnings = []
             total_tokens = 0
@@ -172,14 +178,10 @@ class MapService(BaseService):
             ]
 
             # Add pattern to ignore other team folders
-            if team_id:
-                team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
-                for item in os.listdir(os.getcwd()):
-                    if item.startswith('team_') and item != team_dir:
-                        ignore_patterns.append(f"{item}/")
-            else:
-                # If no team_id, ignore all team_ folders
-                ignore_patterns.append('team_*/')
+            team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
+            for item in os.listdir(os.getcwd()):
+                if item.startswith('team_') and item != team_dir:
+                    ignore_patterns.append(f"{item}/")
         
             # Add patterns from .gitignore and .aiderignore
             for ignore_file in ['.gitignore', '.aiderignore']:
