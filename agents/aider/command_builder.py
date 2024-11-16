@@ -14,6 +14,22 @@ class AiderCommandBuilder:
     def __init__(self, agent_name: str):
         """Initialize with agent name"""
         self.agent_name = agent_name
+        
+        # Get team ID from agent name using team service
+        from services import init_services
+        services = init_services(None)
+        team_service = services['team_service']
+        
+        self.team = None
+        # Find team containing this agent
+        for team in team_service.team_types:
+            if self.agent_name in team_service.get_team_agents(team['id']):
+                self.team = team['id']
+                break
+                
+        if not self.team:
+            # Default to 'default' team if no team found
+            self.team = 'default'
 
     def get_model_args(self) -> List[str]:
         """Get model-specific command arguments"""
@@ -166,27 +182,12 @@ class AiderCommandBuilder:
         cmd.extend(self.get_model_args())
         cmd.extend(self.get_file_args(files, self.get_ignore_patterns(os.getcwd())))
         
-        # Get team ID from agent name using team service
-        from services import init_services
-        services = init_services(None)
-        team_service = services['team_service']
+        # Use team_teamname/history directory structure
+        history_path = os.path.join('team_' + self.team, 'history')
         
-        team_id = None
-        for team in team_service.team_types:
-            if self.agent_name in team_service.get_team_agents(team['id']):
-                team_id = team['id']
-                break
+        # Create history directory if it doesn't exist
+        os.makedirs(history_path, exist_ok=True)
         
-        if team_id:
-            # Use team_teamname/history directory structure
-            history_path = os.path.join('team_' + team_id, 'history')
-            
-            # Create history directory if it doesn't exist
-            os.makedirs(history_path, exist_ok=True)
-        else:
-            # Fallback to current directory if team not found
-            history_path = os.getcwd()
-            
         # Use the correct paths for history files
         cmd.extend([
             "--chat-history-file", 
