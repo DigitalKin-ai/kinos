@@ -25,10 +25,11 @@ class MapService(BaseService):
         self.anthropic = Anthropic()
         
         # Initialize map_file with default value
-        self.map_file = "map.md"  # Default value
-        
-        # Defer team-based initialization to first use
+        self.map_file = None  # Start with None
         self._initialized = False
+        
+        # Try initial map file setup
+        self._ensure_map_file_path()
 
     def _initialize_map_file(self) -> None:
         """Initialize map file path based on active team"""
@@ -371,27 +372,41 @@ class MapService(BaseService):
     def _ensure_map_file_path(self) -> bool:
         """Ensure map file path is properly set"""
         try:
-            if not self.map_file or not os.path.dirname(self.map_file):
-                from services import init_services
-                services = init_services(None)
-                team_service = services['team_service']
-                active_team = team_service.get_active_team()
+            if self.map_file and os.path.exists(os.path.dirname(self.map_file)):
+                return True
                 
-                if active_team:
-                    team_id = active_team.get('id')
-                    team_path = PathManager.get_team_path(team_id)
-                    if team_path:
-                        self.map_file = os.path.join(team_path, "map.md")
-                        self.logger.log(f"Reset map file path to: {self.map_file}", 'debug')
-                        return True
-                
-                self.logger.log("Could not determine team path for map file", 'warning')
+            # Get active team from team service
+            active_team = self.team_service.get_active_team()
+            if not active_team:
+                self.logger.log("No active team found for map file path", 'warning')
+                self.map_file = "map.md"  # Fallback to default
                 return False
                 
+            team_id = active_team.get('id')
+            if not team_id:
+                self.logger.log("No team ID found", 'warning')
+                self.map_file = "map.md"  # Fallback to default
+                return False
+                
+            # Get team path using PathManager
+            team_path = PathManager.get_team_path(team_id)
+            if not team_path:
+                self.logger.log(f"Could not get team path for {team_id}", 'warning')
+                self.map_file = "map.md"  # Fallback to default
+                return False
+                
+            # Set map file path in team directory
+            self.map_file = os.path.join(team_path, "map.md")
+            
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(self.map_file), exist_ok=True)
+            
+            self.logger.log(f"Map file path set to: {self.map_file}", 'debug')
             return True
             
         except Exception as e:
             self.logger.log(f"Error ensuring map file path: {str(e)}", 'error')
+            self.map_file = "map.md"  # Fallback to default
             return False
 
     def _ensure_map_file_writeable(self) -> bool:
@@ -431,9 +446,8 @@ class MapService(BaseService):
             return False
 
     def update_map(self) -> bool:
-        """Update map after file changes with comprehensive logging"""
+        """Update map after file changes"""
         try:
-            self._initialize_map_file()  # Initialize if needed
             # Ensure map file path is set
             if not self._ensure_map_file_path():
                 self.logger.log("Could not determine map file path", 'error')
@@ -441,7 +455,6 @@ class MapService(BaseService):
                 
             # Ensure map file is writable
             if not self._ensure_map_file_writeable():
-                self.logger.log("Could not make map file writable", 'error')
                 return False
                 
             # Generate new map
@@ -451,7 +464,7 @@ class MapService(BaseService):
             self.logger.log(f"Error updating map: {str(e)}", 'error')
             return False
             
-            # Validate mission directory
+        # Validate mission directory
             mission_dir = os.getcwd()
             if not os.path.exists(mission_dir):
                 self.logger.log(f"Mission directory not found: {mission_dir}", 'error')
