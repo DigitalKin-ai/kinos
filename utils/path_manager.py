@@ -163,17 +163,7 @@ class PathManager:
 
     @classmethod
     def get_prompt_file(cls, agent_name: str, team_id: Optional[Union[str, Dict[str, Any]]] = None, team_name: Optional[str] = None) -> Optional[str]:
-        """
-        Get prompt file path for an agent with comprehensive logging and error handling
-        
-        Args:
-            agent_name: Name of the agent
-            team_id: Optional team ID to narrow search (can be string or dict)
-            team_name: Optional team name for logging context
-        
-        Returns:
-            str: Path to the prompt file, or None if not found
-        """
+        """Get prompt file path for an agent"""
         try:
             # Get team service to find the team if not provided
             if not team_id:
@@ -185,7 +175,9 @@ class PathManager:
                 active_team = team_service.get_active_team()
                 if active_team and isinstance(active_team, dict):
                     team_id = active_team.get('id')
-                    team_name = active_team.get('name')
+                    team_name = active_team.get('name', team_id)
+                    print(f"[{team_name}] DEBUG: Searching for prompt file for agent: {agent_name}")
+                    print(f"[{team_name}] DEBUG: Team folder: {team_id}")
                 else:
                     # Find team containing this agent
                     for team in team_service.team_types:
@@ -195,7 +187,8 @@ class PathManager:
                                 agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
                                 if agent_name == agent_name_to_check:
                                     team_id = team.get('id')
-                                    team_name = team.get('name')
+                                    team_name = team.get('name', team_id)
+                                    print(f"[{team_name}] DEBUG: Found agent in team: {team_name}")
                                     break
                             if team_id:
                                 break
@@ -207,11 +200,11 @@ class PathManager:
                 team_folder = team_id.get('id', '').replace('team_', '')
             elif team_id:
                 team_folder = str(team_id).replace('team_', '')
-                
-            # Get logging context using team name
-            log_context = f"[{team_name or team_folder or 'unknown_team'}]"
-            print(f"{log_context} DEBUG: Searching for prompt file for agent: {agent_name}")
-            print(f"{log_context} DEBUG: Team folder: {team_folder}")
+
+            # Use consistent logging format
+            log_prefix = f"[{team_name or 'Unknown Team'}]"
+            print(f"{log_prefix} DEBUG: Searching for prompt file for agent: {agent_name}")
+            print(f"{log_prefix} DEBUG: Team folder: {team_folder}")
 
             # Define search paths in priority order
             search_paths = []
