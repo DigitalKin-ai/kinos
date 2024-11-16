@@ -429,6 +429,11 @@ class AiderAgent(AgentBase):
                         input_history = self._truncate_history(f.read())
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error reading input history: {str(e)}", 'warning')
+                try:
+                    with open(input_history_file, 'r', encoding='utf-8') as f:
+                        input_history = self._truncate_history(f.read())
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error reading input history: {str(e)}", 'warning')
 
             # Get files context - limit to 10 random files plus key files
             files_context = {}
