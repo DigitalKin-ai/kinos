@@ -256,11 +256,15 @@ class TeamService(BaseService):
     def validate_team_config(self, config: Dict[str, Any]) -> Tuple[bool, Optional[str]]:
         """Validate team configuration format"""
         try:
-            # Check required fields
-            required = ['name', 'display_name', 'agents']
+            # Check required fields - display_name is optional
+            required = ['name', 'agents']
             missing = [f for f in required if f not in config]
             if missing:
                 return False, f"Missing required fields: {', '.join(missing)}"
+            
+            # Set display_name to name if not provided
+            if 'display_name' not in config:
+                config['display_name'] = config['name']
                 
             # Validate agents
             if not config['agents']:
