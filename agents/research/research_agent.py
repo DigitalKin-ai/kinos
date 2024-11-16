@@ -149,7 +149,8 @@ Give some context explanation.
                 self.logger.log(f"[{self.name}] Perplexity response: {results['response']}", 'info')
                 
                 # Save to chat history
-                chat_history_file = os.path.join(self.team, "history", f".kinos.{self.name}.chat.history.md")
+                from utils.path_manager import PathManager
+                chat_history_file = PathManager.get_chat_history_path(team_id=self.team, agent_name=self.name)
                 try:
                     with open(chat_history_file, 'a', encoding='utf-8') as f:
                         f.write(f"\n\n--- {datetime.now().isoformat()} ---\n")
