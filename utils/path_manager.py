@@ -191,18 +191,18 @@ class PathManager:
             return None
 
     @classmethod
-    def get_prompt_path(cls, agent_name: str, team_id: Optional[str] = None) -> Optional[str]:
+    def get_prompt_path(cls, agent_name: str, team_name: Optional[str] = None) -> Optional[str]:
         """
         Get prompt file path for an agent
         
         Args:
             agent_name: Name of the agent
-            team_id: Optional team ID to narrow search
+            team_name: Optional team name to narrow search
         
         Returns:
             str: Path to the prompt file, or None if not found
         """
-        return cls.get_prompt_file(agent_name, team_id)
+        return cls.get_prompt_file(agent_name, team_name)
 
     @classmethod
     def get_team_path(cls, name: Optional[str] = None) -> str:

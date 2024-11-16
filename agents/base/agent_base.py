@@ -149,7 +149,7 @@ class AgentBase(ABC):
             agent_team = None
             for team in team_service.team_types:
                 if self.name in team.get('agents', []):
-                    agent_team = team['id']
+                    agent_team = team['name']  # Use team name instead of id
                     break
             
             if not agent_team:
