@@ -45,51 +45,62 @@ class AgentRunner(threading.Thread):
     def run(self):
         while self.running:
             try:
-                # Sélectionner un nouvel agent aléatoirement à chaque itération
+                # Select random agent
                 self.agent_name = random.choice(self.team_agents)
                 
                 self.logger.log(f"Selected agent for execution: {self.agent_name}", 'debug')
-
-                # Log start of agent execution
-                self.logger.log(f"Starting agent execution: {self.agent_name}", 'debug')
-                
-                # Capture start time
                 start_time = datetime.now()
             
                 # Initialize agent
                 agent = self.agent_service.create_agent(self.agent_name)
                 if not agent:
                     self.logger.log(f"Failed to create agent: {self.agent_name}", 'error')
+                    time.sleep(5)  # Wait before retrying
                     continue
                     
-                self.logger.log(f"Agent {self.agent_name} created successfully", 'debug')
-                
                 # Start agent
                 try:
                     agent.start()
-                    self.logger.log(f"Agent {self.agent_name} started", 'debug')
-                except Exception as start_error:
-                    self.logger.log(f"Error starting agent {self.agent_name}: {str(start_error)}", 'error')
-                    continue
+                    
+                    # Run agent's main loop with timeout
+                    max_runtime = 300  # 5 minutes max runtime
+                    start = time.time()
+                    
+                    while time.time() - start < max_runtime:
+                        if not agent.running:
+                            break
+                            
+                        try:
+                            agent.run()  # Single iteration
+                            time.sleep(agent.calculate_dynamic_interval())  # Use dynamic interval
+                        except Exception as run_error:
+                            self.logger.log(f"Error in agent run: {str(run_error)}", 'error')
+                            break
+                            
+                    duration = (datetime.now() - start_time).total_seconds()
+                    
+                    # Put completion message in queue
+                    self.output_queue.put({
+                        'thread_id': threading.get_ident(),
+                        'agent_name': self.agent_name,
+                        'status': 'completed',
+                        'duration': duration,
+                        'timestamp': datetime.now().isoformat()
+                    })
+                    
+                except Exception as agent_error:
+                    self.logger.log(f"Agent execution error: {str(agent_error)}", 'error')
+                    
+                finally:
+                    # Ensure cleanup
+                    try:
+                        agent.cleanup()
+                    except:
+                        pass
+                        
+                # Wait before starting next agent
+                time.sleep(random.uniform(10, 30))
                 
-                # Run agent's main loop
-                try:
-                    agent.run()
-                except Exception as run_error:
-                    self.logger.log(f"Error in agent {self.agent_name} run loop: {str(run_error)}", 'error')
-                
-                # Calculate duration
-                duration = (datetime.now() - start_time).total_seconds()
-            
-                # Put completion message in queue
-                self.output_queue.put({
-                    'thread_id': threading.get_ident(),
-                    'agent_name': self.agent_name,
-                    'status': 'completed',
-                    'duration': duration,
-                    'timestamp': datetime.now().isoformat()
-                })
-            
             except Exception as e:
                 self.output_queue.put({
                     'thread_id': threading.get_ident(),
@@ -99,14 +110,7 @@ class AgentRunner(threading.Thread):
                     'traceback': traceback.format_exc(),
                     'timestamp': datetime.now().isoformat()
                 })
-            
-                # Log detailed error
-                self.logger.log(
-                    f"Agent runner error for {self.agent_name}:\n{traceback.format_exc()}",
-                    'error'
-                )
-            
-                time.sleep(5)  # Brief pause on error
+                time.sleep(5)
 
 def initialize_team_structure(team_name: str, specific_name: str = None):
     """
