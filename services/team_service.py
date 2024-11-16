@@ -122,18 +122,18 @@ class TeamService(BaseService):
             }
             
             # Save config file in team directory
-            team_dir = os.path.join(os.getcwd(), f"team_{team_id}")
+            team_dir = os.path.join(os.getcwd(), f"team_{name}")
             os.makedirs(team_dir, exist_ok=True)
             
             config_path = os.path.join(team_dir, "config.json")
             with open(config_path, 'w', encoding='utf-8') as f:
                 json.dump(config, f, indent=4)
                 
-            self.logger.log(f"Generated new config file for team {team_id}", 'info')
+            self.logger.log(f"Generated new config file for team {name}", 'info')
             return config
             
         except Exception as e:
-            self.logger.log(f"Error generating config for team {team_id}: {str(e)}", 'error')
+            self.logger.log(f"Error generating config for team {name}: {str(e)}", 'error')
             return None
 
     def get_team_config(self, name: str) -> Optional[Dict[str, Any]]:
