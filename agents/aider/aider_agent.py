@@ -377,13 +377,30 @@ class AiderAgent(AgentBase):
 
             # Créer les fichiers clés si nécessaire
             for filename, default_content in key_files.items():
-                if not os.path.exists(filename):
-                    try:
+                try:
+                    # S'assurer que le dossier parent existe
+                    os.makedirs(os.path.dirname(filename), exist_ok=True)
+                    
+                    # Créer le fichier s'il n'existe pas
+                    if not os.path.exists(filename):
                         with open(filename, 'w', encoding='utf-8') as f:
                             f.write(default_content)
                         self.logger.log(f"[{self.name}] Created missing key file: {filename}", 'info')
-                    except Exception as e:
-                        self.logger.log(f"[{self.name}] Error creating {filename}: {str(e)}", 'warning')
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error creating {filename}: {str(e)}", 'warning')
+
+            # Créer les fichiers d'historique s'ils n'existent pas
+            for history_file in [chat_history_file, input_history_file]:
+                try:
+                    # S'assurer que le dossier history existe
+                    os.makedirs(os.path.dirname(history_file), exist_ok=True)
+                    
+                    if not os.path.exists(history_file):
+                        with open(history_file, 'w', encoding='utf-8') as f:
+                            f.write("")  # Créer un fichier vide
+                        self.logger.log(f"[{self.name}] Created history file: {history_file}", 'debug')
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error creating history file {history_file}: {str(e)}", 'warning')
 
             # Get current prompt
             prompt = PathManager.get_prompt_file(self.name, specific_name)
