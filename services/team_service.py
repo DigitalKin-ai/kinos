@@ -236,13 +236,14 @@ class TeamService(BaseService):
             # If no active team, try to find team from current directory
             if not self.active_team:
                 current_dir = os.getcwd()
-                for item in os.listdir(current_dir):
-                    if item.startswith('team_'):
-                        team_id = item.replace('team_', '')
-                        team_config = self.get_team_config(team_id)
-                        if team_config:
-                            self.active_team = team_config
-                            break
+                team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
+                
+                for team_dir in team_dirs:
+                    team_id = team_dir.replace('team_', '')
+                    team_config = self.get_team_config(team_id)
+                    if team_config:
+                        self.active_team = team_config
+                        break
                 
                 # If still no active team, use default
                 if not self.active_team:
