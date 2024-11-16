@@ -154,24 +154,45 @@ class AiderCommandBuilder:
         cmd = ["python", "-m", "aider"]
         
         # Add the PYTHONPATH environment variable when executing
-        # to ensure your modified aider version is found
         os.environ["PYTHONPATH"] = os.path.join(os.environ.get("PYTHONPATH", ""), 
                                         r"C:\Users\conta\parallagon")
         
         cmd.extend(self.get_model_args())
         cmd.extend(self.get_file_args(files, self.get_ignore_patterns(os.getcwd())))
         
-        # Use the agent name from initialization
-        cmd.extend(["--chat-history-file", os.path.join(PathManager.get_team_path(self.team_id), f".kinos.{self.agent_name}.chat.history.md")])
-        cmd.extend(["--input-history-file", os.path.join(PathManager.get_team_path(self.team_id), f".kinos.{self.agent_name}.input.history.md")])
+        # Use team_types directory instead of teams
+        team_types_dir = os.path.join(PathManager.get_kinos_root(), "team_types")
+        
+        # Get team ID from agent name using team service
+        from services import init_services
+        services = init_services(None)
+        team_service = services['team_service']
+        
+        team_id = None
+        for team in team_service.team_types:
+            if self.agent_name in team_service.get_team_agents(team['id']):
+                team_id = team['id']
+                break
+        
+        if team_id:
+            history_path = os.path.join(team_types_dir, team_id)
+        else:
+            # Fallback to current directory if team not found
+            history_path = os.getcwd()
+            
+        # Use the correct paths for history files
+        cmd.extend([
+            "--chat-history-file", 
+            os.path.join(history_path, f".kinos.{self.agent_name}.chat.history.md")
+        ])
+        cmd.extend([
+            "--input-history-file", 
+            os.path.join(history_path, f".kinos.{self.agent_name}.input.history.md")
+        ])
         
         # Stringify the instructions with robust escaping
-        # Ensure instructions are from ModelRouter's generated response
         stringified_instructions = instructions.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
         cmd.extend(["--message", f'"{stringified_instructions} ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."'])
-        
-        # Log the full command for debugging
-        #print(f"DEBUG: Aider Command for {self.agent_name}: {' '.join(cmd)}")
         
         if not self.validate_command(cmd):
             print(f"DEBUG: Invalid command configuration for {self.agent_name}")
