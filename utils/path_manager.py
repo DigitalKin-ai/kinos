@@ -239,13 +239,14 @@ class PathManager:
             # Add team-specific directories if team_id exists
             if team_id:
                 search_directories.extend([
-                    os.path.join(cls.get_team_path(team_id), "team_"+team_id)
+                    os.path.join(cls.get_project_root(), team_id),  # Current mission team dir
+                    os.path.join(cls.get_team_types_root(), team_id)  # Team types dir
                 ])
             
             # Add fallback search paths
             search_directories.extend([
-                os.path.join(cls.get_kinos_root(), "team_types"),
-                cls.get_kinos_root()
+                os.path.join(cls.get_team_types_root(), "default"),  # Default prompts
+                cls.get_team_types_root()  # Root prompts dir
             ])
             
             # Remove duplicate and None values
