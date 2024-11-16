@@ -148,7 +148,7 @@ class TeamService(BaseService):
         """
         try:
             # First, try to find the team's specific config
-            team_dir = os.path.join(PathManager.get_team_types_root(), team_id)
+            team_dir = os.path.join(os.getcwd(), f"team_{team_id}")
             config_path = os.path.join(team_dir, "config.json")
         
             # If no specific team config exists, generate one
