@@ -29,29 +29,70 @@ class TeamService(BaseService):
             
             # Load each team config
             for team_dir in os.listdir(teams_dir):
-                # Check if it's a directory
+                # Skip non-directory entries
                 full_path = os.path.join(teams_dir, team_dir)
                 if not os.path.isdir(full_path):
                     continue
-            
+        
                 config_path = os.path.join(full_path, "config.json")
                 if os.path.exists(config_path):
                     try:
                         with open(config_path, 'r', encoding='utf-8') as f:
                             config = json.load(f)
-                            valid, error = self.validate_team_config(config)
-                            if valid:
-                                teams.append(config)
-                            else:
-                                self.logger.log(
-                                    f"Invalid team config {team_dir}: {error}",
-                                    'warning'
-                                )
+                        
+                        # Ensure config is a dictionary
+                        if not isinstance(config, dict):
+                            self.logger.log(f"Skipping invalid team config in {team_dir}: not a dictionary", 'warning')
+                            continue
+                        
+                        # Ensure config has an ID
+                        if 'id' not in config:
+                            config['id'] = team_dir.replace('team_', '')
+                        
+                        # Validate and normalize agents
+                        if 'agents' in config:
+                            normalized_agents = []
+                            for agent in config['agents']:
+                                # Normalize agent to dictionary format
+                                if isinstance(agent, str):
+                                    normalized_agents.append({
+                                        'name': agent, 
+                                        'type': 'aider', 
+                                        'weight': 0.5
+                                    })
+                                elif isinstance(agent, dict):
+                                    # Ensure required keys exist
+                                    agent_config = {
+                                        'name': agent.get('name', 'unnamed'),
+                                        'type': agent.get('type', 'aider'),
+                                        'weight': agent.get('weight', 0.5)
+                                    }
+                                    normalized_agents.append(agent_config)
+                            
+                            config['agents'] = normalized_agents
+                        
+                        valid, error = self.validate_team_config(config)
+                        if valid:
+                            teams.append(config)
+                        else:
+                            self.logger.log(
+                                f"Invalid team config {team_dir}: {error}",
+                                'warning'
+                            )
                     except Exception as e:
                         self.logger.log(
                             f"Error loading team {team_dir}: {str(e)}", 
                             'error'
                         )
+            
+            # Filter out any non-dictionary entries and entries without agents
+            teams = [
+                team for team in teams 
+                if isinstance(team, dict) and 
+                   team.get('agents') and 
+                   isinstance(team.get('agents'), list)
+            ]
+            
             return teams
 
         except Exception as e:
