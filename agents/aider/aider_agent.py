@@ -349,45 +349,44 @@ class AiderAgent(AgentBase):
                 self.logger.log(f"Error getting active team: {str(e)}", 'warning')
                 team_id = teams[0] if teams else None
 
-            # Create team directory path with "team_" prefix if not present
-            team_dir = f"team_{team_id}" if team_id and not team_id.startswith('team_') else team_id
+            # Get team directory path using PathManager
+            team_dir = PathManager.get_team_path(team_id)
+            if not os.path.exists(team_dir):
+                os.makedirs(team_dir, exist_ok=True)
+                self.logger.log(f"[{self.name}] Created team directory: {team_dir}", 'info')
 
-            # Ensure absolute paths for key files in team directory
-            if team_dir:
-                key_files = {
-                    os.path.join(os.getcwd(), team_dir, "map.md"): 
-                    "# Project Map\n\n## Overview\n\n## Key Components\n",
-                    
-                    os.path.join(os.getcwd(), team_dir, "todolist.md"): 
-                    "# Project Todo List\n\n## Pending Tasks\n\n## Completed Tasks\n",
-                    
-                    os.path.join(os.getcwd(), team_dir, "demande.md"): 
-                    "# Mission Request\n\n## Objective\n\n## Scope\n\n## Requirements\n",
-                    
-                    os.path.join(os.getcwd(), team_dir, "directives.md"): 
-                    "# Project Directives\n\n## Guidelines\n\n## Constraints\n"
-                }
-
-                # Define history files in team directory
-                history_dir = os.path.join(team_dir, "history")
-                os.makedirs(history_dir, exist_ok=True)
+            # Add key files with full team directory paths
+            key_files = {
+                os.path.join(team_dir, "map.md"): 
+                "# Project Map\n\n## Overview\n\n## Key Components\n",
                 
-                chat_history_file = os.path.join(history_dir, f".aider.{self.name}.chat.history.md")
-                input_history_file = os.path.join(history_dir, f".aider.{self.name}.input.history.md")
+                os.path.join(team_dir, "todolist.md"): 
+                "# Project Todo List\n\n## Pending Tasks\n\n## Completed Tasks\n",
+                
+                os.path.join(team_dir, "demande.md"): 
+                "# Mission Request\n\n## Objective\n\n## Scope\n\n## Requirements\n",
+                
+                os.path.join(team_dir, "directives.md"): 
+                "# Project Directives\n\n## Guidelines\n\n## Constraints\n"
+            }
 
-            # Créer les fichiers clés si nécessaire
-            for filename, default_content in key_files.items():
+            # Define history directory in team path
+            history_dir = os.path.join(team_dir, "history")
+            os.makedirs(history_dir, exist_ok=True)
+            
+            chat_history_file = os.path.join(history_dir, f".aider.{self.name}.chat.history.md")
+            input_history_file = os.path.join(history_dir, f".aider.{self.name}.input.history.md")
+
+            # Create key files if they don't exist
+            for file_path, default_content in key_files.items():
                 try:
-                    # S'assurer que le dossier parent existe
-                    os.makedirs(os.path.dirname(filename), exist_ok=True)
-                    
-                    # Créer le fichier s'il n'existe pas
-                    if not os.path.exists(filename):
-                        with open(filename, 'w', encoding='utf-8') as f:
+                    if not os.path.exists(file_path):
+                        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                        with open(file_path, 'w', encoding='utf-8') as f:
                             f.write(default_content)
-                        self.logger.log(f"[{self.name}] Created missing key file: {filename}", 'info')
+                        self.logger.log(f"[{self.name}] Created key file: {file_path}", 'info')
                 except Exception as e:
-                    self.logger.log(f"[{self.name}] Error creating {filename}: {str(e)}", 'warning')
+                    self.logger.log(f"[{self.name}] Error creating {file_path}: {str(e)}", 'warning')
 
             # Créer les fichiers d'historique s'ils n'existent pas
             for history_file in [chat_history_file, input_history_file]:
@@ -436,12 +435,12 @@ class AiderAgent(AgentBase):
             # Get files context - limit to 10 random files plus key files
             files_context = {}
             
-            # Add key files first
-            key_files = ["demande.md", "map.md", "todolist.md", "directives.md"]
-            for file_path in key_files:
+            # Add key files first using full paths
+            for file_path, _ in key_files.items():
                 try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        files_context[file_path] = f.read()
+                    if os.path.exists(file_path):
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            files_context[file_path] = f.read()
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error reading key file {file_path}: {str(e)}", 'warning')
             
