@@ -286,7 +286,7 @@ class PathManager:
                 team_name = active_team.get('name') if active_team else 'default'
             
             # Normalize team folder name
-            team_folder = f"team_{team_id}" if not team_id.startswith('team_') else team_id
+            team_folder = f"team_{team_name}" if not team_name.startswith('team_') else team_name
             
             # Create full path
             chat_history_dir = os.path.join(os.getcwd(), team_folder, "history")

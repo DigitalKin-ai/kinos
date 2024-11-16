@@ -233,7 +233,7 @@ class TeamService(BaseService):
             config = self.get_team_config(team_name) if team_name else self.active_team
         
             if not config:
-                self.logger.log(f"No configuration found for team: {team_id}", 'warning')
+                self.logger.log(f"No configuration found for team: {team_name}", 'warning')
                 return []
         
             # Extract agent names
@@ -248,7 +248,7 @@ class TeamService(BaseService):
             agents = [a for a in agents if a]
         
             if not agents:
-                self.logger.log(f"No agents found in team configuration for: {team_id}", 'warning')
+                self.logger.log(f"No agents found in team configuration for: {team_name}", 'warning')
         
             return agents
         
@@ -322,10 +322,10 @@ class TeamService(BaseService):
                 return validation_results
                 
             # Get expected agents
-            expected_agents = self.get_team_agents(team_id)
+            expected_agents = self.get_team_agents(team_name)
             
             # Load and validate each prompt
-            prompts = self.load_team_prompts(team_id)
+            prompts = self.load_team_prompts(team_name)
             
             for agent in expected_agents:
                 if agent not in prompts:

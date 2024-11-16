@@ -298,7 +298,7 @@ class AgentBase(ABC):
                 agent_team_name = 'default'
             
             # Get history directory
-            history_dir = PathManager.get_chat_history_path(team_id=agent_team)
+            history_dir = PathManager.get_chat_history_path(team_name=agent_team_name)
             
             # Create specific history file/directory
             full_path = os.path.join(history_dir, f"{history_type}", f"{self.name}")

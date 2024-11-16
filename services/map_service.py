@@ -48,7 +48,7 @@ class MapService(BaseService):
                 os.makedirs(os.path.join(current_dir, f"team_{team_name}"), exist_ok=True)
             
             # Utiliser PathManager pour obtenir le chemin de l'équipe
-            team_path = PathManager.get_team_path(team_id)
+            team_path = PathManager.get_team_path(team_name)
             
             # Définir le chemin du fichier map
             self.map_file = os.path.join(team_path, "map.md")
@@ -150,7 +150,7 @@ class MapService(BaseService):
             ]
 
             # Add pattern to ignore other team folders
-            team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
+            team_dir = f"team_{team_name}" if not team_name.startswith('team_') else team_name
             for item in os.listdir(os.getcwd()):
                 if item.startswith('team_') and item != team_dir:
                     ignore_patterns.append(f"{item}/")
@@ -185,7 +185,7 @@ class MapService(BaseService):
             }
         
             # Get team directory path using PathManager
-            team_path = PathManager.get_team_path(team_id) if team_id else None
+            team_path = PathManager.get_team_path(team_name) if team_name else None
             
             # Add team-specific files to scan
             if team_path and os.path.exists(team_path):
