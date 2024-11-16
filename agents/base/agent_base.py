@@ -147,7 +147,7 @@ class AgentBase(ABC):
             
             # Find the team containing this agent
             agent_team = None
-            for team in team_service.predefined_teams:
+            for team in team_service.team_types:
                 if self.name in team.get('agents', []):
                     agent_team = team['id']
                     break
