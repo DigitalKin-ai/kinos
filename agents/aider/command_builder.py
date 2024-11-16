@@ -22,25 +22,28 @@ class AiderCommandBuilder:
         team_service = services['team_service']
         self.logger = Logger()
         
-        # Get active team first
+        # Get active team and ensure it's set
         active_team = team_service.get_active_team()
-        if active_team and isinstance(active_team, dict):
+        if not active_team:
+            # Try to set team based on current directory
+            current_dir = os.getcwd()
+            for item in os.listdir(current_dir):
+                if item.startswith('team_'):
+                    team_id = item.replace('team_', '')
+                    if team_service.set_active_team(team_id):
+                        active_team = team_service.get_active_team()
+                        break
+        
+        if active_team:
             self.team = active_team.get('id')
             self.team_name = active_team.get('name', self.team)
             self.logger.log(f"[{self.agent_name}] Using active team: {self.team_name}", 'debug')
         else:
-            # Find team containing this agent
-            for team in team_service.team_types:
-                if isinstance(team, dict):
-                    team_agents = team.get('agents', [])
-                    for agent in team_agents:
-                        agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
-                        if self.agent_name == agent_name_to_check:
-                            self.team = team.get('id')
-                            self.team_name = team.get('name', self.team)
-                            break
-                    if hasattr(self, 'team'):
-                        break
+            # Default to 'default' if no team found
+            team_service.set_active_team('default')
+            active_team = team_service.get_active_team()
+            self.team = active_team.get('id', 'default')
+            self.team_name = active_team.get('name', 'Default Team')
         
         # Default to 'default' if no team found
         if not hasattr(self, 'team'):

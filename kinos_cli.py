@@ -277,6 +277,10 @@ def run_multi_team_loop(model: Optional[str] = None):
     # Use PathManager to get team types directory    
     teams = PathManager.list_teams()
     
+    # Ensure default team is available
+    if 'default' not in teams:
+        teams.append('default')
+    
     # Create output queue and thread management
     output_queue = queue.Queue()
     active_threads = {}
@@ -291,6 +295,11 @@ def run_multi_team_loop(model: Optional[str] = None):
             while len(active_threads) < 3:
                 # Select random team
                 team_name = random.choice(teams)
+                
+                # Important: Set active team before creating agents
+                if not team_service.set_active_team(team_name):
+                    logger.log(f"Failed to set active team {team_name}", 'error')
+                    continue
                 
                 # Load team configuration
                 team_config = team_service.get_team_config(team_name)
