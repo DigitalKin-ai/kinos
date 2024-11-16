@@ -35,17 +35,17 @@ class MapService(BaseService):
     def _initialize_map_file(self) -> None:
         """Initialize map file path based on active team"""
         try:
-            # Détecter dynamiquement l'équipe active
+            # Detect active team
             current_dir = os.getcwd()
             team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
             
-            # Utiliser la première équipe trouvée ou créer une équipe par défaut
+            # Use first team found or create default team
             if team_dirs:
-                team_id = team_dirs[0][5:]  # Enlever 'team_'
+                team_name = team_dirs[0][5:]  # Remove 'team_'
             else:
-                team_id = 'default'
-                # Créer le dossier de l'équipe par défaut
-                os.makedirs(os.path.join(current_dir, f"team_{team_id}"), exist_ok=True)
+                team_name = 'default'
+                # Create default team directory
+                os.makedirs(os.path.join(current_dir, f"team_{team_name}"), exist_ok=True)
             
             # Utiliser PathManager pour obtenir le chemin de l'équipe
             team_path = PathManager.get_team_path(team_id)

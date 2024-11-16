@@ -117,11 +117,11 @@ class AgentRunner(threading.Thread):
 
 def initialize_team_structure(team_name: str, specific_name: str = None):
     """
-    Initialise la structure de dossiers pour une équipe
+    Initialize team directory structure
     
     Args:
-        team_name: Nom de l'équipe
-        specific_name: Nom spécifique de l'agent (optionnel)
+        team_name: Name of the team
+        specific_name: Optional specific agent name
     """
     logger = Logger()
     
@@ -129,7 +129,7 @@ def initialize_team_structure(team_name: str, specific_name: str = None):
     team_dir_name = f"team_{team_name}" if not team_name.startswith("team_") else team_name
     team_dir = os.path.join(os.getcwd(), team_dir_name)
     
-    # Create team subdirectories (excluding 'map' since we want map.md in team root)
+    # Create subdirectories
     subdirs = ['history', 'prompts']
     for subdir in subdirs:
         os.makedirs(os.path.join(team_dir, subdir), exist_ok=True)
