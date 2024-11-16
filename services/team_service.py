@@ -75,8 +75,9 @@ class TeamService(BaseService):
         
             # Check if config exists
             if not os.path.exists(config_path):
-                self.logger.log(f"No direct config found for team: {team_id}", 'warning')
-                return None
+                self.logger.log(f"Defaulted to book-writing config for team {team_id}", 'info')
+                # If no type or type config not found, default to book-writing
+                return os.path.join(PathManager.get_team_types_root(), "book_writing", "config.json")
         
             # Load the config
             with open(config_path, 'r', encoding='utf-8') as f:
@@ -101,20 +102,6 @@ class TeamService(BaseService):
                     return merged_config
                 else:
                     self.logger.log(f"Type config not found for type: {team_type}", 'warning')
-        
-            # If no type or type config not found, default to book-writing
-            book_writing_config_path = os.path.join(PathManager.get_team_types_root(), "book_writing", "config.json")
-        
-            if os.path.exists(book_writing_config_path):
-                with open(book_writing_config_path, 'r', encoding='utf-8') as f:
-                    default_config = json.load(f)
-            
-                # Merge configs, with team-specific config taking precedence
-                merged_config = default_config.copy()
-                merged_config.update(team_config)
-            
-                self.logger.log(f"Defaulted to book-writing config for team {team_id}", 'info')
-                return merged_config
         
             # Fallback to original team config if no default found
             self.logger.log(f"No default config found, using original team config for {team_id}", 'warning')
