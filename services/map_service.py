@@ -13,9 +13,10 @@ from utils.path_manager import PathManager
 class MapService(BaseService):
     """Manages project documentation mapping and size monitoring"""
 
-    def __init__(self, _):  # Keep parameter for compatibility but don't use it
-        """Initialize with minimal dependencies"""
+    def __init__(self, team_service):
+        """Initialize with team service dependency"""
         self.logger = Logger()
+        self.team_service = team_service
         self.size_limits = {
             'warning': 6000,  # Tokens triggering warning (6k)
             'error': 12000    # Tokens triggering error (12k)
@@ -57,11 +58,8 @@ class MapService(BaseService):
             self._initialize_map_file()  # Initialize if needed
             self.logger.log("[MapService] Starting map generation", 'debug')
             
-            # Get active team from TeamService
-            from services import init_services
-            services = init_services(None)
-            team_service = services['team_service']
-            active_team = team_service.get_active_team()
+            # Get active team from injected TeamService
+            active_team = self.team_service.get_active_team()
             
             if not active_team:
                 self.logger.log("No active team found", 'warning')

@@ -45,12 +45,14 @@ def init_services(_) -> Dict[str, Any]:
         services = {}
         
         # Initialize services in dependency order
-        services['team_service'] = TeamService(None)
+        services['team_service'] = TeamService(None)  # Initialize first
         services['model_router'] = ModelRouter()
-        services['map_service'] = MapService(None)
         services['dataset_service'] = DatasetService(None)
         services['file_service'] = FileService(None)
         services['agent_service'] = AgentService(None)
+        
+        # Initialize MapService last since it depends on TeamService
+        services['map_service'] = MapService(services['team_service'])
 
         logger.log("Services created", 'debug')
 
