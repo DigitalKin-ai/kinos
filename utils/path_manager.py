@@ -181,6 +181,9 @@ class PathManager:
         elif team_id:
             team_id = str(team_id)
             
+        # Get logging context - use team name or ID for context
+        log_context = f"[{team_name or team_id or 'unknown_team'}]"
+        
         # If team_id is None, select a random team
         if not team_id:
             try:
@@ -192,7 +195,7 @@ class PathManager:
                 team_types = team_service.team_types
                 
                 if not team_types:
-                    print("[unknown_team] ERROR: No teams found")
+                    print(f"{log_context} ERROR: No teams found")
                     return None
                 
                 # Select a random team
@@ -200,12 +203,15 @@ class PathManager:
                 random_team = random.choice(team_types)
                 
                 team_id = random_team.get('id')
-                team_name = random_team.get('name', 'random_team')
+                team_name = random_team.get('name')
                 
-                print(f"[random_team] Selected random team: {team_name} (ID: {team_id})")
+                # Update logging context with selected team
+                log_context = f"[{team_name or team_id}]"
+                
+                print(f"{log_context} Selected team: {team_name} (ID: {team_id})")
                 
             except Exception as e:
-                print(f"[unknown_team] ERROR: Could not retrieve random team: {str(e)}")
+                print(f"{log_context} ERROR: Could not retrieve random team: {str(e)}")
                 return None
         
         # Ensure team_id is a string
