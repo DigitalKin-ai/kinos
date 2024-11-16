@@ -15,7 +15,6 @@ class MapService(BaseService):
     def __init__(self, _):  # Keep parameter for compatibility but don't use it
         """Initialize with minimal dependencies"""
         self.logger = Logger()
-        self.map_file = "map.md"
         self.size_limits = {
             'warning': 6000,  # Tokens triggering warning (6k)
             'error': 12000    # Tokens triggering error (12k)
@@ -27,9 +26,32 @@ class MapService(BaseService):
         """Generate project map file with enhanced debugging"""
         try:
             self.logger.log("[MapService] Starting map generation", 'debug')
+            
+            # Get active team from TeamService
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            active_team = team_service.get_active_team()
+            
+            if not active_team:
+                self.logger.log("No active team found", 'warning')
+                return False
+                
+            team_id = active_team.get('id')
+            team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
+            
+            # Ensure team directory exists
+            team_path = os.path.join(os.getcwd(), team_dir)
+            os.makedirs(team_path, exist_ok=True)
+            
+            # Set map file path in team directory
+            self.map_file = os.path.join(team_path, "map.md")
         
-            # Scan directory
-            tree_content, warnings, total_tokens = self._scan_directory(os.getcwd())
+            # Scan directory with team context
+            tree_content, warnings, total_tokens = self._scan_directory(
+                os.getcwd(),
+                team_id=team_id
+            )
         
             self.logger.log(f"Scan complete - Total tokens: {total_tokens}", 'debug')
         
@@ -47,25 +69,14 @@ class MapService(BaseService):
             self.logger.log(f"Map generation error: {str(e)}\n{traceback.format_exc()}", 'critical')
             return False
 
-    def _scan_directory(self, path: str, prefix: str = "") -> Tuple[List[str], List[str], int]:
-        """Scan directory recursively and return tree structure, warnings and total tokens"""
+    def _scan_directory(self, path: str, prefix: str = "", team_id: str = None) -> Tuple[List[str], List[str], int]:
+        """Scan directory recursively with team context"""
         try:
             tree_lines = []
             warnings = []
             total_tokens = 0
 
-            # Get active team from TeamService
-            try:
-                from services import init_services
-                services = init_services(None)
-                team_service = services['team_service']
-                active_team = team_service.get_active_team()
-                active_team_id = active_team.get('id') if active_team else None
-            except Exception as e:
-                self.logger.log(f"Error getting active team: {str(e)}", 'warning')
-                active_team_id = None
-
-            # Load ignore patterns from both .gitignore and .aiderignore
+            # Load ignore patterns
             ignore_patterns = [
                 '.aider*',  # Explicitly ignore all .aider files
                 '.git/',
@@ -76,14 +87,14 @@ class MapService(BaseService):
                 '*.log'
             ]
 
-            # Add pattern to ignore all team folders except active team
-            if active_team_id:
-                # Ignore all team_ folders except the active one
+            # Add pattern to ignore other team folders
+            if team_id:
+                team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
                 for item in os.listdir(os.getcwd()):
-                    if item.startswith('team_') and not item.endswith(active_team_id):
+                    if item.startswith('team_') and item != team_dir:
                         ignore_patterns.append(f"{item}/")
             else:
-                # If no active team, ignore all team_ folders
+                # If no team_id, ignore all team_ folders
                 ignore_patterns.append('team_*/')
         
             # Add patterns from .gitignore and .aiderignore
