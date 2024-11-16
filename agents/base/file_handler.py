@@ -18,20 +18,19 @@ class FileHandler:
             services = init_services(None)
             team_service = services['team_service']
             
-            # Trouver l'équipe de l'agent
-            agent_name = None  # À remplacer par le nom réel de l'agent
+            # Find agent's team
+            agent_name = None  # Will be replaced with actual agent name
             agent_team = None
             for team in team_service.team_types:
                 if agent_name in team.get('agents', []):
                     agent_team = team['id']
                     break
 
-            # Chemins de recherche spécifiques
-            team_dir = os.path.join('team_types', f'team_{agent_team}')
-            search_paths = [
-                self.mission_dir,
-                team_dir
-            ]
+            # Search paths using team_types directory
+            team_dir = os.path.join('team_types', agent_team) if agent_team else None
+            search_paths = [self.mission_dir]
+            if team_dir and os.path.exists(team_dir):
+                search_paths.append(team_dir)
 
             # Charger les modèles d'exclusion
             ignore_patterns = self._load_ignore_patterns()

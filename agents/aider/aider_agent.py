@@ -63,7 +63,7 @@ class AiderAgent(AgentBase):
                 from services import init_services
                 services = init_services(None)
                 team_service = services['team_service']
-                
+            
                 # Get active team or find team containing this agent
                 active_team = team_service.get_active_team()
                 if not active_team:
@@ -71,8 +71,9 @@ class AiderAgent(AgentBase):
                         if self.name in team_service.get_team_agents(team['id']):
                             active_team = team
                             break
-                
+            
                 if active_team:
+                    # Use team_types directory for prompt file
                     self.prompt_file = PathManager.get_prompt_file(self.name, active_team)
                     self.logger.log(f"Using team prompt file: {self.prompt_file}", 'info')
                 else:
