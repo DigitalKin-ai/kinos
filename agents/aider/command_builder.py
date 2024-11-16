@@ -162,8 +162,8 @@ class AiderCommandBuilder:
         cmd.extend(self.get_file_args(files, self.get_ignore_patterns(os.getcwd())))
         
         # Use the agent name from initialization
-        cmd.extend(["--chat-history-file", os.path.join(PathManager.get_team_path(), f".kinos.{self.agent_name}.chat.history.md")])
-        cmd.extend(["--input-history-file", os.path.join(PathManager.get_team_path(), f".kinos.{self.agent_name}.input.history.md")])
+        cmd.extend(["--chat-history-file", os.path.join(PathManager.get_team_path(self.team_id), f".kinos.{self.agent_name}.chat.history.md")])
+        cmd.extend(["--input-history-file", os.path.join(PathManager.get_team_path(self.team_id), f".kinos.{self.agent_name}.input.history.md")])
         
         # Stringify the instructions with robust escaping
         # Ensure instructions are from ModelRouter's generated response
