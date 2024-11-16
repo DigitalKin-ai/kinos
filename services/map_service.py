@@ -149,6 +149,12 @@ class MapService(BaseService):
                 '*.log'
             ]
 
+            # Dynamically detect current team if not provided
+            if not team_name:
+                current_dir = os.getcwd()
+                team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
+                team_name = team_dirs[0][5:] if team_dirs else 'default'
+
             # Add pattern to ignore other team folders
             team_dir = f"team_{team_name}" if not team_name.startswith('team_') else team_name
             for item in os.listdir(os.getcwd()):

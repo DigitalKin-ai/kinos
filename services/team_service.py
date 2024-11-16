@@ -219,7 +219,7 @@ class TeamService(BaseService):
                 # If still no active team, use default
                 if not self.active_team:
                     self.set_active_team('default')
-            
+        
             return self.active_team
             
         except Exception as e:

@@ -54,12 +54,12 @@ class AiderAgent(AgentBase):
                     team_name = team_dir.replace('team_', '')
                 else:
                     team_name = 'default'
-                
+
                 # Use team service to set and validate team
                 from services import init_services
                 services = init_services(None)
                 team_service = services['team_service']
-                
+
                 if team_service.set_active_team(team_name):
                     active_team = team_service.get_active_team()
                     self.team = active_team.get('name', team_name)
