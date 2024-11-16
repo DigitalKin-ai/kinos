@@ -63,19 +63,25 @@ class AiderCommandBuilder:
         # Define read-only files
         readonly_files = ["demande.md", "map.md"]
         
-        # Get agent's prompt file path
+        # Get agent's prompt file path using team_types directory
         from utils.path_manager import PathManager
         kinos_root = PathManager.get_kinos_root()
+        team_types_dir = os.path.join(kinos_root, "team_types")
         
         # Find team directory containing the prompt
-        teams_dir = os.path.join(kinos_root, "teams")
         prompt_path = None
         
-        for team_dir in os.listdir(teams_dir):
-            possible_path = os.path.join(teams_dir, team_dir, f"{self.agent_name}.md")
-            if os.path.exists(possible_path):
-                prompt_path = possible_path
-                break
+        # Get team service to find the correct team
+        from services import init_services
+        services = init_services(None)
+        team_service = services['team_service']
+        
+        for team in team_service.team_types:
+            if self.agent_name in team_service.get_team_agents(team['id']):
+                possible_path = os.path.join(team_types_dir, team['id'], f"{self.agent_name}.md")
+                if os.path.exists(possible_path):
+                    prompt_path = possible_path
+                    break
         
         # Remove readonly files from valid_files if present to avoid duplicates
         valid_files = [f for f in valid_files if f not in readonly_files]
@@ -175,7 +181,7 @@ class AiderCommandBuilder:
                 break
         
         if team_id:
-            # Use team_types directory instead of teams
+            # Use team_types directory for history files
             history_path = os.path.join(team_types_dir, team_id)
         else:
             # Fallback to current directory if team not found
@@ -196,7 +202,7 @@ class AiderCommandBuilder:
         cmd.extend(["--message", f'"{stringified_instructions} ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."'])
         
         if not self.validate_command(cmd):
-            print(f"DEBUG: Invalid command configuration for {self.agent_name}")
+            self.logger.log(f"Invalid command configuration for {self.agent_name}", 'error')
             raise ValueError("Invalid command configuration")
             
         return cmd
