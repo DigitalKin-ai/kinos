@@ -19,11 +19,17 @@ class FileHandler:
             team_service = services['team_service']
             
             # Find agent's team
-            agent_name = None  # Will be replaced with actual agent name
+            agent_name = getattr(self, 'name', None)  # Get agent name if available
             agent_team = None
             for team in team_service.team_types:
-                if agent_name in team.get('agents', []):
-                    agent_team = team['id']
+                if isinstance(team, dict):
+                    team_agents = team.get('agents', [])
+                    for agent in team_agents:
+                        agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
+                        if agent_name == agent_name_to_check:
+                            agent_team = team.get('id')
+                            break
+                if agent_team:
                     break
 
             # Search paths using team_types directory

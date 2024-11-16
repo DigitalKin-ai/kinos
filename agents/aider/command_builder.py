@@ -37,19 +37,21 @@ class AiderCommandBuilder:
                 
                 if self.agent_name == agent_name_to_check:
                     self.team = team.get('id')
+                    # Log team assignment with more details
+                    from utils.logger import Logger
+                    logger = Logger()
+                    logger.log(f"[{self.agent_name}] Found in team {team.get('name', 'Unknown')} (id: {team.get('id')})", 'debug')
                     break
                     
             if self.team:
                 break
                 
         if not self.team:
-            # Default to 'default' team if no team found
+            # Log warning when defaulting
+            from utils.logger import Logger
+            logger = Logger()
+            logger.log(f"[{self.agent_name}] No team found, defaulting to 'default'", 'warning')
             self.team = 'default'
-            
-        # Log team assignment
-        from utils.logger import Logger
-        logger = Logger()
-        logger.log(f"[{self.agent_name}] Assigned to team: {self.team}", 'debug')
 
     def get_model_args(self) -> List[str]:
         """Get model-specific command arguments"""
