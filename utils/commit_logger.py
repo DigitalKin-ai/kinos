@@ -102,14 +102,27 @@ class CommitLogger:
 
     def _log_commit(self, commit: Dict) -> None:
         """
-        Log a parsed commit
+        Log a parsed commit with team context
         
         Args:
             commit: Parsed commit dictionary
         """
         try:
-            # Format commit message
+            # Get team context from services
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            
+            # Find team for this agent
+            team_name = 'Unknown Team'
+            for team in team_service.team_types:
+                if commit['agent'] in team_service.get_team_agents(team.get('id', '')):
+                    team_name = team.get('name', team.get('id', 'Unknown Team'))
+                    break
+            
+            # Format commit message with team context
             message = (
+                f"[{team_name}] [{commit['agent']}] "
                 f"{commit['emoji']} [{commit['type']}]: {commit['message']}"
             )
             
