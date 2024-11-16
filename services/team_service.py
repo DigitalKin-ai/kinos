@@ -233,14 +233,15 @@ class TeamService(BaseService):
     def get_active_team(self) -> Optional[Dict[str, Any]]:
         """Get the currently active team configuration"""
         try:
-            # If no active team, try to set default
+            # If no active team, try to find team from current directory
             if not self.active_team:
-                # First try to find any team directory in current path
                 current_dir = os.getcwd()
                 for item in os.listdir(current_dir):
                     if item.startswith('team_'):
                         team_id = item.replace('team_', '')
-                        if self.set_active_team(team_id):
+                        team_config = self.get_team_config(team_id)
+                        if team_config:
+                            self.active_team = team_config
                             break
                 
                 # If still no active team, use default

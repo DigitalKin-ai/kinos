@@ -303,6 +303,13 @@ class PathManager:
             # Get current working directory as project root
             project_root = os.getcwd()
             
+            # If no team_id is provided, try to find from current directory
+            if not team_id:
+                for item in os.listdir(project_root):
+                    if item.startswith('team_'):
+                        team_id = item.replace('team_', '')
+                        break
+            
             # Add "team_" prefix if not present
             team_folder = f"team_{team_id}" if team_id and not team_id.startswith('team_') else team_id
 

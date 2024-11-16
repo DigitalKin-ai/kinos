@@ -15,44 +15,44 @@ class AiderCommandBuilder:
         """Initialize with agent name"""
         self.agent_name = agent_name
         
-        # Get team ID from agent name using team service
-        from services import init_services
-        from utils.logger import Logger
-        services = init_services(None)
-        team_service = services['team_service']
-        self.logger = Logger()
-        
-        # Get active team and ensure it's set
-        active_team = team_service.get_active_team()
-        if not active_team:
-            # Try to set team based on current directory
+        # Get team ID from current directory
+        try:
             current_dir = os.getcwd()
-            for item in os.listdir(current_dir):
-                if item.startswith('team_'):
-                    team_id = item.replace('team_', '')
-                    if team_service.set_active_team(team_id):
-                        active_team = team_service.get_active_team()
-                        break
-        
-        if active_team:
-            self.team = active_team.get('id')
-            self.team_name = active_team.get('name', self.team)
-            self.logger.log(f"[{self.agent_name}] Using active team: {self.team_name}", 'debug')
-        else:
-            # Default to 'default' if no team found
-            team_service.set_active_team('default')
-            active_team = team_service.get_active_team()
-            self.team = active_team.get('id', 'default')
-            self.team_name = active_team.get('name', 'Default Team')
-        
-        # Default to 'default' if no team found
-        if not hasattr(self, 'team'):
+            team_dir = next((item for item in os.listdir(current_dir) if item.startswith('team_')), None)
+            
+            if team_dir:
+                team_id = team_dir.replace('team_', '')
+            else:
+                team_id = 'default'
+            
+            # Use team service to set and validate team
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            
+            if team_service.set_active_team(team_id):
+                active_team = team_service.get_active_team()
+                self.team = active_team.get('id', team_id)
+                self.team_name = active_team.get('name', team_id)
+            else:
+                # Fallback
+                self.team = team_id
+                self.team_name = team_id
+            
+        except Exception as e:
+            from utils.logger import Logger
+            logger = Logger()
+            logger.log(f"Error detecting team: {str(e)}", 'warning')
             self.team = 'default'
             self.team_name = 'Default Team'
-            self.logger.log(f"[{self.agent_name}] ⚠️ No team found, defaulting to 'default'", 'warning')
 
         # Get mission directory from current working directory
         self.mission_dir = os.getcwd()
+        
+        # Log team information
+        from utils.logger import Logger
+        self.logger = Logger()
+        self.logger.log(f"[{self.agent_name}] Team: {self.team_name} (ID: {self.team})", 'debug')
 
     def get_model_args(self) -> List[str]:
         """Get model-specific command arguments"""
