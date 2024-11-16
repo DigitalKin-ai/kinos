@@ -421,12 +421,19 @@ class AiderOutputParser:
                 services = init_services(None)
                 team_service = services['team_service']
                 
-                for team in team_service.team_types:
-                    if self.agent_name in team_service.get_team_agents(team.get('id')):
-                        team_name = team.get('name', team.get('id', 'Unknown Team'))
-                        break
-            except Exception:
-                pass
+                # Get active team first
+                active_team = team_service.get_active_team()
+                if active_team:
+                    team_name = active_team.get('name', active_team.get('id', 'Unknown Team'))
+                
+                # Fallback to searching through team types
+                if team_name == "Unknown Team":
+                    for team in team_service.team_types:
+                        if self.agent_name in team_service.get_team_agents(team.get('id')):
+                            team_name = team.get('name', team.get('id', 'Unknown Team'))
+                            break
+            except Exception as e:
+                self.logger.log(f"Error getting team name: {str(e)}", 'warning')
 
             # Log with team name
             self.logger.log(
