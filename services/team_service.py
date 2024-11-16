@@ -60,22 +60,66 @@ class TeamService(BaseService):
 
     def get_team_config(self, team_id: str) -> Optional[Dict[str, Any]]:
         """
-        Get configuration for a specific team with flexible matching
-        
+        Get configuration for a specific team with flexible type loading
+    
         Args:
             team_id: Team identifier to match
-        
+    
         Returns:
             Team configuration dictionary or None if not found
         """
         try:
-            # TODO: So get_team_config is supposed to look into the config.json file in its team folder for "type",
-            # if a type is set, it will load the config in the corresponding team type. Otherwise, it defaults to the value of the "book_writing" type
+            # First, try to find the team's specific config
+            team_dir = os.path.join(PathManager.get_team_types_root(), f"team_{team_id}")
+            config_path = os.path.join(team_dir, "config.json")
+        
+            # Check if config exists
+            if not os.path.exists(config_path):
+                self.logger.log(f"No direct config found for team: {team_id}", 'warning')
+                return None
+        
+            # Load the config
+            with open(config_path, 'r', encoding='utf-8') as f:
+                team_config = json.load(f)
+        
+            # Check if a specific type is defined
+            team_type = team_config.get('type')
+        
+            if team_type:
+                # If type is specified, load from that type's directory
+                type_config_path = os.path.join(PathManager.get_team_types_root(), team_type, "config.json")
             
-            # Fallback logging if no match found
-            self.logger.log(f"No team configuration found for: {team_id}", 'warning')
-            return None
+                if os.path.exists(type_config_path):
+                    with open(type_config_path, 'r', encoding='utf-8') as f:
+                        type_config = json.load(f)
                 
+                    # Merge configs, with team-specific config taking precedence
+                    merged_config = type_config.copy()
+                    merged_config.update(team_config)
+                
+                    self.logger.log(f"Loaded config for team {team_id} with type {team_type}", 'info')
+                    return merged_config
+                else:
+                    self.logger.log(f"Type config not found for type: {team_type}", 'warning')
+        
+            # If no type or type config not found, default to book-writing
+            book_writing_config_path = os.path.join(PathManager.get_team_types_root(), "book_writing", "config.json")
+        
+            if os.path.exists(book_writing_config_path):
+                with open(book_writing_config_path, 'r', encoding='utf-8') as f:
+                    default_config = json.load(f)
+            
+                # Merge configs, with team-specific config taking precedence
+                merged_config = default_config.copy()
+                merged_config.update(team_config)
+            
+                self.logger.log(f"Defaulted to book-writing config for team {team_id}", 'info')
+                return merged_config
+        
+            # Fallback to original team config if no default found
+            self.logger.log(f"No default config found, using original team config for {team_id}", 'warning')
+            return team_config
+        
         except Exception as e:
             self.logger.log(f"Error getting team config for {team_id}: {str(e)}", 'error')
             return None
