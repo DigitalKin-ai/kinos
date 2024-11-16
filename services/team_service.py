@@ -347,10 +347,10 @@ class TeamService(BaseService):
             self.logger.log(f"Error validating team prompts: {str(e)}", 'error')
             return validation_results
 
-    def get_agent_prompt_path(self, team_id: str, agent_name: str) -> Optional[str]:
+    def get_agent_prompt_path(self, team_name: str, agent_name: str) -> Optional[str]:
         """Get prompt file path for an agent in a team"""
         try:
-            team_dir = os.path.join(PathManager.get_kinos_root(), "teams", team_id)
+            team_dir = os.path.join(PathManager.get_kinos_root(), "teams", team_name)
             prompt_file = os.path.join(team_dir, f"{agent_name.lower()}.md")
             
             if os.path.exists(prompt_file):

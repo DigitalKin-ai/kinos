@@ -86,10 +86,10 @@ class MapService(BaseService):
                 self.logger.log("[MapService] ⚠️ No active team found", 'warning')
                 return False
                 
-            team_id = active_team.get('id')
-            self.logger.log(f"[MapService] 👥 Generating map for team: {team_id}", 'info')
+            team_name = active_team.get('name')
+            self.logger.log(f"[MapService] 👥 Generating map for team: {team_name}", 'info')
             
-            team_dir = f"team_{team_id}" if not team_id.startswith('team_') else team_id
+            team_dir = f"team_{team_name}" if not team_name.startswith('team_') else team_name
             
             # Ensure team directory exists
             team_path = os.path.join(os.getcwd(), team_dir)
