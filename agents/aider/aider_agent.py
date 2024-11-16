@@ -139,8 +139,8 @@ class AiderAgent(AgentBase):
             specific_name = self.config.get('name')  # Récupérer le nom spécifique s'il existe
 
             # Chemins des fichiers d'historique
-            chat_history_file = f".kinos.{agent_team}_{specific_name}.chat.history.md" if specific_name else f".kinos.{self.name}.chat.history.md"
-            input_history_file = f".kinos.{agent_team}_{specific_name}.input.history.md" if specific_name else f".kinos.{self.name}.input.history.md"
+            chat_history_file = os.path.join(PathManager.get_team_path(agent_team), "history", f".kinos.{self.name}.chat.history.md")
+            input_history_file = os.path.join(PathManager.get_team_path(agent_team), "history", f".kinos.{self.name}.input.history.md")
 
             # Construction et validation de la commande
             cmd = self.command_builder.build_command(
@@ -362,12 +362,8 @@ class AiderAgent(AgentBase):
 
             # Define history files in team directory or current directory
             if team_dir:
-                chat_history_file = os.path.join(team_dir, f".kinos.{self.name}.chat.history.md")
-                input_history_file = os.path.join(team_dir, f".kinos.{self.name}.input.history.md")
-            else:
-                # Fallback to current directory
-                chat_history_file = f".kinos.{self.name}.chat.history.md"
-                input_history_file = f".kinos.{self.name}.input.history.md"
+                chat_history_file = os.path.join(base_dir, "history", f".kinos.{self.name}.chat.history.md")
+                input_history_file = os.path.join(base_dir, "history", f".kinos.{self.name}.input.history.md")
 
             # Créer les fichiers clés si nécessaire
             for filename, default_content in key_files.items():
@@ -383,8 +379,8 @@ class AiderAgent(AgentBase):
             prompt = PathManager.get_prompt_file(self.name, specific_name)
 
             # Define history files in current directory
-            chat_history_file = f".kinos.{self.name}.chat.history.md"
-            input_history_file = f".kinos.{self.name}.input.history.md"
+            chat_history_file = os.path.join(base_dir, "history", f".kinos.{self.name}.chat.history.md")
+            input_history_file = os.path.join(base_dir, "history", f".kinos.{self.name}.input.history.md")
 
             # Get chat history
             chat_history = ""
