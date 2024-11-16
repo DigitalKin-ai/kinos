@@ -260,7 +260,7 @@ class TeamService(BaseService):
         """Validate team configuration format"""
         try:
             # Check required fields
-            required = ['id', 'name', 'agents']
+            required = ['name', 'display_name', 'agents']
             missing = [f for f in required if f not in config]
             if missing:
                 return False, f"Missing required fields: {', '.join(missing)}"
@@ -361,10 +361,10 @@ class TeamService(BaseService):
             self.logger.log(f"Error getting agent prompt path: {str(e)}", 'error')
             return None
 
-    def get_agent_prompt_path(self, team_id: str, agent_name: str) -> Optional[str]:
+    def get_agent_prompt_path(self, team_name: str, agent_name: str) -> Optional[str]:
         """Get prompt file path for an agent in a team"""
         try:
-            team_dir = os.path.join(PathManager.get_kinos_root(), "teams", team_id)
+            team_dir = os.path.join(PathManager.get_kinos_root(), "teams", team_name)
             prompt_file = os.path.join(team_dir, f"{agent_name.lower()}.md")
             
             if os.path.exists(prompt_file):
