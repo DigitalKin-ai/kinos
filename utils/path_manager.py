@@ -174,13 +174,15 @@ class PathManager:
         Returns:
             str: Path to the prompt file, or None if not found
         """
-        # Normalize team_id
+        # Normalize team_id and team_name
         if isinstance(team_id, dict):
-            team_id = team_id.get('id', team_id)
-            team_name = team_id.get('name', team_name) if isinstance(team_id, dict) else team_name
-        
-        # If team_id is still a dictionary or None, select a random team
-        if not team_id or (isinstance(team_id, dict) and not team_id.get('id')):
+            team_name = team_id.get('name', team_name)
+            team_id = team_id.get('id')
+        elif team_id:
+            team_id = str(team_id)
+            
+        # If team_id is None, select a random team
+        if not team_id:
             try:
                 from services import init_services
                 services = init_services(None)
