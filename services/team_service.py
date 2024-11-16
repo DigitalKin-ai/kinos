@@ -18,12 +18,12 @@ class TeamService(BaseService):
         self.team_types = self._load_team_types()
 
     def _load_team_types(self) -> List[Dict[str, Any]]:
-        """Load team configurations from team directories"""
+        """Load team configurations from team_* directories in current directory"""
         try:
             teams = []
             current_dir = os.getcwd()
             
-            # Look for team_* directories
+            # Look for team_* directories in current directory
             for item in os.listdir(current_dir):
                 if not item.startswith('team_'):
                     continue
@@ -32,56 +32,37 @@ class TeamService(BaseService):
                 if not os.path.isdir(team_dir):
                     continue
 
+                # Load config from team directory
                 config_path = os.path.join(team_dir, "config.json")
                 if os.path.exists(config_path):
                     try:
                         with open(config_path, 'r', encoding='utf-8') as f:
                             config = json.load(f)
-                        
-                        # Ensure config is a dictionary
-                        if not isinstance(config, dict):
-                            self.logger.log(f"Skipping invalid team config in {item}: not a dictionary", 'warning')
-                            continue
-                        
-                        # Ensure config has an ID
+                            
+                        # Set ID from directory name if not present
                         if 'id' not in config:
                             config['id'] = item.replace('team_', '')
-                        
-                        # Validate and normalize agents
-                        if 'agents' in config:
-                            normalized_agents = []
-                            for agent in config['agents']:
-                                # Normalize agent to dictionary format
-                                if isinstance(agent, str):
-                                    normalized_agents.append({
-                                        'name': agent, 
-                                        'type': 'aider', 
-                                        'weight': 0.5
-                                    })
-                                elif isinstance(agent, dict):
-                                    # Ensure required keys exist
-                                    agent_config = {
-                                        'name': agent.get('name', 'unnamed'),
-                                        'type': agent.get('type', 'aider'),
-                                        'weight': agent.get('weight', 0.5)
-                                    }
-                                    normalized_agents.append(agent_config)
                             
-                            config['agents'] = normalized_agents
-                        
+                        # Normalize agent configurations
+                        if 'agents' in config:
+                            config['agents'] = [
+                                {
+                                    'name': agent if isinstance(agent, str) else agent.get('name', 'unnamed'),
+                                    'type': 'aider' if isinstance(agent, str) else agent.get('type', 'aider'),
+                                    'weight': 0.5 if isinstance(agent, str) else agent.get('weight', 0.5)
+                                }
+                                for agent in config['agents']
+                            ]
+                            
+                        # Validate configuration
                         valid, error = self.validate_team_config(config)
                         if valid:
                             teams.append(config)
                         else:
-                            self.logger.log(
-                                f"Invalid team config {item}: {error}",
-                                'warning'
-                            )
+                            self.logger.log(f"Invalid team config {item}: {error}", 'warning')
+                            
                     except Exception as e:
-                        self.logger.log(
-                            f"Error loading team {item}: {str(e)}", 
-                            'error'
-                        )
+                        self.logger.log(f"Error loading team {item}: {str(e)}", 'error')
             
             return teams
 
