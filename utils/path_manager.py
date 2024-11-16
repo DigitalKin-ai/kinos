@@ -246,7 +246,7 @@ class PathManager:
             matched_paths = []
             for search_dir in search_directories:
                 if not os.path.exists(search_dir):
-                    print(f"{log_context} DEBUG: Skipping non-existent directory: {search_dir}")
+                    #print(f"{log_context} DEBUG: Skipping non-existent directory: {search_dir}")
                     continue
                 
                 try:
@@ -255,7 +255,7 @@ class PathManager:
                         for filename in prompt_filename_options:
                             prompt_path = os.path.join(root, filename)
                             if os.path.exists(prompt_path):
-                                print(f"{log_context} DEBUG: Found potential prompt file: {prompt_path}")
+                                #print(f"{log_context} DEBUG: Found potential prompt file: {prompt_path}")
                                 matched_paths.append(prompt_path)
                 
                 except PermissionError:
