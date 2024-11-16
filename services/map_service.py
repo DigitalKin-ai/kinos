@@ -2,6 +2,7 @@
 MapService - Service for generating and managing project documentation map
 """
 import os
+import traceback
 from datetime import datetime
 from typing import Dict, List, Tuple
 from services.base_service import BaseService
