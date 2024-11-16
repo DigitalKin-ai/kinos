@@ -22,6 +22,9 @@ class MapService(BaseService):
         }
         # Initialize Anthropic client for tokenization
         self.anthropic = Anthropic()
+        
+        # Initialize map_file attribute
+        self.map_file = None  # Will be set in generate_map()
 
     def generate_map(self) -> bool:
         """Generate project map file with enhanced debugging"""
@@ -344,6 +347,10 @@ class MapService(BaseService):
     def _ensure_map_file_writeable(self) -> bool:
         """Ensure map file is writable"""
         try:
+            if not hasattr(self, 'map_file') or not self.map_file:
+                self.logger.log("Map file path not yet initialized", 'warning')
+                return False
+                
             map_path = os.path.join(os.getcwd(), self.map_file)
             
             # Create file if it doesn't exist
@@ -376,6 +383,19 @@ class MapService(BaseService):
         """Update map after file changes with comprehensive logging"""
         try:
             # Ensure map file is writable first
+            if not hasattr(self, 'map_file') or not self.map_file:
+                # Try to initialize map file path
+                from services import init_services
+                services = init_services(None)
+                team_service = services['team_service']
+                active_team = team_service.get_active_team()
+                
+                if active_team:
+                    team_id = active_team.get('id')
+                    team_path = PathManager.get_team_path(team_id)
+                    if team_path:
+                        self.map_file = os.path.join(team_path, "map.md")
+            
             if not self._ensure_map_file_writeable():
                 self.logger.log("Could not make map file writable", 'error')
                 return False
