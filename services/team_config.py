@@ -21,8 +21,8 @@ class TeamMetrics:
 @dataclass
 class TeamConfig:
     """Team configuration with validation"""
-    id: str
     name: str
+    display_name: str
     agents: List[Dict[str, Any]]
     metrics: TeamMetrics = field(default_factory=TeamMetrics)
     
@@ -122,9 +122,9 @@ class TeamMetrics:
 
 class TeamStartupError(Exception):
     """Custom error for team startup failures"""
-    def __init__(self, message: str, team_id: str, details: Optional[Dict] = None):
+    def __init__(self, message: str, team_name: str, details: Optional[Dict] = None):
         super().__init__(message)
-        self.team_id = team_id
+        self.team_name = team_name
         self.details = details or {}
         self.timestamp = datetime.now()
 
@@ -132,7 +132,7 @@ class TeamStartupError(Exception):
         """Convert error to dictionary format"""
         return {
             'status': 'error',
-            'team_id': self.team_id,
+            'team_name': self.team_name,
             'error': str(self),
             'details': self.details,
             'timestamp': self.timestamp.isoformat()

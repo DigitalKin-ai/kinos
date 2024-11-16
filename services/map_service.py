@@ -101,7 +101,7 @@ class MapService(BaseService):
             self.logger.log("[MapService] 🔍 Scanning directory...", 'info')
             tree_content, warnings, total_tokens = self._scan_directory(
                 os.getcwd(),
-                team_id=team_id
+                team_name=team_name
             )
             
             self.logger.log(f"[MapService] 📊 Scan complete - {total_tokens} tokens, {len(warnings)} warnings", 'info')
