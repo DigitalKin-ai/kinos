@@ -288,14 +288,14 @@ class AgentBase(ABC):
             team_service = services['team_service']
             
             # Find the team containing this agent
-            agent_team = None
+            agent_team_name = None
             for team in team_service.team_types:
                 if self.name in team.get('agents', []):
-                    agent_team = team['id']
+                    agent_team_name = team.get('name')
                     break
-            
-            if not agent_team:
-                agent_team = 'default'
+        
+            if not agent_team_name:
+                agent_team_name = 'default'
             
             # Get history directory
             history_dir = PathManager.get_chat_history_path(team_id=agent_team)

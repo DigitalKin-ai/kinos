@@ -125,14 +125,14 @@ class MapService(BaseService):
             self.logger.log(f"[MapService] Stack trace:\n{traceback.format_exc()}", 'debug')
             return False
 
-    def _scan_directory(self, path: str, prefix: str = "", team_id: str = None) -> Tuple[List[str], List[str], int]:
+    def _scan_directory(self, path: str, prefix: str = "", team_name: str = None) -> Tuple[List[str], List[str], int]:
         """Scan directory recursively with team context"""
         try:
             # Dynamically detect current team if not provided
-            if not team_id:
+            if not team_name:
                 current_dir = os.getcwd()
                 team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
-                team_id = team_dirs[0][5:] if team_dirs else 'default'
+                team_name = team_dirs[0][5:] if team_dirs else 'default'
 
             tree_lines = []
             warnings = []

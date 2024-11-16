@@ -226,11 +226,11 @@ class TeamService(BaseService):
             self.logger.log(f"Error getting active team: {str(e)}", 'error')
             return None
 
-    def get_team_agents(self, team_id: Optional[str] = None) -> List[str]:
+    def get_team_agents(self, team_name: Optional[str] = None) -> List[str]:
         """Get list of agent names for a team"""
         try:
-            # Use active team if no ID provided
-            config = self.get_team_config(team_id) if team_id else self.active_team
+            # Use active team if no name provided
+            config = self.get_team_config(team_name) if team_name else self.active_team
         
             if not config:
                 self.logger.log(f"No configuration found for team: {team_id}", 'warning')
@@ -308,7 +308,7 @@ class TeamService(BaseService):
             self.logger.log(f"Error loading team prompts: {str(e)}", 'error')
             return {}
 
-    def validate_team_prompts(self, team_id: str) -> Dict[str, List[str]]:
+    def validate_team_prompts(self, team_name: str) -> Dict[str, List[str]]:
         """Validate all prompts for a team"""
         validation_results = {
             'valid': [],
@@ -317,7 +317,7 @@ class TeamService(BaseService):
         }
         
         try:
-            team_config = self.get_team_config(team_id)
+            team_config = self.get_team_config(team_name)
             if not team_config:
                 return validation_results
                 

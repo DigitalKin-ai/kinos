@@ -159,13 +159,13 @@ class PathManager:
         return os.path.join(PathManager.get_config_path(), filename)
 
     @classmethod
-    def get_prompt_file(cls, agent_name: str, team_id: Optional[str] = None) -> Optional[str]:
+    def get_prompt_file(cls, agent_name: str, team_name: Optional[str] = None) -> Optional[str]:
         """Get prompt file path for an agent in the team's prompts directory"""
         try:
             # Get current team directory
             current_dir = os.getcwd()
-            if team_id:
-                team_dir = os.path.join(current_dir, f"team_{team_id}")
+            if team_name:
+                team_dir = os.path.join(current_dir, f"team_{team_name}")
             else:
                 # Find first team directory
                 team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
@@ -265,25 +265,25 @@ class PathManager:
         return chats_dir
 
     @staticmethod
-    def get_chat_history_path(team_id: Optional[str] = None, agent_name: Optional[str] = None) -> str:
+    def get_chat_history_path(team_name: Optional[str] = None, agent_name: Optional[str] = None) -> str:
         """
         Get the path for chat history files
         
         Args:
-            team_id: Team identifier
+            team_name: Team name
             agent_name: Name of the agent
         
         Returns:
             str: Path to chat history directory or file
         """
         try:
-            # If no team_id, try to get active team
-            if not team_id:
+            # If no team_name, try to get active team
+            if not team_name:
                 from services import init_services
                 services = init_services(None)
                 team_service = services['team_service']
                 active_team = team_service.get_active_team()
-                team_id = active_team.get('id') if active_team else 'default'
+                team_name = active_team.get('name') if active_team else 'default'
             
             # Normalize team folder name
             team_folder = f"team_{team_id}" if not team_id.startswith('team_') else team_id
