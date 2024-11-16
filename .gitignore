@@ -80,3 +80,8 @@ Thumbs.db
 # Specific to KinOS
 config/secrets.yaml
 .kinos-cache/
+# KinOS History Files
+**/history/**/*.md
+**/history/**/*.log
+**/history/**/*.json
+**/history/**/*.txt

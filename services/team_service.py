@@ -215,6 +215,14 @@ class TeamService(BaseService):
             team_dir = os.path.join(os.getcwd(), f"team_{normalized_id}")
             os.makedirs(team_dir, exist_ok=True)
             
+            # Créer le dossier history pour l'équipe
+            history_dir = os.path.join(team_dir, "history")
+            os.makedirs(history_dir, exist_ok=True)
+            
+            # Créer des sous-dossiers si nécessaire
+            for subdir in ['chat', 'input', 'output', 'agents']:
+                os.makedirs(os.path.join(history_dir, subdir), exist_ok=True)
+            
             self.logger.log(f"Active team set to: {normalized_id} ({team_config.get('name', normalized_id)})", 'success')
             return True
             

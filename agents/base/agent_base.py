@@ -268,3 +268,46 @@ class AgentBase(ABC):
                 self.mission_files.clear()
         except:
             pass
+
+    def _get_agent_history_path(self, history_type: str = 'chat') -> str:
+        """
+        Get the history path for the current agent
+        
+        Args:
+            history_type: Type of history (chat, input, output)
+        
+        Returns:
+            str: Path to the history file/directory
+        """
+        try:
+            from utils.path_manager import PathManager
+            
+            # Get team service to find the team
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            
+            # Find the team containing this agent
+            agent_team = None
+            for team in team_service.team_types:
+                if self.name in team.get('agents', []):
+                    agent_team = team['id']
+                    break
+            
+            if not agent_team:
+                agent_team = 'default'
+            
+            # Get history directory
+            history_dir = PathManager.get_chat_history_path(team_id=agent_team)
+            
+            # Create specific history file/directory
+            full_path = os.path.join(history_dir, f"{history_type}", f"{self.name}")
+            
+            # Ensure directory exists
+            os.makedirs(full_path, exist_ok=True)
+            
+            return full_path
+            
+        except Exception as e:
+            self.logger.log(f"Error getting agent history path: {str(e)}", 'error')
+            return os.path.join(os.getcwd(), "history", self.name)
