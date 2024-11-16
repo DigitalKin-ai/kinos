@@ -340,9 +340,25 @@ class PathManager:
         Returns:
             str: Path to the team directory
         """
-        # Use the team_id directly as the folder name, without adding "team_" prefix
-        team_folder = team_id if team_id else ""
-        return os.path.join(PathManager.get_project_root(), team_folder)
+        try:
+            # Get current working directory as project root
+            project_root = os.getcwd()
+            
+            # Add "team_" prefix if not present
+            team_folder = f"team_{team_id}" if team_id and not team_id.startswith('team_') else team_id
+
+            # Create full path
+            team_path = os.path.join(project_root, team_folder) if team_folder else project_root
+            
+            # Create directory if it doesn't exist
+            os.makedirs(team_path, exist_ok=True)
+            
+            return team_path
+            
+        except Exception as e:
+            # Fallback to print since logger may not be available
+            print(f"Error getting team path: {str(e)}")
+            return os.getcwd()  # Return current directory as fallback
 
     @staticmethod
     def get_log_file(service_name: str) -> str:
