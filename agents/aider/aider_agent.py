@@ -397,6 +397,7 @@ Instructions:
 
 
             
+            # Process key files and remaining files
             try:
                 # Define key files
                 key_files = {
@@ -414,9 +415,8 @@ Instructions:
                                 files_context[file_path] = f.read()
                     except Exception as e:
                         self.logger.log(f"[{self.name}] Error reading key file {file_path}: {str(e)}", 'warning')
-            
-            # Get remaining files - Use .gitignore patterns for filtering
-            try:
+
+                # Get remaining files - Use .gitignore patterns for filtering
                 from pathspec import PathSpec
                 from pathspec.patterns import GitWildMatchPattern
 
