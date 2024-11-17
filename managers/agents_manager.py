@@ -128,7 +128,8 @@ Generate a markdown configuration file that defines:
             Exception: If API call fails
         """
         try:
-            response = openai.ChatCompletion.create(
+            client = openai.OpenAI()
+            response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are a specialized AI agent configuration generator."},
