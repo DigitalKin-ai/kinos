@@ -7,6 +7,8 @@ from datetime import datetime
 from utils.logger import Logger
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
+from agents.aider.command_builder import AiderCommandBuilder
+from agents.aider.output_parser import AiderOutputParser
 
 class FileManager:
     """Service for managing file operations"""
