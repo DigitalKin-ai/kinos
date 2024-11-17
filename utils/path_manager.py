@@ -6,13 +6,13 @@ import platform
 import shutil
 from typing import Optional, Dict, Any, Union, List
 from datetime import datetime
+from .log_utils import log_message
 
 class PathManager:
     @classmethod
     def _log(cls, message: str, level: str = 'info'):
-        """Simple internal logging"""
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        print(f"[{timestamp}] [{level.upper()}] {message}")
+        """Internal logging using utility function"""
+        log_message(message, level)
     """Centralized and secure path management for KinOS"""
     
     _CONFIG_FILE = 'config/missions.json'
