@@ -24,6 +24,10 @@ def init_services(_) -> Dict[str, Any]:
         services['agent_service'] = AgentService(None)
         services['map_service'] = MapService(services['team_service'])
         
+        # Add dataset service initialization
+        from services.dataset_service import DatasetService
+        services['dataset_service'] = DatasetService(None)
+        
         return services
         
     except Exception as e:
