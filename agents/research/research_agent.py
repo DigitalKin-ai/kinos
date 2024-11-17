@@ -111,10 +111,11 @@ Focus on factual claims, statistics, or technical concepts that should be suppor
 Give some context explanation.
 """
             
-            # Use model router with simple async call
+            # Use model router with system role and user message
             import asyncio
             response = asyncio.run(model_router.generate_response(
                 messages=[{"role": "user", "content": prompt}],
+                system="You are a research topic extractor. Identify key claims and questions that need references.",
                 max_tokens=1000
             ))
             
