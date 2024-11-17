@@ -36,33 +36,22 @@ def init_services(_) -> Dict[str, Any]:
         raise ServiceError(error_msg)
 
     try:
-        # Initialize services
         services = {}
-            
-        # Initialize services
         services['team_service'] = TeamService(None)
-        
-        # Initialize other services 
         services['model_router'] = ModelRouter()
         services['agent_service'] = AgentService(None)
         services['map_service'] = MapService(services['team_service'])
-            
-        # Cache services
-        _services_cache = services
-            
-        return services
-            
-    except Exception as e:
-        # Log detailed error
-        logger.log(
-            f"Service initialization failed:\n"
-            f"Error: {str(e)}\n"
-            f"Traceback: {traceback.format_exc()}",
-            'error'
-        )
         
-        # Raise a specific service error
-        raise ServiceError(f"Failed to initialize services: {str(e)}") from e
+        return services
+        
+    except Exception as e:
+        error_msg = (
+            f"Error initializing services in {os.getcwd()}:\n"
+            f"Error: {str(e)}\n"
+            f"Trace: {traceback.format_exc()}"
+        )
+        logger.log(error_msg, 'error')
+        raise ServiceError(error_msg)
 
     except Exception as e:
         # Log detailed error
