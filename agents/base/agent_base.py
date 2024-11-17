@@ -182,21 +182,52 @@ class AgentBase(ABC):
         pass
 
 
-    def _format_files_context(self, files_context: Dict[str, str]) -> str:
+    def _format_files_context(self, files_context: Dict[str, Any]) -> str:
         """
-        Format files context into a readable string with clear file boundaries
+        Format files context into readable string with validation
         
         Args:
             files_context: Dictionary mapping filenames to content
             
         Returns:
             str: Formatted string with file content blocks
+            
+        Raises:
+            TypeError: If inputs are not correct types
+            ValueError: If inputs are empty or invalid
+            FileNotFoundError: If files don't exist
         """
+        if not isinstance(files_context, dict):
+            raise TypeError("files_context must be a dictionary")
+        if not files_context:
+            raise ValueError("files_context cannot be empty")
+        if not self.mission_dir:
+            raise ValueError("mission_dir not set")
+
         formatted = []
         for filename, content in files_context.items():
-            # Get relative path for cleaner output
+            if not isinstance(filename, str):
+                raise TypeError(f"Filename must be string, got {type(filename)}")
+                
+            # Read file content if not already a string
+            try:
+                if not isinstance(content, str):
+                    with open(filename, 'r', encoding='utf-8') as f:
+                        content = f.read()
+            except Exception as e:
+                self.logger.log(f"Error reading file {filename}: {str(e)}", 'warning')
+                continue
+                
+            if not os.path.exists(filename):
+                self.logger.log(f"File not found: {filename}", 'warning')
+                continue
+                
             rel_path = os.path.relpath(filename, self.mission_dir)
             formatted.append(f"File: {rel_path}\n```\n{content}\n```\n")
+            
+        if not formatted:
+            return "No readable files found"
+            
         return "\n".join(formatted)
 
     def _call_llm(self, messages: List[Dict[str, str]], system: Optional[str] = None, **kwargs) -> Optional[str]:
