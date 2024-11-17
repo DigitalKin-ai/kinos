@@ -62,8 +62,6 @@ class AiderAgent(AgentBase):
             # Initialize state
             self._init_state()
                 
-            self.logger.log(f"[{self.name}] Initialized in team {self.team_name}")
-                
         except Exception as e:
             logger = Logger()
             logger.log(f"[INIT] Error during initialization: {str(e)}", 'error')
