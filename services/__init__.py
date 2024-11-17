@@ -4,6 +4,10 @@ import traceback
 from typing import Dict, Any, Optional
 from utils.logger import Logger
 from utils.exceptions import ServiceError
+from services.team_service import TeamService
+from utils.model_router import ModelRouter
+from services.agent_service import AgentService
+from services.map_service import MapService
 
 # Use a more robust caching mechanism
 _services_cache: Optional[Dict[str, Any]] = None
