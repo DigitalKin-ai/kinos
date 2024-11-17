@@ -550,8 +550,11 @@ Instructions:
                         self.logger.log(f"[{self.name}] Loaded prompt content from {prompt}", 'debug')
                     else:
                         raise ValueError(f"Invalid prompt file path: {prompt}")
-                        
-                    messages.append({"system": prompt_content})
+
+                    # Create messages array with user content
+                    messages = [
+                        {"role": "user", "content": context_message}
+                    ]
                     
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error loading prompt content: {str(e)}", 'error')
@@ -560,16 +563,12 @@ Instructions:
                 # Only add chat history if not empty
                 if chat_history.strip():
                     messages.append({"role": "assistant", "content": chat_history})
-                    
-                # Add user message
-                messages.append({"role": "user", "content": context_message})
-                #self.logger.log(f"CONTEXT MESSAGE {context_message}", 'warning')
                 
-                # Use model router instead of direct Anthropic call
+                # Use model router with system prompt
                 import asyncio
                 model_response = asyncio.run(model_router.generate_response(
                     messages=messages,
-                    system=prompt  # System prompt
+                    system=prompt_content  # Pass prompt content as system parameter
                 ))
                 
                 if not model_response:
