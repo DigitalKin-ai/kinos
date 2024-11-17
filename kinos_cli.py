@@ -273,25 +273,6 @@ def run_multi_team_loop(model: Optional[str] = None):
     
     try:
         while True:
-            # Detect teams in current directory
-            current_dir = os.getcwd()
-            team_dirs = [d.replace('team_', '') for d in os.listdir(current_dir) 
-                        if d.startswith('team_')]
-            
-            if not team_dirs:
-                logger.log("No team directories found", 'error')
-                return
-
-            # Select random team
-            team_name = random.choice(team_dirs)
-            logger.log(f"Selected team: {team_name}", 'info')
-
-            # Get team config directly
-            team_service = TeamService(None)
-            team_config = team_service.get_team_config(team_name)
-            if not team_config:
-                logger.log(f"No config found for team {team_name}", 'error')
-                continue
 
             # Set model if specified
             if model:
@@ -300,7 +281,7 @@ def run_multi_team_loop(model: Optional[str] = None):
                     logger.log(f"Model {model} not found", 'warning')
 
             # Get team agents and run random agent
-            agents = team_service.get_team_agents(team_name)
+            agents = FINDRANDOMAGENT.get_team_agents(team_name)
             if agents:
                 agent_service = AgentService(None)
                 agent_service.run_random_agent(agents)
