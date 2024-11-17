@@ -188,14 +188,7 @@ class ModelRouter:
         """Get list of available models per provider"""
         available = {}
         
-        # Anthropic models
-        if 'anthropic' in self.clients:
-            available['anthropic'] = [
-                "claude-3-5-sonnet-20241022",
-                "claude-3-5-haiku-20241022"
-            ]
-                
-        # OpenAI models    
+        # OpenAI models only - remove Anthropic    
         if 'openai' in self.clients:
             available['openai'] = [
                 "gpt-4o",
