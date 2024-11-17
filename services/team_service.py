@@ -387,12 +387,7 @@ class TeamService(BaseService):
             if self.active_team and self.active_team.get('name') == normalized_name:
                 return self.active_team
                 
-            # Look through team configurations
-            for team in self.team_types:
-                if team.get('name') == normalized_name:
-                    return team
-                    
-            # If not found, try to load from filesystem
+            # Look for team directory first
             team_dir = os.path.join(os.getcwd(), f"team_{normalized_name}")
             if os.path.exists(team_dir):
                 config_path = os.path.join(team_dir, "config.json")
@@ -403,6 +398,25 @@ class TeamService(BaseService):
                         return config
                     except Exception as e:
                         raise ServiceError(f"Error loading team config: {str(e)}")
+                else:
+                    # Create default config if directory exists but no config
+                    config = {
+                        "name": normalized_name,
+                        "display_name": normalized_name.replace('_', ' ').title(),
+                        "agents": []
+                    }
+                    try:
+                        os.makedirs(os.path.dirname(config_path), exist_ok=True)
+                        with open(config_path, 'w', encoding='utf-8') as f:
+                            json.dump(config, f, indent=4)
+                        return config
+                    except Exception as e:
+                        raise ServiceError(f"Error creating team config: {str(e)}")
+                    
+            # Then check predefined configurations
+            for team in self.team_types:
+                if team.get('name') == normalized_name:
+                    return team
                     
             raise ServiceError(f"Team '{normalized_name}' not found")
             
