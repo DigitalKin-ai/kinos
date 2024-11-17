@@ -266,102 +266,64 @@ def run_team_loop(team_name: str, specific_name: str = None):
             runner.join(timeout=1.0)
             
 def run_multi_team_loop(model: Optional[str] = None):
-    """
-    Run agents across multiple teams with optional model specification
-    
-    Args:
-        model: Optional model to use for all agents
-    """
+    """Run agents across multiple teams with optional model specification"""
     logger = Logger()
     logger.log("🌐 Starting multi-team agent execution", 'debug')
     
-    # Dynamically detect teams in current directory
-    current_dir = os.getcwd()
-    team_dirs = [d.replace('team_', '') for d in os.listdir(current_dir) if d.startswith('team_')]
-    
-    if not team_dirs:
-        logger.log(
-            "No team directories found in current directory.\n"
-            f"Please create a team directory (team_*) in: {current_dir}\n"
-            "Example: team_coding, team_research, etc.",
-            'error'
-        )
-        return
-
-    # Initialize services
-    from services import init_services
-    services = init_services(None)
-    
-    # Set model if specified
-    if model:
-        model_router = services['model_router']
-        if not model_router.set_model(model):
-            logger.log(f"Model {model} not found. Available models:", 'warning')
-            for provider, models in model_router.get_available_models().items():
-                logger.log(f"{provider}: {', '.join(models)}", 'info')
-            return
-
-    team_service = services['team_service']
-    agent_service = services['agent_service']
-    
-    # Create output queue and thread management
-    output_queue = queue.Queue()
-    active_threads = {}
-    
     try:
-        while True:
-            # Clean up finished threads
-            active_threads = {tid: runner for tid, runner in active_threads.items() 
-                              if runner.is_alive()}
+        while True:  # Main loop
+            # Dynamically detect teams in current directory each iteration
+            current_dir = os.getcwd()
+            team_dirs = [d.replace('team_', '') for d in os.listdir(current_dir) if d.startswith('team_')]
             
-            # Start new threads if needed
-            while len(active_threads) < 5:
-                # Select random team
-                team_name = random.choice(team_dirs)
-                
-                # Important: Set active team before creating agents
-                if not team_service.set_active_team(team_name):
-                    logger.log(f"Failed to set active team {team_name}", 'error')
-                    continue
-                
-                # Load team configuration
-                team_config = team_service.get_team_config(team_name)
-                if not team_config:
-                    logger.log(f"Could not load team config for {team_name}", 'warning')
-                    continue
-                
-                # Select random agent from the team
-                agents = team_service.get_team_agents(team_name)
-                agent_name = random.choice(agents)
-                
-                logger.log(f"Selected team: {team_name}, Agent: {agent_name}", 'debug')
-                
-                # Create and start runner
-                runner = AgentRunner(agent_service, agents, output_queue, logger)
-                runner.start()
-                active_threads[runner.ident] = runner
-                
-                logger.log(f"Started new agent runner (total: {len(active_threads)})")
+            if not team_dirs:
+                logger.log(
+                    "No team directories found in current directory.\n"
+                    f"Please create a team directory (team_*) in: {current_dir}\n"
+                    "Example: team_coding, team_research, etc.",
+                    'error'
+                )
+                return
+
+            # Randomly select team for this iteration
+            import random
+            team_name = random.choice(team_dirs)
+            logger.log(f"Selected team for execution: {team_name}", 'info')
+
+            # Initialize services with selected team
+            from services import init_services
+            services = init_services(None)
             
-            # Process output queue
-            try:
-                msg = output_queue.get(timeout=0.1)
-                logger.log(f"Received message from queue: {msg['status']}", 'warning')
-            except queue.Empty:
-                pass
-            
-            time.sleep(0.1)  # Brief sleep to prevent CPU spinning
-                
+            # Set active team
+            team_service = services['team_service']
+            if not team_service.set_active_team(team_name):
+                logger.log(f"Failed to set active team {team_name}", 'error')
+                continue
+
+            # Set model if specified
+            if model:
+                model_router = services['model_router']
+                if not model_router.set_model(model):
+                    logger.log(f"Model {model} not found. Available models:", 'warning')
+                    for provider, models in model_router.get_available_models().items():
+                        logger.log(f"{provider}: {', '.join(models)}", 'info')
+                    return
+
+            # Get team agents
+            agents = team_service.get_team_agents(team_name)
+            if not agents:
+                logger.log(f"No agents found for team: {team_name}", 'warning')
+                continue
+
+            # Run random agent from selected team
+            agent_service = services['agent_service']
+            agent_service.run_random_agent(agents)
+
+            # Brief sleep between iterations
+            time.sleep(0.1)
+
     except KeyboardInterrupt:
         logger.log("Stopping multi-team execution...")
-        
-        # Stop all threads
-        for runner in active_threads.values():
-            runner.running = False
-            
-        # Wait for threads to finish
-        for runner in active_threads.values():
-            runner.join(timeout=1.0)
 
 def main():
     """CLI entry point"""
