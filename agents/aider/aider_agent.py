@@ -93,8 +93,12 @@ class AiderAgent(AgentBase):
     def _run_aider(self, instructions: str) -> Optional[str]:
         """Execute Aider command with streamed output processing"""
         try:
-            # Get history files from team path
-            history_dir = os.path.join(PathManager.get_team_path(self.team), "history")
+            # Get correct team path using PathManager
+            team_path = PathManager.get_team_path(self.team)
+            history_dir = os.path.join(team_path, "history")
+            os.makedirs(history_dir, exist_ok=True)
+            
+            # Create history file paths
             chat_history_file = os.path.join(history_dir, f".aider.{self.name}.chat.history.md")
             input_history_file = os.path.join(history_dir, f".aider.{self.name}.input.history.md")
 
