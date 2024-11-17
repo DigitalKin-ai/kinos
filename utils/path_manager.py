@@ -324,9 +324,18 @@ Always structure your responses as:
     @classmethod
     def get_team_path(cls, name: str) -> str:
         """Get the path for a team"""
-        team_folder = f"team_{name}" if not name.startswith('team_') else name
-        team_path = os.path.join(os.getcwd(), team_folder)
+        # Remove any existing team_ prefix
+        team_name = name.replace('team_', '')
+        
+        # Create team folder name with single prefix
+        team_folder = f"team_{team_name}"
+        
+        # Get absolute path
+        team_path = os.path.abspath(os.path.join(os.getcwd(), team_folder))
+        
+        # Ensure directory exists
         os.makedirs(team_path, exist_ok=True)
+        
         return team_path
 
     @staticmethod
