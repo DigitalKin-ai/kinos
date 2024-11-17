@@ -111,7 +111,7 @@ Focus on factual claims, statistics, or technical concepts that should be suppor
 Give some context explanation.
 """
             
-            # Use model router with system role and user message
+            # Use model router with system prompt
             import asyncio
             response = asyncio.run(model_router.generate_response(
                 messages=[{"role": "user", "content": prompt}],
@@ -263,7 +263,7 @@ Instructions:
 4. Preserve existing content and formatting
 5. Only add the new references - don't modify other content
 
-Please proceed with the updates now."""
+ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."""
 
             # Save to chat history
             from utils.path_manager import PathManager
