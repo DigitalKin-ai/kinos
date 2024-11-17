@@ -22,30 +22,36 @@ class AiderCommandBuilder:
         self.logger.log(f"[{self.agent_name}] Team: {self.team}", 'debug')
 
     def get_model_args(self) -> List[str]:
-        """Get model-specific command arguments"""
-        try:
-            # Get current model from ModelRouter
-            from services import init_services
-            services = init_services(None)
-            model_router = services['model_router']
-            current_model = model_router.current_model
+        """
+        Get model-specific command arguments
+        
+        Returns:
+            List[str]: Command line arguments for model configuration
             
-            return [
-                "--model", current_model,
-                "--edit-format", "diff",
-                "--yes-always",
-                "--cache-prompts",
-                "--no-pretty"
-            ]
-        except Exception:
-            # Fallback to default model if ModelRouter not available
-            return [
-                "--model", "claude-3-5-haiku-20241022",
-                "--edit-format", "diff",
-                "--yes-always",
-                "--cache-prompts",
-                "--no-pretty"
-            ]
+        Raises:
+            ValueError: If ModelRouter is not available or no model is configured
+        """
+        # Get current model from ModelRouter - fail if not available
+        from services import init_services
+        services = init_services(None)
+        if 'model_router' not in services:
+            raise ValueError("ModelRouter service not available")
+            
+        model_router = services['model_router']
+        if not model_router:
+            raise ValueError("ModelRouter service not initialized")
+            
+        current_model = model_router.current_model
+        if not current_model:
+            raise ValueError("No model configured in ModelRouter")
+            
+        return [
+            "--model", current_model,
+            "--edit-format", "diff",
+            "--yes-always",
+            "--cache-prompts",
+            "--no-pretty"
+        ]
 
     def get_file_args(self, files: List[str], ignore_patterns: List[str]) -> List[str]:
         """

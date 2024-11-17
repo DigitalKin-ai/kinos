@@ -275,45 +275,37 @@ class PathManager:
         return chats_dir
 
     @staticmethod
-    def get_chat_history_path(team_name: Optional[str] = None, agent_name: Optional[str] = None) -> str:
+    def get_chat_history_path(team_name: str, agent_name: str) -> str:
         """
         Get the path for chat history files
         
         Args:
-            team_name: Team name
-            agent_name: Name of the agent
+            team_name: Team name (required)
+            agent_name: Name of the agent (required)
         
         Returns:
-            str: Path to chat history directory or file
+            str: Path to chat history file
+            
+        Raises:
+            ValueError: If team_name or agent_name is missing
         """
-        try:
-            # If no team_name, try to get active team
-            if not team_name:
-                from services import init_services
-                services = init_services(None)
-                team_service = services['team_service']
-                active_team = team_service.get_active_team()
-                team_name = active_team.get('name') if active_team else 'default'
+        if not team_name:
+            raise ValueError("Team name is required")
+        if not agent_name:
+            raise ValueError("Agent name is required")
             
-            # Normalize team folder name
-            team_folder = f"team_{team_name}" if not team_name.startswith('team_') else team_name
-            
-            # Create full path
-            chat_history_dir = os.path.join(os.getcwd(), team_folder, "history")
-            
-            # Create directory if it doesn't exist
-            os.makedirs(chat_history_dir, exist_ok=True)
-            
-            # If agent name is provided, create agent-specific chat history file path
-            if agent_name:
-                chat_history_file = f".kinos.{agent_name}.chat.history.md"
-                return os.path.join(chat_history_dir, chat_history_file)
-            
-            return chat_history_dir
-            
-        except Exception as e:
-            print(f"Error getting chat history path: {str(e)}")
-            return os.path.join(os.getcwd(), "history")
+        # Normalize team folder name
+        team_folder = f"team_{team_name}" if not team_name.startswith('team_') else team_name
+        
+        # Create full path
+        chat_history_dir = os.path.join(os.getcwd(), team_folder, "history")
+        
+        # Create directory if it doesn't exist
+        os.makedirs(chat_history_dir, exist_ok=True)
+        
+        # Create agent-specific chat history file path
+        chat_history_file = f".kinos.{agent_name}.chat.history.md"
+        return os.path.join(chat_history_dir, chat_history_file)
 
     @classmethod
     def _log(cls, message: str, level: str = 'info'):
