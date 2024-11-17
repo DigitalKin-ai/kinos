@@ -11,7 +11,7 @@ import os
 import json
 from datetime import datetime
 from utils.logger import Logger
-from services.agent_service import AgentService
+from agents.aider.aider_agent import AiderAgent
 from services.team_service import TeamService
 from utils.model_router import ModelRouter
 from utils.path_manager import PathManager
@@ -303,8 +303,7 @@ def run_multi_team_loop(model: Optional[str] = None):
             logger.log(f"Selected prompt: {prompt_file} (agent: {agent_name}, team: {team_name})", 'info')
 
             try:
-                # Create and run agent
-                agent_service = AgentService(None)
+                # Create and run agent directly using AiderAgent
                 agent_config = {
                     'name': agent_name,
                     'team': team_name,
@@ -313,7 +312,10 @@ def run_multi_team_loop(model: Optional[str] = None):
                     'prompt_file': prompt_file,
                     'weight': 0.5
                 }
-                agent = agent_service.create_agent(agent_config)
+                
+                from agents.aider.aider_agent import AiderAgent
+                agent = AiderAgent(agent_config)
+                
                 if agent:
                     agent.run()
                     logger.log(f"Completed run for agent {agent_name}", 'success')
