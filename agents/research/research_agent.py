@@ -111,8 +111,8 @@ Focus on factual claims, statistics, or technical concepts that should be suppor
 Give some context explanation.
 """
             
-            # Use model router with system prompt - use synchronous call
-            response = self._call_llm(
+            # Use synchronous version of _call_llm instead of async
+            response = self._call_llm_sync(
                 messages=[{"role": "user", "content": prompt}],
                 system="You are a research topic extractor. Identify key claims and questions that need references.",
                 max_tokens=1000
@@ -357,3 +357,31 @@ ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT.
     def _format_findings(self, results: Dict[str, Any]) -> str:
         """Format query results into readable findings"""
         # Keep existing implementation...
+    def _call_llm_sync(self, messages: List[Dict[str, str]], system: Optional[str] = None, **kwargs) -> Optional[str]:
+        """Synchronous helper method for LLM calls using ModelRouter"""
+        try:
+            from services import init_services
+            services = init_services(None)
+            model_router = services['model_router']
+            
+            # Run async call in synchronous context
+            import asyncio
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                
+            response = loop.run_until_complete(
+                model_router.generate_response(
+                    messages=messages,
+                    system=system,
+                    **kwargs
+                )
+            )
+            
+            return response
+            
+        except Exception as e:
+            self.logger.log(f"Error calling LLM: {str(e)}", 'error')
+            return None
