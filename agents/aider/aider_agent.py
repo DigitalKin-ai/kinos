@@ -551,7 +551,7 @@ Instructions:
                     else:
                         raise ValueError(f"Invalid prompt file path: {prompt}")
                         
-                    messages.append({"role": "system", "content": prompt_content})
+                    messages.append({"system": prompt_content})
                     
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error loading prompt content: {str(e)}", 'error')
