@@ -34,41 +34,28 @@ class AiderAgent(AgentBase):
 
     def __init__(self, config: Dict[str, Any]):
         """Initialize agent with configuration"""
-        # Log initial config
-        from utils.logger import Logger
-        logger = Logger()
-        logger.log(f"[INIT] Starting initialization with config: {config}", 'debug')
-        
-        # Ensure config exists before parent constructor
-        if not hasattr(self, 'config'):
-            self.config = config if config is not None else {}
-            logger.log(f"[INIT] Set initial config: {self.config}", 'debug')
-        
-        # Get team from config BEFORE parent constructor
-        self.team = self.config.get('team', 'default')
-        self.team_name = self.team.title()
-
-        # Get team info WITHOUT changing active team
-        try:
-            from services import init_services
-            services = init_services(None)
-            team_service = services['team_service']
+        # Store original directory
+        self.original_dir = os.getcwd()
             
-            # Get team config without changing active team
-            team_config = team_service.get_team_by_name(self.team)
-            if team_config:
-                self.team_name = team_config.get('display_name', self.team.title())
-            else:
-                self.team_name = self.team.title()  # Fallback to simple title case
+        # Get services
+        from services import init_services
+        services = init_services(None)
+        team_service = services['team_service']
+            
+        # Get active team info without modifying it
+        active_team = team_service.get_active_team()
+        if not active_team:
+            raise ValueError("No active team set")
                 
-            logger.log(f"[INIT] Using team name: {self.team_name}", 'debug')
+        # Set team info from active team
+        self.team = active_team.get('name', 'default')
+        self.team_name = active_team.get('display_name', self.team.title())
             
-        except Exception as e:
-            logger.log(f"[INIT] Error getting team info: {str(e)}", 'warning')
-            self.team_name = self.team.title()  # Fallback to simple title case
-
-        # Call parent constructor
-        super().__init__(self.config)
+        # Update config with team info
+        config['team'] = self.team
+            
+        # Initialize parent
+        super().__init__(config)
         
         # Configure components
         self._configure_encoding()
