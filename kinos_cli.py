@@ -36,13 +36,14 @@ def load_team_config(team_name: str) -> List[str]:
 
 class AgentRunner(threading.Thread):
     """Thread class for running an agent and capturing output"""
-    def __init__(self, team_agents: List[str], output_queue: queue.Queue, logger: Logger):
+    def __init__(self, team_agents: List[str], output_queue: queue.Queue, logger: Logger, team_name: str):
         super().__init__(daemon=True)
         self.team_agents = team_agents  # Liste complète des agents de l'équipe
         self.output_queue = output_queue
         self.logger = logger
         self.running = True
         self.agent_type = 'aider'  # Default type
+        self.team_name = team_name
 
     def run(self):
         while self.running:
@@ -56,7 +57,7 @@ class AgentRunner(threading.Thread):
                 # Initialize agent directly with AiderAgent
                 agent_config = {
                     'name': self.agent_name,
-                    'team': team_name,
+                    'team': self.team_name,
                     'type': 'aider',
                     'mission_dir': os.getcwd(),
                     'weight': 0.5
@@ -247,7 +248,7 @@ def run_team_loop(team_name: str, specific_name: str = None):
                 logger.log(f"Selected agent: {agent_name}", 'debug')
                 
                 # Start new runner
-                runner = AgentRunner(agents, output_queue, logger)
+                runner = AgentRunner(agents, output_queue, logger, team_name)
                 runner.start()
                 active_threads[runner.ident] = runner
                 logger.log(f"Started new agent runner (total: {len(active_threads)})")
