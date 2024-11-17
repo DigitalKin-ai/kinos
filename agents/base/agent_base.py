@@ -128,25 +128,13 @@ class AgentBase(ABC):
             )
 
     def get_prompt(self) -> str:
-        """Get the current prompt using active team context"""
+        """Get the current prompt using team context"""
         try:
-            # Get services
-            from services import init_services
-            services = init_services(None)
-            team_service = services['team_service']
-            
-            # Get active team - will raise error if none set
-            active_team = team_service.get_active_team()
-            team_name = active_team.get('name')
-            
-            # Get prompt using PathManager
-            prompt_path = PathManager.get_prompt_file(self.name, team_name)
+            # Get prompt using PathManager directly with team from config
+            prompt_path = PathManager.get_prompt_file(self.name, self.team)
             
             if not prompt_path or not os.path.exists(prompt_path):
-                raise ValueError(
-                    f"Prompt file not found for agent {self.name} "
-                    f"in active team {team_name}"
-                )
+                raise ValueError(f"Prompt file not found for agent {self.name} in team {self.team}")
             
             with open(prompt_path, 'r', encoding='utf-8') as f:
                 return f.read()

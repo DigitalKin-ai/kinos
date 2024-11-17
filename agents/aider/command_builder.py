@@ -11,35 +11,15 @@ from utils.path_manager import PathManager
 class AiderCommandBuilder:
     """Builds and executes Aider commands"""
     
-    def __init__(self, agent_name: str):
-        """Initialize with agent name"""
+    def __init__(self, agent_name: str, team_name: str):
+        """Initialize with agent and team names"""
         self.agent_name = agent_name
+        self.team = team_name
+        self.mission_dir = os.getcwd()
         
-        try:
-            # Get services
-            from services import init_services
-            services = init_services(None)
-            team_service = services['team_service']
-            
-            # Get active team info
-            active_team = team_service.get_active_team()
-            self.team = active_team.get('name', 'default')
-            self.team_name = active_team.get('display_name', self.team.title())
-            
-            # Get mission directory from current working directory
-            self.mission_dir = os.getcwd()
-            
-            # Initialize logger
-            from utils.logger import Logger
-            self.logger = Logger()
-            self.logger.log(f"[{self.agent_name}] Team: {self.team_name} (ID: {self.team})", 'debug')
-            
-        except Exception as e:
-            from utils.logger import Logger
-            logger = Logger()
-            logger.log(f"Error detecting team: {str(e)}", 'warning')
-            self.team = 'default'
-            self.team_name = 'Default Team'
+        from utils.logger import Logger
+        self.logger = Logger()
+        self.logger.log(f"[{self.agent_name}] Team: {self.team}", 'debug')
 
     def get_model_args(self) -> List[str]:
         """Get model-specific command arguments"""

@@ -266,58 +266,44 @@ def run_team_loop(team_name: str, specific_name: str = None):
             runner.join(timeout=1.0)
             
 def run_multi_team_loop(model: Optional[str] = None):
-    """Run agents across multiple teams with optional model specification"""
+    """Run agents across multiple teams"""
     logger = Logger()
     logger.log("🌐 Starting multi-team agent execution", 'debug')
     
     try:
-        while True:  # Main loop
-            # Dynamically detect teams in current directory each iteration
+        while True:
+            # Detect teams in current directory
             current_dir = os.getcwd()
-            team_dirs = [d.replace('team_', '') for d in os.listdir(current_dir) if d.startswith('team_')]
+            team_dirs = [d.replace('team_', '') for d in os.listdir(current_dir) 
+                        if d.startswith('team_')]
             
             if not team_dirs:
-                logger.log(
-                    "No team directories found in current directory.\n"
-                    f"Please create a team directory (team_*) in: {current_dir}\n"
-                    "Example: team_coding, team_research, etc.",
-                    'error'
-                )
+                logger.log("No team directories found", 'error')
                 return
 
-            # Randomly select team for this iteration
-            import random
+            # Select random team
             team_name = random.choice(team_dirs)
-            logger.log(f"Selected team for execution: {team_name}", 'info')
+            logger.log(f"Selected team: {team_name}", 'info')
 
-            # Initialize services with selected team
-            from services import init_services
-            services = init_services(None)
-            
-            # Set active team
-            team_service = services['team_service']
-            if not team_service.set_active_team(team_name):
-                logger.log(f"Failed to set active team {team_name}", 'error')
+            # Get team config directly
+            team_service = TeamService(None)
+            team_config = team_service.get_team_config(team_name)
+            if not team_config:
+                logger.log(f"No config found for team {team_name}", 'error')
                 continue
 
             # Set model if specified
             if model:
-                model_router = services['model_router']
+                model_router = ModelRouter()
                 if not model_router.set_model(model):
-                    logger.log(f"Model {model} not found, using default model", 'warning')
-                    # Don't return, just continue with default model
+                    logger.log(f"Model {model} not found", 'warning')
 
-            # Get team agents
+            # Get team agents and run random agent
             agents = team_service.get_team_agents(team_name)
-            if not agents:
-                logger.log(f"No agents found for team: {team_name}", 'warning')
-                continue
+            if agents:
+                agent_service = AgentService(None)
+                agent_service.run_random_agent(agents)
 
-            # Run random agent from selected team
-            agent_service = services['agent_service']
-            agent_service.run_random_agent(agents)
-
-            # Brief sleep between iterations
             time.sleep(0.1)
 
     except KeyboardInterrupt:

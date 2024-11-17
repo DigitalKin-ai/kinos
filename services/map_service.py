@@ -19,41 +19,23 @@ class MapService(BaseService):
         self.logger = Logger()
         self.team_service = team_service
         self.size_limits = {
-            'warning': 6000,  # Tokens triggering warning (6k)
-            'error': 12000    # Tokens triggering error (12k)
+            'warning': 6000,
+            'error': 12000
         }
-        # Initialize Anthropic client for tokenization
         self.anthropic = Anthropic()
-        
-        # Initialize map_file with default value
-        self.map_file = None  # Start with None
+        self.map_file = None
         self._initialized = False
-        
-        # Try initial map file setup
-        self._ensure_map_file_path()
 
-    def _initialize_map_file(self) -> None:
-        """Initialize map file path based on active team"""
+    def _initialize_map_file(self, team_name: str) -> None:
+        """Initialize map file path for specific team"""
         try:
-            # Detect active team
-            current_dir = os.getcwd()
-            team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
-            
-            # Use first team found or create default team
-            if team_dirs:
-                team_name = team_dirs[0][5:]  # Remove 'team_'
-            else:
-                team_name = 'default'
-                # Create default team directory
-                os.makedirs(os.path.join(current_dir, f"team_{team_name}"), exist_ok=True)
-            
-            # Utiliser PathManager pour obtenir le chemin de l'équipe
+            # Use PathManager to get team path
             team_path = PathManager.get_team_path(team_name)
             
-            # Définir le chemin du fichier map
+            # Set map file path
             self.map_file = os.path.join(team_path, "map.md")
             
-            # Créer le fichier map s'il n'existe pas
+            # Create map file if needed
             if not os.path.exists(self.map_file):
                 with open(self.map_file, 'w', encoding='utf-8') as f:
                     f.write("# Project Map\n\n## Dynamic Team Mapping\n")
