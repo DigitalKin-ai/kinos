@@ -1,1 +1,0 @@
-"""Configuration package initialization"""
