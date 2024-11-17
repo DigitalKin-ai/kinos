@@ -485,48 +485,48 @@ Instructions:
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error reading key file {file_path}: {str(e)}", 'warning')
 
-                # Get remaining files - Use .gitignore patterns for filtering
-                from pathspec import PathSpec
-                from pathspec.patterns import GitWildMatchPattern
+            # Get remaining files - Use .gitignore patterns for filtering
+            from pathspec import PathSpec
+            from pathspec.patterns import GitWildMatchPattern
 
-                # Load ignore patterns from .gitignore
-                ignore_patterns = []
-                gitignore_path = os.path.join(self.mission_dir, '.gitignore')
-                if os.path.exists(gitignore_path):
-                    try:
-                        with open(gitignore_path, 'r', encoding='utf-8') as f:
-                            ignore_patterns = [
-                                line.strip() for line in f.readlines()
-                                if line.strip() and not line.startswith('#')
-                            ]
-                    except Exception as e:
-                        self.logger.log(f"[{self.name}] Error reading .gitignore: {str(e)}", 'warning')
+            # Load ignore patterns from .gitignore
+            ignore_patterns = []
+            gitignore_path = os.path.join(self.mission_dir, '.gitignore')
+            if os.path.exists(gitignore_path):
+                try:
+                    with open(gitignore_path, 'r', encoding='utf-8') as f:
+                        ignore_patterns = [
+                            line.strip() for line in f.readlines()
+                            if line.strip() and not line.startswith('#')
+                        ]
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error reading .gitignore: {str(e)}", 'warning')
 
-                # Create PathSpec for pattern matching
-                spec = PathSpec.from_lines(GitWildMatchPattern, ignore_patterns)
+            # Create PathSpec for pattern matching
+            spec = PathSpec.from_lines(GitWildMatchPattern, ignore_patterns)
 
-                # Filter files using gitignore patterns
-                remaining_files = [
-                    f for f in self.mission_files.keys()
-                    if f not in key_files
-                    and not spec.match_file(os.path.relpath(f, self.mission_dir))
-                ]
+            # Filter files using gitignore patterns
+            remaining_files = [
+                f for f in self.mission_files.keys()
+                if f not in key_files
+                and not spec.match_file(os.path.relpath(f, self.mission_dir))
+            ]
 
-                if len(remaining_files) > 10:
-                    import random
-                    remaining_files = random.sample(remaining_files, 10)
-                    self.logger.log(f"[{self.name}] Sampling 10 random files from {len(remaining_files)} eligible files", 'debug')
-            
-                # Add selected files
-                for file_path in remaining_files:
-                    try:
-                        with open(file_path, 'r', encoding='utf-8') as f:
-                            files_context[file_path] = f.read()
-                    except Exception as e:
-                        self.logger.log(f"[{self.name}] Error reading file {file_path}: {str(e)}", 'warning')
+            if len(remaining_files) > 10:
+                import random
+                remaining_files = random.sample(remaining_files, 10)
+                self.logger.log(f"[{self.name}] Sampling 10 random files from {len(remaining_files)} eligible files", 'debug')
+        
+            # Add selected files
+            for file_path in remaining_files:
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        files_context[file_path] = f.read()
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error reading file {file_path}: {str(e)}", 'warning')
 
-            except Exception as e:
-                self.logger.log(f"[{self.name}] Error processing remaining files: {str(e)}", 'warning')
+        except Exception as e:
+            self.logger.log(f"[{self.name}] Error processing remaining files: {str(e)}", 'warning')
 
             # Format context message
             context_message = f"""You are {self.name}, an agent working autonomously in the KinOS system, to achieve a mission.
