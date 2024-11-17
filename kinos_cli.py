@@ -304,10 +304,8 @@ def run_multi_team_loop(model: Optional[str] = None):
             if model:
                 model_router = services['model_router']
                 if not model_router.set_model(model):
-                    logger.log(f"Model {model} not found. Available models:", 'warning')
-                    for provider, models in model_router.get_available_models().items():
-                        logger.log(f"{provider}: {', '.join(models)}", 'info')
-                    return
+                    logger.log(f"Model {model} not found, using default model", 'warning')
+                    # Don't return, just continue with default model
 
             # Get team agents
             agents = team_service.get_team_agents(team_name)
