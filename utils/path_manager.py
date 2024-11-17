@@ -171,6 +171,14 @@ class PathManager:
             # Validate inputs
             if not agent_name:
                 raise ValueError("Agent name is required")
+
+            # Define context files that should not have prompts
+            context_files = {'demande', 'map', 'todolist', 'directives'}
+            
+            # Return None for context files
+            if agent_name.lower() in context_files:
+                cls._log(f"'{agent_name}' is a context file, not an agent - no prompt needed", 'debug')
+                return None
                 
             # If no team_name specified, use default
             if not team_name:
@@ -183,7 +191,24 @@ class PathManager:
             prompts_dir = os.path.join(os.getcwd(), team_dir_name, "prompts")
             os.makedirs(prompts_dir, exist_ok=True)
             
-            # Define default prompts for different agent types
+            # Create prompt file path
+            prompt_path = os.path.join(prompts_dir, f"{agent_name}.md")
+            
+            # Only create default prompt for actual agents
+            if not os.path.exists(prompt_path) or os.path.getsize(prompt_path) == 0:
+                # Get default prompt for agent type
+                agent_type = agent_name.lower()
+                default_prompt = default_prompts.get(agent_type)
+                
+                if default_prompt:  # Only write if we have a default prompt for this agent type
+                    with open(prompt_path, 'w', encoding='utf-8') as f:
+                        f.write(default_prompt)
+                        from utils.logger import Logger
+                        logger = Logger()
+                        logger.log(f"Created default prompt for {agent_name} in {team_dir_name}", 'info')
+            
+            return prompt_path
+                
             default_prompts = {
                 'demande': """# Mission Request Agent
 
