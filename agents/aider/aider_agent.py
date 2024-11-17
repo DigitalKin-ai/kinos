@@ -45,36 +45,20 @@ class AiderAgent(AgentBase):
             # Configure UTF-8 encoding first
             self._configure_encoding()
             
-            # Get team name from current directory
-            try:
-                current_dir = os.getcwd()
-                team_dir = next((item for item in os.listdir(current_dir) if item.startswith('team_')), None)
-                
-                if team_dir:
-                    team_name = team_dir.replace('team_', '')
-                else:
-                    team_name = 'default'
+            # Get team from config instead of detecting
+            self.team = self.config.get('team', 'default')
+            self.team_name = self.team.title()
 
-                # Use team service to set and validate team
+            # Only use team service to validate team, not set it
+            try:
                 from services import init_services
                 services = init_services(None)
                 team_service = services['team_service']
-
-                if team_service.set_active_team(team_name):
-                    active_team = team_service.get_active_team()
-                    self.team = active_team.get('name', team_name)
-                    self.team_name = active_team.get('display_name', team_name)
-                else:
-                    # Fallback
-                    self.team = team_name
-                    self.team_name = team_name
-                    
+                active_team = team_service.get_active_team()
+                if active_team and active_team.get('name') == self.team:
+                    self.team_name = active_team.get('display_name', self.team_name)
             except Exception as e:
-                from utils.logger import Logger
-                logger = Logger()
-                logger.log(f"Error detecting team: {str(e)}", 'warning')
-                self.team = 'default'
-                self.team_name = 'Default Team'
+                self.logger.log(f"Error validating team: {str(e)}", 'warning')
             
             # Initialize components with agent name
             self.command_builder = AiderCommandBuilder(self.name)
@@ -88,24 +72,11 @@ class AiderAgent(AgentBase):
             # Resolve prompt file path
             if not self.prompt_file:
                 # Try to find team-specific prompt file based on agent name
-                from services import init_services
-                services = init_services(None)
-                team_service = services['team_service']
-            
-                # Get active team or find team containing this agent
-                active_team = team_service.get_active_team()
-                if not active_team:
-                    for team in team_service.team_types:
-                        if self.name in team_service.get_team_agents(team['id']):
-                            active_team = team
-                            break
-            
-                if active_team:
-                    # Use team_types directory for prompt file
-                    self.prompt_file = PathManager.get_prompt_file(self.name, active_team)
+                self.prompt_file = PathManager.get_prompt_file(self.name, self.team)
+                if self.prompt_file:
                     self.logger.log(f"Using team prompt file: {self.prompt_file}", 'info')
                 else:
-                    raise ValueError(f"Could not find team for agent {self.name}")
+                    raise ValueError(f"Could not find prompt file for agent {self.name}")
         
             # Initialize state tracking
             self._init_state()
