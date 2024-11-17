@@ -51,13 +51,17 @@ class FileHandler:
             # Walk through directory
             for root, _, filenames in os.walk(self.mission_dir):
                 for filename in filenames:
+                    # Skip .aider files immediately
+                    if '.aider' in filename:
+                        continue
+                        
                     # Check extension
                     if os.path.splitext(filename)[1].lower() in text_extensions:
                         file_path = os.path.join(root, filename)
                         rel_path = os.path.relpath(file_path, self.mission_dir)
                         
                         # Skip ignored files
-                        if spec and spec.match_file(rel_path):
+                        if spec.match_file(rel_path):
                             continue
                             
                         # Read file content
@@ -76,7 +80,15 @@ class FileHandler:
 
     def _load_ignore_patterns(self) -> list:
         """Load patterns from .gitignore and .aiderignore"""
-        patterns = []
+        patterns = [
+            # Add explicit patterns for aider files
+            '.aider*',
+            '**/.aider*',  # Match .aider files in subdirectories
+            'history/.aider*',  # Explicitly match history directory
+            '*.history.md'  # Match all history files
+        ]
+        
+        # Add patterns from ignore files
         for ignore_file in ['.gitignore', '.aiderignore']:
             try:
                 ignore_path = os.path.join(self.mission_dir, ignore_file)
