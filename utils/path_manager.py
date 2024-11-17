@@ -443,21 +443,24 @@ Always structure your responses as:
         try:
             # Get the mission directory
             mission_dir = os.getcwd()
+            cls._log(f"Looking for teams in: {mission_dir}", 'debug')
             
             # List all directories in the mission directory
             all_dirs = [d for d in os.listdir(mission_dir) if os.path.isdir(os.path.join(mission_dir, d))]
+            cls._log(f"Found directories: {all_dirs}", 'debug')
             
             # Filter directories that start with "team_" and remove None values
             team_dirs = [d[5:] for d in all_dirs if d.startswith("team_") and d[5:]]
+            cls._log(f"Found team directories: {team_dirs}", 'debug')
             
             # Log if no teams found
             if not team_dirs:
-                cls._log("No teams found in mission directory", 'warning')
+                cls._log(f"No teams found in mission directory: {mission_dir}", 'warning')
                 
             return team_dirs
         
         except Exception as e:
-            cls._log(f"Error listing teams: {str(e)}", 'error')
+            cls._log(f"Error listing teams: {str(e)}\nCurrent directory: {os.getcwd()}", 'error')
             return []
 
     @staticmethod
