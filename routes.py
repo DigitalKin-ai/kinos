@@ -27,14 +27,20 @@ def main():
             
         elif subcommand == "objective":
             manager = ObjectiveManager()
-            # Get optional file paths from arguments
-            mission_path = sys.argv[3] if len(sys.argv) > 3 else ".aider.mission.md"
-            agent_path = sys.argv[4] if len(sys.argv) > 4 else None
             
-            if not agent_path:
-                print("Usage: kin generate objective [mission_path] agent_path")
+            # Parse arguments
+            if len(sys.argv) < 4 or sys.argv[3] != "--agent":
+                print("Usage: kin generate objective --agent <agent_name>")
                 sys.exit(1)
                 
+            if len(sys.argv) < 5:
+                print("Usage: kin generate objective --agent <agent_name>")
+                sys.exit(1)
+                
+            agent_name = sys.argv[4]
+            agent_path = f".aider.agent.{agent_name}.md"
+            mission_path = ".aider.mission.md"
+            
             manager.generate_objective(mission_path, agent_path)
             
         elif subcommand == "map":
