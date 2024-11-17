@@ -25,20 +25,31 @@ def init_services(_) -> Dict[str, Any]:
     logger = Logger()
     
     # Get current team - throw error if none found
-    current_team = None
     try:
-        current_dir = os.getcwd()
+        current_dir = os.getcwd()  # Use actual working directory
+        logger.log(f"Initializing services in: {current_dir}", 'debug')
+        
         team_dir = next((d for d in os.listdir(current_dir) if d.startswith('team_')), None)
         if not team_dir:
-            error_msg = f"No team directory found in {current_dir}"
+            error_msg = (
+                f"No team directory found in {current_dir}\n"
+                "Available directories: " + ", ".join(os.listdir(current_dir))
+            )
             logger.log(error_msg, 'error')
-            logger.log(f"Available directories: {os.listdir(current_dir)}", 'error')
-            raise ServiceError(f"{error_msg}\nPlease create a team directory (team_*) before running KinOS")
+            raise ServiceError(
+                f"{error_msg}\n"
+                "Please create a team directory (team_*) in the current working directory before running KinOS"
+            )
         
         current_team = team_dir[5:]  # Remove 'team_' prefix
+        logger.log(f"Found team directory: {team_dir}", 'debug')
         
     except Exception as e:
-        error_msg = f"Error detecting team: {str(e)}\nTrace: {traceback.format_exc()}"
+        error_msg = (
+            f"Error detecting team in {os.getcwd()}:\n"
+            f"Error: {str(e)}\n"
+            f"Trace: {traceback.format_exc()}"
+        )
         logger.log(error_msg, 'error')
         raise ServiceError(error_msg)
 
