@@ -422,11 +422,6 @@ List any specific constraints or limitations.
             # Comprehensive logging for agent selection
             self.logger.log(f"🎲 Selecting agent from team: {team_agents}", 'debug')
             
-            # Get current phase first
-            from services import init_services
-            services = init_services(None)
-            
-            
             # Get weights from team config
             weights = []
             for agent in team_agents:
@@ -469,23 +464,14 @@ List any specific constraints or limitations.
             agent_name = random.choices(team_agents, weights=normalized_weights, k=1)[0]
             self.logger.log(f"🎯 Selected Agent: {agent_name}", 'debug')
 
-            self.logger.log(f"Selected agent: {agent_name}", 'debug')
-
-            # Find the agent configuration in the team config
-            agent_config = None
-            for team in services['team_service'].team_types:
-                for agent in team.get('agents', []):
-                    # Handle both string and dictionary agent configurations
-                    if isinstance(agent, dict) and agent['name'] == agent_name:
-                        agent_config = agent
-                        break
-                    elif isinstance(agent, str) and agent == agent_name:
-                        agent_config = {'name': agent_name}
-                        break
-                if agent_config:
-                    break
-
-            self.logger.log(f"Agent config found: {agent_config}", 'debug')
+            # Configure agent
+            config = {
+                'name': agent_name,
+                'mission_dir': os.getcwd(),
+                'prompt_file': os.path.join('prompts', f"{agent_name}.md"),
+                'type': 'aider',  # Default type
+                'weight': weights[team_agents.index(agent_name)]  # Get weight by index
+            }
 
             # EXPLICIT RESEARCH TYPE FOR SPECIFIC AGENTS
             research_agents = [
@@ -493,71 +479,28 @@ List any specific constraints or limitations.
                 'documentaliste'
             ]
             
-            # Determine agent type with fallback and case-insensitive check
+            # Set agent type based on name
             if agent_name.lower() in research_agents:
-                agent_type = 'research'
-                self.logger.log(f"Agent {agent_name} explicitly set to research type", 'debug')
-            elif agent_config and isinstance(agent_config, dict):
-                agent_type = agent_config.get('type', 'aider').lower()
-                self.logger.log(f"Agent type from config: {agent_type}", 'debug')
-            else:
-                # Default fallback
-                agent_type = 'aider'
-                self.logger.log(f"Agent type defaulted to: {agent_type}", 'debug')
-
-            # Normalize agent type
-            if agent_type not in ['aider', 'research']:
-                agent_type = 'aider'
-                self.logger.log(f"Normalized agent type to: {agent_type}", 'debug')
-
-            # Configure agent
-            config = {
-                'name': agent_name,
-                'mission_dir': os.getcwd(),
-                'prompt_file': os.path.join('prompts', f"{agent_name}.md"),
-                'type': agent_type,  # Explicitly set type from configuration
-                'weight': weights.get(agent_name, 0.5)  # Pass weight to agent
-            }
+                config['type'] = 'research'
+                self.logger.log(f"Agent {agent_name} set to research type", 'debug')
 
             self.logger.log(f"Final agent configuration: {config}", 'debug')
 
-            # Dynamically select agent class
-            if agent_type == 'research':
+            # Create appropriate agent type
+            if config['type'] == 'research':
                 from agents.research.research_agent import ResearchAgent
-                AgentClass = ResearchAgent
-                self.logger.log(
-                    f"🔍 Explicitly creating ResearchAgent for {agent_name}\n"
-                    f"Config: {json.dumps(config, indent=2)}\n"
-                    f"Agent Type: {type(AgentClass).__name__}", 
-                    'debug'
-                )
+                agent = ResearchAgent(config)
             else:
                 from agents.aider.aider_agent import AiderAgent
-                AgentClass = AiderAgent
-                self.logger.log(
-                    f"🔧 Creating AiderAgent for {agent_name}\n"
-                    f"Config: {json.dumps(config, indent=2)}\n"
-                    f"Agent Type: {type(AgentClass).__name__}", 
-                    'debug'
-                )
+                agent = AiderAgent(config)
 
-            # Create and run agent
-            agent = AgentClass(config)
-
-            # Add explicit type checking log
             self.logger.log(
-                f"Agent instantiated: {agent_name}\n"
-                f"Actual Agent Type: {type(agent).__name__}\n"
-                f"Expected Type: {AgentClass.__name__}", 
-                'debug'
-            )
-            self.logger.log(
-                f"Running {agent_type.upper()} agent {agent_name} "
+                f"Running {config['type'].upper()} agent {agent_name} "
                 f"(weight: {config['weight']:.2f})", 
                 'info'
             )
-    
-            # Add global error tracking
+
+            # Run agent with error handling
             try:
                 agent.run()
             except Exception as agent_error:
@@ -569,13 +512,13 @@ List any specific constraints or limitations.
                     'critical'
                 )
                 
-                # Optional: Attempt recovery or restart
+                # Attempt recovery if possible
                 if hasattr(agent, 'recover_from_error'):
                     agent.recover_from_error()
 
         except Exception as e:
             self.logger.log(
-                f"❌ Comprehensive error running agent:\n"
+                f"❌ Error running agent:\n"
                 f"Type: {type(e)}\n"
                 f"Error: {str(e)}\n"
                 f"Traceback: {traceback.format_exc()}",
