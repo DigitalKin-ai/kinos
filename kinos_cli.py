@@ -51,16 +51,21 @@ class AgentRunner(threading.Thread):
         while self.running:
             try:
                 if not self.agent_config:
-                    time.sleep(5)
-                    continue
+                    # Initialize with aider agent config
+                    self.agent_config = {
+                        'name': 'aider',  # Use aider as the agent name
+                        'type': 'aider',
+                        'team': self.team_name,
+                        'mission_dir': os.path.join(os.getcwd(), f"team_{self.team_name}")
+                    }
 
                 # Create agent with stored config
                 agent = AiderAgent(self.agent_config)
-                
+            
                 if not agent:
                     time.sleep(5)
                     continue
-                    
+                
                 # Run agent's main loop with timeout
                 max_runtime = 300  # 5 minutes max
                 start = time.time()
