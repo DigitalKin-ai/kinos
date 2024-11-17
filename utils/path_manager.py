@@ -162,45 +162,67 @@ class PathManager:
     def get_prompt_file(cls, agent_name: str, team_name: Optional[str] = None) -> Optional[str]:
         """Get prompt file path for an agent in the team's prompts directory"""
         try:
-            # Get current team directory
-            current_dir = os.getcwd()
-            
-            # Get active team from TeamService
-            try:
-                from services import init_services
-                services = init_services(None)
-                team_service = services['team_service']
-                active_team = team_service.get_active_team()
-                if active_team:
-                    team_name = active_team.get('name')
-            except Exception as e:
-                from utils.logger import Logger
-                logger = Logger()
-                logger.log(f"Error getting active team: {str(e)}", 'warning')
-
-            # If no team_name specified or found, raise error
+            # Validate inputs
+            if not agent_name:
+                raise ValueError("Agent name is required")
+                
+            # If no team_name specified, use default
             if not team_name:
-                raise ValueError("No active team found")
+                team_name = 'default'
 
-            # Construct team directory path
-            team_dir = os.path.join(current_dir, f"team_{team_name}")
+            # Ensure team name has prefix
+            team_dir_name = f"team_{team_name}" if not team_name.startswith("team_") else team_name
             
-            # Look for prompt file in team's prompts directory
-            prompts_dir = os.path.join(team_dir, "prompts")
+            # Build prompt path
+            prompts_dir = os.path.join(os.getcwd(), team_dir_name, "prompts")
             os.makedirs(prompts_dir, exist_ok=True)
-
-            # Try normalized and original agent name
-            for filename in [f"{agent_name.lower()}.md", f"{agent_name}.md"]:
-                prompt_path = os.path.join(prompts_dir, filename)
+            
+            # Try both normalized and original agent name
+            for name in [agent_name.lower(), agent_name]:
+                prompt_path = os.path.join(prompts_dir, f"{name}.md")
                 if os.path.exists(prompt_path):
                     return prompt_path
+                    
+            # If prompt doesn't exist, create default
+            default_path = os.path.join(prompts_dir, f"{agent_name}.md")
+            
+            # Create default aider prompt
+            default_prompt = """# Aider Agent
 
-            return None
+You are an AI development assistant that helps implement requested changes.
+Your role is to:
+1. Understand the current state of files
+2. Make specific, focused changes to progress the mission
+3. Commit changes with clear messages
 
+## Guidelines
+- Make one focused change at a time
+- Explain what you're changing and why
+- Use clear commit messages
+- Keep changes small and manageable
+
+## Format
+Always structure your responses as:
+1. What you're going to change
+2. Why you're making the change
+3. How you'll implement it
+
+## Rules
+- Only modify files shown to you
+- Make one change at a time
+- Use clear commit messages
+- Keep changes focused"""
+
+            # Write default prompt
+            with open(default_path, 'w', encoding='utf-8') as f:
+                f.write(default_prompt)
+                
+            return default_path
+                
         except Exception as e:
             from utils.logger import Logger
             logger = Logger()
-            logger.log(f"Error finding prompt file: {str(e)}", 'error')
+            logger.log(f"Error getting prompt file: {str(e)}", 'error')
             return None
 
     @classmethod
