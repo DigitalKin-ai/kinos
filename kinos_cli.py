@@ -262,29 +262,48 @@ def run_multi_team_loop(model: Optional[str] = None):
             
             logger.log(f"Active threads: {len(active_threads)}", 'debug')
             
-            # Find all prompts folders
+            # Find all team directories first
+            team_dirs = []
+            for item in os.listdir(os.getcwd()):
+                if os.path.isdir(item) and item.startswith('team_'):
+                    team_dir = os.path.join(os.getcwd(), item)
+                    prompts_dir = os.path.join(team_dir, 'prompts')
+                    if os.path.exists(prompts_dir):
+                        team_dirs.append(team_dir)
+
+            if not team_dirs:
+                logger.log("No team directories found", 'warning')
+                time.sleep(10)
+                continue
+
+            # Log available teams
+            logger.log(f"Found teams: {[os.path.basename(d) for d in team_dirs]}", 'debug')
+
+            # Select random team
+            team_dir = random.choice(team_dirs)
+            team_name = os.path.basename(team_dir).replace('team_', '')
+            
+            # Find prompts for this team
+            prompts_dir = os.path.join(team_dir, 'prompts')
             prompts = []
-            for root, dirs, files in os.walk(os.getcwd()):
-                if os.path.basename(root) == 'prompts':
-                    for file in files:
-                        if file.endswith('.md'):
-                            prompt_path = os.path.join(root, file)
-                            prompts.append(prompt_path)
+            if os.path.exists(prompts_dir):
+                for file in os.listdir(prompts_dir):
+                    if file.endswith('.md'):
+                        prompt_path = os.path.join(prompts_dir, file)
+                        prompts.append(prompt_path)
 
             if not prompts:
-                logger.log("No prompt files found in any prompts folders", 'warning')
+                logger.log(f"No prompt files found for team {team_name}", 'warning')
                 time.sleep(10)
                 continue
 
             # Start new threads if needed
             while len(active_threads) < MAX_AGENTS:
-                # Select random prompt
+                # Select random prompt from this team
                 prompt_file = random.choice(prompts)
                 agent_name = os.path.splitext(os.path.basename(prompt_file))[0]
-                team_dir = os.path.dirname(os.path.dirname(prompt_file))
-                team_name = os.path.basename(team_dir).replace('team_', '')
 
-                logger.log(f"Selected prompt: {prompt_file} (agent: {agent_name}, team: {team_name})", 'info')
+                logger.log(f"Selected team: {team_name}, prompt: {prompt_file} (agent: {agent_name})", 'info')
 
                 try:
                     # Create agent config with pre-initialized services
@@ -303,10 +322,10 @@ def run_multi_team_loop(model: Optional[str] = None):
                     runner.agent_config = agent_config  # Store config for agent creation
                     runner.start()
                     active_threads[runner.ident] = runner
-                    logger.log(f"Started new agent runner (total: {len(active_threads)})")
+                    logger.log(f"Started new agent runner for team {team_name} (total: {len(active_threads)})")
 
                 except Exception as e:
-                    logger.log(f"Error creating agent {agent_name}: {str(e)}", 'error')
+                    logger.log(f"Error creating agent {agent_name} for team {team_name}: {str(e)}", 'error')
 
             # Process output queue
             try:
