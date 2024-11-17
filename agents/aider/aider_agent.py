@@ -279,13 +279,56 @@ class AiderAgent(AgentBase):
 
             # Verify services with team context
             if not self.services:
-                # Initialize services with team context if not provided
                 from services import init_services
-                self.services = init_services(None, team=self.team)  # Pass team here
+                self.services = init_services(None, team=self.team)
                 self.logger.log(f"[{self.name}] Initialized services for team {self.team}", 'debug')
 
-            # Get current prompt using team context
-            prompt = self.get_prompt()
+            # Get current prompt using team context - IMPORTANT CHANGE HERE
+            try:
+                prompt_path = os.path.join(f"team_{self.team}", "prompts", f"{self.name}.md")
+                if not os.path.exists(prompt_path):
+                    # Create default prompt directory
+                    os.makedirs(os.path.dirname(prompt_path), exist_ok=True)
+                    
+                    # Create default aider prompt
+                    default_prompt = """# Aider Agent
+
+You are an AI development assistant that helps implement requested changes.
+Your role is to:
+1. Understand the current state of files
+2. Make specific, focused changes to progress the mission
+3. Commit changes with clear messages
+
+## Guidelines
+- Make one focused change at a time
+- Explain what you're changing and why
+- Use clear commit messages
+- Keep changes small and manageable
+
+## Format
+Always structure your responses as:
+1. What you're going to change
+2. Why you're making the change
+3. How you'll implement it
+
+## Rules
+- Only modify files shown to you
+- Make one change at a time
+- Use clear commit messages
+- Keep changes focused"""
+
+                    # Write default prompt
+                    with open(prompt_path, 'w', encoding='utf-8') as f:
+                        f.write(default_prompt)
+                        
+                # Read prompt content
+                with open(prompt_path, 'r', encoding='utf-8') as f:
+                    prompt = f.read()
+
+            except Exception as e:
+                self.logger.log(f"[{self.name}] Error with prompt file: {str(e)}", 'error')
+                return None
+
             if not prompt:
                 self.logger.log(f"[{self.name}] No prompt available for team {self.team}", 'warning')
                 return None
@@ -312,7 +355,7 @@ Instructions:
                     messages=[{
                         "role": "user", 
                         "content": context_message,
-                        "team": self.team  # Include team in message metadata
+                        "team": self.team
                     }],
                     system=prompt,
                     max_tokens=1000
