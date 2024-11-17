@@ -32,36 +32,46 @@ class FileHandler:
             self.logger.log(f"Erreur de détection des répertoires d'équipes : {str(e)}", 'error')
             return []
 
-    def list_files(self) -> Dict[str, float]:
+    def list_files(self) -> Dict[str, str]:
+        """List all relevant files in the directory with their content"""
         try:
-            # Détecter dynamiquement les répertoires d'équipes
-            search_paths = [self.mission_dir] + self._detect_team_directories()
+            # Initialize empty results
+            text_files = {}
             
+            # Define tracked extensions
+            text_extensions = {
+                '.md', '.txt', '.json', '.yaml', '.yml', '.py', 
+                '.js', '.html', '.css', '.sh', '.bat', '.ps1'
+            }
+
             # Load ignore patterns
             ignore_patterns = self._load_ignore_patterns()
             spec = PathSpec.from_lines(GitWildMatchPattern, ignore_patterns) if ignore_patterns else None
 
-            # Extensions of text files to track
-            text_extensions = {'.md', '.txt', '.json', '.yaml', '.yml', '.py', '.js', '.html', '.css', '.sh'}
-            text_files = {}
-
-            for base_path in search_paths:
-                for root, _, filenames in os.walk(base_path):
-                    for filename in filenames:
-                        if os.path.splitext(filename)[1].lower() in text_extensions:
-                            file_path = os.path.join(root, filename)
-                            rel_path = os.path.relpath(file_path, base_path)
+            # Walk through directory
+            for root, _, filenames in os.walk(self.mission_dir):
+                for filename in filenames:
+                    # Check extension
+                    if os.path.splitext(filename)[1].lower() in text_extensions:
+                        file_path = os.path.join(root, filename)
+                        rel_path = os.path.relpath(file_path, self.mission_dir)
+                        
+                        # Skip ignored files
+                        if spec and spec.match_file(rel_path):
+                            continue
                             
-                            # Skip ignored files
-                            if spec and spec.match_file(rel_path):
-                                continue
-                            
-                            text_files[file_path] = os.path.getmtime(file_path)
+                        # Read file content
+                        try:
+                            with open(file_path, 'r', encoding='utf-8') as f:
+                                content = f.read()
+                            text_files[file_path] = content
+                        except Exception as read_error:
+                            self.logger.log(f"Error reading {file_path}: {str(read_error)}", 'warning')
 
             return text_files
 
         except Exception as e:
-            self.logger.log(f"Erreur de listage des fichiers : {str(e)}", 'error')
+            self.logger.log(f"Error listing files: {str(e)}", 'error')
             return {}
 
     def _load_ignore_patterns(self) -> list:
