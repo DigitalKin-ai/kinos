@@ -364,14 +364,14 @@ class AiderAgent(AgentBase):
 
         self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
 
-            # Get current prompt using PathManager - fail fast if missing
-            prompt_path = PathManager.get_prompt_file(self.name, self.team)
-            if not prompt_path or not os.path.exists(prompt_path):
-                # Create default prompt directory
-                os.makedirs(os.path.dirname(prompt_path), exist_ok=True)
-                
-                # Create default aider prompt
-                default_prompt = """# Aider Agent
+        # Get current prompt using PathManager - fail fast if missing
+        prompt_path = PathManager.get_prompt_file(self.name, self.team)
+        if not prompt_path or not os.path.exists(prompt_path):
+            # Create default prompt directory
+            os.makedirs(os.path.dirname(prompt_path), exist_ok=True)
+            
+            # Create default aider prompt
+            default_prompt = """# Aider Agent
 
 You are an AI development assistant that helps implement requested changes.
 Your role is to:
@@ -397,17 +397,17 @@ Always structure your responses as:
 - Use clear commit messages
 - Keep changes focused"""
 
-                # Write default prompt
-                with open(prompt_path, 'w', encoding='utf-8') as f:
-                    f.write(default_prompt)
-                    self.logger.log(f"[{self.name}] Created default prompt at {prompt_path}", 'info')
+            # Write default prompt
+            with open(prompt_path, 'w', encoding='utf-8') as f:
+                f.write(default_prompt)
+                self.logger.log(f"[{self.name}] Created default prompt at {prompt_path}", 'info')
 
-            # Read prompt content - fail fast if empty
-            with open(prompt_path, 'r', encoding='utf-8') as f:
-                prompt = f.read()
+        # Read prompt content - fail fast if empty
+        with open(prompt_path, 'r', encoding='utf-8') as f:
+            prompt = f.read()
 
-            if not prompt:
-                raise ValueError(f"[{self.name}] Empty prompt file for team {self.team}")
+        if not prompt:
+            raise ValueError(f"[{self.name}] Empty prompt file for team {self.team}")
 
             # Format context message with team info
             context_message = f"""You are {self.name}, working in team {self.team}, on the mission defined in demande.md.
