@@ -1,10 +1,8 @@
 import os
-import os
 import sys
 import logging
 from datetime import datetime
 from typing import Optional
-from utils.path_manager import PathManager
 import threading
 
 class Logger:
@@ -129,42 +127,43 @@ def configure_cli_logger(force_color=None, log_level='INFO'):
     def __repr__(self):
         return self._name
     
-    def log(self, message: str, level: str = 'info', **kwargs):
-        """Main logging method that handles all cases"""
+    def get_logs_path(self) -> str:
+        """Get path to logs directory"""
+        logs_dir = os.path.join(os.getcwd(), 'logs')
+        os.makedirs(logs_dir, exist_ok=True)
+        return logs_dir
+
+    def log(self, message: str, level: str = 'info'):
+        """Thread-safe logging with minimal overhead"""
+        if self._shutting_down:
+            return
+
         try:
-            # Always remove level from kwargs to prevent duplicates
-            kwargs.pop('level', None)
-            
-            # Extract file_path from kwargs
-            file_path = kwargs.pop('file_path', None)
-            
-            # Get timestamp
-            timestamp = datetime.now().strftime("%H:%M:%S")
-            
-            # Prepare log message
-            formatted_message = f"[{timestamp}] [{level.upper()}] {message}"
-            
-            # Colorize if appropriate
-            if self._should_colorize():
-                color = self.COLORS.get(level, self.COLORS['info'])
-                reset = self.COLORS['reset']
-                colored_message = f"{color}{formatted_message}{reset}"
-                print(colored_message)
-            else:
-                # Plain text for non-TTY or when color is disabled
-                print(formatted_message)
-            
-            # File logging remains the same
-            if not file_path:
-                file_path = os.path.join(PathManager.get_logs_path(), 'agent_operations.log')
+            with self._log_lock:
+                timestamp = datetime.now().strftime("%H:%M:%S")
+                formatted = f"[{timestamp}] [{level.upper()}] {message}"
                 
-            with open(file_path, 'a', encoding='utf-8') as f:
-                f.write(f"{formatted_message}\n")
+                # Only format color if needed
+                if self.is_tty:
+                    color = self.COLORS.get(level.lower(), '')
+                    reset = self.COLORS['reset']
+                    print(f"{color}{formatted}{reset}", flush=True)
+                else:
+                    print(formatted, flush=True)
                 
-        except Exception as e:
-            # Fallback logging
-            print(f"Logging error: {e}")
-            print(f"Original message: {message}")
+                # File logging
+                try:
+                    log_file = os.path.join(self.get_logs_path(), 'agent_operations.log')
+                    with open(log_file, 'a', encoding='utf-8') as f:
+                        f.write(f"{formatted}\n")
+                except Exception as e:
+                    print(f"Error writing to log file: {e}")
+                
+        except Exception:
+            # During shutdown, some exceptions are expected
+            if not self._shutting_down:
+                # Only print error if not shutting down
+                print(f"Logging error for message: {message}")
     
     def __call__(self, message: str, level: str = 'info', **kwargs):
         """Unified call method that handles all logging patterns"""

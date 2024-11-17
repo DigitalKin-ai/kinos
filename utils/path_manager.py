@@ -5,9 +5,14 @@ import traceback
 import platform
 import shutil
 from typing import Optional, Dict, Any, Union, List
-from utils.logger import Logger
+from datetime import datetime
 
 class PathManager:
+    @classmethod
+    def _log(cls, message: str, level: str = 'info'):
+        """Simple internal logging"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"[{timestamp}] [{level.upper()}] {message}")
     """Centralized and secure path management for KinOS"""
     
     _CONFIG_FILE = 'config/missions.json'
@@ -346,8 +351,7 @@ Always structure your responses as:
             return team_path
             
         except Exception as e:
-            logger = Logger()
-            logger.log(f"Error getting team path: {str(e)}", 'error')
+            cls._log(f"Error getting team path: {str(e)}", 'error')
             return os.path.join(os.getcwd(), f"team_{name}")
 
     @staticmethod
@@ -442,12 +446,8 @@ Always structure your responses as:
             
             # Optional: use logger if available
             try:
-                from utils.logger import Logger
-                logger = Logger()
-                if team_dirs:
-                   logger = Logger() 
-                else:
-                    logger.log("No teams found in mission directory", 'warning')
+                if not team_dirs:
+                    cls._log("No teams found in mission directory", 'warning')
             except:
                 # Fallback to print if logger not available
                 if team_dirs:
@@ -460,9 +460,7 @@ Always structure your responses as:
         except Exception as e:
             # Fallback error handling
             try:
-                from utils.logger import Logger
-                logger = Logger()
-                logger.log(f"Error listing teams: {str(e)}", 'error')
+                cls._log(f"Error listing teams: {str(e)}", 'error')
             except:
                 print(f"Error listing teams: {str(e)}")
             
