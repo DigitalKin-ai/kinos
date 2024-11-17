@@ -1463,30 +1463,31 @@ Please proceed with the updates now."""
             return None
 
     def create_agent(self, agent_config: Union[str, Dict[str, Any]]) -> Optional[BaseAgent]:
-        """
-        Create an agent instance from configuration
-        
-        Args:
-            agent_config: Either agent name as string or full config dict
-            
-        Returns:
-            Created agent instance or None on error
-        """
+        """Create an agent instance from configuration"""
         try:
+            # Get current team from TeamService
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            current_team = team_service.active_team_name
+
             # Handle string input (agent name)
             if isinstance(agent_config, str):
                 agent_name = agent_config
-                # Create basic config dict
                 agent_config = {
                     'name': agent_name,
-                    'type': 'aider',  # Default type
-                    'mission_dir': os.getcwd(),  # Use current directory
-                    'weight': 0.5  # Default weight
+                    'type': 'aider',
+                    'mission_dir': os.getcwd(),
+                    'weight': 0.5,
+                    'team': current_team  # Add team to config
                 }
             else:
                 agent_name = agent_config.get('name')
                 if not agent_name:
                     raise ValueError("Missing agent name in config")
+                # Add team to config if not present
+                if 'team' not in agent_config:
+                    agent_config['team'] = current_team
 
             # Get agent class based on type
             agent_type = agent_config.get('type', 'aider')

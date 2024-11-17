@@ -49,31 +49,21 @@ def init_services(_) -> Dict[str, Any]:
         services['team_service'] = TeamService(None)
         team_service = services['team_service']
         
-        # Set active team by checking existing team directories first
-        current_dir = os.getcwd()
-        team_found = False
-        active_team_name = None
-        
-        # First look for non-default teams
-        for item in os.listdir(current_dir):
-            if item.startswith('team_') and item != 'team_default':
-                team_name = item.replace('team_', '')
-                if team_service.set_active_team(team_name):
-                    logger.log(f"Set active team to '{team_name}' from directory", 'info')
-                    team_found = True
-                    active_team_name = team_name
-                    # Store the active team name in the service
-                    team_service.active_team_name = team_name
-                    break
+        # Only set active team if not already set
+        if not team_service.active_team_name:
+            current_dir = os.getcwd()
+                
+            # First look for non-default teams
+            for item in os.listdir(current_dir):
+                if item.startswith('team_') and item != 'team_default':
+                    team_name = item.replace('team_', '')
+                    if team_service.set_active_team(team_name):
+                        logger.log(f"Set active team to '{team_name}' from directory", 'info')
+                        break
 
-        # If no other team found, fall back to default
-        if not team_found:
-            if team_service.set_active_team('default'):
-                logger.log("Set active team to 'default'", 'info')
-                active_team_name = 'default'
-                team_service.active_team_name = 'default'
-            else:
-                logger.log("Failed to set active team to 'default'", 'error')
+            # Fall back to default only if no team is set
+            if not team_service.active_team_name:
+                team_service.set_active_team('default')
 
         services['model_router'] = ModelRouter()
         

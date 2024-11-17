@@ -169,26 +169,25 @@ class TeamService(BaseService):
     def set_active_team(self, name: str) -> bool:
         """Set the active team configuration"""
         try:
-            # Get team config using new lookup method
+            # Don't change team if already set to this team
+            if self.active_team_name == name:
+                return True
+                
+            # Get team config
             team_config = self.get_team_by_name(name)
             if not team_config:
                 raise ServiceError(f"Team not found and couldn't create default: {name}")
             
             # Store active team and name
             self.active_team = team_config
-            self.active_team_name = name  # Track active team name
+            self.active_team_name = name
             
-            # Create team directory if it doesn't exist
+            # Create team directory structure
             team_dir = os.path.join(os.getcwd(), f"team_{name}")
             os.makedirs(team_dir, exist_ok=True)
             
-            # Create history directory for team
-            history_dir = os.path.join(team_dir, "history")
-            os.makedirs(history_dir, exist_ok=True)
-            
-            # Create subdirectories if needed
-            for subdir in ['chat', 'input', 'output', 'agents']:
-                os.makedirs(os.path.join(history_dir, subdir), exist_ok=True)
+            for subdir in ['history', 'prompts', 'data']:
+                os.makedirs(os.path.join(team_dir, subdir), exist_ok=True)
             
             self.logger.log(f"Active team set to: {name} ({team_config.get('display_name', name)})", 'success')
             return True
