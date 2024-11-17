@@ -127,11 +127,16 @@ class AiderAgent(AgentBase):
                 # Force map update after any Aider execution that produced output
                 if output:
                     try:
-                        # Mise à jour de la carte une seule fois si nécessaire
-                        from services import init_services
-                        services = init_services(None)
-                        map_service = services['map_service']
-                        dataset_service = services['dataset_service']
+                        # Utiliser les services pré-initialisés si disponibles
+                        if self.services:
+                            map_service = self.services['map_service']
+                            dataset_service = self.services['dataset_service']
+                        else:
+                            # Fallback à l'initialisation si nécessaire
+                            from services import init_services
+                            services = init_services(None)
+                            map_service = services['map_service']
+                            dataset_service = services['dataset_service']
                         
                         # Update map
                         map_service.update_map()
