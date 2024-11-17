@@ -472,12 +472,18 @@ class AiderAgent(AgentBase):
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error reading key file {file_path}: {str(e)}", 'warning')
             
-            # Get remaining files
-            remaining_files = [f for f in self.mission_files.keys() if f not in key_files]
+            # Get remaining files - EXCLUDE .aider and .kinos files first
+            remaining_files = [
+                f for f in self.mission_files.keys() 
+                if f not in key_files 
+                and not os.path.basename(f).startswith('.aider')
+                and not os.path.basename(f).startswith('.kinos')
+            ]
+
             if len(remaining_files) > 10:
                 import random
                 remaining_files = random.sample(remaining_files, 10)
-                self.logger.log(f"[{self.name}] Sampling 10 random files from {len(self.mission_files)} total files", 'debug')
+                self.logger.log(f"[{self.name}] Sampling 10 random files from {len(remaining_files)} eligible files", 'debug')
             
             # Add selected files
             for file_path in remaining_files:
