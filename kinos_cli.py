@@ -36,34 +36,54 @@ def load_team_config(team_name: str) -> List[str]:
 
 class AgentRunner(threading.Thread):
     """Thread class for running an agent and capturing output"""
-    # Class-level set to track active agent-team pairs
-    _active_runners = set()
-    _runner_lock = threading.Lock()  # Thread-safe access to _active_runners
+    _active_runners = {}  # Dict to track {agent_key: thread_id}
+    _runner_lock = threading.Lock()
+
+    @classmethod
+    def is_agent_running(cls, agent_name: str, team_name: str) -> bool:
+        """Check if an agent is already running"""
+        agent_key = f"{agent_name}_{team_name}"
+        with cls._runner_lock:
+            if agent_key in cls._active_runners:
+                # Check if thread is still alive
+                thread_id = cls._active_runners[agent_key]
+                for thread in threading.enumerate():
+                    if thread.ident == thread_id and thread.is_alive():
+                        return True
+                # Remove dead thread reference
+                del cls._active_runners[agent_key]
+            return False
 
     def __init__(self, team_agents: List[str], output_queue: queue.Queue, logger: Logger, team_name: str):
-        # Check for duplicate before initializing
-        agent_key = f"{team_agents[0]}_{team_name}" if team_agents else None
-        if agent_key:
-            with self._runner_lock:
-                if agent_key in self._active_runners:
-                    raise RuntimeError(f"Runner for agent {team_agents[0]} already exists in team {team_name}")
-                self._active_runners.add(agent_key)
-        
-        super().__init__(daemon=True)
-        self.team_agents = team_agents
-        self.output_queue = output_queue
-        self.logger = logger
-        self.running = True
-        self.agent_type = 'aider'  # Default agent type
-        self.team_name = team_name
-        self.agent_config = None
-        self._agent_key = agent_key
+        if not team_agents:
+            raise ValueError("No agents specified")
+            
+        agent_name = team_agents[0]
+        agent_key = f"{agent_name}_{team_name}"
+
+        with self._runner_lock:
+            if self.is_agent_running(agent_name, team_name):
+                raise RuntimeError(f"Runner for agent {agent_name} already exists in team {team_name}")
+            
+            super().__init__(daemon=True)
+            self.team_agents = team_agents
+            self.output_queue = output_queue
+            self.logger = logger
+            self.running = True
+            self.agent_type = 'aider'
+            self.team_name = team_name
+            self.agent_config = None
+            self._agent_key = agent_key
+            
+            # Register this runner
+            self._active_runners[agent_key] = threading.current_thread().ident
 
     def cleanup(self):
-        """Remove agent from active runners set"""
+        """Remove agent from active runners"""
         if self._agent_key:
             with self._runner_lock:
-                self._active_runners.discard(self._agent_key)
+                if self._agent_key in self._active_runners:
+                    del self._active_runners[self._agent_key]
 
     def run(self):
         """Thread execution loop"""
@@ -328,25 +348,36 @@ def run_multi_team_loop(model: Optional[str] = None):
 
             # Start new threads if needed
             while len(active_threads) < MAX_AGENTS:
-                # Select random prompt from this team
-                prompt_file = random.choice(prompts)
-                agent_name = os.path.splitext(os.path.basename(prompt_file))[0]
-
-                logger.log(f"Selected team: {team_name}, prompt: {prompt_file} (agent: {agent_name})", 'info')
-
                 try:
-                    # Create agent config with pre-initialized services
+                    # Select random team and prompt
+                    team_dir = random.choice(team_dirs)
+                    team_name = os.path.basename(team_dir).replace('team_', '')
+                    
+                    prompts = [f for f in os.listdir(os.path.join(team_dir, 'prompts'))
+                              if f.endswith('.md')]
+                    if not prompts:
+                        continue
+
+                    prompt_file = random.choice(prompts)
+                    agent_name = os.path.splitext(os.path.basename(prompt_file))[0]
+
+                    # Check if agent is already running
+                    if AgentRunner.is_agent_running(agent_name, team_name):
+                        logger.log(f"Agent {agent_name} already running for team {team_name}", 'debug')
+                        continue
+
+                    # Create agent config
                     agent_config = {
                         'name': agent_name,
                         'team': team_name,
                         'type': 'aider',
                         'mission_dir': team_dir,
-                        'prompt_file': prompt_file,
+                        'prompt_file': os.path.join(team_dir, 'prompts', prompt_file),
                         'weight': 0.5,
-                        'services': services  # Pass initialized services
+                        'services': services
                     }
-                    
-                    # Create and start new runner thread - will raise if duplicate
+
+                    # Create and start new runner
                     runner = AgentRunner([agent_name], output_queue, logger, team_name)
                     runner.agent_config = agent_config
                     runner.start()
@@ -355,11 +386,14 @@ def run_multi_team_loop(model: Optional[str] = None):
 
                 except RuntimeError as e:
                     if "already exists" in str(e):
-                        logger.log(str(e), 'warning')
+                        logger.log(str(e), 'debug')
                         continue
                     raise
                 except Exception as e:
                     logger.log(f"Error creating agent {agent_name} for team {team_name}: {str(e)}", 'error')
+                    continue
+
+                time.sleep(0.1)  # Brief pause between checks
 
             # Process output queue
             try:
