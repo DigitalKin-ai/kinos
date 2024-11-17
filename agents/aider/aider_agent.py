@@ -396,36 +396,6 @@ Instructions:
             return None
 
 
-            # Define history files in mission directory
-            history_dir = os.path.join(os.getcwd(), "history")
-            chat_history_file = os.path.join(history_dir, f".aider.{self.name}.chat.history.md")
-            input_history_file = os.path.join(history_dir, f".aider.{self.name}.input.history.md")
-
-            # Get chat history
-            chat_history = ""
-            if os.path.exists(chat_history_file):
-                try:
-                    with open(chat_history_file, 'r', encoding='utf-8') as f:
-                        chat_history = self._truncate_history(f.read())
-                except Exception as e:
-                    self.logger.log(f"[{self.name}] Error reading chat history: {str(e)}", 'warning')
-
-            # Get input history
-            input_history = ""
-            if os.path.exists(input_history_file):
-                try:
-                    with open(input_history_file, 'r', encoding='utf-8') as f:
-                        input_history = self._truncate_history(f.read())
-                except Exception as e:
-                    self.logger.log(f"[{self.name}] Error reading input history: {str(e)}", 'warning')
-                try:
-                    with open(input_history_file, 'r', encoding='utf-8') as f:
-                        input_history = self._truncate_history(f.read())
-                except Exception as e:
-                    self.logger.log(f"[{self.name}] Error reading input history: {str(e)}", 'warning')
-
-            # Get files context - limit to 10 random files plus key files
-            files_context = {}
             
             # Define key files
             key_files = {
@@ -586,6 +556,7 @@ Instructions:
                 f"Traceback: {traceback.format_exc()}",
                 'critical'
             )
+            return None
 
     def run(self):
         """Execute one iteration of the agent's task"""
@@ -622,6 +593,10 @@ Instructions:
                 pass  # Do not stop the agent
             else:
                 self.logger.log(f"[{self.name}] Error in run: {str(e)}", 'error')
+                
+        finally:
+            # Ensure cleanup happens
+            self.cleanup()
 
     def _format_files_context(self, files_context: Dict[str, str]) -> str:
         """
