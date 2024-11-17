@@ -255,11 +255,15 @@ def run_multi_team_loop(model: Optional[str] = None):
         from services import init_services
         services = init_services(None)
         
-        # Set model if specified
+        # Set model if specified and validate it exists
         if model:
             model_router = services['model_router']
             if not model_router.set_model(model):
-                logger.log(f"Model {model} not found", 'warning')
+                logger.log(f"Model {model} not found or unavailable", 'error')
+                return
+            logger.log(f"Using model: {model}", 'info')
+        else:
+            logger.log("No model specified, using default", 'warning')
 
         # Create output queue and active threads dict
         output_queue = queue.Queue()

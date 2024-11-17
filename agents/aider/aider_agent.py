@@ -507,11 +507,11 @@ Instructions:
 6. Provide enough detail for Aider to implement it autonomously
 7. Ask him specifically to do the task now, making decisions instead of asking for clarifications"""
 
-            # Use ModelRouter for LLM calls
-            try:
-                from services import init_services
-                services = init_services(None)
-                model_router = services['model_router']
+            # Get model router and verify model
+            model_router = self.services['model_router']
+            if not model_router.is_model_available():
+                self.logger.log(f"[{self.name}] No valid model configured", 'error')
+                return None
                 
                 try:
                     # Read prompt file content
