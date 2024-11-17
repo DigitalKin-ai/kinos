@@ -138,52 +138,39 @@ class KinOSAgent:
     def __init__(self, config: Dict[str, Any]):
         """Initialize agent with configuration"""
         try:
-            # Store original directory and configure encoding
+            # Store original directory
             self.original_dir = os.getcwd()
+            
+            # Get services
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            
+            # Get active team info without modifying it
+            active_team = team_service.get_active_team()
+            if not active_team:
+                raise ValueError("No active team set")
+                
+            # Set team info from active team
+            self.team = active_team.get('name', 'default')
+            self.team_name = active_team.get('display_name', self.team.title())
+            
+            # Update config with team info
+            config['team'] = self.team
+            
+            # Initialize parent
+            super().__init__(config)
+            
+            # Configure components
             self._configure_encoding()
+            self.command_builder = AiderCommandBuilder(self.name)
+            self.output_parser = AiderOutputParser(self.logger, self.name)
             
-            # Initialize logger first for proper error reporting
-            self.logger = self._init_logger(config.get("logger", print))
-            
-            # Validate required config fields
-            required_fields = ['name', 'mission_dir']
-            missing = [f for f in required_fields if f not in config]
-            if missing:
-                raise ValueError(f"Missing required config fields: {', '.join(missing)}")
-            
-            # Set core attributes
-            self.name = config['name']
-            self.config = config
-            self.mission_dir = config['mission_dir']
-            
-            # Initialize state
-            self.running = False
-            self.last_run = None
-            self.last_change = None
-            self.consecutive_no_changes = 0
-            self.error_count = 0
-            self.mission_files = {}
-            self._prompt_cache = {}
-            
-            # New status tracking
-            self.status = AgentStatus.INITIALIZING
-            self.MAX_ATTEMPTS = config.get('max_attempts', 3)
-            
-            # Performance tracking
-            self.performance_metrics = PerformanceMetrics()
-            
-            # Load configuration and validate paths
-            self._load_config()
-            self._validate_paths()
-            
-            # Update status
-            self.status = AgentStatus.IDLE
-            
-            self.logger.log(f"[{self.__class__.__name__}] Initialized as {self.name}")
+            self.logger.log(f"[{self.name}] Initialized in team {self.team_name}")
             
         except Exception as e:
-            self.status = AgentStatus.ERROR
-            print(f"Error initializing agent: {str(e)}")  # Fallback logging
+            logger = Logger()
+            logger.log(f"[INIT] Error during initialization: {str(e)}", 'error')
             raise
         
 
