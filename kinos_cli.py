@@ -36,10 +36,8 @@ def load_team_config(team_name: str) -> List[str]:
 
 class AgentRunner(threading.Thread):
     """Thread class for running an agent and capturing output"""
-    def __init__(self, agent_service: AgentService, team_agents: List[str], 
-                 output_queue: queue.Queue, logger: Logger):
+    def __init__(self, team_agents: List[str], output_queue: queue.Queue, logger: Logger):
         super().__init__(daemon=True)
-        self.agent_service = agent_service
         self.team_agents = team_agents  # Liste complète des agents de l'équipe
         self.output_queue = output_queue
         self.logger = logger
@@ -55,8 +53,18 @@ class AgentRunner(threading.Thread):
                 self.logger.log(f"Selected agent for execution: {self.agent_name}", 'debug')
                 start_time = datetime.now()
             
-                # Initialize agent
-                agent = self.agent_service.create_agent(self.agent_name)
+                # Initialize agent directly with AiderAgent
+                agent_config = {
+                    'name': self.agent_name,
+                    'team': team_name,
+                    'type': 'aider',
+                    'mission_dir': os.getcwd(),
+                    'weight': 0.5
+                }
+                
+                from agents.aider.aider_agent import AiderAgent
+                agent = AiderAgent(agent_config)
+                
                 if not agent:
                     self.logger.log(f"Failed to create agent: {self.agent_name}", 'error')
                     time.sleep(5)  # Wait before retrying
@@ -205,8 +213,6 @@ def run_team_loop(team_name: str, specific_name: str = None):
     # Initialiser la structure de l'équipe
     initialize_team_structure(team_name, specific_name)
 
-    agent_service = AgentService(None)
-    
     # Load team configuration with enhanced logging
     agents = load_team_config(team_name)
     logger.log(f"Loaded {len(agents)} agents: {', '.join(agents)}", 'debug')
@@ -241,7 +247,7 @@ def run_team_loop(team_name: str, specific_name: str = None):
                 logger.log(f"Selected agent: {agent_name}", 'debug')
                 
                 # Start new runner
-                runner = AgentRunner(agent_service, agents, output_queue, logger)
+                runner = AgentRunner(agents, output_queue, logger)
                 runner.start()
                 active_threads[runner.ident] = runner
                 logger.log(f"Started new agent runner (total: {len(active_threads)})")
