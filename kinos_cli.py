@@ -279,12 +279,19 @@ def run_multi_team_loop(model: Optional[str] = None):
     logger.log("🌐 Starting multi-team prompt-based execution", 'debug')
     
     try:
+        # Initialize services once at startup
+        from services import init_services
+        services = init_services(None)
+        
         # Set model if specified
         if model:
-            from utils.model_router import ModelRouter
-            model_router = ModelRouter()
+            model_router = services['model_router']
             if not model_router.set_model(model):
                 logger.log(f"Model {model} not found", 'warning')
+
+        # Store initialized services
+        map_service = services['map_service']
+        dataset_service = services['dataset_service']
 
         while True:
             # Find all prompts folders
@@ -312,13 +319,15 @@ def run_multi_team_loop(model: Optional[str] = None):
 
             try:
                 # Create and run agent directly using AiderAgent
+                # Create agent config with pre-initialized services
                 agent_config = {
                     'name': agent_name,
                     'team': team_name,
                     'type': 'aider',
-                    'mission_dir': team_dir,  # Use team directory as mission directory
+                    'mission_dir': team_dir,
                     'prompt_file': prompt_file,
-                    'weight': 0.5
+                    'weight': 0.5,
+                    'services': services  # Pass initialized services
                 }
                 
                 agent = AiderAgent(agent_config)

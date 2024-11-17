@@ -37,9 +37,12 @@ class AiderAgent(AgentBase):
         """Initialize agent with configuration"""
         try:
             self.original_dir = os.getcwd()
-            self.team = config['team']  # Team name from config
+            self.team = config['team']
             self.name = config['name']
-            self.config = config  # Store the config
+            self.config = config
+            
+            # Use pre-initialized services if provided
+            self.services = config.get('services')
             
             # Initialize parent
             super().__init__(config)
