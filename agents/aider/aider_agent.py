@@ -516,10 +516,6 @@ Instructions:
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error calling LLM: {str(e)}", 'error')
                     return
-                
-            except Exception as e:
-                self.logger.log(f"[{self.name}] Error calling LLM: {str(e)}", 'error')
-                return
 
             # Run Aider with generated instructions
             try:
