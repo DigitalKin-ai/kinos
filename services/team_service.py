@@ -440,7 +440,7 @@ class TeamService(BaseService):
 
     def get_team_by_name(self, team_name: str) -> Optional[Dict[str, Any]]:
         """
-        Get team configuration by name with strict validation
+        Get team configuration by name with default config generation
         
         Args:
             team_name: Name of team to find
@@ -478,13 +478,12 @@ class TeamService(BaseService):
                     f"Team directory not found: {team_dir}\n"
                     f"Please create team directory 'team_{normalized_name}' in the current directory: {current_dir}"
                 )
-                
+                    
             config_path = os.path.join(team_dir, "config.json")
             if not os.path.exists(config_path):
-                raise ServiceError(
-                    f"No config file found in team directory: {team_dir}\n"
-                    f"Please create a config.json file with team configuration."
-                )
+                # Generate default config if directory exists but no config
+                self.logger.log(f"No config found, generating default for team: {normalized_name}", 'info')
+                return self._generate_default_config(normalized_name)
                 
             try:
                 with open(config_path, 'r', encoding='utf-8') as f:
