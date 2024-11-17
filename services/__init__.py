@@ -29,6 +29,14 @@ def init_services(_) -> Dict[str, Any]:
         current_dir = os.getcwd()  # Use actual working directory
         logger.log(f"Initializing services in: {current_dir}", 'debug')
         
+        # Return cached services if they exist and have correct team
+        if _services_cache is not None:
+            team_service = _services_cache.get('team_service')
+            if team_service and team_service.active_team_name:
+                logger.log(f"Using cached services for team: {team_service.active_team_name}", 'debug')
+                return _services_cache
+
+        # Only detect team directory if no services exist yet
         team_dir = next((d for d in os.listdir(current_dir) if d.startswith('team_')), None)
         if not team_dir:
             error_msg = (
