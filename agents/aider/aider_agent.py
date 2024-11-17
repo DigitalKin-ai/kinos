@@ -379,8 +379,13 @@ class AiderAgent(AgentBase):
 
             self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
 
-            # Define key files that should always be included
+            # Get team directory path
+            team_dir = f"team_{self.team}" if not self.team.startswith('team_') else self.team
+            team_path = os.path.join(os.getcwd(), team_dir)
+
+            # Define key files that should always be included (in team directory)
             key_files = [
+                "map.md",      # Added map.md to key files
                 "demande.md",
                 "directives.md",
                 "todolist.md"
@@ -391,9 +396,9 @@ class AiderAgent(AgentBase):
             total_chars = 0
             char_limit = 100000  # Limit total characters to stay within token limits
 
-            # First add key files
+            # First add key files from team directory
             for key_file in key_files:
-                file_path = os.path.join(self.mission_dir, key_file)
+                file_path = os.path.join(team_path, key_file)  # Use team_path instead of mission_dir
                 if os.path.exists(file_path):
                     try:
                         with open(file_path, 'r', encoding='utf-8') as f:
