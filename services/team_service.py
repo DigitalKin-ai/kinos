@@ -187,7 +187,7 @@ class TeamService(BaseService):
             # Get team config
             team_config = self.get_team_by_name(normalized_name)
             if not team_config:
-                raise ServiceError(f"Team not found and couldn't create default: {normalized_name}")
+                raise ServiceError(f"Team '{normalized_name}' not found - Please create team directory and config first")
             
             # Store active team and name
             self.active_team = team_config
@@ -205,32 +205,13 @@ class TeamService(BaseService):
             
         except Exception as e:
             self.logger.log(f"Error setting active team: {str(e)}", 'error')
-            return False
+            raise ServiceError(f"Failed to set team '{name}': {str(e)}")
 
     def get_active_team(self) -> Optional[Dict[str, Any]]:
         """Get the currently active team configuration"""
-        try:
-            # If no active team, try to find team from current directory
-            if not self.active_team:
-                current_dir = os.getcwd()
-                team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
-                
-                for team_dir in team_dirs:
-                    team_name = team_dir.replace('team_', '')
-                    team_config = self.get_team_config(team_name)
-                    if team_config:
-                        self.active_team = team_config
-                        break
-                
-                # If still no active team, use default
-                if not self.active_team:
-                    self.set_active_team('default')
-        
-            return self.active_team
-            
-        except Exception as e:
-            self.logger.log(f"Error getting active team: {str(e)}", 'error')
-            return None
+        if not self.active_team:
+            raise ServiceError("No active team set")
+        return self.active_team
 
     def get_team_agents(self, team_name: Optional[str] = None) -> List[str]:
         """Get list of agent names for a team"""
@@ -421,14 +402,13 @@ class TeamService(BaseService):
                             config = json.load(f)
                         return config
                     except Exception as e:
-                        self.logger.log(f"Error loading team config: {str(e)}", 'error')
-                        
-            # If still not found, try to generate default config
-            return self._generate_default_config(normalized_name)
+                        raise ServiceError(f"Error loading team config: {str(e)}")
+                    
+            raise ServiceError(f"Team '{normalized_name}' not found")
             
         except Exception as e:
             self.logger.log(f"Error getting team by name: {str(e)}", 'error')
-            return None
+            raise ServiceError(f"Failed to get team '{team_name}': {str(e)}")
 
     def cleanup(self):
         """Cleanup team service resources"""
