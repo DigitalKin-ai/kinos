@@ -267,26 +267,65 @@ def run_team_loop(team_name: str, specific_name: str = None):
             runner.join(timeout=1.0)
             
 def run_multi_team_loop(model: Optional[str] = None):
-    """Run agents across multiple teams"""
+    """Run agents by finding and using random prompts from all prompts folders"""
     logger = Logger()
-    logger.log("🌐 Starting multi-team agent execution", 'debug')
+    logger.log("🌐 Starting multi-team prompt-based execution", 'debug')
     
     try:
+        # Set model if specified
+        if model:
+            model_router = ModelRouter()
+            if not model_router.set_model(model):
+                logger.log(f"Model {model} not found", 'warning')
+
         while True:
+            # Find all prompts folders
+            prompts = []
+            for root, dirs, files in os.walk(os.getcwd()):
+                if os.path.basename(root) == 'prompts':
+                    # Add all .md files from prompts folders
+                    for file in files:
+                        if file.endswith('.md'):
+                            prompt_path = os.path.join(root, file)
+                            prompts.append(prompt_path)
 
-            # Set model if specified
-            if model:
-                model_router = ModelRouter()
-                if not model_router.set_model(model):
-                    logger.log(f"Model {model} not found", 'warning')
+            if not prompts:
+                logger.log("No prompt files found in any prompts folders", 'warning')
+                time.sleep(10)  # Wait before retrying
+                continue
 
-            # Get team agents and run random agent
-            agents = FINDRANDOMAGENT.get_team_agents(team_name)
-            if agents:
+            # Select random prompt
+            prompt_file = random.choice(prompts)
+            agent_name = os.path.splitext(os.path.basename(prompt_file))[0]
+            team_dir = os.path.dirname(os.path.dirname(prompt_file))
+            team_name = os.path.basename(team_dir).replace('team_', '')
+
+            logger.log(f"Selected prompt: {prompt_file} (agent: {agent_name}, team: {team_name})", 'info')
+
+            try:
+                # Create and run agent
                 agent_service = AgentService(None)
-                agent_service.run_random_agent(agents)
+                agent_config = {
+                    'name': agent_name,
+                    'team': team_name,
+                    'type': 'aider',
+                    'mission_dir': os.getcwd(),
+                    'prompt_file': prompt_file,
+                    'weight': 0.5
+                }
+                agent = agent_service.create_agent(agent_config)
+                if agent:
+                    agent.run()
+                    logger.log(f"Completed run for agent {agent_name}", 'success')
+                else:
+                    logger.log(f"Failed to create agent for {agent_name}", 'error')
 
-            time.sleep(0.1)
+            except Exception as e:
+                logger.log(f"Error running agent {agent_name}: {str(e)}", 'error')
+
+            # Random delay between runs
+            delay = random.uniform(10, 30)
+            time.sleep(delay)
 
     except KeyboardInterrupt:
         logger.log("Stopping multi-team execution...")
