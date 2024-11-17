@@ -94,9 +94,12 @@ class MapService(BaseService):
                     return False
                     
                 self.logger.log(f"[MapService] 📝 Using map file: {self.map_file}", 'debug')
-            
-            # Get active team from injected TeamService WITHOUT resetting it
-            active_team = self.team_service.get_active_team()
+                
+                # Get active team from injected TeamService WITHOUT resetting it
+                active_team = self.team_service.get_active_team()
+            finally:
+                # Always restore original directory
+                os.chdir(original_dir)
             if not active_team:
                 self.logger.log("[MapService] ⚠️ No active team found", 'warning')
                 return False
