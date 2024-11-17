@@ -93,18 +93,18 @@ class AiderAgent(AgentBase):
     def _run_aider(self, instructions: str) -> Optional[str]:
         """Execute Aider command with streamed output processing"""
         try:
-            # Simplifier la gestion des fichiers d'historique
+            # Get history files from team path
             history_dir = os.path.join(PathManager.get_team_path(self.team), "history")
             chat_history_file = os.path.join(history_dir, f".aider.{self.name}.chat.history.md")
             input_history_file = os.path.join(history_dir, f".aider.{self.name}.input.history.md")
 
-            # Construction et validation de la commande
+            # Build and validate command
             cmd = self.command_builder.build_command(
                 instructions=instructions,
                 files=list(self.mission_files.keys())
             )
             
-            # Ajouter les fichiers d'historique
+            # Add history files
             cmd.extend([
                 "--chat-history-file", chat_history_file,
                 "--input-history-file", input_history_file
@@ -113,20 +113,20 @@ class AiderAgent(AgentBase):
             # Execute command
             process = self.command_builder.execute_command(cmd)
 
-            # Collection de la sortie avec gestion spécifique des erreurs Windows
+            # Process output with Windows error handling
             try:
                 output = self.output_parser.parse_output(process)
                 
-                # Explicitly ignore known Aider messages
+                # Skip known benign messages
                 if output and any(msg in output for msg in [
                     "Can't initialize prompt toolkit",
-                    "No Windows console found",
+                    "No Windows console found", 
                     "aider.chat/docs/troubleshooting/edit-errors.html",
                     "[Errno 22] Invalid argument"
                 ]):
                     return ""
                     
-                # Force map update after any Aider execution that produced output
+                # Update services if we got output
                 if output:
                     try:
                         # Use existing services if available
@@ -134,17 +134,17 @@ class AiderAgent(AgentBase):
                             map_service = self.services['map_service']
                             dataset_service = self.services['dataset_service']
                         else:
-                            # Only initialize if absolutely necessary
+                            # Only initialize if needed
                             self.logger.log(f"[{self.name}] Warning: Falling back to service initialization", 'warning')
                             from services import init_services
                             self.services = init_services(None)
                             map_service = self.services['map_service']
                             dataset_service = self.services['dataset_service']
                     
-                        # Update map using stored services
+                        # Update map
                         map_service.update_map()
                     
-                        # Get current files context
+                        # Get current file contents
                         files_context = {}
                         for file_path in self.mission_files:
                             try:
@@ -153,7 +153,7 @@ class AiderAgent(AgentBase):
                             except Exception as e:
                                 self.logger.log(f"[{self.name}] Error reading {file_path}: {str(e)}", 'warning')
                     
-                        # Add interaction to dataset asynchronously using stored services
+                        # Log interaction
                         import asyncio
                         asyncio.run(dataset_service.add_interaction_async(
                             instructions=instructions,
@@ -167,14 +167,14 @@ class AiderAgent(AgentBase):
                 return output
 
             except OSError as os_error:
-                # Handle Windows stream error silently
+                # Handle Windows stream error
                 if "[Errno 22] Invalid argument" in str(os_error):
-                    return ""  # Return empty success
+                    return ""
                 raise
 
         except Exception as e:
-            # Ignorer TOUTES les erreurs et continuer
-            self.logger.log(f"[{self.name}] Non-critical Aider error: {str(e)}", 'warning')
+            # Log and continue
+            self.logger.log(f"[{self.name}] Non-critical error: {str(e)}", 'warning')
             return ""
             
         finally:
