@@ -188,29 +188,29 @@ class TeamService(BaseService):
                 self.logger.log(f"Team {normalized_name} already active", 'debug')
                 return True
                 
-            # Get team config
-            team_config = self.get_team_by_name(normalized_name)
-            if not team_config:
-                # Generate default config if none exists
-                team_config = self._generate_default_config(normalized_name)
-                if not team_config:
-                    raise ServiceError(f"Failed to create default config for team '{normalized_name}'")
-            
-            # Store active team and name with explicit locking
+            # Get team config with explicit locking
             with self._team_lock:
+                team_config = self.get_team_by_name(normalized_name)
+                if not team_config:
+                    # Generate default config if none exists
+                    team_config = self._generate_default_config(normalized_name)
+                    if not team_config:
+                        raise ServiceError(f"Failed to create default config for team '{normalized_name}'")
+                
+                # Store active team and name atomically
                 self.active_team = team_config
                 self.active_team_name = normalized_name
                 self._last_set_time = datetime.now()
             
             # Create team directory structure
-            team_dir = os.path.join(os.getcwd(), f"team_{name}")
+            team_dir = os.path.join(os.getcwd(), f"team_{normalized_name}")
             os.makedirs(team_dir, exist_ok=True)
             
             for subdir in ['history', 'prompts', 'data']:
                 os.makedirs(os.path.join(team_dir, subdir), exist_ok=True)
             
             self.logger.log(
-                f"Active team set to: {name} ({team_config.get('display_name', name)})\n"
+                f"Active team set to: {normalized_name} ({team_config.get('display_name', normalized_name)})\n"
                 f"Time: {self._last_set_time.isoformat()}", 
                 'success'
             )
