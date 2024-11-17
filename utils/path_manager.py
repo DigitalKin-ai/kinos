@@ -268,8 +268,8 @@ Always structure your responses as:
         # Get base directory - use current directory
         base_dir = os.getcwd()
         
-        # If we're already in a team directory, move up one level
-        if "team_" in base_dir:
+        # If we're in a team directory, move up until we're at the root
+        while os.path.basename(base_dir).startswith('team_'):
             base_dir = os.path.dirname(base_dir)
         
         team_path = os.path.abspath(os.path.join(base_dir, team_folder))
