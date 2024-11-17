@@ -62,6 +62,8 @@ def init_services(_) -> Dict[str, Any]:
                     logger.log(f"Set active team to '{team_name}' from directory", 'info')
                     team_found = True
                     active_team_name = team_name
+                    # Store the active team name in the service
+                    team_service.active_team_name = team_name
                     break
 
         # If no other team found, fall back to default
@@ -69,6 +71,7 @@ def init_services(_) -> Dict[str, Any]:
             if team_service.set_active_team('default'):
                 logger.log("Set active team to 'default'", 'info')
                 active_team_name = 'default'
+                team_service.active_team_name = 'default'
             else:
                 logger.log("Failed to set active team to 'default'", 'error')
 

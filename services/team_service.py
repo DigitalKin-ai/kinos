@@ -15,6 +15,7 @@ class TeamService(BaseService):
         """Initialize with minimal dependencies"""
         super().__init__(_)
         self.active_team = None
+        self.active_team_name = None  # Add explicit team name tracking
         self.team_types = self._load_team_types()
 
     def _load_team_types(self) -> List[Dict[str, Any]]:
@@ -173,8 +174,9 @@ class TeamService(BaseService):
             if not team_config:
                 raise ServiceError(f"Team not found and couldn't create default: {name}")
             
-            # Store active team
+            # Store active team and name
             self.active_team = team_config
+            self.active_team_name = name  # Track active team name
             
             # Create team directory if it doesn't exist
             team_dir = os.path.join(os.getcwd(), f"team_{name}")
