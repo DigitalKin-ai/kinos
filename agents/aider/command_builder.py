@@ -41,10 +41,16 @@ class AiderCommandBuilder:
         if not model_router:
             raise ValueError("ModelRouter service not initialized")
             
+        # Get current model or set default
         current_model = model_router.current_model
         if not current_model:
-            raise ValueError("No model configured in ModelRouter")
-            
+            # Set a default model if none configured
+            default_model = "claude-3-haiku"  # Or another default model
+            if model_router.set_model(default_model):
+                current_model = default_model
+            else:
+                raise ValueError(f"Could not set default model: {default_model}")
+        
         return [
             "--model", current_model,
             "--edit-format", "diff",

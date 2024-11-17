@@ -377,6 +377,19 @@ class AiderAgent(AgentBase):
             if not self.mission_files:
                 raise ValueError(f"[{self.name}] No files to monitor")
 
+            # Validate model configuration
+            model_router = self.services.get('model_router')
+            if not model_router:
+                raise ValueError(f"[{self.name}] ModelRouter service not available")
+            
+            # Ensure model is configured
+            if not model_router.current_model:
+                # Try to set default model
+                default_model = "claude-3-haiku"  # Or another default
+                if not model_router.set_model(default_model):
+                    raise ValueError(f"[{self.name}] Could not set default model: {default_model}")
+                self.logger.log(f"[{self.name}] Set default model: {default_model}", 'info')
+
             self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
 
             # Get team directory path
