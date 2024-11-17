@@ -320,13 +320,13 @@ class PathManager:
                 from utils.logger import Logger
                 logger = Logger()
                 if team_dirs:
-                    logger.log(f"Found teams: {', '.join(team_dirs)}", 'info')
+                   logger = Logger() 
                 else:
                     logger.log("No teams found in mission directory", 'warning')
             except:
                 # Fallback to print if logger not available
                 if team_dirs:
-                    print(f"Found teams: {', '.join(team_dirs)}")
+                    logger = Logger()
                 else:
                     print("No teams found in mission directory")
             
