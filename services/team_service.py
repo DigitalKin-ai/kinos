@@ -24,7 +24,7 @@ class TeamService(BaseService):
             teams = []
             current_dir = os.getcwd()
             
-            # Look for team_* directories in current directory
+            # Scan for team directories
             for item in os.listdir(current_dir):
                 if not item.startswith('team_'):
                     continue
@@ -59,12 +59,13 @@ class TeamService(BaseService):
                         valid, error = self.validate_team_config(config)
                         if valid:
                             teams.append(config)
+                            self.logger.log(f"Loaded team configuration: {config['name']}", 'info')
                         else:
                             self.logger.log(f"Invalid team config {item}: {error}", 'warning')
                             
                     except Exception as e:
                         self.logger.log(f"Error loading team {item}: {str(e)}", 'error')
-            
+
             return teams
 
         except Exception as e:
