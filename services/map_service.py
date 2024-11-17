@@ -147,51 +147,35 @@ class MapService(BaseService):
     def _scan_directory(self, path: str, prefix: str = "", team_name: str = None) -> Tuple[List[str], List[str], int]:
         """Scan directory recursively with team context"""
         try:
-            # Dynamically detect current team if not provided
-            if not team_name:
-                current_dir = os.getcwd()
-                team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
-                team_name = team_dirs[0][5:] if team_dirs else None
-                if not team_name:
-                    raise ValueError("No team directory found")
-
             tree_lines = []
             warnings = []
             total_tokens = 0
 
             # Load ignore patterns
             ignore_patterns = [
-                '.aider*',  # Explicitly ignore all .aider files
                 '.git/',
                 '__pycache__/',
                 'node_modules/',
                 '.env',
                 '*.pyc',
-                '*.log'
+                '*.log',
+                '.aider*',  # Explicitly ignore all .aider files
+                'history/.aider*',  # Explicitly match history directory
+                '*.history.md'  # Match all history files
             ]
 
-            # Add pattern to ignore ALL team folders
-            ignore_patterns.append('team_*/')  # This will ignore all team folders
-
-            # Add pattern to ignore other team folders
-            team_dir = f"team_{team_name}" if not team_name.startswith('team_') else team_name
-            for item in os.listdir(os.getcwd()):
-                if item.startswith('team_') and item != team_dir:
-                    ignore_patterns.append(f"{item}/")
-        
-            # Add patterns from .gitignore and .aiderignore
-            for ignore_file in ['.gitignore', '.aiderignore']:
-                ignore_path = os.path.join(os.getcwd(), ignore_file)
-                if os.path.exists(ignore_path):
-                    try:
-                        with open(ignore_path, 'r', encoding='utf-8') as f:
-                            patterns = [
-                                line.strip() for line in f.readlines()
-                                if line.strip() and not line.startswith('#')
-                            ]
-                            ignore_patterns.extend(patterns)
-                    except Exception as e:
-                        self.logger.log(f"Error reading {ignore_file}: {str(e)}", 'warning')
+            # Add patterns from .gitignore
+            gitignore_path = os.path.join(os.getcwd(), '.gitignore')
+            if os.path.exists(gitignore_path):
+                try:
+                    with open(gitignore_path, 'r', encoding='utf-8') as f:
+                        patterns = [
+                            line.strip() for line in f.readlines()
+                            if line.strip() and not line.startswith('#')
+                        ]
+                        ignore_patterns.extend(patterns)
+                except Exception as e:
+                    self.logger.log(f"Error reading .gitignore: {str(e)}", 'warning')
 
             # Create PathSpec for pattern matching
             from pathspec import PathSpec
@@ -200,7 +184,7 @@ class MapService(BaseService):
 
             # Get and sort directory contents
             items = sorted(os.listdir(path))
-        
+            
             # Define tracked file extensions
             tracked_extensions = {
                 '.md', '.txt', '.py', '.js', '.html', '.css', '.json', 
@@ -208,33 +192,6 @@ class MapService(BaseService):
                 '.h', '.c', '.cs', '.php', '.rb', '.go', '.rs', '.ts'
             }
 
-            # Only scan current team directory
-            team_dir = f"team_{team_name}"
-            team_path = os.path.join(os.getcwd(), team_dir)
-            
-            # Add team-specific files to scan
-            if team_path and os.path.exists(team_path):
-                team_files = ["map.md", "todolist.md", "demande.md", "directives.md"]
-                for file in team_files:
-                    file_path = os.path.join(team_path, file)
-                    if os.path.exists(file_path):
-                        try:
-                            token_count = self._count_tokens(file_path)
-                            total_tokens += token_count
-                            status_icon = self._get_status_icon(token_count)
-                            
-                            size_k = token_count / 1000
-                            tree_lines.append(
-                                f"{prefix}📄 {file} ({size_k:.1f}k tokens) {status_icon}"
-                            )
-                            
-                            warning = self._check_file_size(file, token_count)
-                            if warning:
-                                warnings.append(warning)
-                        except Exception as e:
-                            self.logger.log(f"Error processing team file {file}: {str(e)}", 'warning')
-
-            # Process files in team directory and subdirectories
             for i, item in enumerate(items):
                 is_last = i == len(items) - 1
                 current_prefix = prefix + ("└── " if is_last else "├── ")
@@ -245,16 +202,12 @@ class MapService(BaseService):
                 if spec.match_file(rel_path):
                     continue
 
-                # Skip if not in team directory tree
-                if not os.path.commonpath([full_path, team_path]).startswith(team_path):
-                    continue
-        
-                if os.path.isdir(full_path):
-                    # Skip certain directories
-                    if item in {'__pycache__', 'node_modules', '.git', '.idea', 'venv',
-                              '.pytest_cache', '__pycache__', '.mypy_cache'}:
+                # Skip team directories except current one
+                if os.path.isdir(full_path) and item.startswith('team_'):
+                    if not team_name or f"team_{team_name}" != item:
                         continue
-                    
+
+                if os.path.isdir(full_path):
                     tree_lines.append(f"{current_prefix}📁 {item}/")
                     sub_prefix = prefix + ("    " if is_last else "│   ")
                     sub_tree, sub_warnings, sub_tokens = self._scan_directory(full_path, sub_prefix, team_name)
