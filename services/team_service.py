@@ -187,7 +187,10 @@ class TeamService(BaseService):
             # Get team config
             team_config = self.get_team_by_name(normalized_name)
             if not team_config:
-                raise ServiceError(f"Team '{normalized_name}' not found - Please create team directory and config first")
+                # Generate default config if none exists
+                team_config = self._generate_default_config(normalized_name)
+                if not team_config:
+                    raise ServiceError(f"Failed to create default config for team '{normalized_name}'")
             
             # Store active team and name
             self.active_team = team_config
@@ -367,6 +370,72 @@ class TeamService(BaseService):
             
         except Exception as e:
             self.logger.log(f"Error getting agent prompt path: {str(e)}", 'error')
+            return None
+
+    def _generate_default_config(self, name: str) -> Dict[str, Any]:
+        """
+        Generate default team configuration
+        
+        Args:
+            name: Team name
+            
+        Returns:
+            Dict with default team configuration
+        """
+        try:
+            # Generate display name from team name
+            display_name = name.replace('_', ' ').title()
+            
+            # Default agent configuration
+            default_agents = [
+                {
+                    "name": "specifications",
+                    "type": "aider",
+                    "weight": 0.4
+                },
+                {
+                    "name": "management",
+                    "type": "aider", 
+                    "weight": 0.6
+                },
+                {
+                    "name": "evaluation",
+                    "type": "aider",
+                    "weight": 0.3
+                },
+                {
+                    "name": "redacteur",
+                    "type": "aider",
+                    "weight": 1.0
+                },
+                {
+                    "name": "documentaliste",
+                    "type": "research",
+                    "weight": 0.2
+                }
+            ]
+            
+            # Create config structure
+            config = {
+                "name": name,
+                "display_name": display_name,
+                "description": f"Auto-generated team configuration for {display_name}",
+                "agents": default_agents
+            }
+            
+            # Save config file in team directory
+            team_dir = os.path.join(os.getcwd(), f"team_{name}")
+            os.makedirs(team_dir, exist_ok=True)
+            
+            config_path = os.path.join(team_dir, "config.json")
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(config, f, indent=4)
+                
+            self.logger.log(f"Generated new config file for team {name}", 'info')
+            return config
+            
+        except Exception as e:
+            self.logger.log(f"Error generating config for team {name}: {str(e)}", 'error')
             return None
 
     def get_team_by_name(self, team_name: str) -> Optional[Dict[str, Any]]:
