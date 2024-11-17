@@ -234,51 +234,54 @@ class MapService(BaseService):
                         except Exception as e:
                             self.logger.log(f"Error processing team file {file}: {str(e)}", 'warning')
 
-            # Only process files if we're in the team directory
-            if path == team_path:
-                for i, item in enumerate(items):
-                    is_last = i == len(items) - 1
-                    current_prefix = prefix + ("└── " if is_last else "├── ")
-                    full_path = os.path.join(path, item)
-                    rel_path = os.path.relpath(full_path, os.getcwd())
+            # Process files in team directory and subdirectories
+            for i, item in enumerate(items):
+                is_last = i == len(items) - 1
+                current_prefix = prefix + ("└── " if is_last else "├── ")
+                full_path = os.path.join(path, item)
+                rel_path = os.path.relpath(full_path, os.getcwd())
 
-                    # Skip if matches ignore patterns
-                    if spec.match_file(rel_path):
+                # Skip if matches ignore patterns
+                if spec.match_file(rel_path):
+                    continue
+
+                # Skip if not in team directory tree
+                if not os.path.commonpath([full_path, team_path]).startswith(team_path):
+                    continue
+        
+                if os.path.isdir(full_path):
+                    # Skip certain directories
+                    if item in {'__pycache__', 'node_modules', '.git', '.idea', 'venv',
+                              '.pytest_cache', '__pycache__', '.mypy_cache'}:
                         continue
+                    
+                    tree_lines.append(f"{current_prefix}📁 {item}/")
+                    sub_prefix = prefix + ("    " if is_last else "│   ")
+                    sub_tree, sub_warnings, sub_tokens = self._scan_directory(full_path, sub_prefix, team_name)
             
-                    if os.path.isdir(full_path):
-                        # Skip certain directories
-                        if item in {'__pycache__', 'node_modules', '.git', '.idea', 'venv',
-                                  '.pytest_cache', '__pycache__', '.mypy_cache'}:
-                            continue
-                        
-                        tree_lines.append(f"{current_prefix}📁 {item}/")
-                        sub_prefix = prefix + ("    " if is_last else "│   ")
-                        sub_tree, sub_warnings, sub_tokens = self._scan_directory(full_path, sub_prefix, team_name)
+                    if sub_tree:
+                        tree_lines.extend(sub_tree)
+                        warnings.extend(sub_warnings)
+                        total_tokens += sub_tokens
+                    else:
+                        tree_lines.pop()
+            
+                elif any(item.endswith(ext) for ext in tracked_extensions):
+                    try:
+                        token_count = self._count_tokens(full_path)
+                        total_tokens += token_count
+                        status_icon = self._get_status_icon(token_count)
                 
-                        if sub_tree:
-                            tree_lines.extend(sub_tree)
-                            warnings.extend(sub_warnings)
-                            total_tokens += sub_tokens
-                        else:
-                            tree_lines.pop()
+                        size_k = token_count / 1000
+                        tree_lines.append(
+                            f"{current_prefix}📄 {item} ({size_k:.1f}k tokens) {status_icon}"
+                        )
                 
-                    elif any(item.endswith(ext) for ext in tracked_extensions):
-                        try:
-                            token_count = self._count_tokens(full_path)
-                            total_tokens += token_count
-                            status_icon = self._get_status_icon(token_count)
-                    
-                            size_k = token_count / 1000
-                            tree_lines.append(
-                                f"{current_prefix}📄 {item} ({size_k:.1f}k tokens) {status_icon}"
-                            )
-                    
-                            warning = self._check_file_size(item, token_count)
-                            if warning:
-                                warnings.append(warning)
-                        except Exception as e:
-                            self.logger.log(f"Error processing file {item}: {str(e)}", 'warning')
+                        warning = self._check_file_size(item, token_count)
+                        if warning:
+                            warnings.append(warning)
+                    except Exception as e:
+                        self.logger.log(f"Error processing file {item}: {str(e)}", 'warning')
                         
             return tree_lines, warnings, total_tokens
             
