@@ -57,13 +57,12 @@ class AiderAgent(AgentBase):
             # Update config with mission_dir
             config['mission_dir'] = self.mission_dir
             
-            # Store services if provided
+            # Validate required services
             self.services = config.get('services')
             if not self.services:
-                self.logger = Logger()  # Temporary logger for init
-                self.logger.log(f"[{self.name}] Warning: No pre-initialized services provided", 'warning')
-            
-            # Initialize parent with updated config
+                raise ValueError(f"[{self.name}] Required services not provided in config")
+                
+            # Initialize parent with validated config
             super().__init__(config)
             
             # Configure components
