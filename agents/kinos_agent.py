@@ -9,6 +9,9 @@ from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 from agents.aider.command_builder import AiderCommandBuilder
 from agents.aider.output_parser import AiderOutputParser
+from agents.utils.rate_limiter import RateLimiter
+from agents.base.file_handler import FileHandler 
+from utils.path_manager import PathManager
 
 class FileManager:
     """Service for managing file operations"""
