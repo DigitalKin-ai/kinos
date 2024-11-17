@@ -112,35 +112,39 @@ class AiderAgent(AgentBase):
         self._requests_this_minute = 0
 
 
-    def _run_aider(self, instructions: str) -> Optional[str]:
+    def _run_aider(self, instructions: str) -> str:
         """Execute Aider command with streamed output processing"""
-        try:
-            # Get correct team path using PathManager
-            team_path = PathManager.get_team_path(self.team)
-            history_dir = os.path.join(team_path, "history")
-            os.makedirs(history_dir, exist_ok=True)
-            
-            # Create history file paths
-            chat_history_file = os.path.join(history_dir, f".aider.{self.name}.chat.history.md")
-            input_history_file = os.path.join(history_dir, f".aider.{self.name}.input.history.md")
+        if not instructions:
+            raise ValueError("Instructions cannot be empty")
+        if not self.team:
+            raise ValueError("Team name is required")
+        if not self.name:
+            raise ValueError("Agent name is required")
 
-            # Build and validate command
-            cmd = self.command_builder.build_command(
-                instructions=instructions,
-                files=list(self.mission_files.keys())
-            )
-            
-            # Add history files
-            cmd.extend([
-                "--chat-history-file", chat_history_file,
-                "--input-history-file", input_history_file
-            ])
+        # Get correct team path using PathManager
+        team_path = PathManager.get_team_path(self.team)
+        history_dir = os.path.join(team_path, "history")
+        os.makedirs(history_dir, exist_ok=True)
+        
+        # Create history file paths
+        chat_history_file = os.path.join(history_dir, f".aider.{self.name}.chat.history.md")
+        input_history_file = os.path.join(history_dir, f".aider.{self.name}.input.history.md")
 
-            # Execute command
-            process = self.command_builder.execute_command(cmd)
+        # Build and validate command
+        cmd = self.command_builder.build_command(
+            instructions=instructions,
+            files=list(self.mission_files.keys())
+        )
+        
+        # Add history files
+        cmd.extend([
+            "--chat-history-file", chat_history_file,
+            "--input-history-file", input_history_file
+        ])
 
-            # Process output with Windows error handling
-            try:
+        # Execute command and return output - let errors propagate
+        process = self.command_builder.execute_command(cmd)
+        output = self.output_parser.parse_output(process)
                 output = self.output_parser.parse_output(process)
                 
                 # Skip known benign messages
