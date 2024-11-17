@@ -193,21 +193,73 @@ class AiderAgent(AgentBase):
             except Exception as service_error:
                 self.logger.log(f"[{self.name}] Error with services: {str(service_error)}", 'warning')
                 
-        return output
-
-            except OSError as os_error:
-                # Handle Windows stream error
-                if "[Errno 22] Invalid argument" in str(os_error):
-                    return ""
-                raise
-
+        try:
+            # Execute command and return output - let errors propagate
+            process = self.command_builder.execute_command(cmd)
+            output = self.output_parser.parse_output(process)
+            
+            # Skip known benign messages
+            if output and any(msg in output for msg in [
+                "Can't initialize prompt toolkit",
+                "No Windows console found", 
+                "aider.chat/docs/troubleshooting/edit-errors.html",
+                "[Errno 22] Invalid argument"
+            ]):
+                return ""
+                
+            # Update services if we got output
+            if output:
+                try:
+                    # Use existing services if available
+                    if self.services:
+                        map_service = self.services['map_service']
+                        dataset_service = self.services['dataset_service']
+                    else:
+                        # Only initialize if needed
+                        self.logger.log(f"[{self.name}] Warning: Falling back to service initialization", 'warning')
+                        from services import init_services
+                        self.services = init_services(None)
+                        map_service = self.services['map_service']
+                        dataset_service = self.services['dataset_service']
+                
+                    # Update map
+                    map_service.update_map()
+                
+                    # Get current file contents
+                    files_context = {}
+                    for file_path in self.mission_files:
+                        try:
+                            with open(file_path, 'r', encoding='utf-8') as f:
+                                files_context[file_path] = f.read()
+                        except Exception as e:
+                            self.logger.log(f"[{self.name}] Error reading {file_path}: {str(e)}", 'warning')
+                
+                    # Log interaction
+                    import asyncio
+                    asyncio.run(dataset_service.add_interaction_async(
+                        instructions=instructions,
+                        files_context=files_context,
+                        aider_response=output
+                    ))
+                
+                except Exception as service_error:
+                    self.logger.log(f"[{self.name}] Error with services: {str(service_error)}", 'warning')
+                    
+            return output
+            
+        except OSError as os_error:
+            # Handle Windows stream error
+            if "[Errno 22] Invalid argument" in str(os_error):
+                return ""
+            raise
+            
         except Exception as e:
             # Log and continue
             self.logger.log(f"[{self.name}] Non-critical error: {str(e)}", 'warning')
             return ""
             
         finally:
-            # Toujours restaurer le répertoire original
+            # Always restore original directory
             try:
                 os.chdir(self.original_dir)
             except Exception as dir_error:
