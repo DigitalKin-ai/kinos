@@ -215,12 +215,8 @@ class TeamService(BaseService):
     def get_team_agents(self, team_name: Optional[str] = None) -> List[str]:
         """Get list of agent names for a team"""
         try:
-            # Use active team if no name provided
-            if team_name:
-                config = self.get_team_by_name(team_name)
-            else:
-                config = self.active_team
-        
+            # Get team config directly
+            config = self.get_team_by_name(team_name) if team_name else None
             if not config:
                 self.logger.log(f"No configuration found for team: {team_name}", 'warning')
                 return []

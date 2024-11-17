@@ -140,35 +140,31 @@ class KinOSAgent:
     def __init__(self, config: Dict[str, Any]):
         """Initialize agent with configuration"""
         try:
-            # Store original directory
             self.original_dir = os.getcwd()
-            
-            # Get services
-            from services import init_services
-            services = init_services(None)
-            team_service = services['team_service']
-            
-            # Get active team info without modifying it
-            active_team = team_service.get_active_team()
-            if not active_team:
-                raise ValueError("No active team set")
-                
-            # Set team info from active team
-            self.team = active_team.get('name', 'default')
-            self.team_name = active_team.get('display_name', self.team.title())
-            
-            # Update config with team info
-            config['team'] = self.team
+            self.team = config['team']  # Team name from config
+            self.name = config['name']
             
             # Initialize parent
             super().__init__(config)
             
             # Configure components
             self._configure_encoding()
-            self.command_builder = AiderCommandBuilder(self.name)
+            self.command_builder = AiderCommandBuilder(self.name, self.team)  # Pass team name
             self.output_parser = AiderOutputParser(self.logger, self.name)
             
-            self.logger.log(f"[{self.name}] Initialized in team {self.team_name}")
+            self.logger.log(f"[{self.name}] Initialized in team {self.team}")
+            
+            # Initialize rate limiter and file handler
+            self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
+            self.file_handler = FileHandler(self.mission_dir, self.logger)
+                
+            # Get prompt file
+            self.prompt_file = PathManager.get_prompt_file(self.name, self.team)
+            if not self.prompt_file:
+                raise ValueError(f"No prompt file found for agent {self.name}")
+                    
+            # Initialize state
+            self._init_state()
             
         except Exception as e:
             logger = Logger()
