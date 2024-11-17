@@ -324,19 +324,30 @@ Always structure your responses as:
     @classmethod
     def get_team_path(cls, name: str) -> str:
         """Get the path for a team"""
-        # Remove any existing team_ prefix
-        team_name = name.replace('team_', '')
-        
-        # Create team folder name with single prefix
-        team_folder = f"team_{team_name}"
-        
-        # Get absolute path
-        team_path = os.path.abspath(os.path.join(os.getcwd(), team_folder))
-        
-        # Ensure directory exists
-        os.makedirs(team_path, exist_ok=True)
-        
-        return team_path
+        try:
+            # Remove any existing team_ prefix and clean name
+            team_name = name.replace('team_', '').strip()
+            
+            # Create team folder name with single prefix
+            team_folder = f"team_{team_name}"
+            
+            # Get absolute path, ensuring we don't nest team folders
+            base_dir = os.getcwd()
+            if "team_" in base_dir:
+                # Already in a team directory, use parent
+                base_dir = os.path.dirname(base_dir)
+                
+            team_path = os.path.abspath(os.path.join(base_dir, team_folder))
+            
+            # Ensure directory exists
+            os.makedirs(team_path, exist_ok=True)
+            
+            return team_path
+            
+        except Exception as e:
+            logger = Logger()
+            logger.log(f"Error getting team path: {str(e)}", 'error')
+            return os.path.join(os.getcwd(), f"team_{name}")
 
     @staticmethod
     def get_log_file(service_name: str) -> str:

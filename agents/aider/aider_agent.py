@@ -51,9 +51,8 @@ class AiderAgent(AgentBase):
             self.team = config['team']
             self.name = config['name']
             
-            # Set mission directory using team
-            team_dir = f"team_{self.team}" if not self.team.startswith('team_') else self.team
-            self.mission_dir = os.path.join(os.getcwd(), team_dir)
+            # Get mission directory using PathManager
+            self.mission_dir = PathManager.get_team_path(self.team)
             
             # Update config with mission_dir
             config['mission_dir'] = self.mission_dir
