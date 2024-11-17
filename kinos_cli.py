@@ -154,8 +154,22 @@ def initialize_team_structure(team_name: str, specific_name: str = None):
     # Create .gitignore in team directory
     gitignore_path = os.path.join(team_dir, '.gitignore')
     gitignore_content = """# Ignore Aider and KinOS history files
+.DS_Store
+.vscode/
+aider.code-workspace
+*.pyc
 .aider*
 .kinos*
+*/agents/*
+aider_chat.egg-info/
+build
+dist/
+Gemfile.lock
+_site
+.jekyll-cache/
+.jekyll-metadata
+aider/__version__.py
+.venv/
 """
     
     with open(gitignore_path, 'w', encoding='utf-8') as f:
@@ -219,7 +233,7 @@ def run_team_loop(team_name: str, specific_name: str = None):
             logger.log(f"Active threads: {len(active_threads)}", 'debug')
             
             # Start new threads if needed
-            while len(active_threads) < 3:
+            while len(active_threads) <5:
                 # Select random agent
                 agent_name = random.choice(agents)
                 
@@ -301,7 +315,7 @@ def run_multi_team_loop(model: Optional[str] = None):
                               if runner.is_alive()}
             
             # Start new threads if needed
-            while len(active_threads) < 3:
+            while len(active_threads) < 5:
                 # Select random team
                 team_name = random.choice(team_dirs)
                 
