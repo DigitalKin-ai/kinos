@@ -365,24 +365,28 @@ class AiderAgent(AgentBase):
 
     def _execute_agent_cycle(self):
         """Execute one cycle of the agent's main loop"""
-        # Validate required state first
-        if not self.team:
-            raise ValueError(f"[{self.name}] No team context available")
-        if not self.services:
-            raise ValueError(f"[{self.name}] No services available")
-        if not self.mission_files:
-            raise ValueError(f"[{self.name}] No files to monitor")
+        # Initialize result variable
+        result = None
 
-        self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
+        try:
+            # Validate required state first
+            if not self.team:
+                raise ValueError(f"[{self.name}] No team context available")
+            if not self.services:
+                raise ValueError(f"[{self.name}] No services available")
+            if not self.mission_files:
+                raise ValueError(f"[{self.name}] No files to monitor")
 
-        # Get current prompt using PathManager - fail fast if missing
-        prompt_path = PathManager.get_prompt_file(self.name, self.team)
-        if not prompt_path or not os.path.exists(prompt_path):
-            # Create default prompt directory
-            os.makedirs(os.path.dirname(prompt_path), exist_ok=True)
-            
-            # Create default aider prompt
-            default_prompt = """# Aider Agent
+            self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
+
+            # Get current prompt using PathManager - fail fast if missing
+            prompt_path = PathManager.get_prompt_file(self.name, self.team)
+            if not prompt_path or not os.path.exists(prompt_path):
+                # Create default prompt directory
+                os.makedirs(os.path.dirname(prompt_path), exist_ok=True)
+                
+                # Create default aider prompt
+                default_prompt = """# Aider Agent
 
 You are an AI development assistant that helps implement requested changes.
 Your role is to:
@@ -408,17 +412,17 @@ Always structure your responses as:
 - Use clear commit messages
 - Keep changes focused"""
 
-            # Write default prompt
-            with open(prompt_path, 'w', encoding='utf-8') as f:
-                f.write(default_prompt)
-                self.logger.log(f"[{self.name}] Created default prompt at {prompt_path}", 'info')
+                # Write default prompt
+                with open(prompt_path, 'w', encoding='utf-8') as f:
+                    f.write(default_prompt)
+                    self.logger.log(f"[{self.name}] Created default prompt at {prompt_path}", 'info')
 
-        # Read prompt content - fail fast if empty
-        with open(prompt_path, 'r', encoding='utf-8') as f:
-            prompt = f.read()
+            # Read prompt content - fail fast if empty
+            with open(prompt_path, 'r', encoding='utf-8') as f:
+                prompt = f.read()
 
-        if not prompt:
-            raise ValueError(f"[{self.name}] Empty prompt file for team {self.team}")
+            if not prompt:
+                raise ValueError(f"[{self.name}] Empty prompt file for team {self.team}")
 
             # Format context message with team info
             context_message = f"""You are {self.name}, working in team {self.team}, on the mission defined in demande.md.
@@ -457,10 +461,19 @@ Instructions:
                 if os.path.exists(team_dir):
                     os.chdir(team_dir)
                 result = self._run_aider(model_response)
-                return result
             finally:
                 # Always restore original directory
                 os.chdir(self.original_dir)
+
+        except Exception as e:
+            self.logger.log(
+                f"[{self.name}] 💥 Error in agent cycle:\n"
+                f"Type: {type(e)}\n"
+                f"Error: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}",
+                'error'
+            )
+            return None
 
         # Update state based on result
         self.last_run = datetime.now()
