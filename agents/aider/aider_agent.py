@@ -39,6 +39,7 @@ class AiderAgent(AgentBase):
             self.original_dir = os.getcwd()
             self.team = config['team']  # Team name from config
             self.name = config['name']
+            self.config = config  # Store the config
             
             # Initialize parent
             super().__init__(config)
