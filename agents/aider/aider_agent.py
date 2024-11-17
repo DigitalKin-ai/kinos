@@ -302,13 +302,15 @@ class AiderAgent(AgentBase):
 
     def _execute_agent_cycle(self):
         """Execute one cycle of the agent's main loop"""
-        try:
-            # Log team context at start of cycle
-            self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
+        # Validate required state first
+        if not self.team:
+            raise ValueError(f"[{self.name}] No team context available")
+        if not self.services:
+            raise ValueError(f"[{self.name}] No services available")
+        if not self.mission_files:
+            raise ValueError(f"[{self.name}] No files to monitor")
 
-            # Verify services with team context - fail fast if missing
-            if not self.services:
-                raise ValueError(f"[{self.name}] No services available for team {self.team}")
+        self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
 
             # Get current prompt using PathManager - fail fast if missing
             prompt_path = PathManager.get_prompt_file(self.name, self.team)
@@ -397,9 +399,15 @@ Instructions:
                 # Always restore original directory
                 os.chdir(self.original_dir)
 
-        except Exception as e:
-            self.logger.log(f"[{self.name}] Error in agent cycle for team {self.team}: {str(e)}", 'error')
-            return None
+        # Update state based on result
+        self.last_run = datetime.now()
+        if result:
+            self.last_change = datetime.now()
+            self.consecutive_no_changes = 0
+        else:
+            self.consecutive_no_changes += 1
+
+        return result
 
 
             
@@ -566,59 +574,65 @@ Instructions:
 
     def run(self):
         """Execute one iteration of the agent's task"""
-        try:
-            self.logger.log(f"[{self.name}] 🔄 Starting agent iteration", 'debug')
+        # Validate mission directory first
+        if not os.path.exists(self.mission_dir):
+            raise FileNotFoundError(f"[{self.name}] Mission directory not found")
+
+        self.logger.log(f"[{self.name}] 🔄 Starting agent iteration", 'debug')
+
+        # Update file list - fail if no files found
+        self.list_files()
+        if not self.mission_files:
+            raise ValueError(f"[{self.name}] No files to monitor")
+
+        # Execute cycle and let errors propagate
+        result = self._execute_agent_cycle()
         
-            # Validate mission directory
-            if not os.path.exists(self.mission_dir):
-                self.logger.log(f"[{self.name}] ❌ Mission directory not found")
-                return
+        # Update state based on result
+        self.last_run = datetime.now()
+        if result:
+            self.last_change = datetime.now()
+            self.consecutive_no_changes = 0
+        else:
+            self.consecutive_no_changes += 1
 
-            # Update file list
-            self.list_files()
-    
-            # Call _execute_agent_cycle instead of execute_mission
-            result = self._execute_agent_cycle()
-    
-            # Update state based on result
-            self.last_run = datetime.now()
-            if result:
-                self.last_change = datetime.now()
-                self.consecutive_no_changes = 0
-            else:
-                self.consecutive_no_changes += 1
-
-        except Exception as e:
-            # Ignore known benign Aider errors
-            if any(err in str(e) for err in [
-                "Can't initialize prompt toolkit",
-                "No Windows console found",
-                "aider.chat/docs/troubleshooting/edit-errors.html",
-                "[Errno 22] Invalid argument"
-            ]):
-                pass  # Do not stop the agent
-            else:
-                self.logger.log(f"[{self.name}] Error in run: {str(e)}", 'error')
-                
-        finally:
-            # Ensure cleanup happens
-            self.cleanup()
+        # Always ensure cleanup happens
+        self.cleanup()
 
     def _format_files_context(self, files_context: Dict[str, str]) -> str:
         """
-        Format files context into a readable string with clear file boundaries
+        Format files context into readable string with validation
         
         Args:
             files_context: Dictionary mapping filenames to content
             
         Returns:
             str: Formatted string with file content blocks
+            
+        Raises:
+            TypeError: If inputs are not correct types
+            ValueError: If inputs are empty or invalid
+            FileNotFoundError: If files don't exist
         """
+        if not isinstance(files_context, dict):
+            raise TypeError("files_context must be a dictionary")
+        if not files_context:
+            raise ValueError("files_context cannot be empty")
+        if not self.mission_dir:
+            raise ValueError("mission_dir not set")
+
         formatted = []
         for filename, content in files_context.items():
-            # Get relative path for cleaner output
+            if not isinstance(filename, str):
+                raise TypeError(f"Filename must be string, got {type(filename)}")
+            if not isinstance(content, str):
+                raise TypeError(f"Content must be string, got {type(content)}")
+            if not os.path.exists(filename):
+                raise FileNotFoundError(f"File not found: {filename}")
+                
             rel_path = os.path.relpath(filename, self.mission_dir)
             formatted.append(f"File: {rel_path}\n```\n{content}\n```\n")
+            
         return "\n".join(formatted)
 
     def _build_prompt(self, context: dict = None) -> str:

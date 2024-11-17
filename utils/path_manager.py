@@ -355,8 +355,9 @@ class PathManager:
             return team_dirs
         
         except Exception as e:
-            cls._log(f"Error listing teams: {str(e)}\nCurrent directory: {os.getcwd()}\nTraceback: {traceback.format_exc()}", 'error')
-            return []
+            error_msg = f"Error listing teams: {str(e)}\nCurrent directory: {os.getcwd()}\nTraceback: {traceback.format_exc()}"
+            cls._log(error_msg, 'error')
+            raise RuntimeError(error_msg)
 
     @staticmethod
     def validate_path(path: str) -> bool:
