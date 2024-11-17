@@ -88,39 +88,10 @@ class AiderAgent(AgentBase):
     def _run_aider(self, instructions: str) -> Optional[str]:
         """Execute Aider command with streamed output processing"""
         try:
-            # Récupérer le nom de l'équipe et de l'agent
-            from services import init_services
-            services = init_services(None)
-            team_service = services['team_service']
-            
-            # Trouver l'équipe de l'agent
-            agent_team = None
-            for team in team_service.team_types:
-                # Skip if team is not a dictionary
-                if not isinstance(team, dict):
-                    continue
-                
-                # Get agents list, defaulting to empty list
-                team_agents = team.get('agents', [])
-                
-                # Handle both string and dictionary agent representations
-                for agent in team_agents:
-                    # Normalize agent name
-                    agent_name_to_check = agent.get('name', agent) if isinstance(agent, dict) else agent
-                    
-                    if self.name == agent_name_to_check:
-                        agent_team = team.get('id')
-                        break
-                
-                if agent_team:
-                    break
-
-            # Définir les noms de fichiers spécifiques si un nom est fourni
-            specific_name = self.config.get('name')  # Récupérer le nom spécifique s'il existe
-
-            # Chemins des fichiers d'historique
-            chat_history_file = os.path.join(PathManager.get_team_path(agent_team), "history", f".aider.{self.name}.chat.history.md")
-            input_history_file = os.path.join(PathManager.get_team_path(agent_team), "history", f".aider.{self.name}.input.history.md")
+            # Simplifier la gestion des fichiers d'historique
+            history_dir = os.path.join(PathManager.get_team_path(self.team), "history")
+            chat_history_file = os.path.join(history_dir, f".aider.{self.name}.chat.history.md")
+            input_history_file = os.path.join(history_dir, f".aider.{self.name}.input.history.md")
 
             # Construction et validation de la commande
             cmd = self.command_builder.build_command(
@@ -128,7 +99,7 @@ class AiderAgent(AgentBase):
                 files=list(self.mission_files.keys())
             )
             
-            # Modifier la construction de la commande
+            # Ajouter les fichiers d'historique
             cmd.extend([
                 "--chat-history-file", chat_history_file,
                 "--input-history-file", input_history_file
@@ -148,23 +119,19 @@ class AiderAgent(AgentBase):
                     "aider.chat/docs/troubleshooting/edit-errors.html",
                     "[Errno 22] Invalid argument"
                 ]):
-                    # Return empty success instead of None to prevent shutdown
                     return ""
                     
                 # Force map update after any Aider execution that produced output
                 if output:
                     try:
-                        # Get services
+                        # Mise à jour de la carte une seule fois si nécessaire
                         from services import init_services
                         services = init_services(None)
+                        map_service = services['map_service']
+                        dataset_service = services['dataset_service']
                         
                         # Update map
-                        map_service = services['map_service']
-                        if not map_service.update_map():
-                            self.logger.log(f"[{self.name}] Failed to update map after Aider execution", 'warning')
-                        
-                        # Save to dataset
-                        dataset_service = services['dataset_service']
+                        map_service.update_map()
                         
                         # Get current files context
                         files_context = {}
@@ -183,20 +150,8 @@ class AiderAgent(AgentBase):
                             aider_response=output
                         ))
                         
-                        self.logger.log(f"[{self.name}] Interaction saved to dataset", 'debug')
-                        
                     except Exception as service_error:
-                        self.logger.log(f"[{self.name}] Error with services: {str(service_error)}", 'error')
-                        
-                    # Explicitly update map after all other operations
-                    try:
-                        from services import init_services
-                        services = init_services(None)
-                        map_service = services['map_service']
-                        if not map_service.update_map():
-                            self.logger.log(f"[{self.name}] Failed to update map after Aider execution", 'warning')
-                    except Exception as map_error:
-                        self.logger.log(f"[{self.name}] Error updating map: {str(map_error)}", 'error')
+                        self.logger.log(f"[{self.name}] Error with services: {str(service_error)}", 'warning')
                         
                 return output
 
@@ -209,7 +164,7 @@ class AiderAgent(AgentBase):
         except Exception as e:
             # Ignorer TOUTES les erreurs et continuer
             self.logger.log(f"[{self.name}] Non-critical Aider error: {str(e)}", 'warning')
-            return ""  # Toujours retourner une chaîne vide au lieu de None
+            return ""
             
         finally:
             # Toujours restaurer le répertoire original
