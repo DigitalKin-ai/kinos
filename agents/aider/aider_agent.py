@@ -494,8 +494,9 @@ class AiderAgent(AgentBase):
                     self.logger.log(f"[{self.name}] Error reading file {file_path}: {str(e)}", 'warning')
 
             # Format context message
-            context_message = f"""Based on:
-1. The system prompt defining my role and responsibilities
+            context_message = f"""You are {self.name}, an agent working autonomously in the KinOS system, to achieve a mission.
+Based on:
+1. The system prompt defining my role and responsibilities ({self.name})
 2. The Mission in demande.md
 3. The chat history showing your previous instructions and Aider's productions
 4. The current state of the project files shown below
