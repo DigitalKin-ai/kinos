@@ -398,11 +398,11 @@ class TeamService(BaseService):
             # Look for team directory
             team_dir = os.path.join(current_dir, f"team_{normalized_name}")
             self.logger.log(f"Looking for team directory: {team_dir}", 'debug')
-            
+        
             if os.path.exists(team_dir):
                 self.logger.log(f"Found team directory: {team_dir}", 'debug')
                 config_path = os.path.join(team_dir, "config.json")
-                
+            
                 if os.path.exists(config_path):
                     try:
                         with open(config_path, 'r', encoding='utf-8') as f:
@@ -414,7 +414,6 @@ class TeamService(BaseService):
                         raise ServiceError(f"Error loading team config: {str(e)}")
                 else:
                     self.logger.log(f"No config file found in team directory: {team_dir}", 'error')
-                    raise ServiceError(f"No config file found for team '{normalized_name}'")
                     raise ServiceError(f"No config file found for team '{normalized_name}'")
             else:
                 self.logger.log(f"Team directory not found: {team_dir}", 'error')
