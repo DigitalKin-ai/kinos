@@ -15,61 +15,69 @@ class TeamService(BaseService):
 
     def __init__(self, _):
         super().__init__(_)
-        self.team_types = self._load_team_types()
+        self._team_types_cache = None  # Add cache
         self._team_lock = threading.Lock()
         self.active_team = None
         self.active_team_name = None
         self._last_set_time = None
+        self.team_types = self._load_team_types()  # Initial load
 
     def _load_team_types(self) -> List[Dict[str, Any]]:
-        """Load team configurations from local team directories"""
+        """Load team configurations from local team directories with caching"""
+        # Return cached value if available
+        if self._team_types_cache is not None:
+            return self._team_types_cache
+
         try:
-            teams = []
-            current_dir = os.getcwd()
-            
-            # Scan for team directories
-            for item in os.listdir(current_dir):
-                if not item.startswith('team_'):
-                    continue
-                    
-                team_dir = os.path.join(current_dir, item)
-                if not os.path.isdir(team_dir):
-                    continue
+            with self._team_lock:  # Thread-safe loading
+                teams = []
+                current_dir = os.getcwd()
+                
+                # Scan for team directories
+                for item in os.listdir(current_dir):
+                    if not item.startswith('team_'):
+                        continue
+                        
+                    team_dir = os.path.join(current_dir, item)
+                    if not os.path.isdir(team_dir):
+                        continue
 
-                # Load config from team directory
-                config_path = os.path.join(team_dir, "config.json")
-                if os.path.exists(config_path):
-                    try:
-                        with open(config_path, 'r', encoding='utf-8') as f:
-                            config = json.load(f)
-                            
-                        # Set ID from directory name if not present
-                        if 'id' not in config:
-                            config['id'] = item.replace('team_', '')
-                            
-                        # Normalize agent configurations
-                        if 'agents' in config:
-                            config['agents'] = [
-                                {
-                                    'name': agent if isinstance(agent, str) else agent.get('name', 'unnamed'),
-                                    'type': 'aider' if isinstance(agent, str) else agent.get('type', 'aider'),
-                                    'weight': 0.5 if isinstance(agent, str) else agent.get('weight', 0.5)
-                                }
-                                for agent in config['agents']
-                            ]
-                            
-                        # Validate configuration
-                        valid, error = self.validate_team_config(config)
-                        if valid:
-                            teams.append(config)
-                            self.logger.log(f"Loaded team configuration: {config['name']}", 'info')
-                        else:
-                            self.logger.log(f"Invalid team config {item}: {error}", 'warning')
-                            
-                    except Exception as e:
-                        self.logger.log(f"Error loading team {item}: {str(e)}", 'error')
+                    # Load config from team directory
+                    config_path = os.path.join(team_dir, "config.json")
+                    if os.path.exists(config_path):
+                        try:
+                            with open(config_path, 'r', encoding='utf-8') as f:
+                                config = json.load(f)
+                                
+                            # Set ID from directory name if not present
+                            if 'id' not in config:
+                                config['id'] = item.replace('team_', '')
+                                
+                            # Normalize agent configurations
+                            if 'agents' in config:
+                                config['agents'] = [
+                                    {
+                                        'name': agent if isinstance(agent, str) else agent.get('name', 'unnamed'),
+                                        'type': 'aider' if isinstance(agent, str) else agent.get('type', 'aider'),
+                                        'weight': 0.5 if isinstance(agent, str) else agent.get('weight', 0.5)
+                                    }
+                                    for agent in config['agents']
+                                ]
+                                
+                            # Validate configuration
+                            valid, error = self.validate_team_config(config)
+                            if valid:
+                                teams.append(config)
+                                self.logger.log(f"Loaded team configuration: {config['name']}", 'info')
+                            else:
+                                self.logger.log(f"Invalid team config {item}: {error}", 'warning')
+                                
+                        except Exception as e:
+                            self.logger.log(f"Error loading team {item}: {str(e)}", 'error')
 
-            return teams
+                # Cache the results
+                self._team_types_cache = teams
+                return teams
 
         except Exception as e:
             self.logger.log(f"Error loading teams: {str(e)}", 'error')
@@ -478,6 +486,15 @@ class TeamService(BaseService):
         """Cleanup team service resources"""
         try:
             self.active_team = None
+            if self._team_types_cache:
+                self._team_types_cache.clear()
             self.team_types.clear()
         except Exception as e:
             self.logger.log(f"Error cleaning up team service: {str(e)}", 'error')
+
+    def reload_teams(self) -> List[Dict[str, Any]]:
+        """Force reload of team configurations"""
+        with self._team_lock:
+            self._team_types_cache = None
+            self.team_types = self._load_team_types()
+            return self.team_types
