@@ -38,37 +38,30 @@ class AgentRunner(threading.Thread):
     """Thread class for running an agent and capturing output"""
     def __init__(self, team_agents: List[str], output_queue: queue.Queue, logger: Logger, team_name: str):
         super().__init__(daemon=True)
-        self.team_agents = team_agents  # Liste complète des agents de l'équipe
+        self.team_agents = team_agents
         self.output_queue = output_queue
         self.logger = logger
         self.running = True
-        self.agent_type = 'aider'  # Default type
+        self.agent_type = 'aider'
         self.team_name = team_name
+        self.agent_config = None  # Will be set before starting thread
 
     def run(self):
         while self.running:
             try:
-                # Select random agent
-                self.agent_name = random.choice(self.team_agents)
-                
-                self.logger.log(f"Selected agent for execution: {self.agent_name}", 'debug')
+                if not self.agent_config:
+                    self.logger.log("No agent configuration provided", 'error')
+                    time.sleep(5)
+                    continue
+
                 start_time = datetime.now()
-            
-                # Initialize agent directly with AiderAgent
-                agent_config = {
-                    'name': self.agent_name,
-                    'team': self.team_name,
-                    'type': 'aider',
-                    'mission_dir': os.getcwd(),
-                    'weight': 0.5
-                }
                 
-                from agents.aider.aider_agent import AiderAgent
-                agent = AiderAgent(agent_config)
+                # Create agent using stored config
+                agent = AiderAgent(self.agent_config)
                 
                 if not agent:
-                    self.logger.log(f"Failed to create agent: {self.agent_name}", 'error')
-                    time.sleep(5)  # Wait before retrying
+                    self.logger.log(f"Failed to create agent", 'error')
+                    time.sleep(5)
                     continue
                     
                 # Start agent
@@ -85,17 +78,16 @@ class AgentRunner(threading.Thread):
                             
                         try:
                             agent.run()  # Single iteration
-                            time.sleep(agent.calculate_dynamic_interval())  # Use dynamic interval
+                            time.sleep(agent.calculate_dynamic_interval())
                         except Exception as run_error:
                             self.logger.log(f"Error in agent run: {str(run_error)}", 'error')
                             break
                             
                     duration = (datetime.now() - start_time).total_seconds()
                     
-                    # Put completion message in queue
                     self.output_queue.put({
                         'thread_id': threading.get_ident(),
-                        'agent_name': self.agent_name,
+                        'agent_name': agent.name,
                         'status': 'completed',
                         'duration': duration,
                         'timestamp': datetime.now().isoformat()
@@ -111,13 +103,13 @@ class AgentRunner(threading.Thread):
                     except:
                         pass
                         
-                # Wait before starting next agent
+                # Wait before starting next iteration
                 time.sleep(random.uniform(10, 30))
                 
             except Exception as e:
                 self.output_queue.put({
                     'thread_id': threading.get_ident(),
-                    'agent_name': self.agent_name,
+                    'agent_name': self.agent_config['name'] if self.agent_config else 'unknown',
                     'status': 'error',
                     'error': str(e),
                     'traceback': traceback.format_exc(),
@@ -289,16 +281,22 @@ def run_multi_team_loop(model: Optional[str] = None):
             if not model_router.set_model(model):
                 logger.log(f"Model {model} not found", 'warning')
 
-        # Store initialized services
-        map_service = services['map_service']
-        dataset_service = services['dataset_service']
+        # Create output queue and active threads dict
+        output_queue = queue.Queue()
+        active_threads: Dict[int, AgentRunner] = {}
+        MAX_AGENTS = 5  # Nombre d'agents en parallèle
 
         while True:
+            # Clean up finished threads
+            active_threads = {tid: runner for tid, runner in active_threads.items() 
+                            if runner.is_alive()}
+            
+            logger.log(f"Active threads: {len(active_threads)}", 'debug')
+            
             # Find all prompts folders
             prompts = []
             for root, dirs, files in os.walk(os.getcwd()):
                 if os.path.basename(root) == 'prompts':
-                    # Add all .md files from prompts folders
                     for file in files:
                         if file.endswith('.md'):
                             prompt_path = os.path.join(root, file)
@@ -306,52 +304,60 @@ def run_multi_team_loop(model: Optional[str] = None):
 
             if not prompts:
                 logger.log("No prompt files found in any prompts folders", 'warning')
-                time.sleep(10)  # Wait before retrying
+                time.sleep(10)
                 continue
 
-            # Select random prompt
-            prompt_file = random.choice(prompts)
-            agent_name = os.path.splitext(os.path.basename(prompt_file))[0]
-            team_dir = os.path.dirname(os.path.dirname(prompt_file))
-            team_name = os.path.basename(team_dir).replace('team_', '')
+            # Start new threads if needed
+            while len(active_threads) < MAX_AGENTS:
+                # Select random prompt
+                prompt_file = random.choice(prompts)
+                agent_name = os.path.splitext(os.path.basename(prompt_file))[0]
+                team_dir = os.path.dirname(os.path.dirname(prompt_file))
+                team_name = os.path.basename(team_dir).replace('team_', '')
 
-            logger.log(f"Selected prompt: {prompt_file} (agent: {agent_name}, team: {team_name})", 'info')
+                logger.log(f"Selected prompt: {prompt_file} (agent: {agent_name}, team: {team_name})", 'info')
 
+                try:
+                    # Create agent config with pre-initialized services
+                    agent_config = {
+                        'name': agent_name,
+                        'team': team_name,
+                        'type': 'aider',
+                        'mission_dir': team_dir,
+                        'prompt_file': prompt_file,
+                        'weight': 0.5,
+                        'services': services  # Pass initialized services
+                    }
+                    
+                    # Create and start new runner thread
+                    runner = AgentRunner([agent_name], output_queue, logger, team_name)
+                    runner.agent_config = agent_config  # Store config for agent creation
+                    runner.start()
+                    active_threads[runner.ident] = runner
+                    logger.log(f"Started new agent runner (total: {len(active_threads)})")
+
+                except Exception as e:
+                    logger.log(f"Error creating agent {agent_name}: {str(e)}", 'error')
+
+            # Process output queue
             try:
-                # Create and run agent directly using AiderAgent
-                # Create agent config with pre-initialized services
-                agent_config = {
-                    'name': agent_name,
-                    'team': team_name,
-                    'type': 'aider',
-                    'mission_dir': team_dir,
-                    'prompt_file': prompt_file,
-                    'weight': 0.5,
-                    'services': services  # Pass initialized services
-                }
-                
-                agent = AiderAgent(agent_config)
-                
-                if agent:
-                    try:
-                        agent.run()
-                        logger.log(f"Completed run for agent {agent_name}", 'success')
-                    except Exception as run_error:
-                        logger.log(f"Error during agent run: {str(run_error)}", 'error')
-                    finally:
-                        agent.cleanup()
-                else:
-                    logger.log(f"Failed to create agent for {agent_name}", 'error')
+                msg = output_queue.get(timeout=0.1)
+                logger.log(f"Received message from queue: {msg['status']}", 'warning')
+            except queue.Empty:
+                pass
 
-            except Exception as e:
-                logger.log(f"Error running agent {agent_name}: {str(e)}", 'error')
-
-            # Random delay between runs
-            delay = random.uniform(10, 30)
-            time.sleep(delay)
+            time.sleep(0.1)  # Brief sleep to prevent CPU spinning
 
     except KeyboardInterrupt:
         logger.log("Stopping multi-team execution...")
+        
+        # Stop all threads
+        for runner in active_threads.values():
+            runner.running = False
+            
+        # Wait for threads to finish
+        for runner in active_threads.values():
+            runner.join(timeout=1.0)
 
 def main():
     """CLI entry point"""
