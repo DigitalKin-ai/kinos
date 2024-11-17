@@ -291,27 +291,21 @@ class AiderAgent(AgentBase):
 
     def _execute_agent_cycle(self):
         """Execute one cycle of the agent's main loop"""
-        try:
-            # Log team context at start of cycle
-            self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
+        # Log team context at start of cycle
+        self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
 
-            # Verify services with team context
-            if not self.services:
-                from services import init_services
-                self.services = init_services(None, team=self.team)
-                self.logger.log(f"[{self.name}] Initialized services for team {self.team}", 'debug')
+        # Verify services with team context - fail fast if missing
+        if not self.services:
+            raise ValueError(f"[{self.name}] No services available for team {self.team}")
 
-            # Get current prompt using PathManager
-            try:
-                # Use PathManager to get correct prompt path
-                prompt_path = PathManager.get_prompt_file(self.name, self.team)
-                
-                if not prompt_path or not os.path.exists(prompt_path):
-                    # Create default prompt directory
-                    os.makedirs(os.path.dirname(prompt_path), exist_ok=True)
-                    
-                    # Create default aider prompt
-                    default_prompt = """# Aider Agent
+        # Get current prompt using PathManager - fail fast if missing
+        prompt_path = PathManager.get_prompt_file(self.name, self.team)
+        if not prompt_path or not os.path.exists(prompt_path):
+            # Create default prompt directory
+            os.makedirs(os.path.dirname(prompt_path), exist_ok=True)
+            
+            # Create default aider prompt
+            default_prompt = """# Aider Agent
 
 You are an AI development assistant that helps implement requested changes.
 Your role is to:
@@ -337,26 +331,17 @@ Always structure your responses as:
 - Use clear commit messages
 - Keep changes focused"""
 
-                    # Write default prompt
-                    with open(prompt_path, 'w', encoding='utf-8') as f:
-                        f.write(default_prompt)
-                        self.logger.log(f"[{self.name}] Created default prompt at {prompt_path}", 'info')
-                
-                # Read prompt content
-                with open(prompt_path, 'r', encoding='utf-8') as f:
-                    prompt = f.read()
+            # Write default prompt
+            with open(prompt_path, 'w', encoding='utf-8') as f:
+                f.write(default_prompt)
+                self.logger.log(f"[{self.name}] Created default prompt at {prompt_path}", 'info')
 
-                if not prompt:
-                    self.logger.log(f"[{self.name}] Empty prompt file", 'error')
-                    return None
+        # Read prompt content - fail fast if empty
+        with open(prompt_path, 'r', encoding='utf-8') as f:
+            prompt = f.read()
 
-            except Exception as e:
-                self.logger.log(f"[{self.name}] Error reading prompt: {str(e)}", 'error')
-                return None
-
-            if not prompt:
-                self.logger.log(f"[{self.name}] No prompt available for team {self.team}", 'warning')
-                return None
+        if not prompt:
+            raise ValueError(f"[{self.name}] Empty prompt file for team {self.team}")
 
             # Format context message with team info
             context_message = f"""You are {self.name}, working in team {self.team}, on the mission defined in demande.md.
