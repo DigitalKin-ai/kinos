@@ -398,6 +398,9 @@ Instructions:
 
             
             # Process key files and remaining files
+            # Initialize files context dictionary
+            files_context = {}
+            
             try:
                 # Define key files
                 key_files = {
@@ -500,10 +503,6 @@ Instructions:
                     # Create messages array with only user and assistant roles
                     messages = [{"role": "user", "content": context_message}]
                 
-                    # Only add chat history if not empty
-                    if chat_history.strip():
-                        messages.append({"role": "assistant", "content": chat_history})
-
                     # Use model router with system prompt as top-level parameter
                     import asyncio
                     model_response = asyncio.run(model_router.generate_response(
