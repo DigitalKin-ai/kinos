@@ -323,56 +323,8 @@ Instructions:
             self.logger.log(f"[{self.name}] Error in agent cycle: {str(e)}", 'error')
             return None
 
-            # Add key files with full team directory paths
-            key_files = {
-                os.path.join(team_dir, "map.md"): 
-                "# Project Map\n\n## Overview\n\n## Key Components\n",
-                
-                os.path.join(team_dir, "todolist.md"): 
-                "# Project Todo List\n\n## Pending Tasks\n\n## Completed Tasks\n",
-                
-                os.path.join(team_dir, "demande.md"): 
-                "# Mission Request\n\n## Objective\n\n## Scope\n\n## Requirements\n",
-                
-                os.path.join(team_dir, "directives.md"): 
-                "# Project Directives\n\n## Guidelines\n\n## Constraints\n"
-            }
 
-            # Define history directory in team path
-            history_dir = os.path.join(team_dir, "history")
-            os.makedirs(history_dir, exist_ok=True)
-            
-            chat_history_file = os.path.join(history_dir, f".aider.{self.name}.chat.history.md")
-            input_history_file = os.path.join(history_dir, f".aider.{self.name}.input.history.md")
-
-            # Create key files if they don't exist
-            for file_path, default_content in key_files.items():
-                try:
-                    if not os.path.exists(file_path):
-                        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                        with open(file_path, 'w', encoding='utf-8') as f:
-                            f.write(default_content)
-                        self.logger.log(f"[{self.name}] Created key file: {file_path}", 'info')
-                except Exception as e:
-                    self.logger.log(f"[{self.name}] Error creating {file_path}: {str(e)}", 'warning')
-
-            # Créer les fichiers d'historique s'ils n'existent pas
-            for history_file in [chat_history_file, input_history_file]:
-                try:
-                    # S'assurer que le dossier history existe
-                    os.makedirs(os.path.dirname(history_file), exist_ok=True)
-                    
-                    if not os.path.exists(history_file):
-                        with open(history_file, 'w', encoding='utf-8') as f:
-                            f.write("")  # Créer un fichier vide
-                        self.logger.log(f"[{self.name}] Created history file: {history_file}", 'debug')
-                except Exception as e:
-                    self.logger.log(f"[{self.name}] Error creating history file {history_file}: {str(e)}", 'warning')
-
-            # Get current prompt
-            prompt = PathManager.get_prompt_file(self.name, specific_name)
-
-            # Define history files in current directory
+            # Define history files in mission directory
             history_dir = os.path.join(os.getcwd(), "history")
             chat_history_file = os.path.join(history_dir, f".aider.{self.name}.chat.history.md")
             input_history_file = os.path.join(history_dir, f".aider.{self.name}.input.history.md")
