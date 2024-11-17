@@ -42,19 +42,27 @@ class AgentRunner(threading.Thread):
         self.output_queue = output_queue
         self.logger = logger
         self.running = True
-        self.agent_type = 'aider'
+        self.agent_type = 'aider'  # Default agent type
         self.team_name = team_name
-        self.agent_config = None  # Will be set before starting thread
+        self.agent_config = None
 
     def run(self):
         """Thread execution loop"""
         while self.running:
             try:
                 if not self.agent_config:
-                    # Initialize with aider agent config
+                    # Initialize with proper agent name from team_agents
+                    if not self.team_agents:
+                        self.logger.log(f"No agents configured for team {self.team_name}", 'warning')
+                        time.sleep(5)
+                        continue
+                        
+                    # Select a valid agent name from team_agents
+                    agent_name = random.choice(self.team_agents)
+                    
                     self.agent_config = {
-                        'name': 'aider',  # Use aider as the agent name
-                        'type': 'aider',
+                        'name': agent_name,  # Use actual agent name from team config
+                        'type': self.agent_type,
                         'team': self.team_name,
                         'mission_dir': os.path.join(os.getcwd(), f"team_{self.team_name}")
                     }
