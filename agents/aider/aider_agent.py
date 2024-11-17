@@ -59,21 +59,24 @@ class AiderAgent(AgentBase):
             logger.log(f"[INIT] Got team from config: {self.team}", 'debug')
             self.team_name = self.team.title()
 
-            # Log team service interaction
+            # Get team service for display name only, without modifying active team
             try:
                 from services import init_services
                 services = init_services(None)
                 team_service = services['team_service']
-                logger.log(f"[INIT] Current active team in service: {team_service.active_team_name}", 'debug')
                 
-                active_team = team_service.get_active_team()
-                logger.log(f"[INIT] Got active team: {active_team}", 'debug')
+                # Get team config without changing active team
+                team_config = team_service.get_team_by_name(self.team)
+                if team_config:
+                    self.team_name = team_config.get('display_name', self.team.title())
+                else:
+                    self.team_name = self.team.title()
+                    
+                logger.log(f"[INIT] Using team name: {self.team_name}", 'debug')
                 
-                if active_team and active_team.get('name') == self.team:
-                    self.team_name = active_team.get('display_name', self.team_name)
-                    logger.log(f"[INIT] Updated team_name to: {self.team_name}", 'debug')
             except Exception as e:
-                logger.log(f"[INIT] Error validating team: {str(e)}", 'warning')
+                self.logger.log(f"[INIT] Error getting team info: {str(e)}", 'warning')
+                self.team_name = self.team.title()  # Fallback to simple title case
             
             # Log pre-components state
             logger.log(f"[INIT] Current team state - team: {self.team}, team_name: {self.team_name}", 'debug')
