@@ -34,9 +34,18 @@ class AiderAgent(AgentBase):
 
     def __init__(self, config: Dict[str, Any]):
         """Initialize agent with configuration"""
+        # Log initial config
+        from utils.logger import Logger
+        logger = Logger()
+        logger.log(f"[INIT] Starting initialization with config: {config}", 'debug')
+        
         # Ensure config exists before parent constructor
         if not hasattr(self, 'config'):
             self.config = config if config is not None else {}
+            logger.log(f"[INIT] Set initial config: {self.config}", 'debug')
+        
+        # Log pre-super state
+        logger.log(f"[INIT] Pre-super state - Team from config: {self.config.get('team')}", 'debug')
         
         # Call parent constructor
         super().__init__(self.config)
@@ -45,20 +54,29 @@ class AiderAgent(AgentBase):
             # Configure UTF-8 encoding first
             self._configure_encoding()
             
-            # Get team from config instead of detecting
+            # Get team from config with logging
             self.team = self.config.get('team', 'default')
+            logger.log(f"[INIT] Got team from config: {self.team}", 'debug')
             self.team_name = self.team.title()
 
-            # Only use team service to validate team, not set it
+            # Log team service interaction
             try:
                 from services import init_services
                 services = init_services(None)
                 team_service = services['team_service']
+                logger.log(f"[INIT] Current active team in service: {team_service.active_team_name}", 'debug')
+                
                 active_team = team_service.get_active_team()
+                logger.log(f"[INIT] Got active team: {active_team}", 'debug')
+                
                 if active_team and active_team.get('name') == self.team:
                     self.team_name = active_team.get('display_name', self.team_name)
+                    logger.log(f"[INIT] Updated team_name to: {self.team_name}", 'debug')
             except Exception as e:
-                self.logger.log(f"Error validating team: {str(e)}", 'warning')
+                logger.log(f"[INIT] Error validating team: {str(e)}", 'warning')
+            
+            # Log pre-components state
+            logger.log(f"[INIT] Current team state - team: {self.team}, team_name: {self.team_name}", 'debug')
             
             # Initialize components with agent name
             self.command_builder = AiderCommandBuilder(self.name)
@@ -68,23 +86,27 @@ class AiderAgent(AgentBase):
         
             # Store original directory
             self.original_dir = os.getcwd()
+            logger.log(f"[INIT] Set original directory: {self.original_dir}", 'debug')
         
-            # Resolve prompt file path
+            # Resolve prompt file path with logging
             if not self.prompt_file:
-                # Try to find team-specific prompt file based on agent name
+                logger.log(f"[INIT] Looking for prompt file for agent {self.name} in team {self.team}", 'debug')
                 self.prompt_file = PathManager.get_prompt_file(self.name, self.team)
                 if self.prompt_file:
-                    self.logger.log(f"Using team prompt file: {self.prompt_file}", 'info')
+                    logger.log(f"[INIT] Found prompt file: {self.prompt_file}", 'info')
                 else:
+                    logger.log(f"[INIT] No prompt file found for agent {self.name} in team {self.team}", 'error')
                     raise ValueError(f"Could not find prompt file for agent {self.name}")
         
             # Initialize state tracking
             self._init_state()
             
-            self.logger.log(f"[{self.name}] Initialized successfully")
+            # Log final state
+            logger.log(f"[INIT] Final state - team: {self.team}, team_name: {self.team_name}", 'debug')
+            logger.log(f"[{self.name}] Initialized successfully")
             
         except Exception as e:
-            self.logger.log(f"Error during initialization: {str(e)}", 'error')
+            logger.log(f"[INIT] Error during initialization: {str(e)}", 'error')
             raise
         
     def _configure_encoding(self):
