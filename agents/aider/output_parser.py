@@ -60,10 +60,8 @@ class AiderOutputParser:
             team_service = services['team_service']
             
             team_name = None
-            team_name = None
             for team in team_service.team_types:
                 if self.agent_name in team_service.get_team_agents(team['id']):
-                    team_name = team['name']
                     team_name = team.get('name', team_name)
                     break
             
@@ -77,10 +75,23 @@ class AiderOutputParser:
                     
             # Get icon and format message with team
             icon = self.COMMIT_ICONS.get(commit_type, '🔨')
-            team_tag = f"[{team_name or team_name or 'no-team'}]" if team_name else "[no-team]"
+            team_tag = f"[{team_name or 'no-team'}]" if team_name else "[no-team]"
             
-            # Format final message with team tag first
-            formatted = f"{team_tag} [{self.agent_name}] {icon} {commit_hash}: {message}"
+            # Extract modified files from previous lines
+            modified_files = []
+            for prev_line in reversed(output_lines[-10:]):  # Look at last 10 lines
+                if "Wrote " in prev_line:
+                    file_path = prev_line.split("Wrote ")[1].split()[0]
+                    modified_files.append(os.path.basename(file_path))
+                elif "Created " in prev_line:
+                    file_path = prev_line.split("Created ")[1].split()[0]
+                    modified_files.append(os.path.basename(file_path))
+                    
+            # Add files to message if any were found
+            files_info = f" ({', '.join(modified_files)})" if modified_files else ""
+            
+            # Format final message with team tag first and files info
+            formatted = f"{team_tag} [{self.agent_name}] {icon} {commit_hash}: {message}{files_info}"
             
             output_lines.append(formatted)
             self.logger.log(formatted, 'info')
