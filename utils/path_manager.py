@@ -234,15 +234,14 @@ class PathManager:
         
         # Get absolute path, ensuring we don't nest team folders
         base_dir = os.getcwd()
-        if "team_" in base_dir:
+        if os.path.basename(base_dir).startswith('team_'):
             # Already in a team directory, use parent
             base_dir = os.path.dirname(base_dir)
             
         team_path = os.path.abspath(os.path.join(base_dir, team_folder))
         
-        # Verify directory exists
-        if not os.path.exists(team_path):
-            raise ValueError(f"Team directory not found: {team_folder}")
+        # Create directory if it doesn't exist
+        os.makedirs(team_path, exist_ok=True)
         
         return team_path
 
