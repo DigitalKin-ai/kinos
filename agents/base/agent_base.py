@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 from utils.logger import Logger
 from agents.base.file_handler import FileHandler
+from utils.path_manager import PathManager
 
 class AgentBase(ABC):
     """

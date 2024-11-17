@@ -44,62 +44,35 @@ def init_services(_) -> Dict[str, Any]:
         logger.log(error_msg, 'error')
         raise ServiceError(error_msg)
 
-    # Initialize services
-    services = {}
-        
-    # Initialize TeamService first and set active team
-    services['team_service'] = TeamService(None)
-    services['team_service'].set_active_team(current_team, force=True)
-        
-    # Initialize other services...
-    services['model_router'] = ModelRouter()
-    services['agent_service'] = AgentService(None)
-    services['map_service'] = MapService(services['team_service'])
-        
-    # Cache services
-    _services_cache = services
-        
-    return services
-
+    try:
+        # Initialize services
+        services = {}
+            
+        # Initialize TeamService first and set active team
+        services['team_service'] = TeamService(None)
+        services['team_service'].set_active_team(current_team, force=True)
+            
+        # Initialize other services
         services['model_router'] = ModelRouter()
-        
-        # Initialize DatasetService with active team path if available
-        team_service = services['team_service']
-        active_team = team_service.get_active_team() if team_service.active_team_name else None
-        team_name = active_team.get('name') if active_team else None
-        
-        if team_name:
-            dataset_path = os.path.join(current_dir, f"team_{team_name}", "data", "fine-tuning.jsonl")
-            services['dataset_service'] = DatasetService(dataset_path)
-        else:
-            services['dataset_service'] = DatasetService(None)
-        
-        # Initialize remaining services
-        services['file_service'] = FileService(None)
         services['agent_service'] = AgentService(None)
-        
-        # Initialize MapService last since it depends on TeamService
         services['map_service'] = MapService(services['team_service'])
-
-        logger.log("Services created", 'debug')
-
-        # Load team configurations only once
-        if not _configs_loaded:
-            logger.log("Loading team configurations", 'debug')
-            team_configs = [
-                'book-writing', 
-                'coding', 
-                'literature-review'
-            ]
-            for config in team_configs:
-                logger.log(f"Loaded team configuration: {config}", 'debug')
-            _configs_loaded = True
-
+            
         # Cache services
         _services_cache = services
-        logger.log("Services cached", 'debug')
-
+            
         return services
+            
+    except Exception as e:
+        # Log detailed error
+        logger.log(
+            f"Service initialization failed:\n"
+            f"Error: {str(e)}\n"
+            f"Traceback: {traceback.format_exc()}",
+            'error'
+        )
+        
+        # Raise a specific service error
+        raise ServiceError(f"Failed to initialize services: {str(e)}") from e
 
     except Exception as e:
         # Log detailed error
