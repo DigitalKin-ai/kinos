@@ -138,7 +138,7 @@ The configuration must focus specifically on {agent_name} type operations and re
             str: Generated agent configuration
             
         Raises:
-            Exception: If API call fails
+            Exception: If API call fails or response is invalid
         """
         try:
             client = openai.OpenAI()
@@ -155,34 +155,17 @@ The configuration must focus specifically on {agent_name} type operations and re
             # Extract the generated configuration from the response
             config = response.choices[0].message.content
             
+            # Log full response for debugging
+            self.logger.debug(f"OpenAI Response: {response}")
+            
             # Validate basic structure
             if not all(marker in config for marker in ["# Agent Configuration", "## Role", "## Capabilities"]):
-                self.logger.warning("Generated configuration missing required sections")
-                # Fall back to template if response is malformed
-                return self._get_fallback_config()
+                self.logger.error(f"Invalid response structure. Response content: {config}")
+                raise ValueError("Generated configuration missing required sections")
                 
             return config
             
         except Exception as e:
-            self.logger.error(f"GPT API call failed: {str(e)}")
-            # Fall back to template in case of API failure
-            return self._get_fallback_config()
-
-    def _get_fallback_config(self):
-        """Return a fallback configuration if API call fails."""
-        return """# Agent Configuration
-        
-## Role
-- Temporary fallback configuration
-- Generated due to API call failure
-
-## Capabilities
-- Basic file operations
-- Team coordination
-- Task execution
-
-## Success Metrics
-- Task completion rate
-- Code quality
-- Documentation coverage
-"""
+            self.logger.error(f"GPT API call failed. Error: {str(e)}")
+            self.logger.error(f"Last response received: {response if 'response' in locals() else 'No response'}")
+            raise
