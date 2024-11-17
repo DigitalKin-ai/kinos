@@ -393,7 +393,7 @@ class TeamService(BaseService):
                 self.logger.log(f"All directories: {all_dirs}", 'debug')
             except Exception as list_error:
                 self.logger.log(f"Error listing directory: {str(list_error)}", 'error')
-                all_dirs = []
+                raise ServiceError(f"Cannot list directory: {str(list_error)}")
 
             # Look for team directory
             team_dir = os.path.join(current_dir, f"team_{normalized_name}")
@@ -415,8 +415,10 @@ class TeamService(BaseService):
                 else:
                     self.logger.log(f"No config file found in team directory: {team_dir}", 'error')
                     raise ServiceError(f"No config file found for team '{normalized_name}'")
+                    raise ServiceError(f"No config file found for team '{normalized_name}'")
             else:
                 self.logger.log(f"Team directory not found: {team_dir}", 'error')
+                raise ServiceError(f"Team directory not found: {team_dir}")
 
             # Check predefined configurations as fallback
             self.logger.log(f"Checking predefined team types: {len(self.team_types)}", 'debug')
