@@ -284,7 +284,7 @@ def run_multi_team_loop(model: Optional[str] = None):
         # Create output queue and active threads dict
         output_queue = queue.Queue()
         active_threads: Dict[int, AgentRunner] = {}
-        MAX_AGENTS = 5  # Nombre d'agents en parallèle
+        MAX_AGENTS = 5
 
         while True:
             # Clean up finished threads
