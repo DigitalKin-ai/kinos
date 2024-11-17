@@ -44,20 +44,35 @@ class AiderAgent(AgentBase):
             self.config = config if config is not None else {}
             logger.log(f"[INIT] Set initial config: {self.config}", 'debug')
         
-        # Log pre-super state
-        logger.log(f"[INIT] Pre-super state - Team from config: {self.config.get('team')}", 'debug')
-        
+        # Get team from config BEFORE parent constructor
+        self.team = self.config.get('team', 'default')
+        self.team_name = self.team.title()
+
+        # Get team info WITHOUT changing active team
+        try:
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            
+            # Get team config without changing active team
+            team_config = team_service.get_team_by_name(self.team)
+            if team_config:
+                self.team_name = team_config.get('display_name', self.team.title())
+            else:
+                self.team_name = self.team.title()  # Fallback to simple title case
+                
+            logger.log(f"[INIT] Using team name: {self.team_name}", 'debug')
+            
+        except Exception as e:
+            logger.log(f"[INIT] Error getting team info: {str(e)}", 'warning')
+            self.team_name = self.team.title()  # Fallback to simple title case
+
         # Call parent constructor
         super().__init__(self.config)
         
         try:
             # Configure UTF-8 encoding first
             self._configure_encoding()
-            
-            # Get team from config with logging
-            self.team = self.config.get('team', 'default')
-            logger.log(f"[INIT] Got team from config: {self.team}", 'debug')
-            self.team_name = self.team.title()
 
             # Get team service for display name only, without modifying active team
             try:
