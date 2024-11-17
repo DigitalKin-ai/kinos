@@ -16,6 +16,9 @@ class MapService(BaseService):
 
     def __init__(self, team_service):
         """Initialize with team service dependency"""
+        if not team_service:
+            raise ValueError("TeamService is required")
+            
         self.logger = Logger()
         self.team_service = team_service
         self.size_limits = {
@@ -36,6 +39,9 @@ class MapService(BaseService):
 
     def _initialize_map_file(self, team_name: str) -> None:
         """Initialize map file path for specific team"""
+        if not team_name:
+            raise ValueError("Team name is required")
+            
         try:
             # Use PathManager to get team path
             team_path = PathManager.get_team_path(team_name)
@@ -411,21 +417,16 @@ class MapService(BaseService):
         try:
             # Get active team from TeamService
             active_team = self.team_service.get_active_team()
-            if not active_team:
-                self.logger.log("No active team found", 'error')
-                return False
+            if not active_team or not active_team.get('name'):
+                raise ValueError("Active team with name is required")
                 
-            team_name = active_team.get('name')
-            if not team_name:
-                self.logger.log("No team name found in active team", 'error')
-                return False
-                
+            team_name = active_team['name']
+            
             # Initialize with team name
             self._initialize_map_file(team_name)
             
-            if not hasattr(self, 'map_file') or not self.map_file:
-                self.logger.log("Map file path not yet initialized", 'warning')
-                return False
+            if not self.map_file:
+                raise ValueError("Map file path not initialized")
                 
             map_path = os.path.join(os.getcwd(), self.map_file)
             
