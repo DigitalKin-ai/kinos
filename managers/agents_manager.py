@@ -32,11 +32,22 @@ class AgentsManager:
             if not self._validate_mission_file():
                 raise ValueError(f"Invalid or missing mission file: {mission_filepath}")
                 
-            for i in range(8):
-                agent_name = f"agent_{i+1}"
+            # List of specific agent types
+            agent_types = [
+                "specification",
+                "management", 
+                "redaction",
+                "evaluation",
+                "duplication",
+                "chroniqueur",
+                "redondance",
+                "production"
+            ]
+            
+            for agent_type in agent_types:
                 try:
-                    self._generate_single_agent(agent_name)
-                    self.logger.info(f"Successfully generated agent: {agent_name}")
+                    self._generate_single_agent(agent_type)
+                    self.logger.info(f"Successfully generated agent: {agent_type}")
                 except Exception as e:
                     self.logger.error(f"Failed to generate agent {agent_name}: {str(e)}")
                     raise
@@ -99,19 +110,21 @@ class AgentsManager:
         Create the prompt for GPT to generate an agent configuration.
         
         Args:
-            agent_name (str): Name of the agent
+            agent_name (str): Name/type of the agent
             mission_content (str): Content of the mission file
         """
-        return f"""Based on the following mission specification, create a specialized agent configuration for {agent_name}.
-        
+        return f"""Based on the following mission specification, create a specialized agent configuration for an agent of type "{agent_name}".
+
 Mission:
 {mission_content}
 
 Generate a markdown configuration file that defines:
-1. Agent's specific role and responsibilities
-2. Key capabilities and limitations
+1. Agent's specific role and responsibilities as a {agent_name} type agent
+2. Key capabilities and limitations specific to {agent_name} functions
 3. Interaction patterns with other agents
-4. Success criteria and metrics
+4. Success criteria and metrics for {agent_name} operations
+
+The configuration must focus specifically on {agent_name} type operations and responsibilities.
 """
 
     def _call_gpt(self, prompt):
