@@ -165,38 +165,38 @@ class PathManager:
         return os.path.join(PathManager.get_config_path(), filename)
 
     @classmethod
-    def get_prompt_file(cls, agent_name: str, team_name: Optional[str] = None) -> Optional[str]:
+    def get_prompt_file(cls, agent_name: str, team_name: str) -> str:
         """Get prompt file path for an agent in the team's prompts directory"""
-        try:
-            # Validate inputs
-            if not agent_name:
-                raise ValueError("Agent name is required")
-            if not team_name:
-                raise ValueError("Team name is required")
+        # Validate inputs - fail fast
+        if not agent_name:
+            raise ValueError("Agent name is required")
+        if not team_name:
+            raise ValueError("Team name is required")
 
-            # Define context files that should not have prompts
-            context_files = {'demande', 'map', 'todolist', 'directives'}
+        # Define context files that should not have prompts
+        context_files = {'demande', 'map', 'todolist', 'directives'}
+        
+        # Fail fast for context files
+        if agent_name.lower() in context_files:
+            raise ValueError(f"'{agent_name}' is a context file, not an agent")
             
-            # Return None for context files
-            if agent_name.lower() in context_files:
-                cls._log(f"'{agent_name}' is a context file, not an agent - no prompt needed", 'debug')
-                return None
-                
-            # Ensure team name has prefix
-            team_dir_name = f"team_{team_name}" if not team_name.startswith("team_") else team_name
+        # Ensure team name has prefix
+        team_dir_name = f"team_{team_name}" if not team_name.startswith("team_") else team_name
+        
+        # Build prompt path
+        prompts_dir = os.path.join(os.getcwd(), team_dir_name, "prompts")
+        
+        # Fail fast if prompts directory doesn't exist
+        if not os.path.exists(prompts_dir):
+            raise FileNotFoundError(f"Prompts directory not found: {prompts_dir}")
+        
+        prompt_path = os.path.join(prompts_dir, f"{agent_name}.md")
+        
+        # Fail fast if prompt file doesn't exist
+        if not os.path.exists(prompt_path):
+            raise FileNotFoundError(f"Prompt file not found: {prompt_path}")
             
-            # Build prompt path
-            prompts_dir = os.path.join(os.getcwd(), team_dir_name, "prompts")
-            os.makedirs(prompts_dir, exist_ok=True)
-            
-            # Return prompt file path
-            return os.path.join(prompts_dir, f"{agent_name}.md")
-                
-        except Exception as e:
-            from utils.logger import Logger
-            logger = Logger()
-            logger.log(f"Error getting prompt file: {str(e)}", 'error')
-            raise  # Re-raise to ensure caller knows something went wrong
+        return prompt_path
 
     @classmethod
     def get_prompt_path(cls, agent_name: str, team_name: Optional[str] = None) -> Optional[str]:

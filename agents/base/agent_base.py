@@ -21,30 +21,29 @@ class AgentBase(ABC):
     - Error handling
     """
     def __init__(self, config: Dict[str, Any]) -> None:
-        """
-        Initialize base agent with configuration.
-        """
-        try:
-            # Use the pre-set config
-            config = config if config is not None else {}
+        """Initialize base agent with configuration."""
+        if not config:
+            raise ValueError("Config is required")
+            
+        # Required fields - fail fast if missing
+        if 'name' not in config:
+            raise ValueError("Agent name is required in config")
+        if 'type' not in config:
+            raise ValueError("Agent type is required in config")
+        if 'weight' not in config:
+            raise ValueError("Agent weight is required in config")
+        if 'mission_dir' not in config:
+            raise ValueError("Mission directory is required in config")
+            
+        self.name = config['name']
+        self.type = config['type']
+        self.weight = config['weight']
+        self.mission_dir = config['mission_dir']
+        self.prompt_file = config.get('prompt_file')  # Optional since it's derived from name
         
-            # Fallback values if not in config
-            self.name = config.get('name', 'unnamed_agent')
-            self.type = config.get('type', 'aider')
-            self.weight = config.get('weight', 0.5)
-            self.mission_dir = config.get('mission_dir', os.getcwd())
-            self.prompt_file = config.get('prompt_file')
-        
-            self.logger = Logger()
-            self.running = True  # Always True from initialization
-            self._init_state()
-        except Exception as e:
-            # Fallback logging
-            print(f"Critical error in AgentBase init: {str(e)}")
-            # Ensure minimal initialization
-            self.name = 'unnamed_agent'
-            self.logger = Logger()
-            self.logger.log(f"Agent initialization failed: {str(e)}", 'error')
+        self.logger = Logger()
+        self.running = True  # Always True from initialization
+        self._init_state()
         
     def _init_state(self):
         """Initialize agent state tracking"""

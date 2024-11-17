@@ -46,6 +46,12 @@ class AiderAgent(AgentBase):
             raise ValueError("Required services not provided in config")
 
         try:
+            # Validate required config fields first
+            required_fields = ['team', 'name', 'services', 'type', 'weight']
+            missing_fields = [f for f in required_fields if f not in config]
+            if missing_fields:
+                raise ValueError(f"Missing required config fields: {', '.join(missing_fields)}")
+
             # Store original directory
             self.original_dir = os.getcwd()
             
@@ -54,8 +60,10 @@ class AiderAgent(AgentBase):
             self.name = config['name']
             self.services = config['services']
             
-            # Get mission directory using PathManager
+            # Get mission directory using PathManager - fail fast
             self.mission_dir = PathManager.get_team_path(self.team)
+            if not os.path.exists(self.mission_dir):
+                raise FileNotFoundError(f"Mission directory not found: {self.mission_dir}")
             
             # Update config with mission_dir
             config['mission_dir'] = self.mission_dir
