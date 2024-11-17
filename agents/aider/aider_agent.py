@@ -405,9 +405,15 @@ class AiderAgent(AgentBase):
                     except Exception as e:
                         self.logger.log(f"[{self.name}] Error reading {file_path}: {str(e)}", 'warning')
 
-            # Then add other files until we hit the limit
-            remaining_files = [f for f in self.mission_files.keys() if f not in files_with_content]
-            if len(remaining_files) > 5:  # Limit to 5 additional files
+            # Filter out .aider files and get remaining files
+            remaining_files = [
+                f for f in self.mission_files.keys() 
+                if f not in files_with_content 
+                and not os.path.basename(f).startswith('.aider')
+            ]
+
+            # Limit to 5 random additional files
+            if len(remaining_files) > 5:
                 import random
                 remaining_files = random.sample(remaining_files, 5)
 
