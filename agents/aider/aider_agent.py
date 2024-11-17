@@ -475,15 +475,15 @@ Instructions:
                 os.path.join(self.mission_dir, "demande.md"): True,
                 os.path.join(self.mission_dir, "directives.md"): True
             }
-                
-                # Add key files first using full paths
-                for file_path, _ in key_files.items():
-                    try:
-                        if os.path.exists(file_path):
-                            with open(file_path, 'r', encoding='utf-8') as f:
-                                files_context[file_path] = f.read()
-                    except Exception as e:
-                        self.logger.log(f"[{self.name}] Error reading key file {file_path}: {str(e)}", 'warning')
+            
+            # Add key files first using full paths
+            for file_path, _ in key_files.items():
+                try:
+                    if os.path.exists(file_path):
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            files_context[file_path] = f.read()
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error reading key file {file_path}: {str(e)}", 'warning')
 
                 # Get remaining files - Use .gitignore patterns for filtering
                 from pathspec import PathSpec
