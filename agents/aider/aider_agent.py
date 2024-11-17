@@ -35,21 +35,24 @@ class AiderAgent(AgentBase):
 
     def __init__(self, config: Dict[str, Any]):
         """Initialize agent with configuration"""
+        # Fail fast - validate critical requirements first
+        if not config:
+            raise ValueError("Config is required")
+        if 'team' not in config:
+            raise ValueError("Team name is required in config")
+        if 'name' not in config:
+            raise ValueError("Agent name is required in config") 
+        if 'services' not in config or not config['services']:
+            raise ValueError("Required services not provided in config")
+
         try:
             # Store original directory
             self.original_dir = os.getcwd()
             
-            # Validate required config fields
-            if not config:
-                raise ValueError("Config is required")
-            if 'team' not in config:
-                raise ValueError("Team name is required in config")
-            if 'name' not in config:
-                raise ValueError("Agent name is required in config")
-                
             # Set core attributes before super().__init__
             self.team = config['team']
             self.name = config['name']
+            self.services = config['services']
             
             # Get mission directory using PathManager
             self.mission_dir = PathManager.get_team_path(self.team)
@@ -57,11 +60,6 @@ class AiderAgent(AgentBase):
             # Update config with mission_dir
             config['mission_dir'] = self.mission_dir
             
-            # Validate required services
-            self.services = config.get('services')
-            if not self.services:
-                raise ValueError(f"[{self.name}] Required services not provided in config")
-                
             # Initialize parent with validated config
             super().__init__(config)
             
