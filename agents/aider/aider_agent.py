@@ -430,10 +430,10 @@ class AiderAgent(AgentBase):
                 and not os.path.basename(f).startswith('.aider')
             ]
 
-            # Limit to 5 random additional files
-            if len(remaining_files) > 5:
+            # Limit to 10 random additional files
+            if len(remaining_files) > 10:
                 import random
-                remaining_files = random.sample(remaining_files, 5)
+                remaining_files = random.sample(remaining_files, 10)
 
             for file_path in remaining_files:
                 if total_chars >= char_limit:
@@ -554,8 +554,6 @@ Instructions:
             self.consecutive_no_changes = 0
         else:
             self.consecutive_no_changes += 1
-
-        return result
 
 
             
