@@ -234,7 +234,7 @@ def run_team_loop(team_name: str, specific_name: str = None):
             logger.log(f"Active threads: {len(active_threads)}", 'debug')
             
             # Start new threads if needed
-            while len(active_threads) <5:
+            while len(active_threads) <1:
                 # Select random agent
                 agent_name = random.choice(agents)
                 
