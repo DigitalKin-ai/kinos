@@ -68,7 +68,10 @@ def init_services(_) -> Dict[str, Any]:
         services['model_router'] = ModelRouter()
         
         # Initialize DatasetService with active team path
-        dataset_path = os.path.join(current_dir, f"team_{active_team_name}", "data", "fine-tuning.jsonl")
+        team_service = services['team_service']
+        active_team = team_service.get_active_team()
+        team_name = active_team.get('name', 'default') if active_team else 'default'
+        dataset_path = os.path.join(current_dir, f"team_{team_name}", "data", "fine-tuning.jsonl")
         services['dataset_service'] = DatasetService(dataset_path)
         
         # Initialize remaining services
