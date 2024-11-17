@@ -937,10 +937,47 @@ Instructions:
     def list_files(self) -> None:
         """List and track files that this agent should monitor"""
         try:
-            # Use FileHandler to list files in mission directory
-            file_handler = FileHandler(self.mission_dir, self.logger)
-            self.mission_files = file_handler.list_files()
-                
+            # Get team path using PathManager
+            team_path = PathManager.get_team_path(self.team)
+            
+            # Define key files that should always be monitored
+            key_files = ['demande.md', 'map.md', 'todolist.md', 'directives.md']
+            
+            self.mission_files = {}
+            
+            # First add key files
+            for file_name in key_files:
+                file_path = os.path.join(team_path, file_name)
+                if os.path.exists(file_path):
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        self.mission_files[file_path] = content
+                    except Exception as e:
+                        self.logger.log(f"[{self.name}] Error reading {file_path}: {str(e)}", 'warning')
+
+            # Use FileHandler for additional files
+            file_handler = FileHandler(team_path, self.logger)
+            additional_files = file_handler.list_files()
+            
+            # Add additional files that aren't already tracked
+            for file_path, content in additional_files.items():
+                if file_path not in self.mission_files:
+                    self.mission_files[file_path] = content
+
+            # Log files being monitored
+            if self.mission_files:
+                self.logger.log(
+                    f"[{self.name}] Monitoring {len(self.mission_files)} files:\n" + 
+                    "\n".join(f"  - {os.path.relpath(f, team_path)}" for f in self.mission_files.keys()), 
+                    'info'
+                )
+            else:
+                self.logger.log(
+                    f"[{self.name}] No files found to monitor in {team_path}", 
+                    'warning'
+                )
+                    
         except Exception as e:
             self.logger.log(
                 f"[{self.name}] Error listing files: {str(e)}", 
