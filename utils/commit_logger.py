@@ -77,7 +77,10 @@ class CommitLogger:
             # Get emoji for commit type
             emoji = COMMIT_ICONS.get(commit_type, '🔨')
             
-            # Build commit info with status
+            # Extract modified files from previous lines
+            modified_files = self._extract_modified_files(line)
+            
+            # Build commit info with status and modified files
             commit = {
                 'hash': commit_hash,
                 'type': commit_type,
@@ -85,7 +88,8 @@ class CommitLogger:
                 'emoji': emoji,
                 'agent': agent_name,
                 'timestamp': datetime.now().isoformat(),
-                'status': 'success'
+                'status': 'success',
+                'modified_files': modified_files
             }
             
             return commit
@@ -121,10 +125,11 @@ class CommitLogger:
                     team_name = team.get('name', team.get('id', 'Unknown Team'))
                     break
             
-            # Format commit message with team context
+            # Format commit message with team context and modified files
+            files_str = f" ({', '.join(commit.get('modified_files', []))})" if commit.get('modified_files') else ""
             message = (
                 f"[{team_name}] [{commit['agent']}] "
-                f"{commit['emoji']} [{commit['type']}]: {commit['message']}"
+                f"{commit['emoji']} [{commit['type']}]: {commit['message']}{files_str}"
             )
             
             # Log to console
@@ -159,6 +164,34 @@ class CommitLogger:
                 
         except Exception as e:
             self.logger.log(f"Error writing commit log: {str(e)}", 'error')
+
+    def _extract_modified_files(self, output: str) -> List[str]:
+        """
+        Extract list of modified files from Aider output
+        
+        Args:
+            output: Complete output containing file modifications
+            
+        Returns:
+            List of modified file paths
+        """
+        modified_files = []
+        
+        # Patterns pour détecter les modifications de fichiers
+        patterns = [
+            r"Wrote (.*?)(?=\s|$)",  # Pour les fichiers modifiés
+            r"Created (.*?)(?=\s|$)", # Pour les nouveaux fichiers
+            r"Deleted (.*?)(?=\s|$)"  # Pour les fichiers supprimés
+        ]
+        
+        for pattern in patterns:
+            matches = re.finditer(pattern, output)
+            for match in matches:
+                file_path = match.group(1)
+                if file_path and file_path not in modified_files:
+                    modified_files.append(file_path)
+                    
+        return modified_files
 
     def get_commit_history(self, agent_name: Optional[str] = None) -> List[Dict]:
         """
