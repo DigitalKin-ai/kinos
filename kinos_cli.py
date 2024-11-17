@@ -282,7 +282,7 @@ def run_multi_team_loop(model: Optional[str] = None):
                 continue
 
             # Log available teams
-            logger.log(f"Found teams: {[os.path.basename(d) for d in team_dirs]}", 'debug')
+            #logger.log(f"Found teams: {[os.path.basename(d) for d in team_dirs]}", 'debug')
 
             # Select random team
             team_dir = random.choice(team_dirs)
