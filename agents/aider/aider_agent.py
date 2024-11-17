@@ -557,34 +557,34 @@ Instructions:
                 self.logger.log(f"[{self.name}] No valid model configured", 'error')
                 return None
                 
-                try:
-                    # Read prompt file content
-                    if isinstance(prompt, str) and os.path.exists(prompt):
-                        with open(prompt, 'r', encoding='utf-8') as f:
-                            prompt_content = f.read()
-                        self.logger.log(f"[{self.name}] Loaded prompt content from {prompt}", 'debug')
-                    else:
-                        raise ValueError(f"Invalid prompt file path: {prompt}")
+            try:
+                # Read prompt file content
+                if isinstance(prompt, str) and os.path.exists(prompt):
+                    with open(prompt, 'r', encoding='utf-8') as f:
+                        prompt_content = f.read()
+                    self.logger.log(f"[{self.name}] Loaded prompt content from {prompt}", 'debug')
+                else:
+                    raise ValueError(f"Invalid prompt file path: {prompt}")
 
-                    # Create messages array with only user and assistant roles
-                    messages = [{"role": "user", "content": context_message}]
-                
-                    # Use model router with system prompt as top-level parameter
-                    import asyncio
-                    model_response = asyncio.run(model_router.generate_response(
-                        messages=messages,  # Only user/assistant messages
-                        system=prompt_content,  # System prompt as separate parameter
-                        max_tokens=1000
-                    ))
+                # Create messages array with only user and assistant roles
+                messages = [{"role": "user", "content": context_message}]
+            
+                # Use model router with system prompt as top-level parameter
+                import asyncio
+                model_response = asyncio.run(model_router.generate_response(
+                    messages=messages,  # Only user/assistant messages
+                    system=prompt_content,  # System prompt as separate parameter
+                    max_tokens=1000
+                ))
 
-                    if not model_response:
-                        raise ValueError("No response from model")
-                    
-                    self.logger.log(f"[{self.name}] Generated instructions:\n{model_response}", 'debug')
+                if not model_response:
+                    raise ValueError("No response from model")
                 
-                except Exception as e:
-                    self.logger.log(f"[{self.name}] Error calling LLM: {str(e)}", 'error')
-                    return
+                self.logger.log(f"[{self.name}] Generated instructions:\n{model_response}", 'debug')
+            
+            except Exception as e:
+                self.logger.log(f"[{self.name}] Error calling LLM: {str(e)}", 'error')
+                return
 
             # Run Aider with generated instructions
             try:
@@ -614,15 +614,15 @@ Instructions:
             else:
                 self.consecutive_no_changes += 1
 
-            except Exception as e:
-                self.logger.log(
-                    f"[{self.name}] 💥 Comprehensive error in agent cycle:\n"
-                    f"Type: {type(e)}\n"
-                    f"Error: {str(e)}\n"
-                    f"Traceback: {traceback.format_exc()}",
-                    'critical'
-                )
-                return None
+        except Exception as e:
+            self.logger.log(
+                f"[{self.name}] 💥 Comprehensive error in agent cycle:\n"
+                f"Type: {type(e)}\n"
+                f"Error: {str(e)}\n"
+                f"Traceback: {traceback.format_exc()}",
+                'critical'
+            )
+            return None
 
     def run(self):
         """Execute one iteration of the agent's task"""
