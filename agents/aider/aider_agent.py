@@ -523,6 +523,7 @@ Instructions:
                     
                 # Add user message
                 messages.append({"role": "user", "content": context_message})
+                self.logger.log(f"CONTEXT MESSAGE {context_message}", 'warning')
                 
                 # Use model router instead of direct Anthropic call
                 import asyncio
