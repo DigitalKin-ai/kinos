@@ -5,6 +5,7 @@ import traceback
 import platform
 import shutil
 from typing import Optional, Dict, Any, Union, List
+from utils.logger import Logger
 
 class PathManager:
     """Centralized and secure path management for KinOS"""
