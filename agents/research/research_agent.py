@@ -233,17 +233,11 @@ Give some context explanation.
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content += f.read() + "\n\n"
-                    #self.logger.log(f"[{self.name}] Read content from: {file_path}", 'debug')
                 except Exception as e:
                     self.logger.log(f"Error reading {file_path}: {str(e)}", 'warning')
 
-            # Step 1: Extract research topics using Claude
-            topics = self._extract_research_topics(content)
-            if not topics:
-                return None
-
             # Execute query using internal method for the topic from Claude
-            results = self._execute_query(topics[0])  # Use first/main topic
+            results = self._execute_query(content)
             if not results:
                 self.logger.log(f"[{self.name}] No research results found", 'info')
                 return None
@@ -251,7 +245,6 @@ Give some context explanation.
             # Create Aider prompt
             aider_prompt = f"""Based on the research results below, update the relevant files to add appropriate references and citations.
 
-Research Topic: {topics[0]}
 Research Results:
 {results['response']}
 
@@ -265,13 +258,11 @@ Instructions:
 ALWAYS DIRECTLY PROCEED WITH THE MODIFICATIONS, USING THE SEARCH/REPLACE FORMAT."""
 
             # Save to chat history
-            from utils.path_manager import PathManager
             chat_history_file = PathManager.get_chat_history_path(team_name=self.team, agent_name=self.name)
             try:
                 with open(chat_history_file, 'a', encoding='utf-8') as f:
                     f.write(f"\n\n--- {datetime.now().isoformat()} ---\n")
-                    f.write(f"**Research Topic:**\n{topics[0]}\n\n")
-                    f.write(f"**Found Research Results:**\n{results['response']}\n\n")
+                    f.write(f"**Research Results:**\n{results['response']}\n\n")
             except Exception as e:
                 self.logger.log(f"Error saving research chat history: {str(e)}", 'warning')
 
