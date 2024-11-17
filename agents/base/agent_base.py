@@ -222,18 +222,19 @@ class AgentBase(ABC):
             formatted.append(f"File: {rel_path}\n```\n{content}\n```\n")
         return "\n".join(formatted)
 
-    async def _call_llm(self, messages: List[Dict[str, str]], system: Optional[str] = None, **kwargs) -> Optional[str]:
+    def _call_llm(self, messages: List[Dict[str, str]], system: Optional[str] = None, **kwargs) -> Optional[str]:
         """Helper method for LLM calls using ModelRouter"""
         try:
             from services import init_services
             services = init_services(None)
             model_router = services['model_router']
             
-            response = await model_router.generate_response(
+            import asyncio
+            response = asyncio.run(model_router.generate_response(
                 messages=messages,
                 system=system,
                 **kwargs
-            )
+            ))
             
             return response
             
