@@ -24,9 +24,17 @@ def init_services(_) -> Dict[str, Any]:
     # Create logger first
     logger = Logger()
     
-    # If services are already initialized, return cached services
-    if _services_cache is not None:
-        logger.log("Returning cached services", 'debug')
+    # If services are already initialized and team hasn't changed, return cached services
+    current_team = None
+    try:
+        current_dir = os.getcwd()
+        team_dir = next((d for d in os.listdir(current_dir) if d.startswith('team_')), None)
+        current_team = team_dir[5:] if team_dir else 'default'
+    except Exception:
+        current_team = 'default'
+
+    if _services_cache is not None and getattr(_services_cache.get('team_service'), 'active_team_name', None) == current_team:
+        logger.log(f"Returning cached services for team: {current_team}", 'debug')
         return _services_cache
     
     try:

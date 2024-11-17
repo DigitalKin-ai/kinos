@@ -1462,24 +1462,34 @@ Please proceed with the updates now."""
             self.logger.log(f"Error in research mission: {str(e)}", 'error')
             return None
 
-    def create_agent(self, agent_config: Union[str, Dict[str, Any]]) -> Optional[BaseAgent]:
-        """Create an agent instance from configuration"""
+    def create_agent(self, agent_config: Union[str, Dict[str, Any]], team_name: Optional[str] = None) -> Optional[BaseAgent]:
+        """
+        Create an agent instance from configuration
+        
+        Args:
+            agent_config: Agent configuration or name
+            team_name: Optional explicit team name
+        """
         try:
-            # Get current team from TeamService
+            # Get current team from TeamService if not provided
             from services import init_services
             services = init_services(None)
             team_service = services['team_service']
-            current_team = team_service.active_team_name
-
+            
+            # Use provided team name or get from service
+            current_team = team_name or team_service.active_team_name
+            if not current_team:
+                current_team = 'default'
+                
             # Handle string input (agent name)
             if isinstance(agent_config, str):
                 agent_name = agent_config
                 agent_config = {
                     'name': agent_name,
                     'type': 'aider',
-                    'mission_dir': os.getcwd(),
+                    'mission_dir': os.path.join(os.getcwd(), f"team_{current_team}"),
                     'weight': 0.5,
-                    'team': current_team  # Add team to config
+                    'team': current_team
                 }
             else:
                 agent_name = agent_config.get('name')

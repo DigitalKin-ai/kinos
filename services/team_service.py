@@ -166,21 +166,31 @@ class TeamService(BaseService):
             self.logger.log(f"Error getting team config for {name}: {str(e)}", 'error')
             return None
 
-    def set_active_team(self, name: str) -> bool:
-        """Set the active team configuration"""
+    def set_active_team(self, name: str, force: bool = False) -> bool:
+        """
+        Set the active team configuration
+        
+        Args:
+            name: Team name to set
+            force: Force team switch even if already active
+        """
         try:
-            # Don't change team if already set to this team
-            if self.active_team_name == name:
+            # Normalize team name
+            normalized_name = name.replace('team_', '')
+            
+            # Don't change team if already set to this team unless forced
+            if not force and self.active_team_name == normalized_name:
+                self.logger.log(f"Team {normalized_name} already active", 'debug')
                 return True
                 
             # Get team config
-            team_config = self.get_team_by_name(name)
+            team_config = self.get_team_by_name(normalized_name)
             if not team_config:
-                raise ServiceError(f"Team not found and couldn't create default: {name}")
+                raise ServiceError(f"Team not found and couldn't create default: {normalized_name}")
             
             # Store active team and name
             self.active_team = team_config
-            self.active_team_name = name
+            self.active_team_name = normalized_name
             
             # Create team directory structure
             team_dir = os.path.join(os.getcwd(), f"team_{name}")
