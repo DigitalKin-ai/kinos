@@ -16,16 +16,7 @@ class CommitLogger:
         )
 
     def parse_commits(self, output: str, agent_name: str) -> List[Dict]:
-        """
-        Parse commit messages from Aider output
-        
-        Args:
-            output: Complete Aider output text
-            agent_name: Name of agent that made the commits
-            
-        Returns:
-            List of parsed commit dictionaries
-        """
+        """Parse commit messages from Aider output"""
         commits = []
         
         try:
@@ -43,54 +34,32 @@ class CommitLogger:
             return []
 
     def _parse_commit_line(self, line: str, agent_name: str) -> Optional[Dict]:
-        """
-        Parse a single commit line and get diff
-        """
+        """Parse a single commit line"""
         try:
             # Check for commit line
             match = self.commit_pattern.search(line)
             if not match:
                 return None
                 
-            # Extract commit hash and full message
+            # Extract commit info
             commit_hash = match.group(1)
             full_message = match.group(2)
-            
-            # Split type and message
             commit_type, message = full_message.split(':', 1)
-            commit_type = commit_type.lower()
-            message = message.strip()
             
-            # Get emoji for commit type
-            emoji = COMMIT_ICONS.get(commit_type, '🔨')
-            
-            # Get diff for this commit using git
-            diff = self._get_commit_diff(commit_hash)
-            
-            # Build commit info
-            commit = {
+            return {
                 'hash': commit_hash,
-                'type': commit_type,
-                'message': message,
-                'emoji': emoji,
+                'type': commit_type.lower(),
+                'message': message.strip(),
+                'emoji': COMMIT_ICONS.get(commit_type.lower(), '🔨'),
                 'agent': agent_name,
                 'timestamp': datetime.now().isoformat(),
                 'status': 'success',
-                'modified_files': self._extract_modified_files(line),
-                'diff': diff  # Add diff to commit info
+                'modified_files': self._extract_modified_files(line)
             }
-            
-            return commit
             
         except Exception as e:
             self.logger.log(f"Error parsing commit line: {str(e)}", 'error')
-            return {
-                'hash': 'error',
-                'message': str(e),
-                'agent': agent_name,
-                'timestamp': datetime.now().isoformat(),
-                'status': 'error'
-            }
+            return None
 
     def _log_commit(self, commit: Dict) -> None:
         """
