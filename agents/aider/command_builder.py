@@ -45,7 +45,7 @@ class AiderCommandBuilder:
         current_model = model_router.current_model
         if not current_model:
             # Set a default model if none configured
-            default_model = "claude-3-haiku"  # Or another default model
+            default_model = "gpt-4o-mini"  # Default model
             if model_router.set_model(default_model):
                 current_model = default_model
             else:
