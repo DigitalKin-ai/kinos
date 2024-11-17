@@ -145,10 +145,9 @@ class AiderAgent(AgentBase):
         # Execute command and return output - let errors propagate
         process = self.command_builder.execute_command(cmd)
         output = self.output_parser.parse_output(process)
-                output = self.output_parser.parse_output(process)
-                
-                # Skip known benign messages
-                if output and any(msg in output for msg in [
+        
+        # Skip known benign messages
+        if output and any(msg in output for msg in [
                     "Can't initialize prompt toolkit",
                     "No Windows console found", 
                     "aider.chat/docs/troubleshooting/edit-errors.html",
