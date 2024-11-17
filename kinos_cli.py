@@ -281,6 +281,7 @@ def run_multi_team_loop(model: Optional[str] = None):
     try:
         # Set model if specified
         if model:
+            from utils.model_router import ModelRouter
             model_router = ModelRouter()
             if not model_router.set_model(model):
                 logger.log(f"Model {model} not found", 'warning')
@@ -315,17 +316,21 @@ def run_multi_team_loop(model: Optional[str] = None):
                     'name': agent_name,
                     'team': team_name,
                     'type': 'aider',
-                    'mission_dir': os.getcwd(),
+                    'mission_dir': team_dir,  # Use team directory as mission directory
                     'prompt_file': prompt_file,
                     'weight': 0.5
                 }
                 
-                from agents.aider.aider_agent import AiderAgent
                 agent = AiderAgent(agent_config)
                 
                 if agent:
-                    agent.run()
-                    logger.log(f"Completed run for agent {agent_name}", 'success')
+                    try:
+                        agent.run()
+                        logger.log(f"Completed run for agent {agent_name}", 'success')
+                    except Exception as run_error:
+                        logger.log(f"Error during agent run: {str(run_error)}", 'error')
+                    finally:
+                        agent.cleanup()
                 else:
                     logger.log(f"Failed to create agent for {agent_name}", 'error')
 
