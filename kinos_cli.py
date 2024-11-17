@@ -36,7 +36,19 @@ def load_team_config(team_name: str) -> List[str]:
 
 class AgentRunner(threading.Thread):
     """Thread class for running an agent and capturing output"""
+    # Class-level set to track active agent-team pairs
+    _active_runners = set()
+    _runner_lock = threading.Lock()  # Thread-safe access to _active_runners
+
     def __init__(self, team_agents: List[str], output_queue: queue.Queue, logger: Logger, team_name: str):
+        # Check for duplicate before initializing
+        agent_key = f"{team_agents[0]}_{team_name}" if team_agents else None
+        if agent_key:
+            with self._runner_lock:
+                if agent_key in self._active_runners:
+                    raise RuntimeError(f"Runner for agent {team_agents[0]} already exists in team {team_name}")
+                self._active_runners.add(agent_key)
+        
         super().__init__(daemon=True)
         self.team_agents = team_agents
         self.output_queue = output_queue
@@ -45,59 +57,63 @@ class AgentRunner(threading.Thread):
         self.agent_type = 'aider'  # Default agent type
         self.team_name = team_name
         self.agent_config = None
+        self._agent_key = agent_key
+
+    def cleanup(self):
+        """Remove agent from active runners set"""
+        if self._agent_key:
+            with self._runner_lock:
+                self._active_runners.discard(self._agent_key)
 
     def run(self):
         """Thread execution loop"""
-        while self.running:
-            try:
-                if not self.agent_config:
-                    # Initialize with proper agent name from team_agents
-                    if not self.team_agents:
-                        self.logger.log(f"No agents configured for team {self.team_name}", 'warning')
+        try:
+            while self.running:
+                try:
+                    if not self.agent_config:
+                        if not self.team_agents:
+                            self.logger.log(f"No agents configured for team {self.team_name}", 'warning')
+                            time.sleep(5)
+                            continue
+                            
+                        agent_name = random.choice(self.team_agents)
+                        
+                        self.agent_config = {
+                            'name': agent_name,
+                            'type': self.agent_type,
+                            'team': self.team_name,
+                            'mission_dir': os.path.join(os.getcwd(), f"team_{self.team_name}")
+                        }
+
+                    agent = AiderAgent(self.agent_config)
+                
+                    if not agent:
                         time.sleep(5)
                         continue
+                    
+                    max_runtime = 300
+                    start = time.time()
+                    
+                    while time.time() - start < max_runtime and self.running:
+                        agent.run()
+                        time.sleep(1)
                         
-                    # Select a valid agent name from team_agents
-                    agent_name = random.choice(self.team_agents)
+                    agent.cleanup()
                     
-                    self.agent_config = {
-                        'name': agent_name,  # Use actual agent name from team config
-                        'type': self.agent_type,
-                        'team': self.team_name,
-                        'mission_dir': os.path.join(os.getcwd(), f"team_{self.team_name}")
-                    }
-
-                # Create agent with stored config
-                agent = AiderAgent(self.agent_config)
-            
-                if not agent:
+                    time.sleep(random.uniform(5, 15))
+                    
+                except Exception as e:
+                    self.output_queue.put({
+                        'thread_id': threading.get_ident(),
+                        'agent_name': self.agent_config['name'] if self.agent_config else 'unknown',
+                        'status': 'error',
+                        'error': str(e),
+                        'traceback': traceback.format_exc(),
+                        'timestamp': datetime.now().isoformat()
+                    })
                     time.sleep(5)
-                    continue
-                
-                # Run agent's main loop with timeout
-                max_runtime = 300  # 5 minutes max
-                start = time.time()
-                
-                while time.time() - start < max_runtime and self.running:
-                    agent.run()
-                    time.sleep(1)  # Brief pause between iterations
-                    
-                # Clean up
-                agent.cleanup()
-                
-                # Wait before next cycle
-                time.sleep(random.uniform(5, 15))
-                
-            except Exception as e:
-                self.output_queue.put({
-                    'thread_id': threading.get_ident(),
-                    'agent_name': self.agent_config['name'] if self.agent_config else 'unknown',
-                    'status': 'error',
-                    'error': str(e),
-                    'traceback': traceback.format_exc(),
-                    'timestamp': datetime.now().isoformat()
-                })
-                time.sleep(5)
+        finally:
+            self.cleanup()  # Ensure cleanup happens when thread exits
 
 def initialize_team_structure(team_name: str, specific_name: str = None):
     """
@@ -330,13 +346,18 @@ def run_multi_team_loop(model: Optional[str] = None):
                         'services': services  # Pass initialized services
                     }
                     
-                    # Create and start new runner thread
+                    # Create and start new runner thread - will raise if duplicate
                     runner = AgentRunner([agent_name], output_queue, logger, team_name)
-                    runner.agent_config = agent_config  # Store config for agent creation
+                    runner.agent_config = agent_config
                     runner.start()
                     active_threads[runner.ident] = runner
                     logger.log(f"Started new agent runner for team {team_name} (total: {len(active_threads)})")
 
+                except RuntimeError as e:
+                    if "already exists" in str(e):
+                        logger.log(str(e), 'warning')
+                        continue
+                    raise
                 except Exception as e:
                     logger.log(f"Error creating agent {agent_name} for team {team_name}: {str(e)}", 'error')
 
