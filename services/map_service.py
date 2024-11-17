@@ -409,7 +409,20 @@ class MapService(BaseService):
     def _ensure_map_file_writeable(self) -> bool:
         """Ensure map file is writable"""
         try:
-            self._initialize_map_file()  # Initialize if needed
+            # Get active team from TeamService
+            active_team = self.team_service.get_active_team()
+            if not active_team:
+                self.logger.log("No active team found", 'error')
+                return False
+                
+            team_name = active_team.get('name')
+            if not team_name:
+                self.logger.log("No team name found in active team", 'error')
+                return False
+                
+            # Initialize with team name
+            self._initialize_map_file(team_name)
+            
             if not hasattr(self, 'map_file') or not self.map_file:
                 self.logger.log("Map file path not yet initialized", 'warning')
                 return False
