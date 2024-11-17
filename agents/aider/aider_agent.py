@@ -551,10 +551,8 @@ Instructions:
                     else:
                         raise ValueError(f"Invalid prompt file path: {prompt}")
 
-                    # Create messages array with user content
-                    messages = [
-                        {"role": "user", "content": context_message}
-                    ]
+                    # Create messages array with user content and chat history
+                    messages = [{"role": "user", "content": context_message}]
                     
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error loading prompt content: {str(e)}", 'error')
@@ -568,7 +566,8 @@ Instructions:
                 import asyncio
                 model_response = asyncio.run(model_router.generate_response(
                     messages=messages,
-                    system=prompt_content  # Pass prompt content as system parameter
+                    system=prompt_content,  # Pass prompt content as system parameter
+                    max_tokens=1000
                 ))
                 
                 if not model_response:
