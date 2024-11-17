@@ -345,14 +345,15 @@ Always structure your responses as:
                 
             team_path = os.path.abspath(os.path.join(base_dir, team_folder))
             
-            # Ensure directory exists
-            os.makedirs(team_path, exist_ok=True)
+            # Verify directory exists
+            if not os.path.exists(team_path):
+                raise ValueError(f"Team directory not found: {team_folder}")
             
             return team_path
             
         except Exception as e:
             cls._log(f"Error getting team path: {str(e)}", 'error')
-            return os.path.join(os.getcwd(), f"team_{name}")
+            raise  # Re-raise to ensure caller knows team wasn't found
 
     @staticmethod
     def get_log_file(service_name: str) -> str:
