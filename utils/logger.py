@@ -23,9 +23,21 @@ class Logger:
         self._shutting_down = False
         self._level = logging.INFO  # Default level
         self.last_message = ""  # Track last logged message
+        
+        # Create logs directory during initialization
+        self._ensure_logs_directory()
+        
         # Register cleanup at exit
         import atexit
         atexit.register(self._cleanup)
+
+    def _ensure_logs_directory(self):
+        """Ensure logs directory exists"""
+        try:
+            logs_dir = os.path.join(os.getcwd(), 'logs')
+            os.makedirs(logs_dir, exist_ok=True)
+        except Exception as e:
+            print(f"Error creating logs directory: {e}")
 
     def set_level(self, level):
         """Set the logging level
