@@ -130,7 +130,11 @@ class AgentBase(ABC):
     def get_prompt(self) -> str:
         """Get the current prompt using team context"""
         try:
-            # Get prompt using PathManager directly with team from config
+            # Validate team context
+            if not self.team:
+                raise ValueError(f"No team context for agent {self.name}")
+            
+            # Get prompt using PathManager directly with team
             prompt_path = PathManager.get_prompt_file(self.name, self.team)
             
             if not prompt_path or not os.path.exists(prompt_path):
@@ -140,7 +144,7 @@ class AgentBase(ABC):
                 return f.read()
             
         except Exception as e:
-            self.logger.log(f"Error retrieving prompt: {str(e)}", 'error')
+            self.logger.log(f"Error retrieving prompt for team {self.team}: {str(e)}", 'error')
             raise
 
     @abstractmethod

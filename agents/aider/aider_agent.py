@@ -274,19 +274,22 @@ class AiderAgent(AgentBase):
     def _execute_agent_cycle(self):
         """Execute one cycle of the agent's main loop"""
         try:
-            # Get current prompt
+            # Log team context at start of cycle
+            self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
+
+            # Get current prompt using team context
             prompt = self.get_prompt()
             if not prompt:
-                self.logger.log(f"[{self.name}] No prompt available", 'warning')
+                self.logger.log(f"[{self.name}] No prompt available for team {self.team}", 'warning')
                 return None
 
-            # Use stored services instead of initializing
+            # Verify services with team context
             if not self.services:
-                self.logger.log(f"[{self.name}] No services available", 'error')
+                self.logger.log(f"[{self.name}] No services available for team {self.team}", 'error')
                 return None
 
-            # Format context message
-            context_message = f"""You are {self.name}, working on the mission defined in demande.md.
+            # Format context message with team info
+            context_message = f"""You are {self.name}, working in team {self.team}, on the mission defined in demande.md.
 Based on the current state of the files, choose ONE specific task to progress.
 
 Current project files:
@@ -299,25 +302,38 @@ Instructions:
 4. Explain what files to modify
 5. Keep it focused and achievable"""
 
-            # Use stored model_router service
+            # Use stored model_router service with team context
             try:
                 model_router = self.services['model_router']
                 import asyncio
                 model_response = asyncio.run(model_router.generate_response(
-                    messages=[{"role": "user", "content": context_message}],
+                    messages=[{
+                        "role": "user", 
+                        "content": context_message,
+                        "team": self.team  # Include team in message metadata
+                    }],
                     system=prompt,
                     max_tokens=1000
                 ))
 
                 if not model_response:
-                    raise ValueError("No response from model")
+                    raise ValueError(f"No response from model for team {self.team}")
 
             except Exception as e:
-                self.logger.log(f"[{self.name}] Error calling LLM: {str(e)}", 'error')
+                self.logger.log(f"[{self.name}] Error calling LLM for team {self.team}: {str(e)}", 'error')
                 return None
 
-            # Run Aider with generated instructions
-            return self._run_aider(model_response)
+            # Run Aider with generated instructions and team context
+            try:
+                # Change to team directory before running Aider
+                team_dir = os.path.join(os.getcwd(), f"team_{self.team}")
+                if os.path.exists(team_dir):
+                    os.chdir(team_dir)
+                result = self._run_aider(model_response)
+                return result
+            finally:
+                # Always restore original directory
+                os.chdir(self.original_dir)
 
         except Exception as e:
             self.logger.log(f"[{self.name}] Error in agent cycle: {str(e)}", 'error')
