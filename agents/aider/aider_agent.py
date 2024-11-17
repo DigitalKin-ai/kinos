@@ -34,33 +34,41 @@ class AiderAgent(AgentBase):
 
     def __init__(self, config: Dict[str, Any]):
         """Initialize agent with configuration"""
-        # Store original directory
-        self.original_dir = os.getcwd()
+        try:
+            # Store original directory
+            self.original_dir = os.getcwd()
             
-        # Get services
-        from services import init_services
-        services = init_services(None)
-        team_service = services['team_service']
+            # Get services
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
             
-        # Get active team info without modifying it
-        active_team = team_service.get_active_team()
-        if not active_team:
-            raise ValueError("No active team set")
+            # Get active team info without modifying it
+            active_team = team_service.get_active_team()
+            if not active_team:
+                raise ValueError("No active team set")
                 
-        # Set team info from active team
-        self.team = active_team.get('name', 'default')
-        self.team_name = active_team.get('display_name', self.team.title())
+            # Set team info from active team
+            self.team = active_team.get('name', 'default')
+            self.team_name = active_team.get('display_name', self.team.title())
             
-        # Update config with team info
-        config['team'] = self.team
+            # Update config with team info
+            config['team'] = self.team
             
-        # Initialize parent
-        super().__init__(config)
-        
-        # Configure components
-        self._configure_encoding()
-        self.command_builder = AiderCommandBuilder(self.name)
-        self.output_parser = AiderOutputParser(self.logger, self.name)
+            # Initialize parent
+            super().__init__(config)
+            
+            # Configure components
+            self._configure_encoding()
+            self.command_builder = AiderCommandBuilder(self.name)
+            self.output_parser = AiderOutputParser(self.logger, self.name)
+            
+            self.logger.log(f"[{self.name}] Initialized in team {self.team_name}")
+            
+        except Exception as e:
+            logger = Logger()
+            logger.log(f"[INIT] Error during initialization: {str(e)}", 'error')
+            raise
         self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
         self.file_handler = FileHandler(self.mission_dir, self.logger)
             
