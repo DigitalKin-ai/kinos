@@ -174,25 +174,38 @@ class PathManager:
             except:
                 print(f"Looking for prompt file for agent '{agent_name}' in team '{team_name}'")
 
-            if team_name:
-                team_dir = os.path.join(current_dir, f"team_{team_name}")
-                logger.log(f"Using specified team directory: {team_dir}", 'debug')
-            else:
-                # Find first team directory
+            # Get active team from TeamService
+            try:
+                from services import init_services
+                services = init_services(None)
+                team_service = services['team_service']
+                active_team = team_service.get_active_team()
+                if active_team:
+                    team_name = active_team.get('name')
+                    logger.log(f"Using active team: {team_name}", 'debug')
+            except Exception as e:
+                logger.log(f"Error getting active team: {str(e)}", 'warning')
+
+            # If no team_name specified or found, look for first team directory
+            if not team_name:
                 team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
                 if not team_dirs:
                     logger.log("No team directories found", 'warning')
                     return None
-                team_dir = os.path.join(current_dir, team_dirs[0])
-                logger.log(f"Using first found team directory: {team_dir}", 'debug')
+                team_name = team_dirs[0][5:]  # Remove 'team_' prefix
+                logger.log(f"Using first found team: {team_name}", 'debug')
+
+            # Construct team directory path
+            team_dir = os.path.join(current_dir, f"team_{team_name}")
+            logger.log(f"Team directory: {team_dir}", 'debug')
 
             # Look for prompt file in team's prompts directory
             prompts_dir = os.path.join(team_dir, "prompts")
             logger.log(f"Looking in prompts directory: {prompts_dir}", 'debug')
             
-            if not os.path.exists(prompts_dir):
-                logger.log(f"Prompts directory not found: {prompts_dir}", 'warning')
-                return None
+            # Create prompts directory if it doesn't exist
+            os.makedirs(prompts_dir, exist_ok=True)
+            logger.log(f"Ensured prompts directory exists: {prompts_dir}", 'debug')
 
             # Try normalized and original agent name
             attempted_paths = []
