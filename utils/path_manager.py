@@ -250,7 +250,18 @@ Always structure your responses as:
 
     @classmethod
     def get_team_path(cls, name: str) -> str:
-        """Get the path for a team"""
+        """
+        Get the path for a team - NEVER creates directories
+        
+        Args:
+            name: Team name
+            
+        Returns:
+            str: Path to existing team directory
+            
+        Raises:
+            ValueError: If team name is invalid or directory doesn't exist
+        """
         # Fail fast - validate input immediately
         if not name:
             raise ValueError("Team name cannot be empty")
@@ -274,8 +285,9 @@ Always structure your responses as:
         
         team_path = os.path.abspath(os.path.join(base_dir, team_folder))
         
-        # Create directory if it doesn't exist
-        os.makedirs(team_path, exist_ok=True)
+        # Verify team directory exists - NEVER create it
+        if not os.path.exists(team_path):
+            raise ValueError(f"Team directory does not exist: {team_path}")
         
         return team_path
 
