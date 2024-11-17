@@ -65,24 +65,22 @@ class AiderAgent(AgentBase):
             
             self.logger.log(f"[{self.name}] Initialized in team {self.team_name}")
             
+            # Initialize rate limiter and file handler
+            self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
+            self.file_handler = FileHandler(self.mission_dir, self.logger)
+                
+            # Get prompt file
+            self.prompt_file = PathManager.get_prompt_file(self.name, self.team)
+            if not self.prompt_file:
+                raise ValueError(f"No prompt file found for agent {self.name}")
+                    
+            # Initialize state
+            self._init_state()
+                
+            self.logger.log(f"[{self.name}] Initialized in team {self.team_name}")
+                
         except Exception as e:
             logger = Logger()
-            logger.log(f"[INIT] Error during initialization: {str(e)}", 'error')
-            raise
-        self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
-        self.file_handler = FileHandler(self.mission_dir, self.logger)
-            
-        # Get prompt file
-        self.prompt_file = PathManager.get_prompt_file(self.name, self.team)
-        if not self.prompt_file:
-            raise ValueError(f"No prompt file found for agent {self.name}")
-                
-        # Initialize state
-        self._init_state()
-            
-        self.logger.log(f"[{self.name}] Initialized in team {self.team_name}")
-            
-        except Exception as e:
             logger.log(f"[INIT] Error during initialization: {str(e)}", 'error')
             raise
         
