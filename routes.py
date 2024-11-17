@@ -27,7 +27,15 @@ def main():
             
         elif subcommand == "objective":
             manager = ObjectiveManager()
-            # TODO: Implement objective generation
+            # Get optional file paths from arguments
+            mission_path = sys.argv[3] if len(sys.argv) > 3 else ".aider.mission.md"
+            agent_path = sys.argv[4] if len(sys.argv) > 4 else None
+            
+            if not agent_path:
+                print("Usage: kin generate objective [mission_path] agent_path")
+                sys.exit(1)
+                
+            manager.generate_objective(mission_path, agent_path)
             
         elif subcommand == "map":
             manager = MapManager()
