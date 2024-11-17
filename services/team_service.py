@@ -389,23 +389,26 @@ class TeamService(BaseService):
                 self.logger.log(f"Found active team match: {normalized_name}", 'debug')
                 return self.active_team
                 
-            # Log current directory
+            # Get current working directory
             current_dir = os.getcwd()
-            self.logger.log(f"Current directory: {current_dir}", 'debug')
+            self.logger.log(f"Looking for team in: {current_dir}", 'debug')
             
             # List all directories
             try:
                 all_dirs = os.listdir(current_dir)
-                self.logger.log(f"All directories: {all_dirs}", 'debug')
+                self.logger.log(f"Available directories: {all_dirs}", 'debug')
             except Exception as list_error:
                 raise ServiceError(f"Cannot list directory: {str(list_error)}")
 
-            # Look for team directory
+            # Look for team directory in current working directory
             team_dir = os.path.join(current_dir, f"team_{normalized_name}")
             self.logger.log(f"Looking for team directory: {team_dir}", 'debug')
         
             if not os.path.exists(team_dir):
-                raise ServiceError(f"Team directory not found: {team_dir}\nPlease create team directory before using.")
+                raise ServiceError(
+                    f"Team directory not found: {team_dir}\n"
+                    f"Please create team directory 'team_{normalized_name}' in the current directory: {current_dir}"
+                )
                 
             config_path = os.path.join(team_dir, "config.json")
             if not os.path.exists(config_path):
@@ -432,7 +435,7 @@ class TeamService(BaseService):
         except Exception as e:
             raise ServiceError(
                 f"Failed to get team '{team_name}': {str(e)}\n"
-                f"Please ensure team directory exists and has valid configuration."
+                f"Please ensure team directory exists in: {os.getcwd()}"
             )
 
     def cleanup(self):
