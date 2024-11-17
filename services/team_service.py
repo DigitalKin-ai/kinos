@@ -17,6 +17,9 @@ class TeamService(BaseService):
         super().__init__(_)
         self.team_types = self._load_team_types()
         self._team_lock = threading.Lock()
+        self.active_team = None
+        self.active_team_name = None
+        self._last_set_time = None
 
     def _load_team_types(self) -> List[Dict[str, Any]]:
         """Load team configurations from local team directories"""
@@ -208,8 +211,14 @@ class TeamService(BaseService):
 
     def get_active_team(self) -> Optional[Dict[str, Any]]:
         """Get the currently active team configuration"""
-        if not self.active_team:
-            raise ServiceError("No active team set")
+        if not hasattr(self, 'active_team') or not self.active_team:
+            # Try to set first available team as active
+            team_dirs = [d for d in os.listdir(os.getcwd()) if d.startswith('team_')]
+            if team_dirs:
+                first_team = team_dirs[0].replace('team_', '')
+                self.set_active_team(first_team)
+            else:
+                return None
         return self.active_team
 
     def get_team_agents(self, team_name: Optional[str] = None) -> List[str]:
