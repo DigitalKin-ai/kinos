@@ -138,7 +138,7 @@ The configuration must focus specifically on {agent_name} type operations and re
             str: Generated agent configuration
             
         Raises:
-            Exception: If API call fails or response is invalid
+            Exception: If API call fails
         """
         try:
             client = openai.OpenAI()
@@ -158,11 +158,6 @@ The configuration must focus specifically on {agent_name} type operations and re
             # Log full response for debugging
             self.logger.debug(f"OpenAI Response: {response}")
             
-            # Validate basic structure
-            if not all(marker in config for marker in ["# Agent Configuration", "## Role", "## Capabilities"]):
-                self.logger.error(f"Invalid response structure. Response content: {config}")
-                raise ValueError("Generated configuration missing required sections")
-                
             return config
             
         except Exception as e:
