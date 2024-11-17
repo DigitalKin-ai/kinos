@@ -414,25 +414,31 @@ List any specific constraints or limitations.
     def run_random_agent(self, team_agents: List[str]):
         """Run a random agent from the team based on weights"""
         try:
-            # Get team name from current directory
+            # Get current directory to find active team
             current_dir = os.getcwd()
             team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
             if not team_dirs:
                 self.logger.log("No team directories found", 'error')
                 return
-            team_name = team_dirs[0].replace('team_', '')  # Use first team found
+                
+            # Get active team from TeamService
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            active_team = team_service.get_active_team()
+            team_name = active_team.get('name') if active_team else team_dirs[0].replace('team_', '')
             
-            self.logger.log(f"🎲 Selecting agent from team: {team_agents}", 'debug')
+            self.logger.log(f"🎲 Selecting agent from team {team_name}: {team_agents}", 'debug')
             
             # Get weights from team config
             weights = []
             for agent in team_agents:
                 try:
-                    # Load team config directly
-                    config_path = os.path.join(current_dir, f"team_{team_name}", "config.json")
-                    if os.path.exists(config_path):
-                        with open(config_path, 'r') as f:
-                            team_config = json.load(f)
+                    # Get team config directly
+                    team_config = team_service.get_team_config(team_name)
+                    if not team_config:
+                        weights.append(0.5)  # Default weight
+                        continue
                             
                         # Find agent in config
                         agent_config = None
@@ -492,7 +498,7 @@ List any specific constraints or limitations.
 
             self.logger.log(
                 f"Running {config['type'].upper()} agent {agent_name} "
-                f"(weight: {config['weight']:.2f})", 
+                f"(weight: {config['weight']:.2f}) in team {team_name}", 
                 'info'
             )
 
