@@ -12,6 +12,7 @@ import json
 from datetime import datetime
 from utils.logger import Logger
 from services.agent_service import AgentService
+from services.team_service import TeamService
 from utils.model_router import ModelRouter
 from utils.path_manager import PathManager
 
