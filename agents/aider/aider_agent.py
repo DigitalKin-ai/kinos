@@ -472,12 +472,31 @@ class AiderAgent(AgentBase):
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error reading key file {file_path}: {str(e)}", 'warning')
             
-            # Get remaining files - EXCLUDE .aider and .kinos files first
+            # Get remaining files - Use .gitignore patterns for filtering
+            from pathspec import PathSpec
+            from pathspec.patterns import GitWildMatchPattern
+
+            # Load ignore patterns from .gitignore
+            ignore_patterns = []
+            gitignore_path = os.path.join(self.mission_dir, '.gitignore')
+            if os.path.exists(gitignore_path):
+                try:
+                    with open(gitignore_path, 'r', encoding='utf-8') as f:
+                        ignore_patterns = [
+                            line.strip() for line in f.readlines()
+                            if line.strip() and not line.startswith('#')
+                        ]
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error reading .gitignore: {str(e)}", 'warning')
+
+            # Create PathSpec for pattern matching
+            spec = PathSpec.from_lines(GitWildMatchPattern, ignore_patterns)
+
+            # Filter files using gitignore patterns
             remaining_files = [
-                f for f in self.mission_files.keys() 
-                if f not in key_files 
-                and not os.path.basename(f).startswith('.aider')
-                and not os.path.basename(f).startswith('.kinos')
+                f for f in self.mission_files.keys()
+                if f not in key_files
+                and not spec.match_file(os.path.relpath(f, self.mission_dir))
             ]
 
             if len(remaining_files) > 10:
