@@ -412,14 +412,14 @@ List any specific constraints or limitations.
         return list(self.agents.keys())
 
     def run_random_agent(self, team_agents: List[str]):
-        """
-        Run a random agent from the team based on weights
-
-        Args:
-            team_agents: List of agent names from team config
-        """
+        """Run a random agent from the team based on weights"""
         try:
-            # Comprehensive logging for agent selection
+            # Get current team BEFORE agent initialization
+            from services import init_services
+            services = init_services(None)
+            team_service = services['team_service']
+            original_team = team_service.get_active_team()
+            original_team_name = original_team.get('name') if original_team else None
             self.logger.log(f"🎲 Selecting agent from team: {team_agents}", 'debug')
             
             # Get weights from team config
@@ -470,7 +470,8 @@ List any specific constraints or limitations.
                 'mission_dir': os.getcwd(),
                 'prompt_file': os.path.join('prompts', f"{agent_name}.md"),
                 'type': 'aider',  # Default type
-                'weight': weights[team_agents.index(agent_name)]  # Get weight by index
+                'weight': weights[team_agents.index(agent_name)],  # Get weight by index
+                'team': original_team_name  # Add original team to config
             }
 
             # EXPLICIT RESEARCH TYPE FOR SPECIFIC AGENTS
@@ -483,6 +484,10 @@ List any specific constraints or limitations.
             if agent_name.lower() in research_agents:
                 config['type'] = 'research'
                 self.logger.log(f"Agent {agent_name} set to research type", 'debug')
+
+            # Restore original team if needed
+            if original_team_name:
+                team_service.set_active_team(original_team_name, force=True)
 
             self.logger.log(f"Final agent configuration: {config}", 'debug')
 
