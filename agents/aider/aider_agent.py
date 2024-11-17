@@ -277,15 +277,17 @@ class AiderAgent(AgentBase):
             # Log team context at start of cycle
             self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
 
+            # Verify services with team context
+            if not self.services:
+                # Initialize services with team context if not provided
+                from services import init_services
+                self.services = init_services(None, team=self.team)  # Pass team here
+                self.logger.log(f"[{self.name}] Initialized services for team {self.team}", 'debug')
+
             # Get current prompt using team context
             prompt = self.get_prompt()
             if not prompt:
                 self.logger.log(f"[{self.name}] No prompt available for team {self.team}", 'warning')
-                return None
-
-            # Verify services with team context
-            if not self.services:
-                self.logger.log(f"[{self.name}] No services available for team {self.team}", 'error')
                 return None
 
             # Format context message with team info
@@ -336,7 +338,7 @@ Instructions:
                 os.chdir(self.original_dir)
 
         except Exception as e:
-            self.logger.log(f"[{self.name}] Error in agent cycle: {str(e)}", 'error')
+            self.logger.log(f"[{self.name}] Error in agent cycle for team {self.team}: {str(e)}", 'error')
             return None
 
 
