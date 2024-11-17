@@ -77,9 +77,9 @@ def init_services(_) -> Dict[str, Any]:
         # Initialize TeamService first
         services['team_service'] = TeamService(None)
         team_service = services['team_service']
-        
-        # Only set active team if a team directory exists
-        if current_team:
+            
+        # Only set active team if a team directory exists and no active team is set
+        if current_team and not team_service.active_team_name:
             team_service.set_active_team(current_team)
             logger.log(f"Set active team to '{current_team}' from directory", 'info')
 
