@@ -371,7 +371,13 @@ class TeamService(BaseService):
 
     def get_team_by_name(self, team_name: str) -> Optional[Dict[str, Any]]:
         """
-        Get team configuration by name with enhanced logging
+        Get team configuration by name with strict validation
+        
+        Args:
+            team_name: Name of team to find
+            
+        Raises:
+            ServiceError: If team directory or config not found
         """
         try:
             # Normalize team name by removing 'team_' prefix if present
@@ -392,46 +398,42 @@ class TeamService(BaseService):
                 all_dirs = os.listdir(current_dir)
                 self.logger.log(f"All directories: {all_dirs}", 'debug')
             except Exception as list_error:
-                self.logger.log(f"Error listing directory: {str(list_error)}", 'error')
                 raise ServiceError(f"Cannot list directory: {str(list_error)}")
 
             # Look for team directory
             team_dir = os.path.join(current_dir, f"team_{normalized_name}")
             self.logger.log(f"Looking for team directory: {team_dir}", 'debug')
         
-            if os.path.exists(team_dir):
-                self.logger.log(f"Found team directory: {team_dir}", 'debug')
-                config_path = os.path.join(team_dir, "config.json")
-            
-                if os.path.exists(config_path):
-                    try:
-                        with open(config_path, 'r', encoding='utf-8') as f:
-                            config = json.load(f)
-                        self.logger.log(f"Loaded existing config for team {normalized_name}", 'debug')
-                        return config
-                    except Exception as e:
-                        self.logger.log(f"Error loading config file {config_path}: {str(e)}", 'error')
-                        raise ServiceError(f"Error loading team config: {str(e)}")
-                else:
-                    self.logger.log(f"No config file found in team directory: {team_dir}", 'error')
-                    raise ServiceError(f"No config file found for team '{normalized_name}'")
-            else:
-                self.logger.log(f"Team directory not found: {team_dir}", 'error')
-                raise ServiceError(f"Team directory not found: {team_dir}")
-
-            # Check predefined configurations as fallback
-            self.logger.log(f"Checking predefined team types: {len(self.team_types)}", 'debug')
-            for team in self.team_types:
-                if team.get('name') == normalized_name:
-                    self.logger.log(f"Found predefined team configuration: {normalized_name}", 'debug')
-                    return team
-                    
-            self.logger.log(f"No team found with name: {normalized_name}", 'error')
-            raise ServiceError(f"Team '{normalized_name}' not found")
+            if not os.path.exists(team_dir):
+                raise ServiceError(f"Team directory not found: {team_dir}\nPlease create team directory before using.")
                 
+            config_path = os.path.join(team_dir, "config.json")
+            if not os.path.exists(config_path):
+                raise ServiceError(
+                    f"No config file found in team directory: {team_dir}\n"
+                    f"Please create a config.json file with team configuration."
+                )
+                
+            try:
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                self.logger.log(f"Loaded config for team {normalized_name}", 'debug')
+                return config
+            except Exception as e:
+                raise ServiceError(
+                    f"Error loading team config from {config_path}: {str(e)}\n"
+                    f"Please ensure config.json is valid JSON."
+                )
+
+        except ServiceError:
+            # Re-raise ServiceError with original message
+            raise
+            
         except Exception as e:
-            self.logger.log(f"Error getting team by name: {str(e)}", 'error')
-            raise ServiceError(f"Failed to get team '{team_name}': {str(e)}")
+            raise ServiceError(
+                f"Failed to get team '{team_name}': {str(e)}\n"
+                f"Please ensure team directory exists and has valid configuration."
+            )
 
     def cleanup(self):
         """Cleanup team service resources"""
