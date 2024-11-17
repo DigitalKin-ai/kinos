@@ -36,25 +36,9 @@ class AiderAgent(AgentBase):
     def __init__(self, config: Dict[str, Any]):
         """Initialize agent with configuration"""
         try:
-            # Store original directory
             self.original_dir = os.getcwd()
-            
-            # Get services
-            from services import init_services
-            services = init_services(None)
-            team_service = services['team_service']
-            
-            # Get active team info without modifying it
-            active_team = team_service.get_active_team()
-            if not active_team:
-                raise ValueError("No active team set")
-                
-            # Set team info from active team
-            self.team = active_team.get('name', 'default')
-            self.team_name = active_team.get('display_name', self.team.title())
-            
-            # Update config with team info
-            config['team'] = self.team
+            self.team = config['team']  # Team name from config
+            self.name = config['name']
             
             # Initialize parent
             super().__init__(config)

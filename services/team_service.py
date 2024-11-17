@@ -13,14 +13,10 @@ from utils.path_manager import PathManager
 class TeamService(BaseService):
     """Manages team configurations and state"""
 
-    def __init__(self, _):  # Keep parameter for compatibility but don't use it
-        """Initialize with minimal dependencies and thread safety"""
+    def __init__(self, _):
         super().__init__(_)
-        self.active_team = None
-        self.active_team_name = None  # Add explicit team name tracking
         self.team_types = self._load_team_types()
-        self._team_lock = threading.Lock()  # Add thread lock
-        self._last_set_time = None  # Track last set time
+        self._team_lock = threading.Lock()
 
     def _load_team_types(self) -> List[Dict[str, Any]]:
         """Load team configurations from local team directories"""

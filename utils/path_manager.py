@@ -218,32 +218,11 @@ class PathManager:
         return cls.get_prompt_file(agent_name, team_name)
 
     @classmethod
-    def get_team_path(cls, name: Optional[str] = None) -> str:
-        """
-        Get the path for a specific team or current team
-        
-        Args:
-            name: Optional team name
-        
-        Returns:
-            str: Path to the team directory
-        """
-        current_dir = os.getcwd()
-        
-        # If no name provided, find the first team directory
-        if not name:
-            team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
-            if not team_dirs:
-                return current_dir
-            name = team_dirs[0][5:]  # Remove 'team_' prefix
-        
-        # Normalize team folder name
+    def get_team_path(cls, name: str) -> str:
+        """Get the path for a team"""
         team_folder = f"team_{name}" if not name.startswith('team_') else name
-        team_path = os.path.join(current_dir, team_folder)
-        
-        # Create directory if it doesn't exist
+        team_path = os.path.join(os.getcwd(), team_folder)
         os.makedirs(team_path, exist_ok=True)
-        
         return team_path
 
     @staticmethod

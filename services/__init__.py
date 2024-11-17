@@ -14,30 +14,17 @@ _services_cache: Optional[Dict[str, Any]] = None
 _configs_loaded = False
 
 def init_services(_) -> Dict[str, Any]:
-    """Initialize services with single team context"""
-    global _services_cache
-    
+    """Initialize services"""
     logger = Logger()
     
     try:
-        # Get current team from directory structure
-        current_dir = os.getcwd()
-        team_dir = next((d for d in os.listdir(current_dir) 
-                        if d.startswith('team_')), None)
+        services = {}
+        services['team_service'] = TeamService(None)
+        services['model_router'] = ModelRouter()
+        services['agent_service'] = AgentService(None)
+        services['map_service'] = MapService(services['team_service'])
         
-        if not team_dir:
-            raise ServiceError(
-                "No team directory found. "
-                "Please create a team directory (team_*) first."
-            )
-        
-        current_team = team_dir[5:]  # Remove 'team_' prefix
-        
-        # Return cached services if team hasn't changed
-        if (_services_cache is not None and 
-            getattr(_services_cache.get('team_service'), 
-                   'active_team_name', None) == current_team):
-            return _services_cache
+        return services
         
     except Exception as e:
         error_msg = (
