@@ -97,12 +97,20 @@ class ModelRouter:
             if not client:
                 raise ServiceError(f"No client available for provider {self.current_provider.value}")
 
+            # Format messages based on provider
             if self.current_provider == ModelProvider.ANTHROPIC:
+                # Anthropic expects system message as top-level parameter
                 response = await self._generate_anthropic(client, messages, system, **kwargs)
             elif self.current_provider == ModelProvider.OPENAI:
-                response = await self._generate_openai(client, messages, system, **kwargs)
+                # OpenAI expects system message as first message
+                if system:
+                    messages = [{"role": "system", "content": system}] + messages
+                response = await self._generate_openai(client, messages, None, **kwargs)
             elif self.current_provider == ModelProvider.PERPLEXITY:
-                response = await self._generate_perplexity(client, messages, system, **kwargs)
+                # Perplexity expects system message as first message
+                if system:
+                    messages = [{"role": "system", "content": system}] + messages
+                response = await self._generate_perplexity(client, messages, None, **kwargs)
             else:
                 raise ValueError(f"Unsupported provider: {self.current_provider}")
 
@@ -120,12 +128,10 @@ class ModelRouter:
         **kwargs
     ) -> str:
         """Generate response using Anthropic's Claude"""
-        if system:
-            messages = [{"role": "system", "content": system}] + messages
-            
         response = await client.messages.create(
             model=self.current_model,
             messages=messages,
+            system=system,  # Pass system as top-level parameter
             max_tokens=kwargs.get('max_tokens', 4000),
             temperature=kwargs.get('temperature', 0.3)
         )
