@@ -45,10 +45,10 @@ class AiderAgent(AgentBase):
             
             # Configure components
             self._configure_encoding()
-            self.command_builder = AiderCommandBuilder(self.name)
+            self.command_builder = AiderCommandBuilder(self.name, self.team)
             self.output_parser = AiderOutputParser(self.logger, self.name)
             
-            self.logger.log(f"[{self.name}] Initialized in team {self.team_name}")
+            self.logger.log(f"[{self.name}] Initialized in team {self.team}")
             
             # Initialize rate limiter and file handler
             self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
