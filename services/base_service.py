@@ -43,19 +43,47 @@ def retry(max_attempts=3, delay=1, backoff=2, exceptions=(Exception,)):
 class BaseService:
     """Base class for all services providing common functionality"""
     
-    def __init__(self, web_instance):
-        """Base class for all services providing common functionality"""
+    def __init__(self, web_instance, team: str = None):
+        """
+        Initialize base service with team context
+        
+        Args:
+            web_instance: Web instance for the service
+            team: Team name/context for this service
+        """
         self.logger = Logger()
+        self._team = team  # Store team context
+        self._web = web_instance
     def _validate_input(self, **kwargs) -> None:
         """Validate input parameters"""
         missing = [k for k, v in kwargs.items() if v is None]
         if missing:
             raise ValidationError(f"Missing required parameters: {', '.join(missing)}")
             
+    @property
+    def team(self) -> str:
+        """Get current team context"""
+        return self._team
+        
+    @team.setter 
+    def team(self, value: str):
+        """Set team context with validation"""
+        if not value:
+            self.logger.log("Attempt to set empty team context", 'warning')
+            return
+        self._team = value
+        self.logger.log(f"Team context set to: {value}", 'debug')
+
+    def _validate_team_context(self, operation: str):
+        """Validate team context before operations"""
+        if not self._team:
+            raise ValueError(f"No team context for {operation}")
+
     def _handle_error(self, operation: str, error: Exception, 
                      default_value: Optional[Any] = None) -> Any:
         """Handle service operation errors consistently"""
-        self.logger.log(f"Error in {operation}: {str(error)}", 'error')
+        team_context = f" [team: {self._team}]" if self._team else ""
+        self.logger.log(f"Error in {operation}{team_context}: {str(error)}", 'error')
         if default_value is not None:
             return default_value
         raise ServiceError(f"Failed to {operation}: {str(error)}")
