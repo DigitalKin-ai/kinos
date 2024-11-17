@@ -167,11 +167,121 @@ KinOS is an autonomous agent-based system designed for collaborative software de
 - Memory management
 
 ### 11. Error Handling
-- Error types
-- Recovery mechanisms
-- Logging standards
-- User feedback
-- Debug support
+
+#### Error Categories
+1. **Validation Errors**
+   - Input validation failures
+   - Path validation issues
+   - Configuration validation errors
+
+2. **Resource Errors**
+   - File access issues
+   - Permission problems
+   - Resource limits exceeded
+
+3. **Runtime Errors**
+   - Execution failures
+   - State management issues
+   - Concurrency problems
+
+4. **Service Errors**
+   - Model service failures
+   - External service issues
+   - Integration problems
+
+#### Error Handling Patterns
+1. **Centralized Handler**
+   - All errors route through ErrorHandler
+   - Consistent formatting and logging
+   - Error categorization and tracking
+   - Detailed context preservation
+
+2. **Recovery Mechanisms**
+   - Automatic retry logic
+   - State preservation
+   - Graceful degradation
+   - Resource cleanup
+
+3. **Error Response Format**
+```json
+{
+    "error": "Error message",
+    "type": "ErrorClassName",
+    "timestamp": "ISO-8601 timestamp",
+    "details": {
+        "context": "Additional error context",
+        "traceback": "Optional stack trace"
+    }
+}
+```
+
+4. **Debug Support**
+   - Comprehensive error logging
+   - Stack trace preservation
+   - Context capture
+   - Error aggregation
+
+### Logging System
+
+#### Log Levels
+1. **DEBUG** (Detailed debugging information)
+   - State changes
+   - Function entry/exit
+   - Variable values
+   - Performance metrics
+
+2. **INFO** (General operational information)
+   - Service starts/stops
+   - Configuration loads
+   - Major state transitions
+   - Successful operations
+
+3. **WARNING** (Potential issues that aren't failures)
+   - Resource usage warnings
+   - Performance degradation
+   - Retry attempts
+   - Deprecated feature usage
+
+4. **ERROR** (Error conditions that affect operation)
+   - Operation failures
+   - Resource access errors
+   - Service disruptions
+   - Data corruption
+
+5. **CRITICAL** (System-level failures)
+   - Service crashes
+   - Unrecoverable errors
+   - Security breaches
+   - Data loss
+
+#### Logging Format
+```
+[TIMESTAMP] [LEVEL] [COMPONENT] Message
+```
+
+#### Logging Features
+1. **Thread Safety**
+   - Synchronized logging
+   - Per-thread context
+   - Atomic writes
+
+2. **Output Management**
+   - Console output
+   - File rotation
+   - Size limits
+   - Retention policies
+
+3. **Context Enrichment**
+   - Component identification
+   - Operation tracking
+   - Performance metrics
+   - Error correlation
+
+4. **Performance Optimization**
+   - Asynchronous logging
+   - Buffer management
+   - Rate limiting
+   - Level filtering
 
 ### 12. Development Guidelines
 - Code style
