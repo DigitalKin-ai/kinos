@@ -164,30 +164,57 @@ class PathManager:
         try:
             # Get current team directory
             current_dir = os.getcwd()
+            
+            # Log initial search parameters
+            try:
+                from utils.logger import Logger
+                logger = Logger()
+                logger.log(f"Looking for prompt file for agent '{agent_name}' in team '{team_name}'", 'debug')
+                logger.log(f"Current directory: {current_dir}", 'debug')
+            except:
+                print(f"Looking for prompt file for agent '{agent_name}' in team '{team_name}'")
+
             if team_name:
                 team_dir = os.path.join(current_dir, f"team_{team_name}")
+                logger.log(f"Using specified team directory: {team_dir}", 'debug')
             else:
                 # Find first team directory
                 team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
                 if not team_dirs:
+                    logger.log("No team directories found", 'warning')
                     return None
                 team_dir = os.path.join(current_dir, team_dirs[0])
+                logger.log(f"Using first found team directory: {team_dir}", 'debug')
 
             # Look for prompt file in team's prompts directory
             prompts_dir = os.path.join(team_dir, "prompts")
+            logger.log(f"Looking in prompts directory: {prompts_dir}", 'debug')
+            
             if not os.path.exists(prompts_dir):
+                logger.log(f"Prompts directory not found: {prompts_dir}", 'warning')
                 return None
 
             # Try normalized and original agent name
+            attempted_paths = []
             for filename in [f"{agent_name.lower()}.md", f"{agent_name}.md"]:
                 prompt_path = os.path.join(prompts_dir, filename)
+                attempted_paths.append(prompt_path)
+                
                 if os.path.exists(prompt_path):
+                    logger.log(f"Found prompt file: {prompt_path}", 'info')
                     return prompt_path
+                else:
+                    logger.log(f"Prompt file not found at: {prompt_path}", 'debug')
 
+            # Log all attempted paths if none found
+            logger.log(f"No prompt file found. Attempted paths:\n" + "\n".join(f"- {p}" for p in attempted_paths), 'warning')
             return None
 
         except Exception as e:
-            print(f"Error finding prompt file for {agent_name}: {str(e)}")
+            try:
+                logger.log(f"Error finding prompt file for {agent_name}: {str(e)}\nTraceback: {traceback.format_exc()}", 'error')
+            except:
+                print(f"Error finding prompt file for {agent_name}: {str(e)}")
             return None
 
     @classmethod
