@@ -283,10 +283,12 @@ class AiderAgent(AgentBase):
                 self.services = init_services(None, team=self.team)
                 self.logger.log(f"[{self.name}] Initialized services for team {self.team}", 'debug')
 
-            # Get current prompt using team context - IMPORTANT CHANGE HERE
+            # Get current prompt using PathManager
             try:
-                prompt_path = os.path.join(f"team_{self.team}", "prompts", f"{self.name}.md")
-                if not os.path.exists(prompt_path):
+                # Use PathManager to get correct prompt path
+                prompt_path = PathManager.get_prompt_file(self.name, self.team)
+                
+                if not prompt_path or not os.path.exists(prompt_path):
                     # Create default prompt directory
                     os.makedirs(os.path.dirname(prompt_path), exist_ok=True)
                     
@@ -320,13 +322,18 @@ Always structure your responses as:
                     # Write default prompt
                     with open(prompt_path, 'w', encoding='utf-8') as f:
                         f.write(default_prompt)
-                        
+                        self.logger.log(f"[{self.name}] Created default prompt at {prompt_path}", 'info')
+                
                 # Read prompt content
                 with open(prompt_path, 'r', encoding='utf-8') as f:
                     prompt = f.read()
 
+                if not prompt:
+                    self.logger.log(f"[{self.name}] Empty prompt file", 'error')
+                    return None
+
             except Exception as e:
-                self.logger.log(f"[{self.name}] Error with prompt file: {str(e)}", 'error')
+                self.logger.log(f"[{self.name}] Error reading prompt: {str(e)}", 'error')
                 return None
 
             if not prompt:
