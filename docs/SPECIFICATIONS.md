@@ -1,18 +1,107 @@
 # KinOS Specifications
 
 ## Overview
-- Purpose and scope
-- Core concepts
-- System architecture
+
+KinOS is an autonomous agent-based system designed for collaborative software development. The system uses multiple specialized agents working together within isolated team environments to accomplish development tasks.
+
+### Core Concepts
+
+- **Team-Based Isolation**: All operations occur within team-specific directories
+- **Agent Autonomy**: Agents make independent decisions based on their roles
+- **File-Centric Operations**: System revolves around file monitoring and modifications
+- **Dynamic Adaptation**: Agents adjust their behavior based on performance and results
+
+### System Architecture
+
+- **Multi-Agent System**: Coordinated agents with specific responsibilities
+- **Service-Based Core**: Centralized services for common functionality
+- **File-Based State**: State management through file system
+- **Event-Driven Updates**: Changes trigger map and state updates
 
 ## System Components
 
 ### 1. Agent System
-- Agent types and roles
-- Agent lifecycle management
-- Inter-agent communication
-- State management
-- Error handling and recovery
+
+#### Agent Types and Roles
+
+1. **Base Agent (`AgentBase`):**
+   - Abstract foundation for all agents
+   - Provides core lifecycle management
+   - Implements health monitoring
+   - Handles state tracking
+
+2. **Aider Agent (`AiderAgent`):**
+   - Specialized for code modifications
+   - Handles file changes and commits
+   - Integrates with version control
+   - Processes model instructions
+
+3. **KinOS Agent (`KinOSAgent`):**
+   - Advanced autonomous capabilities
+   - Self-regulated execution cycles
+   - Performance tracking
+   - Error recovery mechanisms
+
+#### Agent Lifecycle Management
+
+1. **Initialization:**
+   - Required config validation
+   - State initialization
+   - Component setup
+   - Path validation
+
+2. **Execution Control:**
+   - Start/stop functionality
+   - Run loop management
+   - State transitions
+   - Resource cleanup
+
+3. **Health Monitoring:**
+   - Status validation
+   - Performance metrics
+   - Resource tracking
+   - Error detection
+
+#### State Management
+
+1. **Core State Attributes:**
+   - Running status
+   - Last run timestamp
+   - Last change timestamp
+   - Consecutive no-changes count
+   - Error count
+
+2. **Dynamic Timing:**
+   - Adaptive intervals based on activity
+   - Performance-based adjustments
+   - Error-aware backoff
+   - Rate limiting
+
+3. **Resource Tracking:**
+   - File monitoring
+   - Cache management
+   - Performance metrics
+   - Memory usage
+
+#### Error Handling and Recovery
+
+1. **Error Categories:**
+   - Initialization errors
+   - Runtime errors
+   - Resource errors
+   - Model errors
+
+2. **Recovery Mechanisms:**
+   - State preservation
+   - Automatic retry logic
+   - Graceful degradation
+   - Error logging and tracking
+
+3. **Health Checks:**
+   - Regular status validation
+   - Resource verification
+   - Performance monitoring
+   - Dependency checks
 
 ### 2. File Management
 - Directory structure
