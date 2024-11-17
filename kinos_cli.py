@@ -212,8 +212,6 @@ def run_team_loop(team_name: str, specific_name: str = None):
             active_threads = {tid: runner for tid, runner in active_threads.items() 
                             if runner.is_alive()}
             
-            logger.log(f"Active threads: {len(active_threads)}", 'debug')
-            
             # Start new threads if needed
             while len(active_threads) <1:
                 # Select random agent
@@ -272,8 +270,6 @@ def run_multi_team_loop(model: Optional[str] = None):
             # Clean up finished threads
             active_threads = {tid: runner for tid, runner in active_threads.items() 
                             if runner.is_alive()}
-            
-            logger.log(f"Active threads: {len(active_threads)}", 'debug')
             
             # Find all team directories first
             team_dirs = []
