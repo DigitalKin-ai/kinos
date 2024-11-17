@@ -1507,7 +1507,7 @@ Please proceed with the updates now."""
 
             # Create agent instance
             agent = agent_class(agent_config)
-            self.logger.log(f"Created agent: {agent_name} (type: {agent_type})", 'success')
+            self.logger.log(f"Created agent: {agent_name} (type: {agent_type}, team: {agent_config['team']})", 'success')
             return agent
 
         except Exception as e:
