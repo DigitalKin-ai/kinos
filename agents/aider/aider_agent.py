@@ -542,6 +542,8 @@ Instructions:
                 model_router = services['model_router']
                 
                 messages = []
+                messages.append({"role": "system", "content": prompt})
+                self.logger.log(f"PROMPT SYSTEME {prompt}", 'warning')
                 
                 # Only add chat history if not empty
                 if chat_history.strip():
@@ -549,7 +551,7 @@ Instructions:
                     
                 # Add user message
                 messages.append({"role": "user", "content": context_message})
-                self.logger.log(f"CONTEXT MESSAGE {context_message}", 'warning')
+                #self.logger.log(f"CONTEXT MESSAGE {context_message}", 'warning')
                 
                 # Use model router instead of direct Anthropic call
                 import asyncio
