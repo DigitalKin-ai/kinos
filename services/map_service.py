@@ -60,21 +60,40 @@ class MapService(BaseService):
             self.logger.log(f"Error initializing map file: {str(e)}", 'error')
             self._initialized = False
 
+    def _get_git_root(self) -> str:
+        """Get the git repository root directory"""
+        try:
+            import git
+            # Start from current directory and search up for .git
+            repo = git.Repo(os.getcwd(), search_parent_directories=True)
+            return repo.git.rev_parse("--show-toplevel")
+        except Exception as e:
+            self.logger.log(f"Error finding git root: {str(e)}", 'warning')
+            return os.getcwd()
+
     def generate_map(self) -> bool:
         """Generate project map file with enhanced debugging"""
         try:
             self.logger.log("[MapService] 🚀 Starting map generation...", 'info')
             
-            # Initialize if needed
-            if not self._initialized:
-                self.logger.log("[MapService] 🔄 Initializing map file...", 'info')
-                self._initialize_map_file()
+            # Store original directory
+            original_dir = os.getcwd()
+            
+            try:
+                # Change to git root for operations
+                git_root = self._get_git_root()
+                os.chdir(git_root)
                 
-            if not self.map_file:
-                self.logger.log("[MapService] ❌ Map file path not initialized", 'error')
-                return False
-                
-            self.logger.log(f"[MapService] 📝 Using map file: {self.map_file}", 'debug')
+                # Initialize if needed
+                if not self._initialized:
+                    self.logger.log("[MapService] 🔄 Initializing map file...", 'info')
+                    self._initialize_map_file()
+                    
+                if not self.map_file:
+                    self.logger.log("[MapService] ❌ Map file path not initialized", 'error')
+                    return False
+                    
+                self.logger.log(f"[MapService] 📝 Using map file: {self.map_file}", 'debug')
             
             # Get active team from injected TeamService WITHOUT resetting it
             active_team = self.team_service.get_active_team()
