@@ -463,18 +463,18 @@ Instructions:
 
 
             
-            # Process key files and remaining files
-            # Initialize files context dictionary
-            files_context = {}
-            
-            try:
-                # Define key files
-                key_files = {
-                    os.path.join(self.mission_dir, "map.md"): True,
-                    os.path.join(self.mission_dir, "todolist.md"): True,
-                    os.path.join(self.mission_dir, "demande.md"): True,
-                    os.path.join(self.mission_dir, "directives.md"): True
-                }
+        # Process key files and remaining files
+        # Initialize files context dictionary
+        files_context = {}
+        
+        try:
+            # Define key files
+            key_files = {
+                os.path.join(self.mission_dir, "map.md"): True,
+                os.path.join(self.mission_dir, "todolist.md"): True,
+                os.path.join(self.mission_dir, "demande.md"): True,
+                os.path.join(self.mission_dir, "directives.md"): True
+            }
                 
                 # Add key files first using full paths
                 for file_path, _ in key_files.items():
@@ -614,15 +614,15 @@ Instructions:
             else:
                 self.consecutive_no_changes += 1
 
-        except Exception as e:
-            self.logger.log(
-                f"[{self.name}] 💥 Comprehensive error in agent cycle:\n"
-                f"Type: {type(e)}\n"
-                f"Error: {str(e)}\n"
-                f"Traceback: {traceback.format_exc()}",
-                'critical'
-            )
-            return None
+            except Exception as e:
+                self.logger.log(
+                    f"[{self.name}] 💥 Comprehensive error in agent cycle:\n"
+                    f"Type: {type(e)}\n"
+                    f"Error: {str(e)}\n"
+                    f"Traceback: {traceback.format_exc()}",
+                    'critical'
+                )
+                return None
 
     def run(self):
         """Execute one iteration of the agent's task"""
