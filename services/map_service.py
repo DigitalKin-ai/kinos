@@ -378,35 +378,25 @@ class MapService(BaseService):
             self.logger.log(f"Error writing map file: {str(e)}", 'error')
             return False
 
-    def _ensure_map_file_path(self) -> bool:
-        """Ensure map file path is properly set"""
+    def _initialize_map_file(self, team_name: str) -> None:
+        """Initialize map file path for specific team"""
         try:
-            # Get active team from team service
-            active_team = self.team_service.get_active_team()
-            if not active_team:
-                self.logger.log("No active team found for map file path", 'warning')
-                return False
-                
-            team_name = active_team.get('name')
-            if not team_name:
-                self.logger.log("No team ID found", 'warning')
-                return False
-                
-            # Construct team directory name with "team_" prefix if not present
-            team_dir = f"team_{team_name}" if not team_name.startswith('team_') else team_name
+            # Use PathManager to get team path
+            team_path = PathManager.get_team_path(team_name)
             
-            # Create full path for map file in team directory
-            self.map_file = os.path.join(os.getcwd(), team_dir, "map.md")
+            # Set map file path
+            self.map_file = os.path.join(team_path, "map.md")
             
-            # Ensure team directory exists
-            os.makedirs(os.path.dirname(self.map_file), exist_ok=True)
+            # Create map file if needed
+            if not os.path.exists(self.map_file):
+                with open(self.map_file, 'w', encoding='utf-8') as f:
+                    f.write("# Project Map\n\n## Dynamic Team Mapping\n")
             
-            self.logger.log(f"Map file path set to: {self.map_file}", 'debug')
-            return True
+            self._initialized = True
             
         except Exception as e:
-            self.logger.log(f"Error ensuring map file path: {str(e)}", 'error')
-            return False
+            self.logger.log(f"Error initializing map file: {str(e)}", 'error')
+            self._initialized = False
 
     def _ensure_map_file_writeable(self) -> bool:
         """Ensure map file is writable"""
