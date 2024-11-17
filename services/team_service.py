@@ -173,13 +173,27 @@ class TeamService(BaseService):
 
     def set_active_team(self, name: str, force: bool = False) -> bool:
         """
-        Set the active team configuration with improved state tracking
+        Set the active team configuration with improved state tracking and call tracing
         
         Args:
             name: Team name to set
             force: Force team switch even if already active
         """
         try:
+            # Log call stack
+            import traceback
+            call_stack = traceback.extract_stack()
+            # Get the last 3 frames (excluding this one)
+            relevant_calls = call_stack[-4:-1]
+            
+            stack_trace = "\n".join(f"  File {frame.filename}, line {frame.lineno}, in {frame.name}"
+                                   for frame in relevant_calls)
+            
+            self.logger.log(
+                f"set_active_team called for '{name}' from:\n{stack_trace}", 
+                'debug'
+            )
+
             # Normalize team name
             normalized_name = name.replace('team_', '')
             
