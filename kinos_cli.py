@@ -265,10 +265,15 @@ def run_multi_team_loop(model: Optional[str] = None):
     current_dir = os.getcwd()
     team_dirs = [d.replace('team_', '') for d in os.listdir(current_dir) if d.startswith('team_')]
     
-    # Ensure default team is available
-    if 'default' not in team_dirs:
-        team_dirs.append('default')
-    
+    if not team_dirs:
+        logger.log(
+            "No team directories found in current directory.\n"
+            f"Please create a team directory (team_*) in: {current_dir}\n"
+            "Example: team_coding, team_research, etc.",
+            'error'
+        )
+        return
+
     # Initialize services
     from services import init_services
     services = init_services(None)
