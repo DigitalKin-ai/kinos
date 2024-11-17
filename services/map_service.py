@@ -280,7 +280,8 @@ class MapService(BaseService):
             
             # Use appropriate tokenizer based on provider
             if model_router.current_provider == ModelProvider.ANTHROPIC:
-                return len(model_router.clients['anthropic'].count_tokens(content))
+                # Anthropic count_tokens returns the count directly
+                return model_router.clients['anthropic'].count_tokens(content)
             elif model_router.current_provider == ModelProvider.OPENAI:
                 import tiktoken
                 encoding = tiktoken.encoding_for_model(model_router.current_model)
