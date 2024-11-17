@@ -1,2 +1,2 @@
 @echo off
-python "%~dp0kinos_cli.py" %*
+python "%~dp0routes.py" %*
