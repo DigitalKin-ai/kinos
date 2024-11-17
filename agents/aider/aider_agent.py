@@ -379,15 +379,50 @@ class AiderAgent(AgentBase):
 
             self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
 
+            # Define key files that should always be included
+            key_files = [
+                "demande.md",
+                "directives.md",
+                "todolist.md"
+            ]
+
             # Read file contents into a new dictionary
             files_with_content = {}
-            for file_path in self.mission_files.keys():
+            total_chars = 0
+            char_limit = 100000  # Limit total characters to stay within token limits
+
+            # First add key files
+            for key_file in key_files:
+                file_path = os.path.join(self.mission_dir, key_file)
+                if os.path.exists(file_path):
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                            content_len = len(content)
+                            if total_chars + content_len <= char_limit:
+                                files_with_content[file_path] = content
+                                total_chars += content_len
+                    except Exception as e:
+                        self.logger.log(f"[{self.name}] Error reading {file_path}: {str(e)}", 'warning')
+
+            # Then add other files until we hit the limit
+            remaining_files = [f for f in self.mission_files.keys() if f not in files_with_content]
+            if len(remaining_files) > 5:  # Limit to 5 additional files
+                import random
+                remaining_files = random.sample(remaining_files, 5)
+
+            for file_path in remaining_files:
+                if total_chars >= char_limit:
+                    break
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
-                        files_with_content[file_path] = f.read()
+                        content = f.read()
+                        content_len = len(content)
+                        if total_chars + content_len <= char_limit:
+                            files_with_content[file_path] = content
+                            total_chars += content_len
                 except Exception as e:
                     self.logger.log(f"[{self.name}] Error reading {file_path}: {str(e)}", 'warning')
-                    continue
 
             if not files_with_content:
                 raise ValueError(f"[{self.name}] No readable files found")
