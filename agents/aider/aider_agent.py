@@ -41,8 +41,10 @@ class AiderAgent(AgentBase):
             self.name = config['name']
             self.config = config
             
-            # Use pre-initialized services if provided
+            # Store pre-initialized services
             self.services = config.get('services')
+            if not self.services:
+                self.logger.log(f"[{self.name}] Warning: No pre-initialized services provided", 'warning')
             
             # Initialize parent
             super().__init__(config)
@@ -127,20 +129,21 @@ class AiderAgent(AgentBase):
                 # Force map update after any Aider execution that produced output
                 if output:
                     try:
-                        # Utiliser les services pré-initialisés si disponibles
+                        # Use existing services if available
                         if self.services:
                             map_service = self.services['map_service']
                             dataset_service = self.services['dataset_service']
                         else:
-                            # Fallback à l'initialisation si nécessaire
+                            # Only initialize if absolutely necessary
+                            self.logger.log(f"[{self.name}] Warning: Falling back to service initialization", 'warning')
                             from services import init_services
-                            services = init_services(None)
-                            map_service = services['map_service']
-                            dataset_service = services['dataset_service']
-                        
-                        # Update map
+                            self.services = init_services(None)
+                            map_service = self.services['map_service']
+                            dataset_service = self.services['dataset_service']
+                    
+                        # Update map using stored services
                         map_service.update_map()
-                        
+                    
                         # Get current files context
                         files_context = {}
                         for file_path in self.mission_files:
@@ -149,15 +152,15 @@ class AiderAgent(AgentBase):
                                     files_context[file_path] = f.read()
                             except Exception as e:
                                 self.logger.log(f"[{self.name}] Error reading {file_path}: {str(e)}", 'warning')
-                        
-                        # Add interaction to dataset asynchronously
+                    
+                        # Add interaction to dataset asynchronously using stored services
                         import asyncio
                         asyncio.run(dataset_service.add_interaction_async(
                             instructions=instructions,
                             files_context=files_context,
                             aider_response=output
                         ))
-                        
+                    
                     except Exception as service_error:
                         self.logger.log(f"[{self.name}] Error with services: {str(service_error)}", 'warning')
                         
