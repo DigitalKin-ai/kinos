@@ -198,11 +198,6 @@ class TeamService(BaseService):
                 self.active_team_name = normalized_name
                 self._last_set_time = datetime.now()
             
-            self.logger.log(
-                f"Active team set to: {normalized_name} "
-                f"({team_config.get('display_name', normalized_name)})", 
-                'success'
-            )
             return True
             
         except Exception as e:
