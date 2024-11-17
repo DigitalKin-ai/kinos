@@ -47,64 +47,33 @@ class AgentRunner(threading.Thread):
         self.agent_config = None  # Will be set before starting thread
 
     def run(self):
+        """Thread execution loop"""
         while self.running:
             try:
                 if not self.agent_config:
-                    self.logger.log("No agent configuration provided", 'error')
                     time.sleep(5)
                     continue
 
-                start_time = datetime.now()
-                
-                # Create agent using stored config
+                # Create agent with stored config
                 agent = AiderAgent(self.agent_config)
                 
                 if not agent:
-                    self.logger.log(f"Failed to create agent", 'error')
                     time.sleep(5)
                     continue
                     
-                # Start agent
-                try:
-                    agent.start()
+                # Run agent's main loop with timeout
+                max_runtime = 300  # 5 minutes max
+                start = time.time()
+                
+                while time.time() - start < max_runtime and self.running:
+                    agent.run()
+                    time.sleep(1)  # Brief pause between iterations
                     
-                    # Run agent's main loop with timeout
-                    max_runtime = 300  # 5 minutes max runtime
-                    start = time.time()
-                    
-                    while time.time() - start < max_runtime:
-                        if not agent.running:
-                            break
-                            
-                        try:
-                            agent.run()  # Single iteration
-                            time.sleep(agent.calculate_dynamic_interval())
-                        except Exception as run_error:
-                            self.logger.log(f"Error in agent run: {str(run_error)}", 'error')
-                            break
-                            
-                    duration = (datetime.now() - start_time).total_seconds()
-                    
-                    self.output_queue.put({
-                        'thread_id': threading.get_ident(),
-                        'agent_name': agent.name,
-                        'status': 'completed',
-                        'duration': duration,
-                        'timestamp': datetime.now().isoformat()
-                    })
-                    
-                except Exception as agent_error:
-                    self.logger.log(f"Agent execution error: {str(agent_error)}", 'error')
-                    
-                finally:
-                    # Ensure cleanup
-                    try:
-                        agent.cleanup()
-                    except:
-                        pass
-                        
-                # Wait before starting next iteration
-                time.sleep(random.uniform(10, 30))
+                # Clean up
+                agent.cleanup()
+                
+                # Wait before next cycle
+                time.sleep(random.uniform(5, 15))
                 
             except Exception as e:
                 self.output_queue.put({

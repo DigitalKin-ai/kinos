@@ -67,60 +67,22 @@ class Logger:
             pass  # Ignore errors during shutdown
 
     def log(self, message: str, level: str = 'info'):
-        """Thread-safe logging with level filtering and shutdown handling"""
+        """Thread-safe logging with minimal overhead"""
         if self._shutting_down:
-            return  # Skip logging during shutdown
-
-        # Map string levels to logging constants
-        level_map = {
-            'debug': logging.DEBUG,
-            'info': logging.INFO,
-            'warning': logging.WARNING,
-            'error': logging.ERROR,
-            'critical': logging.CRITICAL,
-            'success': logging.INFO  # Success mapped to INFO for compatibility
-        }
-        
-        # Get numeric level, default to INFO if level string not recognized
-        msg_level = level_map.get(level.lower(), logging.INFO)
-        
-        # Always show success messages, otherwise check level
-        if level.lower() != 'success' and msg_level < self._level:
             return
-            
+
         try:
             with self._log_lock:
                 timestamp = datetime.now().strftime("%H:%M:%S")
                 formatted = f"[{timestamp}] [{level.upper()}] {message}"
                 
-                # Store last message before formatting
-                self.last_message = message
-                
-                # Force enable color if FORCE_COLOR env var is set
-                force_color = os.environ.get('FORCE_COLOR', '').lower() in ('1', 'true', 'yes')
-                should_colorize = force_color or self.is_tty
-                
-                try:
-                    if should_colorize:
-                        # Ensure color codes are properly escaped
-                        color = self.COLORS.get(level.lower(), self.COLORS['info'])
-                        reset = self.COLORS['reset']
-                        # Use print without flush on Windows
-                        if sys.platform == 'win32':
-                            print(f"{color}{formatted}{reset}")
-                        else:
-                            print(f"{color}{formatted}{reset}", flush=True)
-                    else:
-                        # No color for non-TTY output, no flush on Windows
-                        if sys.platform == 'win32':
-                            print(formatted)
-                        else:
-                            print(formatted, flush=True)
-                        
-                except OSError as os_error:
-                    # Ignore Windows stdout flush error
-                    if not ("[Errno 22] Invalid argument" in str(os_error) and sys.platform == 'win32'):
-                        raise
+                # Only format color if needed
+                if self.is_tty:
+                    color = self.COLORS.get(level.lower(), '')
+                    reset = self.COLORS['reset']
+                    print(f"{color}{formatted}{reset}", flush=True)
+                else:
+                    print(formatted, flush=True)
                 
         except Exception:
             # During shutdown, some exceptions are expected

@@ -274,32 +274,54 @@ class AiderAgent(AgentBase):
     def _execute_agent_cycle(self):
         """Execute one cycle of the agent's main loop"""
         try:
-            # Defensive config access with multiple fallbacks
-            specific_name = (
-                getattr(self, 'config', {}).get('name') or  # First try config
-                getattr(self, 'name', None) or  # Then try instance attribute 
-                'unnamed_agent'  # Final fallback
-            )
+            # Get current prompt
+            prompt = self.get_prompt()
+            if not prompt:
+                self.logger.log(f"[{self.name}] No prompt available", 'warning')
+                return None
 
-            # Get list of team directories
-            teams = PathManager.list_teams()
+            # Use stored services instead of initializing
+            if not self.services:
+                self.logger.log(f"[{self.name}] No services available", 'error')
+                return None
 
-            # Get active team from TeamService
+            # Format context message
+            context_message = f"""You are {self.name}, working on the mission defined in demande.md.
+Based on the current state of the files, choose ONE specific task to progress.
+
+Current project files:
+{self._format_files_context(self.mission_files)}
+
+Instructions:
+1. Analyze the current state
+2. Identify a clear next action
+3. Describe the specific task in detail
+4. Explain what files to modify
+5. Keep it focused and achievable"""
+
+            # Use stored model_router service
             try:
-                from services import init_services
-                services = init_services(None)
-                team_service = services['team_service']
-                active_team = team_service.get_active_team()
-                team_name = active_team.get('name') if active_team else teams[0] if teams else None
-            except Exception as e:
-                self.logger.log(f"Error getting active team: {str(e)}", 'warning')
-                team_name = teams[0] if teams else None
+                model_router = self.services['model_router']
+                import asyncio
+                model_response = asyncio.run(model_router.generate_response(
+                    messages=[{"role": "user", "content": context_message}],
+                    system=prompt,
+                    max_tokens=1000
+                ))
 
-            # Get team directory path using PathManager
-            team_dir = PathManager.get_team_path(team_name)
-            if not os.path.exists(team_dir):
-                os.makedirs(team_dir, exist_ok=True)
-                self.logger.log(f"[{self.name}] Created team directory: {team_dir}", 'info')
+                if not model_response:
+                    raise ValueError("No response from model")
+
+            except Exception as e:
+                self.logger.log(f"[{self.name}] Error calling LLM: {str(e)}", 'error')
+                return None
+
+            # Run Aider with generated instructions
+            return self._run_aider(model_response)
+
+        except Exception as e:
+            self.logger.log(f"[{self.name}] Error in agent cycle: {str(e)}", 'error')
+            return None
 
             # Add key files with full team directory paths
             key_files = {
