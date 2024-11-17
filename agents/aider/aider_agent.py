@@ -541,9 +541,8 @@ Instructions:
                 services = init_services(None)
                 model_router = services['model_router']
                 
-                messages = []
-                # Read prompt file content
                 try:
+                    # Read prompt file content
                     if isinstance(prompt, str) and os.path.exists(prompt):
                         with open(prompt, 'r', encoding='utf-8') as f:
                             prompt_content = f.read()
@@ -551,29 +550,29 @@ Instructions:
                     else:
                         raise ValueError(f"Invalid prompt file path: {prompt}")
 
-                    # Create messages array with user content and chat history
+                    # Create messages array with only user and assistant roles
                     messages = [{"role": "user", "content": context_message}]
+                
+                    # Only add chat history if not empty
+                    if chat_history.strip():
+                        messages.append({"role": "assistant", "content": chat_history})
+
+                    # Use model router with system prompt as top-level parameter
+                    import asyncio
+                    model_response = asyncio.run(model_router.generate_response(
+                        messages=messages,  # Only user/assistant messages
+                        system=prompt_content,  # System prompt as separate parameter
+                        max_tokens=1000
+                    ))
+
+                    if not model_response:
+                        raise ValueError("No response from model")
                     
+                    self.logger.log(f"[{self.name}] Generated instructions:\n{model_response}", 'debug')
+                
                 except Exception as e:
-                    self.logger.log(f"[{self.name}] Error loading prompt content: {str(e)}", 'error')
-                    return None
-                
-                # Only add chat history if not empty
-                if chat_history.strip():
-                    messages.append({"role": "assistant", "content": chat_history})
-                
-                # Use model router with system prompt
-                import asyncio
-                model_response = asyncio.run(model_router.generate_response(
-                    messages=messages,
-                    system=prompt_content,  # Pass prompt content as system parameter
-                    max_tokens=1000
-                ))
-                
-                if not model_response:
-                    raise ValueError("No response from model")
-                    
-                self.logger.log(f"[{self.name}] Generated instructions:\n{model_response}", 'debug')
+                    self.logger.log(f"[{self.name}] Error calling LLM: {str(e)}", 'error')
+                    return
                 
             except Exception as e:
                 self.logger.log(f"[{self.name}] Error calling LLM: {str(e)}", 'error')
