@@ -39,11 +39,10 @@ def init_services(_) -> Dict[str, Any]:
         # Initialize services
         services = {}
             
-        # Initialize TeamService first and set active team
+        # Initialize services
         services['team_service'] = TeamService(None)
-        services['team_service'].set_active_team(current_team, force=True)
-            
-        # Initialize other services
+        
+        # Initialize other services 
         services['model_router'] = ModelRouter()
         services['agent_service'] = AgentService(None)
         services['map_service'] = MapService(services['team_service'])
