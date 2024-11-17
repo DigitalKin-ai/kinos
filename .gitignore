@@ -87,6 +87,8 @@ Thumbs.db
 *.tmp
 *.tmp
 
+*.jsonl
+
 # Specific to KinOS
 config/secrets.yaml
 config.local.yaml
