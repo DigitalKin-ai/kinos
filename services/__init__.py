@@ -24,15 +24,25 @@ def init_services(_) -> Dict[str, Any]:
     # Create logger first
     logger = Logger()
     
-    # If services are already initialized and team hasn't changed, return cached services
+    # Get current team - throw error if none found
     current_team = None
     try:
         current_dir = os.getcwd()
         team_dir = next((d for d in os.listdir(current_dir) if d.startswith('team_')), None)
-        current_team = team_dir[5:] if team_dir else None
-    except Exception:
-        current_team = None
+        if not team_dir:
+            error_msg = f"No team directory found in {current_dir}"
+            logger.log(error_msg, 'error')
+            logger.log(f"Available directories: {os.listdir(current_dir)}", 'error')
+            raise ServiceError(f"{error_msg}\nPlease create a team directory (team_*) before running KinOS")
+        
+        current_team = team_dir[5:]  # Remove 'team_' prefix
+        
+    except Exception as e:
+        error_msg = f"Error detecting team: {str(e)}\nTrace: {traceback.format_exc()}"
+        logger.log(error_msg, 'error')
+        raise ServiceError(error_msg)
 
+    # Return cached services if team hasn't changed
     if _services_cache is not None and getattr(_services_cache.get('team_service'), 'active_team_name', None) == current_team:
         logger.log(f"Returning cached services for team: {current_team}", 'debug')
         return _services_cache
