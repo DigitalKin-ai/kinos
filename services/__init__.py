@@ -10,47 +10,30 @@ _services_cache: Optional[Dict[str, Any]] = None
 _configs_loaded = False
 
 def init_services(_) -> Dict[str, Any]:
-    """
-    Initialize services with improved caching and error handling
+    """Initialize services with single team context"""
+    global _services_cache
     
-    Args:
-        _: Compatibility parameter (unused)
-    
-    Returns:
-        Dict of initialized services
-    """
-    global _services_cache, _configs_loaded
-    
-    # Create logger first
     logger = Logger()
     
-    # Get current team - throw error if none found
     try:
-        current_dir = os.getcwd()  # Use actual working directory
-        logger.log(f"Initializing services in: {current_dir}", 'debug')
+        # Get current team from directory structure
+        current_dir = os.getcwd()
+        team_dir = next((d for d in os.listdir(current_dir) 
+                        if d.startswith('team_')), None)
         
-        # Return cached services if they exist and have correct team
-        if _services_cache is not None:
-            team_service = _services_cache.get('team_service')
-            if team_service and team_service.active_team_name:
-                logger.log(f"Using cached services for team: {team_service.active_team_name}", 'debug')
-                return _services_cache
-
-        # Only detect team directory if no services exist yet
-        team_dir = next((d for d in os.listdir(current_dir) if d.startswith('team_')), None)
         if not team_dir:
-            error_msg = (
-                f"No team directory found in {current_dir}\n"
-                "Available directories: " + ", ".join(os.listdir(current_dir))
-            )
-            logger.log(error_msg, 'error')
             raise ServiceError(
-                f"{error_msg}\n"
-                "Please create a team directory (team_*) in the current working directory before running KinOS"
+                "No team directory found. "
+                "Please create a team directory (team_*) first."
             )
         
         current_team = team_dir[5:]  # Remove 'team_' prefix
-        logger.log(f"Found team directory: {team_dir}", 'debug')
+        
+        # Return cached services if team hasn't changed
+        if (_services_cache is not None and 
+            getattr(_services_cache.get('team_service'), 
+                   'active_team_name', None) == current_team):
+            return _services_cache
         
     except Exception as e:
         error_msg = (
@@ -61,35 +44,22 @@ def init_services(_) -> Dict[str, Any]:
         logger.log(error_msg, 'error')
         raise ServiceError(error_msg)
 
-    # Return cached services if team hasn't changed
-    if _services_cache is not None and getattr(_services_cache.get('team_service'), 'active_team_name', None) == current_team:
-        logger.log(f"Returning cached services for team: {current_team}", 'debug')
-        return _services_cache
-    
-    try:
-        logger.log("Starting service initialization", 'debug')
+    # Initialize services
+    services = {}
         
-        # Import services dynamically to avoid circular imports
-        from services.dataset_service import DatasetService
-        from services.file_service import FileService
-        from services.team_service import TeamService
-        from services.agent_service import AgentService
-        from services.map_service import MapService
-        from utils.model_router import ModelRouter
-
-        logger.log("Services imported successfully", 'debug')
-
-        # Create services dictionary first
-        services = {}
+    # Initialize TeamService first and set active team
+    services['team_service'] = TeamService(None)
+    services['team_service'].set_active_team(current_team, force=True)
         
-        # Initialize TeamService first
-        services['team_service'] = TeamService(None)
-        team_service = services['team_service']
-            
-        # Only set active team if a team directory exists and no active team is set
-        if current_team and not team_service.active_team_name:
-            team_service.set_active_team(current_team)
-            logger.log(f"Set active team to '{current_team}' from directory", 'info')
+    # Initialize other services...
+    services['model_router'] = ModelRouter()
+    services['agent_service'] = AgentService(None)
+    services['map_service'] = MapService(services['team_service'])
+        
+    # Cache services
+    _services_cache = services
+        
+    return services
 
         services['model_router'] = ModelRouter()
         

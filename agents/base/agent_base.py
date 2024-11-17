@@ -127,58 +127,26 @@ class AgentBase(ABC):
             )
 
     def get_prompt(self) -> str:
-        """
-        Retrieve the current prompt for the Agent
-        
-        Raises:
-            ValueError: If no prompt file is found
-        
-        Returns:
-            str: Prompt content
-        """
+        """Get the current prompt using active team context"""
         try:
-            # Use PathManager to get prompt file path
-            from utils.path_manager import PathManager
-            
-            # Get team service to find the team
+            # Get services
             from services import init_services
             services = init_services(None)
             team_service = services['team_service']
             
-            # First try to get active team
+            # Get active team - will raise error if none set
             active_team = team_service.get_active_team()
-            if active_team:
-                agent_team = active_team.get('name')
-            else:
-                # Search for agent in all teams
-                agent_team = None
-                for team in team_service.team_types:
-                    # Handle both string and dict agent configurations
-                    agents = team.get('agents', [])
-                    for agent in agents:
-                        agent_name = agent.get('name', agent) if isinstance(agent, dict) else agent
-                        if self.name == agent_name:
-                            agent_team = team.get('name')
-                            break
-                    if agent_team:
-                        break
+            team_name = active_team.get('name')
             
-            if not agent_team:
-                # Use current directory team as fallback
-                current_dir = os.getcwd()
-                team_dir = next((d for d in os.listdir(current_dir) if d.startswith('team_')), None)
-                if team_dir:
-                    agent_team = team_dir[5:]  # Remove 'team_' prefix
-                else:
-                    raise ValueError(f"No team found for agent {self.name}")
-            
-            # Get prompt path using PathManager
-            prompt_path = PathManager.get_prompt_file(self.name, agent_team)
+            # Get prompt using PathManager
+            prompt_path = PathManager.get_prompt_file(self.name, team_name)
             
             if not prompt_path or not os.path.exists(prompt_path):
-                raise ValueError(f"Prompt file not found for agent {self.name} in team {agent_team}")
+                raise ValueError(
+                    f"Prompt file not found for agent {self.name} "
+                    f"in active team {team_name}"
+                )
             
-            # Read and return prompt content
             with open(prompt_path, 'r', encoding='utf-8') as f:
                 return f.read()
             

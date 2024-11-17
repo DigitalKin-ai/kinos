@@ -173,27 +173,13 @@ class TeamService(BaseService):
 
     def set_active_team(self, name: str, force: bool = False) -> bool:
         """
-        Set the active team configuration with improved state tracking and call tracing
+        Set the active team configuration with strict single-team enforcement
         
         Args:
             name: Team name to set
             force: Force team switch even if already active
         """
         try:
-            # Log call stack
-            import traceback
-            call_stack = traceback.extract_stack()
-            # Get the last 3 frames (excluding this one)
-            relevant_calls = call_stack[-4:-1]
-            
-            stack_trace = "\n".join(f"  File {frame.filename}, line {frame.lineno}, in {frame.name}"
-                                   for frame in relevant_calls)
-            
-            self.logger.log(
-                f"set_active_team called for '{name}' from:\n{stack_trace}", 
-                'debug'
-            )
-
             # Normalize team name
             normalized_name = name.replace('team_', '')
             
@@ -202,30 +188,20 @@ class TeamService(BaseService):
                 self.logger.log(f"Team {normalized_name} already active", 'debug')
                 return True
                 
-            # Get team config with explicit locking
+            # Get team config
+            team_config = self.get_team_by_name(normalized_name)
+            if not team_config:
+                raise ServiceError(f"Team '{normalized_name}' not found")
+            
+            # Store active team and name atomically with lock
             with self._team_lock:
-                team_config = self.get_team_by_name(normalized_name)
-                if not team_config:
-                    # Generate default config if none exists
-                    team_config = self._generate_default_config(normalized_name)
-                    if not team_config:
-                        raise ServiceError(f"Failed to create default config for team '{normalized_name}'")
-                
-                # Store active team and name atomically
                 self.active_team = team_config
                 self.active_team_name = normalized_name
                 self._last_set_time = datetime.now()
             
-            # Create team directory structure
-            team_dir = os.path.join(os.getcwd(), f"team_{normalized_name}")
-            os.makedirs(team_dir, exist_ok=True)
-            
-            for subdir in ['history', 'prompts', 'data']:
-                os.makedirs(os.path.join(team_dir, subdir), exist_ok=True)
-            
             self.logger.log(
-                f"Active team set to: {normalized_name} ({team_config.get('display_name', normalized_name)})\n"
-                f"Time: {self._last_set_time.isoformat()}", 
+                f"Active team set to: {normalized_name} "
+                f"({team_config.get('display_name', normalized_name)})", 
                 'success'
             )
             return True
