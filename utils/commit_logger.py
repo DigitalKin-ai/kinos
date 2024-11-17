@@ -44,26 +44,13 @@ class CommitLogger:
 
     def _parse_commit_line(self, line: str, agent_name: str) -> Optional[Dict]:
         """
-        Parse a single commit line
-        
-        Args:
-            line: Line of output to parse
-            agent_name: Name of agent that made the commit
-            
-        Returns:
-            Optional[Dict]: Parsed commit info or None
+        Parse a single commit line and get diff
         """
         try:
             # Check for commit line
             match = self.commit_pattern.search(line)
             if not match:
-                return {
-                    'hash': 'skipped',
-                    'message': 'Non-commit line', 
-                    'agent': agent_name,
-                    'timestamp': datetime.now().isoformat(),
-                    'status': 'skipped'
-                }
+                return None
                 
             # Extract commit hash and full message
             commit_hash = match.group(1)
@@ -77,10 +64,10 @@ class CommitLogger:
             # Get emoji for commit type
             emoji = COMMIT_ICONS.get(commit_type, '🔨')
             
-            # Extract modified files from previous lines
-            modified_files = self._extract_modified_files(line)
+            # Get diff for this commit using git
+            diff = self._get_commit_diff(commit_hash)
             
-            # Build commit info with status and modified files
+            # Build commit info
             commit = {
                 'hash': commit_hash,
                 'type': commit_type,
@@ -89,7 +76,8 @@ class CommitLogger:
                 'agent': agent_name,
                 'timestamp': datetime.now().isoformat(),
                 'status': 'success',
-                'modified_files': modified_files
+                'modified_files': self._extract_modified_files(line),
+                'diff': diff  # Add diff to commit info
             }
             
             return commit
@@ -106,10 +94,7 @@ class CommitLogger:
 
     def _log_commit(self, commit: Dict) -> None:
         """
-        Log a parsed commit with team context
-        
-        Args:
-            commit: Parsed commit dictionary
+        Log a parsed commit with team context and diff
         """
         try:
             # Get team context from services
@@ -125,14 +110,18 @@ class CommitLogger:
                     team_name = team.get('name', team.get('id', 'Unknown Team'))
                     break
             
-            # Format commit message with team context and modified files
+            # Format commit message with team context
             files_str = f" ({', '.join(commit.get('modified_files', []))})" if commit.get('modified_files') else ""
             message = (
-                f"[{team_name}] [{commit['agent']}] "
+                f"\n[{team_name}] [{commit['agent']}] "
                 f"{commit['emoji']} [{commit['type']}]: {commit['message']}{files_str}"
             )
             
-            # Log to console
+            # Add diff if available
+            if commit.get('diff'):
+                message += f"\n\n{commit['diff']}\n"
+                
+            # Log to console with diff highlighting
             self.logger.log(message, 'info')
             
             # Log to commits file
@@ -192,6 +181,36 @@ class CommitLogger:
                     modified_files.append(file_path)
                     
         return modified_files
+
+    def _get_commit_diff(self, commit_hash: str) -> Optional[str]:
+        """
+        Get diff for a specific commit
+        
+        Args:
+            commit_hash: Hash of the commit
+            
+        Returns:
+            str: Formatted diff or None if error
+        """
+        try:
+            import subprocess
+            
+            # Get diff command output
+            result = subprocess.run(
+                ['git', 'show', '--color=always', commit_hash],
+                capture_output=True,
+                text=True,
+                encoding='utf-8'
+            )
+            
+            if result.returncode != 0:
+                return None
+                
+            return result.stdout
+            
+        except Exception as e:
+            self.logger.log(f"Error getting diff: {str(e)}", 'error')
+            return None
 
     def get_commit_history(self, agent_name: Optional[str] = None) -> List[Dict]:
         """
