@@ -25,6 +25,14 @@ class MapService(BaseService):
         self.anthropic = Anthropic()
         self.map_file = None
         self._initialized = False
+        
+        # Initialize map file path immediately if we have an active team
+        try:
+            active_team = self.team_service.get_active_team()
+            if active_team and active_team.get('name'):
+                self._initialize_map_file(active_team['name'])
+        except Exception as e:
+            self.logger.log(f"Initial map file setup failed: {str(e)}", 'warning')
 
     def _initialize_map_file(self, team_name: str) -> None:
         """Initialize map file path for specific team"""
@@ -464,7 +472,7 @@ class MapService(BaseService):
     def update_map(self) -> bool:
         """Update map after file changes"""
         try:
-            # Ensure map file path is set
+            # Always ensure we have the correct map file path
             if not self._ensure_map_file_path():
                 self.logger.log("Could not determine map file path", 'error')
                 return False
@@ -479,8 +487,6 @@ class MapService(BaseService):
         except Exception as e:
             self.logger.log(f"Error updating map: {str(e)}", 'error')
             return False
-            
-        # Validate mission directory
             mission_dir = os.getcwd()
             if not os.path.exists(mission_dir):
                 self.logger.log(f"Mission directory not found: {mission_dir}", 'error')
