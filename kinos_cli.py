@@ -370,23 +370,44 @@ def run_multi_team_loop(model: Optional[str] = None):
                             logger.log(f"Agent {agent_name} already running for team {team_name}", 'debug')
                             continue
 
-                        # Create agent config
-                        agent_config = {
-                            'name': agent_name,
-                            'team': team_name,
-                            'type': 'aider',
-                            'mission_dir': team_dir,
-                            'prompt_file': os.path.join(prompts_dir, prompt_file),
-                            'weight': 0.5,
-                            'services': services
-                        }
+                        # Create agent config with detailed logging
+                        try:
+                            agent_config = {
+                                'name': agent_name,
+                                'team': team_name,
+                                'type': 'aider',
+                                'mission_dir': team_dir,
+                                'prompt_file': os.path.join(prompts_dir, prompt_file),
+                                'weight': 0.5,
+                                'services': services
+                            }
+                            logger.log(f"Created agent config: {agent_config}", 'debug')
 
-                        # Create and start new runner
-                        runner = AgentRunner([agent_name], output_queue, logger, team_name)
-                        runner.agent_config = agent_config
-                        runner.start()
-                        active_threads[runner.ident] = runner
-                        logger.log(f"Started new agent runner for team {team_name} (total: {len(active_threads)})")
+                            # Create and start new runner with error handling
+                            try:
+                                logger.log(f"Creating runner for {agent_name} in team {team_name}", 'debug')
+                                runner = AgentRunner([agent_name], output_queue, logger, team_name)
+                                logger.log("Runner created successfully", 'debug')
+                                
+                                logger.log("Setting agent config", 'debug')
+                                runner.agent_config = agent_config
+                                
+                                logger.log("Starting runner thread", 'debug')
+                                runner.start()
+                                logger.log("Runner thread started successfully", 'debug')
+                                
+                                active_threads[runner.ident] = runner
+                                logger.log(f"Started new agent runner for team {team_name} (total: {len(active_threads)})")
+
+                            except Exception as runner_error:
+                                logger.log(f"Error creating/starting runner: {str(runner_error)}", 'error')
+                                logger.log(traceback.format_exc(), 'debug')
+                                continue
+
+                        except Exception as config_error:
+                            logger.log(f"Error creating agent config: {str(config_error)}", 'error')
+                            logger.log(traceback.format_exc(), 'debug')
+                            continue
 
                     except RuntimeError as e:
                         if "already exists" in str(e):
@@ -394,7 +415,7 @@ def run_multi_team_loop(model: Optional[str] = None):
                             continue
                         raise
                     except Exception as e:
-                        logger.log(f"Error creating agent {agent_name} for team {team_name}: {str(e)}", 'error')
+                        logger.log(f"Error in agent creation loop: {str(e)}", 'error')
                         logger.log(traceback.format_exc(), 'debug')
                         continue
 
@@ -402,10 +423,14 @@ def run_multi_team_loop(model: Optional[str] = None):
 
                 # Process output queue
                 try:
-                    msg = output_queue.get_nowait()
-                    logger.log(f"Received message from queue: {msg['status']}", 'warning')
-                except queue.Empty:
-                    pass
+                    while True:  # Process all available messages
+                        try:
+                            msg = output_queue.get_nowait()
+                            logger.log(f"Queue message - Status: {msg['status']}, Error: {msg.get('error', 'None')}", 'warning')
+                        except queue.Empty:
+                            break
+                except Exception as queue_error:
+                    logger.log(f"Error processing queue: {str(queue_error)}", 'error')
 
                 time.sleep(1)  # Main loop sleep
 
