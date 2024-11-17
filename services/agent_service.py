@@ -412,81 +412,65 @@ List any specific constraints or limitations.
         return list(self.agents.keys())
 
     def run_random_agent(self, team_agents: List[str]):
-        """Run a random agent from the team based on weights"""
+        """Run a random agent from any team"""
         try:
-            # Get current directory to find active team
+            # Get all team directories
             current_dir = os.getcwd()
             team_dirs = [d for d in os.listdir(current_dir) if d.startswith('team_')]
             if not team_dirs:
                 self.logger.log("No team directories found", 'error')
                 return
-                
-            # Get active team from TeamService
+
+            # Get TeamService
             from services import init_services
             services = init_services(None)
             team_service = services['team_service']
-            active_team = team_service.get_active_team()
-            team_name = active_team.get('name') if active_team else team_dirs[0].replace('team_', '')
-            
-            self.logger.log(f"🎲 Selecting agent from team {team_name}: {team_agents}", 'debug')
-            
-            # Get weights from team config
-            weights = []
-            for agent in team_agents:
-                try:
-                    # Get team config directly
-                    team_config = team_service.get_team_config(team_name)
-                    if not team_config:
-                        weights.append(0.5)  # Default weight
-                        continue
-                            
-                        # Find agent in config
-                        agent_config = None
-                        for team_agent in team_config.get('agents', []):
-                            if isinstance(team_agent, dict) and team_agent.get('name') == agent:
-                                agent_config = team_agent
-                                break
-                            elif isinstance(team_agent, str) and team_agent == agent:
-                                agent_config = {'name': agent, 'weight': 0.5}
-                                break
-                        
-                        weight = agent_config.get('weight', 0.5) if agent_config else 0.5
-                        weights.append(weight)
-                    else:
-                        weights.append(0.5)  # Default if no config
-                        
-                except Exception:
-                    weights.append(0.5)  # Default weight on error
 
-            # Calculate normalized weights
-            total_weight = sum(weights) if weights else len(team_agents)
-            normalized_weights = [w/total_weight for w in weights]
-            
-            # Select agent with logging
-            agent_name = random.choices(team_agents, weights=normalized_weights, k=1)[0]
-            self.logger.log(f"🎯 Selected Agent: {agent_name}", 'debug')
+            # Collect all agents from all teams
+            all_agents = []
+            for team_dir in team_dirs:
+                team_name = team_dir.replace('team_', '')
+                team_config = team_service.get_team_config(team_name)
+                if team_config and 'agents' in team_config:
+                    for agent in team_config['agents']:
+                        if isinstance(agent, dict):
+                            all_agents.append({
+                                'name': agent['name'],
+                                'team': team_name,
+                                'weight': agent.get('weight', 0.5),
+                                'type': agent.get('type', 'aider')
+                            })
+                        else:
+                            all_agents.append({
+                                'name': agent,
+                                'team': team_name,
+                                'weight': 0.5,
+                                'type': 'aider'
+                            })
+
+            if not all_agents:
+                self.logger.log("No agents found in any team", 'error')
+                return
+
+            # Select random agent using weights
+            weights = [agent['weight'] for agent in all_agents]
+            selected = random.choices(all_agents, weights=weights, k=1)[0]
+
+            self.logger.log(
+                f"🎯 Selected Agent: {selected['name']} "
+                f"(team: {selected['team']}, weight: {selected['weight']})", 
+                'info'
+            )
 
             # Configure agent
             config = {
-                'name': agent_name,
+                'name': selected['name'],
                 'mission_dir': os.getcwd(),
-                'prompt_file': os.path.join('prompts', f"{agent_name}.md"),
-                'type': 'aider',  # Default type
-                'weight': weights[team_agents.index(agent_name)],
-                'team': team_name  # Use team name from directory
+                'prompt_file': os.path.join('prompts', f"{selected['name']}.md"),
+                'type': selected['type'],
+                'weight': selected['weight'],
+                'team': selected['team']
             }
-
-            # EXPLICIT RESEARCH TYPE FOR SPECIFIC AGENTS
-            research_agents = [
-                'chercheur', 
-                'documentaliste'
-            ]
-            
-            if agent_name.lower() in research_agents:
-                config['type'] = 'research'
-                self.logger.log(f"Agent {agent_name} set to research type", 'debug')
-
-            self.logger.log(f"Final agent configuration: {config}", 'debug')
 
             # Create appropriate agent type
             if config['type'] == 'research':
@@ -497,8 +481,8 @@ List any specific constraints or limitations.
                 agent = AiderAgent(config)
 
             self.logger.log(
-                f"Running {config['type'].upper()} agent {agent_name} "
-                f"(weight: {config['weight']:.2f}) in team {team_name}", 
+                f"Running {config['type'].upper()} agent {selected['name']} "
+                f"(weight: {selected['weight']:.2f}) in team {selected['team']}", 
                 'info'
             )
 
@@ -507,7 +491,7 @@ List any specific constraints or limitations.
                 agent.run()
             except Exception as agent_error:
                 self.logger.log(
-                    f"Agent {agent_name} execution error:\n"
+                    f"Agent {selected['name']} execution error:\n"
                     f"Type: {type(agent_error)}\n"
                     f"Error: {str(agent_error)}\n"
                     f"Traceback: {traceback.format_exc()}",
