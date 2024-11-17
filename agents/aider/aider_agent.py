@@ -385,7 +385,7 @@ class AiderAgent(AgentBase):
             # Ensure model is configured
             if not model_router.current_model:
                 # Try to set default model
-                default_model = "claude-3-haiku"  # Or another default
+                default_model = "gpt-4o-mini"  # Default model
                 if not model_router.set_model(default_model):
                     raise ValueError(f"[{self.name}] Could not set default model: {default_model}")
                 self.logger.log(f"[{self.name}] Set default model: {default_model}", 'info')
