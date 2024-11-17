@@ -379,6 +379,19 @@ class AiderAgent(AgentBase):
 
             self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
 
+            # Read file contents into a new dictionary
+            files_with_content = {}
+            for file_path in self.mission_files.keys():
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        files_with_content[file_path] = f.read()
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error reading {file_path}: {str(e)}", 'warning')
+                    continue
+
+            if not files_with_content:
+                raise ValueError(f"[{self.name}] No readable files found")
+
             # Get current prompt using PathManager - fail fast if missing
             prompt_path = PathManager.get_prompt_file(self.name, self.team)
             if not prompt_path or not os.path.exists(prompt_path):
@@ -429,7 +442,7 @@ Always structure your responses as:
 Based on the current state of the files, choose ONE specific task to progress.
 
 Current project files:
-{self._format_files_context(self.mission_files)}
+{self._format_files_context(files_with_content)}
 
 Instructions:
 1. Analyze the current state
