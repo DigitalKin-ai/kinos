@@ -29,9 +29,9 @@ def init_services(_) -> Dict[str, Any]:
     try:
         current_dir = os.getcwd()
         team_dir = next((d for d in os.listdir(current_dir) if d.startswith('team_')), None)
-        current_team = team_dir[5:] if team_dir else 'default'
+        current_team = team_dir[5:] if team_dir else None
     except Exception:
-        current_team = 'default'
+        current_team = None
 
     if _services_cache is not None and getattr(_services_cache.get('team_service'), 'active_team_name', None) == current_team:
         logger.log(f"Returning cached services for team: {current_team}", 'debug')
@@ -57,30 +57,23 @@ def init_services(_) -> Dict[str, Any]:
         services['team_service'] = TeamService(None)
         team_service = services['team_service']
         
-        # Only set active team if not already set
-        if not team_service.active_team_name:
-            current_dir = os.getcwd()
-                
-            # First look for non-default teams
-            for item in os.listdir(current_dir):
-                if item.startswith('team_') and item != 'team_default':
-                    team_name = item.replace('team_', '')
-                    if team_service.set_active_team(team_name):
-                        logger.log(f"Set active team to '{team_name}' from directory", 'info')
-                        break
-
-            # Fall back to default only if no team is set
-            if not team_service.active_team_name:
-                team_service.set_active_team('default')
+        # Only set active team if a team directory exists
+        if current_team:
+            team_service.set_active_team(current_team)
+            logger.log(f"Set active team to '{current_team}' from directory", 'info')
 
         services['model_router'] = ModelRouter()
         
-        # Initialize DatasetService with active team path
+        # Initialize DatasetService with active team path if available
         team_service = services['team_service']
-        active_team = team_service.get_active_team()
-        team_name = active_team.get('name', 'default') if active_team else 'default'
-        dataset_path = os.path.join(current_dir, f"team_{team_name}", "data", "fine-tuning.jsonl")
-        services['dataset_service'] = DatasetService(dataset_path)
+        active_team = team_service.get_active_team() if team_service.active_team_name else None
+        team_name = active_team.get('name') if active_team else None
+        
+        if team_name:
+            dataset_path = os.path.join(current_dir, f"team_{team_name}", "data", "fine-tuning.jsonl")
+            services['dataset_service'] = DatasetService(dataset_path)
+        else:
+            services['dataset_service'] = DatasetService(None)
         
         # Initialize remaining services
         services['file_service'] = FileService(None)
@@ -97,7 +90,6 @@ def init_services(_) -> Dict[str, Any]:
             team_configs = [
                 'book-writing', 
                 'coding', 
-                'default', 
                 'literature-review'
             ]
             for config in team_configs:
