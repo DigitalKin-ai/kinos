@@ -4,6 +4,137 @@
 
 KinOS is an autonomous agent-based system designed for collaborative software development. The system uses multiple specialized agents working together within isolated team environments to accomplish development tasks.
 
+### Agent State Management
+
+#### State Tracking
+1. **Core State Attributes:**
+   ```python
+   @dataclass
+   class AgentState:
+       name: str
+       status: str  # waiting, active, completed, error
+       start_time: Optional[datetime]
+       end_time: Optional[datetime]
+       error: Optional[str]
+       retries: int
+       max_retries: int = 3
+   ```
+
+2. **State Transitions:**
+   - mark_active(): Activates agent and sets start time
+   - mark_completed(): Marks completion and sets end time 
+   - mark_error(): Records error and increments retry count
+
+3. **Retry Management:**
+   - Automatic retry tracking
+   - Maximum retry limits
+   - Duration calculation
+
+### Path Management System
+
+#### Core Functionality
+1. **Project Structure:**
+   - Team-based isolation
+   - Mission directories
+   - Configuration paths
+   - History tracking
+
+2. **Path Operations:**
+   - get_project_root(): Get current team directory
+   - get_mission_path(): Get mission-specific paths
+   - get_prompt_file(): Get agent prompt files
+   - get_team_path(): Get team directory paths
+
+3. **Security Features:**
+   - Path validation
+   - Directory isolation
+   - Access control
+   - Sanitization
+
+### Research System
+
+#### Research Agent
+1. **Core Features:**
+   - Automated research execution
+   - Query management
+   - Result caching
+   - Source validation
+
+2. **Integration:**
+   - Perplexity API integration
+   - Result formatting
+   - Citation management
+   - Content updates
+
+### Command System
+
+#### Command Builder
+1. **Command Construction:**
+   - Model argument handling
+   - File argument management
+   - History tracking
+   - Validation rules
+
+2. **Execution Control:**
+   - Process management
+   - Output streaming
+   - Error handling
+   - Resource cleanup
+
+### Health Monitoring System
+
+#### Health Management
+1. **Health Checks:**
+   - Agent status monitoring
+   - Resource tracking
+   - Performance metrics
+   - Error detection
+
+2. **Metrics Collection:**
+   - Response times
+   - Success rates
+   - Resource usage
+   - Error patterns
+
+### Rate Limiting System
+
+#### Rate Control
+1. **Request Management:**
+   - Sliding window tracking
+   - Request counting
+   - Time window management
+   - Wait time calculation
+
+2. **Performance Protection:**
+   - Resource conservation
+   - Service protection
+   - Fair usage enforcement
+   - Overload prevention
+
+### Command Line Interface
+
+#### Core Components
+1. **Command Structure:**
+   ```python
+   def main():
+       parser.add_argument('command', help='Command to execute')
+       parser.add_argument('--name', help='Agent or team name')
+       parser.add_argument('--model', help='Model to use')
+       parser.add_argument('-v', '--verbose', help='Enable verbose logging')
+   ```
+
+2. **Team Management:**
+   - Team initialization
+   - Agent deployment
+   - Resource allocation
+   - State management
+
+3. **Execution Control:**
+   - Multi-team operations
+   - Agent coordination
+   - Resource management
+   - Error recovery
+
 ### Core Concepts
 
 - **Team-Based Isolation**: All operations occur within team-specific directories
