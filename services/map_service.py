@@ -80,7 +80,7 @@ class MapService(BaseService):
                 
             self.logger.log(f"[MapService] 📝 Using map file: {self.map_file}", 'debug')
             
-            # Get active team from injected TeamService
+            # Get active team from injected TeamService WITHOUT resetting it
             active_team = self.team_service.get_active_team()
             if not active_team:
                 self.logger.log("[MapService] ⚠️ No active team found", 'warning')
@@ -89,6 +89,7 @@ class MapService(BaseService):
             team_name = active_team.get('name')
             self.logger.log(f"[MapService] 👥 Generating map for team: {team_name}", 'info')
             
+            # Use the active team's directory
             team_dir = f"team_{team_name}" if not team_name.startswith('team_') else team_name
             
             # Ensure team directory exists

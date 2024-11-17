@@ -1,6 +1,8 @@
 """Team configuration and management service"""
 import os
 import json
+import threading
+from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
 import os
 import json
@@ -12,11 +14,13 @@ class TeamService(BaseService):
     """Manages team configurations and state"""
 
     def __init__(self, _):  # Keep parameter for compatibility but don't use it
-        """Initialize with minimal dependencies"""
+        """Initialize with minimal dependencies and thread safety"""
         super().__init__(_)
         self.active_team = None
         self.active_team_name = None  # Add explicit team name tracking
         self.team_types = self._load_team_types()
+        self._team_lock = threading.Lock()  # Add thread lock
+        self._last_set_time = None  # Track last set time
 
     def _load_team_types(self) -> List[Dict[str, Any]]:
         """Load team configurations from local team directories"""
@@ -169,7 +173,7 @@ class TeamService(BaseService):
 
     def set_active_team(self, name: str, force: bool = False) -> bool:
         """
-        Set the active team configuration
+        Set the active team configuration with improved state tracking
         
         Args:
             name: Team name to set
@@ -192,9 +196,11 @@ class TeamService(BaseService):
                 if not team_config:
                     raise ServiceError(f"Failed to create default config for team '{normalized_name}'")
             
-            # Store active team and name
-            self.active_team = team_config
-            self.active_team_name = normalized_name
+            # Store active team and name with explicit locking
+            with self._team_lock:
+                self.active_team = team_config
+                self.active_team_name = normalized_name
+                self._last_set_time = datetime.now()
             
             # Create team directory structure
             team_dir = os.path.join(os.getcwd(), f"team_{name}")
@@ -203,7 +209,11 @@ class TeamService(BaseService):
             for subdir in ['history', 'prompts', 'data']:
                 os.makedirs(os.path.join(team_dir, subdir), exist_ok=True)
             
-            self.logger.log(f"Active team set to: {name} ({team_config.get('display_name', name)})", 'success')
+            self.logger.log(
+                f"Active team set to: {name} ({team_config.get('display_name', name)})\n"
+                f"Time: {self._last_set_time.isoformat()}", 
+                'success'
+            )
             return True
             
         except Exception as e:
