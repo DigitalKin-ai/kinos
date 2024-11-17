@@ -371,55 +371,107 @@ class TeamService(BaseService):
 
     def get_team_by_name(self, team_name: str) -> Optional[Dict[str, Any]]:
         """
-        Get team configuration by name
-        
-        Args:
-            team_name: Name of the team to find
-            
-        Returns:
-            Optional[Dict[str, Any]]: Team configuration or None if not found
+        Get team configuration by name with enhanced logging
         """
         try:
             # Normalize team name by removing 'team_' prefix if present
             normalized_name = team_name.replace('team_', '')
+            self.logger.log(f"Looking for team: {normalized_name} (original: {team_name})", 'debug')
             
             # First check if this is the active team
             if self.active_team and self.active_team.get('name') == normalized_name:
+                self.logger.log(f"Found active team match: {normalized_name}", 'debug')
                 return self.active_team
                 
+            # Log current directory
+            current_dir = os.getcwd()
+            self.logger.log(f"Current directory: {current_dir}", 'debug')
+            
+            # List all directories
+            try:
+                all_dirs = os.listdir(current_dir)
+                self.logger.log(f"All directories: {all_dirs}", 'debug')
+            except Exception as list_error:
+                self.logger.log(f"Error listing directory: {str(list_error)}", 'error')
+                all_dirs = []
+
             # Look for team directory first
-            team_dir = os.path.join(os.getcwd(), f"team_{normalized_name}")
+            team_dir = os.path.join(current_dir, f"team_{normalized_name}")
+            self.logger.log(f"Looking for team directory: {team_dir}", 'debug')
+            
             if os.path.exists(team_dir):
+                self.logger.log(f"Found team directory: {team_dir}", 'debug')
                 config_path = os.path.join(team_dir, "config.json")
+                
                 if os.path.exists(config_path):
                     try:
                         with open(config_path, 'r', encoding='utf-8') as f:
                             config = json.load(f)
+                        self.logger.log(f"Loaded existing config for team {normalized_name}", 'debug')
                         return config
                     except Exception as e:
+                        self.logger.log(f"Error loading config file {config_path}: {str(e)}", 'error')
                         raise ServiceError(f"Error loading team config: {str(e)}")
                 else:
                     # Create default config if directory exists but no config
+                    self.logger.log(f"Creating default config for team {normalized_name}", 'debug')
                     config = {
                         "name": normalized_name,
                         "display_name": normalized_name.replace('_', ' ').title(),
-                        "agents": []
+                        "agents": [
+                            {"name": "specifications", "type": "aider", "weight": 0.4},
+                            {"name": "management", "type": "aider", "weight": 0.6},
+                            {"name": "evaluation", "type": "aider", "weight": 0.3}
+                        ]
                     }
                     try:
                         os.makedirs(os.path.dirname(config_path), exist_ok=True)
                         with open(config_path, 'w', encoding='utf-8') as f:
                             json.dump(config, f, indent=4)
+                        self.logger.log(f"Created default config file at {config_path}", 'debug')
                         return config
                     except Exception as e:
+                        self.logger.log(f"Error creating config file {config_path}: {str(e)}", 'error')
                         raise ServiceError(f"Error creating team config: {str(e)}")
+            else:
+                self.logger.log(f"Team directory not found, creating: {team_dir}", 'debug')
+                try:
+                    # Create team directory and default config
+                    os.makedirs(team_dir, exist_ok=True)
+                    os.makedirs(os.path.join(team_dir, "prompts"), exist_ok=True)
+                    os.makedirs(os.path.join(team_dir, "history"), exist_ok=True)
                     
+                    config = {
+                        "name": normalized_name,
+                        "display_name": normalized_name.replace('_', ' ').title(),
+                        "agents": [
+                            {"name": "specifications", "type": "aider", "weight": 0.4},
+                            {"name": "management", "type": "aider", "weight": 0.6},
+                            {"name": "evaluation", "type": "aider", "weight": 0.3}
+                        ]
+                    }
+                    
+                    config_path = os.path.join(team_dir, "config.json")
+                    with open(config_path, 'w', encoding='utf-8') as f:
+                        json.dump(config, f, indent=4)
+                        
+                    self.logger.log(f"Created new team directory and config: {team_dir}", 'info')
+                    return config
+                    
+                except Exception as create_error:
+                    self.logger.log(f"Error creating team directory/config: {str(create_error)}", 'error')
+                    raise ServiceError(f"Failed to create team directory/config: {str(create_error)}")
+
             # Then check predefined configurations
+            self.logger.log(f"Checking predefined team types: {len(self.team_types)}", 'debug')
             for team in self.team_types:
                 if team.get('name') == normalized_name:
+                    self.logger.log(f"Found predefined team configuration: {normalized_name}", 'debug')
                     return team
                     
+            self.logger.log(f"No team found with name: {normalized_name}", 'error')
             raise ServiceError(f"Team '{normalized_name}' not found")
-            
+                
         except Exception as e:
             self.logger.log(f"Error getting team by name: {str(e)}", 'error')
             raise ServiceError(f"Failed to get team '{team_name}': {str(e)}")
