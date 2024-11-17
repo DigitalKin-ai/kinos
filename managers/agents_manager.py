@@ -14,12 +14,12 @@ class AgentsManager:
         if not openai.api_key:
             raise ValueError("OpenAI API key not found in environment variables")
         
-    def generate_agents(self, mission_filepath):
+    def generate_agents(self, mission_filepath=".aider.mission.md"):
         """
         Generate mission-specific agent prompts.
         
         Args:
-            mission_filepath (str): Path to the mission specification file
+            mission_filepath (str): Path to the mission specification file, defaults to .aider.mission.md
             
         Raises:
             ValueError: If mission file is invalid or missing

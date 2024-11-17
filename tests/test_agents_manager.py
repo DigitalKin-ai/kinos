@@ -59,6 +59,23 @@ class TestAgentsManager(unittest.TestCase):
             self.assertIn("## Role", content)
             self.assertIn("## Capabilities", content)
             self.assertIn("## Success Metrics", content)
+            
+    def test_generate_agents_default_mission(self):
+        """Test agent generation with default mission file path."""
+        # Create default mission file
+        with open(".aider.mission.md", 'w') as f:
+            f.write("# Default Test Mission\n\n## Objectives\n- Test default behavior")
+            
+        try:
+            self.manager.generate_agents()  # Using default path
+            
+            # Verify agent files were created
+            self.assertTrue(os.path.exists(".aider.agent.agent_1.md"))
+            
+        finally:
+            # Cleanup default mission file
+            if os.path.exists(".aider.mission.md"):
+                os.remove(".aider.mission.md")
 
 if __name__ == '__main__':
     unittest.main()
