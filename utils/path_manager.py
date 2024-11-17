@@ -445,16 +445,10 @@ Always structure your responses as:
             team_dirs = [d[5:] for d in all_dirs if d.startswith("team_") and d[5:]]
             
             # Optional: use logger if available
-            try:
-                if not team_dirs:
-                    cls._log("No teams found in mission directory", 'warning')
-            except:
-                # Fallback to print if logger not available
-                if team_dirs:
-                    logger = Logger()
-                else:
-                    print("No teams found in mission directory")
-            
+            # Log if no teams found
+            if not team_dirs:
+                cls._log("No teams found in mission directory", 'warning')
+                
             return team_dirs
         
         except Exception as e:
