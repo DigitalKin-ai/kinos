@@ -427,6 +427,11 @@ Always structure your responses as:
             return os.path.join(os.getcwd(), "history")
 
     @classmethod
+    def _log(cls, message: str, level: str = 'info'):
+        """Internal logging using utility function"""
+        log_message(message, level)
+
+    @classmethod
     def list_teams(cls) -> List[str]:
         """
         List team directories in current working directory
@@ -444,7 +449,6 @@ Always structure your responses as:
             # Filter directories that start with "team_" and remove None values
             team_dirs = [d[5:] for d in all_dirs if d.startswith("team_") and d[5:]]
             
-            # Optional: use logger if available
             # Log if no teams found
             if not team_dirs:
                 cls._log("No teams found in mission directory", 'warning')
@@ -452,12 +456,7 @@ Always structure your responses as:
             return team_dirs
         
         except Exception as e:
-            # Fallback error handling
-            try:
-                cls._log(f"Error listing teams: {str(e)}", 'error')
-            except:
-                print(f"Error listing teams: {str(e)}")
-            
+            cls._log(f"Error listing teams: {str(e)}", 'error')
             return []
 
     @staticmethod
