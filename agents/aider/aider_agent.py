@@ -355,6 +355,14 @@ Instructions:
             # Get files context - limit to 10 random files plus key files
             files_context = {}
             
+            # Define key files
+            key_files = {
+                os.path.join(self.mission_dir, "map.md"): True,
+                os.path.join(self.mission_dir, "todolist.md"): True,
+                os.path.join(self.mission_dir, "demande.md"): True,
+                os.path.join(self.mission_dir, "directives.md"): True
+            }
+            
             # Add key files first using full paths
             for file_path, _ in key_files.items():
                 try:
