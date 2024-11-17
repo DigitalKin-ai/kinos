@@ -55,57 +55,77 @@ class AgentRunner(threading.Thread):
             return False
 
     def __init__(self, team_agents: List[str], output_queue: queue.Queue, logger: Logger, team_name: str):
+        """Initialize agent runner with comprehensive error handling"""
         try:
+            self.logger = logger  # Set logger first for error reporting
+            self.logger.log("[AgentRunner] Starting initialization", 'debug')
+            
+            # Validate inputs
             if not team_agents:
                 raise ValueError("No agents specified")
+            if not team_name:
+                raise ValueError("Team name is required")
                 
             agent_name = team_agents[0]
+            self.logger.log(f"[AgentRunner] Initializing for agent: {agent_name}", 'debug')
+            
             agent_key = f"{agent_name}_{team_name}"
+            self.logger.log(f"[AgentRunner] Agent key: {agent_key}", 'debug')
 
             with self._runner_lock:
-                if self.is_agent_running(agent_name, team_name):
-                    raise RuntimeError(f"Runner for agent {agent_name} already exists in team {team_name}")
+                self.logger.log("[AgentRunner] Acquired runner lock", 'debug')
                 
+                if self.is_agent_running(agent_name, team_name):
+                    error_msg = f"Runner for agent {agent_name} already exists in team {team_name}"
+                    self.logger.log(f"[AgentRunner] {error_msg}", 'error')
+                    raise RuntimeError(error_msg)
+                
+                self.logger.log("[AgentRunner] Initializing thread", 'debug')
                 super().__init__(daemon=True)
+                
+                self.logger.log("[AgentRunner] Setting basic attributes", 'debug')
                 self.team_agents = team_agents
                 self.output_queue = output_queue
-                self.logger = logger
                 self.running = True
                 self.agent_type = 'aider'
                 self.team_name = team_name
                 self.agent_config = None
                 self._agent_key = agent_key
                 
-                # Register this runner
+                self.logger.log("[AgentRunner] Registering runner", 'debug')
                 self._active_runners[agent_key] = threading.current_thread().ident
                 
-                self.logger.log(f"[AgentRunner] Initialized for {agent_name} in team {team_name}", 'debug')
+                self.logger.log(f"[AgentRunner] Initialization complete for {agent_name} in team {team_name}", 'debug')
                 
         except Exception as e:
-            self.logger.log(f"[AgentRunner] Error in initialization: {str(e)}", 'error')
+            error_msg = f"[AgentRunner] Critical error during initialization: {str(e)}\n{traceback.format_exc()}"
+            if hasattr(self, 'logger'):
+                self.logger.log(error_msg, 'error')
+            else:
+                print(error_msg)  # Fallback if logger isn't set
             raise
 
     def run(self):
-        """Thread execution loop"""
+        """Thread execution loop with enhanced error handling"""
         try:
             self.logger.log(f"[AgentRunner] Starting run loop for team {self.team_name}", 'debug')
             
             while self.running:
                 try:
                     if not self.agent_config:
-                        self.logger.log("[AgentRunner] No agent config available", 'warning')
+                        self.logger.log("[AgentRunner] Waiting for agent config...", 'debug')
                         time.sleep(5)
                         continue
                         
-                    self.logger.log(f"[AgentRunner] Creating agent with config: {self.agent_config}", 'debug')
-                    
+                    self.logger.log("[AgentRunner] Creating agent instance", 'debug')
                     agent = AiderAgent(self.agent_config)
+                    
                     if not agent:
-                        self.logger.log("[AgentRunner] Failed to create agent", 'error')
+                        self.logger.log("[AgentRunner] Failed to create agent instance", 'error')
                         time.sleep(5)
                         continue
                     
-                    self.logger.log("[AgentRunner] Agent created successfully", 'debug')
+                    self.logger.log("[AgentRunner] Agent instance created successfully", 'debug')
                     
                     max_runtime = 300
                     start = time.time()
@@ -121,8 +141,8 @@ class AgentRunner(threading.Thread):
                     time.sleep(random.uniform(5, 15))
                     
                 except Exception as e:
-                    self.logger.log(f"[AgentRunner] Error in run loop: {str(e)}", 'error')
-                    self.logger.log(traceback.format_exc(), 'debug')
+                    error_msg = f"[AgentRunner] Error in run loop: {str(e)}\n{traceback.format_exc()}"
+                    self.logger.log(error_msg, 'error')
                     self.output_queue.put({
                         'thread_id': threading.get_ident(),
                         'agent_name': self.agent_config['name'] if self.agent_config else 'unknown',
@@ -134,8 +154,8 @@ class AgentRunner(threading.Thread):
                     time.sleep(5)
                     
         except Exception as e:
-            self.logger.log(f"[AgentRunner] Critical error in run method: {str(e)}", 'error')
-            self.logger.log(traceback.format_exc(), 'debug')
+            error_msg = f"[AgentRunner] Critical error in run method: {str(e)}\n{traceback.format_exc()}"
+            self.logger.log(error_msg, 'error')
         finally:
             self.cleanup()
             self.logger.log("[AgentRunner] Thread cleanup completed", 'debug')
