@@ -99,8 +99,8 @@ class ModelRouter:
 
             # Format messages based on provider
             if self.current_provider == ModelProvider.ANTHROPIC:
-                # Anthropic expects system message as top-level parameter
-                response = await self._generate_anthropic(client, messages, system, **kwargs)
+                # Anthropic is synchronous
+                response = self._generate_anthropic(client, messages, system, **kwargs)
             elif self.current_provider == ModelProvider.OPENAI:
                 # OpenAI expects system message as first message
                 if system:
@@ -120,7 +120,7 @@ class ModelRouter:
             self.logger.log(f"Error generating response: {str(e)}", 'error')
             return None
 
-    async def _generate_anthropic(
+    def _generate_anthropic(
         self,
         client: Anthropic,
         messages: List[Dict[str, str]],
@@ -128,7 +128,7 @@ class ModelRouter:
         **kwargs
     ) -> str:
         """Generate response using Anthropic's Claude"""
-        response = await client.messages.create(
+        response = client.messages.create(
             model=self.current_model,
             messages=messages,
             system=system,  # Pass system as top-level parameter
