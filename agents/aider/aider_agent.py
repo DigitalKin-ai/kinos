@@ -36,17 +36,35 @@ class AiderAgent(AgentBase):
     def __init__(self, config: Dict[str, Any]):
         """Initialize agent with configuration"""
         try:
+            # Store original directory
             self.original_dir = os.getcwd()
+            
+            # Validate required config fields
+            if not config:
+                raise ValueError("Config is required")
+            if 'team' not in config:
+                raise ValueError("Team name is required in config")
+            if 'name' not in config:
+                raise ValueError("Agent name is required in config")
+                
+            # Set core attributes before super().__init__
             self.team = config['team']
             self.name = config['name']
-            self.config = config
             
-            # Store pre-initialized services
+            # Set mission directory using team
+            team_dir = f"team_{self.team}" if not self.team.startswith('team_') else self.team
+            self.mission_dir = os.path.join(os.getcwd(), team_dir)
+            
+            # Update config with mission_dir
+            config['mission_dir'] = self.mission_dir
+            
+            # Store services if provided
             self.services = config.get('services')
             if not self.services:
+                self.logger = Logger()  # Temporary logger for init
                 self.logger.log(f"[{self.name}] Warning: No pre-initialized services provided", 'warning')
             
-            # Initialize parent
+            # Initialize parent with updated config
             super().__init__(config)
             
             # Configure components
