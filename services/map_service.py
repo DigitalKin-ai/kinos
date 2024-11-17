@@ -434,6 +434,33 @@ class MapService(BaseService):
             self.logger.log(f"Error ensuring map file writability: {str(e)}", 'error')
             return False
 
+    def _ensure_map_file_path(self) -> bool:
+        """Ensure map file path is set and valid"""
+        try:
+            # Get active team from TeamService
+            active_team = self.team_service.get_active_team()
+            if not active_team:
+                self.logger.log("No active team found", 'error')
+                return False
+                
+            team_name = active_team.get('name')
+            if not team_name:
+                self.logger.log("No team name found in active team", 'error')
+                return False
+                
+            # Set map file path using team path
+            team_path = PathManager.get_team_path(team_name)
+            self.map_file = os.path.join(team_path, "map.md")
+            
+            # Create directories if needed
+            os.makedirs(os.path.dirname(self.map_file), exist_ok=True)
+            
+            return True
+            
+        except Exception as e:
+            self.logger.log(f"Error ensuring map file path: {str(e)}", 'error')
+            return False
+
     def update_map(self) -> bool:
         """Update map after file changes"""
         try:
