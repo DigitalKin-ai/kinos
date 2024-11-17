@@ -1,5 +1,7 @@
 import os
 from utils.logger import Logger
+import openai
+from dotenv import load_dotenv
 
 class AgentsManager:
     """Manager class for handling agents and their operations."""
@@ -7,6 +9,10 @@ class AgentsManager:
     def __init__(self):
         self.mission_path = None
         self.logger = Logger()
+        load_dotenv()  # Load environment variables
+        openai.api_key = os.getenv('OPENAI_API_KEY')
+        if not openai.api_key:
+            raise ValueError("OpenAI API key not found in environment variables")
         
     def generate_agents(self, mission_filepath):
         """
@@ -110,18 +116,51 @@ Generate a markdown configuration file that defines:
 
     def _call_gpt(self, prompt):
         """
-        Make a call to GPT-4o-mini to generate agent configuration.
+        Make a call to GPT to generate agent configuration.
         
         Args:
             prompt (str): The prepared prompt for GPT
+            
+        Returns:
+            str: Generated agent configuration
+            
+        Raises:
+            Exception: If API call fails
         """
-        # TODO: Implement actual GPT API call
-        # For now, return a placeholder configuration
-        return f"""# Agent Configuration
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a specialized AI agent configuration generator."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=1000
+            )
+            
+            # Extract the generated configuration from the response
+            config = response.choices[0].message.content
+            
+            # Validate basic structure
+            if not all(marker in config for marker in ["# Agent Configuration", "## Role", "## Capabilities"]):
+                self.logger.warning("Generated configuration missing required sections")
+                # Fall back to template if response is malformed
+                return self._get_fallback_config()
+                
+            return config
+            
+        except Exception as e:
+            self.logger.error(f"GPT API call failed: {str(e)}")
+            # Fall back to template in case of API failure
+            return self._get_fallback_config()
+
+    def _get_fallback_config(self):
+        """Return a fallback configuration if API call fails."""
+        return """# Agent Configuration
         
 ## Role
-- Temporary placeholder configuration
-- To be replaced with actual GPT-generated content
+- Temporary fallback configuration
+- Generated due to API call failure
 
 ## Capabilities
 - Basic file operations
