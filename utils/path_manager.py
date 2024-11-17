@@ -176,9 +176,11 @@ class PathManager:
         # Define context files that should not have prompts
         context_files = {'demande', 'map', 'todolist', 'directives'}
         
-        # Fail fast for context files
+        # Check if this is a context file name
         if agent_name.lower() in context_files:
-            raise ValueError(f"'{agent_name}' is a context file, not an agent")
+            # Instead of raising an error, return the context file path
+            team_dir_name = f"team_{team_name}" if not team_name.startswith("team_") else team_name
+            return os.path.join(os.getcwd(), team_dir_name, f"{agent_name}.md")
             
         # Ensure team name has prefix
         team_dir_name = f"team_{team_name}" if not team_name.startswith("team_") else team_name
