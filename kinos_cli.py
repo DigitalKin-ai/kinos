@@ -55,74 +55,74 @@ class AgentRunner(threading.Thread):
             return False
 
     def __init__(self, team_agents: List[str], output_queue: queue.Queue, logger: Logger, team_name: str):
-        if not team_agents:
-            raise ValueError("No agents specified")
-            
-        agent_name = team_agents[0]
-        agent_key = f"{agent_name}_{team_name}"
+        try:
+            if not team_agents:
+                raise ValueError("No agents specified")
+                
+            agent_name = team_agents[0]
+            agent_key = f"{agent_name}_{team_name}"
 
-        with self._runner_lock:
-            if self.is_agent_running(agent_name, team_name):
-                raise RuntimeError(f"Runner for agent {agent_name} already exists in team {team_name}")
-            
-            super().__init__(daemon=True)
-            self.team_agents = team_agents
-            self.output_queue = output_queue
-            self.logger = logger
-            self.running = True
-            self.agent_type = 'aider'
-            self.team_name = team_name
-            self.agent_config = None
-            self._agent_key = agent_key
-            
-            # Register this runner
-            self._active_runners[agent_key] = threading.current_thread().ident
-
-    def cleanup(self):
-        """Remove agent from active runners"""
-        if self._agent_key:
             with self._runner_lock:
-                if self._agent_key in self._active_runners:
-                    del self._active_runners[self._agent_key]
+                if self.is_agent_running(agent_name, team_name):
+                    raise RuntimeError(f"Runner for agent {agent_name} already exists in team {team_name}")
+                
+                super().__init__(daemon=True)
+                self.team_agents = team_agents
+                self.output_queue = output_queue
+                self.logger = logger
+                self.running = True
+                self.agent_type = 'aider'
+                self.team_name = team_name
+                self.agent_config = None
+                self._agent_key = agent_key
+                
+                # Register this runner
+                self._active_runners[agent_key] = threading.current_thread().ident
+                
+                self.logger.log(f"[AgentRunner] Initialized for {agent_name} in team {team_name}", 'debug')
+                
+        except Exception as e:
+            self.logger.log(f"[AgentRunner] Error in initialization: {str(e)}", 'error')
+            raise
 
     def run(self):
         """Thread execution loop"""
         try:
+            self.logger.log(f"[AgentRunner] Starting run loop for team {self.team_name}", 'debug')
+            
             while self.running:
                 try:
                     if not self.agent_config:
-                        if not self.team_agents:
-                            self.logger.log(f"No agents configured for team {self.team_name}", 'warning')
-                            time.sleep(5)
-                            continue
-                            
-                        agent_name = random.choice(self.team_agents)
-                        
-                        self.agent_config = {
-                            'name': agent_name,
-                            'type': self.agent_type,
-                            'team': self.team_name,
-                            'mission_dir': os.path.join(os.getcwd(), f"team_{self.team_name}")
-                        }
-
-                    agent = AiderAgent(self.agent_config)
-                
-                    if not agent:
+                        self.logger.log("[AgentRunner] No agent config available", 'warning')
                         time.sleep(5)
                         continue
+                        
+                    self.logger.log(f"[AgentRunner] Creating agent with config: {self.agent_config}", 'debug')
+                    
+                    agent = AiderAgent(self.agent_config)
+                    if not agent:
+                        self.logger.log("[AgentRunner] Failed to create agent", 'error')
+                        time.sleep(5)
+                        continue
+                    
+                    self.logger.log("[AgentRunner] Agent created successfully", 'debug')
                     
                     max_runtime = 300
                     start = time.time()
                     
                     while time.time() - start < max_runtime and self.running:
+                        self.logger.log("[AgentRunner] Running agent iteration", 'debug')
                         agent.run()
                         time.sleep(1)
                         
                     agent.cleanup()
+                    self.logger.log("[AgentRunner] Agent cleanup completed", 'debug')
                     
                     time.sleep(random.uniform(5, 15))
                     
                 except Exception as e:
+                    self.logger.log(f"[AgentRunner] Error in run loop: {str(e)}", 'error')
+                    self.logger.log(traceback.format_exc(), 'debug')
                     self.output_queue.put({
                         'thread_id': threading.get_ident(),
                         'agent_name': self.agent_config['name'] if self.agent_config else 'unknown',
@@ -132,8 +132,21 @@ class AgentRunner(threading.Thread):
                         'timestamp': datetime.now().isoformat()
                     })
                     time.sleep(5)
+                    
+        except Exception as e:
+            self.logger.log(f"[AgentRunner] Critical error in run method: {str(e)}", 'error')
+            self.logger.log(traceback.format_exc(), 'debug')
         finally:
-            self.cleanup()  # Ensure cleanup happens when thread exits
+            self.cleanup()
+            self.logger.log("[AgentRunner] Thread cleanup completed", 'debug')
+
+    def cleanup(self):
+        """Remove agent from active runners"""
+        if self._agent_key:
+            with self._runner_lock:
+                if self._agent_key in self._active_runners:
+                    del self._active_runners[self._agent_key]
+                    self.logger.log(f"[AgentRunner] Removed {self._agent_key} from active runners", 'debug')
 
 def initialize_team_structure(team_name: str, specific_name: str = None):
     """
