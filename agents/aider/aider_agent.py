@@ -70,58 +70,22 @@ class AiderAgent(AgentBase):
         # Call parent constructor
         super().__init__(self.config)
         
-        try:
-            # Configure UTF-8 encoding first
-            self._configure_encoding()
-
-            # Get team service for display name only, without modifying active team
-            try:
-                from services import init_services
-                services = init_services(None)
-                team_service = services['team_service']
+        # Configure components
+        self._configure_encoding()
+        self.command_builder = AiderCommandBuilder(self.name)
+        self.output_parser = AiderOutputParser(self.logger, self.name)
+        self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
+        self.file_handler = FileHandler(self.mission_dir, self.logger)
+            
+        # Get prompt file
+        self.prompt_file = PathManager.get_prompt_file(self.name, self.team)
+        if not self.prompt_file:
+            raise ValueError(f"No prompt file found for agent {self.name}")
                 
-                # Get team config without changing active team
-                team_config = team_service.get_team_by_name(self.team)
-                if team_config:
-                    self.team_name = team_config.get('display_name', self.team.title())
-                else:
-                    self.team_name = self.team.title()
-                    
-                logger.log(f"[INIT] Using team name: {self.team_name}", 'debug')
-                
-            except Exception as e:
-                self.logger.log(f"[INIT] Error getting team info: {str(e)}", 'warning')
-                self.team_name = self.team.title()  # Fallback to simple title case
+        # Initialize state
+        self._init_state()
             
-            # Log pre-components state
-            logger.log(f"[INIT] Current team state - team: {self.team}, team_name: {self.team_name}", 'debug')
-            
-            # Initialize components with agent name
-            self.command_builder = AiderCommandBuilder(self.name)
-            self.output_parser = AiderOutputParser(self.logger, self.name)
-            self.rate_limiter = RateLimiter(max_requests=50, time_window=60)
-            self.file_handler = FileHandler(self.mission_dir, self.logger)
-        
-            # Store original directory
-            self.original_dir = os.getcwd()
-            logger.log(f"[INIT] Set original directory: {self.original_dir}", 'debug')
-        
-            # Resolve prompt file path with logging
-            if not self.prompt_file:
-                logger.log(f"[INIT] Looking for prompt file for agent {self.name} in team {self.team}", 'debug')
-                self.prompt_file = PathManager.get_prompt_file(self.name, self.team)
-                if self.prompt_file:
-                    logger.log(f"[INIT] Found prompt file: {self.prompt_file}", 'info')
-                else:
-                    logger.log(f"[INIT] No prompt file found for agent {self.name} in team {self.team}", 'error')
-                    raise ValueError(f"Could not find prompt file for agent {self.name}")
-        
-            # Initialize state tracking
-            self._init_state()
-            
-            # Log final state
-            logger.log(f"[INIT] Final state - team: {self.team}, team_name: {self.team_name}", 'debug')
-            logger.log(f"[{self.name}] Initialized successfully")
+        self.logger.log(f"[{self.name}] Initialized in team {self.team_name}")
             
         except Exception as e:
             logger.log(f"[INIT] Error during initialization: {str(e)}", 'error')

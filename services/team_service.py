@@ -464,71 +464,43 @@ class TeamService(BaseService):
 
     def get_team_by_name(self, team_name: str) -> Optional[Dict[str, Any]]:
         """
-        Get team configuration by name with default config generation
+        Get team configuration by name WITHOUT changing active team
         
         Args:
             team_name: Name of team to find
             
-        Raises:
-            ServiceError: If team directory or config not found
+        Returns:
+            Optional[Dict[str, Any]]: Team configuration or None if not found
         """
         try:
             # Normalize team name by removing 'team_' prefix if present
             normalized_name = team_name.replace('team_', '')
-            self.logger.log(f"Looking for team: {normalized_name} (original: {team_name})", 'debug')
             
-            # First check if this is the active team
-            if self.active_team and self.active_team.get('name') == normalized_name:
-                self.logger.log(f"Found active team match: {normalized_name}", 'debug')
-                return self.active_team
-                
             # Get current working directory
             current_dir = os.getcwd()
-            self.logger.log(f"Looking for team in: {current_dir}", 'debug')
             
-            # List all directories
-            try:
-                all_dirs = os.listdir(current_dir)
-                self.logger.log(f"Available directories: {all_dirs}", 'debug')
-            except Exception as list_error:
-                raise ServiceError(f"Cannot list directory: {str(list_error)}")
-
-            # Look for team directory in current working directory
+            # Look for team directory
             team_dir = os.path.join(current_dir, f"team_{normalized_name}")
-            self.logger.log(f"Looking for team directory: {team_dir}", 'debug')
-        
+            
             if not os.path.exists(team_dir):
-                raise ServiceError(
-                    f"Team directory not found: {team_dir}\n"
-                    f"Please create team directory 'team_{normalized_name}' in the current directory: {current_dir}"
-                )
+                return None
                     
             config_path = os.path.join(team_dir, "config.json")
             if not os.path.exists(config_path):
                 # Generate default config if directory exists but no config
-                self.logger.log(f"No config found, generating default for team: {normalized_name}", 'info')
                 return self._generate_default_config(normalized_name)
                 
             try:
                 with open(config_path, 'r', encoding='utf-8') as f:
                     config = json.load(f)
-                self.logger.log(f"Loaded config for team {normalized_name}", 'debug')
                 return config
             except Exception as e:
-                raise ServiceError(
-                    f"Error loading team config from {config_path}: {str(e)}\n"
-                    f"Please ensure config.json is valid JSON."
-                )
+                self.logger.log(f"Error loading team config: {str(e)}", 'error')
+                return None
 
-        except ServiceError:
-            # Re-raise ServiceError with original message
-            raise
-            
         except Exception as e:
-            raise ServiceError(
-                f"Failed to get team '{team_name}': {str(e)}\n"
-                f"Please ensure team directory exists in: {os.getcwd()}"
-            )
+            self.logger.log(f"Error getting team config: {str(e)}", 'error')
+            return None
 
     def cleanup(self):
         """Cleanup team service resources"""
