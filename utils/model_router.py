@@ -31,8 +31,8 @@ class ModelRouter:
         self.logger = Logger()
         self.api_keys = self._load_api_keys()
         self.clients = self._initialize_clients()
-        self.current_model = "claude-3-haiku-20240307"  # Default model
-        self.current_provider = ModelProvider.ANTHROPIC  # Default provider
+        self.current_model = None  # Start with no model selected
+        self.current_provider = None  # Start with no provider selected
 
     def _load_api_keys(self) -> Dict[str, str]:
         """Load API keys from environment"""
@@ -83,6 +83,7 @@ class ModelRouter:
                 self.logger.log(f"Using model: {model_name} from {provider}", 'info')
                 return True
                 
+        self.logger.log(f"Model {model_name} not found in available models", 'error')
         return False
 
     async def generate_response(
@@ -93,24 +94,18 @@ class ModelRouter:
     ) -> Optional[str]:
         """Generate response using current model"""
         try:
+            if not self.current_model or not self.current_provider:
+                raise ServiceError("No model selected. Call set_model() first.")
+
             client = self.clients.get(self.current_provider.value)
             if not client:
                 raise ServiceError(f"No client available for provider {self.current_provider.value}")
 
-            # Format messages based on provider
-            if self.current_provider == ModelProvider.ANTHROPIC:
-                # Anthropic is synchronous
-                response = self._generate_anthropic(client, messages, system, **kwargs)
-            elif self.current_provider == ModelProvider.OPENAI:
-                # OpenAI expects system message as first message
+            # Only handle OpenAI case since we removed Anthropic
+            if self.current_provider == ModelProvider.OPENAI:
                 if system:
                     messages = [{"role": "system", "content": system}] + messages
                 response = await self._generate_openai(client, messages, None, **kwargs)
-            elif self.current_provider == ModelProvider.PERPLEXITY:
-                # Perplexity expects system message as first message
-                if system:
-                    messages = [{"role": "system", "content": system}] + messages
-                response = await self._generate_perplexity(client, messages, None, **kwargs)
             else:
                 raise ValueError(f"Unsupported provider: {self.current_provider}")
 
