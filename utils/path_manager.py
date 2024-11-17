@@ -443,24 +443,39 @@ Always structure your responses as:
         try:
             # Get the mission directory
             mission_dir = os.getcwd()
-            cls._log(f"Looking for teams in: {mission_dir}", 'debug')
+            cls._log(f"Looking for teams in: {mission_dir}", 'info')
             
-            # List all directories in the mission directory
-            all_dirs = [d for d in os.listdir(mission_dir) if os.path.isdir(os.path.join(mission_dir, d))]
-            cls._log(f"Found directories: {all_dirs}", 'debug')
+            # List and log all items in directory
+            all_items = os.listdir(mission_dir)
+            cls._log(f"All items in directory: {all_items}", 'debug')
             
-            # Filter directories that start with "team_" and remove None values
-            team_dirs = [d[5:] for d in all_dirs if d.startswith("team_") and d[5:]]
-            cls._log(f"Found team directories: {team_dirs}", 'debug')
+            # Filter and log directories
+            all_dirs = [d for d in all_items if os.path.isdir(os.path.join(mission_dir, d))]
+            cls._log(f"All directories: {all_dirs}", 'debug')
             
-            # Log if no teams found
-            if not team_dirs:
-                cls._log(f"No teams found in mission directory: {mission_dir}", 'warning')
+            # Filter team directories and log each match
+            team_dirs = []
+            for d in all_dirs:
+                if d.startswith("team_"):
+                    team_name = d[5:]  # Remove 'team_' prefix
+                    if team_name:  # Ensure non-empty team name
+                        team_dirs.append(team_name)
+                        cls._log(f"Found team directory: {d} -> team name: {team_name}", 'debug')
+                    else:
+                        cls._log(f"Skipping invalid team directory: {d} (no name after prefix)", 'warning')
+                else:
+                    cls._log(f"Skipping non-team directory: {d}", 'debug')
+            
+            # Log final results
+            if team_dirs:
+                cls._log(f"Found {len(team_dirs)} teams: {team_dirs}", 'info')
+            else:
+                cls._log(f"No team directories found in: {mission_dir}\nAll directories: {all_dirs}", 'warning')
                 
             return team_dirs
         
         except Exception as e:
-            cls._log(f"Error listing teams: {str(e)}\nCurrent directory: {os.getcwd()}", 'error')
+            cls._log(f"Error listing teams: {str(e)}\nCurrent directory: {os.getcwd()}\nTraceback: {traceback.format_exc()}", 'error')
             return []
 
     @staticmethod
