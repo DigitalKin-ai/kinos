@@ -291,21 +291,22 @@ class AiderAgent(AgentBase):
 
     def _execute_agent_cycle(self):
         """Execute one cycle of the agent's main loop"""
-        # Log team context at start of cycle
-        self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
+        try:
+            # Log team context at start of cycle
+            self.logger.log(f"[{self.name}] Starting cycle for team: {self.team}", 'debug')
 
-        # Verify services with team context - fail fast if missing
-        if not self.services:
-            raise ValueError(f"[{self.name}] No services available for team {self.team}")
+            # Verify services with team context - fail fast if missing
+            if not self.services:
+                raise ValueError(f"[{self.name}] No services available for team {self.team}")
 
-        # Get current prompt using PathManager - fail fast if missing
-        prompt_path = PathManager.get_prompt_file(self.name, self.team)
-        if not prompt_path or not os.path.exists(prompt_path):
-            # Create default prompt directory
-            os.makedirs(os.path.dirname(prompt_path), exist_ok=True)
-            
-            # Create default aider prompt
-            default_prompt = """# Aider Agent
+            # Get current prompt using PathManager - fail fast if missing
+            prompt_path = PathManager.get_prompt_file(self.name, self.team)
+            if not prompt_path or not os.path.exists(prompt_path):
+                # Create default prompt directory
+                os.makedirs(os.path.dirname(prompt_path), exist_ok=True)
+                
+                # Create default aider prompt
+                default_prompt = """# Aider Agent
 
 You are an AI development assistant that helps implement requested changes.
 Your role is to:
@@ -331,17 +332,17 @@ Always structure your responses as:
 - Use clear commit messages
 - Keep changes focused"""
 
-            # Write default prompt
-            with open(prompt_path, 'w', encoding='utf-8') as f:
-                f.write(default_prompt)
-                self.logger.log(f"[{self.name}] Created default prompt at {prompt_path}", 'info')
+                # Write default prompt
+                with open(prompt_path, 'w', encoding='utf-8') as f:
+                    f.write(default_prompt)
+                    self.logger.log(f"[{self.name}] Created default prompt at {prompt_path}", 'info')
 
-        # Read prompt content - fail fast if empty
-        with open(prompt_path, 'r', encoding='utf-8') as f:
-            prompt = f.read()
+            # Read prompt content - fail fast if empty
+            with open(prompt_path, 'r', encoding='utf-8') as f:
+                prompt = f.read()
 
-        if not prompt:
-            raise ValueError(f"[{self.name}] Empty prompt file for team {self.team}")
+            if not prompt:
+                raise ValueError(f"[{self.name}] Empty prompt file for team {self.team}")
 
             # Format context message with team info
             context_message = f"""You are {self.name}, working in team {self.team}, on the mission defined in demande.md.
@@ -358,25 +359,20 @@ Instructions:
 5. Keep it focused and achievable"""
 
             # Use stored model_router service with team context
-            try:
-                model_router = self.services['model_router']
-                import asyncio
-                model_response = asyncio.run(model_router.generate_response(
-                    messages=[{
-                        "role": "user", 
-                        "content": context_message,
-                        "team": self.team
-                    }],
-                    system=prompt,
-                    max_tokens=1000
-                ))
+            model_router = self.services['model_router']
+            import asyncio
+            model_response = asyncio.run(model_router.generate_response(
+                messages=[{
+                    "role": "user", 
+                    "content": context_message,
+                    "team": self.team
+                }],
+                system=prompt,
+                max_tokens=1000
+            ))
 
-                if not model_response:
-                    raise ValueError(f"No response from model for team {self.team}")
-
-            except Exception as e:
-                self.logger.log(f"[{self.name}] Error calling LLM for team {self.team}: {str(e)}", 'error')
-                return None
+            if not model_response:
+                raise ValueError(f"No response from model for team {self.team}")
 
             # Run Aider with generated instructions and team context
             try:
