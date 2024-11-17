@@ -182,10 +182,11 @@ class PathManager:
             team_dir_name = f"team_{team_name}" if not team_name.startswith("team_") else team_name
             return os.path.join(os.getcwd(), team_dir_name, f"{agent_name}.md")
             
-        # Ensure team name has prefix
-        team_dir_name = f"team_{team_name}" if not team_name.startswith("team_") else team_name
+        # Ensure team name has prefix but avoid duplication
+        team_name = team_name.replace('team_', '')  # Remove any existing prefix
+        team_dir_name = f"team_{team_name}"
         
-        # Build prompt path
+        # Build prompt path using the cleaned team directory name
         prompts_dir = os.path.join(os.getcwd(), team_dir_name, "prompts")
         
         # Fail fast if prompts directory doesn't exist
