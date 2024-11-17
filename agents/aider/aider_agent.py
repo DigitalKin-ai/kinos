@@ -542,8 +542,20 @@ Instructions:
                 model_router = services['model_router']
                 
                 messages = []
-                messages.append({"role": "system", "content": prompt})
-                self.logger.log(f"PROMPT SYSTEME {prompt}", 'warning')
+                # Read prompt file content
+                try:
+                    if isinstance(prompt, str) and os.path.exists(prompt):
+                        with open(prompt, 'r', encoding='utf-8') as f:
+                            prompt_content = f.read()
+                        self.logger.log(f"[{self.name}] Loaded prompt content from {prompt}", 'debug')
+                    else:
+                        raise ValueError(f"Invalid prompt file path: {prompt}")
+                        
+                    messages.append({"role": "system", "content": prompt_content})
+                    
+                except Exception as e:
+                    self.logger.log(f"[{self.name}] Error loading prompt content: {str(e)}", 'error')
+                    return None
                 
                 # Only add chat history if not empty
                 if chat_history.strip():
