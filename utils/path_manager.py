@@ -178,28 +178,61 @@ class PathManager:
         
         # Check if this is a context file name
         if agent_name.lower() in context_files:
-            # Instead of raising an error, return the context file path
-            team_dir_name = f"team_{team_name}" if not team_name.startswith("team_") else team_name
-            return os.path.join(os.getcwd(), team_dir_name, f"{agent_name}.md")
+            team_path = cls.get_team_path(team_name)
+            return os.path.join(team_path, f"{agent_name}.md")
             
-        # Ensure team name has prefix but avoid duplication
-        team_name = team_name.replace('team_', '')  # Remove any existing prefix
-        team_dir_name = f"team_{team_name}"
+        # Get team path using get_team_path
+        team_path = cls.get_team_path(team_name)
         
-        # Build prompt path using the cleaned team directory name
-        prompts_dir = os.path.join(os.getcwd(), team_dir_name, "prompts")
+        # Build prompt path
+        prompts_dir = os.path.join(team_path, "prompts")
         
-        # Fail fast if prompts directory doesn't exist
-        if not os.path.exists(prompts_dir):
-            raise FileNotFoundError(f"Prompts directory not found: {prompts_dir}")
+        # Create prompts directory if it doesn't exist
+        os.makedirs(prompts_dir, exist_ok=True)
         
         prompt_path = os.path.join(prompts_dir, f"{agent_name}.md")
         
-        # Fail fast if prompt file doesn't exist
+        # Create default prompt if it doesn't exist
         if not os.path.exists(prompt_path):
-            raise FileNotFoundError(f"Prompt file not found: {prompt_path}")
+            cls._create_default_prompt(prompt_path, agent_name)
             
         return prompt_path
+
+    @classmethod
+    def _create_default_prompt(cls, prompt_path: str, agent_name: str):
+        """Create a default prompt file for an agent"""
+        default_prompt = f"""# {agent_name} Agent
+
+You are an AI development assistant that helps implement requested changes.
+Your role is to:
+1. Understand the current state of files
+2. Make specific, focused changes to progress the mission
+3. Commit changes with clear messages
+
+## Guidelines
+- Make one focused change at a time
+- Explain what you're changing and why
+- Use clear commit messages
+- Keep changes small and manageable
+
+## Format
+Always structure your responses as:
+1. What you're going to change
+2. Why you're making the change
+3. How you'll implement it
+
+## Rules
+- Only modify files shown to you
+- Make one change at a time
+- Use clear commit messages
+- Keep changes focused"""
+
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(prompt_path), exist_ok=True)
+        
+        # Write default prompt
+        with open(prompt_path, 'w', encoding='utf-8') as f:
+            f.write(default_prompt)
 
     @classmethod
     def get_prompt_path(cls, agent_name: str, team_name: Optional[str] = None) -> Optional[str]:
@@ -232,12 +265,13 @@ class PathManager:
         # Create team folder name with single prefix
         team_folder = f"team_{team_name}"
         
-        # Get absolute path, ensuring we don't nest team folders
+        # Get base directory - use current directory
         base_dir = os.getcwd()
-        if os.path.basename(base_dir).startswith('team_'):
-            # Already in a team directory, use parent
+        
+        # If we're already in a team directory, move up one level
+        if "team_" in base_dir:
             base_dir = os.path.dirname(base_dir)
-            
+        
         team_path = os.path.abspath(os.path.join(base_dir, team_folder))
         
         # Create directory if it doesn't exist
