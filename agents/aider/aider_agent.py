@@ -46,6 +46,14 @@ class AiderAgent(AgentBase):
             raise ValueError("Required services not provided in config")
 
         try:
+            # Check if this agent is already initialized for this team
+            agent_key = f"{config['name']}_{config['team']}"
+            if hasattr(AiderAgent, '_initialized_agents'):
+                if agent_key in AiderAgent._initialized_agents:
+                    raise RuntimeError(f"Agent {config['name']} already initialized for team {config['team']}")
+            else:
+                AiderAgent._initialized_agents = set()
+
             # Validate required config fields first
             required_fields = ['team', 'name', 'services', 'type', 'weight']
             missing_fields = [f for f in required_fields if f not in config]
@@ -89,6 +97,9 @@ class AiderAgent(AgentBase):
                     
             # Initialize state
             self._init_state()
+
+            # Mark this agent as initialized
+            AiderAgent._initialized_agents.add(agent_key)
                 
         except Exception as e:
             logger = Logger()
