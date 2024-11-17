@@ -149,7 +149,7 @@ The configuration must focus specifically on {agent_name} type operations and re
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
-                max_tokens=1000
+                max_tokens=4000
             )
             
             # Extract the generated configuration from the response
