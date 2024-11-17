@@ -307,102 +307,99 @@ def run_multi_team_loop(model: Optional[str] = None):
         MAX_AGENTS = 5
 
         while True:
-            # Clean up finished threads
-            active_threads = {tid: runner for tid, runner in active_threads.items() 
-                            if runner.is_alive()}
-            
-            # Find all team directories first
-            team_dirs = []
-            for item in os.listdir(os.getcwd()):
-                if os.path.isdir(item) and item.startswith('team_'):
-                    team_dir = os.path.join(os.getcwd(), item)
-                    prompts_dir = os.path.join(team_dir, 'prompts')
-                    if os.path.exists(prompts_dir):
-                        team_dirs.append(team_dir)
+            try:
+                # Clean up finished threads
+                active_threads = {tid: runner for tid, runner in active_threads.items() 
+                                if runner.is_alive()}
+                logger.log(f"Active threads: {len(active_threads)}", 'debug')
+                
+                # Find all team directories first
+                team_dirs = []
+                for item in os.listdir(os.getcwd()):
+                    if os.path.isdir(item) and item.startswith('team_'):
+                        team_dir = os.path.join(os.getcwd(), item)
+                        prompts_dir = os.path.join(team_dir, 'prompts')
+                        if os.path.exists(prompts_dir):
+                            team_dirs.append(team_dir)
 
-            if not team_dirs:
-                logger.log("No team directories found", 'warning')
-                time.sleep(10)
-                continue
-
-            # Log available teams
-            #logger.log(f"Found teams: {[os.path.basename(d) for d in team_dirs]}", 'debug')
-
-            # Select random team
-            team_dir = random.choice(team_dirs)
-            team_name = os.path.basename(team_dir).replace('team_', '')
-            
-            # Find prompts for this team
-            prompts_dir = os.path.join(team_dir, 'prompts')
-            prompts = []
-            if os.path.exists(prompts_dir):
-                for file in os.listdir(prompts_dir):
-                    if file.endswith('.md'):
-                        prompt_path = os.path.join(prompts_dir, file)
-                        prompts.append(prompt_path)
-
-            if not prompts:
-                logger.log(f"No prompt files found for team {team_name}", 'warning')
-                time.sleep(10)
-                continue
-
-            # Start new threads if needed
-            while len(active_threads) < MAX_AGENTS:
-                try:
-                    # Select random team and prompt
-                    team_dir = random.choice(team_dirs)
-                    team_name = os.path.basename(team_dir).replace('team_', '')
-                    
-                    prompts = [f for f in os.listdir(os.path.join(team_dir, 'prompts'))
-                              if f.endswith('.md')]
-                    if not prompts:
-                        continue
-
-                    prompt_file = random.choice(prompts)
-                    agent_name = os.path.splitext(os.path.basename(prompt_file))[0]
-
-                    # Check if agent is already running
-                    if AgentRunner.is_agent_running(agent_name, team_name):
-                        logger.log(f"Agent {agent_name} already running for team {team_name}", 'debug')
-                        continue
-
-                    # Create agent config
-                    agent_config = {
-                        'name': agent_name,
-                        'team': team_name,
-                        'type': 'aider',
-                        'mission_dir': team_dir,
-                        'prompt_file': os.path.join(team_dir, 'prompts', prompt_file),
-                        'weight': 0.5,
-                        'services': services
-                    }
-
-                    # Create and start new runner
-                    runner = AgentRunner([agent_name], output_queue, logger, team_name)
-                    runner.agent_config = agent_config
-                    runner.start()
-                    active_threads[runner.ident] = runner
-                    logger.log(f"Started new agent runner for team {team_name} (total: {len(active_threads)})")
-
-                except RuntimeError as e:
-                    if "already exists" in str(e):
-                        logger.log(str(e), 'debug')
-                        continue
-                    raise
-                except Exception as e:
-                    logger.log(f"Error creating agent {agent_name} for team {team_name}: {str(e)}", 'error')
+                if not team_dirs:
+                    logger.log("No team directories found", 'warning')
+                    time.sleep(10)
                     continue
 
-                time.sleep(0.1)  # Brief pause between checks
+                logger.log(f"Found {len(team_dirs)} team directories", 'debug')
 
-            # Process output queue
-            try:
-                msg = output_queue.get(timeout=0.1)
-                logger.log(f"Received message from queue: {msg['status']}", 'warning')
-            except queue.Empty:
-                pass
+                # Start new threads if needed
+                while len(active_threads) < MAX_AGENTS:
+                    try:
+                        # Select random team and prompt
+                        team_dir = random.choice(team_dirs)
+                        team_name = os.path.basename(team_dir).replace('team_', '')
+                        logger.log(f"Selected team directory: {team_dir}", 'debug')
+                        
+                        prompts_dir = os.path.join(team_dir, 'prompts')
+                        if not os.path.exists(prompts_dir):
+                            logger.log(f"No prompts directory found for team {team_name}", 'warning')
+                            continue
+                            
+                        prompts = [f for f in os.listdir(prompts_dir) if f.endswith('.md')]
+                        if not prompts:
+                            logger.log(f"No prompt files found in {prompts_dir}", 'warning')
+                            continue
 
-            time.sleep(0.1)  # Brief sleep to prevent CPU spinning
+                        logger.log(f"Found {len(prompts)} prompts for team {team_name}", 'debug')
+                        prompt_file = random.choice(prompts)
+                        agent_name = os.path.splitext(os.path.basename(prompt_file))[0]
+                        logger.log(f"Selected prompt: {prompt_file} for agent: {agent_name}", 'debug')
+
+                        # Check if agent is already running
+                        if AgentRunner.is_agent_running(agent_name, team_name):
+                            logger.log(f"Agent {agent_name} already running for team {team_name}", 'debug')
+                            continue
+
+                        # Create agent config
+                        agent_config = {
+                            'name': agent_name,
+                            'team': team_name,
+                            'type': 'aider',
+                            'mission_dir': team_dir,
+                            'prompt_file': os.path.join(prompts_dir, prompt_file),
+                            'weight': 0.5,
+                            'services': services
+                        }
+
+                        # Create and start new runner
+                        runner = AgentRunner([agent_name], output_queue, logger, team_name)
+                        runner.agent_config = agent_config
+                        runner.start()
+                        active_threads[runner.ident] = runner
+                        logger.log(f"Started new agent runner for team {team_name} (total: {len(active_threads)})")
+
+                    except RuntimeError as e:
+                        if "already exists" in str(e):
+                            logger.log(str(e), 'debug')
+                            continue
+                        raise
+                    except Exception as e:
+                        logger.log(f"Error creating agent {agent_name} for team {team_name}: {str(e)}", 'error')
+                        logger.log(traceback.format_exc(), 'debug')
+                        continue
+
+                    time.sleep(0.1)  # Brief pause between agent creation attempts
+
+                # Process output queue
+                try:
+                    msg = output_queue.get_nowait()
+                    logger.log(f"Received message from queue: {msg['status']}", 'warning')
+                except queue.Empty:
+                    pass
+
+                time.sleep(1)  # Main loop sleep
+
+            except Exception as e:
+                logger.log(f"Error in main loop: {str(e)}", 'error')
+                logger.log(traceback.format_exc(), 'debug')
+                time.sleep(1)
 
     except KeyboardInterrupt:
         logger.log("Stopping multi-team execution...")
