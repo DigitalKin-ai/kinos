@@ -34,12 +34,20 @@ class AgentRunner:
             ValueError: If mission file is invalid or agents don't exist
             Exception: For other unexpected errors
         """
-        if not self._agents_exist():
+        missing_agents = self._agents_exist()
+        if missing_agents:
             if generate_agents:
-                self.logger.info("🔄 Generating agents...")
+                self.logger.info("🔄 Génération des agents...")
                 self.agents_manager.generate_agents(mission_filepath)
             else:
-                raise ValueError("No agents found. Run with --generate flag to generate agents.")
+                # Message d'erreur plus convivial
+                self.logger.error("❌ Agents manquants détectés!")
+                self.logger.info("\n🤖 Les agents suivants sont requis mais n'ont pas été trouvés:")
+                for agent in missing_agents:
+                    self.logger.info(f"   • Agent {agent}")
+                self.logger.info("\n💡 Pour générer les agents manquants, utilisez la commande:")
+                self.logger.info("   kin run agents --generate")
+                raise SystemExit(1)  # Exit proprement avec code d'erreur
 
         self.logger.info(f"🚀 Starting with {agent_count} parallel agents")
         
@@ -73,7 +81,7 @@ class AgentRunner:
             tasks = pending
             
     def _agents_exist(self):
-        """Check if agent files exist."""
+        """Check if agent files exist and return missing agents."""
         agent_types = [
             "specification",
             "management", 
@@ -85,10 +93,12 @@ class AgentRunner:
             "production"
         ]
         
+        missing_agents = []
         for agent_type in agent_types:
             if not os.path.exists(f".aider.agent.{agent_type}.md"):
-                return False
-        return True
+                missing_agents.append(agent_type)
+                
+        return missing_agents
         
     async def _run_single_agent_cycle(self, mission_filepath):
         """Execute a single cycle for one agent."""
