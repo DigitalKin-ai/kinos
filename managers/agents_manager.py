@@ -1,4 +1,6 @@
 import os
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from utils.logger import Logger
 import openai
 from dotenv import load_dotenv
@@ -14,23 +16,15 @@ class AgentsManager:
         if not openai.api_key:
             raise ValueError("OpenAI API key not found in environment variables")
         
-    def generate_agents(self, mission_filepath=".aider.mission.md"):
+    async def generate_agents(self, mission_filepath=".aider.mission.md"):
         """
-        Generate mission-specific agent prompts.
-        
-        Args:
-            mission_filepath (str): Path to the mission specification file, defaults to .aider.mission.md
-            
-        Raises:
-            ValueError: If mission file is invalid or missing
-            IOError: If there are file operation issues
+        Generate mission-specific agent prompts in parallel.
         """
         try:
             self.mission_path = mission_filepath
             self.logger.info(f"🚀 Starting agent generation for mission: {mission_filepath}")
             
             if not self._validate_mission_file():
-                # Message d'erreur plus convivial
                 self.logger.error("❌ Fichier de mission introuvable!")
                 self.logger.info("\n📋 Pour démarrer KinOS, vous devez :")
                 self.logger.info("   1. Soit créer un fichier '.aider.mission.md' dans le dossier courant")
@@ -39,7 +33,7 @@ class AgentsManager:
                 self.logger.info("   kin run agents --generate")
                 self.logger.info("   kin run agents --generate --mission chemin/vers/ma_mission.md")
                 self.logger.info("\n📝 Le fichier de mission doit contenir la description de votre projet.")
-                raise SystemExit(1)  # Exit proprement avec code d'erreur
+                raise SystemExit(1)
                 
             # List of specific agent types
             agent_types = [
@@ -53,14 +47,14 @@ class AgentsManager:
                 "production"
             ]
             
+            # Create tasks for parallel execution
+            tasks = []
             for agent_type in agent_types:
-                try:
-                    self._generate_single_agent(agent_type)
-                    self.logger.success(f"✨ Agent {agent_type} généré avec succès")
-                except Exception as e:
-                    self.logger.error(f"Failed to generate agent {agent_type}: {str(e)}")
-                    raise
-                    
+                tasks.append(self._generate_single_agent_async(agent_type))
+                
+            # Execute all tasks in parallel and wait for completion
+            await asyncio.gather(*tasks)
+            
         except Exception as e:
             self.logger.error(f"❌ Agent generation failed: {str(e)}")
             raise
@@ -78,41 +72,52 @@ class AgentsManager:
             self.logger.error(f"⚠️ Error validating mission file: {str(e)}")
             return False
         
-    def _generate_single_agent(self, agent_name):
+    async def _generate_single_agent_async(self, agent_name):
         """
-        Generate a single agent configuration file.
-        
-        Args:
-            agent_name (str): Name for the agent
-            
-        Raises:
-            IOError: If there are issues with file operations
-            Exception: For other unexpected errors
+        Asynchronous version of _generate_single_agent.
         """
         try:
-            # 1. Load mission content
-            with open(self.mission_path, 'r') as f:
-                mission_content = f.read()
-            
-            # 2. Prepare agent prompt
-            prompt = self._create_agent_prompt(agent_name, mission_content)
-            self.logger.debug(f"📝 Created prompt for agent: {agent_name}")
-            
-            # 3. Make GPT call and get response
-            agent_config = self._call_gpt(prompt)
-            self.logger.debug(f"🤖 Received GPT response for agent: {agent_name}")
-            
-            # 4. Save agent configuration
-            output_path = f".aider.agent.{agent_name}.md"
-            with open(output_path, 'w') as f:
-                f.write(agent_config)
+            # Use ThreadPoolExecutor for CPU-bound operations
+            with ThreadPoolExecutor() as pool:
+                # Load mission content
+                mission_content = await asyncio.get_event_loop().run_in_executor(
+                    pool,
+                    self._read_mission_content
+                )
                 
-        except IOError as e:
-            self.logger.error(f"File operation error for agent {agent_name}: {str(e)}")
-            raise
+                # Create agent prompt
+                prompt = self._create_agent_prompt(agent_name, mission_content)
+                self.logger.debug(f"📝 Created prompt for agent: {agent_name}")
+                
+                # Make GPT call and get response
+                agent_config = await asyncio.get_event_loop().run_in_executor(
+                    pool,
+                    lambda: self._call_gpt(prompt)
+                )
+                self.logger.debug(f"🤖 Received GPT response for agent: {agent_name}")
+                
+                # Save agent configuration
+                output_path = f".aider.agent.{agent_name}.md"
+                await asyncio.get_event_loop().run_in_executor(
+                    pool,
+                    lambda: self._save_agent_config(output_path, agent_config)
+                )
+                
+                self.logger.success(f"✨ Agent {agent_name} généré avec succès")
+                
         except Exception as e:
-            self.logger.error(f"Unexpected error generating agent {agent_name}: {str(e)}")
+            self.logger.error(f"Failed to generate agent {agent_name}: {str(e)}")
             raise
+
+    def _read_mission_content(self):
+        """Helper method to read mission content."""
+        with open(self.mission_path, 'r') as f:
+            return f.read()
+
+    def _save_agent_config(self, output_path, content):
+        """Helper method to save agent configuration."""
+        with open(output_path, 'w') as f:
+            f.write(content)
 
     def _create_agent_prompt(self, agent_name, mission_content):
         """

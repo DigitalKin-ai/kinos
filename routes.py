@@ -25,7 +25,7 @@ def main():
             manager = AgentsManager()
             # Optional mission file path
             mission_path = sys.argv[3] if len(sys.argv) > 3 else ".aider.mission.md"
-            manager.generate_agents(mission_path)
+            asyncio.run(manager.generate_agents(mission_path))
             
         elif subcommand == "objective":
             manager = ObjectiveManager()
