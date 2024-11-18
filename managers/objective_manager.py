@@ -248,13 +248,23 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             # Return a basic fallback summary
             return f"L'agent {agent_name} 🤖 va exécuter une nouvelle tâche"
 
-    def _generate_research_summary(self, query, result):
+    def _generate_research_summary(self, query, result, agent_name):
         """Generate a summary of the Perplexity research results."""
         try:
             client = openai.OpenAI()
             prompt = f"""
 Résume en une seule phrase ce qui a été trouvé par la recherche Perplexity, en suivant ce format:
-"🔍 Recherche sur [sujet] : [résumé des découvertes principales]"
+"L'agent [emoji d'agent] {agent_name} a recherché sur [sujet] : [résumé des découvertes principales]"
+
+Emojis d'agent selon le type :
+- specification : 📋
+- management : 🎯
+- redaction : ✍️
+- evaluation : 🔍
+- duplication : 🔄
+- chroniqueur : 📝
+- redondance : 🎭
+- production : ⚙️
 
 Query de recherche : {query}
 
@@ -278,12 +288,15 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             
         except Exception as e:
             self.logger.error(f"Failed to generate research summary: {str(e)}")
-            # Return a basic fallback summary
-            return f"🔍 Recherche effectuée sur : {query}"
+            # Return a basic fallback summary with agent name
+            return f"L'agent {agent_name} 🤖 a recherché sur : {query}"
 
     def _save_objective(self, filepath, content):
         """Save objective content to file, including Perplexity research results if needed."""
         try:
+            # Extract agent name from filepath
+            agent_name = os.path.basename(filepath).replace('.aider.objective.', '').replace('.md', '')
+            
             # Check for research requirement
             if "Recherche :" in content:
                 # Extract research query
@@ -314,8 +327,8 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
                     if response.status_code == 200:
                         research_result = response.json()["choices"][0]["message"]["content"]
                         
-                        # Generate summary of research results
-                        research_summary = self._generate_research_summary(research_query, research_result)
+                        # Generate summary of research results with agent name
+                        research_summary = self._generate_research_summary(research_query, research_result, agent_name)
                         self.logger.success(research_summary)
                         
                         # Add research results to objective
