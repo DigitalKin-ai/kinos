@@ -43,9 +43,11 @@ class AgentRunner:
 
         self.logger.info(f"🚀 Starting {agent_count} agents in parallel")
         
-        # Create tasks for each agent
+        # Create tasks for each agent with staggered starts
         tasks = []
-        for _ in range(agent_count):
+        for i in range(agent_count):
+            # Add a delay of 3 seconds between each agent start
+            await asyncio.sleep(3)
             tasks.append(asyncio.create_task(
                 self._run_agent_loop(mission_filepath)
             ))
