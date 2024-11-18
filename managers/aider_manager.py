@@ -200,24 +200,48 @@ class AiderManager:
                 text=True
             )
             
-            # Parse output for commits
-            output_lines = result.stdout.split('\n')
-            for line in output_lines:
-                if line.startswith("Commit: "):
-                    commit_msg = line[8:].strip()  # Remove "Commit: " prefix
-                    
-                    # Extract agent name from command
-                    agent_filepath = [arg for arg in cmd if arg.endswith('.md') and '.agent.' in arg][0]
-                    agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
-                    
-                    # Parse commit type and get emoji
-                    commit_type, emoji = self._parse_commit_type(commit_msg)
-                    
-                    # Log formatted commit message
-                    self.logger.info(f"Agent {agent_name} made {commit_type} commit {emoji}: {commit_msg}")
+            # Log all output for debugging
+            self.logger.debug(f"Stdout:\n{result.stdout}")
+            self.logger.debug(f"Stderr:\n{result.stderr}")
             
-            # Log other output
-            if result.stderr:
+            # Parse both stdout and stderr for commits
+            all_output = result.stdout + "\n" + result.stderr
+            output_lines = all_output.split('\n')
+            
+            # Look for various commit message formats
+            commit_indicators = [
+                "Commit: ",
+                "Committed: ",
+                "commit ",
+                "[main ",  # Git branch indicator
+                "Created commit"
+            ]
+            
+            for line in output_lines:
+                line = line.strip()
+                for indicator in commit_indicators:
+                    if indicator in line:
+                        # Extract commit message after the indicator
+                        commit_msg = line[line.find(indicator) + len(indicator):].strip()
+                        
+                        # Clean up common git commit message artifacts
+                        commit_msg = commit_msg.strip("'\"")
+                        if "] " in commit_msg:  # Remove git branch info
+                            commit_msg = commit_msg.split("] ", 1)[1]
+                        
+                        # Extract agent name from command
+                        agent_filepath = [arg for arg in cmd if arg.endswith('.md') and '.agent.' in arg][0]
+                        agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
+                        
+                        # Parse commit type and get emoji
+                        commit_type, emoji = self._parse_commit_type(commit_msg)
+                        
+                        # Log formatted commit message
+                        self.logger.info(f"Agent {agent_name} made {commit_type} commit {emoji}: {commit_msg}")
+                        break  # Found a commit message, stop checking other indicators
+            
+            # Log other output only if there were issues
+            if result.stderr and "error" in result.stderr.lower():
                 self.logger.warning(f"⚠️ Aider warnings:\n{result.stderr}")
                 
         except subprocess.CalledProcessError as e:
