@@ -42,7 +42,7 @@ class Logger:
         
         # Configure logger
         self.logger = logging.getLogger('KinOS')
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.SUCCESS)
         
         # Remove existing handlers and add our handlers
         self.logger.handlers = []
