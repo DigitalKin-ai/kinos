@@ -17,19 +17,25 @@ class AgentRunner:
         self.map_manager = MapManager()
         self.aider_manager = AiderManager()
         
-    def run(self, mission_filepath=".aider.mission.md"):
+    def run(self, mission_filepath=".aider.mission.md", generate_agents=False):
         """
         Main execution loop for running agents.
         
         Args:
             mission_filepath (str): Path to mission specification file
+            generate_agents (bool): Whether to generate agents if they don't exist
             
         Raises:
-            ValueError: If mission file is invalid
+            ValueError: If mission file is invalid or agents don't exist
             Exception: For other unexpected errors
         """
         # 1. Verify/generate agents
-        self._ensure_agents_exist(mission_filepath)
+        if not self._agents_exist():
+            if generate_agents:
+                self.logger.info("🔄 Generating agents...")
+                self.agents_manager.generate_agents(mission_filepath)
+            else:
+                raise ValueError("No agents found. Run with --generate flag to generate agents.")
         
         # 2. Main execution loop
         while True:
@@ -42,12 +48,6 @@ class AgentRunner:
             
             # Execute agent cycle - let exceptions propagate
             self._execute_agent_cycle(agent_name, mission_filepath)
-            
-    def _ensure_agents_exist(self, mission_filepath):
-        """Verify agents exist or generate them."""
-        if not self._agents_exist():
-            self.logger.info("🔄 Generating agents...")
-            self.agents_manager.generate_agents(mission_filepath)
             
     def _agents_exist(self):
         """Check if agent files exist."""
