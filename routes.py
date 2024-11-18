@@ -45,7 +45,22 @@ def main():
             
         elif subcommand == "map":
             manager = MapManager()
-            # TODO: Implement map generation
+            
+            # Parse arguments
+            if len(sys.argv) < 4 or sys.argv[3] != "--agent":
+                print("Usage: kin generate map --agent <agent_name>")
+                sys.exit(1)
+                
+            if len(sys.argv) < 5:
+                print("Usage: kin generate map --agent <agent_name>")
+                sys.exit(1)
+                
+            agent_name = sys.argv[4]
+            agent_path = f".aider.agent.{agent_name}.md"
+            objective_path = f".aider.objective.{agent_name}.md"
+            mission_path = ".aider.mission.md"
+            
+            manager.generate_map(mission_path, objective_path, agent_path)
             
     elif command == "run":
         if len(sys.argv) < 3:
