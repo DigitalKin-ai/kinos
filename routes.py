@@ -75,48 +75,52 @@ def main():
             
         subcommand = sys.argv[2]
         if subcommand == "agents":
-            runner = AgentRunner()
-            
-            # Set default log level to SUCCESS (only show success and above)
-            runner.logger.logger.setLevel(logging.SUCCESS)
-            
-            # Check for --verbose flag
-            if "--verbose" in sys.argv:
-                runner.logger.logger.setLevel(logging.DEBUG)
+            # Create and initialize runner asynchronously
+            async def init_and_run_agents():
+                runner = await AgentRunner()  # Await the initialization
                 
-            # Get mission file path
-            mission_path = ".aider.mission.md"  # default
-            if "--mission" in sys.argv:
-                try:
-                    mission_index = sys.argv.index("--mission") + 1
-                    if mission_index < len(sys.argv):
-                        mission_path = sys.argv[mission_index]
-                except (ValueError, IndexError):
-                    print("Missing value for --mission flag")
-                    sys.exit(1)
+                # Set default log level to SUCCESS (only show success and above)
+                runner.logger.logger.setLevel(logging.SUCCESS)
                 
-            # Get agent count
-            agent_count = 10  # Default value
-            if "--count" in sys.argv:
-                try:
-                    count_index = sys.argv.index("--count") + 1
+                # Check for --verbose flag
+                if "--verbose" in sys.argv:
+                    runner.logger.logger.setLevel(logging.DEBUG)
+                    
+                # Get mission file path
+                mission_path = ".aider.mission.md"  # default
+                if "--mission" in sys.argv:
+                    try:
+                        mission_index = sys.argv.index("--mission") + 1
+                        if mission_index < len(sys.argv):
+                            mission_path = sys.argv[mission_index]
+                    except (ValueError, IndexError):
+                        print("Missing value for --mission flag")
+                        sys.exit(1)
+                    
+                # Get agent count
+                agent_count = 10  # Default value
+                if "--count" in sys.argv:
+                    try:
+                        count_index = sys.argv.index("--count") + 1
                     agent_count = int(sys.argv[count_index])
-                except (ValueError, IndexError):
-                    print("Invalid value for --count. Using default (10)")
-            
-            # Check for --generate flag    
-            should_generate = "--generate" in sys.argv
-            mission_path = ".aider.mission.md"
-    
-            # Afficher le message de démarrage
-            runner.logger.success("🌟 Lancement du KinOS...")
-    
-            # Run with asyncio
-            asyncio.run(runner.run(
-                mission_path, 
-                generate_agents=should_generate,
-                agent_count=agent_count
-            ))
+                    except (ValueError, IndexError):
+                        print("Invalid value for --count. Using default (10)")
+                
+                # Check for --generate flag    
+                should_generate = "--generate" in sys.argv
+                
+                # Afficher le message de démarrage
+                runner.logger.success("🌟 Lancement du KinOS...")
+
+                # Run with the initialized runner
+                await runner.run(
+                    mission_path, 
+                    generate_agents=should_generate,
+                    agent_count=agent_count
+                )
+
+            # Run the async initialization and execution
+            asyncio.run(init_and_run_agents())
             
         elif subcommand == "aider":
             manager = AiderManager()
