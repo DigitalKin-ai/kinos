@@ -12,6 +12,13 @@ class Logger:
         logging.SUCCESS = 25  # Between INFO(20) and WARNING(30)
         logging.addLevelName(logging.SUCCESS, 'SUCCESS')
         
+        # Add file handler for suivi.md
+        self.suivi_file = 'suivi.md'
+        file_formatter = logging.Formatter('%(asctime)s - %(message)s')
+        file_handler = logging.FileHandler(self.suivi_file, encoding='utf-8', mode='a')
+        file_handler.setFormatter(file_formatter)
+        file_handler.setLevel(logging.SUCCESS)  # Only log SUCCESS and above
+        
         # Custom formatter with colors
         class ColorFormatter(logging.Formatter):
             FORMATS = {
@@ -36,9 +43,10 @@ class Logger:
         self.logger = logging.getLogger('KinOS')
         self.logger.setLevel(logging.INFO)
         
-        # Remove existing handlers and add our colored handler
+        # Remove existing handlers and add our handlers
         self.logger.handlers = []
         self.logger.addHandler(handler)
+        self.logger.addHandler(file_handler)
         
         # Prevent propagation to root logger
         self.logger.propagate = False
