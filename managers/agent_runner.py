@@ -41,18 +41,8 @@ class AgentRunner:
             # Then check for missing agents
             missing_agents = self._agents_exist()
             if missing_agents:
-                if generate_agents:
-                    self.logger.info("🔄 Génération des agents...")
-                    self.agents_manager.generate_agents(mission_filepath)
-                else:
-                    self.logger.error("❌ Agents manquants détectés!")
-                    self.logger.info("\n🤖 Les agents suivants sont requis mais n'ont pas été trouvés:")
-                    for agent in missing_agents:
-                        self.logger.info(f"   • {self._get_agent_emoji(agent)} Agent {agent}")
-                    self.logger.info("\n💡 Pour générer les agents manquants, utilisez la commande:")
-                    self.logger.info("   kin run agents --generate")
-                    self.logger.info("\n📝 Ou spécifiez un fichier de mission différent avec --mission")
-                    raise SystemExit(1)
+                self.logger.info("🔄 Génération automatique des agents manquants...")
+                self.agents_manager.generate_agents(mission_filepath)
 
             self.logger.info(f"🚀 Démarrage avec {agent_count} agents en parallèle")
         except Exception as e:
