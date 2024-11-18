@@ -11,7 +11,7 @@ from managers.aider_manager import AiderManager
 class AgentRunner:
     """Runner class for executing and managing agent operations."""
     
-    async def __init__(self):
+    def __init__(self):
         """Initialize the runner with required managers and logger."""
         self.logger = Logger()
         self.agents_manager = AgentsManager()
@@ -20,10 +20,19 @@ class AgentRunner:
         self.aider_manager = AiderManager()
         self._running_agents = set()  # Track active agents
         self._agent_lock = asyncio.Lock()  # Synchronize shared resource access
-        
+
+    async def initialize(self):
+        """Initialize async components of the runner."""
         # Initialize global map if it doesn't exist
         if not os.path.exists("map.md"):
             await self.map_manager.initialize_global_map()
+        return self
+
+    @classmethod
+    async def create(cls):
+        """Factory method to create and initialize an AgentRunner instance."""
+        runner = cls()
+        return await runner.initialize()
         
     async def run(self, mission_filepath=".aider.mission.md", generate_agents=False, agent_count=10):
         """
