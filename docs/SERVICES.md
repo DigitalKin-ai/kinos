@@ -48,9 +48,26 @@ KinOS manages state through standardized files in the mission directory:
 - Clear state boundaries
 - Atomic operations
 - Validated transitions
+- Multi-encoding support
 
 ### 3.2 Error Handling
 - Clear error states
-- Error logging
+- Comprehensive logging
+- Success tracking
+- Automatic file logging
+- Emoji-based status
+
+### 3.3 Cache System
+- LRU memory cache
+- File content caching
+- Prompt caching
+- Distributed caching support
+
+### 3.4 Notification System
+- Real-time updates
+- WebSocket support
+- Priority queuing
+- Message persistence
+- Automatic logging to suivi.md
 
 Note: le modèle LLM à appeler est "gpt-4o-mini" de OpenAI. "o" est pour "Omni", c'est le seul modèle qui doit être appelé
