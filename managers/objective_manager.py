@@ -197,7 +197,7 @@ Ask Aider to make the edits now, without asking for clarification, and using the
             client = openai.OpenAI()
             prompt = f"""
 Résume en une seule phrase ce que l'agent va essayer de faire, en suivant strictement ce format:
-"L'agent {agent_name} 🤖 va [action] [cible] [détail optionnel]"
+"L'agent [emoji d'agent] {agent_name} va [action] [cible] [détail optionnel]"
 
 Utilise des emojis appropriés en fonction du type d'action:
 - 📝 pour l'écriture/documentation
@@ -209,6 +209,16 @@ Utilise des emojis appropriés en fonction du type d'action:
 - 🏗️ pour l'architecture
 - 🚀 pour les déploiements
 - etc.
+
+Emojis d'agent : 
+- specification : 📋
+- management : 🎯
+- redaction : ✍️
+- evaluation : 🔍
+- duplication : 🔄
+- chroniqueur : 📝
+- redondance : 🎭
+- production : ⚙️
 
 Voici l'objectif complet à résumer:
 {objective}
