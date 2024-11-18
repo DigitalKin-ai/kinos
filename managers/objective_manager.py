@@ -248,6 +248,39 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             # Return a basic fallback summary
             return f"L'agent {agent_name} 🤖 va exécuter une nouvelle tâche"
 
+    def _generate_research_summary(self, query, result):
+        """Generate a summary of the Perplexity research results."""
+        try:
+            client = openai.OpenAI()
+            prompt = f"""
+Résume en une seule phrase ce qui a été trouvé par la recherche Perplexity, en suivant ce format:
+"🔍 Recherche sur [sujet] : [résumé des découvertes principales]"
+
+Query de recherche : {query}
+
+Résultats complets :
+{result}
+
+Réponds uniquement avec la phrase formatée, rien d'autre.
+"""
+            
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "Tu es un assistant qui résume des résultats de recherche de manière concise."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=100
+            )
+            
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            self.logger.error(f"Failed to generate research summary: {str(e)}")
+            # Return a basic fallback summary
+            return f"🔍 Recherche effectuée sur : {query}"
+
     def _save_objective(self, filepath, content):
         """Save objective content to file, including Perplexity research results if needed."""
         try:
@@ -280,6 +313,10 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
                     
                     if response.status_code == 200:
                         research_result = response.json()["choices"][0]["message"]["content"]
+                        
+                        # Generate summary of research results
+                        research_summary = self._generate_research_summary(research_query, research_result)
+                        self.logger.success(research_summary)
                         
                         # Add research results to objective
                         content += "\n\n## Informations complémentaires\n"
