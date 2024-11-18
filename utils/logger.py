@@ -51,10 +51,12 @@ class Logger:
             'management': '🧭', 
             'redaction': '🖋️',
             'evaluation': '⚖️',
-            'duplication': '👥',
+            'deduplication': '👥',
             'chroniqueur': '📜',
             'redondance': '🎭',
-            'production': '🏭'
+            'production': '🏭',
+            'chercheur': '🔬',
+            'integration': '🌐'
         }
         
         # Replace agent names with emoji prefixed versions
