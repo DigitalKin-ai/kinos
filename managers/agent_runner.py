@@ -85,7 +85,7 @@ class AgentRunner:
             'management': '🧭',
             'redaction': '✍️',
             'evaluation': '⚖️',
-            'duplication': '👥',
+            'deduplication': '👥',
             'chroniqueur': '📜',
             'redondance': '🎭',
             'production': '🏭'
@@ -99,7 +99,7 @@ class AgentRunner:
             "management", 
             "redaction",
             "evaluation",
-            "duplication",
+            "deduplication",
             "chroniqueur",
             "redondance",
             "production"
@@ -154,7 +154,7 @@ class AgentRunner:
             "management", 
             "redaction",
             "evaluation",
-            "duplication",
+            "deduplication",
             "chroniqueur",
             "redondance",
             "production"
