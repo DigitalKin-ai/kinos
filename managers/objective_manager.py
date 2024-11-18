@@ -1,4 +1,5 @@
 import os
+import requests
 from utils.logger import Logger
 import openai
 from dotenv import load_dotenv
@@ -248,10 +249,49 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             return f"L'agent {agent_name} 🤖 va exécuter une nouvelle tâche"
 
     def _save_objective(self, filepath, content):
-        """Save objective content to file."""
+        """Save objective content to file, including Perplexity research results if needed."""
         try:
+            # Check for research requirement
+            if "Recherche :" in content:
+                # Extract research query
+                research_lines = [line.strip() for line in content.split('\n') 
+                                if line.strip().startswith("Recherche :")]
+                if research_lines:
+                    research_query = research_lines[0].replace("Recherche :", "").strip()
+                    
+                    # Call Perplexity API
+                    perplexity_key = os.getenv('PERPLEXITY_API_KEY')
+                    if not perplexity_key:
+                        raise ValueError("Perplexity API key not found in environment variables")
+                        
+                    # Make Perplexity API call
+                    headers = {
+                        "Authorization": f"Bearer {perplexity_key}",
+                        "Content-Type": "application/json"
+                    }
+                    response = requests.post(
+                        "https://api.perplexity.ai/chat/completions",
+                        headers=headers,
+                        json={
+                            "model": "pplx-7b-chat",
+                            "messages": [{"role": "user", "content": research_query}]
+                        }
+                    )
+                    
+                    if response.status_code == 200:
+                        research_result = response.json()["choices"][0]["message"]["content"]
+                        
+                        # Add research results to objective
+                        content += "\n\n## Informations complémentaires\n"
+                        content += f"Résultats de la recherche Perplexity pour : {research_query}\n\n"
+                        content += research_result
+                    else:
+                        self.logger.warning(f"⚠️ Perplexity API call failed: {response.status_code}")
+            
+            # Save updated content
             with open(filepath, 'w') as f:
                 f.write(content)
+                
         except Exception as e:
             self.logger.error(f"Error saving objective to {filepath}: {str(e)}")
             raise
