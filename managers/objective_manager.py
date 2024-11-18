@@ -287,7 +287,7 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
                         "Content-Type": "application/json"
                     }
                     payload = {
-                        "model": "pplx-7b-chat",
+                        "model": "llama-3.1-sonar-small-128k-online",
                         "messages": [
                             {"role": "system", "content": "You are a helpful research assistant providing accurate, detailed information."},
                             {"role": "user", "content": research_query}
