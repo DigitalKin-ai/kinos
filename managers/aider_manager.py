@@ -2,6 +2,7 @@ import os
 import subprocess
 from utils.logger import Logger
 from pathlib import Path
+from managers.map_manager import MapManager
 
 class AiderManager:
     """Manager class for handling aider operations."""
