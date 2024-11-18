@@ -120,7 +120,7 @@ Format your response as a markdown document with clear sections:
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
-                max_tokens=2000
+                max_tokens=4000
             )
             
             context_map = response.choices[0].message.content
