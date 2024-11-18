@@ -28,34 +28,20 @@ class AgentRunner:
             ValueError: If mission file is invalid
             Exception: For other unexpected errors
         """
-        try:
-            # 1. Verify/generate agents
-            self._ensure_agents_exist(mission_filepath)
+        # 1. Verify/generate agents
+        self._ensure_agents_exist(mission_filepath)
+        
+        # 2. Main execution loop
+        while True:
+            # Select random agent
+            agent_name = self._select_random_agent()
+            if not agent_name:
+                raise ValueError("No agents available")
+                
+            self.logger.info(f"Selected agent: {agent_name}")
             
-            # 2. Main execution loop
-            while True:
-                try:
-                    # Select random agent
-                    agent_name = self._select_random_agent()
-                    if not agent_name:
-                        self.logger.error("No agents available")
-                        break
-                        
-                    self.logger.info(f"Selected agent: {agent_name}")
-                    
-                    # Execute agent cycle
-                    self._execute_agent_cycle(agent_name, mission_filepath)
-                    
-                except KeyboardInterrupt:
-                    self.logger.info("Execution interrupted by user")
-                    break
-                except Exception as e:
-                    self.logger.error(f"Error in execution cycle: {str(e)}")
-                    continue
-                    
-        except Exception as e:
-            self.logger.error(f"Runner execution failed: {str(e)}")
-            raise
+            # Execute agent cycle - let exceptions propagate
+            self._execute_agent_cycle(agent_name, mission_filepath)
             
     def _ensure_agents_exist(self, mission_filepath):
         """Verify agents exist or generate them."""
@@ -88,32 +74,27 @@ class AgentRunner:
             agent_name (str): Name of the selected agent
             mission_filepath (str): Path to mission file
         """
-        try:
-            # 1. Generate new objective
-            agent_filepath = f".aider.agent.{agent_name}.md"
-            objective_filepath = f".aider.objective.{agent_name}.md"
-            self.objective_manager.generate_objective(
-                mission_filepath=mission_filepath,
-                agent_filepath=agent_filepath
-            )
-            
-            # 2. Generate context map
-            map_filepath = f".aider.map.{agent_name}.md"
-            self.map_manager.generate_map(
-                mission_filepath=mission_filepath,
-                objective_filepath=objective_filepath,
-                agent_filepath=agent_filepath
-            )
-            
-            # 3. Execute aider operation
-            self.aider_manager.run_aider(
-                objective_filepath=objective_filepath,
-                map_filepath=map_filepath,
-                agent_filepath=agent_filepath
-            )
-            
-            self.logger.info(f"Completed execution cycle for {agent_name}")
-            
-        except Exception as e:
-            self.logger.error(f"Agent cycle failed for {agent_name}: {str(e)}")
-            raise
+        # 1. Generate new objective
+        agent_filepath = f".aider.agent.{agent_name}.md"
+        objective_filepath = f".aider.objective.{agent_name}.md"
+        self.objective_manager.generate_objective(
+            mission_filepath=mission_filepath,
+            agent_filepath=agent_filepath
+        )
+        
+        # 2. Generate context map
+        map_filepath = f".aider.map.{agent_name}.md"
+        self.map_manager.generate_map(
+            mission_filepath=mission_filepath,
+            objective_filepath=objective_filepath,
+            agent_filepath=agent_filepath
+        )
+        
+        # 3. Execute aider operation
+        self.aider_manager.run_aider(
+            objective_filepath=objective_filepath,
+            map_filepath=map_filepath,
+            agent_filepath=agent_filepath
+        )
+        
+        self.logger.info(f"Completed execution cycle for {agent_name}")
