@@ -46,17 +46,23 @@ class MapManager:
         ignore_patterns = self._get_ignore_patterns()
         available_files = []
         
-        for root, _, files in os.walk('.'):
+        for root, dirs, files in os.walk('.'):
+            # Remove ignored directories to prevent walking into them
+            dirs[:] = [d for d in dirs if not any(
+                fnmatch.fnmatch(os.path.join(root, d), pattern) 
+                for pattern in ignore_patterns
+            )]
+            
             for file in files:
                 file_path = os.path.join(root, file)
-                # Convert to relative path
-                rel_path = os.path.relpath(file_path, '.')
+                # Convert to relative path with forward slashes
+                rel_path = os.path.relpath(file_path, '.').replace(os.sep, '/')
                 
                 # Skip files matching ignore patterns
-                if not self._should_ignore(rel_path, ignore_patterns):
+                if not any(fnmatch.fnmatch(rel_path, pattern) for pattern in ignore_patterns):
                     available_files.append(rel_path)
                     
-        return available_files
+        return sorted(available_files)  # Sort for consistent output
 
     def generate_map(self, mission_filepath=".aider.mission.md", 
                     objective_filepath=None, 
