@@ -212,20 +212,27 @@ class AiderManager:
             # Look for commit lines - they start with "Commit" followed by a hash
             for line in output_lines:
                 line = line.strip()
-                if line.startswith('Commit ') and len(line) >= 47:  # Typical commit line length
-                    # Extract commit hash and message
-                    commit_hash = line.split()[1][:7]  # First 7 chars of hash
-                    commit_msg = line[47:].strip()  # Message starts after hash
-                    
-                    # Extract agent name from command
-                    agent_filepath = [arg for arg in cmd if arg.endswith('.md') and '.agent.' in arg][0]
-                    agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
-                    
-                    # Parse commit type and get emoji
-                    commit_type, emoji = self._parse_commit_type(commit_msg)
-                    
-                    # Log formatted commit message as success
-                    self.logger.success(f"Agent {agent_name} made {commit_type} commit {emoji} ({commit_hash}): {commit_msg}")
+                if "Commit " in line:  # More lenient check for commit messages
+                    try:
+                        # Split on "Commit " to get everything after it
+                        commit_parts = line.split("Commit ")[1]
+                        # First word is the hash
+                        commit_hash = commit_parts.split()[0][:7]
+                        # Everything after the hash is the message
+                        commit_msg = " ".join(commit_parts.split()[1:])
+                        
+                        # Extract agent name from command
+                        agent_filepath = [arg for arg in cmd if arg.endswith('.md') and '.agent.' in arg][0]
+                        agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
+                        
+                        # Parse commit type and get emoji
+                        commit_type, emoji = self._parse_commit_type(commit_msg)
+                        
+                        # Log formatted commit message as success - now with full message
+                        self.logger.success(f"Agent {agent_name} made {commit_type} commit {emoji} ({commit_hash}): {commit_msg}")
+                    except Exception as parse_error:
+                        self.logger.debug(f"Failed to parse commit line: {line}")
+                        continue
             
             # Log stderr as debug if present, warning if contains error
             if result.stderr:
