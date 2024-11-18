@@ -74,7 +74,28 @@ def main():
             
         elif subcommand == "aider":
             manager = AiderManager()
-            # TODO: Implement aider execution
+            
+            # Parse arguments
+            if len(sys.argv) < 4 or sys.argv[3] != "--agent":
+                print("Usage: kin run aider --agent <agent_name>")
+                sys.exit(1)
+                
+            if len(sys.argv) < 5:
+                print("Usage: kin run aider --agent <agent_name>")
+                sys.exit(1)
+                
+            agent_name = sys.argv[4]
+            
+            # Use default paths based on agent name
+            agent_path = f".aider.agent.{agent_name}.md"
+            objective_path = f".aider.objective.{agent_name}.md"  # Default objective path
+            map_path = f".aider.map.{agent_name}.md"  # Default map path
+            
+            manager.run_aider(
+                objective_filepath=objective_path,
+                map_filepath=map_path,
+                agent_filepath=agent_path
+            )
             
     else:
         print(f"Unknown command: {command}")
