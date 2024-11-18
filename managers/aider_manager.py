@@ -114,6 +114,35 @@ class AiderManager:
             
         return cmd
 
+    def _parse_commit_type(self, commit_msg):
+        """
+        Parse commit message to determine type and corresponding emoji.
+        
+        Returns:
+            tuple: (type, emoji)
+        """
+        commit_types = {
+            'feat': '✨',
+            'fix': '🐛', 
+            'docs': '📚',
+            'style': '💎',
+            'refactor': '♻️',
+            'perf': '⚡️',
+            'test': '🧪',
+            'build': '📦',
+            'ci': '🔄',
+            'chore': '🔧',
+            'revert': '⏪'
+        }
+        
+        # Check if commit message starts with any known type
+        for commit_type, emoji in commit_types.items():
+            if commit_msg.lower().startswith(f"{commit_type}:"):
+                return commit_type, emoji
+                
+        # Default to other
+        return "other", "🔨"
+
     def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
         try:
@@ -127,9 +156,23 @@ class AiderManager:
                 text=True
             )
             
-            # Log output
-            if result.stdout:
-                self.logger.debug(f"Aider output:\n{result.stdout}")
+            # Parse output for commits
+            output_lines = result.stdout.split('\n')
+            for line in output_lines:
+                if line.startswith("Commit: "):
+                    commit_msg = line[8:].strip()  # Remove "Commit: " prefix
+                    
+                    # Extract agent name from command
+                    agent_filepath = [arg for arg in cmd if arg.endswith('.md') and '.agent.' in arg][0]
+                    agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
+                    
+                    # Parse commit type and get emoji
+                    commit_type, emoji = self._parse_commit_type(commit_msg)
+                    
+                    # Log formatted commit message
+                    self.logger.info(f"Agent {agent_name} made {commit_type} commit {emoji}: {commit_msg}")
+            
+            # Log other output
             if result.stderr:
                 self.logger.warning(f"Aider warnings:\n{result.stderr}")
                 
