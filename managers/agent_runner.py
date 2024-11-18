@@ -38,7 +38,7 @@ class AgentRunner:
             if not agent_name:
                 raise ValueError("No agents available")
                 
-            self.logger.info(f"Selected agent: {agent_name}")
+            self.logger.info(f"🤖 Selected agent: {agent_name}")
             
             # Execute agent cycle - let exceptions propagate
             self._execute_agent_cycle(agent_name, mission_filepath)
@@ -46,7 +46,7 @@ class AgentRunner:
     def _ensure_agents_exist(self, mission_filepath):
         """Verify agents exist or generate them."""
         if not self._agents_exist():
-            self.logger.info("Generating agents...")
+            self.logger.info("🔄 Generating agents...")
             self.agents_manager.generate_agents(mission_filepath)
             
     def _agents_exist(self):
@@ -97,4 +97,4 @@ class AgentRunner:
             agent_filepath=agent_filepath
         )
         
-        self.logger.info(f"Completed execution cycle for {agent_name}")
+        self.logger.info(f"✅ Completed execution cycle for {agent_name}")

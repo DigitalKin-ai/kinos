@@ -27,7 +27,7 @@ class AgentsManager:
         """
         try:
             self.mission_path = mission_filepath
-            self.logger.info(f"Starting agent generation for mission: {mission_filepath}")
+            self.logger.info(f"🚀 Starting agent generation for mission: {mission_filepath}")
             
             if not self._validate_mission_file():
                 raise ValueError(f"Invalid or missing mission file: {mission_filepath}")
@@ -47,13 +47,13 @@ class AgentsManager:
             for agent_type in agent_types:
                 try:
                     self._generate_single_agent(agent_type)
-                    self.logger.info(f"Successfully generated agent: {agent_type}")
+                    self.logger.info(f"✨ Successfully generated agent: {agent_type}")
                 except Exception as e:
                     self.logger.error(f"Failed to generate agent {agent_type}: {str(e)}")
                     raise
                     
         except Exception as e:
-            self.logger.error(f"Agent generation failed: {str(e)}")
+            self.logger.error(f"❌ Agent generation failed: {str(e)}")
             raise
             
     def _validate_mission_file(self):
@@ -66,7 +66,7 @@ class AgentsManager:
         try:
             return os.path.exists(self.mission_path) and os.access(self.mission_path, os.R_OK)
         except Exception as e:
-            self.logger.error(f"Error validating mission file: {str(e)}")
+            self.logger.error(f"⚠️ Error validating mission file: {str(e)}")
             return False
         
     def _generate_single_agent(self, agent_name):
@@ -87,11 +87,11 @@ class AgentsManager:
             
             # 2. Prepare agent prompt
             prompt = self._create_agent_prompt(agent_name, mission_content)
-            self.logger.debug(f"Created prompt for agent: {agent_name}")
+            self.logger.debug(f"📝 Created prompt for agent: {agent_name}")
             
             # 3. Make GPT call and get response
             agent_config = self._call_gpt(prompt)
-            self.logger.debug(f"Received GPT response for agent: {agent_name}")
+            self.logger.debug(f"🤖 Received GPT response for agent: {agent_name}")
             
             # 4. Save agent configuration
             output_path = f".aider.agent.{agent_name}.md"

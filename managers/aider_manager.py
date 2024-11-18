@@ -24,7 +24,7 @@ class AiderManager:
             subprocess.CalledProcessError: If aider execution fails
         """
         try:
-            self.logger.info("Starting aider operation")
+            self.logger.info("🚀 Starting aider operation")
             
             # Validate input files
             if not self._validate_files(objective_filepath, map_filepath, agent_filepath):
@@ -43,7 +43,7 @@ class AiderManager:
             # Execute aider
             self._execute_aider(cmd)
             
-            self.logger.info("Aider operation completed successfully")
+            self.logger.info("✅ Aider operation completed successfully")
             
         except Exception as e:
             self.logger.error(f"Aider operation failed: {str(e)}")
@@ -53,10 +53,10 @@ class AiderManager:
         """Validate all input files exist and are readable."""
         for filepath in filepaths:
             if not filepath or not os.path.exists(filepath):
-                self.logger.error(f"Missing file: {filepath}")
+                self.logger.error(f"❌ Missing file: {filepath}")
                 return False
             if not os.path.isfile(filepath) or not os.access(filepath, os.R_OK):
-                self.logger.error(f"Cannot read file: {filepath}")
+                self.logger.error(f"🚫 Cannot read file: {filepath}")
                 return False
         return True
 
@@ -76,7 +76,7 @@ class AiderManager:
                         if os.path.exists(filepath):
                             context_files.append(filepath)
                         else:
-                            self.logger.warning(f"Context file not found: {filepath}")
+                            self.logger.warning(f"⚠️ Context file not found: {filepath}")
             return context_files
             
         except Exception as e:
@@ -190,7 +190,7 @@ class AiderManager:
     def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
         try:
-            self.logger.info(f"Executing aider command: {' '.join(cmd)}")
+            self.logger.info(f"⚙️ Executing aider command: {' '.join(cmd)}")
             
             # Run aider with configured command
             result = subprocess.run(
@@ -218,10 +218,10 @@ class AiderManager:
             
             # Log other output
             if result.stderr:
-                self.logger.warning(f"Aider warnings:\n{result.stderr}")
+                self.logger.warning(f"⚠️ Aider warnings:\n{result.stderr}")
                 
         except subprocess.CalledProcessError as e:
-            self.logger.error(f"Aider execution failed: {str(e)}")
+            self.logger.error(f"💥 Aider execution failed: {str(e)}")
             if e.output:
                 self.logger.error(f"Error output:\n{e.output}")
             raise

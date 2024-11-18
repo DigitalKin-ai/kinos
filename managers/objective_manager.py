@@ -26,7 +26,7 @@ class ObjectiveManager:
             IOError: If there are file operation issues
         """
         try:
-            self.logger.info(f"Generating objective for agent: {agent_filepath}")
+            self.logger.info(f"🎯 Generating objective for agent: {agent_filepath}")
             
             # Validate input files
             if not all(self._validate_file(f) for f in [mission_filepath, agent_filepath]):
@@ -46,10 +46,10 @@ class ObjectiveManager:
             output_path = f".aider.objective.{agent_name}.md"
             self._save_objective(output_path, objective)
             
-            self.logger.info(f"Successfully generated objective for {agent_name}")
+            self.logger.info(f"✅ Successfully generated objective for {agent_name}")
             
         except Exception as e:
-            self.logger.error(f"Objective generation failed: {str(e)}")
+            self.logger.error(f"❌ Objective generation failed: {str(e)}")
             raise
 
     def _validate_file(self, filepath):
@@ -123,7 +123,7 @@ Your outputs will be used by Aider to execute specific tasks, so clarity and pre
                     # Get last 25000 chars of chat history
                     chat_history = content[-25000:] if len(content) > 25000 else content
         except Exception as e:
-            self.logger.warning(f"Could not load chat history: {str(e)}")
+            self.logger.warning(f"⚠️ Could not load chat history: {str(e)}")
             # Fail fast - don't proceed without history context
             raise
 

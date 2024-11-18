@@ -65,7 +65,7 @@ class MapManager:
         try:
             # Extract agent name from filepath
             agent_name = self._extract_agent_name(agent_filepath)
-            self.logger.info(f"Generating map for agent: {agent_filepath}")
+            self.logger.info(f"🗺️ Generating map for agent: {agent_filepath}")
             
             # Validate input files
             if not all(self._validate_file(f) for f in [mission_filepath, objective_filepath, agent_filepath]):
@@ -73,7 +73,7 @@ class MapManager:
                 
             # Get available files
             available_files = self._get_available_files()
-            self.logger.debug(f"Available files: {available_files}")
+            self.logger.debug(f"📁 Available files: {available_files}")
             
             # Load required content
             mission_content = self._read_file(mission_filepath)
@@ -92,10 +92,10 @@ class MapManager:
             output_path = f".aider.map.{agent_name}.md"
             self._save_map(output_path, context_map)
             
-            self.logger.info(f"Successfully generated context map for {agent_name}")
+            self.logger.info(f"✅ Successfully generated context map for {agent_name}")
             
         except Exception as e:
-            self.logger.error(f"Map generation failed: {str(e)}")
+            self.logger.error(f"❌ Map generation failed: {str(e)}")
             raise
 
     def _validate_file(self, filepath):
