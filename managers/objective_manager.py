@@ -79,7 +79,25 @@ class ObjectiveManager:
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are an AI objective generator specializing in creating specific, actionable objectives for AI agents."},
+                    {"role": "system", "content": """
+## System Prompt
+
+You are an objective generation agent within KinOS, an autonomous AI operating system. Your role is to analyze mission contexts and agent capabilities to generate clear, actionable objectives.
+
+Key principles:
+- Create specific, measurable objectives
+- Ensure alignment with agent capabilities
+- Maintain clear scope boundaries
+- Define explicit success criteria
+
+When generating objectives:
+1. Consider current mission state
+2. Match agent capabilities
+3. Ensure measurable outcomes
+4. Keep scope focused
+
+Your outputs will be used by Aider to execute specific tasks, so clarity and precision are essential.                   
+"""},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
@@ -100,23 +118,53 @@ class ObjectiveManager:
 
     def _create_objective_prompt(self, mission_content, agent_content, agent_name):
         """Create prompt for objective generation."""
-        return f"""Based on the following mission and agent configuration, generate a specific, actionable objective for the {agent_name} agent.
+        return f"""
+Based on the following contexts, generate a clear objective for the {agent_name} agent that will guide its next Aider operation.
 
-Mission Context:
+# Reference Materials
+- Mission Context in `.aider.mission.md`:
 {mission_content}
 
-Agent Configuration:
+- Agent Configuration in `.aider.agent.{agent_name}.md`:
 {agent_content}
 
-Generate a markdown-formatted objective that includes:
-1. Clear, specific goal statement
-2. Success criteria
-3. Required resources or dependencies
-4. Time or scope constraints
-5. Integration points with other agents
-6. Expected outputs or deliverables
+# Required Output
+Create an objective in markdown format that specifies:
 
-The objective should be concrete, measurable, and aligned with the agent's capabilities."""
+1. **Action Statement**
+   - Single, specific task to accomplish
+   - Clear relation to current mission state
+   - Within agent's documented capabilities
+
+2. **Source Files**
+   - Which specific files to analyze
+   - Which sections are relevant
+   - Which dependencies matter
+
+3. **Target Changes**
+   - Which files to modify
+   - Nature of expected changes
+   - Impact on system state
+
+4. **Validation Points**
+   - How to verify success
+   - What output to check
+   - Which states to validate
+
+5. **Operation Bounds**
+   - Resource limitations
+   - Scope restrictions
+   - Dependency requirements
+
+The objective must be:
+- Limited to one clear operation
+- Executable with current capabilities
+- Specific about file changes
+- Clear on completion checks
+- Self-contained (no follow-up needed)
+
+Ask Aider to make the edits now, without asking for clarification, and using the required SEARCH/REPLACE format.
+"""
 
     def _validate_objective_content(self, content):
         """Validate generated objective has required sections."""
