@@ -90,7 +90,7 @@ class AiderManager:
         Returns:
             list: Command arguments for subprocess
         """
-        cmd = ['aider']
+        cmd = ["python", "-m", "aider"]
         
         # Add required aider arguments
         cmd.extend([
@@ -105,7 +105,7 @@ class AiderManager:
         cmd.extend(context_files)
         
         # Add agent prompt as read-only
-        cmd.extend(['--prompt-file', agent_filepath])
+        cmd.extend(['--read', agent_filepath])
         
         # Add objective as initial prompt
         with open(objective_filepath, 'r') as f:
