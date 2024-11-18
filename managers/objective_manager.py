@@ -179,6 +179,10 @@ Create an objective in markdown format that specifies:
    - Scope restrictions
    - Dependency requirements
 
+6. **Recherche**
+   - Si la tâche nécessite une recherche sur Perplexity, ajouter une section "Recherche :" avec la recherche précise à effectuer
+   - Ne pas inclure cette section si aucune recherche n'est nécessaire
+
 The objective must be:
 - Limited to one clear operation
 - Executable with current capabilities
