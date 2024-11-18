@@ -92,16 +92,20 @@ class Logger:
         
     def error(self, message):
         """Log error level message in red with agent emoji if present."""
-        self.logger.error(self._get_agent_emoji(message))
+        formatted_msg = self._get_agent_emoji(message)
+        self.logger.error(formatted_msg)
         
     def debug(self, message):
         """Log debug level message in cyan with agent emoji if present."""
-        self.logger.debug(self._get_agent_emoji(message))
+        formatted_msg = self._get_agent_emoji(message)
+        self.logger.debug(formatted_msg)
         
     def success(self, message):
         """Log success level message in bright blue with agent emoji if present."""
-        self.logger.log(logging.SUCCESS, self._get_agent_emoji(message))
+        formatted_msg = self._get_agent_emoji(message)
+        self.logger.log(logging.SUCCESS, formatted_msg)
         
     def warning(self, message):
         """Log warning level message in yellow with agent emoji if present."""
-        self.logger.warning(self._get_agent_emoji(message))
+        formatted_msg = self._get_agent_emoji(message)
+        self.logger.warning(formatted_msg)
