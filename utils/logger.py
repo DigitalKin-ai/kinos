@@ -14,7 +14,8 @@ class Logger:
         
         # Add file handler for suivi.md
         self.suivi_file = 'suivi.md'
-        file_formatter = logging.Formatter('%(asctime)s - %(message)s')
+        file_formatter = logging.Formatter('%(asctime)s - %(message)s',
+                                         datefmt='%Y-%m-%d %H:%M:%S')
         file_handler = logging.FileHandler(self.suivi_file, encoding='utf-8', mode='a')
         file_handler.setFormatter(file_formatter)
         file_handler.setLevel(logging.SUCCESS)  # Only log SUCCESS and above
@@ -32,7 +33,7 @@ class Logger:
 
             def format(self, record):
                 log_fmt = self.FORMATS.get(record.levelno)
-                formatter = logging.Formatter(log_fmt)
+                formatter = logging.Formatter(log_fmt, datefmt='%Y-%m-%d %H:%M:%S')
                 return formatter.format(record)
 
         # Setup handler with color formatter
