@@ -90,6 +90,9 @@ class AiderManager:
         Returns:
             list: Command arguments for subprocess
         """
+        # Extract agent name from filepath for history files
+        agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
+        
         cmd = ["python", "-m", "aider"]
         
         # Add required aider arguments
@@ -98,7 +101,9 @@ class AiderManager:
             "--edit-format", "diff", 
             "--yes-always",
             "--cache-prompts",
-            "--no-pretty"
+            "--no-pretty",
+            "--chat-history-file", f".aider.history.{agent_name}.md",
+            "--input-history-file", f".aider.input.{agent_name}.md"
         ])
         
         # Add context files
