@@ -104,13 +104,7 @@ Your outputs will be used by Aider to execute specific tasks, so clarity and pre
                 max_tokens=2000
             )
             
-            objective = response.choices[0].message.content
-            
-            # Validate objective structure and fail fast if invalid
-            if not self._validate_objective_content(objective):
-                raise ValueError("Generated objective missing required sections")
-                
-            return objective
+            return response.choices[0].message.content
             
         except Exception as e:
             self.logger.error(f"GPT API call failed: {str(e)}")
@@ -191,11 +185,6 @@ The objective must be:
 
 Ask Aider to make the edits now, without asking for clarification, and using the required SEARCH/REPLACE format.
 """
-
-    def _validate_objective_content(self, content):
-        """Validate generated objective has required sections."""
-        required_sections = ["# Objective", "## Goal", "## Success Criteria"]
-        return all(section in content for section in required_sections)
 
 
     def _save_objective(self, filepath, content):
