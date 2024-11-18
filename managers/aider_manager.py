@@ -246,7 +246,7 @@ class AiderManager:
                         commit_type, emoji = self._parse_commit_type(commit_msg)
                         
                         # Log formatted commit message as success - now with full message
-                        self.logger.info(f"Agent {agent_name} made {commit_type} commit {emoji} ({commit_hash}): {commit_msg}")
+                        self.logger.success(f"Agent {agent_name} made {commit_type} commit {emoji} ({commit_hash}): {commit_msg}")
                         
                         # Update global map for modified files
                         map_manager = MapManager()
