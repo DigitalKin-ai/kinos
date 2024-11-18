@@ -70,6 +70,7 @@ def main():
             print("Options:")
             print("  --generate    Generate agents if missing")
             print("  --verbose     Show detailed debug information")
+            print("  --mission     Specify mission file path")
             sys.exit(1)
             
         subcommand = sys.argv[2]
@@ -82,6 +83,17 @@ def main():
             # Check for --verbose flag
             if "--verbose" in sys.argv:
                 runner.logger.logger.setLevel(logging.DEBUG)
+                
+            # Get mission file path
+            mission_path = ".aider.mission.md"  # default
+            if "--mission" in sys.argv:
+                try:
+                    mission_index = sys.argv.index("--mission") + 1
+                    if mission_index < len(sys.argv):
+                        mission_path = sys.argv[mission_index]
+                except (ValueError, IndexError):
+                    print("Missing value for --mission flag")
+                    sys.exit(1)
                 
             # Get agent count
             agent_count = 5  # Default value

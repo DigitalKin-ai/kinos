@@ -30,7 +30,16 @@ class AgentsManager:
             self.logger.info(f"🚀 Starting agent generation for mission: {mission_filepath}")
             
             if not self._validate_mission_file():
-                raise ValueError(f"Invalid or missing mission file: {mission_filepath}")
+                # Message d'erreur plus convivial
+                self.logger.error("❌ Fichier de mission introuvable!")
+                self.logger.info("\n📋 Pour démarrer KinOS, vous devez :")
+                self.logger.info("   1. Soit créer un fichier '.aider.mission.md' dans le dossier courant")
+                self.logger.info("   2. Soit spécifier le chemin vers votre fichier de mission avec --mission")
+                self.logger.info("\n💡 Exemples :")
+                self.logger.info("   kin run agents --generate")
+                self.logger.info("   kin run agents --generate --mission chemin/vers/ma_mission.md")
+                self.logger.info("\n📝 Le fichier de mission doit contenir la description de votre projet.")
+                raise SystemExit(1)  # Exit proprement avec code d'erreur
                 
             # List of specific agent types
             agent_types = [
