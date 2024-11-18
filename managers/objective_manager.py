@@ -215,7 +215,7 @@ Ask Aider to make the edits now, without asking for clarification, and using the
 Résume en une seule phrase ce que l'agent fait en ce moment dans le cadre de la mission, en suivant strictement ce format :
 "L'agent {agent_name} [action] [cible] [détail optionnel]"
 
-Utilise des emojis appropriés en fonction du type d'action.
+Ne répète pas la mission (qui est connue de l'utilisateur), mais seulement ce que l'agent doit faire précisément dans le cadre de cette mission. Utilise des emojis appropriés en fonction du type d'action.
 
 Voici l'objectif complet à résumer :
 {objective}
@@ -226,7 +226,7 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "Tu es un assistant qui résume des objectifs au sein d'un projet en une phrase concise avec des emojis appropriés. Ces résumés serviront de logs de suivi de mission."},
+                    {"role": "system", "content": "Tu es un assistant qui résume des actions au sein d'un projet en une phrase concise avec des emojis appropriés. Ces résumés serviront de logs de suivi au sein de la mission."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
