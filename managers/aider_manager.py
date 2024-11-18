@@ -190,6 +190,9 @@ class AiderManager:
     def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
         try:
+            # Log command as debug
+            self.logger.debug(f"🤖 Executing aider command: {' '.join(cmd)}")
+            
             # Run aider with configured command
             result = subprocess.run(
                 cmd,
@@ -197,6 +200,10 @@ class AiderManager:
                 capture_output=True,
                 text=True
             )
+            
+            # Log raw output as debug
+            if result.stdout:
+                self.logger.debug(f"📝 Aider stdout:\n{result.stdout}")
             
             # Parse both stdout and stderr for commits
             all_output = result.stdout + "\n" + result.stderr
@@ -230,14 +237,17 @@ class AiderManager:
                         # Parse commit type and get emoji
                         commit_type, emoji = self._parse_commit_type(commit_msg)
                         
-                        # Log formatted commit message
+                        # Log formatted commit message as success
                         self.logger.success(f"Agent {agent_name} made {commit_type} commit {emoji}: {commit_msg}")
                         break  # Found a commit message, stop checking other indicators
             
-            # Log other output only if there were issues
-            if result.stderr and "error" in result.stderr.lower():
-                self.logger.warning(f"⚠️ Aider warnings:\n{result.stderr}")
-                
+            # Log stderr as debug if present, warning if contains error
+            if result.stderr:
+                if "error" in result.stderr.lower():
+                    self.logger.warning(f"⚠️ Aider warnings:\n{result.stderr}")
+                else:
+                    self.logger.debug(f"📝 Aider stderr:\n{result.stderr}")
+                    
         except subprocess.CalledProcessError as e:
             self.logger.error(f"💥 Aider execution failed: {str(e)}")
             if e.output:
