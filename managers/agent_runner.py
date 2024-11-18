@@ -21,7 +21,7 @@ class AgentRunner:
         self._running_agents = set()  # Track active agents
         self._agent_lock = asyncio.Lock()  # Synchronize shared resource access
         
-    async def run(self, mission_filepath=".aider.mission.md", generate_agents=False, agent_count=5):
+    async def run(self, mission_filepath=".aider.mission.md", generate_agents=False, agent_count=8):
         """
         Main execution loop for running agents in parallel.
         """
