@@ -51,18 +51,39 @@ class AgentRunner:
             
     def _agents_exist(self):
         """Check if agent files exist."""
-        for i in range(8):
-            if not os.path.exists(f".aider.agent.agent_{i+1}.md"):
+        agent_types = [
+            "specification",
+            "management", 
+            "redaction",
+            "evaluation",
+            "duplication",
+            "chroniqueur",
+            "redondance",
+            "production"
+        ]
+        
+        for agent_type in agent_types:
+            if not os.path.exists(f".aider.agent.{agent_type}.md"):
                 return False
         return True
         
     def _select_random_agent(self):
         """Randomly select an available agent."""
+        agent_types = [
+            "specification",
+            "management", 
+            "redaction",
+            "evaluation",
+            "duplication",
+            "chroniqueur",
+            "redondance",
+            "production"
+        ]
+        
         available_agents = []
-        for i in range(8):
-            agent_name = f"agent_{i+1}"
-            if os.path.exists(f".aider.agent.{agent_name}.md"):
-                available_agents.append(agent_name)
+        for agent_type in agent_types:
+            if os.path.exists(f".aider.agent.{agent_type}.md"):
+                available_agents.append(agent_type)
                 
         return random.choice(available_agents) if available_agents else None
         
