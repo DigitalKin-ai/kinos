@@ -24,32 +24,37 @@ class AgentRunner:
     async def run(self, mission_filepath=".aider.mission.md", generate_agents=False, agent_count=5):
         """
         Main execution loop for running agents in parallel.
-        
-        Args:
-            mission_filepath (str): Path to mission specification file
-            generate_agents (bool): Whether to generate agents if they don't exist
-            agent_count (int): Number of agents to run in parallel
-            
-        Raises:
-            ValueError: If mission file is invalid or agents don't exist
-            Exception: For other unexpected errors
         """
-        missing_agents = self._agents_exist()
-        if missing_agents:
-            if generate_agents:
-                self.logger.info("🔄 Génération des agents...")
-                self.agents_manager.generate_agents(mission_filepath)
-            else:
-                # Message d'erreur plus convivial
-                self.logger.error("❌ Agents manquants détectés!")
-                self.logger.info("\n🤖 Les agents suivants sont requis mais n'ont pas été trouvés:")
-                for agent in missing_agents:
-                    self.logger.info(f"   • Agent {agent}")
-                self.logger.info("\n💡 Pour générer les agents manquants, utilisez la commande:")
+        try:
+            # First validate mission file
+            if not os.path.exists(mission_filepath):
+                self.logger.error("❌ Fichier de mission introuvable!")
+                self.logger.info("\n📋 Pour démarrer KinOS, vous devez :")
+                self.logger.info("   1. Soit créer un fichier '.aider.mission.md' dans le dossier courant")
+                self.logger.info("   2. Soit spécifier le chemin vers votre fichier de mission avec --mission")
+                self.logger.info("\n💡 Exemples :")
                 self.logger.info("   kin run agents --generate")
-                raise SystemExit(1)  # Exit proprement avec code d'erreur
+                self.logger.info("   kin run agents --generate --mission chemin/vers/ma_mission.md")
+                self.logger.info("\n📝 Le fichier de mission doit contenir la description de votre projet.")
+                raise SystemExit(1)
 
-        self.logger.info(f"🚀 Starting with {agent_count} parallel agents")
+            # Then check for missing agents
+            missing_agents = self._agents_exist()
+            if missing_agents:
+                if generate_agents:
+                    self.logger.info("🔄 Génération des agents...")
+                    self.agents_manager.generate_agents(mission_filepath)
+                else:
+                    self.logger.error("❌ Agents manquants détectés!")
+                    self.logger.info("\n🤖 Les agents suivants sont requis mais n'ont pas été trouvés:")
+                    for agent in missing_agents:
+                        self.logger.info(f"   • {self._get_agent_emoji(agent)} Agent {agent}")
+                    self.logger.info("\n💡 Pour générer les agents manquants, utilisez la commande:")
+                    self.logger.info("   kin run agents --generate")
+                    self.logger.info("\n📝 Ou spécifiez un fichier de mission différent avec --mission")
+                    raise SystemExit(1)
+
+            self.logger.info(f"🚀 Démarrage avec {agent_count} agents en parallèle")
         
         # Create initial pool of agents with delay between starts
         tasks = set()
@@ -80,6 +85,20 @@ class AgentRunner:
             # Update pending tasks
             tasks = pending
             
+    def _get_agent_emoji(self, agent_type):
+        """Get the appropriate emoji for an agent type."""
+        agent_emojis = {
+            'specification': '📌',
+            'management': '🧭',
+            'redaction': '✍️',
+            'evaluation': '⚖️',
+            'duplication': '👥',
+            'chroniqueur': '📜',
+            'redondance': '🎭',
+            'production': '🏭'
+        }
+        return agent_emojis.get(agent_type, '🤖')
+
     def _agents_exist(self):
         """Check if agent files exist and return missing agents."""
         agent_types = [
