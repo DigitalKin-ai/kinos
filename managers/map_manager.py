@@ -345,12 +345,19 @@ Provide a one-line summary (max 250 chars) that captures the essence and current
             self.logger.error(f"Failed to generate file summary: {str(e)}")
             raise
 
-    def _update_map_file(self, filepath, char_count, summary):
+    def _update_map_file(self, filepath, summary):
         """Update map.md with new file summary."""
         try:
             map_path = "map.md"
             updated_lines = []
-            file_entry = f"{filepath} ({char_count} chars.) {summary}"
+            
+            # Get token count for the file
+            tokenizer = tiktoken.encoding_for_model("gpt-4")
+            with open(filepath, 'r', encoding='utf-8') as f:
+                file_content = f.read()
+            token_count = len(tokenizer.encode(file_content))
+            
+            file_entry = f"{filepath} ({token_count} tokens) {summary}"
             entry_updated = False
             
             # Read existing map if it exists
