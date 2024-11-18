@@ -118,6 +118,21 @@ Your outputs will be used by Aider to execute specific tasks, so clarity and pre
 
     def _create_objective_prompt(self, mission_content, agent_content, agent_name):
         """Create prompt for objective generation."""
+        
+        # Load recent chat history
+        chat_history = ""
+        chat_file = f".aider.chat.{agent_name}.md"
+        try:
+            if os.path.exists(chat_file):
+                with open(chat_file, 'r') as f:
+                    content = f.read()
+                    # Get last 25000 chars of chat history
+                    chat_history = content[-25000:] if len(content) > 25000 else content
+        except Exception as e:
+            self.logger.warning(f"Could not load chat history: {str(e)}")
+            # Fail fast - don't proceed without history context
+            raise
+
         return f"""
 Based on the following contexts, generate a clear objective for the {agent_name} agent that will guide its next Aider operation.
 
@@ -127,6 +142,16 @@ Based on the following contexts, generate a clear objective for the {agent_name}
 
 - Agent Configuration in `.aider.agent.{agent_name}.md`:
 {agent_content}
+
+- Recent Chat History:
+{chat_history}
+
+# Breadth-First Pattern
+- Review previous objectives from chat history
+- Generate an objective that explores a NEW aspect of the mission
+- Avoid repeating or deepening previous work
+- Focus on unexplored areas of responsibility
+- Maintain breadth-first exploration pattern
 
 # Required Output
 Create an objective in markdown format that specifies:
@@ -162,6 +187,7 @@ The objective must be:
 - Specific about file changes
 - Clear on completion checks
 - Self-contained (no follow-up needed)
+- Different from previous objectives
 
 Ask Aider to make the edits now, without asking for clarification, and using the required SEARCH/REPLACE format.
 """
