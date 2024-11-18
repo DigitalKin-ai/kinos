@@ -41,19 +41,36 @@ class AgentRunner:
             else:
                 raise ValueError("No agents found. Run with --generate flag to generate agents.")
 
-        self.logger.info(f"🚀 Starting {agent_count} agents in parallel")
+        self.logger.info(f"🚀 Starting with {agent_count} parallel agents")
         
-        # Create tasks for each agent with staggered starts
-        tasks = []
+        # Create initial pool of agents with delay between starts
+        tasks = set()
         for i in range(agent_count):
-            # Add a delay of 3 seconds between each agent start
-            await asyncio.sleep(3)
-            tasks.append(asyncio.create_task(
-                self._run_agent_loop(mission_filepath)
+            await asyncio.sleep(3)  # 3 second delay between each start
+            tasks.add(asyncio.create_task(
+                self._run_single_agent_cycle(mission_filepath)
             ))
+        
+        # Maintain active agent count
+        while True:
+            # Wait for an agent to complete
+            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
             
-        # Wait for all tasks to complete
-        await asyncio.gather(*tasks)
+            # Handle completed agents
+            for task in done:
+                try:
+                    await task  # Get potential errors
+                except Exception as e:
+                    self.logger.error(f"Agent task failed: {str(e)}")
+                
+                # Create new agent to replace completed one
+                await asyncio.sleep(3)  # Delay before starting new agent
+                tasks.add(asyncio.create_task(
+                    self._run_single_agent_cycle(mission_filepath)
+                ))
+            
+            # Update pending tasks
+            tasks = pending
             
     def _agents_exist(self):
         """Check if agent files exist."""
@@ -73,28 +90,27 @@ class AgentRunner:
                 return False
         return True
         
-    async def _run_agent_loop(self, mission_filepath):
-        """Individual execution loop for each agent."""
-        while True:
-            try:
-                # Select an unused agent
-                agent_name = await self._select_available_agent()
-                if not agent_name:
-                    await asyncio.sleep(1)  # Wait if no agent available
-                    continue
-                    
-                self.logger.info(f"🤖 Agent {agent_name} starting cycle")
+    async def _run_single_agent_cycle(self, mission_filepath):
+        """Execute a single cycle for one agent."""
+        try:
+            # Select an unused agent
+            agent_name = await self._select_available_agent()
+            if not agent_name:
+                await asyncio.sleep(1)  # Wait if no agent available
+                return
                 
-                # Execute agent cycle
-                await self._execute_agent_cycle(agent_name, mission_filepath)
+            self.logger.info(f"🤖 Agent {agent_name} starting cycle")
+            
+            # Execute agent cycle
+            await self._execute_agent_cycle(agent_name, mission_filepath)
+            
+            # Release agent
+            async with self._agent_lock:
+                self._running_agents.remove(agent_name)
                 
-                # Release agent
-                async with self._agent_lock:
-                    self._running_agents.remove(agent_name)
-                    
-            except Exception as e:
-                self.logger.error(f"Error in agent loop: {str(e)}")
-                await asyncio.sleep(1)  # Pause before retry
+        except Exception as e:
+            self.logger.error(f"Error in agent cycle: {str(e)}")
+            raise  # Propagate error to allow agent replacement
 
     async def _select_available_agent(self):
         """Select an unused agent in a thread-safe way."""
