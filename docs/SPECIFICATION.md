@@ -144,11 +144,19 @@ KinOS v6 represents a fundamental shift towards true AI autonomy, implementing:
 - Prompt caching
 - Distributed caching support
 
+### 3.3 Logging System
+- Colored console output
+- Multi-level logging (DEBUG to ERROR)
+- Automatic tracking in suivi.md
+- Agent-specific emoji tagging
+- Success tracking for key operations
+
 ### 3.4 Notification System
 - Real-time updates
 - WebSocket support
 - Priority queuing
 - Message persistence
+- Automatic logging to suivi.md for SUCCESS+ level events
 
 ## 4. Deployment & Configuration
 
