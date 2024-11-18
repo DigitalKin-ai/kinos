@@ -150,11 +150,6 @@ Select only files that are directly relevant to the current objective.
             )
             
             context_map = response.choices[0].message.content
-            
-            # Validate map structure
-            if not self._validate_map_content(context_map):
-                raise ValueError("Generated map missing required sections")
-                
             return context_map
             
         except Exception as e:
@@ -181,16 +176,6 @@ Return a list of only the files needed to complete the current objective.
 Format as a simple markdown list under a "# Context Map" heading.
 """
 
-    def _validate_map_content(self, content):
-        """Validate generated map has required sections."""
-        required_sections = [
-            "# Context Map",
-            "## Primary Files",
-            "## Supporting Files",
-            "## Dependencies",
-            "## Access Patterns"
-        ]
-        return all(section in content for section in required_sections)
 
     def _save_map(self, filepath, content):
         """Save context map content to file."""
