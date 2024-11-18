@@ -106,15 +106,15 @@ Your outputs will be used by Aider to execute specific tasks, so clarity and pre
             
             objective = response.choices[0].message.content
             
-            # Validate objective structure
+            # Validate objective structure and fail fast if invalid
             if not self._validate_objective_content(objective):
-                return self._get_fallback_objective(agent_name)
+                raise ValueError("Generated objective missing required sections")
                 
             return objective
             
         except Exception as e:
             self.logger.error(f"GPT API call failed: {str(e)}")
-            return self._get_fallback_objective(agent_name)
+            raise  # Fail fast - no fallback
 
     def _create_objective_prompt(self, mission_content, agent_content, agent_name):
         """Create prompt for objective generation."""
@@ -171,28 +171,6 @@ Ask Aider to make the edits now, without asking for clarification, and using the
         required_sections = ["# Objective", "## Goal", "## Success Criteria"]
         return all(section in content for section in required_sections)
 
-    def _get_fallback_objective(self, agent_name):
-        """Return fallback objective if generation fails."""
-        return f"""# Objective
-
-## Goal
-Temporary fallback objective for {agent_name}
-
-## Success Criteria
-- Basic task completion
-- Error-free execution
-- Documentation updates
-
-## Resources
-- Standard system access
-- Basic file operations
-
-## Timeline
-- Next execution cycle
-
-## Integration
-- Standard agent communication
-- Basic status reporting"""
 
     def _save_objective(self, filepath, content):
         """Save objective content to file."""
