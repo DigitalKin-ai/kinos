@@ -190,8 +190,6 @@ class AiderManager:
     def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
         try:
-            self.logger.info(f"⚙️ Executing aider command: {' '.join(cmd)}")
-            
             # Run aider with configured command
             result = subprocess.run(
                 cmd,
@@ -199,10 +197,6 @@ class AiderManager:
                 capture_output=True,
                 text=True
             )
-            
-            # Log all output for debugging
-            self.logger.debug(f"Stdout:\n{result.stdout}")
-            self.logger.debug(f"Stderr:\n{result.stderr}")
             
             # Parse both stdout and stderr for commits
             all_output = result.stdout + "\n" + result.stderr
