@@ -70,7 +70,9 @@ def main():
         subcommand = sys.argv[2]
         if subcommand == "agents":
             runner = AgentRunner()
-            # TODO: Implement agent running
+            # Optional mission file path
+            mission_path = sys.argv[3] if len(sys.argv) > 3 else ".aider.mission.md"
+            runner.run(mission_path)
             
         elif subcommand == "aider":
             manager = AiderManager()
