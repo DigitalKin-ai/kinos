@@ -95,7 +95,10 @@ def main():
             # Check for --generate flag    
             should_generate = "--generate" in sys.argv
             mission_path = ".aider.mission.md"
-            
+    
+            # Afficher le message de démarrage
+            runner.logger.success("🌟 Lancement du KinOS...")
+    
             # Run with asyncio
             asyncio.run(runner.run(
                 mission_path, 
