@@ -1,4 +1,5 @@
 import os
+import asyncio
 from pathlib import Path
 import fnmatch
 from utils.logger import Logger
@@ -215,38 +216,54 @@ Format as a simple markdown list under a "# Context Map" heading.
             self.logger.error(f"Error saving map to {filepath}: {str(e)}")
             raise
 
-    def initialize_global_map(self):
+    async def initialize_global_map(self):
         """
         Initialize or reset the global map file with summaries of all project files.
+        Processes files in batches of 10 for better performance.
         """
         try:
             self.logger.info("🗺️ Initializing global project map...")
             
             # Get all available files
             available_files = self._get_available_files()
+            total_files = len(available_files)
             
             # Create map header
             map_content = "# Project Map\n\n"
             
-            # Process each file
-            for filepath in available_files:
-                try:
-                    # Read file content
-                    with open(filepath, 'r', encoding='utf-8') as f:
-                        file_content = f.read()
+            # Process files in batches of 10
+            batch_size = 10
+            for i in range(0, total_files, batch_size):
+                batch = available_files[i:i+batch_size]
+                batch_tasks = []
+                
+                self.logger.info(f"📊 Processing batch {i//batch_size + 1}/{(total_files+batch_size-1)//batch_size} ({len(batch)} files)")
+                
+                # Create tasks for batch
+                for filepath in batch:
+                    try:
+                        with open(filepath, 'r', encoding='utf-8') as f:
+                            file_content = f.read()
+                        char_count = len(file_content)
                         
-                    # Get file size
-                    char_count = len(file_content)
-                    
-                    # Generate summary
-                    summary = self._generate_file_summary(filepath, file_content)
-                    
-                    # Add to map content
-                    map_content += f"{filepath} ({char_count} chars.) {summary}\n"
-                    
-                except Exception as e:
-                    self.logger.warning(f"⚠️ Could not process {filepath}: {str(e)}")
-                    continue
+                        # Create task for file summary generation
+                        task = asyncio.create_task(self._generate_file_summary_async(filepath, file_content))
+                        batch_tasks.append((filepath, char_count, task))
+                    except Exception as e:
+                        self.logger.warning(f"⚠️ Could not read {filepath}: {str(e)}")
+                        continue
+                
+                # Wait for all summaries in batch
+                for filepath, char_count, task in batch_tasks:
+                    try:
+                        summary = await task
+                        map_content += f"{filepath} ({char_count} chars.) {summary}\n"
+                    except Exception as e:
+                        self.logger.warning(f"⚠️ Could not process {filepath}: {str(e)}")
+                        continue
+                
+                # Small delay between batches to avoid rate limits
+                await asyncio.sleep(1)
                     
             # Save map file
             with open("map.md", 'w', encoding='utf-8') as f:
@@ -287,8 +304,8 @@ Format as a simple markdown list under a "# Context Map" heading.
             self.logger.error(f"Failed to update global map: {str(e)}")
             raise
 
-    def _generate_file_summary(self, filepath, content):
-        """Generate concise file summary using GPT."""
+    async def _generate_file_summary_async(self, filepath, content):
+        """Async version of file summary generation."""
         try:
             client = openai.OpenAI()
             prompt = f"""
@@ -306,14 +323,16 @@ Content:
 Provide a single-line summary (max 120 chars) that captures the essence and current state.
 """
             
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a code analysis system that provides concise, informative file summaries."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.3,
-                max_tokens=100
+            response = await asyncio.to_thread(
+                lambda: client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": "You are a code analysis system that provides concise, informative file summaries."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.3,
+                    max_tokens=100
+                )
             )
             
             return response.choices[0].message.content.strip()
