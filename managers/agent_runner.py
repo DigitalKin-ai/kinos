@@ -42,7 +42,7 @@ class AgentRunner:
             missing_agents = self._agents_exist()
             if missing_agents:
                 self.logger.info("🔄 Génération automatique des agents manquants...")
-                self.agents_manager.generate_agents(mission_filepath)
+                await self.agents_manager.generate_agents(mission_filepath)
 
             self.logger.info(f"🚀 Démarrage avec {agent_count} agents en parallèle")
         except Exception as e:
