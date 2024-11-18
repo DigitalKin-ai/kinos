@@ -106,9 +106,10 @@ class AiderManager:
             "--input-history-file", f".aider.input.{agent_name}.md"
         ])
         
-        # Add context files
-        cmd.extend(context_files)
-        
+        # Add context files with --file prefix
+        for context_file in context_files:
+            cmd.extend(['--file', context_file])
+            
         # Add agent prompt as read-only
         cmd.extend(['--read', agent_filepath])
         
