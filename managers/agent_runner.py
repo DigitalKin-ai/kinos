@@ -46,7 +46,7 @@ class AgentRunner:
         # Create initial pool of agents with delay between starts
         tasks = set()
         for i in range(agent_count):
-            await asyncio.sleep(3)  # 3 second delay between each start
+            await asyncio.sleep(5)  # 5 second delay between each start
             tasks.add(asyncio.create_task(
                 self._run_single_agent_cycle(mission_filepath)
             ))
