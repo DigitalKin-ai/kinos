@@ -281,33 +281,47 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
                     if not perplexity_key:
                         raise ValueError("Perplexity API key not found in environment variables")
                         
-                    # Make Perplexity API call
+                    # Make Perplexity API call with correct format
                     headers = {
                         "Authorization": f"Bearer {perplexity_key}",
                         "Content-Type": "application/json"
                     }
-                    response = requests.post(
-                        "https://api.perplexity.ai/chat/completions",
-                        headers=headers,
-                        json={
-                            "model": "pplx-7b-chat",
-                            "messages": [{"role": "user", "content": research_query}]
-                        }
-                    )
+                    payload = {
+                        "model": "pplx-7b-chat",
+                        "messages": [
+                            {"role": "system", "content": "You are a helpful research assistant providing accurate, detailed information."},
+                            {"role": "user", "content": research_query}
+                        ]
+                    }
                     
-                    if response.status_code == 200:
-                        research_result = response.json()["choices"][0]["message"]["content"]
+                    try:
+                        response = requests.post(
+                            "https://api.perplexity.ai/chat/completions",
+                            headers=headers,
+                            json=payload,
+                            timeout=30  # Add timeout
+                        )
                         
-                        # Generate summary of research results with agent name
-                        research_summary = self._generate_research_summary(research_query, research_result, agent_name)
-                        self.logger.success(research_summary)
-                        
-                        # Add research results to objective
-                        content += "\n\n## Informations complémentaires\n"
-                        content += f"Résultats de la recherche Perplexity pour : {research_query}\n\n"
-                        content += research_result
-                    else:
-                        self.logger.warning(f"⚠️ Perplexity API call failed: {response.status_code}")
+                        if response.status_code == 200:
+                            research_result = response.json()["choices"][0]["message"]["content"]
+                            
+                            # Generate summary of research results with agent name
+                            research_summary = self._generate_research_summary(research_query, research_result, agent_name)
+                            self.logger.success(research_summary)
+                            
+                            # Add research results to objective
+                            content += "\n\n## Informations complémentaires\n"
+                            content += f"Résultats de la recherche Perplexity pour : {research_query}\n\n"
+                            content += research_result
+                        else:
+                            error_msg = f"Perplexity API call failed with status {response.status_code}"
+                            if response.text:
+                                error_msg += f": {response.text}"
+                            self.logger.warning(f"⚠️ {error_msg}")
+                            # Continue without research results
+                    except requests.exceptions.RequestException as e:
+                        self.logger.warning(f"⚠️ Perplexity API request failed: {str(e)}")
+                        # Continue without research results
             
             # Save updated content
             with open(filepath, 'w') as f:
