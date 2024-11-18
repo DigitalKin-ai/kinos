@@ -63,6 +63,8 @@ class MapManager:
                     agent_filepath=None):
         """Generate a context map for an agent."""
         try:
+            # Extract agent name from filepath
+            agent_name = self._extract_agent_name(agent_filepath)
             self.logger.info(f"Generating map for agent: {agent_filepath}")
             
             # Validate input files
@@ -86,7 +88,7 @@ class MapManager:
                 available_files
             )
             
-            # Save map
+            # Save map using extracted agent name
             output_path = f".aider.map.{agent_name}.md"
             self._save_map(output_path, context_map)
             
