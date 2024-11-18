@@ -8,11 +8,16 @@ class Logger:
         # Initialize colorama for cross-platform color support
         init()
         
+        # Add SUCCESS level between INFO and WARNING
+        logging.SUCCESS = 25  # Between INFO(20) and WARNING(30)
+        logging.addLevelName(logging.SUCCESS, 'SUCCESS')
+        
         # Custom formatter with colors
         class ColorFormatter(logging.Formatter):
             FORMATS = {
                 logging.DEBUG: Fore.CYAN + '%(asctime)s - %(levelname)s - %(message)s' + Style.RESET_ALL,
                 logging.INFO: Fore.GREEN + '%(asctime)s - %(levelname)s - %(message)s' + Style.RESET_ALL,
+                logging.SUCCESS: Fore.BLUE + Style.BRIGHT + '%(asctime)s - %(levelname)s - %(message)s' + Style.RESET_ALL,
                 logging.WARNING: Fore.YELLOW + '%(asctime)s - %(levelname)s - %(message)s' + Style.RESET_ALL,
                 logging.ERROR: Fore.RED + '%(asctime)s - %(levelname)s - %(message)s' + Style.RESET_ALL,
                 logging.CRITICAL: Fore.RED + Style.BRIGHT + '%(asctime)s - %(levelname)s - %(message)s' + Style.RESET_ALL
@@ -49,6 +54,10 @@ class Logger:
     def debug(self, message):
         """Log debug level message in cyan."""
         self.logger.debug(message)
+        
+    def success(self, message):
+        """Log success level message in bright blue."""
+        self.logger.log(logging.SUCCESS, message)
         
     def warning(self, message):
         """Log warning level message in yellow."""

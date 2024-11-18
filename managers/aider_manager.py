@@ -231,7 +231,7 @@ class AiderManager:
                         commit_type, emoji = self._parse_commit_type(commit_msg)
                         
                         # Log formatted commit message
-                        self.logger.info(f"Agent {agent_name} made {commit_type} commit {emoji}: {commit_msg}")
+                        self.logger.success(f"Agent {agent_name} made {commit_type} commit {emoji}: {commit_msg}")
                         break  # Found a commit message, stop checking other indicators
             
             # Log other output only if there were issues
