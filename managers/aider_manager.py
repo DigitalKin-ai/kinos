@@ -92,6 +92,15 @@ class AiderManager:
         """
         cmd = ['aider']
         
+        # Add required aider arguments
+        cmd.extend([
+            "--model", "gpt-4o-mini",
+            "--edit-format", "diff", 
+            "--yes-always",
+            "--cache-prompts",
+            "--no-pretty"
+        ])
+        
         # Add context files
         cmd.extend(context_files)
         
