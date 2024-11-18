@@ -19,8 +19,11 @@ class MapManager:
         """Get patterns from .gitignore and .aiderignore."""
         patterns = []
         
-        # Add default .aider pattern
-        patterns.append('.aider.*')
+        # Always exclude these patterns
+        patterns.extend([
+            '.git*',
+            '.aider*'
+        ])
         
         # Read .gitignore
         if os.path.exists('.gitignore'):
