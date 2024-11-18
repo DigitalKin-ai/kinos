@@ -55,7 +55,10 @@ class AgentRunner:
                     raise SystemExit(1)
 
             self.logger.info(f"🚀 Démarrage avec {agent_count} agents en parallèle")
-        
+        except Exception as e:
+            self.logger.error(f"Error during initialization: {str(e)}")
+            raise
+
         # Create initial pool of agents with delay between starts
         tasks = set()
         for i in range(agent_count):
