@@ -77,7 +77,8 @@ def main():
         if subcommand == "agents":
             # Create and initialize runner asynchronously
             async def init_and_run_agents():
-                runner = await AgentRunner()  # Await the initialization
+                # Use the factory method to create and initialize the runner
+                runner = await AgentRunner.create()
                 
                 # Set default log level to SUCCESS (only show success and above)
                 runner.logger.logger.setLevel(logging.SUCCESS)
