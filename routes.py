@@ -102,7 +102,7 @@ def main():
                 if "--count" in sys.argv:
                     try:
                         count_index = sys.argv.index("--count") + 1
-                    agent_count = int(sys.argv[count_index])
+                        agent_count = int(sys.argv[count_index])
                     except (ValueError, IndexError):
                         print("Invalid value for --count. Using default (10)")
                 
