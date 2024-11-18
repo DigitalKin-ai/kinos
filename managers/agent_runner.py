@@ -21,7 +21,7 @@ class AgentRunner:
         self._running_agents = set()  # Track active agents
         self._agent_lock = asyncio.Lock()  # Synchronize shared resource access
         
-    async def run(self, mission_filepath=".aider.mission.md", generate_agents=False, agent_count=8):
+    async def run(self, mission_filepath=".aider.mission.md", generate_agents=False, agent_count=10):
         """
         Main execution loop for running agents in parallel.
         """
@@ -96,7 +96,9 @@ class AgentRunner:
             'deduplication': '👥',
             'chroniqueur': '📜',
             'redondance': '🎭',
-            'production': '🏭'
+            'production': '🏭',
+            'chercheur': '🔬',
+            'integration': '🌐' 
         }
         return agent_emojis.get(agent_type, '🤖')
 
@@ -110,7 +112,9 @@ class AgentRunner:
             "deduplication",
             "chroniqueur",
             "redondance",
-            "production"
+            "production",
+            "chercheur",
+            "integration"
         ]
         
         missing_agents = []
@@ -165,7 +169,9 @@ class AgentRunner:
             "deduplication",
             "chroniqueur",
             "redondance",
-            "production"
+            "production",
+            "chercheur",
+            "integration"
         ]
         
         return [agent_type for agent_type in agent_types 
