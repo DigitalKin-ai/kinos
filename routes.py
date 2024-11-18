@@ -1,5 +1,6 @@
 import sys
 import logging
+import asyncio
 from managers.agents_manager import AgentsManager
 from managers.objective_manager import ObjectiveManager
 from managers.map_manager import MapManager
@@ -82,10 +83,25 @@ def main():
             if "--verbose" in sys.argv:
                 runner.logger.logger.setLevel(logging.DEBUG)
                 
+            # Get agent count
+            agent_count = 5  # Default value
+            if "--count" in sys.argv:
+                try:
+                    count_index = sys.argv.index("--count") + 1
+                    agent_count = int(sys.argv[count_index])
+                except (ValueError, IndexError):
+                    print("Invalid value for --count. Using default (5)")
+            
             # Check for --generate flag    
             should_generate = "--generate" in sys.argv
             mission_path = ".aider.mission.md"
-            runner.run(mission_path, generate_agents=should_generate)
+            
+            # Run with asyncio
+            asyncio.run(runner.run(
+                mission_path, 
+                generate_agents=should_generate,
+                agent_count=agent_count
+            ))
             
         elif subcommand == "aider":
             manager = AiderManager()
