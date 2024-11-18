@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+import fnmatch
 from utils.logger import Logger
 import openai
 from dotenv import load_dotenv
@@ -13,21 +15,53 @@ class MapManager:
         if not openai.api_key:
             raise ValueError("OpenAI API key not found in environment variables")
 
+    def _get_ignore_patterns(self):
+        """Get patterns from .gitignore and .aiderignore."""
+        patterns = []
+        
+        # Add default .aider pattern
+        patterns.append('.aider.*')
+        
+        # Read .gitignore
+        if os.path.exists('.gitignore'):
+            with open('.gitignore', 'r') as f:
+                patterns.extend(line.strip() for line in f if line.strip() and not line.startswith('#'))
+                
+        # Read .aiderignore
+        if os.path.exists('.aiderignore'):
+            with open('.aiderignore', 'r') as f:
+                patterns.extend(line.strip() for line in f if line.strip() and not line.startswith('#'))
+                
+        return patterns
+
+    def _should_ignore(self, file_path, ignore_patterns):
+        """Check if file should be ignored based on patterns."""
+        for pattern in ignore_patterns:
+            if fnmatch.fnmatch(file_path, pattern):
+                return True
+        return False
+
+    def _get_available_files(self):
+        """Get list of available files respecting ignore patterns."""
+        ignore_patterns = self._get_ignore_patterns()
+        available_files = []
+        
+        for root, _, files in os.walk('.'):
+            for file in files:
+                file_path = os.path.join(root, file)
+                # Convert to relative path
+                rel_path = os.path.relpath(file_path, '.')
+                
+                # Skip files matching ignore patterns
+                if not self._should_ignore(rel_path, ignore_patterns):
+                    available_files.append(rel_path)
+                    
+        return available_files
+
     def generate_map(self, mission_filepath=".aider.mission.md", 
                     objective_filepath=None, 
                     agent_filepath=None):
-        """
-        Generate a context map for an agent based on mission, objective and agent configuration.
-        
-        Args:
-            mission_filepath (str): Path to mission specification file
-            objective_filepath (str): Path to current objective file
-            agent_filepath (str): Path to agent configuration file
-            
-        Raises:
-            ValueError: If required files are invalid or missing
-            IOError: If there are file operation issues
-        """
+        """Generate a context map for an agent."""
         try:
             self.logger.info(f"Generating map for agent: {agent_filepath}")
             
@@ -35,16 +69,22 @@ class MapManager:
             if not all(self._validate_file(f) for f in [mission_filepath, objective_filepath, agent_filepath]):
                 raise ValueError("Invalid or missing input files")
                 
-            # Extract agent name from filepath
-            agent_name = self._extract_agent_name(agent_filepath)
+            # Get available files
+            available_files = self._get_available_files()
+            self.logger.debug(f"Available files: {available_files}")
             
-            # Load content from files
+            # Load required content
             mission_content = self._read_file(mission_filepath)
             objective_content = self._read_file(objective_filepath)
             agent_content = self._read_file(agent_filepath)
             
             # Generate map via GPT
-            context_map = self._generate_map_content(mission_content, objective_content, agent_content, agent_name)
+            context_map = self._generate_map_content(
+                mission_content, 
+                objective_content, 
+                agent_content,
+                available_files
+            )
             
             # Save map
             output_path = f".aider.map.{agent_name}.md"
@@ -74,53 +114,37 @@ class MapManager:
             self.logger.error(f"Error reading file {filepath}: {str(e)}")
             raise
 
-    def _generate_map_content(self, mission_content, objective_content, agent_content, agent_name):
+    def _generate_map_content(self, mission_content, objective_content, agent_content, available_files):
         """Generate context map content using GPT."""
         try:
             client = openai.OpenAI()
-            prompt = self._create_map_prompt(mission_content, objective_content, agent_content, agent_name)
+            prompt = self._create_map_prompt(
+                mission_content, 
+                objective_content, 
+                agent_content,
+                available_files
+            )
             
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": """
-## Context Map Generator
+You are a context mapping system that selects relevant files for an agent's next operation.
+Your task is to analyze the mission, objective, and agent configuration to determine which files from the available list are needed.
 
-You are a specialized context mapping system within KinOS. Your role is to analyze the current state and determine which files and resources are relevant for the next agent operation.
-
-Key responsibilities:
-1. Identify relevant files for the current objective
-2. Map dependencies between components
-3. Specify access patterns (read/write)
-4. Define resource boundaries
-
-Your output must be precise and actionable, as it will directly guide file access during execution.
-
-Format your response as a markdown document with clear sections:
+Output format must be a simple markdown list of files:
 
 # Context Map
+- file1.py
+- path/to/file2.md
+- etc.
 
-## Primary Files
-- List of main files to be modified
-- Access patterns for each
-
-## Supporting Files
-- Reference files needed
-- Read-only resources
-
-## Dependencies
-- Required external resources
-- System dependencies
-
-## Access Patterns
-- Specific read/write patterns
-- Lock requirements
-- State validation needs
+Select only files that are directly relevant to the current objective.
 """},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
-                max_tokens=4000
+                max_tokens=2000
             )
             
             context_map = response.choices[0].message.content
@@ -135,12 +159,11 @@ Format your response as a markdown document with clear sections:
             self.logger.error(f"GPT API call failed: {str(e)}")
             raise
 
-    def _create_map_prompt(self, mission_content, objective_content, agent_content, agent_name):
+    def _create_map_prompt(self, mission_content, objective_content, agent_content, available_files):
         """Create prompt for context map generation."""
-        return f"""
-Based on the following context, generate a detailed context map for the {agent_name} agent's next operation.
+        return f"""Based on the following context, select the relevant files needed for the next operation.
 
-Mission Context:
+Mission:
 {mission_content}
 
 Current Objective:
@@ -149,18 +172,11 @@ Current Objective:
 Agent Configuration:
 {agent_content}
 
-Generate a markdown-formatted context map that specifies:
-1. Primary files that will be modified
-2. Supporting files needed for reference
-3. Required dependencies and resources
-4. Specific access patterns and permissions
-5. State validation requirements
+Available Files:
+{chr(10).join(f"- {f}" for f in available_files)}
 
-The map must be:
-- Specific to the current objective
-- Clear about file access patterns
-- Explicit about dependencies
-- Focused on required resources only
+Return a list of only the files needed to complete the current objective.
+Format as a simple markdown list under a "# Context Map" heading.
 """
 
     def _validate_map_content(self, content):
