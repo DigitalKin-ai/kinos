@@ -4,6 +4,7 @@ from pathlib import Path
 import fnmatch
 from utils.logger import Logger
 import openai
+import tiktoken
 from dotenv import load_dotenv
 
 class MapManager:
@@ -224,6 +225,9 @@ Format as a simple markdown list under a "# Context Map" heading.
         try:
             self.logger.info("🗺️ Initializing global project map...")
             
+            # Initialize tokenizer for GPT-4
+            tokenizer = tiktoken.encoding_for_model("gpt-4")
+            
             # Get all available files
             available_files = self._get_available_files()
             total_files = len(available_files)
@@ -244,20 +248,20 @@ Format as a simple markdown list under a "# Context Map" heading.
                     try:
                         with open(filepath, 'r', encoding='utf-8') as f:
                             file_content = f.read()
-                        char_count = len(file_content)
+                        token_count = len(tokenizer.encode(file_content))
                         
                         # Create task for file summary generation
                         task = asyncio.create_task(self._generate_file_summary_async(filepath, file_content))
-                        batch_tasks.append((filepath, char_count, task))
+                        batch_tasks.append((filepath, token_count, task))
                     except Exception as e:
                         self.logger.warning(f"⚠️ Could not read {filepath}: {str(e)}")
                         continue
                 
                 # Wait for all summaries in batch
-                for filepath, char_count, task in batch_tasks:
+                for filepath, token_count, task in batch_tasks:
                     try:
                         summary = await task
-                        map_content += f"{filepath} ({char_count} chars.) {summary}\n"
+                        map_content += f"{filepath} ({token_count} tokens) {summary}\n"
                     except Exception as e:
                         self.logger.warning(f"⚠️ Could not process {filepath}: {str(e)}")
                         continue
