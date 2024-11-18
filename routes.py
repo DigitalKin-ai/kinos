@@ -1,4 +1,5 @@
 import sys
+import logging
 from managers.agents_manager import AgentsManager
 from managers.objective_manager import ObjectiveManager
 from managers.map_manager import MapManager
@@ -65,14 +66,25 @@ def main():
     elif command == "run":
         if len(sys.argv) < 3:
             print("Usage: kin run <agents|aider> [options]")
+            print("Options:")
+            print("  --generate    Generate agents if missing")
+            print("  --verbose     Show detailed debug information")
             sys.exit(1)
             
         subcommand = sys.argv[2]
         if subcommand == "agents":
             runner = AgentRunner()
-            # Check for --generate flag
+            
+            # Set default log level to SUCCESS (only show success and above)
+            runner.logger.logger.setLevel(logging.SUCCESS)
+            
+            # Check for --verbose flag
+            if "--verbose" in sys.argv:
+                runner.logger.logger.setLevel(logging.DEBUG)
+                
+            # Check for --generate flag    
             should_generate = "--generate" in sys.argv
-            mission_path = ".aider.mission.md"  # Default path
+            mission_path = ".aider.mission.md"
             runner.run(mission_path, generate_agents=should_generate)
             
         elif subcommand == "aider":
