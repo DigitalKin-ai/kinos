@@ -194,3 +194,102 @@ Format as a simple markdown list under a "# Context Map" heading.
         except Exception as e:
             self.logger.error(f"Error saving map to {filepath}: {str(e)}")
             raise
+
+    def update_global_map(self, modified_file_path):
+        """
+        Update global map with latest file summary after a commit.
+        
+        Args:
+            modified_file_path (str): Path to the modified file
+        """
+        try:
+            self.logger.debug(f"🗺️ Updating global map for: {modified_file_path}")
+            
+            # Read modified file content
+            with open(modified_file_path, 'r', encoding='utf-8') as f:
+                file_content = f.read()
+                
+            # Get file size
+            char_count = len(file_content)
+            
+            # Generate summary via GPT
+            summary = self._generate_file_summary(modified_file_path, file_content)
+            
+            # Update map.md
+            self._update_map_file(modified_file_path, char_count, summary)
+            
+            self.logger.info(f"✨ Updated global map with changes to {modified_file_path}")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to update global map: {str(e)}")
+            raise
+
+    def _generate_file_summary(self, filepath, content):
+        """Generate concise file summary using GPT."""
+        try:
+            client = openai.OpenAI()
+            prompt = f"""
+Analyze this file and provide a concise summary of its current state and content.
+Focus on:
+- Main purpose and functionality
+- Key components/sections
+- Implementation status
+- Notable patterns or issues
+
+File: {filepath}
+Content:
+{content}
+
+Provide a single-line summary (max 120 chars) that captures the essence and current state.
+"""
+            
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a code analysis system that provides concise, informative file summaries."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=100
+            )
+            
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            self.logger.error(f"Failed to generate file summary: {str(e)}")
+            raise
+
+    def _update_map_file(self, filepath, char_count, summary):
+        """Update map.md with new file summary."""
+        try:
+            map_path = "map.md"
+            updated_lines = []
+            file_entry = f"{filepath} ({char_count} chars.) {summary}"
+            entry_updated = False
+            
+            # Read existing map if it exists
+            if os.path.exists(map_path):
+                with open(map_path, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    
+                # Update existing entry or keep line
+                for line in lines:
+                    if line.startswith(filepath):
+                        updated_lines.append(file_entry + '\n')
+                        entry_updated = True
+                    else:
+                        updated_lines.append(line)
+                        
+            # Add new entry if not updated
+            if not entry_updated:
+                updated_lines.append(file_entry + '\n')
+                
+            # Write updated map
+            with open(map_path, 'w', encoding='utf-8') as f:
+                if not updated_lines:  # New file
+                    f.write("# Project Map\n\n")
+                f.writelines(updated_lines)
+                
+        except Exception as e:
+            self.logger.error(f"Failed to update map file: {str(e)}")
+            raise

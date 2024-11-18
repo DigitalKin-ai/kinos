@@ -187,6 +187,22 @@ class AiderManager:
         # Default to other
         return "other", "🔨"
 
+    def _get_modified_files(self, aider_output):
+        """Extract modified file paths from aider output."""
+        modified_files = set()
+        
+        # Look for diff headers or file mentions in output
+        for line in aider_output.split('\n'):
+            if line.startswith('diff --git'):
+                # Extract b/ path from diff header
+                parts = line.split()
+                if len(parts) >= 3:
+                    file_path = parts[3][2:]  # Remove b/ prefix
+                    if os.path.exists(file_path):
+                        modified_files.add(file_path)
+                        
+        return list(modified_files)
+
     def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
         try:
@@ -230,6 +246,12 @@ class AiderManager:
                         
                         # Log formatted commit message as success - now with full message
                         self.logger.info(f"Agent {agent_name} made {commit_type} commit {emoji} ({commit_hash}): {commit_msg}")
+                        
+                        # Update global map for modified files
+                        map_manager = MapManager()
+                        modified_files = self._get_modified_files(result.stdout)
+                        for modified_file in modified_files:
+                            map_manager.update_global_map(modified_file)
                     except Exception as parse_error:
                         self.logger.debug(f"Failed to parse commit line: {line}")
                         continue
