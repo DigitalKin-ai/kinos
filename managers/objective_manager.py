@@ -69,7 +69,7 @@ class ObjectiveManager:
     def _read_file(self, filepath):
         """Read content from file."""
         try:
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 return f.read()
         except Exception as e:
             self.logger.error(f"Error reading file {filepath}: {str(e)}")
@@ -323,8 +323,8 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
                         self.logger.warning(f"⚠️ Perplexity API request failed: {str(e)}")
                         # Continue without research results
             
-            # Save updated content
-            with open(filepath, 'w') as f:
+            # Save updated content with UTF-8 encoding
+            with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(content)
                 
         except Exception as e:

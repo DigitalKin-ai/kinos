@@ -69,7 +69,7 @@ class AiderManager:
         """
         try:
             context_files = []
-            with open(map_filepath, 'r') as f:
+            with open(map_filepath, 'r', encoding='utf-8') as f:
                 for line in f:
                     if line.strip().startswith('- '):
                         filepath = line.strip()[2:]
@@ -114,7 +114,7 @@ class AiderManager:
         cmd.extend(['--read', agent_filepath])
         
         # Add objective as initial prompt
-        with open(objective_filepath, 'r') as f:
+        with open(objective_filepath, 'r', encoding='utf-8') as f:
             objective = f.read()
             cmd.extend(['--message', objective])
             

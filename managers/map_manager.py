@@ -189,7 +189,7 @@ Format as a simple markdown list under a "# Context Map" heading.
     def _save_map(self, filepath, content):
         """Save context map content to file."""
         try:
-            with open(filepath, 'w') as f:
+            with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(content)
         except Exception as e:
             self.logger.error(f"Error saving map to {filepath}: {str(e)}")
