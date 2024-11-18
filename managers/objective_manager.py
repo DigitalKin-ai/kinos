@@ -41,11 +41,15 @@ class ObjectiveManager:
             
             # Generate objective via GPT
             objective = self._generate_objective_content(mission_content, agent_content, agent_name)
-            
+        
+            # Generate summary for logging
+            summary = self._generate_summary(objective, agent_name)
+            self.logger.info(summary)
+        
             # Save objective
             output_path = f".aider.objective.{agent_name}.md"
             self._save_objective(output_path, objective)
-            
+        
             self.logger.info(f"✅ Successfully generated objective for {agent_name}")
             
         except Exception as e:
@@ -186,6 +190,48 @@ The objective must be:
 Ask Aider to make the edits now, without asking for clarification, and using the required SEARCH/REPLACE format.
 """
 
+
+    def _generate_summary(self, objective, agent_name):
+        """Generate a one-line summary of the objective."""
+        try:
+            client = openai.OpenAI()
+            prompt = f"""
+Résume en une seule phrase ce que l'agent va essayer de faire, en suivant strictement ce format:
+"L'agent {agent_name} 🤖 va [action] [cible] [détail optionnel]"
+
+Utilise des emojis appropriés en fonction du type d'action:
+- 📝 pour l'écriture/documentation
+- 🔧 pour les modifications techniques
+- 🎨 pour le design/style
+- 🧪 pour les tests
+- 📊 pour l'analyse
+- 🔍 pour la revue
+- 🏗️ pour l'architecture
+- 🚀 pour les déploiements
+- etc.
+
+Voici l'objectif complet à résumer:
+{objective}
+
+Réponds uniquement avec la phrase formatée, rien d'autre.
+"""
+            
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "Tu es un assistant qui résume des objectifs en une phrase concise avec des emojis appropriés."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=100
+            )
+            
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            self.logger.error(f"Failed to generate summary: {str(e)}")
+            # Return a basic fallback summary
+            return f"L'agent {agent_name} 🤖 va exécuter une nouvelle tâche"
 
     def _save_objective(self, filepath, content):
         """Save objective content to file."""
