@@ -167,6 +167,16 @@ Select only files that are directly relevant to the current objective.
 
     def _create_map_prompt(self, mission_content, objective_content, agent_content, available_files):
         """Create prompt for context map generation."""
+        # Load global map content if it exists
+        global_map_content = ""
+        if os.path.exists("map.md"):
+            try:
+                with open("map.md", 'r', encoding='utf-8') as f:
+                    global_map_content = f.read()
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
+                # Continue without global map content
+        
         return f"""Based on the following context, select the relevant files needed for the next operation.
 
 Mission:
@@ -178,8 +188,18 @@ Current Objective:
 Agent Configuration:
 {agent_content}
 
+Global Project Map:
+{global_map_content}
+
 Available Files:
 {chr(10).join(f"- {f}" for f in available_files)}
+
+Using the global map information about file contents, select only the most relevant files needed to complete the current objective.
+Consider:
+- File contents and purposes described in the global map
+- Current state and implementation status of each file
+- Dependencies between files
+- Relevance to the current objective
 
 Return a list of only the files needed to complete the current objective.
 Format as a simple markdown list under a "# Context Map" heading.
