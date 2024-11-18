@@ -70,9 +70,10 @@ def main():
         subcommand = sys.argv[2]
         if subcommand == "agents":
             runner = AgentRunner()
-            # Optional mission file path
-            mission_path = sys.argv[3] if len(sys.argv) > 3 else ".aider.mission.md"
-            runner.run(mission_path)
+            # Check for --generate flag
+            should_generate = "--generate" in sys.argv
+            mission_path = ".aider.mission.md"  # Default path
+            runner.run(mission_path, generate_agents=should_generate)
             
         elif subcommand == "aider":
             manager = AiderManager()
