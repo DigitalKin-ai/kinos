@@ -122,17 +122,55 @@ class AiderManager:
             tuple: (type, emoji)
         """
         commit_types = {
+            # Core Changes
             'feat': '✨',
-            'fix': '🐛', 
-            'docs': '📚',
-            'style': '💎',
+            'fix': '🐛',
             'refactor': '♻️',
             'perf': '⚡️',
+            
+            # Documentation & Style
+            'docs': '📚',
+            'style': '💎',
+            'ui': '🎨',
+            'content': '📝',
+            
+            # Testing & Quality
             'test': '🧪',
+            'qual': '✅',
+            'lint': '🔍',
+            'bench': '📊',
+            
+            # Infrastructure
             'build': '📦',
             'ci': '🔄',
+            'deploy': '🚀',
+            'env': '🌍',
+            'config': '⚙️',
+            
+            # Maintenance
             'chore': '🔧',
-            'revert': '⏪'
+            'clean': '🧹',
+            'deps': '📎',
+            'revert': '⏪',
+            
+            # Security & Data
+            'security': '🔒',
+            'auth': '🔑',
+            'data': '💾',
+            'backup': '💿',
+            
+            # Project Management
+            'init': '🎉',
+            'release': '📈',
+            'break': '💥',
+            'merge': '🔀',
+            
+            # Special Types
+            'wip': '🚧',
+            'hotfix': '🚑',
+            'arch': '🏗️',
+            'api': '🔌',
+            'i18n': '🌐'
         }
         
         # Check if commit message starts with any known type
