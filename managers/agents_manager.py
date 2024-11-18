@@ -56,7 +56,7 @@ class AgentsManager:
             for agent_type in agent_types:
                 try:
                     self._generate_single_agent(agent_type)
-                    self.logger.info(f"✨ Successfully generated agent: {agent_type}")
+                    self.logger.success(f"✨ Agent {agent_type} généré avec succès")
                 except Exception as e:
                     self.logger.error(f"Failed to generate agent {agent_type}: {str(e)}")
                     raise
