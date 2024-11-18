@@ -45,38 +45,46 @@ class AgentRunner:
                 await self.agents_manager.generate_agents(mission_filepath)
 
             self.logger.info(f"🚀 Démarrage avec {agent_count} agents en parallèle")
-        except Exception as e:
-            self.logger.error(f"Error during initialization: {str(e)}")
-            raise
 
-        # Create initial pool of agents with delay between starts
-        tasks = set()
-        for i in range(agent_count):
-            await asyncio.sleep(5)  # 5 second delay between each start
-            tasks.add(asyncio.create_task(
-                self._run_single_agent_cycle(mission_filepath)
-            ))
-        
-        # Maintain active agent count
-        while True:
-            # Wait for an agent to complete
-            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-            
-            # Handle completed agents
-            for task in done:
-                try:
-                    await task  # Get potential errors
-                except Exception as e:
-                    self.logger.error(f"Agent task failed: {str(e)}")
+            # Create initial pool of agents
+            tasks = set()
+            available_agents = self._get_available_agents()
+            if not available_agents:
+                raise ValueError("No agents available to run")
                 
-                # Create new agent to replace completed one
-                await asyncio.sleep(3)  # Delay before starting new agent
-                tasks.add(asyncio.create_task(
-                    self._run_single_agent_cycle(mission_filepath)
-                ))
-            
-            # Update pending tasks
-            tasks = pending
+            # Create initial tasks up to agent_count
+            for i in range(min(agent_count, len(available_agents))):
+                task = asyncio.create_task(self._run_single_agent_cycle(mission_filepath))
+                tasks.add(task)
+                await asyncio.sleep(5)  # 5 second delay between each start
+
+            if not tasks:
+                raise ValueError("No tasks could be created")
+
+            # Maintain active agent count
+            while tasks:  # Changed condition to check if tasks exists
+                # Wait for an agent to complete
+                done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+                
+                # Handle completed agents
+                for task in done:
+                    try:
+                        await task  # Get potential errors
+                    except Exception as e:
+                        self.logger.error(f"Agent task failed: {str(e)}")
+                    
+                    # Create new agent to replace completed one if we have available agents
+                    if len(pending) < agent_count and available_agents:
+                        await asyncio.sleep(3)  # Delay before starting new agent
+                        new_task = asyncio.create_task(self._run_single_agent_cycle(mission_filepath))
+                        pending.add(new_task)
+                
+                # Update tasks set
+                tasks = pending
+                
+        except Exception as e:
+            self.logger.error(f"Error during execution: {str(e)}")
+            raise
             
     def _get_agent_emoji(self, agent_type):
         """Get the appropriate emoji for an agent type."""
