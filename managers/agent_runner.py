@@ -21,6 +21,10 @@ class AgentRunner:
         self._running_agents = set()  # Track active agents
         self._agent_lock = asyncio.Lock()  # Synchronize shared resource access
         
+        # Initialize global map if it doesn't exist
+        if not os.path.exists("map.md"):
+            self.map_manager.initialize_global_map()
+        
     async def run(self, mission_filepath=".aider.mission.md", generate_agents=False, agent_count=10):
         """
         Main execution loop for running agents in parallel.

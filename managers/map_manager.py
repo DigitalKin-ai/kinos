@@ -215,6 +215,49 @@ Format as a simple markdown list under a "# Context Map" heading.
             self.logger.error(f"Error saving map to {filepath}: {str(e)}")
             raise
 
+    def initialize_global_map(self):
+        """
+        Initialize or reset the global map file with summaries of all project files.
+        """
+        try:
+            self.logger.info("🗺️ Initializing global project map...")
+            
+            # Get all available files
+            available_files = self._get_available_files()
+            
+            # Create map header
+            map_content = "# Project Map\n\n"
+            
+            # Process each file
+            for filepath in available_files:
+                try:
+                    # Read file content
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        file_content = f.read()
+                        
+                    # Get file size
+                    char_count = len(file_content)
+                    
+                    # Generate summary
+                    summary = self._generate_file_summary(filepath, file_content)
+                    
+                    # Add to map content
+                    map_content += f"{filepath} ({char_count} chars.) {summary}\n"
+                    
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not process {filepath}: {str(e)}")
+                    continue
+                    
+            # Save map file
+            with open("map.md", 'w', encoding='utf-8') as f:
+                f.write(map_content)
+                
+            self.logger.success("✨ Global project map initialized")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to initialize global map: {str(e)}")
+            raise
+
     def update_global_map(self, modified_file_path):
         """
         Update global map with latest file summary after a commit.
