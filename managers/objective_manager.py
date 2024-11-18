@@ -133,7 +133,7 @@ Your outputs will be used by Aider to execute specific tasks, so clarity and pre
             raise
 
         return f"""
-Based on the following contexts, generate a clear objective for the {agent_name} agent that will guide its next Aider operation.
+Based on the following contexts, generate a clear specific next step for the {agent_name} agent.
 
 # Reference Materials
 - Mission Context in `.aider.mission.md`:
@@ -146,8 +146,8 @@ Based on the following contexts, generate a clear objective for the {agent_name}
 {chat_history}
 
 # Breadth-First Pattern
-- Review previous objectives from chat history
-- Generate an objective that explores a NEW aspect of the mission
+- Review previous steps from chat history
+- Generate a step that explores a NEW aspect of the mission
 - Avoid repeating or deepening previous work
 - Focus on unexplored areas of responsibility
 - Maintain breadth-first exploration pattern
@@ -180,9 +180,9 @@ Create an objective in markdown format that specifies:
    - Scope restrictions
    - Dependency requirements
 
-6. **Recherche**
-   - Si la tâche nécessite une recherche sur Perplexity, ajouter une section "Recherche :" avec la recherche précise à effectuer
-   - Ne pas inclure cette section si aucune recherche n'est nécessaire
+6. **Search**
+   - If the task requires a search on Perplexity, add a "Search:" line with the specific search to be performed
+   - Do not include this line if no research is necessary
 
 The objective must be:
 - Limited to one clear operation
@@ -201,31 +201,12 @@ Ask Aider to make the edits now, without asking for clarification, and using the
         try:
             client = openai.OpenAI()
             prompt = f"""
-Résume en une seule phrase ce que l'agent va essayer de faire, en suivant strictement ce format:
-"L'agent [emoji d'agent] {agent_name} va [action] [cible] [détail optionnel]"
+Résume en une seule phrase ce que l'agent fait en ce moment dans le cadre de la mission, en suivant strictement ce format :
+"L'agent {agent_name} [action] [cible] [détail optionnel]"
 
-Utilise des emojis appropriés en fonction du type d'action:
-- 📝 pour l'écriture/documentation
-- 🔧 pour les modifications techniques
-- 🎨 pour le design/style
-- 🧪 pour les tests
-- 📊 pour l'analyse
-- 🔍 pour la revue
-- 🏗️ pour l'architecture
-- 🚀 pour les déploiements
-- etc.
+Utilise des emojis appropriés en fonction du type d'action.
 
-Emojis d'agent : 
-- specification : 📋
-- management : 🎯
-- redaction : ✍️
-- evaluation : 🔍
-- duplication : 🔄
-- chroniqueur : 📝
-- redondance : 🎭
-- production : ⚙️
-
-Voici l'objectif complet à résumer:
+Voici l'objectif complet à résumer :
 {objective}
 
 Réponds uniquement avec la phrase formatée, rien d'autre.
@@ -234,7 +215,7 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "Tu es un assistant qui résume des objectifs en une phrase concise avec des emojis appropriés."},
+                    {"role": "system", "content": "Tu es un assistant qui résume des objectifs au sein d'un projet en une phrase concise avec des emojis appropriés. Ces résumés serviront de logs de suivi de mission."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
@@ -254,17 +235,7 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             client = openai.OpenAI()
             prompt = f"""
 Résume en une seule phrase ce qui a été trouvé par la recherche Perplexity, en suivant ce format:
-"L'agent [emoji d'agent] {agent_name} a recherché sur [sujet] : [résumé des découvertes principales]"
-
-Emojis d'agent selon le type :
-- specification : 📋
-- management : 🎯
-- redaction : ✍️
-- evaluation : 🔍
-- duplication : 🔄
-- chroniqueur : 📝
-- redondance : 🎭
-- production : ⚙️
+"L'agent {agent_name} effectue une recherche sur [sujet] : [résumé des découvertes principales]"
 
 Query de recherche : {query}
 
@@ -277,7 +248,7 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "Tu es un assistant qui résume des résultats de recherche de manière concise."},
+                    {"role": "system", "content": "Tu es un assistant qui résume des résultats de recherche de manière concise. Ces résumés seront utilisés pour des logs de suivi de projet."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
@@ -298,12 +269,12 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             agent_name = os.path.basename(filepath).replace('.aider.objective.', '').replace('.md', '')
             
             # Check for research requirement
-            if "Recherche :" in content:
+            if "Search:" in content:
                 # Extract research query
                 research_lines = [line.strip() for line in content.split('\n') 
-                                if line.strip().startswith("Recherche :")]
+                                if line.strip().startswith("Search:")]
                 if research_lines:
-                    research_query = research_lines[0].replace("Recherche :", "").strip()
+                    research_query = research_lines[0].replace("Search:", "").strip()
                     
                     # Call Perplexity API
                     perplexity_key = os.getenv('PERPLEXITY_API_KEY')
