@@ -40,23 +40,23 @@ KinOS v6 represents a fundamental shift towards true AI autonomy, implementing:
 - Self-monitoring capabilities
 
 #### Core Agent Types
-1. **SpecificationsAgent**
+1. **SpecificationAgent**
    - Requirements analysis
    - Specification generation
    - Consistency validation
    - Documentation management
 
-2. **ProductionAgent**
-   - Code/content generation
-   - Quality optimization
-   - Dependency management
-   - Testing integration
-
-3. **ManagementAgent**
+2. **ManagementAgent**
    - Project coordination
    - Resource allocation
    - Progress tracking
    - Team optimization
+
+3. **RedactionAgent**
+   - Content creation
+   - Documentation writing
+   - Style consistency
+   - Format validation
 
 4. **EvaluationAgent**
    - Quality assurance
@@ -64,11 +64,41 @@ KinOS v6 represents a fundamental shift towards true AI autonomy, implementing:
    - Metrics analysis
    - Improvement suggestions
 
-5. **DocumentationAgent**
-   - Documentation maintenance
-   - Cross-reference validation
-   - Example verification
-   - API documentation
+5. **DeduplicationAgent**
+   - Content analysis
+   - Redundancy detection
+   - Pattern matching
+   - Optimization suggestions
+
+6. **ChroniqueurAgent**
+   - Progress tracking
+   - History maintenance
+   - Event logging
+   - Timeline management
+
+7. **RedondanceAgent**
+   - Backup verification
+   - Redundancy management
+   - Data consistency
+   - Recovery planning
+
+8. **ProductionAgent**
+   - Code/content generation
+   - Quality optimization
+   - Dependency management
+   - Testing integration
+
+9. **ChercheurAgent**
+   - Research coordination
+   - Data gathering
+   - Analysis synthesis
+   - Knowledge integration
+
+10. **IntegrationAgent**
+    - System integration
+    - Component linking
+    - Interface management
+    - Deployment coordination
 
 ### 2.2 Team System
 
@@ -169,11 +199,9 @@ KinOS v6 represents a fundamental shift towards true AI autonomy, implementing:
 ### 4.2 Core Configuration
 ```env
 # Essential Configuration
-ANTHROPIC_API_KEY=required
 OPENAI_API_KEY=required
+PERPLEXITY_API_KEY=required
 DEBUG=boolean
-PORT=8000
-HOST=0.0.0.0
 
 # Performance Settings
 CACHE_DURATION=3600
@@ -186,6 +214,10 @@ NOTIFICATION_QUEUE_SIZE=500
 - Permission checking
 - Access control
 - Error sanitization
+
+### 4.4 AI Model
+- Uses OpenAI's gpt-4o-mini model exclusively
+- Consistent model usage across all components
 
 ## 5. Development Guidelines
 
