@@ -44,7 +44,7 @@ class ObjectiveManager:
         
             # Generate summary for logging
             summary = self._generate_summary(objective, agent_name)
-            self.logger.info(summary)
+            self.logger.success(summary)
         
             # Save objective
             output_path = f".aider.objective.{agent_name}.md"
