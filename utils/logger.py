@@ -43,22 +43,55 @@ class Logger:
         # Prevent propagation to root logger
         self.logger.propagate = False
         
+    def _get_agent_emoji(self, text):
+        """Parse text for agent names and add their emoji prefixes."""
+        # Map of agent types to emojis
+        agent_emojis = {
+            'specification': '📌',
+            'management': '🧭', 
+            'redaction': '🖋️',
+            'evaluation': '⚖️',
+            'duplication': '👥',
+            'chroniqueur': '📜',
+            'redondance': '🎭',
+            'production': '🏭'
+        }
+        
+        # Replace agent names with emoji prefixed versions
+        modified_text = text
+        for agent_type, emoji in agent_emojis.items():
+            # Look for agent name with various prefixes/formats
+            patterns = [
+                f"agent {agent_type}",
+                f"Agent {agent_type}",
+                f"l'agent {agent_type}",
+                f"L'agent {agent_type}"
+            ]
+            
+            for pattern in patterns:
+                modified_text = modified_text.replace(
+                    pattern, 
+                    f"{pattern[:pattern.index(agent_type)]}{emoji} {agent_type}"
+                )
+                
+        return modified_text
+
     def info(self, message):
-        """Log info level message in green."""
-        self.logger.info(message)
+        """Log info level message in green with agent emoji if present."""
+        self.logger.info(self._get_agent_emoji(message))
         
     def error(self, message):
-        """Log error level message in red."""
-        self.logger.error(message)
+        """Log error level message in red with agent emoji if present."""
+        self.logger.error(self._get_agent_emoji(message))
         
     def debug(self, message):
-        """Log debug level message in cyan."""
-        self.logger.debug(message)
+        """Log debug level message in cyan with agent emoji if present."""
+        self.logger.debug(self._get_agent_emoji(message))
         
     def success(self, message):
-        """Log success level message in bright blue."""
-        self.logger.log(logging.SUCCESS, message)
+        """Log success level message in bright blue with agent emoji if present."""
+        self.logger.log(logging.SUCCESS, self._get_agent_emoji(message))
         
     def warning(self, message):
-        """Log warning level message in yellow."""
-        self.logger.warning(message)
+        """Log warning level message in yellow with agent emoji if present."""
+        self.logger.warning(self._get_agent_emoji(message))
