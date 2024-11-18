@@ -143,6 +143,16 @@ Your outputs will be used by Aider to execute specific tasks, so clarity and pre
             # Fail fast - don't proceed without history context
             raise
 
+        # Load global map content if it exists
+        global_map_content = ""
+        if os.path.exists("map.md"):
+            try:
+                with open("map.md", 'r', encoding='utf-8') as f:
+                    global_map_content = f.read()
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
+                # Continue without global map content
+
         return f"""
 Based on the following contexts, generate a clear specific next step for the {agent_name} agent.
 
@@ -155,6 +165,9 @@ Based on the following contexts, generate a clear specific next step for the {ag
 
 - Recent Chat History:
 {chat_history}
+
+- Global Project Map:
+{global_map_content}
 
 # Breadth-First Pattern
 - Review previous steps from chat history
@@ -172,7 +185,7 @@ Create an objective in markdown format that specifies:
    - Within agent's documented capabilities
 
 2. **Source Files**
-   - Which specific files to analyze
+   - Which specific files to analyze (use global map for context)
    - Which sections are relevant
    - Which dependencies matter
 
@@ -198,7 +211,7 @@ Create an objective in markdown format that specifies:
 The objective must be:
 - Limited to one clear operation
 - Executable with current capabilities
-- Specific about file changes
+- Specific about file changes based on global map
 - Clear on completion checks
 - Self-contained (no follow-up needed)
 - Different from previous objectives
