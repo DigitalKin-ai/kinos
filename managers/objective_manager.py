@@ -91,166 +91,60 @@ class ObjectiveManager:
         try:
             client = openai.OpenAI()
             
-            # Load chat history for action tracking
+            # Load recent chat history
             chat_history = ""
             chat_file = f".aider.chat.{agent_name}.md"
             try:
                 if os.path.exists(chat_file):
-                    with open(chat_file, 'r', encoding='utf-8') as f:
-                        chat_history = f.read()
+                    with open(chat_file, 'r') as f:
+                        content = f.read()
+                        # Get last 10000 chars of chat history
+                        chat_history = content[-10000:] if len(content) > 10000 else content
             except Exception as e:
                 self.logger.warning(f"⚠️ Could not load chat history: {str(e)}")
+                # Fail fast - don't proceed without history context
                 raise
 
+                    # Load global map content if it exists
+            global_map_content = ""
+            if os.path.exists("map.md"):
+                try:
+                    with open("map.md", 'r', encoding='utf-8') as f:
+                        global_map_content = f.read()
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
+                    # Continue without global map content
+
             prompt = f"""
-# Mission Analysis Task
-
-Analyze the following mission context and generate the next objective for the {agent_name} agent.
-
-## Mission Context
-{mission_content}
-
-## Agent Configuration
-{agent_content}
-
-## Previous Actions (Chat History)
-{chat_history}
-
-## Task Requirements
-
-1. MISSION INSTRUCTIONS PRIORITY
-- First, look for explicit instructions or steps in the mission file
-- Follow any numbered steps or sequences defined
-- Respect priority order if specified
-- Maintain compliance with mission constraints
-
-2. AVOID REPETITION
-- Carefully review chat history for completed actions
-- Do not repeat any previously executed tasks
-- Check for similar patterns or variations
-- Ensure the objective is genuinely new
-
-3. PROGRESSION TRACKING
-- Note which mission steps have been completed
-- Identify next logical steps in sequence
-- Track dependencies and prerequisites
-- Maintain mission progression order
-
-4. OBJECTIVE FORMULATION
-Generate an objective that:
-- Follows explicit mission instructions if present
-- Is different from all previous actions
-- Advances the mission in a meaningful way
-- Can be completed in one operation
-- Has clear validation criteria
-
-## Required Output Format
-
-# Next Objective
-
-## Context
-- Current mission phase
-- Relevant prerequisites
-- Dependencies status
-
-## Action
-- Specific task to execute
-- Files to modify
-- Expected changes
-
-## Validation
-- Success criteria
-- Required checks
-- State verification
-
-## Constraints
-- Resource limits
-- Scope boundaries
-- Required permissions
-
-[Add "Search:" line only if research is needed]
-
-Remember:
-1. ALWAYS check mission instructions first
-2. NEVER repeat previous actions
-3. ENSURE clear progression
-4. VALIDATE against chat history
-"""
-
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": """
-You are an objective planning system that:
-1. Prioritizes explicit mission instructions
-2. Never repeats previous actions
-3. Maintains clear progression
-4. Validates against history
-"""},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7,
-                max_tokens=2000
-            )
-            
-            return response.choices[0].message.content
-            
-        except Exception as e:
-            self.logger.error(f"GPT API call failed: {str(e)}")
-            raise
-
-    def _create_objective_prompt(self, mission_content, agent_content, agent_name):
-        """Create prompt for objective generation."""
-        
-        # Load recent chat history
-        chat_history = ""
-        chat_file = f".aider.chat.{agent_name}.md"
-        try:
-            if os.path.exists(chat_file):
-                with open(chat_file, 'r') as f:
-                    content = f.read()
-                    # Get last 25000 chars of chat history
-                    chat_history = content[-25000:] if len(content) > 25000 else content
-        except Exception as e:
-            self.logger.warning(f"⚠️ Could not load chat history: {str(e)}")
-            # Fail fast - don't proceed without history context
-            raise
-
-        # Load global map content if it exists
-        global_map_content = ""
-        if os.path.exists("map.md"):
-            try:
-                with open("map.md", 'r', encoding='utf-8') as f:
-                    global_map_content = f.read()
-            except Exception as e:
-                self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
-                # Continue without global map content
-
-        return f"""
 Based on the following contexts, generate a clear specific next step for the {agent_name} agent.
 
-# Reference Materials
-- Mission Context in `.aider.mission.md`:
+Reference Materials
+================
+# Mission
+````
 {mission_content}
+````
 
-- Agent Configuration in `.aider.agent.{agent_name}.md`:
-{agent_content}
-
-- Recent Chat History:
-{chat_history}
-
-- Global Project Map:
+# Global Project Map
+````
 {global_map_content}
+````
+
+# Recent Chat History
+````
+{chat_history}
+````
 
 # Breadth-First Pattern
-- Follow the directives in the Mission context if present
+- Follow the directives in the Mission if present
 - Review previous steps from chat history
 - Generate a step that explores a NEW aspect of the mission
 - Avoid repeating or deepening previous work
 - Focus on unexplored areas of responsibility
 - Maintain breadth-first exploration pattern
 
-# Required Output
+Required Output
+================
 Create an objective in markdown format that specifies:
 
 1. **Action Statement**
@@ -292,7 +186,31 @@ The objective must be:
 
 Ask Aider to make the edits now, without asking for clarification, and using the required SEARCH/REPLACE format.
 """
-
+            self.logger.info(f"OBJECTIVE PROMPT: {prompt}")
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": """
+{agent_content}
+                     
+# Planning
+Your planning:
+1. Prioritizes explicit mission instructions
+2. Never repeats previous actions
+3. Maintains clear progression
+4. Validates against history
+"""},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.5,
+                max_tokens=2000
+            )
+            
+            return response.choices[0].message.content
+            
+        except Exception as e:
+            self.logger.error(f"GPT API call failed: {str(e)}")
+            raise
 
     def _generate_summary(self, objective, agent_name):
         """Generate a one-line summary of the objective."""
