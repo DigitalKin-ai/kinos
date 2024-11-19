@@ -84,7 +84,6 @@ class MapManager:
                 
             # Get available files
             available_files = self._get_available_files()
-            self.logger.debug(f"📁 Available files: {available_files}")
             
             # Load required content
             mission_content = self._read_file(mission_filepath)
@@ -142,7 +141,10 @@ class MapManager:
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": """
-You are a context mapping system that selects relevant files for an agent's next operation.
+{agent_content}
+
+# Mapping process
+You are asked to be a context mapping system that selects relevant files for an agent's next operation.
 Your task is to analyze the mission, objective, and agent configuration to determine which files from the available list are needed.
 
 Output format must be a simple markdown list of files:
@@ -181,20 +183,20 @@ Select only files that are directly relevant to the current objective.
         
         return f"""Based on the following context, select the relevant files needed for the next operation.
 
-Mission:
+# Mission
+````
 {mission_content}
+````
 
-Current Objective:
-{objective_content}
-
-Agent Configuration:
-{agent_content}
-
-Global Project Map:
+# Global Project Map
+````
 {global_map_content}
+````
 
-Available Files:
-{chr(10).join(f"- {f}" for f in available_files)}
+# Current Objective
+````
+{objective_content}
+````
 
 Using the global map information about file contents, select only the most relevant files needed to complete the current objective.
 Consider:
@@ -203,7 +205,7 @@ Consider:
 - Dependencies between files
 - Relevance to the current objective
 
-Return a list of only the files needed to complete the current objective (aim for 8-10).
+Return a list of only the files needed to complete the current objective (aim for 6-10).
 Format as a simple markdown list under a "# Context Map" heading.
 """
 
@@ -301,21 +303,23 @@ Format as a simple markdown list under a "# Context Map" heading.
             prompt = f"""
 Analyze this file in the context of the entire project and explain its unique role.
 
-Current Global Project Map:
+# Current Global Project Map
+````
 {global_map_content}
+````
 
-Modified File: {modified_file_path}
-Content:
+# Modified File: {modified_file_path}
+````
 {file_content}
+````
 
 Provide a one-line summary (max 300 chars) that:
-1. Explains what makes this file DIFFERENT from other files, Highlights its SPECIFIC purpose
-2. Describe the file, not the content of the file
+1. Explains what makes this file DIFFERENT from other files, highlights its SPECIFIC purpose
+2. Describes the file, NOT the content of the file
 3. Avoids repeating information already present in other files
-4. Uses emojis to indicate the file's primary function
-5. Indicates the current advancement of the file
+4. Indicates the current advancement of the file
 
-Use bold text (**) for key concepts.
+Use bold text (**) for key concepts, and relevant emojis
 """
 
             response = client.chat.completions.create(
@@ -342,31 +346,44 @@ Use bold text (**) for key concepts.
     async def _generate_file_summary_async(self, filepath, content):
         """Async version of file summary generation."""
         try:
+            # Read current global map content
+            global_map_content = ""
+            if os.path.exists("map.md"):
+                with open("map.md", 'r', encoding='utf-8') as f:
+                    global_map_content = f.read()
+
             client = openai.OpenAI()
             prompt = f"""
-Analyze this file and provide a concise summary of its current state and content.
-Focus on:
-- Main purpose and functionality
-- Key components/sections
-- Implementation status
-- Notable patterns or issues
+Analyze this file in the context of the entire project and explain its unique role.
 
-File: {filepath}
-Content:
+# Current Global Project Map
+````
+{global_map_content}
+````
+
+# Modified File: {filepath}
+````
 {content}
+````
 
-Provide a one-line summary (max 250 chars) that captures the essence and current state. Use some bold and emojis to increase readability.
+Provide a one-line summary (max 300 chars) that:
+1. Explains what makes this file DIFFERENT from other files, highlights its SPECIFIC purpose
+2. Describes the file, NOT the content of the file
+3. Avoids repeating information already present in other files
+4. Indicates the current advancement of the file
+
+Use bold text (**) for key concepts, and relevant emojis
 """
             
             response = await asyncio.to_thread(
                 lambda: client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
-                        {"role": "system", "content": "You are a code analysis system that provides concise, informative file summaries."},
+                        {"role": "system", "content": "You are a technical analyst specializing in identifying unique characteristics and differentiating features of files within a project."},
                         {"role": "user", "content": prompt}
                     ],
                     temperature=0.3,
-                    max_tokens=100
+                    max_tokens=200
                 )
             )
             
