@@ -203,7 +203,7 @@ Consider:
 - Dependencies between files
 - Relevance to the current objective
 
-Return a list of only the files needed to complete the current objective.
+Return a list of only the files needed to complete the current objective (aim for 8-10).
 Format as a simple markdown list under a "# Context Map" heading.
 """
 
@@ -308,14 +308,13 @@ Modified File: {modified_file_path}
 Content:
 {file_content}
 
-Provide a one-line summary (max 250 chars) that:
-1. Explains what makes this file DIFFERENT from other files
-2. Highlights its SPECIFIC purpose
-3. Describes its UNIQUE contribution
-4. Avoids repeating information already present in other files
-5. Uses emojis to indicate the file's primary function
+Provide a one-line summary (max 300 chars) that:
+1. Explains what makes this file DIFFERENT from other files, Highlights its SPECIFIC purpose
+2. Describe the file, not the content of the file
+3. Avoids repeating information already present in other files
+4. Uses emojis to indicate the file's primary function
+5. Indicates the current advancement of the file
 
-Focus on DIFFERENTIATION - what makes this file special compared to others in the project.
 Use bold text (**) for key concepts.
 """
 
@@ -326,7 +325,7 @@ Use bold text (**) for key concepts.
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
-                max_tokens=100
+                max_tokens=200
             )
 
             summary = response.choices[0].message.content.strip()
