@@ -1,5 +1,6 @@
 import os
 import asyncio
+import random
 from pathlib import Path
 import fnmatch
 from utils.logger import Logger
@@ -298,9 +299,13 @@ Format as a simple markdown list under a "# Context Map" heading.
             tokenizer = tiktoken.encoding_for_model("gpt-4")
             token_count = len(tokenizer.encode(file_content))
 
-            # Generate new summary with global context
-            client = openai.OpenAI()
-            prompt = f"""
+            # 1/3 chance to regenerate description
+            should_update_description = random.random() < 0.33
+
+            if should_update_description:
+                # Generate new summary with global context
+                client = openai.OpenAI()
+                prompt = f"""
 Analyze this file in the context of the entire project and explain its unique role.
 
 # Current Global Project Map
@@ -325,22 +330,27 @@ Provide a one-line summary (max 300 chars) that:
 Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file name.
 """
 
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a technical analyst specializing in identifying unique characteristics and differentiating features of files within a project."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.3,
-                max_tokens=200
-            )
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": "You are a technical analyst specializing in identifying unique characteristics and differentiating features of files within a project."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.3,
+                    max_tokens=200
+                )
 
-            summary = response.choices[0].message.content.strip()
+                summary = response.choices[0].message.content.strip()
+            else:
+                # Get existing summary from map if available
+                summary = self._get_existing_summary(global_map_content, modified_file_path)
+                if not summary:
+                    summary = "File updated"  # Fallback if no existing summary
         
             # Log the update at SUCCESS level
             self.logger.success(f"📝 {modified_file_path} : {summary}")
 
-            # Update map.md with new summary
+            # Update map.md with new or existing summary
             self._update_map_file(modified_file_path, token_count, summary)
 
             self.logger.debug(f"🔄 Updated global map for: {modified_file_path}")
@@ -398,6 +408,19 @@ Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file 
         except Exception as e:
             self.logger.error(f"Failed to generate file summary: {str(e)}")
             raise
+
+    def _get_existing_summary(self, map_content, file_path):
+        """Extract existing summary for a file from the map content."""
+        try:
+            for line in map_content.split('\n'):
+                if line.startswith(file_path):
+                    # Extract summary part after token count
+                    parts = line.split(')')
+                    if len(parts) > 1:
+                        return parts[1].strip()
+        except Exception as e:
+            self.logger.debug(f"Could not extract existing summary: {str(e)}")
+        return None
 
     def _update_map_file(self, filepath, token_count, summary):
         """Update map.md with new file summary."""
