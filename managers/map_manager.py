@@ -308,6 +308,9 @@ Analyze this file in the context of the entire project and explain its unique ro
 {global_map_content}
 ````
 
+# Last commit
+````
+
 # Modified File: {modified_file_path}
 ````
 {file_content}
@@ -319,7 +322,7 @@ Provide a one-line summary (max 300 chars) that:
 3. Avoids repeating information already present in other files
 4. Indicates the current advancement of the file
 
-Use bold text (**) for key concepts, and relevant emojis
+Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file name.
 """
 
             response = client.chat.completions.create(
@@ -375,7 +378,7 @@ Provide a one-line summary (max 300 chars) that:
 3. Avoids repeating information already present in other files
 4. Indicates the current advancement of the file
 
-Use bold text (**) for key concepts, and relevant emojis
+Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file name.
 """
             
             response = await asyncio.to_thread(
