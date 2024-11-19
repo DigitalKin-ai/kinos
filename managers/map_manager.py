@@ -324,7 +324,7 @@ File: {filepath}
 Content:
 {content}
 
-Provide a one-line summary (max 250 chars) that captures the essence and current state.
+Provide a one-line summary (max 250 chars) that captures the essence and current state. Use some bold and emojis to increase readability.
 """
             
             response = await asyncio.to_thread(
