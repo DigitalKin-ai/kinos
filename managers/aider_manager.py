@@ -232,45 +232,61 @@ class AiderManager:
             current_commit_files = set()
             in_diff_section = False
             commit_count = 0
+            current_diff = []  # Add this to collect diff content
             
             for line in all_output.split('\n'):
                 line = line.strip()
                 
+                # Log the raw line for debugging
+                self.logger.debug(f"RAW LINE: {line}")
+                
                 # Start of a diff section
                 if line.startswith('diff --git'):
                     in_diff_section = True
+                    current_diff = [line]  # Start collecting diff
                     parts = line.split()
                     if len(parts) >= 4:
                         file_path = parts[3][2:]  # Remove b/ prefix
-                        # Add debug logging
-                        self.logger.debug(f"🔍 Examining file from diff: {file_path}")
-                        # Check if file exists in current directory or subdirectories
-                        potential_paths = list(Path('.').rglob(file_path.split('/')[-1]))
-                        if potential_paths:
-                            file_path = str(potential_paths[0])
-                            current_commit_files.add(file_path)
-                            self.logger.debug(f"📝 Found modified file: {file_path}")
-                        else:
-                            self.logger.debug(f"❌ Could not locate file: {file_path}")
-                            
-                # Look for +++ lines in diff
-                elif in_diff_section and line.startswith('+++'):
-                    file_path = line.split()[1][2:]  # Remove b/ prefix
-                    # Add debug logging
-                    self.logger.debug(f"🔍 Examining file from +++: {file_path}")
-                    # Check if file exists in current directory or subdirectories
-                    potential_paths = list(Path('.').rglob(file_path.split('/')[-1]))
-                    if potential_paths:
-                        file_path = str(potential_paths[0])
-                        current_commit_files.add(file_path)
-                        self.logger.debug(f"📝 Found modified file: {file_path}")
-                    else:
-                        self.logger.debug(f"❌ Could not locate file: {file_path}")
+                        self.logger.debug(f"🔍 Found diff for file: {file_path}")
                         
+                        # Try to find the file
+                        if os.path.exists(file_path):
+                            current_commit_files.add(file_path)
+                            self.logger.debug(f"✅ File exists at exact path: {file_path}")
+                        else:
+                            # Try without potential 'a/' or 'b/' prefix
+                            clean_path = file_path.split('/', 1)[-1] if '/' in file_path else file_path
+                            if os.path.exists(clean_path):
+                                current_commit_files.add(clean_path)
+                                self.logger.debug(f"✅ File exists at clean path: {clean_path}")
+                            else:
+                                self.logger.debug(f"❌ Could not find file at either path")
+                            
+                # Collect diff content
+                elif in_diff_section:
+                    current_diff.append(line)
+                    
+                    # Look for file paths in diff headers
+                    if line.startswith('+++') or line.startswith('---'):
+                        parts = line.split()
+                        if len(parts) > 1:
+                            file_path = parts[1].replace('a/', '').replace('b/', '')
+                            self.logger.debug(f"🔍 Found path in diff header: {file_path}")
+                            if os.path.exists(file_path):
+                                current_commit_files.add(file_path)
+                                self.logger.debug(f"✅ Added file from diff header: {file_path}")
+                                
                 # End of diff section / Commit line
                 elif line.startswith('commit ') or line.startswith('Commit '):
                     in_diff_section = False
                     commit_count += 1
+                    
+                    # Log the complete diff for debugging
+                    if current_diff:
+                        self.logger.debug("Complete diff content:")
+                        for diff_line in current_diff:
+                            self.logger.debug(f"DIFF: {diff_line}")
+                    current_diff = []
                     
                     self.logger.debug(f"💾 Processing commit #{commit_count}")
                     self.logger.debug(f"📄 Modified files for this commit: {current_commit_files}")
