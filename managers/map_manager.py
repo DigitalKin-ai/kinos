@@ -297,6 +297,15 @@ Format as a simple markdown list under a "# Context Map" heading.
                 file_content = f.read()
 
             # Get token count
+            # Get last commit message for this file
+            try:
+                commit_msg = subprocess.check_output(
+                    ['git', 'log', '-1', '--pretty=format:%s', modified_file_path],
+                    text=True
+                ).strip()
+            except subprocess.CalledProcessError:
+                commit_msg = "No commit message found"
+
             tokenizer = tiktoken.encoding_for_model("gpt-4")
             token_count = len(tokenizer.encode(file_content))
 
@@ -314,7 +323,9 @@ Analyze this file in the context of the entire project and explain its unique ro
 {global_map_content}
 ````
 
-# Last commit
+# Last Commit Message
+````
+{commit_msg}
 ````
 
 # Modified File: {modified_file_path}
@@ -349,8 +360,8 @@ Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file 
                 summary = self._get_existing_summary(global_map_content, modified_file_path)
                 if not summary:
                     summary = "File updated"  # Fallback if no existing summary
-                # Log simple modification notice
-                self.logger.success(f"Modified file: {modified_file_path}")
+                # Log simple modification notice with commit message
+                self.logger.info(f"Modified file: {modified_file_path} ({commit_msg})")
 
             # Update map.md with new or existing summary
             self._update_map_file(modified_file_path, token_count, summary)
