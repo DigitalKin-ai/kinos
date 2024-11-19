@@ -280,30 +280,62 @@ Format as a simple markdown list under a "# Context Map" heading.
             raise
 
     def update_global_map(self, modified_file_path):
-        """
-        Update global map with latest file summary after a commit.
-        
-        Args:
-            modified_file_path (str): Path to the modified file
-        """
+        """Update global map with latest file summary after a commit."""
         try:
-            self.logger.debug(f"🗺️ Updating global map for: {modified_file_path}")
-            
+            # Read current global map content
+            global_map_content = ""
+            if os.path.exists("map.md"):
+                with open("map.md", 'r', encoding='utf-8') as f:
+                    global_map_content = f.read()
+
             # Read modified file content
             with open(modified_file_path, 'r', encoding='utf-8') as f:
                 file_content = f.read()
-                
-            # Get file size
-            char_count = len(file_content)
-            
-            # Generate summary via GPT
-            summary = self._generate_file_summary(modified_file_path, file_content)
-            
-            # Update map.md
-            self._update_map_file(modified_file_path, char_count, summary)
-            
-            self.logger.info(f"✨ Updated global map with changes to {modified_file_path}")
-            
+
+            # Get token count
+            tokenizer = tiktoken.encoding_for_model("gpt-4")
+            token_count = len(tokenizer.encode(file_content))
+
+            # Generate new summary with global context
+            client = openai.OpenAI()
+            prompt = f"""
+Analyze this file in the context of the entire project and explain its unique role.
+
+Current Global Project Map:
+{global_map_content}
+
+Modified File: {modified_file_path}
+Content:
+{file_content}
+
+Provide a one-line summary (max 250 chars) that:
+1. Explains what makes this file DIFFERENT from other files
+2. Highlights its SPECIFIC purpose
+3. Describes its UNIQUE contribution
+4. Avoids repeating information already present in other files
+5. Uses emojis to indicate the file's primary function
+
+Focus on DIFFERENTIATION - what makes this file special compared to others in the project.
+Use bold text (**) for key concepts.
+"""
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a technical analyst specializing in identifying unique characteristics and differentiating features of files within a project."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=100
+            )
+
+            summary = response.choices[0].message.content.strip()
+
+            # Update map.md with new summary
+            self._update_map_file(modified_file_path, token_count, summary)
+
+            self.logger.debug(f"🔄 Updated global map for: {modified_file_path}")
+
         except Exception as e:
             self.logger.error(f"Failed to update global map: {str(e)}")
             raise
