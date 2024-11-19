@@ -69,7 +69,7 @@ class AgentRunner:
             for i in range(min(agent_count, len(available_agents))):
                 task = asyncio.create_task(self._run_single_agent_cycle(mission_filepath))
                 tasks.add(task)
-                await asyncio.sleep(5)  # 5 second delay between each start
+                await asyncio.sleep(10)  # 10 second delay between each start
 
             if not tasks:
                 raise ValueError("No tasks could be created")
