@@ -170,6 +170,7 @@ Based on the following contexts, generate a clear specific next step for the {ag
 {global_map_content}
 
 # Breadth-First Pattern
+- Follow the directives in the Mission context if present
 - Review previous steps from chat history
 - Generate a step that explores a NEW aspect of the mission
 - Avoid repeating or deepening previous work
