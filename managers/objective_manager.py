@@ -90,29 +90,102 @@ class ObjectiveManager:
         """Generate objective content using GPT."""
         try:
             client = openai.OpenAI()
-            prompt = self._create_objective_prompt(mission_content, agent_content, agent_name)
             
+            # Load chat history for action tracking
+            chat_history = ""
+            chat_file = f".aider.chat.{agent_name}.md"
+            try:
+                if os.path.exists(chat_file):
+                    with open(chat_file, 'r', encoding='utf-8') as f:
+                        chat_history = f.read()
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not load chat history: {str(e)}")
+                raise
+
+            prompt = f"""
+# Mission Analysis Task
+
+Analyze the following mission context and generate the next objective for the {agent_name} agent.
+
+## Mission Context
+{mission_content}
+
+## Agent Configuration
+{agent_content}
+
+## Previous Actions (Chat History)
+{chat_history}
+
+## Task Requirements
+
+1. MISSION INSTRUCTIONS PRIORITY
+- First, look for explicit instructions or steps in the mission file
+- Follow any numbered steps or sequences defined
+- Respect priority order if specified
+- Maintain compliance with mission constraints
+
+2. AVOID REPETITION
+- Carefully review chat history for completed actions
+- Do not repeat any previously executed tasks
+- Check for similar patterns or variations
+- Ensure the objective is genuinely new
+
+3. PROGRESSION TRACKING
+- Note which mission steps have been completed
+- Identify next logical steps in sequence
+- Track dependencies and prerequisites
+- Maintain mission progression order
+
+4. OBJECTIVE FORMULATION
+Generate an objective that:
+- Follows explicit mission instructions if present
+- Is different from all previous actions
+- Advances the mission in a meaningful way
+- Can be completed in one operation
+- Has clear validation criteria
+
+## Required Output Format
+
+# Next Objective
+
+## Context
+- Current mission phase
+- Relevant prerequisites
+- Dependencies status
+
+## Action
+- Specific task to execute
+- Files to modify
+- Expected changes
+
+## Validation
+- Success criteria
+- Required checks
+- State verification
+
+## Constraints
+- Resource limits
+- Scope boundaries
+- Required permissions
+
+[Add "Search:" line only if research is needed]
+
+Remember:
+1. ALWAYS check mission instructions first
+2. NEVER repeat previous actions
+3. ENSURE clear progression
+4. VALIDATE against chat history
+"""
+
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": """
-## System Prompt
-
-You are an objective generation agent within KinOS, an autonomous AI operating system. Your role is to analyze mission contexts and agent capabilities to generate a clear, actionable next objective.
-
-Key principles:
-- Create a specific, measurable objective
-- Ensure alignment with agent capabilities
-- Maintain clear scope boundaries
-- Define explicit success criteria
-
-When generating objectives:
-1. Consider current mission state
-2. Match agent capabilities
-3. Ensure measurable outcomes
-4. Keep scope focused
-
-Your outputs will be used by Aider to execute specific tasks, so clarity and precision are essential.                   
+You are an objective planning system that:
+1. Prioritizes explicit mission instructions
+2. Never repeats previous actions
+3. Maintains clear progression
+4. Validates against history
 """},
                     {"role": "user", "content": prompt}
                 ],
@@ -124,7 +197,7 @@ Your outputs will be used by Aider to execute specific tasks, so clarity and pre
             
         except Exception as e:
             self.logger.error(f"GPT API call failed: {str(e)}")
-            raise  # Fail fast - no fallback
+            raise
 
     def _create_objective_prompt(self, mission_content, agent_content, agent_name):
         """Create prompt for objective generation."""
