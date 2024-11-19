@@ -52,9 +52,9 @@ class AgentRunner:
                 raise SystemExit(1)
 
             # Then check for missing agents
-            missing_agents = self._agents_exist()
+            missing_agents = self._agents_exist(force_regenerate=generate_agents)
             if missing_agents:
-                self.logger.info("🔄 Génération automatique des agents manquants...")
+                self.logger.info("🔄 Génération automatique des agents...")
                 await self.agents_manager.generate_agents(mission_filepath)
 
             self.logger.info(f"🚀 Démarrage avec {agent_count} agents en parallèle")
@@ -115,8 +115,16 @@ class AgentRunner:
         }
         return agent_emojis.get(agent_type, '🤖')
 
-    def _agents_exist(self):
-        """Check if agent files exist and return missing agents."""
+    def _agents_exist(self, force_regenerate=False):
+        """
+        Check if agent files exist and return missing or to-regenerate agents.
+        
+        Args:
+            force_regenerate (bool): If True, return all agents regardless of existence
+            
+        Returns:
+            list: List of agent types to generate/regenerate
+        """
         agent_types = [
             "specification",
             "management", 
@@ -130,6 +138,9 @@ class AgentRunner:
             "integration"
         ]
         
+        if force_regenerate:
+            return agent_types
+            
         missing_agents = []
         for agent_type in agent_types:
             if not os.path.exists(f".aider.agent.{agent_type}.md"):
