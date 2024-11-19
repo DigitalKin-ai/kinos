@@ -215,38 +215,49 @@ class AiderManager:
                 cmd,
                 check=True,
                 capture_output=True,
-                text=True
+                text=True,
+                encoding='utf-8'
             )
-            
-            # Log raw output as debug
-            if result.stdout:
-                self.logger.debug(f"📝 Aider stdout:\n{result.stdout}")
             
             # Parse both stdout and stderr for commits
             all_output = result.stdout + "\n" + result.stderr
-            output_lines = all_output.split('\n')
             
-            # Track modified files across all commits
-            modified_files = set()
+            # Track current commit's modified files
+            current_commit_files = set()
+            in_diff_section = False
             
-            # Look for commit lines and diff sections
-            for line in output_lines:
+            for line in all_output.split('\n'):
                 line = line.strip()
+                
+                # Start of a diff section
                 if line.startswith('diff --git'):
-                    # Extract modified file path from diff header
+                    in_diff_section = True
                     parts = line.split()
                     if len(parts) >= 4:
                         file_path = parts[3][2:]  # Remove b/ prefix
                         if os.path.exists(file_path):
-                            modified_files.add(file_path)
+                            current_commit_files.add(file_path)
+                            self.logger.debug(f"📝 Detected modified file: {file_path}")
                             
-                elif "Commit " in line:
+                # Look for +++ lines in diff which also indicate modified files
+                elif in_diff_section and line.startswith('+++'):
+                    file_path = line.split()[1][2:]  # Remove b/ prefix
+                    if os.path.exists(file_path):
+                        current_commit_files.add(file_path)
+                        self.logger.debug(f"📝 Detected modified file from +++: {file_path}")
+                        
+                # End of diff section
+                elif line.startswith('commit ') or line.startswith('Commit '):
+                    in_diff_section = False
+                    
                     try:
-                        # Split on "Commit " to get everything after it
-                        commit_parts = line.split("Commit ")[1]
-                        # First word is the hash
+                        # Parse commit info
+                        if line.startswith('Commit '):
+                            commit_parts = line.split("Commit ")[1]
+                        else:
+                            commit_parts = line.split("commit ")[1]
+                            
                         commit_hash = commit_parts.split()[0][:7]
-                        # Everything after the hash is the message
                         commit_msg = " ".join(commit_parts.split()[1:])
                         
                         # Extract agent name from command
@@ -256,32 +267,37 @@ class AiderManager:
                         # Parse commit type and get emoji
                         commit_type, emoji = self._parse_commit_type(commit_msg)
                         
-                        # Log formatted commit message
+                        # Log commit
                         self.logger.success(f"Agent {agent_name} made {commit_type} commit {emoji} ({commit_hash}): {commit_msg}")
                         
                         # Update global map for all modified files from this commit
-                        map_manager = MapManager()
-                        for modified_file in modified_files:
-                            try:
-                                map_manager.update_global_map(modified_file)
-                                self.logger.debug(f"🔄 Updated global map for: {modified_file}")
-                            except Exception as map_error:
-                                self.logger.warning(f"⚠️ Failed to update map for {modified_file}: {str(map_error)}")
-                        
-                        # Clear modified files set for next commit
-                        modified_files.clear()
-                        
+                        if current_commit_files:
+                            map_manager = MapManager()
+                            for modified_file in current_commit_files:
+                                try:
+                                    self.logger.info(f"🔄 Updating global map for: {modified_file}")
+                                    map_manager.update_global_map(modified_file)
+                                except Exception as map_error:
+                                    self.logger.warning(f"⚠️ Failed to update map for {modified_file}: {str(map_error)}")
+                            
+                            # Clear the set for next commit
+                            current_commit_files.clear()
+                            
                     except Exception as parse_error:
-                        self.logger.debug(f"Failed to parse commit line: {line}")
+                        self.logger.error(f"Failed to parse commit line: {line}")
+                        self.logger.error(f"Error: {str(parse_error)}")
                         continue
-            
-            # Log stderr as debug if present, warning if contains error
-            if result.stderr:
-                if "error" in result.stderr.lower():
-                    self.logger.warning(f"⚠️ Aider warnings:\n{result.stderr}")
-                else:
-                    self.logger.debug(f"📝 Aider stderr:\n{result.stderr}")
-                    
+                
+            # Handle any remaining modified files after last commit
+            if current_commit_files:
+                map_manager = MapManager()
+                for modified_file in current_commit_files:
+                    try:
+                        self.logger.info(f"🔄 Updating global map for remaining file: {modified_file}")
+                        map_manager.update_global_map(modified_file)
+                    except Exception as map_error:
+                        self.logger.warning(f"⚠️ Failed to update map for {modified_file}: {str(map_error)}")
+                        
         except subprocess.CalledProcessError as e:
             self.logger.error(f"💥 Aider execution failed: {str(e)}")
             if e.output:
