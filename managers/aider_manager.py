@@ -242,20 +242,30 @@ class AiderManager:
                     parts = line.split()
                     if len(parts) >= 4:
                         file_path = parts[3][2:]  # Remove b/ prefix
-                        if os.path.exists(file_path):
+                        # Add debug logging
+                        self.logger.debug(f"🔍 Examining file from diff: {file_path}")
+                        # Check if file exists in current directory or subdirectories
+                        potential_paths = list(Path('.').rglob(file_path.split('/')[-1]))
+                        if potential_paths:
+                            file_path = str(potential_paths[0])
                             current_commit_files.add(file_path)
-                            self.logger.debug(f"📝 Found modified file in diff: {file_path}")
+                            self.logger.debug(f"📝 Found modified file: {file_path}")
                         else:
-                            self.logger.debug(f"❌ File from diff does not exist: {file_path}")
+                            self.logger.debug(f"❌ Could not locate file: {file_path}")
                             
                 # Look for +++ lines in diff
                 elif in_diff_section and line.startswith('+++'):
                     file_path = line.split()[1][2:]  # Remove b/ prefix
-                    if os.path.exists(file_path):
+                    # Add debug logging
+                    self.logger.debug(f"🔍 Examining file from +++: {file_path}")
+                    # Check if file exists in current directory or subdirectories
+                    potential_paths = list(Path('.').rglob(file_path.split('/')[-1]))
+                    if potential_paths:
+                        file_path = str(potential_paths[0])
                         current_commit_files.add(file_path)
-                        self.logger.debug(f"📝 Found modified file from +++: {file_path}")
+                        self.logger.debug(f"📝 Found modified file: {file_path}")
                     else:
-                        self.logger.debug(f"❌ File from +++ does not exist: {file_path}")
+                        self.logger.debug(f"❌ Could not locate file: {file_path}")
                         
                 # End of diff section / Commit line
                 elif line.startswith('commit ') or line.startswith('Commit '):
