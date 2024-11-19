@@ -341,14 +341,13 @@ Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file 
                 )
 
                 summary = response.choices[0].message.content.strip()
+                # Log only when we generate a new description
+                self.logger.success(f"📝 {modified_file_path} : {summary}")
             else:
                 # Get existing summary from map if available
                 summary = self._get_existing_summary(global_map_content, modified_file_path)
                 if not summary:
                     summary = "File updated"  # Fallback if no existing summary
-        
-            # Log the update at SUCCESS level
-            self.logger.success(f"📝 {modified_file_path} : {summary}")
 
             # Update map.md with new or existing summary
             self._update_map_file(modified_file_path, token_count, summary)
