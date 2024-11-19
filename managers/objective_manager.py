@@ -91,19 +91,28 @@ class ObjectiveManager:
         try:
             client = openai.OpenAI()
             
-            # Load recent chat history
+            # Load recent chat history from both history files
             chat_history = ""
-            chat_file = f".aider.chat.{agent_name}.md"
-            try:
-                if os.path.exists(chat_file):
-                    with open(chat_file, 'r') as f:
-                        content = f.read()
-                        # Get last 10000 chars of chat history
-                        chat_history = content[-10000:] if len(content) > 10000 else content
-            except Exception as e:
-                self.logger.warning(f"⚠️ Could not load chat history: {str(e)}")
-                # Fail fast - don't proceed without history context
-                raise
+            history_files = [
+                f".aider.history.{agent_name}.md",
+                f".aider.input.{agent_name}.md"
+            ]
+            
+            for history_file in history_files:
+                try:
+                    if os.path.exists(history_file):
+                        with open(history_file, 'r', encoding='utf-8', errors='replace') as f:
+                            content = f.read()
+                            # Get last 5000 chars from each history file
+                            chat_history += content[-5000:] if len(content) > 5000 else content
+                            chat_history += "\n\n"
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not load chat history from {history_file}: {str(e)}")
+                    continue  # Try next file
+            
+            if not chat_history:
+                self.logger.debug(f"No chat history found for agent {agent_name}")
+                chat_history = "No previous chat history available."
 
                     # Load global map content if it exists
             global_map_content = ""
