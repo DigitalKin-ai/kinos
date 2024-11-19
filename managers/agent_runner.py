@@ -139,6 +139,7 @@ class AgentRunner:
         
     async def _run_single_agent_cycle(self, mission_filepath):
         """Execute a single cycle for one agent."""
+        agent_name = None
         try:
             # Select an unused agent
             agent_name = await self._select_available_agent()
@@ -150,14 +151,17 @@ class AgentRunner:
             
             # Execute agent cycle
             await self._execute_agent_cycle(agent_name, mission_filepath)
-            
-            # Release agent
-            async with self._agent_lock:
-                self._running_agents.remove(agent_name)
                 
         except Exception as e:
             self.logger.error(f"Error in agent cycle: {str(e)}")
             raise  # Propagate error to allow agent replacement
+            
+        finally:
+            # Always release agent if it was acquired
+            if agent_name:
+                async with self._agent_lock:
+                    if agent_name in self._running_agents:
+                        self._running_agents.remove(agent_name)
 
     async def _select_available_agent(self):
         """Select an unused agent in a thread-safe way."""
