@@ -188,38 +188,55 @@ class AiderManager:
         # Default to other
         return "other", "🔨"
 
-    def _get_modified_files(self, aider_output):
-        """Extract modified file paths from aider output."""
-        modified_files = set()
-        current_file = None
-        in_search_block = False
-        
-        # Process aider output line by line
-        for line in aider_output.split('\n'):
-            line = line.strip()
+    def _get_git_file_states(self):
+        """Get dictionary of tracked files and their current hash."""
+        try:
+            # Get list of tracked files with their hashes
+            result = subprocess.run(
+                ['git', 'ls-files', '-s'],
+                capture_output=True,
+                text=True,
+                check=True
+            )
             
-            # If we find a SEARCH marker, the previous non-empty line should be the filepath
-            if line.startswith('<<<<<<< SEARCH'):
-                in_search_block = True
-                if current_file:  # We found a filepath in the previous line
-                    if os.path.exists(current_file):
-                        modified_files.add(current_file)
-                        self.logger.debug(f"✅ Added file from SEARCH block: {current_file}")
-            # Store potential filepath
-            elif line and not in_search_block and not line.startswith('=======') and not line.startswith('>>>>>>>'):
-                current_file = line
-            # Reset search block flag at the end of the block
-            elif line.startswith('>>>>>>> REPLACE'):
-                in_search_block = False
-                current_file = None
-                        
-        return list(modified_files)
+            file_states = {}
+            for line in result.stdout.splitlines():
+                # Format: <mode> <hash> <stage> <file>
+                parts = line.split()
+                if len(parts) >= 4:
+                    file_path = ' '.join(parts[3:])  # Handle filenames with spaces
+                    file_hash = parts[1]
+                    file_states[file_path] = file_hash
+                    
+            return file_states
+        except subprocess.CalledProcessError as e:
+            self.logger.error(f"Failed to get git file states: {str(e)}")
+            raise
+
+    def _get_modified_files(self, before_state, after_state):
+        """Compare before and after states to find modified files."""
+        modified_files = []
+        
+        # Check for modified files
+        for file_path, after_hash in after_state.items():
+            before_hash = before_state.get(file_path)
+            if before_hash != after_hash:
+                modified_files.append(file_path)
+                self.logger.debug(f"🔍 Detected change in {file_path}")
+                self.logger.debug(f"  Before hash: {before_hash}")
+                self.logger.debug(f"  After hash: {after_hash}")
+        
+        return modified_files
 
     def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
         try:
+            # Get list of tracked files and their hashes before aider runs
+            before_state = self._get_git_file_states()
+            self.logger.debug(f"File states before aider: {before_state}")
+
+            # Execute aider
             self.logger.debug(f"🤖 Starting aider execution with command: {' '.join(cmd)}")
-            
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
@@ -227,110 +244,30 @@ class AiderManager:
                 encoding='utf-8',
                 errors='replace'
             )
-            
             stdout, stderr = process.communicate()
-            
+
             if process.returncode != 0:
                 self.logger.error(f"Aider process failed with return code {process.returncode}")
                 raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
-                
-            self.logger.debug("Processing aider output for commits and file changes...")
+
+            # Get list of tracked files and their hashes after aider runs
+            after_state = self._get_git_file_states()
+            self.logger.debug(f"File states after aider: {after_state}")
+
+            # Find modified files by comparing hashes
+            modified_files = self._get_modified_files(before_state, after_state)
             
-            # Combine output safely
-            all_output = (stdout or "") + "\n" + (stderr or "")
-            
-            # Track current commit's modified files
-            current_commit_files = set()
-            current_file = None
-            in_search_block = False
-            commit_count = 0
-            
-            for line in all_output.split('\n'):
-                line = line.strip()
-                
-                # Log the raw line for debugging
-                self.logger.debug(f"RAW LINE: {line}")
-                
-                # If we find a SEARCH marker, the previous non-empty line should be the filepath
-                if line.startswith('<<<<<<< SEARCH'):
-                    in_search_block = True
-                    if current_file:  # We found a filepath in the previous line
-                        self.logger.debug(f"🔍 Found file in SEARCH block: {current_file}")
-                        if os.path.exists(current_file):
-                            current_commit_files.add(current_file)
-                            self.logger.debug(f"✅ File exists: {current_file}")
-                        else:
-                            self.logger.debug(f"❌ File not found: {current_file}")
-                # Store potential filepath
-                elif line and not in_search_block and not line.startswith('=======') and not line.startswith('>>>>>>>'):
-                    current_file = line
-                    self.logger.debug(f"🔍 Potential file path found: {current_file}")
-                # Reset search block flag at the end of the block
-                elif line.startswith('>>>>>>> REPLACE'):
-                    in_search_block = False
-                    current_file = None
-                            
-                # End of diff section / Commit line
-                elif line.startswith('commit ') or line.startswith('Commit '):
-                    commit_count += 1
-                    
-                    self.logger.debug(f"💾 Processing commit #{commit_count}")
-                    self.logger.debug(f"📄 Modified files for this commit: {current_commit_files}")
-                    
-                    try:
-                        # Parse commit info
-                        if line.startswith('Commit '):
-                            commit_parts = line.split("Commit ")[1]
-                        else:
-                            commit_parts = line.split("commit ")[1]
-                            
-                        commit_hash = commit_parts.split()[0][:7]
-                        commit_msg = " ".join(commit_parts.split()[1:])
-                        
-                        # Extract agent name
-                        agent_filepath = [arg for arg in cmd if arg.endswith('.md') and '.agent.' in arg][0]
-                        agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
-                        
-                        # Parse commit type
-                        commit_type, emoji = self._parse_commit_type(commit_msg)
-                        
-                        self.logger.success(f"Agent {agent_name} made {commit_type} commit {emoji} ({commit_hash}): {commit_msg}")
-                        
-                        # Update map for modified files
-                        if current_commit_files:
-                            map_manager = MapManager()
-                            for modified_file in current_commit_files:
-                                try:
-                                    self.logger.info(f"🔄 Updating global map for: {modified_file}")
-                                    map_manager.update_global_map(modified_file)
-                                    self.logger.debug(f"✅ Successfully updated map for: {modified_file}")
-                                except Exception as map_error:
-                                    self.logger.error(f"❌ Failed to update map for {modified_file}: {str(map_error)}")
-                                    self.logger.error(f"Error details: {type(map_error).__name__}: {str(map_error)}")
-                            
-                            # Clear for next commit
-                            current_commit_files.clear()
-                            
-                    except Exception as parse_error:
-                        self.logger.error(f"Failed to parse commit line: {line}")
-                        self.logger.error(f"Parse error details: {type(parse_error).__name__}: {str(parse_error)}")
-                        continue
-            
-            self.logger.debug(f"Processed {commit_count} commits total")
-            
-            # Handle remaining files
-            if current_commit_files:
-                self.logger.debug(f"Processing {len(current_commit_files)} remaining modified files")
+            if modified_files:
+                self.logger.info(f"📝 Detected {len(modified_files)} modified files")
                 map_manager = MapManager()
-                for modified_file in current_commit_files:
+                for file_path in modified_files:
                     try:
-                        self.logger.info(f"🔄 Updating global map for remaining file: {modified_file}")
-                        map_manager.update_global_map(modified_file)
-                        self.logger.debug(f"✅ Successfully updated map for remaining file: {modified_file}")
-                    except Exception as map_error:
-                        self.logger.error(f"❌ Failed to update remaining file {modified_file}: {str(map_error)}")
-                        self.logger.error(f"Error details: {type(map_error).__name__}: {str(map_error)}")
-                        
+                        self.logger.info(f"🔄 Updating global map for: {file_path}")
+                        map_manager.update_global_map(file_path)
+                        self.logger.debug(f"✅ Successfully updated map for: {file_path}")
+                    except Exception as e:
+                        self.logger.error(f"❌ Failed to update map for {file_path}: {str(e)}")
+
         except Exception as e:
             self.logger.error(f"💥 Aider execution failed: {str(e)}")
             self.logger.error(f"Error type: {type(e).__name__}")
