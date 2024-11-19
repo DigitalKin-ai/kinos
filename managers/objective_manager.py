@@ -226,13 +226,24 @@ Your planning:
         try:
             client = openai.OpenAI()
             prompt = f"""
+# Logs de suivi précédents
+````
+{suivi # TODO}
+````
+
 Résume en une seule phrase ce que l'agent fait en ce moment dans le cadre de la mission, en suivant strictement ce format :
 "L'agent {agent_name} [action] [cible] [détail optionnel]"
 
-Ne répète pas la mission (qui est connue de l'utilisateur), mais seulement ce que l'agent doit faire précisément dans le cadre de cette mission. Utilise des emojis appropriés en fonction du type d'action.
+Consignes :
+- Ne répète pas la mission (qui est connue de l'utilisateur), mais seulement ce que l'agent fait précisément en ce moment dans le cadre de cette mission
+- Ne répète pas les informations déjà présentes dans le suivi
+- Utilise des emojis appropriés en fonction du type d'action
 
+# Objectif
 Voici l'objectif complet à résumer :
+````
 {objective}
+````
 
 Réponds uniquement avec la phrase formatée, rien d'autre.
 """
