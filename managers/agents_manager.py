@@ -41,10 +41,12 @@ class AgentsManager:
                 "management", 
                 "redaction",
                 "evaluation",
-                "duplication",
+                "deduplication",
                 "chroniqueur",
                 "redondance",
-                "production"
+                "production",
+                "chercheur",
+                "integration"
             ]
             
             # Create tasks for parallel execution
@@ -130,7 +132,8 @@ class AgentsManager:
         Returns:
             str: Detailed prompt for agent generation
         """
-        return f"""You are tasked with creating a specialized agent configuration for a "{agent_name}" type agent within the KinOS system. This configuration will guide the agent's autonomous operations.
+        return f"""
+You are tasked with creating a specialized agent configuration for a "{agent_name}" type agent within the KinOS system. This configuration will guide the agent's autonomous operations.
 
     MISSION CONTEXT:
     {mission_content}
@@ -242,7 +245,7 @@ class AgentsManager:
                 model="gpt-4o-mini",  # Using the correct Omni model
                 messages=[
                     {"role": "system", "content": """
-                     # Agent Generator System Prompt
+# Agent Generator System Prompt
 
 ## Context: KinOS Architecture
 
@@ -359,8 +362,8 @@ When asked to generate an agent prompt:
                      """},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.7,
-                max_tokens=4000
+                temperature=0.6,
+                max_tokens=3000
             )
             
             # Extract the generated configuration from the response
