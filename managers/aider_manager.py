@@ -207,29 +207,31 @@ class AiderManager:
     def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
         try:
-            # Log command as debug
-            self.logger.debug(f"🤖 Executing aider command: {' '.join(cmd)}")
+            self.logger.debug(f"🤖 Starting aider execution with command: {' '.join(cmd)}")
             
-            # Run aider with configured command and handle encoding explicitly
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 encoding='utf-8',
-                errors='replace'  # Handle encoding errors by replacing invalid chars
+                errors='replace'
             )
             
             stdout, stderr = process.communicate()
             
             if process.returncode != 0:
+                self.logger.error(f"Aider process failed with return code {process.returncode}")
                 raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
                 
+            self.logger.debug("Processing aider output for commits and file changes...")
+            
             # Combine output safely
             all_output = (stdout or "") + "\n" + (stderr or "")
             
             # Track current commit's modified files
             current_commit_files = set()
             in_diff_section = False
+            commit_count = 0
             
             for line in all_output.split('\n'):
                 line = line.strip()
@@ -242,18 +244,26 @@ class AiderManager:
                         file_path = parts[3][2:]  # Remove b/ prefix
                         if os.path.exists(file_path):
                             current_commit_files.add(file_path)
-                            self.logger.debug(f"📝 Detected modified file: {file_path}")
+                            self.logger.debug(f"📝 Found modified file in diff: {file_path}")
+                        else:
+                            self.logger.debug(f"❌ File from diff does not exist: {file_path}")
                             
-                # Look for +++ lines in diff which also indicate modified files
+                # Look for +++ lines in diff
                 elif in_diff_section and line.startswith('+++'):
                     file_path = line.split()[1][2:]  # Remove b/ prefix
                     if os.path.exists(file_path):
                         current_commit_files.add(file_path)
-                        self.logger.debug(f"📝 Detected modified file from +++: {file_path}")
+                        self.logger.debug(f"📝 Found modified file from +++: {file_path}")
+                    else:
+                        self.logger.debug(f"❌ File from +++ does not exist: {file_path}")
                         
-                # End of diff section
+                # End of diff section / Commit line
                 elif line.startswith('commit ') or line.startswith('Commit '):
                     in_diff_section = False
+                    commit_count += 1
+                    
+                    self.logger.debug(f"💾 Processing commit #{commit_count}")
+                    self.logger.debug(f"📄 Modified files for this commit: {current_commit_files}")
                     
                     try:
                         # Parse commit info
@@ -265,46 +275,53 @@ class AiderManager:
                         commit_hash = commit_parts.split()[0][:7]
                         commit_msg = " ".join(commit_parts.split()[1:])
                         
-                        # Extract agent name from command
+                        # Extract agent name
                         agent_filepath = [arg for arg in cmd if arg.endswith('.md') and '.agent.' in arg][0]
                         agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
                         
-                        # Parse commit type and get emoji
+                        # Parse commit type
                         commit_type, emoji = self._parse_commit_type(commit_msg)
                         
-                        # Log commit
                         self.logger.success(f"Agent {agent_name} made {commit_type} commit {emoji} ({commit_hash}): {commit_msg}")
                         
-                        # Update global map for all modified files from this commit
+                        # Update map for modified files
                         if current_commit_files:
                             map_manager = MapManager()
                             for modified_file in current_commit_files:
                                 try:
                                     self.logger.info(f"🔄 Updating global map for: {modified_file}")
                                     map_manager.update_global_map(modified_file)
+                                    self.logger.debug(f"✅ Successfully updated map for: {modified_file}")
                                 except Exception as map_error:
-                                    self.logger.warning(f"⚠️ Failed to update map for {modified_file}: {str(map_error)}")
+                                    self.logger.error(f"❌ Failed to update map for {modified_file}: {str(map_error)}")
+                                    self.logger.error(f"Error details: {type(map_error).__name__}: {str(map_error)}")
                             
-                            # Clear the set for next commit
+                            # Clear for next commit
                             current_commit_files.clear()
                             
                     except Exception as parse_error:
                         self.logger.error(f"Failed to parse commit line: {line}")
-                        self.logger.error(f"Error: {str(parse_error)}")
+                        self.logger.error(f"Parse error details: {type(parse_error).__name__}: {str(parse_error)}")
                         continue
-                
-            # Handle any remaining modified files after last commit
+            
+            self.logger.debug(f"Processed {commit_count} commits total")
+            
+            # Handle remaining files
             if current_commit_files:
+                self.logger.debug(f"Processing {len(current_commit_files)} remaining modified files")
                 map_manager = MapManager()
                 for modified_file in current_commit_files:
                     try:
                         self.logger.info(f"🔄 Updating global map for remaining file: {modified_file}")
                         map_manager.update_global_map(modified_file)
+                        self.logger.debug(f"✅ Successfully updated map for remaining file: {modified_file}")
                     except Exception as map_error:
-                        self.logger.warning(f"⚠️ Failed to update map for {modified_file}: {str(map_error)}")
+                        self.logger.error(f"❌ Failed to update remaining file {modified_file}: {str(map_error)}")
+                        self.logger.error(f"Error details: {type(map_error).__name__}: {str(map_error)}")
                         
-        except subprocess.CalledProcessError as e:
+        except Exception as e:
             self.logger.error(f"💥 Aider execution failed: {str(e)}")
-            if e.output:
+            self.logger.error(f"Error type: {type(e).__name__}")
+            if hasattr(e, 'output'):
                 self.logger.error(f"Error output:\n{e.output}")
             raise
