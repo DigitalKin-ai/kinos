@@ -333,6 +333,9 @@ Use bold text (**) for key concepts, and relevant emojis
             )
 
             summary = response.choices[0].message.content.strip()
+        
+            # Log the update at SUCCESS level
+            self.logger.success(f"📝 {modified_file_path} : {summary}")
 
             # Update map.md with new summary
             self._update_map_file(modified_file_path, token_count, summary)
