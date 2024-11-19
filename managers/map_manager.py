@@ -349,7 +349,7 @@ Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file 
                 if not summary:
                     summary = "File updated"  # Fallback if no existing summary
                 # Log simple modification notice
-                self.logger.info(f"Modified file: {modified_file_path}")
+                self.logger.success(f"Modified file: {modified_file_path}")
 
             # Update map.md with new or existing summary
             self._update_map_file(modified_file_path, token_count, summary)
