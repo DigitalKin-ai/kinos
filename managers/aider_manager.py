@@ -210,17 +210,22 @@ class AiderManager:
             # Log command as debug
             self.logger.debug(f"🤖 Executing aider command: {' '.join(cmd)}")
             
-            # Run aider with configured command
-            result = subprocess.run(
+            # Run aider with configured command and handle encoding explicitly
+            process = subprocess.Popen(
                 cmd,
-                check=True,
-                capture_output=True,
-                text=True,
-                encoding='utf-8'
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding='utf-8',
+                errors='replace'  # Handle encoding errors by replacing invalid chars
             )
             
-            # Parse both stdout and stderr for commits
-            all_output = result.stdout + "\n" + result.stderr
+            stdout, stderr = process.communicate()
+            
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
+                
+            # Combine output safely
+            all_output = (stdout or "") + "\n" + (stderr or "")
             
             # Track current commit's modified files
             current_commit_files = set()
