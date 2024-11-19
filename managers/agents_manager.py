@@ -132,99 +132,50 @@ class AgentsManager:
         Returns:
             str: Detailed prompt for agent generation
         """
+        # Try to load custom prompt template
+        prompt_path = f"prompts/{agent_name}.md"
+        custom_prompt = ""
+        
+        if os.path.exists(prompt_path):
+            try:
+                with open(prompt_path, 'r', encoding='utf-8') as f:
+                    custom_prompt = f.read()
+                self.logger.info(f"📝 Using custom prompt template for {agent_name}")
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not load custom prompt for {agent_name}: {str(e)}")
+
         return f"""
-You are tasked with creating a specialized agent configuration for a "{agent_name}" type agent within the KinOS system. This configuration will guide the agent's autonomous operations.
+You are tasked with creating a specialized agent configuration for a "{agent_name}" type agent within the KinOS system.
+This configuration will guide the agent's autonomous operations.
 
-    MISSION CONTEXT:
-    {mission_content}
+MISSION CONTEXT:
+````
+{mission_content}
+````
 
-    REQUIRED OUTPUT FORMAT:
-    Generate a markdown configuration (.aider.agent.{agent_name}.md) that strictly follows this structure:
+CUSTOM PROMPT TEMPLATE:
+````
+{custom_prompt if custom_prompt else "No custom template available - use default structure"}
+````
 
-    # {agent_name} Agent Configuration
+Generate a markdown configuration (.aider.agent.{agent_name}.md) that follows the structure from the custom template if available,
+or the default structure if no template exists.
 
-    ## Core Identity
-    - Primary purpose and role within KinOS
-    - Specialized domain of operation
-    - Position in agent collaboration network
-    - Core value proposition
+CRITICAL REQUIREMENTS:
+1. Focus strictly on {agent_name} specialized functions
+2. Ensure all validation rules are explicit
+3. Define clear error states and handling
+4. Specify measurable success criteria
+5. Detail resource management protocols
 
-    ## Responsibilities
-    1. Primary Functions
-    - List specific operational tasks
-    - Define primary outcomes
-    - Specify work products
+OUTPUT RULES:
+- Use clear, actionable language
+- Provide specific, measurable criteria
+- Include explicit validation rules
+- Define concrete error handling steps
 
-    2. System Duties
-    - File management approach
-    - State validation requirements
-    - Error handling protocols
-    - Pattern recognition focus
-
-    ## Operational Guidelines
-    1. Input Requirements
-    - Required context types
-    - Validation criteria
-    - Quality standards
-
-    2. Processing Rules
-    - Decision frameworks
-    - Pattern recognition guidelines
-    - Optimization targets
-
-    3. Output Standards
-    - Deliverable specifications
-    - Quality criteria
-    - Validation requirements
-
-    ## Collaboration Protocols
-    1. Dependencies
-    - Required agent interactions
-    - Input dependencies
-    - Resource requirements
-
-    2. Communication Patterns
-    - Notification protocols
-    - State sharing rules
-    - Error broadcasting
-
-    ## Success Metrics
-    1. Performance Indicators
-    - Quantitative metrics
-    - Quality measurements
-    - Efficiency targets
-
-    2. Validation Framework
-    - Success criteria
-    - Quality gates
-    - Required validations
-
-    ## Error Management
-    1. Error Categories
-    - Expected failure modes
-    - Recovery protocols
-    - Escalation paths
-
-    2. Recovery Procedures
-    - Self-healing steps
-    - Fallback options
-    - Resource cleanup
-
-    CRITICAL REQUIREMENTS:
-    1. Focus strictly on {agent_name} specialized functions
-    2. Ensure all validation rules are explicit
-    3. Define clear error states and handling
-    4. Specify measurable success criteria
-    5. Detail resource management protocols
-
-    OUTPUT RULES:
-    - Use clear, actionable language
-    - Provide specific, measurable criteria
-    - Include explicit validation rules
-    - Define concrete error handling steps
-
-    This agent configuration will be used by Aider to execute mission-specific tasks, so ensure all guidelines are clear and actionable.
-    """
+This agent configuration will be used by Aider to execute mission-specific tasks, so ensure all guidelines are clear and actionable.
+"""
 
     def _call_gpt(self, prompt):
         """
