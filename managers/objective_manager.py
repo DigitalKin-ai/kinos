@@ -224,11 +224,24 @@ Your planning:
     def _generate_summary(self, objective, agent_name):
         """Generate a one-line summary of the objective."""
         try:
+            # Read last 50 lines from suivi.md if it exists
+            suivi_content = ""
+            if os.path.exists('suivi.md'):
+                try:
+                    with open('suivi.md', 'r', encoding='utf-8') as f:
+                        # Read all lines and get last 50
+                        lines = f.readlines()
+                        last_50_lines = lines[-50:] if len(lines) > 50 else lines
+                        suivi_content = ''.join(last_50_lines)
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not read suivi.md: {str(e)}")
+                    # Continue without suivi content
+
             client = openai.OpenAI()
             prompt = f"""
-# Logs de suivi précédents
+# Logs de suivi précédents (50 dernières lignes)
 ````
-{suivi # TODO}
+{suivi_content}
 ````
 
 Résume en une seule phrase ce que l'agent fait en ce moment dans le cadre de la mission, en suivant strictement ce format :
