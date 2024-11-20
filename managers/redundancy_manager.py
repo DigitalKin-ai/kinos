@@ -2,6 +2,7 @@ import os
 import chromadb
 import time
 import fnmatch
+import subprocess
 from utils.logger import Logger
 
 class RedundancyManager:
@@ -19,6 +20,7 @@ class RedundancyManager:
         self.chroma_client = None
         self.collection = None
         self.collection_name = "kinos_paragraphs"
+        self.SECTION_THRESHOLD = 5  # Split files with more than 5 sections
 
     def _initialize_chroma(self):
         """
@@ -555,12 +557,88 @@ class RedundancyManager:
                 
         return patterns
 
-    def _should_ignore(self, file_path, ignore_patterns):
+    def _should_ignore(self, file_path, ignore_patterns=None):
         """Check if file should be ignored based on patterns."""
+        if ignore_patterns is None:
+            ignore_patterns = self._get_ignore_patterns()
         for pattern in ignore_patterns:
             if fnmatch.fnmatch(file_path, pattern):
                 return True
         return False
+
+    def split_file(self, file_path):
+        """Split a file into sections/paragraphs if thresholds exceeded"""
+        
+        # Early exit if file should be ignored
+        if self._should_ignore(file_path):
+            return False
+            
+        try:
+            # Read file content
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            # Count sections (# headers)
+            sections = [s for s in content.split('\n') if s.startswith('#')]
+            if len(sections) <= self.SECTION_THRESHOLD:
+                return False
+                
+            # Create directory with same name as file
+            dir_name = os.path.splitext(file_path)[0]
+            os.makedirs(dir_name, exist_ok=True)
+            
+            # Split content into files
+            current_section = []
+            current_title = ""
+            
+            for line in content.split('\n'):
+                if line.startswith('#'):
+                    # Save previous section if exists
+                    if current_section:
+                        self._save_section(dir_name, current_title, current_section)
+                    # Start new section
+                    current_title = line.lstrip('#').strip()
+                    current_section = [line]
+                else:
+                    current_section.append(line)
+                    
+            # Save last section
+            if current_section:
+                self._save_section(dir_name, current_title, current_section)
+                
+            # Remove original file
+            os.remove(file_path)
+            
+            # Update map and git for each new file
+            for new_file in os.listdir(dir_name):
+                new_path = os.path.join(dir_name, new_file)
+                # Update global map
+                from managers.map_manager import MapManager
+                map_manager = MapManager()
+                map_manager.update_global_map(new_path)
+                # Add to git
+                subprocess.run(['git', 'add', new_path], check=True)
+                
+            self.logger.success(f"Split {file_path} into sections in {dir_name}/")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Failed to split {file_path}: {str(e)}")
+            raise
+
+    def _save_section(self, dir_name, title, content):
+        """Save a section to its own file"""
+        # Create safe filename from title
+        safe_title = "".join(c for c in title if c.isalnum() or c in (' -_')).strip()
+        safe_title = safe_title.replace(' ', '_').lower()
+        if not safe_title:
+            safe_title = 'section'
+            
+        file_path = os.path.join(dir_name, f"{safe_title}.md")
+        
+        # Write content
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(content))
 
     def add_all_files(self):
         """
