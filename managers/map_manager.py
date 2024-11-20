@@ -387,6 +387,12 @@ Format as a simple markdown list under a "# Context Map" heading.
                     # If decoding fails, use the path as-is
                     pass
 
+            # First check if file exists - if not, just remove from map and return
+            if not os.path.exists(modified_file_path):
+                self._remove_file_from_map(modified_file_path)
+                self.logger.info(f"🗑️ Removed non-existent file from map: {modified_file_path}")
+                return
+
             # First check if file needs splitting
             from managers.redundancy_manager import RedundancyManager
             redundancy_mgr = RedundancyManager()
