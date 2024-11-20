@@ -168,9 +168,20 @@ class Logger:
             if not os.path.exists(self.suivi_file):
                 return
                 
-            # Use utf-8 for reading suivi.md
-            with open(self.suivi_file, 'r', encoding='utf-8') as f:
+            # First try to detect encoding
+            import chardet
+            with open(self.suivi_file, 'rb') as f:
+                raw = f.read()
+            detected = chardet.detect(raw)
+            encoding = detected['encoding']
+            
+            # Read content with detected encoding
+            with open(self.suivi_file, 'r', encoding=encoding) as f:
                 content = f.read()
+                
+            # Convert content to UTF-8 if needed
+            if encoding and encoding != 'utf-8':
+                content = content.encode(encoding).decode('utf-8')
                 
             if len(content) > 25000:
                 # Format multi-line commit messages with proper indentation
