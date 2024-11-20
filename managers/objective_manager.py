@@ -27,11 +27,23 @@ class ObjectiveManager:
             IOError: If there are file operation issues
         """
         try:
+            if not agent_filepath:
+                raise ValueError("agent_filepath parameter is required")
+                
             self.logger.info(f"🎯 Generating objective for agent: {agent_filepath}")
             
-            # Validate input files
-            if not all(self._validate_file(f) for f in [mission_filepath, agent_filepath]):
-                raise ValueError("Invalid or missing input files")
+            # Validate input files exist and are readable
+            if not os.path.exists(mission_filepath):
+                raise ValueError(f"Mission file not found: {mission_filepath}")
+                
+            if not os.path.exists(agent_filepath):
+                raise ValueError(f"Agent file not found: {agent_filepath}")
+                
+            if not os.access(mission_filepath, os.R_OK):
+                raise ValueError(f"Cannot read mission file: {mission_filepath}")
+                
+            if not os.access(agent_filepath, os.R_OK):
+                raise ValueError(f"Cannot read agent file: {agent_filepath}")
                 
             # Extract agent name from filepath
             agent_name = self._extract_agent_name(agent_filepath)
