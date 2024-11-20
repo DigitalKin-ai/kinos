@@ -300,12 +300,12 @@ class AiderManager:
         # Push changes to GitHub if files were modified
         if modified_files:
             try:
-                self.logger.info(f"🚀 Pushing changes to GitHub...")
+                self.logger.info(f"🔄 Attempting to push changes...")
                 subprocess.run(['git', 'push'], check=True, capture_output=True, text=True)
-                self.logger.info(f"✨ Successfully pushed changes to GitHub")
+                self.logger.info(f"✨ Changes pushed successfully")
             except subprocess.CalledProcessError as e:
-                self.logger.error(f"❌ Failed to push to GitHub: {e.stderr}")
-                # Continue execution even if push fails
+                # Just log info for push failures since remote might not be configured
+                self.logger.info(f"💡 Git push skipped: {e.stderr.strip()}")
     
         phase_end = time.time()
         self.logger.info(f"✨ Agent {agent_name} completed {phase_name} phase in {phase_end - phase_start:.2f} seconds")
