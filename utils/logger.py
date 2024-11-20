@@ -167,19 +167,23 @@ class Logger:
         try:
             if not os.path.exists(self.suivi_file):
                 return
-                
-            # First try to detect encoding
+
+            # First close the current handler
+            for handler in self.logger.handlers[:]:
+                if isinstance(handler, logging.FileHandler) and handler.baseFilename == os.path.abspath(self.suivi_file):
+                    handler.close()
+                    self.logger.removeHandler(handler)
+            
+            # Now we can safely read and modify the file
             import chardet
             with open(self.suivi_file, 'rb') as f:
                 raw = f.read()
             detected = chardet.detect(raw)
             encoding = detected['encoding']
             
-            # Read content with detected encoding
             with open(self.suivi_file, 'r', encoding=encoding) as f:
                 content = f.read()
                 
-            # Convert content to UTF-8 if needed
             if encoding and encoding != 'utf-8':
                 content = content.encode(encoding).decode('utf-8')
                 
@@ -257,6 +261,21 @@ class Logger:
                     f.write(final_content)
                     
                 self.logger.log(logging.SUCCESS, "✨ Suivi de mission résumé avec succès")
+            
+            # Re-add the file handler
+            file_handler = logging.FileHandler(self.suivi_file, encoding='utf-8', mode='a')
+            file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
+                                             datefmt='%Y-%m-%d %H:%M:%S')
+            file_handler.setFormatter(file_formatter)
+            file_handler.setLevel(logging.SUCCESS)
+            self.logger.addHandler(file_handler)
                 
         except Exception as e:
             self.logger.error(f"⚠️ Erreur lors du résumé des logs: {str(e)}")
+            # Make sure we restore the file handler even if there's an error
+            file_handler = logging.FileHandler(self.suivi_file, encoding='utf-8', mode='a')
+            file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
+                                             datefmt='%Y-%m-%d %H:%M:%S')
+            file_handler.setFormatter(file_formatter)
+            file_handler.setLevel(logging.SUCCESS)
+            self.logger.addHandler(file_handler)
