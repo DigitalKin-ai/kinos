@@ -33,6 +33,15 @@ KinOS v6 represents a fundamental shift towards true AI autonomy, implementing:
 
 ### 2.1 Agent System
 
+#### Parallel Execution Framework
+- Asynchronous agent execution using asyncio
+- Configurable parallel agent count (--count parameter)
+- Controlled agent startup with 10s delay between launches
+- Dynamic task replacement when agents complete
+- Lock-based synchronization for shared resources
+- Comprehensive error handling and task recovery
+- Automatic agent regeneration when missing
+
 #### Base Agent Framework
 - Autonomous file management
 - Directory-based operation
