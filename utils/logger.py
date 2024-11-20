@@ -132,9 +132,39 @@ class Logger:
                 content = f.read()
                 
             if len(content) > 25000:
+                # Format multi-line commit messages with proper indentation
+                formatted_lines = []
+                current_entry = []
+                
+                for line in content.split('\n'):
+                    if line.startswith('20'):  # New timestamp entry
+                        # Print previous entry if exists
+                        if current_entry:
+                            formatted_lines.extend(current_entry)
+                            formatted_lines.append('')  # Add blank line between entries
+                            current_entry = []
+                        current_entry.append(line)
+                    elif line.strip():  # Content line (part of commit message)
+                        # Indent continuation lines
+                        current_entry.append('    ' + line.strip())
+                    else:  # Empty line
+                        if current_entry:
+                            formatted_lines.extend(current_entry)
+                            formatted_lines.append('')  # Add blank line between entries
+                            current_entry = []
+                        formatted_lines.append('')  # Preserve empty lines
+
+                # Add any remaining entry
+                if current_entry:
+                    formatted_lines.extend(current_entry)
+                    formatted_lines.append('')
+
+                # Join all lines with newlines
+                formatted_content = '\n'.join(formatted_lines)
+
+                # Continue with GPT summarization...
                 self.logger.log(logging.SUCCESS, "📝 Génération du suivi de mission...")
                 
-                # Call GPT for summarization
                 client = openai.OpenAI()
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
@@ -157,7 +187,7 @@ class Logger:
                         
                         Logs à résumer :
                         
-                        {content}"""}
+                        {formatted_content}"""}
                     ],
                     temperature=0.3,
                     max_tokens=4000
@@ -165,46 +195,12 @@ class Logger:
                 
                 summary = response.choices[0].message.content
                 
-                # Log initial message with timestamp
-                self.logger.log(logging.SUCCESS, "📝 Génération du suivi de mission...")
-
-                # Log summary header with timestamp
-                self.logger.log(logging.SUCCESS, "\n🔍 Suivi de mission :\n")
-
-                # Format multi-line content with proper indentation
-                summary_lines = summary.split('\n')
-                formatted_content = ""
-                current_entry = []
-                
-                for line in summary_lines:
-                    if line.startswith('20'):  # New timestamp entry
-                        # Print previous entry if exists
-                        if current_entry:
-                            formatted_content += '\n'.join(current_entry) + '\n\n'
-                            current_entry = []
-                        current_entry.append(line)
-                    elif line.strip():  # Content line
-                        # Indent continuation lines
-                        current_entry.append('    ' + line)
-                    else:  # Empty line
-                        if current_entry:
-                            formatted_content += '\n'.join(current_entry) + '\n\n'
-                            current_entry = []
-                        formatted_content += '\n'
-
-                # Add any remaining entry
-                if current_entry:
-                    formatted_content += '\n'.join(current_entry) + '\n\n'
-
-                # Log entire formatted content
-                self.logger.log(logging.SUCCESS, formatted_content)
-                
                 # Add header to summary
                 final_content = "# Résumé des logs précédents\n\n"
                 final_content += summary
                 final_content += "\n\n# Nouveaux logs\n\n"
                 
-                # Write new summary
+                # Write new summary with proper formatting
                 with open(self.suivi_file, 'w', encoding='utf-8') as f:
                     f.write(final_content)
                     
