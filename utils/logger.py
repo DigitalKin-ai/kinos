@@ -165,6 +165,11 @@ class Logger:
                 
                 summary = response.choices[0].message.content
                 
+                # Log le résumé en SUCCESS
+                self.logger.log(logging.SUCCESS, "\n🔍 Résumé généré :\n")
+                for line in summary.split('\n'):
+                    self.logger.log(logging.SUCCESS, f"   {line}")
+                
                 # Add header to summary
                 final_content = "# Résumé des logs précédents\n\n"
                 final_content += summary
