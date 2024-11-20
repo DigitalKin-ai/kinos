@@ -723,19 +723,42 @@ class RedundancyManager:
     def _update_git(self, original_file, new_files):
         """Handle git operations for split files"""
         try:
-            # Remove original from git
-            subprocess.run(['git', 'rm', original_file], check=True)
+            # First check if file is tracked by git
+            status = subprocess.run(
+                ['git', 'ls-files', '--error-unmatch', original_file],
+                capture_output=True,
+                text=True
+            )
             
-            # Add new directory and files
-            for new_file in new_files:
-                subprocess.run(['git', 'add', new_file], check=True)
+            if status.returncode == 0:  # File is tracked
+                # Remove original from git
+                subprocess.run(['git', 'rm', '-f', original_file], check=True)
                 
-            # Create commit
-            msg = f"♻️ Split {original_file} into sections for better management"
-            subprocess.run(['git', 'commit', '-m', msg], check=True)
-            
+                # Add new directory and files
+                for new_file in new_files:
+                    subprocess.run(['git', 'add', new_file], check=True)
+                    
+                # Create commit
+                msg = f"♻️ Split {original_file} into sections for better management"
+                subprocess.run(['git', 'commit', '-m', msg], check=True)
+            else:
+                # File isn't tracked, just remove it
+                if os.path.exists(original_file):
+                    os.remove(original_file)
+                
+                # Add new files to git
+                for new_file in new_files:
+                    subprocess.run(['git', 'add', new_file], check=True)
+                
+                # Create commit
+                msg = f"♻️ Split {original_file} into sections for better management"
+                subprocess.run(['git', 'commit', '-m', msg], check=True)
+                
         except subprocess.CalledProcessError as e:
             self.logger.error(f"Git operation failed: {str(e)}")
+            # Even if git fails, ensure original file is removed
+            if os.path.exists(original_file):
+                os.remove(original_file)
             raise
 
     def _update_references(self, original_file, new_files):
