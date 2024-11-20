@@ -160,8 +160,14 @@ class AgentRunner:
                 
             self.logger.info(f"🤖 Agent {agent_name} starting cycle")
             
-            # Execute agent cycle
-            await self._execute_agent_cycle(agent_name, mission_filepath)
+            # Execute agent cycle in thread pool to prevent blocking
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(
+                None,  # Uses default executor
+                self._execute_agent_cycle,
+                agent_name, 
+                mission_filepath
+            )
                 
         except Exception as e:
             self.logger.error(f"Error in agent cycle: {str(e)}")
@@ -205,7 +211,7 @@ class AgentRunner:
         return [agent_type for agent_type in agent_types 
                 if os.path.exists(f".aider.agent.{agent_type}.md")]
         
-    async def _execute_agent_cycle(self, agent_name, mission_filepath):
+    def _execute_agent_cycle(self, agent_name, mission_filepath):
         """Execute a single agent cycle asynchronously."""
         agent_filepath = f".aider.agent.{agent_name}.md"
         objective_filepath = f".aider.objective.{agent_name}.md"
