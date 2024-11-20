@@ -19,14 +19,57 @@ class RedundancyManager:
 
     def _initialize_chroma(self):
         """
-        Initialize connection to Chroma database.
+        Initialize connection to Chroma database with OpenAI embeddings.
         
-        Creates persistent client with default settings.
+        Creates in-memory client and configures OpenAI embedding function.
+        Sets up collection with proper schema for text-embedding-3-large (3072 dimensions).
         
         Raises:
             ChromaDBConnectionError: If connection fails
+            ValueError: If OpenAI API key is not configured
         """
-        pass
+        try:
+            # Initialize OpenAI embedding function
+            import openai
+            from dotenv import load_dotenv
+            import os
+
+            # Load API key
+            load_dotenv()
+            openai.api_key = os.getenv('OPENAI_API_KEY')
+            if not openai.api_key:
+                raise ValueError("OpenAI API key not found in environment variables")
+
+            # Create embedding function using text-embedding-3-large
+            def openai_embedding_function(texts):
+                client = openai.OpenAI()
+                # Batch texts in groups of 100 to stay within API limits
+                embeddings = []
+                for i in range(0, len(texts), 100):
+                    batch = texts[i:i + 100]
+                    response = client.embeddings.create(
+                        model="text-embedding-3-large",
+                        input=batch,
+                        encoding_format="float"
+                    )
+                    embeddings.extend([e.embedding for e in response.data])
+                return embeddings
+
+            # Create in-memory client for better performance
+            self.chroma_client = chromadb.Client()
+
+            # Create or get collection with OpenAI embedding function
+            self.collection = self.chroma_client.get_or_create_collection(
+                name=self.collection_name,
+                embedding_function=openai_embedding_function,
+                metadata={"hnsw:space": "cosine"}  # Use cosine similarity
+            )
+
+            self.logger.info("✨ Initialized ChromaDB with OpenAI text-embedding-3-large")
+
+        except Exception as e:
+            self.logger.error(f"❌ Failed to initialize ChromaDB: {str(e)}")
+            raise
 
     def _ensure_collection(self):
         """
