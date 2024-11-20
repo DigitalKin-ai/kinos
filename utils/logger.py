@@ -28,7 +28,6 @@ class Logger:
         file_handler = logging.FileHandler(self.suivi_file, encoding='utf-8', mode='a')
         file_handler.setFormatter(file_formatter)
         file_handler.setLevel(logging.SUCCESS)  # Only log SUCCESS and above
-        file_handler.setLevel(logging.SUCCESS)  # Only log SUCCESS and above
         
         # Custom formatter with colors
         class ColorFormatter(logging.Formatter):
