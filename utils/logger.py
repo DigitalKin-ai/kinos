@@ -131,8 +131,8 @@ class Logger:
             with open(self.suivi_file, 'r', encoding='utf-8') as f:
                 content = f.read()
                 
-            if len(content) > 50000:
-                self.logger.log(logging.SUCCESS, "📝 Résumé automatique du suivi de mission...")
+            if len(content) > 25000:
+                self.logger.log(logging.SUCCESS, "📝 Génération du suivi de mission...")
                 
                 # Call GPT for summarization
                 client = openai.OpenAI()
@@ -166,7 +166,7 @@ class Logger:
                 summary = response.choices[0].message.content
                 
                 # Log le résumé en SUCCESS
-                self.logger.log(logging.SUCCESS, "\n🔍 Résumé généré :\n")
+                self.logger.log(logging.SUCCESS, "\n🔍 Suivi de mission :\n")
                 for line in summary.split('\n'):
                     self.logger.log(logging.SUCCESS, f"   {line}")
                 
