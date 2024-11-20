@@ -559,6 +559,10 @@ class RedundancyManager:
 
     def _should_ignore(self, file_path, ignore_patterns=None):
         """Check if file should be ignored based on patterns."""
+        # Always protect suivi.md
+        if file_path == 'suivi.md' or file_path.endswith('/suivi.md'):
+            return True
+            
         if ignore_patterns is None:
             ignore_patterns = self._get_ignore_patterns()
         for pattern in ignore_patterns:
