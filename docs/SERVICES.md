@@ -10,11 +10,15 @@ KinOS manages state through standardized files in the mission directory:
 ## 2. Core Services
 
 ### 2.1 agents_runner Service
-- Parallel agent execution
-- Dynamic agent count management
-- Automatic agent generation
+- Parallel agent execution using asyncio
+- Dynamic agent count management via --count parameter
+- Automatic agent generation when missing
 - Mission-based operation
-- Synchronized resource access
+- Synchronized resource access using locks
+- Controlled agent startup (10s delay between launches)
+- Dynamic task replacement for completed agents
+- Comprehensive error handling and recovery
+- Thread-safe agent selection and management
 
 ### 2.2 agents_manager Service
 - Mission-driven agent generation
