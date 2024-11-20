@@ -604,58 +604,161 @@ class RedundancyManager:
             if len(sections) <= self.SECTION_THRESHOLD:
                 return False
                 
-            # Create directory with same name as file
-            dir_name = os.path.splitext(file_path)[0]
-            os.makedirs(dir_name, exist_ok=True)
+            # Prepare directory and create README
+            dir_name = self._prepare_split_directory(file_path)
+            new_files = []
             
             # Save each section
-            for level, section_content in sections:
+            for index, (level, section_content) in enumerate(sections, 1):
                 # Get section title from first line
                 title = section_content[0].lstrip('#').strip()
-                # Prefix with level indicator for proper sorting
-                prefix = "1" if level == 1 else "2"
-                if not self._save_section(dir_name, f"{prefix}_{title}", section_content):
-                    self.logger.debug(f"Skipped duplicate section: {title}")
                 
-            # Remove original file
-            os.remove(file_path)
+                # Save section and track new file
+                new_file = self._save_section(dir_name, level, title, section_content, index)
+                if new_file:
+                    new_files.append(new_file)
+                    
+            if not new_files:
+                self.logger.warning(f"No valid sections found in {file_path}")
+                return False
+                
+            # Update references in other files
+            self._update_references(file_path, new_files)
             
-            # Update map and git for each new file
-            for new_file in os.listdir(dir_name):
-                new_path = os.path.join(dir_name, new_file)
-                # Update global map
-                from managers.map_manager import MapManager
-                map_manager = MapManager()
-                map_manager.update_global_map(new_path)
-                # Add to git
-                subprocess.run(['git', 'add', new_path], check=True)
+            # Handle git operations
+            self._update_git(file_path, new_files)
+            
+            # Update global map for each new file
+            from managers.map_manager import MapManager
+            map_manager = MapManager()
+            for new_file in new_files:
+                map_manager.update_global_map(new_file)
                 
-            self.logger.success(f"Split {file_path} into sections in {dir_name}/")
+            self.logger.success(f"Split {file_path} into {len(new_files)} sections in {dir_name}/")
             return True
             
         except Exception as e:
             self.logger.error(f"Failed to split {file_path}: {str(e)}")
             raise
 
-    def _save_section(self, dir_name, title, content):
+    def _generate_section_filename(self, level, title, index):
+        """Generate unique, well-ordered filenames for sections"""
+        # Clean title
+        safe_title = "".join(c for c in title if c.isalnum() or c in (' -_')).strip()
+        safe_title = safe_title.replace(' ', '_').lower()
+        if not safe_title:
+            safe_title = 'section'
+        
+        # Add padding for proper sorting
+        level_prefix = f"{level:02d}"
+        index_prefix = f"{index:03d}"
+        
+        return f"{level_prefix}_{index_prefix}_{safe_title}.md"
+
+    def _validate_section_content(self, content):
+        """Validate section content before saving"""
+        if not content:
+            return False
+            
+        # Check minimum content length
+        min_length = 50  # characters
+        content_text = '\n'.join(content).strip()
+        if len(content_text) < min_length:
+            return False
+            
+        # Check for required elements (e.g., must have header)
+        if not any(line.startswith('#') for line in content):
+            return False
+            
+        return True
+
+    def _prepare_split_directory(self, original_file):
+        """Create and prepare directory for split files"""
+        dir_name = os.path.splitext(original_file)[0]
+        
+        # Create README explaining split
+        readme_content = f"""# Split Content Directory
+Original file: {original_file}
+Split date: {time.strftime('%Y-%m-%d %H:%M:%S')}
+This directory contains content split from the original file due to size/complexity.
+"""
+        
+        os.makedirs(dir_name, exist_ok=True)
+        with open(os.path.join(dir_name, 'README.md'), 'w') as f:
+            f.write(readme_content)
+            
+        return dir_name
+
+    def _update_git(self, original_file, new_files):
+        """Handle git operations for split files"""
+        try:
+            # Remove original from git
+            subprocess.run(['git', 'rm', original_file], check=True)
+            
+            # Add new directory and files
+            for new_file in new_files:
+                subprocess.run(['git', 'add', new_file], check=True)
+                
+            # Create commit
+            msg = f"♻️ Split {original_file} into sections for better management"
+            subprocess.run(['git', 'commit', '-m', msg], check=True)
+            
+        except subprocess.CalledProcessError as e:
+            self.logger.error(f"Git operation failed: {str(e)}")
+            raise
+
+    def _update_references(self, original_file, new_files):
+        """Update references in other files after splitting"""
+        try:
+            # Find all markdown files
+            for root, _, files in os.walk('.'):
+                for file in files:
+                    if file.endswith('.md'):
+                        file_path = os.path.join(root, file)
+                        
+                        # Skip the split files themselves
+                        if file_path in new_files:
+                            continue
+                            
+                        # Update references
+                        with open(file_path, 'r') as f:
+                            content = f.read()
+                            
+                        # Replace references to original file with new structure
+                        if original_file in content:
+                            new_content = content.replace(
+                                original_file, 
+                                f"{os.path.splitext(original_file)[0]}/README.md"
+                            )
+                            with open(file_path, 'w') as f:
+                                f.write(new_content)
+                                
+        except Exception as e:
+            self.logger.error(f"Failed to update references: {str(e)}")
+            raise
+
+    def _save_section(self, dir_name, level, title, content, index):
         """
         Save a section to its own file, handling duplicates.
         
         Args:
             dir_name (str): Directory to save section in
+            level (int): Section level (1 for #, 2 for ##, etc)
             title (str): Section title
             content (list): Section content lines
+            index (int): Section index for ordering
             
         Returns:
-            bool: True if saved, False if duplicate detected and removed
+            str: Path to saved file, or None if validation failed
         """
-        # Create safe filename from title
-        safe_title = "".join(c for c in title if c.isalnum() or c in (' -_')).strip()
-        safe_title = safe_title.replace(' ', '_').lower()
-        if not safe_title:
-            safe_title = 'section'
+        # Validate content
+        if not self._validate_section_content(content):
+            self.logger.debug(f"⏩ Skipping invalid section: {title}")
+            return None
             
-        file_path = os.path.join(dir_name, f"{safe_title}.md")
+        # Generate filename
+        filename = self._generate_section_filename(level, title, index)
+        file_path = os.path.join(dir_name, filename)
         
         # Check for existing file
         if os.path.exists(file_path):
