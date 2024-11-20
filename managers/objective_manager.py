@@ -124,6 +124,19 @@ class ObjectiveManager:
                     self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
                     # Continue without global map content
 
+             # Read last 50 lines from suivi.md if it exists
+            suivi_content = ""
+            if os.path.exists('suivi.md'):
+                try:
+                    with open('suivi.md', 'r', encoding='utf-8') as f:
+                        # Read all lines and get last 50
+                        lines = f.readlines()
+                        last_50_lines = lines[-50:] if len(lines) > 50 else lines
+                        suivi_content = ''.join(last_50_lines)
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not read suivi.md: {str(e)}")
+                    # Continue without suivi content
+
             prompt = f"""
 Based on the following contexts, generate a clear specific next step for the {agent_name} agent.
 
@@ -139,7 +152,12 @@ Reference Materials
 {global_map_content}
 ````
 
-# Recent Chat History
+# Logs de suivi (travail de tous les agents - 50 dernières lignes)
+````
+{suivi_content}
+````
+
+# Recent Chat History (agent {agent_name} & aider)
 ````
 {chat_history}
 ````
@@ -147,6 +165,7 @@ Reference Materials
 # Breadth-First Pattern
 - Follow the directives in the Mission if present
 - Review previous steps from chat history
+- Review the work being done by other agents
 - Generate a step that explores a NEW aspect of the mission
 - Avoid repeating or deepening previous work
 - Focus on unexplored areas of responsibility
@@ -205,9 +224,8 @@ Ask Aider to make the edits now, without asking for clarification, and using the
 # Planning
 Your planning:
 1. Prioritizes explicit mission instructions
-2. Never repeats previous actions
+2. Does not repeats previous actions, or work done by the other agents
 3. Maintains clear progression
-4. Validates against history
 """},
                     {"role": "user", "content": prompt}
                 ],
@@ -244,19 +262,18 @@ Your planning:
 {suivi_content}
 ````
 
-Résume en une seule phrase ce que l'agent fait en ce moment dans le cadre de la mission, en suivant strictement ce format :
-"L'agent {agent_name} [action] [cible] [détail optionnel]"
-
-Consignes :
-- Ne répète pas la mission (qui est connue de l'utilisateur), mais seulement ce que l'agent fait précisément en ce moment dans le cadre de cette mission
-- Ne répète pas les informations déjà présentes dans le suivi
-- Utilise des emojis appropriés en fonction du type d'action
-
 # Objectif
-Voici l'objectif complet à résumer :
 ````
 {objective}
 ````
+
+A partir de l'Objectif, résume en une seule phrase ce que l'agent fait maintenant dans le cadre de la mission, en suivant strictement ce format :
+"L'agent {agent_name} [action] [objectif] [détail optionnel] [fichiers modifiés]"
+
+Consignes :
+- Ne répète pas la mission (qui est connue de l'utilisateur), mais seulement ce que l'agent fait précisément dans le cadre de celle-ci
+- Ne répète pas les informations déjà présentes dans les logs de suivi
+- Utilise des emojis appropriés en fonction du type d'action
 
 Réponds uniquement avec la phrase formatée, rien d'autre.
 """

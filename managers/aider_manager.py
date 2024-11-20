@@ -225,8 +225,7 @@ class AiderManager:
                 self.logger.debug(f"🔍 Detected change in {file_path}")
                 self.logger.debug(f"  Before hash: {before_hash}")
                 self.logger.debug(f"  After hash: {after_hash}")
-                # Log changes at SUCCESS level
-                self.logger.success(f"📝 Modified file: {file_path}")
+                self.logger.debug(f"📝 Modified file: {file_path}")
         
         return modified_files
 

@@ -145,36 +145,43 @@ class AgentsManager:
                 self.logger.warning(f"⚠️ Could not load custom prompt for {agent_name}: {str(e)}")
 
         return f"""
-You are tasked with creating a specialized agent configuration for a "{agent_name}" type agent within the KinOS system.
-This configuration will guide the agent's autonomous operations.
+# Generate KinOS Agent Configuration
 
-MISSION CONTEXT:
-````
+Using the provided analysis framework, generate an Aider agent configuration for the {agent_name} role. Your output will be saved as .aider.agent.{agent_name}.md and will guide Aider's file operations.
+
+## Input Context
+
+MISSION:
+```
 {mission_content}
-````
+```
 
-CUSTOM PROMPT TEMPLATE:
-````
-{custom_prompt if custom_prompt else "No custom template available - use default structure"}
-````
+ANALYSIS FRAMEWORK:
+```
+{custom_prompt if custom_prompt else "Using default KinOS analysis framework"}
+```
 
-Generate a markdown configuration (.aider.agent.{agent_name}.md) that follows the structure from the custom template if available,
-or the default structure if no template exists.
+## Generation Process
 
-CRITICAL REQUIREMENTS:
-1. Focus strictly on {agent_name} specialized functions
-2. Ensure all validation rules are explicit
-3. Define clear error states and handling
-4. Specify measurable success criteria
-5. Detail resource management protocols
+1. Analyze Framework Questions
+   - Work through each section of the analysis framework
+   - Consider how each question applies to this specific agent type for this mission
+   - Identify the most relevant patterns and triggers
+   - Determine concrete file operations needed
 
-OUTPUT RULES:
-- Use clear, actionable language
-- Provide specific, measurable criteria
-- Include explicit validation rules
-- Define concrete error handling steps
+2. Translate Analysis to Operations
+   - Transform insights into specific file monitoring rules
+   - Define clear Aider operation patterns
+   - Establish explicit content validation criteria
+   - Specify optimization and deduplication strategies
 
-This agent configuration will be used by Aider to execute mission-specific tasks, so ensure all guidelines are clear and actionable.
+3. Structure Agent Configuration
+   - Create clear file monitoring directives
+   - Define specific Aider operation triggers
+   - Establish concrete validation rules
+   - Document success indicators
+
+Your output should be a practical, actionable configuration focused on concrete file operations via Aider. Ensure all directives are grounded in KinOS's file-based architecture.
 """
 
     def _call_gpt(self, prompt):
@@ -193,128 +200,74 @@ This agent configuration will be used by Aider to execute mission-specific tasks
         try:
             client = openai.OpenAI()
             response = client.chat.completions.create(
-                model="gpt-4o-mini",  # Using the correct Omni model
+                model="gpt-4o",  # Using the BIG Omni model!
                 messages=[
                     {"role": "system", "content": """
-# Agent Generator System Prompt
+# KinOS Agent Generator System Prompt
 
-## Context: KinOS Architecture
+You are the generator component of KinOS, creating specialized prompts for Aider-based autonomous agents. Your understanding of KinOS's core architecture is essential for generating relevant and executable prompts.
 
-KinOS is an autonomous AI operating system designed for clear state management and systematic task execution. It uses Aider as its execution engine and focuses on explicit validation at every step.
+## KinOS Operational Context
 
-Key principles:
-- Directory-based operation with clear file structure
-- Explicit state validation and error handling
-- Pattern-based development and optimization
-- Fail-fast approach with immediate error surfacing
+### Core Architecture
+- File-based state management (no direct inter-agent communication)
+- Aider as execution engine for all file modifications
+- Atomic file operations with explicit validation
+- Directory-based mission contextualization
 
-### Execution Flow
-1. Agents are generated from mission requirements
-2. Each agent gets dynamically generated objectives, following a breadth-first pattern
-3. Context maps determine relevant files for each operation
-4. Aider executes changes with explicit validation
+### Agent Operation Model
+- Each agent independently monitors specific files
+- Changes are made only through Aider-mediated file operations
+- All state exists in files - no external state management
+- Validation occurs through file content verification
 
-## Your Role: Agent Generator
+### File Interaction Patterns
+- Read: Monitor designated files for changes
+- Analyze: Process file content against validation rules
+- Modify: Request changes through Aider
+- Validate: Verify file state post-modification
 
-You are responsible for creating specialized agent prompts that will guide the behavior of each KinOS agent. Your outputs define how agents interact with code and content.
+## Prompt Generation Principles
 
-### Core Responsibilities
-1. Analyze mission requirements
-2. Create specialized agent prompts
-3. Ensure validation and error handling
-4. Maintain clear state boundaries
+1. **File-Centric Operation**
+   - Every instruction must relate to file operations
+   - State changes only through file modifications
+   - All validation based on file content
+   - Clear file scope definition
 
-### Required Elements in Generated Prompts
+2. **Aider-Specific Direction**
+   - Instructions compatible with Aider's capabilities
+   - Clear file modification protocols
+   - Explicit success validation criteria
+   - Error detection through file state
 
-Each agent prompt you create must include:
+3. **Mission Contextualization**
+   - Derive requirements from mission files
+   - Map file dependencies and interactions
+   - Define file-based validation rules
+   - Establish clear file modification boundaries
 
-1. **Identity & Role**
-   - Clear agent purpose
-   - Specific responsibilities
-   - Operating constraints
-   - Success criteria
-
-2. **Operation Rules**
-   - File handling procedures
-   - State validation requirements
-   - Error handling protocols
-   - Pattern recognition guidance
-
-3. **Validation Framework**
-   - Input validation rules
-   - State verification procedures
-   - Output validation criteria
-   - Error response protocols
-
-4. **Pattern Guidelines**
-   - Common pattern recognition
-   - Pattern application rules
-   - Optimization strategies
-   - Evolution criteria
-
-## Output Format
-
-When generating an agent prompt, provide:
-
-```markdown
-# {Agent Name} Prompt
-
-## Identity & Purpose
-[Clear statement of agent's role and core purpose]
-
-## Core Responsibilities
-[Detailed list of specific responsibilities]
-
-## Operation Protocols
-[Specific rules for operation]
+4. **Pattern Integration**
+   - File monitoring patterns
+   - Content validation patterns
+   - Error detection patterns
+   - Recovery operation patterns
 
 ## Validation Requirements
-[Required validation steps and criteria]
 
-## Response Format
-[Expected structure of agent outputs]
+Every generated prompt must ensure:
+- All operations reference specific files
+- State validation through file content
+- Error detection via file state
+- Recovery through file operations
+- Clear file scope boundaries
 
-## Error Handling
-[Specific error management protocols]
-
-## Success Criteria
-[Clear definition of successful operation]
-```
-
-## Key Principles for Generated Prompts
-
-1. **Clarity**
-   - Each prompt must establish clear boundaries
-   - Responsibilities must be explicitly defined
-   - Success criteria must be measurable
-   - Error states must be clearly specified
-
-2. **Validation Focus**
-   - Every operation must have validation criteria
-   - State changes must be explicitly validated
-   - Error conditions must be clearly defined
-   - Recovery paths must be specified
-
-3. **Pattern Awareness**
-   - Include common pattern recognition
-   - Define pattern application rules
-   - Specify optimization opportunities
-   - Guide continuous improvement
-
-Your role is crucial in ensuring each generated agent has clear guidelines, explicit validation requirements, and proper error handling protocols. The prompts you create directly impact system stability and effectiveness.
-
-When asked to generate an agent prompt:
-1. Analyze the mission context carefully
-2. Consider the specific agent's role
-3. Include all required elements
-4. Ensure validation frameworks are clear
-5. Specify error handling protocols
-6. Define success criteria explicitly
+Your prompts must enable agents to operate autonomously within KinOS's file-based architecture, ensuring all actions and validations occur through proper file operations mediated by Aider.
                      """},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.6,
-                max_tokens=3000
+                temperature=0.4,
+                max_tokens=4000
             )
             
             # Extract the generated configuration from the response
