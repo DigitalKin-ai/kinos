@@ -244,6 +244,8 @@ class AiderManager:
 
     def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
+        processes = []  # Track processes for cleanup
+        map_manager = None
         try:
             # Extract agent name from cmd arguments
             agent_filepath = None
@@ -274,6 +276,7 @@ class AiderManager:
                     env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
                     timeout=300
                 )
+                processes.append(process)
                 if process.returncode != 0:
                     self.logger.error(f"Production aider process failed with return code {process.returncode}")
                     raise subprocess.CalledProcessError(process.returncode, production_cmd, process.stdout, process.stderr)
@@ -299,6 +302,7 @@ class AiderManager:
                     env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
                     timeout=300
                 )
+                processes.append(process)
                 if process.returncode != 0:
                     self.logger.error(f"Role-specific aider process failed with return code {process.returncode}")
                     raise subprocess.CalledProcessError(process.returncode, role_cmd, process.stdout, process.stderr)
@@ -324,6 +328,7 @@ class AiderManager:
                     env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
                     timeout=300
                 )
+                processes.append(process)
                 if process.returncode != 0:
                     self.logger.error(f"Final check aider process failed with return code {process.returncode}")
                     raise subprocess.CalledProcessError(process.returncode, final_cmd, process.stdout, process.stderr)
@@ -374,3 +379,18 @@ class AiderManager:
             if hasattr(e, 'output'):
                 self.logger.error(f"Error output:\n{e.output}")
             raise
+        finally:
+            # Clean up processes
+            for process in processes:
+                try:
+                    if hasattr(process, 'kill'):
+                        process.kill()
+                except Exception as e:
+                    self.logger.debug(f"Process cleanup error: {str(e)}")
+                    
+            # Clean up map manager
+            if map_manager:
+                try:
+                    del map_manager
+                except Exception as e:
+                    self.logger.debug(f"Map manager cleanup error: {str(e)}")
