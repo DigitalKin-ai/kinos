@@ -142,18 +142,9 @@ class Logger:
             if not os.path.exists(self.suivi_file):
                 return
                 
-            # Try reading with different encodings
-            content = None
-            for encoding in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
-                try:
-                    with open(self.suivi_file, 'r', encoding=encoding) as f:
-                        content = f.read()
-                    break
-                except UnicodeDecodeError:
-                    continue
-                    
-            if content is None:
-                raise ValueError(f"Could not read {self.suivi_file} with any supported encoding")
+            # Always use latin-1 for suivi.md
+            with open(self.suivi_file, 'r', encoding='latin-1') as f:
+                content = f.read()
                 
             if len(content) > 25000:
                 # Format multi-line commit messages with proper indentation
