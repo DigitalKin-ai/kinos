@@ -37,21 +37,9 @@ class Logger:
         self.suivi_file = 'suivi.md'
         file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
                                          datefmt='%Y-%m-%d %H:%M:%S')
-                                         
-        # Create file handler with utf-8 encoding but handle special characters
-        class EmojiStrippingFileHandler(logging.FileHandler):
-            def emit(self, record):
-                try:
-                    # Save original message
-                    original_msg = record.msg
-                    # Force UTF-8 encoding
-                    record.msg = original_msg.encode('utf-8', errors='replace').decode('utf-8')
-                    super().emit(record)
-                finally:
-                    # Restore original message for other handlers
-                    record.msg = original_msg
 
-        file_handler = EmojiStrippingFileHandler(self.suivi_file, encoding='utf-8', mode='a')
+        # Initialize file handler with UTF-8 encoding
+        file_handler = logging.FileHandler(self.suivi_file, encoding='utf-8', mode='a')
         file_handler.setFormatter(file_formatter)
         file_handler.setLevel(logging.SUCCESS)  # Only log SUCCESS and above
 
@@ -148,34 +136,31 @@ class Logger:
         self.logger.warning(formatted_msg)
         
     def fix_file_encoding(self, filepath):
-        """Fix encoding of an existing file."""
+        """Convert file to UTF-8 if needed."""
         try:
-            # Try to read with latin-1 since that's how it was written
-            with open(filepath, 'r', encoding='latin-1') as f:
+            # Try reading with UTF-8 first
+            with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
+                return  # File is already UTF-8
+        except UnicodeDecodeError:
+            self.logger.warning(f"⚠️ File {filepath} needs UTF-8 conversion")
+            # Ask for confirmation
+            if input(f"Convert {filepath} to UTF-8? (y/n) ").lower() != 'y':
+                return
                 
-            # Write back with utf-8
-            with open(filepath, 'w', encoding='utf-8') as f:
-                f.write(content)
-                self.logger.success(f"✅ Fixed encoding for {filepath}")
-                
-        except Exception as e:
-            self.logger.error(f"❌ Error fixing encoding for {filepath}: {str(e)}")
-        
-    def fix_file_encoding(self, filepath):
-        """Fix encoding of an existing file."""
-        try:
-            # Try to read with latin-1 since that's how it was written
-            with open(filepath, 'r', encoding='latin-1') as f:
-                content = f.read()
-                
-            # Write back with utf-8
-            with open(filepath, 'w', encoding='utf-8') as f:
-                f.write(content)
-                self.logger.success(f"✅ Fixed encoding for {filepath}")
-                
-        except Exception as e:
-            self.logger.error(f"❌ Error fixing encoding for {filepath}: {str(e)}")
+            # Try to detect encoding
+            import chardet
+            with open(filepath, 'rb') as f:
+                raw = f.read()
+            detected = chardet.detect(raw)
+            encoding = detected['encoding']
+            
+            if encoding and encoding != 'utf-8':
+                # Convert to UTF-8
+                content = raw.decode(encoding)
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                self.logger.success(f"✅ Converted {filepath} from {encoding} to UTF-8")
         
     def _check_and_summarize_logs(self):
         """Check log file size and summarize if needed."""
