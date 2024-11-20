@@ -104,6 +104,7 @@ class AiderManager:
             "--cache-prompts",
             "--no-pretty",
             "--chat-history-file", f".aider.history.{agent_name}.md",
+            "--restore-chat-history",
             "--input-history-file", f".aider.input.{agent_name}.md"
         ])
         
@@ -246,7 +247,7 @@ class AiderManager:
         try:
             # Get list of tracked files and their hashes before aider runs
             before_state = self._get_git_file_states()
-            self.logger.debug(f"File states before aider: {before_state}")
+            #self.logger.debug(f"File states before aider: {before_state}")
 
             # Execute aider with explicit UTF-8 encoding
             self.logger.debug(f"🤖 Starting aider execution with command: {' '.join(cmd)}")
