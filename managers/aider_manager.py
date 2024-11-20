@@ -245,14 +245,17 @@ class AiderManager:
     def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
         try:
-            # Get list of tracked files and their hashes before aider runs
-            before_state = self._get_git_file_states()
-            #self.logger.debug(f"File states before aider: {before_state}")
+            # Get list of tracked files and their hashes before any aider runs
+            initial_state = self._get_git_file_states()
 
-            # Execute aider with explicit UTF-8 encoding
-            self.logger.debug(f"🤖 Starting aider execution with command: {' '.join(cmd)}")
+            # First call - Production objective
+            production_cmd = cmd.copy()
+            production_cmd[-1] = production_cmd[-1] + "\nFocus on the production objective"
+            self.logger.info("🏭 Executing production-focused aider operation...")
+            
+            # Execute first aider call
             process = subprocess.Popen(
-                cmd,
+                production_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 encoding='utf-8',
@@ -262,18 +265,53 @@ class AiderManager:
             stdout, stderr = process.communicate()
 
             if process.returncode != 0:
-                self.logger.error(f"Aider process failed with return code {process.returncode}")
-                raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
+                self.logger.error(f"Production aider process failed with return code {process.returncode}")
+                raise subprocess.CalledProcessError(process.returncode, production_cmd, stdout, stderr)
 
-            # Get list of tracked files and their hashes after aider runs
-            after_state = self._get_git_file_states()
-            self.logger.debug(f"File states after aider: {after_state}")
+            # Get intermediate state after first call
+            intermediate_state = self._get_git_file_states()
 
-            # Find modified files by comparing hashes
-            modified_files = self._get_modified_files(before_state, after_state)
+            # Second call - Role-specific objective
+            role_cmd = cmd.copy()
+            role_cmd[-1] = role_cmd[-1] + "\nFocus on the role-specific objective"
+            self.logger.info("👤 Executing role-specific aider operation...")
             
+            # Execute second aider call
+            process = subprocess.Popen(
+                role_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding='utf-8',
+                errors='replace',
+                env={**os.environ, 'PYTHONIOENCODING': 'utf-8'}
+            )
+            stdout, stderr = process.communicate()
+
+            if process.returncode != 0:
+                self.logger.error(f"Role-specific aider process failed with return code {process.returncode}")
+                raise subprocess.CalledProcessError(process.returncode, role_cmd, stdout, stderr)
+
+            # Get final state after both calls
+            final_state = self._get_git_file_states()
+
+            # Find all modified files across both operations
+            modified_files = set()
+            
+            # Check for files modified in first operation
+            production_modified = self._get_modified_files(initial_state, intermediate_state)
+            if production_modified:
+                self.logger.info(f"📝 Production phase modified {len(production_modified)} files")
+                modified_files.update(production_modified)
+                
+            # Check for files modified in second operation
+            role_modified = self._get_modified_files(intermediate_state, final_state)
+            if role_modified:
+                self.logger.info(f"📝 Role-specific phase modified {len(role_modified)} files")
+                modified_files.update(role_modified)
+
+            # Update global map for all modified files
             if modified_files:
-                self.logger.info(f"📝 Detected {len(modified_files)} modified files")
+                self.logger.info(f"📝 Total of {len(modified_files)} modified files")
                 map_manager = MapManager()
                 for file_path in modified_files:
                     try:
