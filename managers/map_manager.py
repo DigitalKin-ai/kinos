@@ -56,37 +56,66 @@ class MapManager:
         # Track folders to check for duplicate files
         folder_names = set()
         files_to_remove = []
+        inaccessible_paths = set()
         
         # First pass: collect folder names
-        for root, dirs, _ in os.walk('.'):
-            for dir_name in dirs:
-                folder_path = os.path.join(root, dir_name)
-                # Convert to relative path with forward slashes
-                rel_folder_path = os.path.relpath(folder_path, '.').replace(os.sep, '/')
-                folder_names.add(rel_folder_path)
-        
-        # Second pass: collect files and check for duplicates
-        for root, dirs, files in os.walk('.'):
-            # Remove ignored directories to prevent walking into them
+        for root, dirs, _ in os.walk('.', followlinks=False):
             dirs[:] = [d for d in dirs if not any(
                 fnmatch.fnmatch(os.path.join(root, d), pattern) 
                 for pattern in ignore_patterns
             )]
             
-            for file in files:
-                file_path = os.path.join(root, file)
-                # Convert to relative path with forward slashes
-                rel_path = os.path.relpath(file_path, '.').replace(os.sep, '/')
+            for dir_name in dirs:
+                try:
+                    folder_path = os.path.join(root, dir_name)
+                    # Test if we have permission to access the directory
+                    if not os.access(folder_path, os.R_OK):
+                        self.logger.warning(f"⚠️ No permission to access directory: {folder_path}")
+                        inaccessible_paths.add(folder_path)
+                        dirs.remove(dir_name)
+                        continue
+                        
+                    # Convert to relative path with forward slashes
+                    rel_folder_path = os.path.relpath(folder_path, '.').replace(os.sep, '/')
+                    folder_names.add(rel_folder_path)
+                except OSError as e:
+                    self.logger.warning(f"⚠️ Cannot access directory {dir_name}: {str(e)}")
+                    inaccessible_paths.add(os.path.join(root, dir_name))
+                    dirs.remove(dir_name)
+        
+        # Second pass: collect files and check for duplicates
+        for root, dirs, files in os.walk('.', followlinks=False):
+            # Skip directories we couldn't access
+            if any(root.startswith(p) for p in inaccessible_paths):
+                continue
                 
-                # Skip files matching ignore patterns
-                if not any(fnmatch.fnmatch(rel_path, pattern) for pattern in ignore_patterns):
-                    # Check if there's a folder with the same name (without extension)
-                    file_base = os.path.splitext(rel_path)[0]
-                    if file_base in folder_names:
-                        self.logger.warning(f"⚠️ Found file '{rel_path}' that has same name as folder - will be removed")
-                        files_to_remove.append(file_path)
-                    else:
-                        available_files.append(rel_path)
+            for file in files:
+                try:
+                    file_path = os.path.join(root, file)
+                    
+                    # Check if we have permission to read the file
+                    if not os.access(file_path, os.R_OK):
+                        self.logger.warning(f"⚠️ No permission to read file: {file_path}")
+                        continue
+                        
+                    # Convert to relative path with forward slashes
+                    rel_path = os.path.relpath(file_path, '.').replace(os.sep, '/')
+                    
+                    # Skip files matching ignore patterns
+                    if not any(fnmatch.fnmatch(rel_path, pattern) for pattern in ignore_patterns):
+                        # Check if there's a folder with the same name (without extension)
+                        file_base = os.path.splitext(rel_path)[0]
+                        if file_base in folder_names:
+                            self.logger.warning(f"⚠️ Found file '{rel_path}' that has same name as folder - will be removed")
+                            if os.access(file_path, os.W_OK):
+                                files_to_remove.append(file_path)
+                            else:
+                                self.logger.warning(f"⚠️ No permission to remove file: {file_path}")
+                        else:
+                            available_files.append(rel_path)
+                            
+                except OSError as e:
+                    self.logger.warning(f"⚠️ Cannot access file {file}: {str(e)}")
         
         # Remove duplicate files
         for file_to_remove in files_to_remove:
