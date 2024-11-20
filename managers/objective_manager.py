@@ -429,7 +429,18 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             return f"L'agent {agent_name} 🤖 a recherché sur : {query}"
 
     def _convert_to_utf8(self, filepath):
-        """Convert a file to UTF-8 encoding."""
+        """
+        Convert a file to UTF-8 encoding with enhanced error handling.
+        
+        Args:
+            filepath (str): Path to file to convert
+            
+        Returns:
+            bool: True if conversion was successful
+            
+        Raises:
+            Exception: If file cannot be converted
+        """
         try:
             # First try to detect current encoding
             import chardet
@@ -448,6 +459,7 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
                     f.write(content)
                     
                 self.logger.success(f"✨ Converted {filepath} to UTF-8")
+                return True
                 
             else:
                 # If detection failed, try common encodings
@@ -458,7 +470,7 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
                         with open(filepath, 'w', encoding='utf-8') as f:
                             f.write(content)
                         self.logger.success(f"✨ Converted {filepath} from {encoding} to UTF-8")
-                        return
+                        return True
                     except UnicodeDecodeError:
                         continue
                         
