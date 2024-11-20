@@ -148,6 +148,109 @@ def main():
                 agent_filepath=agent_path
             )
             
+    elif command == "redundancy":
+        if len(sys.argv) < 3:
+            print("Usage: kin redundancy <analyze|add|report> [options]")
+            print("\nCommands:")
+            print("  analyze    Analyze files for redundancy")
+            print("  add       Add files to redundancy database")
+            print("  report    Generate redundancy report")
+            print("\nOptions:")
+            print("  --file    Specify single file")
+            print("  --threshold  Set similarity threshold (0.0-1.0)")
+            print("  --output  Specify output file for report")
+            sys.exit(1)
+
+        from managers.redundancy_manager import RedundancyManager
+        manager = RedundancyManager()
+        
+        subcommand = sys.argv[2]
+        
+        if subcommand == "analyze":
+            # Parse options
+            file_path = None
+            threshold = 0.85
+            
+            if "--file" in sys.argv:
+                try:
+                    file_index = sys.argv.index("--file") + 1
+                    file_path = sys.argv[file_index]
+                except IndexError:
+                    print("Missing value for --file")
+                    sys.exit(1)
+                    
+            if "--threshold" in sys.argv:
+                try:
+                    threshold_index = sys.argv.index("--threshold") + 1
+                    threshold = float(sys.argv[threshold_index])
+                except (IndexError, ValueError):
+                    print("Invalid value for --threshold")
+                    sys.exit(1)
+            
+            # Perform analysis
+            if file_path:
+                results = manager.analyze_file(file_path, threshold)
+            else:
+                results = manager.analyze_all_files(threshold)
+                
+            # Generate and save report
+            report = manager.generate_redundancy_report(results)
+            output_file = "redundancy_report.md"
+            
+            if "--output" in sys.argv:
+                try:
+                    output_index = sys.argv.index("--output") + 1
+                    output_file = sys.argv[output_index]
+                except IndexError:
+                    print("Missing value for --output")
+                    sys.exit(1)
+                    
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(report)
+                
+            print(f"Analysis complete. Report saved to {output_file}")
+            
+        elif subcommand == "add":
+            # Parse file option
+            file_path = None
+            if "--file" in sys.argv:
+                try:
+                    file_index = sys.argv.index("--file") + 1
+                    file_path = sys.argv[file_index]
+                except IndexError:
+                    print("Missing value for --file")
+                    sys.exit(1)
+            
+            # Add content
+            if file_path:
+                manager.add_file(file_path)
+            else:
+                stats = manager.add_all_files()
+                print(f"Added {stats['total_paragraphs']} paragraphs from {stats['total_files']} files")
+                
+        elif subcommand == "report":
+            # Generate report from existing database
+            results = manager.analyze_all_files()
+            report = manager.generate_redundancy_report(results)
+            
+            output_file = "redundancy_report.md"
+            if "--output" in sys.argv:
+                try:
+                    output_index = sys.argv.index("--output") + 1
+                    output_file = sys.argv[output_index]
+                except IndexError:
+                    print("Missing value for --output")
+                    sys.exit(1)
+                    
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(report)
+                
+            print(f"Report generated and saved to {output_file}")
+            
+        else:
+            print(f"Unknown redundancy command: {subcommand}")
+            sys.exit(1)
+            
     else:
         print(f"Unknown command: {command}")
         sys.exit(1)
