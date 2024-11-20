@@ -1,6 +1,7 @@
 import os
 import chromadb
 import time
+import fnmatch
 from utils.logger import Logger
 
 class RedundancyManager:
@@ -471,6 +472,38 @@ class RedundancyManager:
             self.logger.error(f"Failed to add file {file_path}: {str(e)}")
             raise
 
+    def _get_ignore_patterns(self):
+        """Get patterns from .gitignore and .aiderignore."""
+        patterns = []
+        
+        # Always exclude these patterns
+        patterns.extend([
+            '.git*',
+            '.aider*',
+            'node_modules',
+            '__pycache__',
+            '*.pyc',
+            '*.pyo',
+            '*.pyd',
+            '.DS_Store',
+            'Thumbs.db'
+        ])
+        
+        # Read .gitignore
+        if os.path.exists('.gitignore'):
+            with open('.gitignore', 'r', encoding='utf-8') as f:
+                patterns.extend(line.strip() for line in f 
+                              if line.strip() and not line.startswith('#'))
+                
+        return patterns
+
+    def _should_ignore(self, file_path, ignore_patterns):
+        """Check if file should be ignored based on patterns."""
+        for pattern in ignore_patterns:
+            if fnmatch.fnmatch(file_path, pattern):
+                return True
+        return False
+
     def add_all_files(self):
         """
         Populate database with all project files.
@@ -488,6 +521,9 @@ class RedundancyManager:
             # Reset collection
             self._reset_collection()
             
+            # Get ignore patterns
+            ignore_patterns = self._get_ignore_patterns()
+            
             # Initialize statistics
             stats = {
                 'total_files': 0,
@@ -500,6 +536,12 @@ class RedundancyManager:
                 for file in files:
                     if file.endswith(('.md', '.txt')):
                         file_path = os.path.join(root, file)
+                        # Convert to relative path with forward slashes
+                        rel_path = os.path.relpath(file_path, '.').replace(os.sep, '/')
+                        
+                        # Skip ignored files
+                        if self._should_ignore(rel_path, ignore_patterns):
+                            continue
                         try:
                             paragraphs_added = self.add_file(file_path)
                             stats['total_files'] += 1
