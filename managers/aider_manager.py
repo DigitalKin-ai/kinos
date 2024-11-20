@@ -267,6 +267,7 @@ class AiderManager:
             self.logger.info(f"🏭 Executing production-focused aider operation for {agent_name} agent...")
             
             try:
+                self.logger.debug(f"Executing production command: {' '.join(production_cmd)}")
                 process = subprocess.run(
                     production_cmd,
                     stdout=subprocess.PIPE,
@@ -276,6 +277,9 @@ class AiderManager:
                     env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
                     timeout=300
                 )
+                self.logger.debug(f"Production process return code: {process.returncode}")
+                self.logger.debug(f"Production process stdout: {process.stdout}")
+                self.logger.debug(f"Production process stderr: {process.stderr}")
                 processes.append(process)
                 if process.returncode != 0:
                     self.logger.error(f"Production aider process failed with return code {process.returncode}")
@@ -293,6 +297,7 @@ class AiderManager:
             self.logger.info(f"👤 Executing {agent_name}-specific aider operation...")
             
             try:
+                self.logger.debug(f"Executing role-specific command: {' '.join(role_cmd)}")
                 process = subprocess.run(
                     role_cmd,
                     stdout=subprocess.PIPE,
@@ -302,6 +307,9 @@ class AiderManager:
                     env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
                     timeout=300
                 )
+                self.logger.debug(f"Role-specific process return code: {process.returncode}")
+                self.logger.debug(f"Role-specific process stdout: {process.stdout}")
+                self.logger.debug(f"Role-specific process stderr: {process.stderr}")
                 processes.append(process)
                 if process.returncode != 0:
                     self.logger.error(f"Role-specific aider process failed with return code {process.returncode}")
@@ -319,6 +327,7 @@ class AiderManager:
             self.logger.info(f"🔍 Checking for additional changes needed for {agent_name} agent...")
             
             try:
+                self.logger.debug(f"Executing final check command: {' '.join(final_cmd)}")
                 process = subprocess.run(
                     final_cmd,
                     stdout=subprocess.PIPE,
@@ -328,6 +337,9 @@ class AiderManager:
                     env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
                     timeout=300
                 )
+                self.logger.debug(f"Final check process return code: {process.returncode}")
+                self.logger.debug(f"Final check process stdout: {process.stdout}")
+                self.logger.debug(f"Final check process stderr: {process.stderr}")
                 processes.append(process)
                 if process.returncode != 0:
                     self.logger.error(f"Final check aider process failed with return code {process.returncode}")
