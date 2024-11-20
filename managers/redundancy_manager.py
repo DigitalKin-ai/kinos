@@ -567,7 +567,7 @@ class RedundancyManager:
         return False
 
     def split_file(self, file_path):
-        """Split a file into sections/paragraphs if thresholds exceeded"""
+        """Split a file into sections/subsections if thresholds exceeded"""
         
         # Early exit if file should be ignored
         if self._should_ignore(file_path):
@@ -578,8 +578,29 @@ class RedundancyManager:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
                 
-            # Count sections (# headers)
-            sections = [s for s in content.split('\n') if s.startswith('#')]
+            # Count sections and subsections
+            sections = []
+            current_section = []
+            current_level = 0
+            
+            for line in content.split('\n'):
+                if line.startswith('#'):
+                    # Count number of # to determine level
+                    level = len(line) - len(line.lstrip('#'))
+                    if level <= 2:  # Only count up to ## level
+                        if current_section:
+                            sections.append((current_level, current_section))
+                        current_section = [line]
+                        current_level = level
+                    else:
+                        current_section.append(line)
+                else:
+                    current_section.append(line)
+                    
+            if current_section:
+                sections.append((current_level, current_section))
+                
+            # Check if we need to split
             if len(sections) <= self.SECTION_THRESHOLD:
                 return False
                 
@@ -587,24 +608,13 @@ class RedundancyManager:
             dir_name = os.path.splitext(file_path)[0]
             os.makedirs(dir_name, exist_ok=True)
             
-            # Split content into files
-            current_section = []
-            current_title = ""
-            
-            for line in content.split('\n'):
-                if line.startswith('#'):
-                    # Save previous section if exists
-                    if current_section:
-                        self._save_section(dir_name, current_title, current_section)
-                    # Start new section
-                    current_title = line.lstrip('#').strip()
-                    current_section = [line]
-                else:
-                    current_section.append(line)
-                    
-            # Save last section
-            if current_section:
-                self._save_section(dir_name, current_title, current_section)
+            # Save each section
+            for level, section_content in sections:
+                # Get section title from first line
+                title = section_content[0].lstrip('#').strip()
+                # Prefix with level indicator for proper sorting
+                prefix = "1" if level == 1 else "2"
+                self._save_section(dir_name, f"{prefix}_{title}", section_content)
                 
             # Remove original file
             os.remove(file_path)
