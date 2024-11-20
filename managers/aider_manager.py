@@ -104,7 +104,6 @@ class AiderManager:
             "--cache-prompts",
             "--no-pretty",
             "--chat-history-file", f".aider.history.{agent_name}.md",
-            "--restore-chat-history",
             "--input-history-file", f".aider.input.{agent_name}.md"
         ])
         
@@ -263,7 +262,7 @@ class AiderManager:
 
             # First call - Production objective
             production_cmd = cmd.copy()
-            production_cmd[-1] = production_cmd[-1] + "\nFocus on the production objective"
+            production_cmd[-1] = production_cmd[-1] + "\nFocus on the Production Objective"
             self.logger.info(f"🏭 Executing production-focused aider operation for {agent_name} agent...")
             
             try:
@@ -293,7 +292,7 @@ class AiderManager:
 
             # Second call - Role-specific objective
             role_cmd = cmd.copy()
-            role_cmd[-1] = role_cmd[-1] + "\nFocus on the role-specific objective"
+            role_cmd[-1] = role_cmd[-1] + "\nFocus on the Role-specific Objective"
             self.logger.info(f"👤 Executing {agent_name}-specific aider operation...")
             
             try:
