@@ -466,6 +466,46 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             # Return a basic fallback summary with agent name
             return f"L'agent {agent_name} 🤖 a recherché sur : {query}"
 
+    def _convert_to_utf8(self, filepath):
+        """Convert a file to UTF-8 encoding."""
+        try:
+            # First try to detect current encoding
+            import chardet
+            with open(filepath, 'rb') as f:
+                raw = f.read()
+            detected = chardet.detect(raw)
+            
+            if detected['encoding']:
+                self.logger.info(f"🔍 Detected {filepath} encoding as: {detected['encoding']} (confidence: {detected['confidence']})")
+                
+                # Read with detected encoding
+                content = raw.decode(detected['encoding'])
+                
+                # Write back in UTF-8
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                    
+                self.logger.success(f"✨ Converted {filepath} to UTF-8")
+                
+            else:
+                # If detection failed, try common encodings
+                encodings = ['latin-1', 'cp1252', 'iso-8859-1']
+                for encoding in encodings:
+                    try:
+                        content = raw.decode(encoding)
+                        with open(filepath, 'w', encoding='utf-8') as f:
+                            f.write(content)
+                        self.logger.success(f"✨ Converted {filepath} from {encoding} to UTF-8")
+                        return
+                    except UnicodeDecodeError:
+                        continue
+                        
+                raise ValueError(f"Could not detect or convert encoding for {filepath}")
+                
+        except Exception as e:
+            self.logger.error(f"❌ Failed to convert {filepath} to UTF-8: {str(e)}")
+            raise
+
     def _save_objective(self, filepath, content):
         """Save objective content to file, including Perplexity research results if needed."""
         try:
