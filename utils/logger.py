@@ -132,7 +132,7 @@ class Logger:
                 content = f.read()
                 
             if len(content) > 50000:
-                self.logger.success("📝 Résumé automatique des logs...")
+                self.logger.log(logging.SUCCESS, "📝 Résumé automatique des logs...")
                 
                 # Call GPT for summarization
                 client = openai.OpenAI()
@@ -173,7 +173,7 @@ class Logger:
                 with open(self.suivi_file, 'w', encoding='utf-8') as f:
                     f.write(final_content)
                     
-                self.logger.sucess("✨ Logs résumés avec succès")
+                self.logger.log(logging.SUCCESS, "✨ Logs résumés avec succès")
                 
         except Exception as e:
             self.logger.error(f"⚠️ Erreur lors du résumé des logs: {str(e)}")
