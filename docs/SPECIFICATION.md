@@ -74,10 +74,23 @@ KinOS v6 represents a fundamental shift towards true AI autonomy, implementing:
    - Improvement suggestions
 
 5. **DeduplicationAgent**
-   - Content analysis
-   - Redundancy detection
-   - Pattern matching
-   - Optimization suggestions
+   - Content analysis and redundancy detection
+   - Pattern matching and similarity scoring
+   - Intelligent content splitting:
+     - Directory-based organization
+     - Section/subsection detection
+     - Automatic file naming
+     - Reference updating
+   - Validation and error handling:
+     - Content validation rules
+     - Duplicate prevention
+     - Git integration
+     - Reference maintenance
+   - Optimization suggestions:
+     - Redundancy reports
+     - Consolidation recommendations
+     - Structure improvements
+     - Cross-file analysis
 
 6. **ChroniqueurAgent**
    - Progress tracking
