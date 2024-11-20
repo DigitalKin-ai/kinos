@@ -167,8 +167,14 @@ class Logger:
                 
                 # Log le résumé en SUCCESS
                 self.logger.log(logging.SUCCESS, "\n🔍 Suivi de mission :\n")
+                # Add empty line before content
+                self.logger.log(logging.SUCCESS, "")
                 for line in summary.split('\n'):
-                    self.logger.log(logging.SUCCESS, f"   {line}")
+                    # Add proper indentation and handle empty lines
+                    if line.strip():
+                        self.logger.log(logging.SUCCESS, f"    {line}")
+                    else:
+                        self.logger.log(logging.SUCCESS, "")
                 
                 # Add header to summary
                 final_content = "# Résumé des logs précédents\n\n"
