@@ -1,4 +1,5 @@
 import os
+import time
 import subprocess
 from utils.logger import Logger
 from pathlib import Path
@@ -266,25 +267,53 @@ class AiderManager:
             self.logger.info(f"🏭 Executing production-focused aider operation for {agent_name} agent...")
             
             try:
-                self.logger.debug(f"Executing production command: {' '.join(production_cmd)}")
-                process = subprocess.run(
+                # Use Popen instead of run for better control
+                process = subprocess.Popen(
                     production_cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     encoding='utf-8',
                     errors='replace',
                     env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
-                    timeout=300
+                    bufsize=1,  # Line buffered
+                    universal_newlines=True
                 )
-                self.logger.debug(f"Production process return code: {process.returncode}")
-                self.logger.debug(f"Production process stdout: {process.stdout}")
-                self.logger.debug(f"Production process stderr: {process.stderr}")
+                
+                # Add process to cleanup list
                 processes.append(process)
-                if process.returncode != 0:
-                    self.logger.error(f"Production aider process failed with return code {process.returncode}")
-                    raise subprocess.CalledProcessError(process.returncode, production_cmd, process.stdout, process.stderr)
+                
+                # Set timeout
+                timeout = 300  # 5 minutes
+                start_time = time.time()
+                
+                # Poll process with timeout
+                while process.poll() is None:
+                    # Check timeout
+                    if time.time() - start_time > timeout:
+                        process.kill()
+                        raise subprocess.TimeoutExpired(production_cmd, timeout)
+                        
+                    # Read output
+                    stdout_line = process.stdout.readline()
+                    if stdout_line:
+                        self.logger.debug(f"Production stdout: {stdout_line.strip()}")
+                    stderr_line = process.stderr.readline()
+                    if stderr_line:
+                        self.logger.debug(f"Production stderr: {stderr_line.strip()}")
+                        
+                    time.sleep(0.1)  # Prevent CPU thrashing
+                    
+                # Get final return code
+                returncode = process.poll()
+                if returncode != 0:
+                    self.logger.error(f"Production process failed with return code {returncode}")
+                    raise subprocess.CalledProcessError(returncode, production_cmd)
+                    
             except subprocess.TimeoutExpired:
-                self.logger.error("Production aider process timed out")
+                self.logger.error("Production process timed out")
+                raise
+            except Exception as e:
+                self.logger.error(f"Production process error: {str(e)}")
                 raise
             
             # Get state after first call
@@ -296,25 +325,47 @@ class AiderManager:
             self.logger.info(f"👤 Executing {agent_name}-specific aider operation...")
             
             try:
-                self.logger.debug(f"Executing role-specific command: {' '.join(role_cmd)}")
-                process = subprocess.run(
+                # Use Popen for better control
+                process = subprocess.Popen(
                     role_cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     encoding='utf-8',
                     errors='replace',
                     env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
-                    timeout=300
+                    bufsize=1,
+                    universal_newlines=True
                 )
-                self.logger.debug(f"Role-specific process return code: {process.returncode}")
-                self.logger.debug(f"Role-specific process stdout: {process.stdout}")
-                self.logger.debug(f"Role-specific process stderr: {process.stderr}")
+                
                 processes.append(process)
-                if process.returncode != 0:
-                    self.logger.error(f"Role-specific aider process failed with return code {process.returncode}")
-                    raise subprocess.CalledProcessError(process.returncode, role_cmd, process.stdout, process.stderr)
+                
+                timeout = 300  # 5 minutes
+                start_time = time.time()
+                
+                while process.poll() is None:
+                    if time.time() - start_time > timeout:
+                        process.kill()
+                        raise subprocess.TimeoutExpired(role_cmd, timeout)
+                        
+                    stdout_line = process.stdout.readline()
+                    if stdout_line:
+                        self.logger.debug(f"Role-specific stdout: {stdout_line.strip()}")
+                    stderr_line = process.stderr.readline()
+                    if stderr_line:
+                        self.logger.debug(f"Role-specific stderr: {stderr_line.strip()}")
+                        
+                    time.sleep(0.1)
+                    
+                returncode = process.poll()
+                if returncode != 0:
+                    self.logger.error(f"Role-specific process failed with return code {returncode}")
+                    raise subprocess.CalledProcessError(returncode, role_cmd)
+                    
             except subprocess.TimeoutExpired:
-                self.logger.error("Role-specific aider process timed out")
+                self.logger.error("Role-specific process timed out")
+                raise
+            except Exception as e:
+                self.logger.error(f"Role-specific process error: {str(e)}")
                 raise
 
             # Get state after second call
@@ -326,25 +377,47 @@ class AiderManager:
             self.logger.info(f"🔍 Checking for additional changes needed for {agent_name} agent...")
             
             try:
-                self.logger.debug(f"Executing final check command: {' '.join(final_cmd)}")
-                process = subprocess.run(
+                # Use Popen for better control
+                process = subprocess.Popen(
                     final_cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     encoding='utf-8',
                     errors='replace',
                     env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
-                    timeout=300
+                    bufsize=1,
+                    universal_newlines=True
                 )
-                self.logger.debug(f"Final check process return code: {process.returncode}")
-                self.logger.debug(f"Final check process stdout: {process.stdout}")
-                self.logger.debug(f"Final check process stderr: {process.stderr}")
+                
                 processes.append(process)
-                if process.returncode != 0:
-                    self.logger.error(f"Final check aider process failed with return code {process.returncode}")
-                    raise subprocess.CalledProcessError(process.returncode, final_cmd, process.stdout, process.stderr)
+                
+                timeout = 300  # 5 minutes
+                start_time = time.time()
+                
+                while process.poll() is None:
+                    if time.time() - start_time > timeout:
+                        process.kill()
+                        raise subprocess.TimeoutExpired(final_cmd, timeout)
+                        
+                    stdout_line = process.stdout.readline()
+                    if stdout_line:
+                        self.logger.debug(f"Final check stdout: {stdout_line.strip()}")
+                    stderr_line = process.stderr.readline()
+                    if stderr_line:
+                        self.logger.debug(f"Final check stderr: {stderr_line.strip()}")
+                        
+                    time.sleep(0.1)
+                    
+                returncode = process.poll()
+                if returncode != 0:
+                    self.logger.error(f"Final check process failed with return code {returncode}")
+                    raise subprocess.CalledProcessError(returncode, final_cmd)
+                    
             except subprocess.TimeoutExpired:
-                self.logger.error("Final check aider process timed out")
+                self.logger.error("Final check process timed out")
+                raise
+            except Exception as e:
+                self.logger.error(f"Final check process error: {str(e)}")
                 raise
 
             # Get final state after all calls
