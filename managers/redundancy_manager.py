@@ -43,19 +43,27 @@ class RedundancyManager:
                 raise ValueError("OpenAI API key not found in environment variables")
 
             # Create embedding function using text-embedding-3-large
-            def openai_embedding_function(texts):
-                client = openai.OpenAI()
-                # Batch texts in groups of 100 to stay within API limits
-                embeddings = []
-                for i in range(0, len(texts), 100):
-                    batch = texts[i:i + 100]
-                    response = client.embeddings.create(
-                        model="text-embedding-3-large",
-                        input=batch,
-                        encoding_format="float"
-                    )
-                    embeddings.extend([e.embedding for e in response.data])
-                return embeddings
+            class OpenAIEmbeddingFunction:
+                def __init__(self):
+                    self.client = openai.OpenAI()
+
+                def __call__(self, input):
+                    # Ensure input is a list
+                    if isinstance(input, str):
+                        input = [input]
+                    
+                    # Process in batches of 100
+                    all_embeddings = []
+                    for i in range(0, len(input), 100):
+                        batch = input[i:i + 100]
+                        response = self.client.embeddings.create(
+                            model="text-embedding-3-large",
+                            input=batch,
+                            encoding_format="float"
+                        )
+                        embeddings = [e.embedding for e in response.data]
+                        all_embeddings.extend(embeddings)
+                    return all_embeddings
 
             # Create in-memory client for better performance
             self.chroma_client = chromadb.Client()
@@ -63,7 +71,7 @@ class RedundancyManager:
             # Create or get collection with OpenAI embedding function
             self.collection = self.chroma_client.get_or_create_collection(
                 name=self.collection_name,
-                embedding_function=openai_embedding_function,
+                embedding_function=OpenAIEmbeddingFunction(),
                 metadata={"hnsw:space": "cosine"}  # Use cosine similarity
             )
 
