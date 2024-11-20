@@ -105,6 +105,7 @@ class AiderManager:
             "--cache-prompts",
             "--no-pretty",
             "--chat-history-file", f".aider.history.{agent_name}.md",
+            "--restore-chat-history",
             "--input-history-file", f".aider.input.{agent_name}.md"
         ])
         
