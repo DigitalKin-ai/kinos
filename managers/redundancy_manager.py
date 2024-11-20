@@ -673,9 +673,25 @@ class RedundancyManager:
         return True
 
     def _prepare_split_directory(self, original_file):
-        """Create directory for split files"""
+        """
+        Create a clean directory for split file sections.
+        
+        Args:
+            original_file (str): Path to the file being split
+            
+        Returns:
+            str: Path to the created directory
+            
+        Raises:
+            OSError: If directory creation fails
+            ValueError: If original_file path is invalid
+        """
+        if not original_file or not isinstance(original_file, str):
+            raise ValueError("Invalid original file path")
+            
         dir_name = os.path.splitext(original_file)[0]
         os.makedirs(dir_name, exist_ok=True)
+        
         return dir_name
 
     def _update_git(self, original_file, new_files):
