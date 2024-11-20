@@ -50,6 +50,49 @@ class AiderManager:
         except Exception as e:
             self.logger.error(f"Aider operation failed: {str(e)}")
             raise
+            
+    def fix_git_encoding(self):
+        """Fix encoding of existing git commits."""
+        try:
+            # Get all commits
+            result = subprocess.run(
+                ['git', 'log', '--format=%H'],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            commit_hashes = result.stdout.splitlines()
+            
+            for commit_hash in commit_hashes:
+                # Get commit message
+                result = subprocess.run(
+                    ['git', 'log', '-1', '--pretty=%B', commit_hash],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                commit_msg = result.stdout
+                
+                # Fix encoding
+                try:
+                    fixed_msg = commit_msg.encode('latin1').decode('utf-8')
+                    
+                    # Amend commit with fixed message
+                    subprocess.run(
+                        ['git', 'filter-branch', '-f', '--msg-filter', 
+                         f'echo "{fixed_msg}"', f'{commit_hash}^..{commit_hash}'],
+                        check=True
+                    )
+                    
+                except UnicodeError as e:
+                    self.logger.warning(f"⚠️ Could not fix encoding for commit {commit_hash}: {str(e)}")
+                    continue
+                    
+            self.logger.success("✨ Git commit encodings fixed")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to fix git encodings: {str(e)}")
+            raise
 
     def _validate_files(self, *filepaths):
         """Validate all input files exist and are readable."""
@@ -210,6 +253,10 @@ class AiderManager:
         except UnicodeError as e:
             self.logger.warning(f"⚠️ Encoding issue with commit message: {str(e)}")
             return "other", "🔨"
+            
+        except UnicodeError as e:
+            self.logger.warning(f"⚠️ Encoding issue with commit message: {str(e)}")
+            return "other", "🔨"
 
     def _get_git_file_states(self):
         """Get dictionary of tracked files and their current hash."""
@@ -316,6 +363,10 @@ class AiderManager:
     def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
         try:
+            # Configure git to use UTF-8 for commit messages
+            subprocess.run(['git', 'config', 'i18n.commitEncoding', 'utf-8'], check=True)
+            subprocess.run(['git', 'config', 'i18n.logOutputEncoding', 'utf-8'], check=True)
+            
             # Extract agent name from cmd arguments
             agent_name = None
             for i, arg in enumerate(cmd):
