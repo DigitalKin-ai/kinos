@@ -1,5 +1,8 @@
+import os
 import logging
 from colorama import init, Fore, Style
+import openai
+from dotenv import load_dotenv
 
 class Logger:
     """Utility class for handling logging operations."""
@@ -11,6 +14,12 @@ class Logger:
         # Add SUCCESS level between INFO and WARNING
         logging.SUCCESS = 25  # Between INFO(20) and WARNING(30)
         logging.addLevelName(logging.SUCCESS, 'SUCCESS')
+
+        # Initialize OpenAI
+        load_dotenv()
+        openai.api_key = os.getenv('OPENAI_API_KEY')
+        if not openai.api_key:
+            raise ValueError("OpenAI API key not found in environment variables")
         
         # Add file handler for suivi.md - ONLY for SUCCESS level and above
         self.suivi_file = 'suivi.md'
@@ -106,8 +115,65 @@ class Logger:
         """Log success level message in bright blue with agent emoji if present."""
         formatted_msg = self._get_agent_emoji(message)
         self.logger.log(logging.SUCCESS, formatted_msg)
+        self._check_and_summarize_logs()  # Check size after adding new log
         
     def warning(self, message):
         """Log warning level message in yellow with agent emoji if present."""
         formatted_msg = self._get_agent_emoji(message)
         self.logger.warning(formatted_msg)
+        
+    def _check_and_summarize_logs(self):
+        """Check log file size and summarize if needed."""
+        try:
+            if not os.path.exists(self.suivi_file):
+                return
+                
+            # Check file size
+            with open(self.suivi_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            if len(content) > 30000:
+                self.logger.info("📝 Résumé automatique des logs...")
+                
+                # Call GPT for summarization
+                client = openai.OpenAI()
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": """Tu es un expert en synthèse de logs de développement.
+                        Ta mission est de résumer l'historique des actions tout en conservant :
+                        - Les informations essentielles sur la progression
+                        - Les décisions importantes
+                        - Les problèmes rencontrés et leurs solutions
+                        - La chronologie générale
+                        
+                        Format ton résumé en markdown avec des sections claires."""},
+                        {"role": "user", "content": f"""Voici les logs complets du projet. 
+                        Fais-en un résumé structuré qui permettra de comprendre rapidement :
+                        - L'état d'avancement
+                        - Les principales réalisations
+                        - Les points importants à retenir
+                        
+                        Logs à résumer :
+                        
+                        {content}"""}
+                    ],
+                    temperature=0.3,
+                    max_tokens=2000
+                )
+                
+                summary = response.choices[0].message.content
+                
+                # Add header to summary
+                final_content = "# Résumé des logs précédents\n\n"
+                final_content += summary
+                final_content += "\n\n# Nouveaux logs\n\n"
+                
+                # Write new summary
+                with open(self.suivi_file, 'w', encoding='utf-8') as f:
+                    f.write(final_content)
+                    
+                self.logger.info("✨ Logs résumés avec succès")
+                
+        except Exception as e:
+            self.logger.error(f"⚠️ Erreur lors du résumé des logs: {str(e)}")
