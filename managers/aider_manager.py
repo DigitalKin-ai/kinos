@@ -307,19 +307,19 @@ class AiderManager:
                 raise subprocess.CalledProcessError(process.returncode, role_cmd, stdout, stderr)
 
             phase_end = time.time()
-            self.logger.info(f"✨ Role-specific phase completed in {phase_end - phase_start:.2f} seconds")
+            self.logger.info(f"✨ Agent {agent_name} completed role-specific phase in {phase_end - phase_start:.2f} seconds")
 
             # Get state after second call
             second_state = self._get_git_file_states()
 
-            # Log total duration
+            # Log total duration 
             total_duration = time.time() - start_time
-            self.logger.info(f"🎯 Total aider execution completed in {total_duration:.2f} seconds")
+            self.logger.info(f"🎯 Agent {agent_name} completed total aider execution in {total_duration:.2f} seconds")
 
             # Third call - Check for additional changes
             final_cmd = cmd.copy()
             final_cmd[-1] = final_cmd[-1] + "\n--> Any additional changes required?"
-            self.logger.info(f"🔍 Checking for additional changes needed...")
+            self.logger.info(f"🔍 Agent {agent_name} checking for additional changes needed...")
             
             process = subprocess.Popen(
                 final_cmd,
