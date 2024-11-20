@@ -171,16 +171,32 @@ class Logger:
                 # Log summary header with timestamp
                 self.logger.log(logging.SUCCESS, "\n🔍 Suivi de mission :\n")
 
-                # Log summary content without timestamps
+                # Format multi-line content with proper indentation
                 summary_lines = summary.split('\n')
                 formatted_content = ""
+                current_entry = []
+                
                 for line in summary_lines:
-                    if line.strip():
-                        formatted_content += f"    {line}\n"
-                    else:
-                        formatted_content += "\n"
+                    if line.startswith('20'):  # New timestamp entry
+                        # Print previous entry if exists
+                        if current_entry:
+                            formatted_content += '\n'.join(current_entry) + '\n\n'
+                            current_entry = []
+                        current_entry.append(line)
+                    elif line.strip():  # Content line
+                        # Indent continuation lines
+                        current_entry.append('    ' + line)
+                    else:  # Empty line
+                        if current_entry:
+                            formatted_content += '\n'.join(current_entry) + '\n\n'
+                            current_entry = []
+                        formatted_content += '\n'
 
-                # Log entire formatted content as a single message
+                # Add any remaining entry
+                if current_entry:
+                    formatted_content += '\n'.join(current_entry) + '\n\n'
+
+                # Log entire formatted content
                 self.logger.log(logging.SUCCESS, formatted_content)
                 
                 # Add header to summary
