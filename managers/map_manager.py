@@ -286,22 +286,43 @@ Format as a simple markdown list under a "# Context Map" heading.
     def update_global_map(self, modified_file_path):
         """Update global map with latest file summary after a commit."""
         try:
-            # Read current global map content
+            # Read current global map content with UTF-8 encoding
             global_map_content = ""
             if os.path.exists("map.md"):
-                with open("map.md", 'r', encoding='utf-8') as f:
-                    global_map_content = f.read()
+                try:
+                    with open("map.md", 'r', encoding='utf-8') as f:
+                        global_map_content = f.read()
+                except UnicodeDecodeError:
+                    # Fallback encodings if UTF-8 fails
+                    for encoding in ['latin-1', 'cp1252', 'iso-8859-1']:
+                        try:
+                            with open("map.md", 'r', encoding=encoding) as f:
+                                global_map_content = f.read()
+                                break
+                        except UnicodeDecodeError:
+                            continue
 
-            # Read modified file content
-            with open(modified_file_path, 'r', encoding='utf-8') as f:
-                file_content = f.read()
+            # Read modified file content with robust encoding handling
+            file_content = None
+            for encoding in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
+                try:
+                    with open(modified_file_path, 'r', encoding=encoding) as f:
+                        file_content = f.read()
+                        break
+                except UnicodeDecodeError:
+                    continue
+
+            if file_content is None:
+                raise ValueError(f"Could not read {modified_file_path} with any supported encoding")
 
             # Get token count
             # Get last commit message for this file
             try:
                 commit_msg = subprocess.check_output(
                     ['git', 'log', '-1', '--pretty=format:%s', modified_file_path],
-                    text=True
+                    text=True,
+                    encoding='utf-8',
+                    errors='replace'
                 ).strip()
             except subprocess.CalledProcessError:
                 commit_msg = "No commit message found"
@@ -364,7 +385,13 @@ Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file 
                 self.logger.success(f"Modified file: {modified_file_path} ({commit_msg})")
 
             # Update map.md with new or existing summary
-            self._update_map_file(modified_file_path, token_count, summary)
+            # Always write with UTF-8 encoding
+            try:
+                self._update_map_file(modified_file_path, token_count, summary)
+            except Exception as e:
+                self.logger.error(f"Failed to update map file: {str(e)}")
+                # Try to write with a more permissive encoding if UTF-8 fails
+                self._update_map_file_fallback(modified_file_path, token_count, summary)
 
             self.logger.debug(f"🔄 Updated global map for: {modified_file_path}")
 
@@ -450,7 +477,7 @@ Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file 
                     
                 # Update existing entry or keep line
                 for line in lines:
-                    if line.startswith(filepath):
+                    if line.strip().startswith(filepath):
                         updated_lines.append(file_entry + '\n')
                         entry_updated = True
                     else:
@@ -468,4 +495,55 @@ Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file 
                 
         except Exception as e:
             self.logger.error(f"Failed to update map file: {str(e)}")
+            raise
+
+    def _update_map_file_fallback(self, filepath, token_count, summary):
+        """Fallback method to update map file with alternative encodings."""
+        try:
+            map_path = "map.md"
+            updated_lines = []
+            file_entry = f"{filepath} ({token_count} tokens) {summary}"
+            entry_updated = False
+            
+            # Try reading with different encodings
+            content = None
+            for encoding in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
+                try:
+                    if os.path.exists(map_path):
+                        with open(map_path, 'r', encoding=encoding) as f:
+                            lines = f.readlines()
+                            
+                        # Update existing entry or keep line
+                        for line in lines:
+                            if line.strip().startswith(filepath):
+                                updated_lines.append(file_entry + '\n')
+                                entry_updated = True
+                            else:
+                                updated_lines.append(line)
+                        
+                        content = True
+                        break
+                except UnicodeDecodeError:
+                    continue
+                    
+            if content is None:
+                raise ValueError(f"Could not read {map_path} with any supported encoding")
+
+            # Add new entry if not updated
+            if not entry_updated:
+                if not updated_lines:  # New file
+                    updated_lines.append("# Project Map\n\n")
+                updated_lines.append(file_entry + '\n')
+                
+            # Try writing with different encodings
+            for encoding in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
+                try:
+                    with open(map_path, 'w', encoding=encoding) as f:
+                        f.writelines(updated_lines)
+                    break
+                except UnicodeEncodeError:
+                    continue
+                    
+        except Exception as e:
+            self.logger.error(f"Failed to update map file with fallback method: {str(e)}")
             raise
