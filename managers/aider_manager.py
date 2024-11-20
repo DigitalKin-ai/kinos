@@ -65,6 +65,7 @@ class AiderManager:
     def _load_context_map(self, map_filepath):
         """
         Load and parse context map file.
+        Creates empty files if they don't exist.
         
         Returns:
             list: List of context file paths
@@ -75,10 +76,14 @@ class AiderManager:
                 for line in f:
                     if line.strip().startswith('- '):
                         filepath = line.strip()[2:]
-                        if os.path.exists(filepath):
-                            context_files.append(filepath)
-                        else:
-                            self.logger.warning(f"⚠️ Context file not found: {filepath}")
+                        if not os.path.exists(filepath):
+                            # Create directory structure if needed
+                            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+                            # Create empty file
+                            with open(filepath, 'w', encoding='utf-8') as new_file:
+                                pass
+                            self.logger.info(f"📄 Created empty file: {filepath}")
+                        context_files.append(filepath)
             return context_files
             
         except Exception as e:
