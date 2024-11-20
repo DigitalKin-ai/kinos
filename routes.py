@@ -222,12 +222,21 @@ def main():
                     print("Missing value for --file")
                     sys.exit(1)
             
+            # Set log level to INFO to see more details
+            manager.logger.logger.setLevel(logging.INFO)
+            
             # Add content
             if file_path:
                 manager.add_file(file_path)
             else:
                 stats = manager.add_all_files()
-                print(f"Added {stats['total_paragraphs']} paragraphs from {stats['total_files']} files")
+                manager.logger.success(
+                    f"✨ Added {stats['total_paragraphs']} paragraphs from {stats['total_files']} files"
+                )
+                if stats['errors']:
+                    manager.logger.warning("\n⚠️ Errors encountered:")
+                    for error in stats['errors']:
+                        manager.logger.warning(f"   - {error['file']}: {error['error']}")
                 
         elif subcommand == "report":
             # Generate report from existing database
