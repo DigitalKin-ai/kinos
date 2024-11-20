@@ -137,7 +137,7 @@ class Logger:
                 # Call GPT for summarization
                 client = openai.OpenAI()
                 response = client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gpt-4",
                     messages=[
                         {"role": "system", "content": """Tu es un expert en synthèse de logs de développement.
                         Ta mission est de résumer l'historique des actions tout en conservant :
