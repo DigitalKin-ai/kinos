@@ -191,54 +191,16 @@ class ObjectiveManager:
 
     def _read_file(self, filepath):
         """Read content from file with robust encoding handling."""
-        encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']  # Ajout de iso-8859-1
-        
-        # Log attempt to read file
-        self.logger.debug(f"🔍 Attempting to read {filepath}")
-        
-        # First try to detect encoding
         try:
-            import chardet
-            with open(filepath, 'rb') as f:
-                raw = f.read()
-            detected = chardet.detect(raw)
-            if detected['encoding']:
-                encodings.insert(0, detected['encoding'])
-                self.logger.debug(f"📝 Detected encoding: {detected['encoding']} (confidence: {detected['confidence']})")
-        except ImportError:
-            self.logger.debug("⚠️ chardet not available for encoding detection")
-        except Exception as e:
-            self.logger.debug(f"⚠️ Error during encoding detection: {str(e)}")
-
-        # Try each encoding
-        last_error = None
-        for encoding in encodings:
-            try:
-                with open(filepath, 'r', encoding=encoding) as f:
-                    content = f.read()
-                    self.logger.debug(f"✅ Successfully read file using {encoding} encoding")
-                    return content
-            except UnicodeDecodeError as e:
-                last_error = e
-                self.logger.debug(f"⚠️ Failed to read with {encoding}: {str(e)}")
-                continue
-            except Exception as e:
-                self.logger.error(f"❌ Unexpected error reading {filepath}: {str(e)}")
-                raise
-
-        # If we get here, none of the encodings worked
-        error_msg = (
-            f"Failed to read {filepath} with encodings: {', '.join(encodings)}\n"
-            f"Last error: {str(last_error)}"
-        )
-        self.logger.error(f"❌ {error_msg}")
-        raise UnicodeDecodeError(
-            'utf-8',  # codec name
-            b'',      # object
-            0,        # start
-            1,        # end
-            error_msg # reason
-        )
+            # First try UTF-8
+            with open(filepath, 'r', encoding='utf-8') as f:
+                return f.read()
+        except UnicodeDecodeError:
+            # If UTF-8 fails, try to convert the file
+            self._convert_to_utf8(filepath)
+            # Try reading again with UTF-8
+            with open(filepath, 'r', encoding='utf-8') as f:
+                return f.read()
 
     def _generate_objective_content(self, mission_content, agent_content, agent_name):
         """Generate objective content using GPT."""
