@@ -309,8 +309,8 @@ Format as a simple markdown list under a "# Context Map" heading.
             tokenizer = tiktoken.encoding_for_model("gpt-4")
             token_count = len(tokenizer.encode(file_content))
 
-            # 1/3 chance to regenerate description
-            should_update_description = random.random() < 0.33
+            # 1/10 chance to regenerate description
+            should_update_description = random.random() < 0.10
 
             if should_update_description:
                 # Generate new summary with global context
@@ -361,7 +361,7 @@ Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file 
                 if not summary:
                     summary = "File updated"  # Fallback if no existing summary
                 # Log simple modification notice with commit message
-                self.logger.info(f"Modified file: {modified_file_path} ({commit_msg})")
+                self.logger.success(f"Modified file: {modified_file_path} ({commit_msg})")
 
             # Update map.md with new or existing summary
             self._update_map_file(modified_file_path, token_count, summary)

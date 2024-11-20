@@ -135,6 +135,16 @@ class AgentsManager:
         # Try to load custom prompt template
         prompt_path = f"prompts/{agent_name}.md"
         custom_prompt = ""
+
+        # Load global map content if it exists
+        global_map_content = ""
+        if os.path.exists("map.md"):
+            try:
+                with open("map.md", 'r', encoding='utf-8') as f:
+                    global_map_content = f.read()
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
+                # Continue without global map content
         
         if os.path.exists(prompt_path):
             try:
@@ -155,6 +165,12 @@ MISSION:
 ```
 {mission_content}
 ```
+
+CURRENT PROJECT MAP
+````
+{global_map_content}
+````
+
 
 ANALYSIS FRAMEWORK:
 ```

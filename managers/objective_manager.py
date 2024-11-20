@@ -114,7 +114,7 @@ class ObjectiveManager:
                 self.logger.debug(f"No chat history found for agent {agent_name}")
                 chat_history = "No previous chat history available."
 
-                    # Load global map content if it exists
+            # Load global map content if it exists
             global_map_content = ""
             if os.path.exists("map.md"):
                 try:
