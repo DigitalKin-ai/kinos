@@ -188,13 +188,21 @@ def main():
                     print("Invalid value for --threshold")
                     sys.exit(1)
             
+            # Set log level to INFO to see more details
+            manager.logger.logger.setLevel(logging.INFO)
+            
             # Perform analysis
             if file_path:
+                manager.logger.info(f"🔍 Analyzing single file: {file_path}")
                 results = manager.analyze_file(file_path, threshold)
+                manager.logger.info(f"✨ Analysis complete for {file_path}")
             else:
+                manager.logger.info("🔍 Starting full project analysis...")
                 results = manager.analyze_all_files(threshold)
+                manager.logger.info(f"✨ Project analysis complete")
                 
             # Generate and save report
+            manager.logger.info("📝 Generating redundancy report...")
             report = manager.generate_redundancy_report(results)
             output_file = "redundancy_report.md"
             
@@ -209,7 +217,16 @@ def main():
             with open(output_file, 'w', encoding='utf-8') as f:
                 f.write(report)
                 
-            print(f"Analysis complete. Report saved to {output_file}")
+            # Show summary
+            stats = results.get('statistics', {})
+            manager.logger.success(
+                f"\n📊 Analysis Summary:\n"
+                f"   - Files analyzed: {stats.get('files_analyzed', 0)}\n"
+                f"   - Total paragraphs: {stats.get('total_paragraphs', 0)}\n"
+                f"   - Redundant paragraphs: {stats.get('redundant_paragraphs', 0)}\n"
+                f"   - Redundancy clusters: {stats.get('cluster_count', 0)}"
+            )
+            manager.logger.success(f"\n📄 Report saved to: {output_file}")
             
         elif subcommand == "add":
             # Parse file option
