@@ -1,3 +1,4 @@
+import os
 import chromadb
 import time
 from utils.logger import Logger
@@ -268,7 +269,44 @@ class RedundancyManager:
             FileNotFoundError: If file doesn't exist
             IOError: If file can't be read
         """
-        pass
+        try:
+            # Verify file exists and is readable
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(f"File not found: {file_path}")
+                
+            # Read and split file
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            paragraphs = self._split_into_paragraphs(content)
+            
+            # Initialize results
+            results = {
+                'redundant_paragraphs': [],
+                'matches': {},
+                'scores': {}
+            }
+            
+            # Analyze each paragraph
+            for position, paragraph in enumerate(paragraphs):
+                analysis = self.analyze_paragraph(paragraph, threshold)
+                
+                # If similar paragraphs found
+                if analysis['similar_paragraphs']:
+                    results['redundant_paragraphs'].append(paragraph)
+                    results['matches'][paragraph] = analysis['similar_paragraphs']
+                    results['scores'][paragraph] = analysis['similarity_scores']
+                    
+                    # Log findings
+                    self.logger.info(
+                        f"📝 Found {len(analysis['similar_paragraphs'])} similar paragraphs "
+                        f"for position {position} in {file_path}"
+                    )
+                    
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Failed to analyze file {file_path}: {str(e)}")
+            raise
 
     def analyze_all_files(self, threshold=0.85):
         """
@@ -286,7 +324,66 @@ class RedundancyManager:
         Note:
             Can be resource-intensive for large projects
         """
-        pass
+        try:
+            # Initialize results
+            results = {
+                'redundancy_clusters': [],
+                'cross_file_redundancies': [],
+                'statistics': {
+                    'total_paragraphs': 0,
+                    'redundant_paragraphs': 0,
+                    'files_analyzed': 0,
+                    'cluster_count': 0
+                }
+            }
+            
+            # Track processed paragraphs to avoid duplicates
+            processed = set()
+            
+            # Analyze each markdown and text file
+            for root, _, files in os.walk('.'):
+                for file in files:
+                    if file.endswith(('.md', '.txt')):
+                        file_path = os.path.join(root, file)
+                        
+                        # Analyze file
+                        analysis = self.analyze_file(file_path, threshold)
+                        results['statistics']['files_analyzed'] += 1
+                        
+                        # Process redundant paragraphs
+                        for paragraph in analysis['redundant_paragraphs']:
+                            if paragraph not in processed:
+                                processed.add(paragraph)
+                                
+                                # Create cluster
+                                cluster = {
+                                    'original': paragraph,
+                                    'matches': analysis['matches'][paragraph],
+                                    'scores': analysis['scores'][paragraph],
+                                    'files': [file_path]
+                                }
+                                
+                                # Add to appropriate category
+                                if any(m['file_path'] != file_path for m in analysis['sources']):
+                                    results['cross_file_redundancies'].append(cluster)
+                                results['redundancy_clusters'].append(cluster)
+                                
+                        # Update statistics
+                        results['statistics']['total_paragraphs'] += len(analysis['redundant_paragraphs'])
+                        results['statistics']['redundant_paragraphs'] += len(analysis['redundant_paragraphs'])
+                        
+            results['statistics']['cluster_count'] = len(results['redundancy_clusters'])
+            
+            self.logger.success(
+                f"✨ Analysis complete: Found {results['statistics']['redundant_paragraphs']} "
+                f"redundant paragraphs in {results['statistics']['cluster_count']} clusters"
+            )
+            
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Failed to analyze all files: {str(e)}")
+            raise
 
     def add_paragraph(self, paragraph, file_path, position):
         """
@@ -343,7 +440,28 @@ class RedundancyManager:
             FileNotFoundError: If file doesn't exist
             IOError: If file can't be read
         """
-        pass
+        try:
+            # Verify file exists and is readable
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(f"File not found: {file_path}")
+                
+            # Read file content
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            # Split into paragraphs
+            paragraphs = self._split_into_paragraphs(content)
+            
+            # Add each paragraph
+            for position, paragraph in enumerate(paragraphs):
+                self.add_paragraph(paragraph, file_path, position)
+                
+            self.logger.info(f"✨ Added {len(paragraphs)} paragraphs from {file_path}")
+            return len(paragraphs)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to add file {file_path}: {str(e)}")
+            raise
 
     def add_all_files(self):
         """
@@ -358,7 +476,46 @@ class RedundancyManager:
         Note:
             Clears existing collection before adding
         """
-        pass
+        try:
+            # Reset collection
+            self._reset_collection()
+            
+            # Initialize statistics
+            stats = {
+                'total_files': 0,
+                'total_paragraphs': 0,
+                'errors': []
+            }
+            
+            # Get all markdown and text files
+            for root, _, files in os.walk('.'):
+                for file in files:
+                    if file.endswith(('.md', '.txt')):
+                        file_path = os.path.join(root, file)
+                        try:
+                            paragraphs_added = self.add_file(file_path)
+                            stats['total_files'] += 1
+                            stats['total_paragraphs'] += paragraphs_added
+                        except Exception as e:
+                            stats['errors'].append({
+                                'file': file_path,
+                                'error': str(e)
+                            })
+                            
+            self.logger.success(
+                f"✨ Added {stats['total_paragraphs']} paragraphs "
+                f"from {stats['total_files']} files"
+            )
+            if stats['errors']:
+                self.logger.warning(
+                    f"⚠️ Failed to process {len(stats['errors'])} files"
+                )
+                
+            return stats
+            
+        except Exception as e:
+            self.logger.error(f"Failed to add all files: {str(e)}")
+            raise
 
     def generate_redundancy_report(self, analysis_results):
         """
@@ -376,4 +533,52 @@ class RedundancyManager:
         Note:
             Report format matches KinOS markdown conventions
         """
-        pass
+        try:
+            report = ["# Redundancy Analysis Report\n"]
+            
+            # Add summary section
+            stats = analysis_results['statistics']
+            report.append("## Summary\n")
+            report.append(f"- Files analyzed: {stats['files_analyzed']}")
+            report.append(f"- Total paragraphs: {stats['total_paragraphs']}")
+            report.append(f"- Redundant paragraphs: {stats['redundant_paragraphs']}")
+            report.append(f"- Redundancy clusters: {stats['cluster_count']}\n")
+            
+            # Add cross-file redundancies section
+            if analysis_results['cross_file_redundancies']:
+                report.append("## Cross-File Redundancies\n")
+                for cluster in analysis_results['cross_file_redundancies']:
+                    report.append(f"### Cluster (Similarity: {max(cluster['scores']):.2f})\n")
+                    report.append("**Original Content:**")
+                    report.append(f"```\n{cluster['original']}\n```\n")
+                    report.append("**Similar Content:**")
+                    for match, score in zip(cluster['matches'], cluster['scores']):
+                        report.append(f"- Similarity: {score:.2f}")
+                        report.append(f"```\n{match}\n```\n")
+                    report.append("**Files Affected:**")
+                    for file in cluster['files']:
+                        report.append(f"- {file}\n")
+                        
+            # Add all clusters section
+            report.append("## All Redundancy Clusters\n")
+            for i, cluster in enumerate(analysis_results['redundancy_clusters'], 1):
+                report.append(f"### Cluster {i} (Similarity: {max(cluster['scores']):.2f})\n")
+                report.append("**Original Content:**")
+                report.append(f"```\n{cluster['original']}\n```\n")
+                report.append("**Similar Content:**")
+                for match, score in zip(cluster['matches'], cluster['scores']):
+                    report.append(f"- Similarity: {score:.2f}")
+                    report.append(f"```\n{match}\n```\n")
+                    
+            # Add recommendations section
+            report.append("## Recommendations\n")
+            report.append("1. Review high-similarity clusters (>0.90) for potential consolidation")
+            report.append("2. Check cross-file redundancies for information fragmentation")
+            report.append("3. Consider updating documentation to reference single source of truth")
+            report.append("4. Evaluate lower similarity matches for potential restructuring\n")
+            
+            return "\n".join(report)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to generate report: {str(e)}")
+            raise
