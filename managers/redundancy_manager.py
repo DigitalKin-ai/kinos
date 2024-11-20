@@ -559,8 +559,21 @@ class RedundancyManager:
 
     def _should_ignore(self, file_path, ignore_patterns=None):
         """Check if file should be ignored based on patterns."""
-        # Always protect suivi.md
-        if file_path == 'suivi.md' or file_path.endswith('/suivi.md'):
+        # Critical system files to always protect
+        protected_files = {
+            'suivi.md',
+            'map.md', 
+            'todolist.md',
+            '.aider.mission.md',
+            'context.md'
+        }
+        
+        # Check for exact matches or path endings
+        if any(file_path == f or file_path.endswith(f'/{f}') for f in protected_files):
+            return True
+            
+        # Check .aider files
+        if '.aider.' in file_path:
             return True
             
         if ignore_patterns is None:
