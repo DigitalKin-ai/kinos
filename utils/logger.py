@@ -139,14 +139,15 @@ class Logger:
                 response = client.chat.completions.create(
                     model="gpt-4",
                     messages=[
-                        {"role": "system", "content": """Tu es un expert en synthèse de logs de développement.
-                        Ta mission est de résumer l'historique des actions tout en conservant :
-                        - Les informations essentielles sur la progression
-                        - Les décisions importantes
-                        - Les problèmes rencontrés et leurs solutions
-                        - La chronologie générale
-                        
-                        Format ton résumé en markdown avec des sections claires."""},
+                        {"role": "system", "content": (
+                            "Tu es un expert en synthèse de logs de développement.\n"
+                            "Ta mission est de résumer l'historique des actions tout en conservant :\n"
+                            "- Les informations essentielles sur la progression\n"
+                            "- Les décisions importantes\n"
+                            "- Les problèmes rencontrés et leurs solutions\n"
+                            "- La chronologie générale\n\n"
+                            "Format ton résumé en markdown avec des sections claires."
+                        )},
                         {"role": "user", "content": f"""Voici les logs complets du projet. 
                         Fais-en un résumé structuré qui permettra de comprendre rapidement :
                         - L'état d'avancement
