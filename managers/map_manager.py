@@ -43,6 +43,10 @@ class MapManager:
 
     def _should_ignore(self, file_path, ignore_patterns):
         """Check if file should be ignored based on patterns."""
+        # Always protect suivi.md
+        if file_path == 'suivi.md' or file_path.endswith('/suivi.md'):
+            return True
+            
         for pattern in ignore_patterns:
             if fnmatch.fnmatch(file_path, pattern):
                 return True
