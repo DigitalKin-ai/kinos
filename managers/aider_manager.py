@@ -245,13 +245,24 @@ class AiderManager:
     def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
         try:
+            # Extract agent name from cmd arguments
+            agent_filepath = None
+            for i, arg in enumerate(cmd):
+                if arg == '--read' and i + 1 < len(cmd):
+                    agent_filepath = cmd[i + 1]
+                    break
+            
+            agent_name = "unknown"
+            if agent_filepath:
+                agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
+
             # Get list of tracked files and their hashes before any aider runs
             initial_state = self._get_git_file_states()
 
             # First call - Production objective
             production_cmd = cmd.copy()
             production_cmd[-1] = production_cmd[-1] + "\nFocus on the production objective"
-            self.logger.info("🏭 Executing production-focused aider operation...")
+            self.logger.info(f"🏭 Executing production-focused aider operation for {agent_name} agent...")
             
             # Execute first aider call
             process = subprocess.Popen(
@@ -274,7 +285,7 @@ class AiderManager:
             # Second call - Role-specific objective
             role_cmd = cmd.copy()
             role_cmd[-1] = role_cmd[-1] + "\nFocus on the role-specific objective"
-            self.logger.info("👤 Executing role-specific aider operation...")
+            self.logger.info(f"👤 Executing {agent_name}-specific aider operation...")
             
             # Execute second aider call
             process = subprocess.Popen(
