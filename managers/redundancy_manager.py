@@ -529,11 +529,15 @@ class RedundancyManager:
             Clears existing collection before adding
         """
         try:
+            self.logger.info("🔄 Initializing redundancy database...")
+            
             # Reset collection
             self._reset_collection()
+            self.logger.info("✨ Database reset complete")
             
             # Get ignore patterns
             ignore_patterns = self._get_ignore_patterns()
+            self.logger.info(f"📋 Loaded {len(ignore_patterns)} ignore patterns")
             
             # Initialize statistics
             stats = {
@@ -541,6 +545,21 @@ class RedundancyManager:
                 'total_paragraphs': 0,
                 'errors': []
             }
+            
+            # Count total eligible files first
+            total_eligible_files = 0
+            for root, _, files in os.walk('.'):
+                for file in files:
+                    if file.endswith(('.md', '.txt')):
+                        file_path = os.path.join(root, file)
+                        rel_path = os.path.relpath(file_path, '.').replace(os.sep, '/')
+                        if not self._should_ignore(rel_path, ignore_patterns):
+                            total_eligible_files += 1
+            
+            self.logger.info(f"🔍 Found {total_eligible_files} eligible files to process")
+            
+            # Process files with progress tracking
+            current_file = 0
             
             # Get all markdown and text files
             for root, _, files in os.walk('.'):
@@ -552,30 +571,68 @@ class RedundancyManager:
                         
                         # Skip ignored files
                         if self._should_ignore(rel_path, ignore_patterns):
+                            self.logger.debug(f"⏩ Skipping ignored file: {rel_path}")
                             continue
+                        
+                        current_file += 1
+                        self.logger.info(f"📄 Processing file {current_file}/{total_eligible_files}: {rel_path}")
+                        
                         try:
+                            # Read file content first to catch encoding issues
+                            try:
+                                with open(file_path, 'r', encoding='utf-8') as f:
+                                    content = f.read()
+                                paragraphs = self._split_into_paragraphs(content)
+                                self.logger.info(f"📝 Found {len(paragraphs)} paragraphs in {rel_path}")
+                            except UnicodeDecodeError:
+                                self.logger.warning(f"⚠️ Encoding issue with {rel_path}, trying alternative encodings...")
+                                for encoding in ['latin-1', 'cp1252', 'iso-8859-1']:
+                                    try:
+                                        with open(file_path, 'r', encoding=encoding) as f:
+                                            content = f.read()
+                                        paragraphs = self._split_into_paragraphs(content)
+                                        self.logger.info(f"✅ Successfully read {rel_path} with {encoding} encoding")
+                                        break
+                                    except UnicodeDecodeError:
+                                        continue
+                                else:
+                                    raise ValueError(f"Could not read {rel_path} with any supported encoding")
+                            
+                            # Add paragraphs to database
                             paragraphs_added = self.add_file(file_path)
                             stats['total_files'] += 1
                             stats['total_paragraphs'] += paragraphs_added
+                            
+                            # Log progress percentage
+                            progress = (current_file / total_eligible_files) * 100
+                            self.logger.info(f"⏳ Progress: {progress:.1f}% ({current_file}/{total_eligible_files})")
+                            
                         except Exception as e:
+                            error_msg = f"❌ Error processing {rel_path}: {str(e)}"
+                            self.logger.error(error_msg)
                             stats['errors'].append({
                                 'file': file_path,
                                 'error': str(e)
                             })
                             
+            # Final summary
             self.logger.success(
-                f"✨ Added {stats['total_paragraphs']} paragraphs "
-                f"from {stats['total_files']} files"
+                f"✨ Database population complete:\n"
+                f"   - Processed {stats['total_files']}/{total_eligible_files} files\n"
+                f"   - Added {stats['total_paragraphs']} paragraphs\n"
+                f"   - Encountered {len(stats['errors'])} errors"
             )
+            
+            # Log any errors in detail
             if stats['errors']:
-                self.logger.warning(
-                    f"⚠️ Failed to process {len(stats['errors'])} files"
-                )
+                self.logger.warning("\n⚠️ Errors encountered:")
+                for error in stats['errors']:
+                    self.logger.warning(f"   - {error['file']}: {error['error']}")
                 
             return stats
             
         except Exception as e:
-            self.logger.error(f"Failed to add all files: {str(e)}")
+            self.logger.error(f"❌ Failed to add all files: {str(e)}")
             raise
 
     def generate_redundancy_report(self, analysis_results):
