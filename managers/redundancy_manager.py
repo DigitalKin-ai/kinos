@@ -661,9 +661,18 @@ class RedundancyManager:
 
     def _generate_section_filename(self, level, title, index):
         """Generate unique, well-ordered filenames for sections"""
-        # Clean title
+        import unicodedata
+        
+        # Normalize unicode characters
+        title = unicodedata.normalize('NFKD', title)
+        
+        # Remove accents but keep base characters
+        title = ''.join(c for c in title if not unicodedata.combining(c))
+        
+        # Clean remaining characters
         safe_title = "".join(c for c in title if c.isalnum() or c in (' -_')).strip()
         safe_title = safe_title.replace(' ', '_').lower()
+        
         if not safe_title:
             safe_title = 'section'
         
@@ -727,16 +736,19 @@ class RedundancyManager:
             status = subprocess.run(
                 ['git', 'ls-files', '--error-unmatch', original_file],
                 capture_output=True,
-                text=True
+                text=True,
+                encoding='utf-8'
             )
             
             if status.returncode == 0:  # File is tracked
                 # Remove original from git
                 subprocess.run(['git', 'rm', '-f', original_file], check=True)
                 
-                # Add new directory and files
+                # Add new directory and files with proper encoding
                 for new_file in new_files:
-                    subprocess.run(['git', 'add', new_file], check=True)
+                    # Ensure path is properly encoded
+                    encoded_path = new_file.encode('utf-8').decode('utf-8')
+                    subprocess.run(['git', 'add', encoded_path], check=True)
                     
                 # Create commit
                 msg = f"♻️ Split {original_file} into sections for better management"
@@ -746,9 +758,11 @@ class RedundancyManager:
                 if os.path.exists(original_file):
                     os.remove(original_file)
                 
-                # Add new files to git
+                # Add new files to git with proper encoding
                 for new_file in new_files:
-                    subprocess.run(['git', 'add', new_file], check=True)
+                    # Ensure path is properly encoded
+                    encoded_path = new_file.encode('utf-8').decode('utf-8')
+                    subprocess.run(['git', 'add', encoded_path], check=True)
                 
                 # Create commit
                 msg = f"♻️ Split {original_file} into sections for better management"
