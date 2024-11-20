@@ -302,7 +302,7 @@ class AiderManager:
             try:
                 self.logger.info(f"🚀 Pushing changes to GitHub...")
                 subprocess.run(['git', 'push'], check=True, capture_output=True, text=True)
-                self.logger.success(f"✨ Successfully pushed changes to GitHub")
+                self.logger.info(f"✨ Successfully pushed changes to GitHub")
             except subprocess.CalledProcessError as e:
                 self.logger.error(f"❌ Failed to push to GitHub: {e.stderr}")
                 # Continue execution even if push fails
