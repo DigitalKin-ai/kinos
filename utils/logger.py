@@ -136,14 +136,29 @@ class Logger:
         formatted_msg = self._get_agent_emoji(message)
         self.logger.warning(formatted_msg)
         
+    def fix_file_encoding(self, filepath):
+        """Fix encoding of an existing file."""
+        try:
+            # Try to read with latin-1 since that's how it was written
+            with open(filepath, 'r', encoding='latin-1') as f:
+                content = f.read()
+                
+            # Write back with utf-8
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(content)
+                self.logger.success(f"✅ Fixed encoding for {filepath}")
+                
+        except Exception as e:
+            self.logger.error(f"❌ Error fixing encoding for {filepath}: {str(e)}")
+        
     def _check_and_summarize_logs(self):
         """Check log file size and summarize if needed."""
         try:
             if not os.path.exists(self.suivi_file):
                 return
                 
-            # Always use latin-1 for suivi.md
-            with open(self.suivi_file, 'r', encoding='latin-1') as f:
+            # Use utf-8 for reading suivi.md
+            with open(self.suivi_file, 'r', encoding='utf-8') as f:
                 content = f.read()
                 
             if len(content) > 25000:
@@ -215,8 +230,8 @@ class Logger:
                 final_content += summary
                 final_content += "\n\n# Nouveaux logs\n\n"
                 
-                # Write new summary with latin-1 encoding for better French character support
-                with open(self.suivi_file, 'w', encoding='latin-1') as f:
+                # Write new summary with utf-8 encoding
+                with open(self.suivi_file, 'w', encoding='utf-8') as f:
                     f.write(final_content)
                     
                 self.logger.log(logging.SUCCESS, "✨ Suivi de mission résumé avec succès")
