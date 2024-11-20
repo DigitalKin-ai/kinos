@@ -1165,6 +1165,12 @@ class RedundancyManager:
                     continue
                     
                 file_path = source['file_path']
+            
+                # Skip suivi.md
+                if file_path == 'suivi.md' or file_path.endswith('/suivi.md'):
+                    self.logger.debug(f"⏩ Skipping protected file: {file_path}")
+                    continue
+                
                 try:
                     # Read file content
                     with open(file_path, 'r', encoding='utf-8') as f:
