@@ -261,22 +261,39 @@ class AiderManager:
             # Get list of tracked files and their hashes before any aider runs
             initial_state = self._get_git_file_states()
 
+            # Set up environment variables for Windows console
+            env = os.environ.copy()
+            env['PYTHONIOENCODING'] = 'utf-8'
+            env['TERM'] = 'xterm'
+            env['FORCE_COLOR'] = '1'
+            
+            # Create a new process group on Windows to handle console properly
+            startupinfo = None
+            if os.name == 'nt':  # Windows
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = subprocess.SW_HIDE
+
             # First call - Production objective
             production_cmd = cmd.copy()
             production_cmd[-1] = production_cmd[-1] + "\nFocus on the Production Objective"
             self.logger.info(f"🏭 Executing production-focused aider operation for {agent_name} agent...")
+            self.logger.debug(f"Executing production command: {' '.join(production_cmd)}")
             
             try:
-                # Use Popen instead of run for better control
+                # Use Popen with proper Windows console handling
                 process = subprocess.Popen(
                     production_cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
+                    stdin=subprocess.PIPE,  # Add stdin pipe
                     encoding='utf-8',
                     errors='replace',
-                    env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
-                    bufsize=1,  # Line buffered
-                    universal_newlines=True
+                    env=env,
+                    bufsize=1,
+                    universal_newlines=True,
+                    startupinfo=startupinfo,  # Add startupinfo for Windows
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0
                 )
                 
                 # Add process to cleanup list
@@ -330,11 +347,14 @@ class AiderManager:
                     role_cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
+                    stdin=subprocess.PIPE,  # Add stdin pipe
                     encoding='utf-8',
                     errors='replace',
-                    env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
+                    env=env,  # Use our configured env
                     bufsize=1,
-                    universal_newlines=True
+                    universal_newlines=True,
+                    startupinfo=startupinfo,  # Add startupinfo for Windows
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0
                 )
                 
                 processes.append(process)
@@ -382,11 +402,14 @@ class AiderManager:
                     final_cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
+                    stdin=subprocess.PIPE,  # Add stdin pipe
                     encoding='utf-8',
                     errors='replace',
-                    env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
+                    env=env,  # Use our configured env
                     bufsize=1,
-                    universal_newlines=True
+                    universal_newlines=True,
+                    startupinfo=startupinfo,  # Add startupinfo for Windows
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0
                 )
                 
                 processes.append(process)
