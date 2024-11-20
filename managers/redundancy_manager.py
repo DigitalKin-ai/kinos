@@ -924,7 +924,7 @@ class RedundancyManager:
         Delete duplicate content based on specified strategy.
         """
         try:
-            self.logger.info(f"🔍 Starting duplicate analysis with threshold {threshold}")
+            self.logger.info(f"🔍 Starting duplicate analysis (interactive={interactive}, threshold={threshold})")
             if dry_run:
                 self.logger.info("🏃 DRY RUN MODE - No changes will be made")
             if interactive:
@@ -938,10 +938,31 @@ class RedundancyManager:
                 self._initialize_chroma()
                 self.logger.info("✅ ChromaDB initialized successfully")
 
+            # Check if database has any content
+            try:
+                count = len(self.collection.get()['ids'])
+                self.logger.info(f"📊 Found {count} documents in database")
+                if count == 0:
+                    self.logger.info("⚠️ Database is empty. Please run 'kin redundancy add' first")
+                    return {'files_modified': 0, 'duplicates_removed': 0, 'errors': []}
+            except Exception as e:
+                self.logger.error(f"Error checking database content: {str(e)}")
+                raise
+
             # Get all duplicates with detailed logging
-            self.logger.info("📊 Starting file analysis...")
+            self.logger.info("🔍 Starting file analysis...")
             results = self.analyze_all_files(threshold=threshold)
             self.logger.info(f"📈 Analysis complete - Found {len(results.get('redundancy_clusters', []))} clusters")
+
+            # Log detailed cluster information
+            if results.get('redundancy_clusters'):
+                self.logger.info("\n=== Cluster Details ===")
+                for i, cluster in enumerate(results['redundancy_clusters'], 1):
+                    self.logger.info(f"\nCluster {i}:")
+                    self.logger.info(f"- Similarity scores: {cluster['scores']}")
+                    self.logger.info(f"- Files affected: {cluster['files']}")
+            else:
+                self.logger.info("⚠️ No redundancy clusters found in results")
             
             # Log detailed cluster information
             if results.get('redundancy_clusters'):
