@@ -53,6 +53,19 @@ class MapManager:
         ignore_patterns = self._get_ignore_patterns()
         available_files = []
         
+        # Track folders to check for duplicate files
+        folder_names = set()
+        files_to_remove = []
+        
+        # First pass: collect folder names
+        for root, dirs, _ in os.walk('.'):
+            for dir_name in dirs:
+                folder_path = os.path.join(root, dir_name)
+                # Convert to relative path with forward slashes
+                rel_folder_path = os.path.relpath(folder_path, '.').replace(os.sep, '/')
+                folder_names.add(rel_folder_path)
+        
+        # Second pass: collect files and check for duplicates
         for root, dirs, files in os.walk('.'):
             # Remove ignored directories to prevent walking into them
             dirs[:] = [d for d in dirs if not any(
@@ -67,8 +80,22 @@ class MapManager:
                 
                 # Skip files matching ignore patterns
                 if not any(fnmatch.fnmatch(rel_path, pattern) for pattern in ignore_patterns):
-                    available_files.append(rel_path)
-                    
+                    # Check if there's a folder with the same name (without extension)
+                    file_base = os.path.splitext(rel_path)[0]
+                    if file_base in folder_names:
+                        self.logger.warning(f"⚠️ Found file '{rel_path}' that has same name as folder - will be removed")
+                        files_to_remove.append(file_path)
+                    else:
+                        available_files.append(rel_path)
+        
+        # Remove duplicate files
+        for file_to_remove in files_to_remove:
+            try:
+                os.remove(file_to_remove)
+                self.logger.success(f"🗑️ Removed duplicate file: {file_to_remove}")
+            except Exception as e:
+                self.logger.error(f"❌ Failed to remove duplicate file {file_to_remove}: {str(e)}")
+        
         return sorted(available_files)  # Sort for consistent output
 
     def generate_map(self, mission_filepath=".aider.mission.md", 
