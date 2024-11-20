@@ -98,18 +98,24 @@ class RedundancyManager:
 
     def _split_into_paragraphs(self, text):
         """
-        Split text content into meaningful paragraphs.
+        Split text content into meaningful paragraphs using newlines.
         
         Args:
             text (str): Raw text content to split
             
         Returns:
             list: List of paragraph strings
-            
-        Note:
-            Handles various paragraph separators and edge cases
         """
-        pass
+        if not text:
+            return []
+            
+        # Split on double newlines to preserve paragraph structure
+        paragraphs = [p.strip() for p in text.split('\n\n')]
+        
+        # Filter out empty paragraphs and normalize single newlines
+        paragraphs = [p.replace('\n', ' ') for p in paragraphs if p.strip()]
+        
+        return paragraphs
 
     def _clean_paragraph(self, paragraph):
         """
@@ -120,11 +126,20 @@ class RedundancyManager:
             
         Returns:
             str: Cleaned and normalized text
-            
-        Note:
-            Removes excess whitespace, normalizes punctuation, etc.
         """
-        pass
+        if not paragraph:
+            return ""
+            
+        # Basic cleaning
+        cleaned = paragraph.strip()
+        
+        # Normalize whitespace
+        cleaned = ' '.join(cleaned.split())
+        
+        # Remove common punctuation that doesn't affect meaning
+        cleaned = cleaned.replace('  ', ' ')
+        
+        return cleaned
 
     def _generate_metadata(self, paragraph, file_path, position):
         """
@@ -157,7 +172,55 @@ class RedundancyManager:
         Raises:
             ValueError: If paragraph is empty or invalid
         """
-        pass
+        if not paragraph:
+            raise ValueError("Empty paragraph provided")
+            
+        # Clean input paragraph
+        cleaned_paragraph = self._clean_paragraph(paragraph)
+        if not cleaned_paragraph:
+            raise ValueError("Paragraph contains no content after cleaning")
+            
+        try:
+            # Ensure collection exists
+            if not self.collection:
+                self._initialize_chroma()
+                
+            # Query collection for similar paragraphs
+            results = self.collection.query(
+                query_texts=[cleaned_paragraph],
+                n_results=5,  # Get top 5 matches
+                where=None,  # No filtering
+                include=["documents", "metadatas", "distances"]
+            )
+            
+            # Process results
+            similar_paragraphs = []
+            similarity_scores = []
+            sources = []
+            
+            if results['documents']:
+                for doc, meta, distance in zip(
+                    results['documents'][0],  # First query results
+                    results['metadatas'][0],
+                    results['distances'][0]
+                ):
+                    # Convert distance to similarity score (cosine similarity)
+                    similarity = 1 - (distance / 2)  # Convert to 0-1 range
+                    
+                    if similarity >= threshold:
+                        similar_paragraphs.append(doc)
+                        similarity_scores.append(similarity)
+                        sources.append(meta)
+                        
+            return {
+                'similarity_scores': similarity_scores,
+                'similar_paragraphs': similar_paragraphs,
+                'sources': sources
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error analyzing paragraph: {str(e)}")
+            raise
 
     def analyze_file(self, file_path, threshold=0.85):
         """
