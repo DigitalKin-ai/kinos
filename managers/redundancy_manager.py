@@ -932,9 +932,26 @@ class RedundancyManager:
             if auto_mode:
                 self.logger.info(f"🤖 AUTO MODE - Using '{keep_strategy}' strategy")
 
-            # Get all duplicates
-            self.logger.info("📊 Analyzing files for duplicates...")
+            # Initialize ChromaDB if needed
+            if not self.collection:
+                self.logger.info("🔄 Initializing ChromaDB...")
+                self._initialize_chroma()
+                self.logger.info("✅ ChromaDB initialized successfully")
+
+            # Get all duplicates with detailed logging
+            self.logger.info("📊 Starting file analysis...")
             results = self.analyze_all_files(threshold=threshold)
+            self.logger.info(f"📈 Analysis complete - Found {len(results.get('redundancy_clusters', []))} clusters")
+            
+            # Log detailed cluster information
+            if results.get('redundancy_clusters'):
+                self.logger.info("\n=== Cluster Details ===")
+                for i, cluster in enumerate(results['redundancy_clusters'], 1):
+                    self.logger.info(f"\nCluster {i}:")
+                    self.logger.info(f"- Similarity scores: {cluster['scores']}")
+                    self.logger.info(f"- Files affected: {cluster['files']}")
+            else:
+                self.logger.info("⚠️ No redundancy clusters found in results")
             
             stats = {
                 'files_modified': 0,

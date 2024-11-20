@@ -281,7 +281,7 @@ def main():
                 dry_run = "--dry-run" in sys.argv
                 interactive = "--interactive" in sys.argv
                 threshold = 0.95  # Default threshold for auto mode
-                
+                    
                 if "--threshold" in sys.argv:
                     try:
                         threshold_index = sys.argv.index("--threshold") + 1
@@ -289,12 +289,17 @@ def main():
                     except (IndexError, ValueError):
                         print("Invalid value for --threshold")
                         sys.exit(1)
-                
+                    
                 # Set strategy for which version to keep
                 keep_strategy = "longest"  # Default strategy
                 if "--keep-first" in sys.argv:
                     keep_strategy = "first"
-                    
+                        
+                # Set verbose logging if requested
+                if "--verbose" in sys.argv:
+                    manager.logger.logger.setLevel(logging.DEBUG)
+                    print("🔍 Verbose logging enabled")
+                        
                 # Perform deletion
                 if not any([auto_mode, interactive]):
                     print("Please specify either --auto or --interactive mode")
@@ -305,6 +310,7 @@ def main():
                     print("  --keep-longest Keep longest version (default)")
                     print("  --keep-first   Keep first occurrence")
                     print("  --dry-run      Show what would be deleted without making changes")
+                    print("  --verbose      Show detailed debug information")
                     sys.exit(1)
                     
                 results = manager.delete_duplicates(
