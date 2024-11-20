@@ -165,16 +165,16 @@ class Logger:
                 
                 summary = response.choices[0].message.content
                 
-                # Log le résumé en SUCCESS
-                self.logger.log(logging.SUCCESS, "\n🔍 Suivi de mission :\n")
-                # Add empty line before content
-                self.logger.log(logging.SUCCESS, "")
+                # Create single formatted message with proper indentation
+                formatted_summary = "\n🔍 Suivi de mission :\n\n"
                 for line in summary.split('\n'):
-                    # Add proper indentation and handle empty lines
                     if line.strip():
-                        self.logger.log(logging.SUCCESS, f"    {line}")
+                        formatted_summary += f"    {line}\n"
                     else:
-                        self.logger.log(logging.SUCCESS, "")
+                        formatted_summary += "\n"
+                        
+                # Log everything as a single message
+                self.logger.log(logging.SUCCESS, formatted_summary)
                 
                 # Add header to summary
                 final_content = "# Résumé des logs précédents\n\n"
