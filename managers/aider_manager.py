@@ -264,69 +264,96 @@ class AiderManager:
             production_cmd[-1] = production_cmd[-1] + "\nFocus on the production objective"
             self.logger.info(f"🏭 Executing production-focused aider operation for {agent_name} agent...")
             
-            # Execute first aider call with timeout
-            process = subprocess.run(
-                production_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding='utf-8',
-                errors='replace',
-                env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
-                timeout=300  # 5 minute timeout
-            )
-
-            if process.returncode != 0:
-                self.logger.error(f"Production aider process failed with return code {process.returncode}")
-                raise subprocess.CalledProcessError(process.returncode, production_cmd, process.stdout, process.stderr)
-
-        except subprocess.TimeoutExpired:
-            self.logger.error("Production aider process timed out")
-            raise
-
-            # Get intermediate state after first call
-            intermediate_state = self._get_git_file_states()
+            try:
+                process = subprocess.run(
+                    production_cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    encoding='utf-8',
+                    errors='replace',
+                    env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
+                    timeout=300
+                )
+                if process.returncode != 0:
+                    self.logger.error(f"Production aider process failed with return code {process.returncode}")
+                    raise subprocess.CalledProcessError(process.returncode, production_cmd, process.stdout, process.stderr)
+            except subprocess.TimeoutExpired:
+                self.logger.error("Production aider process timed out")
+                raise
+            
+            # Get state after first call
+            first_state = self._get_git_file_states()
 
             # Second call - Role-specific objective
             role_cmd = cmd.copy()
             role_cmd[-1] = role_cmd[-1] + "\nFocus on the role-specific objective"
             self.logger.info(f"👤 Executing {agent_name}-specific aider operation...")
             
-            # Execute second aider call with timeout
-            process = subprocess.run(
-                role_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding='utf-8',
-                errors='replace',
-                env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
-                timeout=300  # 5 minute timeout
-            )
+            try:
+                process = subprocess.run(
+                    role_cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    encoding='utf-8',
+                    errors='replace',
+                    env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
+                    timeout=300
+                )
+                if process.returncode != 0:
+                    self.logger.error(f"Role-specific aider process failed with return code {process.returncode}")
+                    raise subprocess.CalledProcessError(process.returncode, role_cmd, process.stdout, process.stderr)
+            except subprocess.TimeoutExpired:
+                self.logger.error("Role-specific aider process timed out")
+                raise
 
-            if process.returncode != 0:
-                self.logger.error(f"Role-specific aider process failed with return code {process.returncode}")
-                raise subprocess.CalledProcessError(process.returncode, role_cmd, process.stdout, process.stderr)
+            # Get state after second call
+            second_state = self._get_git_file_states()
 
-        except subprocess.TimeoutExpired:
-            self.logger.error("Role-specific aider process timed out")
-            raise
+            # Third call - Check for additional changes
+            final_cmd = cmd.copy()
+            final_cmd[-1] = final_cmd[-1] + "\n--> Any additional changes required?"
+            self.logger.info(f"🔍 Checking for additional changes needed for {agent_name} agent...")
+            
+            try:
+                process = subprocess.run(
+                    final_cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    encoding='utf-8',
+                    errors='replace',
+                    env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
+                    timeout=300
+                )
+                if process.returncode != 0:
+                    self.logger.error(f"Final check aider process failed with return code {process.returncode}")
+                    raise subprocess.CalledProcessError(process.returncode, final_cmd, process.stdout, process.stderr)
+            except subprocess.TimeoutExpired:
+                self.logger.error("Final check aider process timed out")
+                raise
 
-            # Get final state after both calls
+            # Get final state after all calls
             final_state = self._get_git_file_states()
 
-            # Find all modified files across both operations
+            # Find all modified files across all operations
             modified_files = set()
             
             # Check for files modified in first operation
-            production_modified = self._get_modified_files(initial_state, intermediate_state)
+            production_modified = self._get_modified_files(initial_state, first_state)
             if production_modified:
                 self.logger.info(f"📝 Production phase modified {len(production_modified)} files")
                 modified_files.update(production_modified)
                 
             # Check for files modified in second operation
-            role_modified = self._get_modified_files(intermediate_state, final_state)
+            role_modified = self._get_modified_files(first_state, second_state)
             if role_modified:
                 self.logger.info(f"📝 Role-specific phase modified {len(role_modified)} files")
                 modified_files.update(role_modified)
+
+            # Check for files modified in final operation
+            final_modified = self._get_modified_files(second_state, final_state)
+            if final_modified:
+                self.logger.info(f"📝 Final check phase modified {len(final_modified)} files")
+                modified_files.update(final_modified)
 
             # Update global map for all modified files
             if modified_files:
@@ -334,7 +361,6 @@ class AiderManager:
                 map_manager = MapManager()
                 for file_path in modified_files:
                     try:
-                        # Ensure file path is properly encoded
                         file_path = file_path.encode('latin1').decode('utf-8')
                         self.logger.info(f"🔄 Updating global map for: {file_path}")
                         map_manager.update_global_map(file_path)
