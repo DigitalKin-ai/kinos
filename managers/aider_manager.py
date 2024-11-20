@@ -114,7 +114,7 @@ class AiderManager:
             cmd.extend(['--file', context_file])
             
         # Add global map as read-only
-        cmd.extend(['--read', agent_filepath.replace('.aider.agent.', '.aider.map.')])
+        cmd.extend(['--read', 'map.md'])
 
         # Add agent prompt as read-only
         cmd.extend(['--read', agent_filepath])
