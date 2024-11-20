@@ -212,6 +212,28 @@ Format as a simple markdown list under a "# Context Map" heading.
 """
 
 
+    def _remove_file_from_map(self, filepath):
+        """Remove a file entry from the map."""
+        try:
+            map_path = "map.md"
+            if not os.path.exists(map_path):
+                return
+
+            updated_lines = []
+            with open(map_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+                
+            # Keep all lines except the one starting with filepath
+            updated_lines = [line for line in lines if not line.strip().startswith(filepath)]
+                
+            # Write updated map if content changed
+            if len(updated_lines) != len(lines):
+                with open(map_path, 'w', encoding='utf-8') as f:
+                    f.writelines(updated_lines)
+                    
+        except Exception as e:
+            self.logger.debug(f"Could not remove {filepath} from map: {str(e)}")
+
     def _save_map(self, filepath, content):
         """Save context map content to file."""
         try:
@@ -465,6 +487,12 @@ Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file 
     def _update_map_file(self, filepath, token_count, summary):
         """Update map.md with new file summary."""
         try:
+            # First check if file exists, if not just return silently
+            if not os.path.exists(filepath):
+                # Remove entry from map if it exists
+                self._remove_file_from_map(filepath)
+                return
+
             map_path = "map.md"
             updated_lines = []
             file_entry = f"{filepath} ({token_count} tokens) {summary}"
