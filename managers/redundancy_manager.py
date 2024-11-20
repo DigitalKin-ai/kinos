@@ -760,7 +760,7 @@ class RedundancyManager:
 
     def _save_section(self, dir_name, level, title, content, index):
         """
-        Save a section to its own file, handling duplicates.
+        Save a section to its own file, removing duplicates with same title.
         
         Args:
             dir_name (str): Directory to save section in
@@ -770,7 +770,7 @@ class RedundancyManager:
             index (int): Section index for ordering
             
         Returns:
-            str: Path to saved file, or None if validation failed
+            str: Path to saved file, or None if validation failed or duplicate title
         """
         # Validate content
         if not self._validate_section_content(content):
@@ -782,37 +782,17 @@ class RedundancyManager:
         file_path = os.path.join(dir_name, filename)
         
         # Check for existing file with same title
-        existing_files = []
         for existing_file in os.listdir(dir_name):
             if existing_file.endswith(f"_{title.lower().replace(' ', '_')}.md"):
-                existing_files.append(os.path.join(dir_name, existing_file))
-        
-        # Compare content with existing files
-        new_content = '\n'.join(content).strip()
-        for existing_file in existing_files:
-            try:
-                with open(existing_file, 'r', encoding='utf-8') as f:
-                    existing_content = f.read().strip()
-                    
-                if existing_content == new_content:
-                    self.logger.warning(
-                        f"⚠️ Duplicate section '{title}' detected - content identical, skipping"
-                    )
-                    return None
-                    
-                # If content is different but title is same, create new file with incremented index
-                index += 1
-                filename = self._generate_section_filename(level, title, index)
-                file_path = os.path.join(dir_name, filename)
-                
-            except Exception as e:
-                self.logger.error(f"Error checking duplicate content: {str(e)}")
+                self.logger.warning(
+                    f"⚠️ Duplicate section '{title}' detected - removing duplicate content"
+                )
                 return None
         
-        # Write new content
+        # Write new content if no duplicate title found
         try:
             with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(new_content)
+                f.write('\n'.join(content))
             return file_path
         except Exception as e:
             self.logger.error(f"Error saving section: {str(e)}")
