@@ -784,7 +784,7 @@ class RedundancyManager:
                                 if original_file in content:
                                     new_content = content.replace(
                                         original_file, 
-                                        f"{os.path.splitext(original_file)[0]}/README.md"
+                                        f"{os.path.splitext(original_file)[0]}/"  # Just point to directory
                                     )
                                     with open(file_path, 'w', encoding=encoding) as f:
                                         f.write(new_content)
