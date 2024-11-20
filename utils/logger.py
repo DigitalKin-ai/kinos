@@ -21,10 +21,7 @@ class Logger:
         if not openai.api_key:
             raise ValueError("OpenAI API key not found in environment variables")
             
-        # Initialize suivi file path
-        self.suivi_file = 'suivi.md'
-        
-        # Add file handler for suivi.md - ONLY for SUCCESS level and above
+        # Initialize suivi file path and handler
         self.suivi_file = 'suivi.md'
         file_formatter = logging.Formatter('%(asctime)s - %(message)s',
                                          datefmt='%Y-%m-%d %H:%M:%S')
