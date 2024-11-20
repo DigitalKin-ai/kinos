@@ -308,6 +308,18 @@ Format as a simple markdown list under a "# Context Map" heading.
     def update_global_map(self, modified_file_path):
         """Update global map with latest file summary after a commit."""
         try:
+            # First decode the path if it's already encoded
+            if isinstance(modified_file_path, str):
+                # Remove any extra quotes
+                modified_file_path = modified_file_path.strip('"')
+                # Normalize path encoding
+                try:
+                    # Try to decode if it's encoded
+                    modified_file_path = bytes(modified_file_path, 'utf-8').decode('unicode-escape')
+                except:
+                    # If decoding fails, use the path as-is
+                    pass
+
             # First check if file needs splitting
             from managers.redundancy_manager import RedundancyManager
             redundancy_mgr = RedundancyManager()

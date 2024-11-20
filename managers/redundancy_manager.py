@@ -732,6 +732,10 @@ class RedundancyManager:
     def _update_git(self, original_file, new_files):
         """Handle git operations for split files"""
         try:
+            # Normalize file paths
+            original_file = original_file.strip('"')
+            new_files = [f.strip('"') for f in new_files]
+            
             # First check if file is tracked by git
             status = subprocess.run(
                 ['git', 'ls-files', '--error-unmatch', original_file],
@@ -746,9 +750,12 @@ class RedundancyManager:
                 
                 # Add new directory and files with proper encoding
                 for new_file in new_files:
-                    # Ensure path is properly encoded
-                    encoded_path = new_file.encode('utf-8').decode('utf-8')
-                    subprocess.run(['git', 'add', encoded_path], check=True)
+                    # Normalize path encoding
+                    try:
+                        new_file = bytes(new_file, 'utf-8').decode('unicode-escape')
+                    except:
+                        pass
+                    subprocess.run(['git', 'add', new_file], check=True)
                     
                 # Create commit
                 msg = f"♻️ Split {original_file} into sections for better management"
@@ -758,11 +765,14 @@ class RedundancyManager:
                 if os.path.exists(original_file):
                     os.remove(original_file)
                 
-                # Add new files to git with proper encoding
+                # Add new files to git
                 for new_file in new_files:
-                    # Ensure path is properly encoded
-                    encoded_path = new_file.encode('utf-8').decode('utf-8')
-                    subprocess.run(['git', 'add', encoded_path], check=True)
+                    # Normalize path encoding
+                    try:
+                        new_file = bytes(new_file, 'utf-8').decode('unicode-escape')
+                    except:
+                        pass
+                    subprocess.run(['git', 'add', new_file], check=True)
                 
                 # Create commit
                 msg = f"♻️ Split {original_file} into sections for better management"
