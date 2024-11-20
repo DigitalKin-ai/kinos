@@ -20,6 +20,9 @@ class Logger:
         openai.api_key = os.getenv('OPENAI_API_KEY')
         if not openai.api_key:
             raise ValueError("OpenAI API key not found in environment variables")
+            
+        # Initialize suivi file path
+        self.suivi_file = 'suivi.md'
         
         # Add file handler for suivi.md - ONLY for SUCCESS level and above
         self.suivi_file = 'suivi.md'
