@@ -296,10 +296,20 @@ class AiderManager:
         # Get final state and handle post-aider operations
         final_state = self._get_git_file_states()
         modified_files = self._handle_post_aider(agent_name, initial_state, final_state, phase_name)
-        
+    
+        # Push changes to GitHub if files were modified
+        if modified_files:
+            try:
+                self.logger.info(f"🚀 Pushing changes to GitHub...")
+                subprocess.run(['git', 'push'], check=True, capture_output=True, text=True)
+                self.logger.success(f"✨ Successfully pushed changes to GitHub")
+            except subprocess.CalledProcessError as e:
+                self.logger.error(f"❌ Failed to push to GitHub: {e.stderr}")
+                # Continue execution even if push fails
+    
         phase_end = time.time()
         self.logger.info(f"✨ Agent {agent_name} completed {phase_name} phase in {phase_end - phase_start:.2f} seconds")
-        
+    
         return modified_files, final_state
 
     def _execute_aider(self, cmd):
