@@ -246,9 +246,59 @@ class AiderManager:
         
         return modified_files
 
+    def _handle_post_aider(self, agent_name, before_state, after_state, phase_name):
+        """Handle all post-aider operations for a single phase."""
+        modified_files = self._get_modified_files(before_state, after_state)
+        if modified_files:
+            self.logger.info(f"📝 Agent {agent_name} {phase_name} phase modified {len(modified_files)} files")
+            map_manager = MapManager()
+            for file_path in modified_files:
+                try:
+                    file_path = file_path.encode('latin1').decode('utf-8')
+                    self.logger.info(f"🔄 Agent {agent_name} updating global map for: {file_path}")
+                    map_manager.update_global_map(file_path)
+                    self.logger.debug(f"✅ Agent {agent_name} successfully updated map for: {file_path}")
+                except Exception as e:
+                    self.logger.error(f"❌ Agent {agent_name} failed to update map for {file_path}: {str(e)}")
+        return modified_files
+
+    def _run_aider_phase(self, cmd, agent_name, phase_name, phase_prompt):
+        """Run a single aider phase and handle its results."""
+        phase_start = time.time()
+        self.logger.info(f"{phase_name} Agent {agent_name} starting phase at {phase_start}")
+        
+        # Prepare command with phase-specific prompt
+        phase_cmd = cmd.copy()
+        phase_cmd[-1] = phase_cmd[-1] + f"\n{phase_prompt}"
+        
+        # Get initial state
+        initial_state = self._get_git_file_states()
+        
+        # Execute aider
+        process = subprocess.Popen(
+            phase_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding='utf-8',
+            errors='replace'
+        )
+        stdout, stderr = process.communicate()
+        
+        if process.returncode != 0:
+            self.logger.error(f"{phase_name} process failed with return code {process.returncode}")
+            raise subprocess.CalledProcessError(process.returncode, phase_cmd, stdout, stderr)
+
+        # Get final state and handle post-aider operations
+        final_state = self._get_git_file_states()
+        modified_files = self._handle_post_aider(agent_name, initial_state, final_state, phase_name)
+        
+        phase_end = time.time()
+        self.logger.info(f"✨ Agent {agent_name} completed {phase_name} phase in {phase_end - phase_start:.2f} seconds")
+        
+        return modified_files, final_state
+
     def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
-        map_manager = None
         try:
             # Extract agent name from cmd arguments
             agent_name = None
@@ -261,116 +311,36 @@ class AiderManager:
             start_time = time.time()
             self.logger.info(f"⏳ Agent {agent_name} starting aider execution at {start_time}")
 
-            # Get initial state
-            initial_state = self._get_git_file_states()
-
-            # First call - Production objective
-            phase_start = time.time()
-            self.logger.info(f"🏭 Agent {agent_name} starting production phase at {phase_start}")
-            production_cmd = cmd.copy()
-            production_cmd[-1] = production_cmd[-1] + "\nFocus on the Production Objective"
-            self.logger.debug(f"Agent {agent_name} executing production command: {' '.join(production_cmd)}")
-            
-            process = subprocess.Popen(
-                production_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding='utf-8',
-                errors='replace'
+            # Run production phase
+            production_files, production_state = self._run_aider_phase(
+                cmd, agent_name, "🏭 Production", 
+                "Focus on the Production Objective"
             )
-            stdout, stderr = process.communicate()
-            
-            if process.returncode != 0:
-                self.logger.error(f"Production process failed with return code {process.returncode}")
-                raise subprocess.CalledProcessError(process.returncode, production_cmd, stdout, stderr)
 
-            phase_end = time.time()
-            self.logger.info(f"✨ Agent {agent_name} completed production phase in {phase_end - phase_start:.2f} seconds")
-
-            # Get state after first call
-            first_state = self._get_git_file_states()
-
-            # Second call - Role-specific objective
-            phase_start = time.time()
-            self.logger.info(f"👤 Agent {agent_name} starting role-specific phase at {phase_start}")
-            role_cmd = cmd.copy()
-            role_cmd[-1] = role_cmd[-1] + "\nFocus on the Role-specific Objective"
-            
-            process = subprocess.Popen(
-                role_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding='utf-8',
-                errors='replace'
+            # Run role-specific phase
+            role_files, role_state = self._run_aider_phase(
+                cmd, agent_name, "👤 Role-specific",
+                "Focus on the Role-specific Objective"
             )
-            stdout, stderr = process.communicate()
-            
-            if process.returncode != 0:
-                self.logger.error(f"Role-specific process failed with return code {process.returncode}")
-                raise subprocess.CalledProcessError(process.returncode, role_cmd, stdout, stderr)
 
-            phase_end = time.time()
-            self.logger.info(f"✨ Agent {agent_name} completed role-specific phase in {phase_end - phase_start:.2f} seconds")
+            # Run final check phase
+            final_files, final_state = self._run_aider_phase(
+                cmd, agent_name, "🔍 Final Check",
+                "--> Any additional changes required?"
+            )
 
-            # Get state after second call
-            second_state = self._get_git_file_states()
-
-            # Log total duration 
+            # Log total duration and summary
             total_duration = time.time() - start_time
             self.logger.info(f"🎯 Agent {agent_name} completed total aider execution in {total_duration:.2f} seconds")
-
-            # Third call - Check for additional changes
-            final_cmd = cmd.copy()
-            final_cmd[-1] = final_cmd[-1] + "\n--> Any additional changes required?"
-            self.logger.info(f"🔍 Agent {agent_name} checking for additional changes needed...")
             
-            process = subprocess.Popen(
-                final_cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                encoding='utf-8',
-                errors='replace'
-            )
-            stdout, stderr = process.communicate()
+            # Combine all modified files
+            all_modified = set()
+            all_modified.update(production_files or [])
+            all_modified.update(role_files or [])
+            all_modified.update(final_files or [])
             
-            if process.returncode != 0:
-                self.logger.error(f"Final check process failed with return code {process.returncode}")
-                raise subprocess.CalledProcessError(process.returncode, final_cmd, stdout, stderr)
-
-            # Get final state
-            final_state = self._get_git_file_states()
-
-            # Find all modified files across all operations
-            modified_files = set()
-            
-            # Check for files modified in each phase
-            production_modified = self._get_modified_files(initial_state, first_state)
-            if production_modified:
-                self.logger.info(f"📝 Agent {agent_name} production phase modified {len(production_modified)} files")
-                modified_files.update(production_modified)
-                
-            role_modified = self._get_modified_files(first_state, second_state)
-            if role_modified:
-                self.logger.info(f"📝 Agent {agent_name} role-specific phase modified {len(role_modified)} files")
-                modified_files.update(role_modified)
-
-            final_modified = self._get_modified_files(second_state, final_state)
-            if final_modified:
-                self.logger.info(f"📝 Agent {agent_name} final check phase modified {len(final_modified)} files")
-                modified_files.update(final_modified)
-
-            # Update global map for all modified files
-            if modified_files:
-                self.logger.info(f"📝 Agent {agent_name} modified total of {len(modified_files)} files")
-                map_manager = MapManager()
-                for file_path in modified_files:
-                    try:
-                        file_path = file_path.encode('latin1').decode('utf-8')
-                        self.logger.info(f"🔄 Agent {agent_name} updating global map for: {file_path}")
-                        map_manager.update_global_map(file_path)
-                        self.logger.debug(f"✅ Agent {agent_name} successfully updated map for: {file_path}")
-                    except Exception as e:
-                        self.logger.error(f"❌ Agent {agent_name} failed to update map for {file_path}: {str(e)}")
+            if all_modified:
+                self.logger.info(f"📝 Agent {agent_name} modified total of {len(all_modified)} files")
 
         except Exception as e:
             agent_msg = f"Agent {agent_name} " if agent_name else ""
