@@ -128,7 +128,15 @@ class AiderManager:
         Returns:
             tuple: (type, emoji)
         """
-        commit_types = {
+        try:
+            # Decode commit message if it's bytes
+            if isinstance(commit_msg, bytes):
+                commit_msg = commit_msg.decode('utf-8')
+                
+            # Fix potential encoding issues
+            commit_msg = commit_msg.encode('latin1').decode('utf-8')
+            
+            commit_types = {
             # Core Changes
             'feat': '✨',
             'fix': '🐛',
@@ -187,6 +195,10 @@ class AiderManager:
                 
         # Default to other
         return "other", "🔨"
+        
+    except UnicodeError as e:
+        self.logger.warning(f"⚠️ Encoding issue with commit message: {str(e)}")
+        return "other", "🔨"
 
     def _get_git_file_states(self):
         """Get dictionary of tracked files and their current hash."""
@@ -236,14 +248,15 @@ class AiderManager:
             before_state = self._get_git_file_states()
             self.logger.debug(f"File states before aider: {before_state}")
 
-            # Execute aider
+            # Execute aider with explicit UTF-8 encoding
             self.logger.debug(f"🤖 Starting aider execution with command: {' '.join(cmd)}")
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 encoding='utf-8',
-                errors='replace'
+                errors='replace',
+                env={**os.environ, 'PYTHONIOENCODING': 'utf-8'}
             )
             stdout, stderr = process.communicate()
 
@@ -263,6 +276,8 @@ class AiderManager:
                 map_manager = MapManager()
                 for file_path in modified_files:
                     try:
+                        # Ensure file path is properly encoded
+                        file_path = file_path.encode('latin1').decode('utf-8')
                         self.logger.info(f"🔄 Updating global map for: {file_path}")
                         map_manager.update_global_map(file_path)
                         self.logger.debug(f"✅ Successfully updated map for: {file_path}")
