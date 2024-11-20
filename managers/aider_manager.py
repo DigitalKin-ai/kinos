@@ -264,8 +264,15 @@ class AiderManager:
             # Set up environment variables for Windows console
             env = os.environ.copy()
             env['PYTHONIOENCODING'] = 'utf-8'
-            env['TERM'] = 'xterm'
-            env['FORCE_COLOR'] = '1'
+
+            if os.name == 'nt':  # Windows
+                # Remove TERM if it exists
+                env.pop('TERM', None)  
+                env['FORCE_COLOR'] = '1'
+                env['PYTHONLEGACYWINDOWSSTDIO'] = '1'  # Add this for Windows console handling
+            else:
+                # Only set TERM on non-Windows platforms
+                env['TERM'] = 'xterm'
             
             # Create a new process group on Windows to handle console properly
             startupinfo = None
