@@ -26,21 +26,20 @@ class Logger:
         file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
                                          datefmt='%Y-%m-%d %H:%M:%S')
                                          
-        # Create file handler with latin-1 encoding but strip emojis first
+        # Create file handler with utf-8 encoding but handle special characters
         class EmojiStrippingFileHandler(logging.FileHandler):
             def emit(self, record):
-                # Strip emojis from message before writing to file
                 try:
                     # Save original message
                     original_msg = record.msg
-                    # Strip emojis and other special characters for file
-                    record.msg = ''.join(c for c in original_msg if ord(c) < 256)
+                    # Encode to utf-8 then decode to handle special characters properly
+                    record.msg = original_msg.encode('utf-8', errors='replace').decode('utf-8')
                     super().emit(record)
                 finally:
                     # Restore original message for other handlers
                     record.msg = original_msg
 
-        file_handler = EmojiStrippingFileHandler(self.suivi_file, encoding='latin-1', mode='a')
+        file_handler = EmojiStrippingFileHandler(self.suivi_file, encoding='utf-8', mode='a')
         file_handler.setFormatter(file_formatter)
         file_handler.setLevel(logging.SUCCESS)  # Only log SUCCESS and above
 
