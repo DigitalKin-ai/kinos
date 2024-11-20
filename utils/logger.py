@@ -132,7 +132,7 @@ class Logger:
                 content = f.read()
                 
             if len(content) > 50000:
-                self.logger.log(logging.SUCCESS, "📝 Résumé automatique des logs...")
+                self.logger.log(logging.SUCCESS, "📝 Résumé automatique du suivi de mission...")
                 
                 # Call GPT for summarization
                 client = openai.OpenAI()
@@ -141,15 +141,16 @@ class Logger:
                     messages=[
                         {"role": "system", "content": (
                             "Tu es un expert en synthèse de logs de suivi de projet.\n"
-                            "Ta mission est de résumer l'historique des actions tout en conservant :\n"
+                            "Ta mission est de résumer l'historique des actions de manière détailée, en conservant :\n"
                             "- Les informations essentielles sur la progression\n"
                             "- Les décisions importantes\n"
                             "- Les problèmes rencontrés et leurs solutions\n"
-                            "- La chronologie générale\n\n"
+                            "- Les fichiers principaux de travail\n"
+                            "- La chronologie détaillée\n\n"
                             "Format ton résumé en markdown avec des sections claires."
                         )},
                         {"role": "user", "content": f"""Voici les logs complets du projet. 
-                        Fais-en un résumé structuré qui permettra de comprendre rapidement :
+                        Fais-en un résumé structuré détaillé qui permettra de comprendre rapidement :
                         - L'état d'avancement
                         - Les principales réalisations
                         - Les points importants à retenir
@@ -173,7 +174,7 @@ class Logger:
                 with open(self.suivi_file, 'w', encoding='utf-8') as f:
                     f.write(final_content)
                     
-                self.logger.log(logging.SUCCESS, "✨ Logs résumés avec succès")
+                self.logger.log(logging.SUCCESS, "✨ Suivi de mission résumé avec succès")
                 
         except Exception as e:
             self.logger.error(f"⚠️ Erreur lors du résumé des logs: {str(e)}")
