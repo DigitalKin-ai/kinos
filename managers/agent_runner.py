@@ -212,37 +212,30 @@ class AgentRunner:
                 if os.path.exists(f".aider.agent.{agent_type}.md")]
         
     def _execute_agent_cycle(self, agent_name, mission_filepath):
-        """Execute a single agent cycle asynchronously."""
+        """Execute a single agent cycle."""
         agent_filepath = f".aider.agent.{agent_name}.md"
         objective_filepath = f".aider.objective.{agent_name}.md"
         
-        # Use ThreadPoolExecutor for blocking I/O operations
-        with ThreadPoolExecutor() as pool:
-            # Generate objective
-            await asyncio.get_event_loop().run_in_executor(
-                pool,
-                self.objective_manager.generate_objective,
-                mission_filepath,
-                agent_filepath
-            )
-            
-            # Generate context map
-            map_filepath = f".aider.map.{agent_name}.md"
-            await asyncio.get_event_loop().run_in_executor(
-                pool,
-                self.map_manager.generate_map,
-                mission_filepath,
-                objective_filepath,
-                agent_filepath
-            )
-            
-            # Execute aider operation
-            await asyncio.get_event_loop().run_in_executor(
-                pool,
-                self.aider_manager.run_aider,
-                objective_filepath,
-                map_filepath,
-                agent_filepath
-            )
+        # Generate objective directly since we're in a thread
+        self.objective_manager.generate_objective(
+            mission_filepath,
+            agent_filepath
+        )
+        
+        # Generate context map
+        map_filepath = f".aider.map.{agent_name}.md"
+        # Generate map directly
+        self.map_manager.generate_map(
+            mission_filepath,
+            objective_filepath,
+            agent_filepath
+        )
+        
+        # Execute aider operation
+        self.aider_manager.run_aider(
+            objective_filepath,
+            map_filepath,
+            agent_filepath
+        )
             
         self.logger.info(f"✅ Completed execution cycle for {agent_name}")
