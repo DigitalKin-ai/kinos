@@ -286,6 +286,7 @@ Format as a simple markdown list under a "# Context Map" heading.
             if len(updated_lines) != len(lines):
                 with open(map_path, 'w', encoding='utf-8') as f:
                     f.writelines(updated_lines)
+                    self.logger.info(f"🗑️ Removed {filepath} from global map")
                     
         except Exception as e:
             self.logger.debug(f"Could not remove {filepath} from map: {str(e)}")

@@ -1176,6 +1176,22 @@ class RedundancyManager:
                     with open(file_path, 'w', encoding='utf-8') as f:
                         f.write(new_content)
                         
+                    # Remove file from global map
+                    from managers.map_manager import MapManager
+                    map_manager = MapManager()
+                    map_manager._remove_file_from_map(file_path)
+                    
+                    # Git operations
+                    try:
+                        # Add all changes to git
+                        subprocess.run(['git', 'add', '.'], check=True)
+                        
+                        # Create commit
+                        msg = f"🗑️ Removed duplicate content from {file_path}"
+                        subprocess.run(['git', 'commit', '-m', msg], check=True)
+                    except subprocess.CalledProcessError as e:
+                        self.logger.warning(f"⚠️ Git operation failed: {str(e)}")
+                    
                     self.logger.info(f"Removed duplicate from {file_path}")
                     
                 except Exception as e:
