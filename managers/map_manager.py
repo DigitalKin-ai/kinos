@@ -308,6 +308,22 @@ Format as a simple markdown list under a "# Context Map" heading.
     def update_global_map(self, modified_file_path):
         """Update global map with latest file summary after a commit."""
         try:
+            # First check if file needs splitting
+            from managers.redundancy_manager import RedundancyManager
+            redundancy_mgr = RedundancyManager()
+            
+            # Only attempt split if file exists (might have been deleted)
+            if os.path.exists(modified_file_path):
+                try:
+                    # Attempt to split if needed
+                    was_split = redundancy_mgr.split_file(modified_file_path)
+                    if was_split:
+                        self.logger.success(f"🔄 Split {modified_file_path} into sections")
+                        return  # Exit early since original file no longer exists
+                except Exception as e:
+                    self.logger.error(f"❌ Failed to check/split file {modified_file_path}: {str(e)}")
+                    # Continue with normal map update even if split fails
+
             # Read current global map content with UTF-8 encoding
             global_map_content = ""
             if os.path.exists("map.md"):
