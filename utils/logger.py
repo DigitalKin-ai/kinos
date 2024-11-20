@@ -131,16 +131,16 @@ class Logger:
             with open(self.suivi_file, 'r', encoding='utf-8') as f:
                 content = f.read()
                 
-            if len(content) > 30000:
-                self.logger.info("📝 Résumé automatique des logs...")
+            if len(content) > 50000:
+                self.logger.success("📝 Résumé automatique des logs...")
                 
                 # Call GPT for summarization
                 client = openai.OpenAI()
                 response = client.chat.completions.create(
-                    model="gpt-4",
+                    model="gpt-4o-mini",
                     messages=[
                         {"role": "system", "content": (
-                            "Tu es un expert en synthèse de logs de développement.\n"
+                            "Tu es un expert en synthèse de logs de suivi de projet.\n"
                             "Ta mission est de résumer l'historique des actions tout en conservant :\n"
                             "- Les informations essentielles sur la progression\n"
                             "- Les décisions importantes\n"
@@ -159,7 +159,7 @@ class Logger:
                         {content}"""}
                     ],
                     temperature=0.3,
-                    max_tokens=2000
+                    max_tokens=4000
                 )
                 
                 summary = response.choices[0].message.content
@@ -173,7 +173,7 @@ class Logger:
                 with open(self.suivi_file, 'w', encoding='utf-8') as f:
                     f.write(final_content)
                     
-                self.logger.info("✨ Logs résumés avec succès")
+                self.logger.sucess("✨ Logs résumés avec succès")
                 
         except Exception as e:
             self.logger.error(f"⚠️ Erreur lors du résumé des logs: {str(e)}")
