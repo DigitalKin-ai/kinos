@@ -258,7 +258,58 @@ def main():
             print(f"Report generated and saved to {output_file}")
             
         else:
-            if subcommand == "reset":
+            if subcommand == "delete":
+                # Parse options
+                auto_mode = "--auto" in sys.argv
+                dry_run = "--dry-run" in sys.argv
+                interactive = "--interactive" in sys.argv
+                threshold = 0.95  # Default threshold for auto mode
+                
+                if "--threshold" in sys.argv:
+                    try:
+                        threshold_index = sys.argv.index("--threshold") + 1
+                        threshold = float(sys.argv[threshold_index])
+                    except (IndexError, ValueError):
+                        print("Invalid value for --threshold")
+                        sys.exit(1)
+                
+                # Set strategy for which version to keep
+                keep_strategy = "longest"  # Default strategy
+                if "--keep-first" in sys.argv:
+                    keep_strategy = "first"
+                    
+                # Perform deletion
+                if not any([auto_mode, interactive]):
+                    print("Please specify either --auto or --interactive mode")
+                    print("\nOptions:")
+                    print("  --auto         Automatically delete duplicates")
+                    print("  --interactive  Review and select which duplicates to delete")
+                    print("  --threshold    Set similarity threshold (default: 0.95)")
+                    print("  --keep-longest Keep longest version (default)")
+                    print("  --keep-first   Keep first occurrence")
+                    print("  --dry-run      Show what would be deleted without making changes")
+                    sys.exit(1)
+                    
+                results = manager.delete_duplicates(
+                    auto_mode=auto_mode,
+                    interactive=interactive,
+                    threshold=threshold,
+                    keep_strategy=keep_strategy,
+                    dry_run=dry_run
+                )
+                
+                # Show results
+                if dry_run:
+                    print("\nDry run - no changes made")
+                print(f"\nResults:")
+                print(f"- Files modified: {results['files_modified']}")
+                print(f"- Duplicates removed: {results['duplicates_removed']}")
+                if results['errors']:
+                    print("\nErrors encountered:")
+                    for error in results['errors']:
+                        print(f"- {error}")
+
+            elif subcommand == "reset":
                 # Reset the redundancy database
                 manager = RedundancyManager()
                 manager._reset_collection()

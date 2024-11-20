@@ -648,6 +648,149 @@ class RedundancyManager:
             self.logger.error(f"❌ Failed to add all files: {str(e)}")
             raise
 
+    def delete_duplicates(self, auto_mode=False, interactive=False, threshold=0.95, 
+                         keep_strategy="longest", dry_run=False):
+        """
+        Delete duplicate content based on specified strategy.
+        
+        Args:
+            auto_mode (bool): Automatically delete duplicates above threshold
+            interactive (bool): Ask user which version to keep
+            threshold (float): Similarity threshold for auto mode
+            keep_strategy (str): Which version to keep ("longest" or "first")
+            dry_run (bool): Show what would be deleted without making changes
+            
+        Returns:
+            dict: Statistics about deletion operation
+        """
+        try:
+            self.logger.info(f"🔍 Analyzing content for duplicates...")
+            
+            # Get all duplicates
+            results = self.analyze_all_files(threshold=threshold)
+            
+            stats = {
+                'files_modified': 0,
+                'duplicates_removed': 0,
+                'errors': []
+            }
+            
+            if not results['redundancy_clusters']:
+                self.logger.info("✨ No duplicates found")
+                return stats
+                
+            self.logger.info(f"Found {len(results['redundancy_clusters'])} duplicate clusters")
+            
+            # Process each cluster
+            for cluster in results['redundancy_clusters']:
+                try:
+                    if interactive:
+                        # Show cluster contents
+                        print("\nDuplicate content found:")
+                        print("\nOriginal:")
+                        print(f"File: {cluster['sources'][0]['file_path']}")
+                        print("```")
+                        print(cluster['original'])
+                        print("```")
+                        
+                        print("\nDuplicates:")
+                        for i, (match, source) in enumerate(zip(cluster['matches'], cluster['sources'][1:]), 1):
+                            print(f"\n{i}. File: {source['file_path']}")
+                            print("```")
+                            print(match)
+                            print("```")
+                            
+                        # Ask which to keep
+                        if not dry_run:
+                            choice = input("\nWhich version to keep? (0 for original, 1-N for duplicates, s to skip): ")
+                            if choice.lower() == 's':
+                                continue
+                            try:
+                                keep_index = int(choice)
+                                if 0 <= keep_index <= len(cluster['matches']):
+                                    # Remove all except chosen version
+                                    self._remove_duplicates(cluster, keep_index)
+                                    stats['duplicates_removed'] += len(cluster['matches']) - 1
+                                    stats['files_modified'] += len(set(s['file_path'] for s in cluster['sources'])) - 1
+                            except ValueError:
+                                self.logger.warning("Invalid choice, skipping cluster")
+                                
+                    elif auto_mode:
+                        # Determine which version to keep
+                        if keep_strategy == "longest":
+                            # Find longest version
+                            versions = [cluster['original']] + cluster['matches']
+                            keep_index = max(range(len(versions)), key=lambda i: len(versions[i]))
+                        else:  # keep_strategy == "first"
+                            keep_index = 0
+                            
+                        if not dry_run:
+                            # Remove all except chosen version
+                            self._remove_duplicates(cluster, keep_index)
+                            stats['duplicates_removed'] += len(cluster['matches']) - 1
+                            stats['files_modified'] += len(set(s['file_path'] for s in cluster['sources'])) - 1
+                            
+                except Exception as e:
+                    error_msg = f"Error processing cluster: {str(e)}"
+                    self.logger.error(error_msg)
+                    stats['errors'].append(error_msg)
+                    
+            if not dry_run:
+                self.logger.success(
+                    f"✨ Removed {stats['duplicates_removed']} duplicates "
+                    f"from {stats['files_modified']} files"
+                )
+            
+            return stats
+            
+        except Exception as e:
+            self.logger.error(f"Failed to delete duplicates: {str(e)}")
+            raise
+            
+    def _remove_duplicates(self, cluster, keep_index):
+        """
+        Remove duplicate content from files, keeping the specified version.
+        
+        Args:
+            cluster (dict): Cluster of duplicate content
+            keep_index (int): Index of version to keep (0 for original)
+        """
+        try:
+            # Get version to keep
+            keep_version = cluster['original'] if keep_index == 0 else cluster['matches'][keep_index - 1]
+            keep_source = cluster['sources'][keep_index]
+            
+            # Process each file except the one we're keeping
+            for i, source in enumerate(cluster['sources']):
+                if i == keep_index:
+                    continue
+                    
+                file_path = source['file_path']
+                try:
+                    # Read file content
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        
+                    # Get version to remove
+                    remove_version = cluster['original'] if i == 0 else cluster['matches'][i - 1]
+                    
+                    # Replace duplicate with empty string
+                    new_content = content.replace(remove_version, '')
+                    
+                    # Write updated content
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write(new_content)
+                        
+                    self.logger.info(f"Removed duplicate from {file_path}")
+                    
+                except Exception as e:
+                    self.logger.error(f"Failed to process {file_path}: {str(e)}")
+                    raise
+                    
+        except Exception as e:
+            self.logger.error(f"Failed to remove duplicates: {str(e)}")
+            raise
+
     def generate_redundancy_report(self, analysis_results):
         """
         Create detailed report from redundancy analysis.
