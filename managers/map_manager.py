@@ -267,7 +267,7 @@ Consider:
 - Dependencies between files
 - Relevance to the current objective
 
-Return a list of only the files needed to complete the current objective (aim for 5-8).
+Return a list of only the files needed to complete the current objective (aim for 6-10).
 Format as a simple markdown list under a "# Context Map" heading.
 """
 

@@ -90,29 +90,6 @@ class ObjectiveManager:
         """Generate objective content using GPT."""
         try:
             client = openai.OpenAI()
-            
-            # Load recent chat history from both history files
-            chat_history = ""
-            history_files = [
-                f".aider.history.{agent_name}.md",
-                f".aider.input.{agent_name}.md"
-            ]
-            
-            for history_file in history_files:
-                try:
-                    if os.path.exists(history_file):
-                        with open(history_file, 'r', encoding='utf-8', errors='replace') as f:
-                            content = f.read()
-                            # Get last 5000 chars from each history file
-                            chat_history += content[-5000:] if len(content) > 5000 else content
-                            chat_history += "\n\n"
-                except Exception as e:
-                    self.logger.warning(f"⚠️ Could not load chat history from {history_file}: {str(e)}")
-                    continue  # Try next file
-            
-            if not chat_history:
-                self.logger.debug(f"No chat history found for agent {agent_name}")
-                chat_history = "No previous chat history available."
 
             # Load global map content if it exists
             global_map_content = ""
@@ -124,15 +101,25 @@ class ObjectiveManager:
                     self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
                     # Continue without global map content
 
-             # Read last 50 lines from suivi.md if it exists
+            # Load todolist if it exists
+            todolist = ""
+            if os.path.exists("todolist.md"):
+                try:
+                    with open("todolist.md", 'r', encoding='utf-8') as f:
+                        todolist = f.read()
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not read todolist: {str(e)}")
+                    # Continue without todolist
+
+             # Read last 80 lines from suivi.md if it exists
             suivi_content = ""
             if os.path.exists('suivi.md'):
                 try:
                     with open('suivi.md', 'r', encoding='utf-8') as f:
-                        # Read all lines and get last 50
+                        # Read all lines and get last
                         lines = f.readlines()
-                        last_50_lines = lines[-50:] if len(lines) > 50 else lines
-                        suivi_content = ''.join(last_50_lines)
+                        last_lines = lines[-80:] if len(lines) > 80 else lines
+                        suivi_content = ''.join(last_lines)
                 except Exception as e:
                     self.logger.warning(f"⚠️ Could not read suivi.md: {str(e)}")
                     # Continue without suivi content
@@ -147,33 +134,32 @@ Reference Materials
 {mission_content}
 ````
 
-# Global Project Map
+# Current Project Map
 ````
 {global_map_content}
 ````
 
-# Logs de suivi (travail de tous les agents - 50 dernières lignes)
+# Logs de suivi (travail de tous les agents - 80 dernières lignes)
 ````
 {suivi_content}
 ````
 
-# Recent Chat History (agent {agent_name} & aider)
+# Todolist
 ````
-{chat_history}
+{todolist}
 ````
 
 # Breadth-First Pattern
-- Follow the directives in the Mission if present
-- Review previous steps from chat history
-- Review the work being done by other agents
-- Generate a step that explores a NEW aspect of the mission
-- Avoid repeating or deepening previous work
-- Focus on unexplored areas of responsibility
-- Maintain breadth-first exploration pattern
+- Review the directives in the Mission if present
+- Review the uncompleted items in the todolist
+- Review the directives of your system prompt
+- Review the work already being done by the other agents
+- Then: Choose an item from the todolist (Maintain breadth-first exploration pattern)
+- Generate an item from your system prompt, according to your specific role in the project
 
 Required Output
 ================
-Create an objective in markdown format that specifies:
+Create two objectives in markdown format - one for production, one specific to your role. Each objective should specify:
 
 1. **Action Statement**
    - Single, specific task to accomplish
@@ -212,7 +198,7 @@ The objective must be:
 - Self-contained (no follow-up needed)
 - Different from previous objectives
 
-Ask Aider to make the edits now, without asking for clarification, and using the required SEARCH/REPLACE format.
+Ask Aider to make the edits now, without asking for clarification.
 """
             self.logger.info(f"OBJECTIVE PROMPT: {prompt}")
             response = client.chat.completions.create(
