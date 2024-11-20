@@ -8,6 +8,18 @@ class Logger:
     """Utility class for handling logging operations."""
     
     def __init__(self):
+        # Force UTF-8 for stdin/stdout
+        import sys
+        sys.stdin.reconfigure(encoding='utf-8')
+        sys.stdout.reconfigure(encoding='utf-8')
+        
+        # Set locale to UTF-8
+        import locale
+        try:
+            locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
+        except locale.Error:
+            pass  # Continue if locale not available
+            
         # Initialize colorama for cross-platform color support
         init()
         
@@ -32,7 +44,7 @@ class Logger:
                 try:
                     # Save original message
                     original_msg = record.msg
-                    # Encode to utf-8 then decode to handle special characters properly
+                    # Force UTF-8 encoding
                     record.msg = original_msg.encode('utf-8', errors='replace').decode('utf-8')
                     super().emit(record)
                 finally:
@@ -134,6 +146,21 @@ class Logger:
         """Log warning level message in yellow with agent emoji if present."""
         formatted_msg = self._get_agent_emoji(message)
         self.logger.warning(formatted_msg)
+        
+    def fix_file_encoding(self, filepath):
+        """Fix encoding of an existing file."""
+        try:
+            # Try to read with latin-1 since that's how it was written
+            with open(filepath, 'r', encoding='latin-1') as f:
+                content = f.read()
+                
+            # Write back with utf-8
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(content)
+                self.logger.success(f"✅ Fixed encoding for {filepath}")
+                
+        except Exception as e:
+            self.logger.error(f"❌ Error fixing encoding for {filepath}: {str(e)}")
         
     def fix_file_encoding(self, filepath):
         """Fix encoding of an existing file."""

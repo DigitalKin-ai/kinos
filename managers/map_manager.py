@@ -181,23 +181,23 @@ class MapManager:
 
     def _read_file(self, filepath):
         """Read content from file with fallback encoding support."""
-        encodings = ['utf-8', 'latin-1', 'cp1252']  # Common encodings for French text
-        
-        for encoding in encodings:
-            try:
-                with open(filepath, 'r', encoding=encoding) as f:
-                    content = f.read()
-                    return content
-            except UnicodeDecodeError:
-                continue  # Try next encoding
-            except Exception as e:
-                self.logger.error(f"Error reading file {filepath}: {str(e)}")
-                raise
-                
-        # If we get here, none of the encodings worked
-        raise UnicodeDecodeError(
-            f"Failed to read {filepath} with any of these encodings: {', '.join(encodings)}"
-        )
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                return f.read()
+        except UnicodeDecodeError:
+            # Fallback encodings if UTF-8 fails
+            for encoding in ['latin-1', 'cp1252']:
+                try:
+                    with open(filepath, 'r', encoding=encoding) as f:
+                        content = f.read()
+                        # Convert to UTF-8
+                        return content.encode(encoding).decode('utf-8')
+                except UnicodeDecodeError:
+                    continue
+            raise UnicodeDecodeError(f"Failed to read {filepath} with any supported encoding")
+        except Exception as e:
+            self.logger.error(f"Error reading file {filepath}: {str(e)}")
+            raise
 
     def _generate_map_content(self, mission_content, objective_content, agent_content, available_files):
         """Generate context map content using GPT."""
