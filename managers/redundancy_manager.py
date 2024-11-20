@@ -407,7 +407,7 @@ class RedundancyManager:
 
     def add_paragraph(self, paragraph, file_path, position):
         """
-        Add single paragraph to vector database.
+        Add single paragraph to vector database if not already present.
         
         Args:
             paragraph (str): Paragraph text to add
@@ -430,6 +430,19 @@ class RedundancyManager:
             # Ensure collection exists
             self._ensure_collection()
             
+            # Generate unique ID for this paragraph
+            paragraph_id = f"{file_path}_{position}"
+            
+            # Check if this exact ID already exists
+            existing_ids = self.collection.get(
+                ids=[paragraph_id],
+                include=["metadatas"]
+            )
+            
+            if existing_ids['ids']:
+                self.logger.debug(f"⏩ Skipping existing paragraph from {file_path} at position {position}")
+                return
+                
             # Generate metadata
             metadata = self._generate_metadata(cleaned_paragraph, file_path, position)
             
@@ -437,10 +450,10 @@ class RedundancyManager:
             self.collection.add(
                 documents=[cleaned_paragraph],
                 metadatas=[metadata],
-                ids=[f"{file_path}_{position}"]
+                ids=[paragraph_id]
             )
             
-            self.logger.debug(f"Added paragraph from {file_path} at position {position}")
+            self.logger.debug(f"📝 Added new paragraph from {file_path} at position {position}")
             
         except Exception as e:
             self.logger.error(f"Failed to add paragraph: {str(e)}")
