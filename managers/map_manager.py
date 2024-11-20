@@ -305,8 +305,14 @@ Format as a simple markdown list under a "# Context Map" heading.
             self.logger.error(f"Failed to initialize global map: {str(e)}")
             raise
 
-    def update_global_map(self, modified_file_path):
-        """Update global map with latest file summary after a commit."""
+    def update_global_map(self, modified_file_path, force_refresh=False):
+        """
+        Update global map with latest file summary after a commit.
+        
+        Args:
+            modified_file_path (str): Path to the modified file
+            force_refresh (bool): If True, always generate new description regardless of random chance
+        """
         try:
             # First decode the path if it's already encoded
             if isinstance(modified_file_path, str):
@@ -331,7 +337,12 @@ Format as a simple markdown list under a "# Context Map" heading.
                     was_split = redundancy_mgr.split_file(modified_file_path)
                     if was_split:
                         self.logger.success(f"🔄 Split {modified_file_path} into sections")
-                        return  # Exit early since original file no longer exists
+                        # Update map for each new file with force_refresh=True
+                        dir_name = os.path.splitext(modified_file_path)[0]
+                        for new_file in os.listdir(dir_name):
+                            new_file_path = os.path.join(dir_name, new_file)
+                            self.update_global_map(new_file_path, force_refresh=True)
+                        return
                 except Exception as e:
                     self.logger.error(f"❌ Failed to check/split file {modified_file_path}: {str(e)}")
                     # Continue with normal map update even if split fails
@@ -380,8 +391,8 @@ Format as a simple markdown list under a "# Context Map" heading.
             tokenizer = tiktoken.encoding_for_model("gpt-4")
             token_count = len(tokenizer.encode(file_content))
 
-            # 1/10 chance to regenerate description
-            should_update_description = random.random() < 0.10
+            # Always generate new description if force_refresh is True
+            should_update_description = force_refresh or random.random() < 0.10
 
             if should_update_description:
                 # Generate new summary with global context
