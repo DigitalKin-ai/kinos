@@ -95,8 +95,7 @@ class ObjectiveManager:
             global_map_content = ""
             if os.path.exists("map.md"):
                 try:
-                    with open("map.md", 'r', encoding='utf-8') as f:
-                        global_map_content = f.read()
+                    global_map_content = self._read_file("map.md")
                 except Exception as e:
                     self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
                     # Continue without global map content
@@ -105,8 +104,7 @@ class ObjectiveManager:
             todolist = ""
             if os.path.exists("todolist.md"):
                 try:
-                    with open("todolist.md", 'r', encoding='utf-8') as f:
-                        todolist = f.read()
+                    todolist = self._read_file("todolist.md")
                 except Exception as e:
                     self.logger.warning(f"⚠️ Could not read todolist: {str(e)}")
                     # Continue without todolist
@@ -115,7 +113,7 @@ class ObjectiveManager:
             suivi_content = ""
             if os.path.exists('suivi.md'):
                 try:
-                    with open('suivi.md', 'r', encoding='utf-8') as f:
+                    with open('suivi.md', 'r', encoding='latin-1') as f:  # Use latin-1 for suivi.md
                         # Read all lines and get last
                         lines = f.readlines()
                         last_lines = lines[-80:] if len(lines) > 80 else lines
