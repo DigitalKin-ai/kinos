@@ -919,24 +919,21 @@ class RedundancyManager:
             raise
 
     def delete_duplicates(self, auto_mode=False, interactive=False, threshold=0.95, 
-                         keep_strategy="longest", dry_run=False):
+                     keep_strategy="longest", dry_run=False):
         """
         Delete duplicate content based on specified strategy.
-        
-        Args:
-            auto_mode (bool): Automatically delete duplicates above threshold
-            interactive (bool): Ask user which version to keep
-            threshold (float): Similarity threshold for auto mode
-            keep_strategy (str): Which version to keep ("longest" or "first")
-            dry_run (bool): Show what would be deleted without making changes
-            
-        Returns:
-            dict: Statistics about deletion operation
         """
         try:
-            self.logger.info(f"🔍 Analyzing content for duplicates...")
-            
+            self.logger.info(f"🔍 Starting duplicate analysis with threshold {threshold}")
+            if dry_run:
+                self.logger.info("🏃 DRY RUN MODE - No changes will be made")
+            if interactive:
+                self.logger.info("👤 INTERACTIVE MODE - You will be prompted for each duplicate")
+            if auto_mode:
+                self.logger.info(f"🤖 AUTO MODE - Using '{keep_strategy}' strategy")
+
             # Get all duplicates
+            self.logger.info("📊 Analyzing files for duplicates...")
             results = self.analyze_all_files(threshold=threshold)
             
             stats = {
@@ -946,75 +943,101 @@ class RedundancyManager:
             }
             
             if not results['redundancy_clusters']:
-                self.logger.info("✨ No duplicates found")
+                self.logger.info("✨ No duplicates found above threshold")
                 return stats
-                
-            self.logger.info(f"Found {len(results['redundancy_clusters'])} duplicate clusters")
+            
+            total_clusters = len(results['redundancy_clusters'])
+            self.logger.info(f"📝 Found {total_clusters} duplicate clusters")
             
             # Process each cluster
-            for cluster in results['redundancy_clusters']:
+            for cluster_idx, cluster in enumerate(results['redundancy_clusters'], 1):
                 try:
+                    self.logger.info(f"\n🔄 Processing cluster {cluster_idx}/{total_clusters}")
+                    
                     if interactive:
-                        # Show cluster contents
-                        print("\nDuplicate content found:")
-                        print("\nOriginal:")
-                        print(f"File: {cluster['sources'][0]['file_path']}")
+                        # Show cluster contents with more detail
+                        self.logger.info("\n=== Duplicate Content Cluster ===")
+                        self.logger.info(f"Original File: {cluster['sources'][0]['file_path']}")
+                        print("\nOriginal Content:")
                         print("```")
                         print(cluster['original'])
                         print("```")
                         
-                        print("\nDuplicates:")
+                        print("\nDuplicates Found:")
                         for i, (match, source) in enumerate(zip(cluster['matches'], cluster['sources'][1:]), 1):
                             print(f"\n{i}. File: {source['file_path']}")
                             print("```")
                             print(match)
                             print("```")
                             
-                        # Ask which to keep
+                        # Ask which to keep with better prompting
                         if not dry_run:
-                            choice = input("\nWhich version to keep? (0 for original, 1-N for duplicates, s to skip): ")
+                            print("\n--- Action Required ---")
+                            print("Enter number to keep that version:")
+                            print("0: Keep original")
+                            for i in range(1, len(cluster['matches']) + 1):
+                                print(f"{i}: Keep duplicate #{i}")
+                            print("s: Skip this cluster")
+                            
+                            choice = input("\nYour choice (0-N or s): ")
+                            self.logger.info(f"User selected: {choice}")
+                            
                             if choice.lower() == 's':
+                                self.logger.info("⏭️ Skipping this cluster")
                                 continue
                             try:
                                 keep_index = int(choice)
                                 if 0 <= keep_index <= len(cluster['matches']):
-                                    # Remove all except chosen version
-                                    self._remove_duplicates(cluster, keep_index)
-                                    stats['duplicates_removed'] += len(cluster['matches']) - 1
-                                    stats['files_modified'] += len(set(s['file_path'] for s in cluster['sources'])) - 1
+                                    if not dry_run:
+                                        self.logger.info(f"🔨 Removing duplicates, keeping version {keep_index}")
+                                        self._remove_duplicates(cluster, keep_index)
+                                        stats['duplicates_removed'] += len(cluster['matches']) - 1
+                                        stats['files_modified'] += len(set(s['file_path'] for s in cluster['sources'])) - 1
+                                else:
+                                    self.logger.warning(f"❌ Invalid choice {keep_index}, must be between 0 and {len(cluster['matches'])}")
                             except ValueError:
-                                self.logger.warning("Invalid choice, skipping cluster")
+                                self.logger.warning("❌ Invalid input, skipping cluster")
                                 
                     elif auto_mode:
                         # Determine which version to keep
                         if keep_strategy == "longest":
-                            # Find longest version
                             versions = [cluster['original']] + cluster['matches']
                             keep_index = max(range(len(versions)), key=lambda i: len(versions[i]))
+                            self.logger.info(f"📏 Auto-selecting longest version (index {keep_index})")
                         else:  # keep_strategy == "first"
                             keep_index = 0
+                            self.logger.info("1️⃣ Auto-selecting first version")
                             
                         if not dry_run:
-                            # Remove all except chosen version
+                            self.logger.info(f"🔨 Removing duplicates, keeping version {keep_index}")
                             self._remove_duplicates(cluster, keep_index)
                             stats['duplicates_removed'] += len(cluster['matches']) - 1
                             stats['files_modified'] += len(set(s['file_path'] for s in cluster['sources'])) - 1
                             
                 except Exception as e:
-                    error_msg = f"Error processing cluster: {str(e)}"
-                    self.logger.error(error_msg)
+                    error_msg = f"Error processing cluster {cluster_idx}: {str(e)}"
+                    self.logger.error(f"❌ {error_msg}")
                     stats['errors'].append(error_msg)
                     
+            # Final summary
             if not dry_run:
                 self.logger.success(
-                    f"✨ Removed {stats['duplicates_removed']} duplicates "
-                    f"from {stats['files_modified']} files"
+                    f"\n✨ Deduplication complete:\n"
+                    f"   - Modified {stats['files_modified']} files\n"
+                    f"   - Removed {stats['duplicates_removed']} duplicates\n"
+                    f"   - Encountered {len(stats['errors'])} errors"
+                )
+            else:
+                self.logger.info(
+                    f"\n🏃 Dry run complete - would have:\n"
+                    f"   - Modified {stats['files_modified']} files\n"
+                    f"   - Removed {stats['duplicates_removed']} duplicates"
                 )
             
             return stats
             
         except Exception as e:
-            self.logger.error(f"Failed to delete duplicates: {str(e)}")
+            self.logger.error(f"❌ Failed to delete duplicates: {str(e)}")
             raise
             
     def _remove_duplicates(self, cluster, keep_index):
