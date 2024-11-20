@@ -331,6 +331,9 @@ class RedundancyManager:
                 - statistics: Overall redundancy metrics
         """
         try:
+            self.logger.info("🔍 Starting project-wide redundancy analysis...")
+            self.logger.info(f"⚙️ Using similarity threshold: {threshold}")
+
             # Initialize results
             results = {
                 'redundancy_clusters': [],
@@ -345,9 +348,23 @@ class RedundancyManager:
             
             # Get ignore patterns
             ignore_patterns = self._get_ignore_patterns()
+            self.logger.info(f"📋 Loaded {len(ignore_patterns)} ignore patterns")
+            
+            # Count total eligible files first
+            total_eligible_files = 0
+            for root, _, files in os.walk('.'):
+                for file in files:
+                    if file.endswith(('.md', '.txt')):
+                        file_path = os.path.join(root, file)
+                        rel_path = os.path.relpath(file_path, '.').replace(os.sep, '/')
+                        if not self._should_ignore(rel_path, ignore_patterns):
+                            total_eligible_files += 1
+            
+            self.logger.info(f"🔍 Found {total_eligible_files} eligible files to process")
             
             # Track processed paragraphs to avoid duplicates
             processed = set()
+            current_file = 0
             
             # Analyze each markdown and text file
             for root, _, files in os.walk('.'):
@@ -359,14 +376,21 @@ class RedundancyManager:
                         
                         # Skip ignored files
                         if self._should_ignore(rel_path, ignore_patterns):
+                            self.logger.debug(f"⏩ Skipping ignored file: {rel_path}")
                             continue
-                            
+                        
+                        current_file += 1
+                        self.logger.info(f"📄 Processing file {current_file}/{total_eligible_files}: {rel_path}")
+                        
                         try:
                             # Analyze file
                             analysis = self.analyze_file(file_path, threshold)
                             results['statistics']['files_analyzed'] += 1
                             
                             # Process redundant paragraphs
+                            if analysis['redundant_paragraphs']:
+                                self.logger.info(f"🔄 Found {len(analysis['redundant_paragraphs'])} redundant paragraphs in {rel_path}")
+                            
                             for paragraph in analysis['redundant_paragraphs']:
                                 if paragraph not in processed:
                                     processed.add(paragraph)
@@ -382,11 +406,16 @@ class RedundancyManager:
                                     # Add to appropriate category
                                     if any(m['file_path'] != file_path for m in analysis['sources']):
                                         results['cross_file_redundancies'].append(cluster)
+                                        self.logger.info(f"🔗 Found cross-file redundancy in {rel_path}")
                                     results['redundancy_clusters'].append(cluster)
                                     
                             # Update statistics
                             results['statistics']['total_paragraphs'] += len(analysis['redundant_paragraphs'])
                             results['statistics']['redundant_paragraphs'] += len(analysis['redundant_paragraphs'])
+                            
+                            # Log progress percentage
+                            progress = (current_file / total_eligible_files) * 100
+                            self.logger.info(f"⏳ Progress: {progress:.1f}% ({current_file}/{total_eligible_files})")
                             
                         except Exception as e:
                             self.logger.warning(f"⚠️ Failed to analyze {file_path}: {str(e)}")
@@ -394,9 +423,14 @@ class RedundancyManager:
                             
             results['statistics']['cluster_count'] = len(results['redundancy_clusters'])
             
+            # Final summary
             self.logger.success(
-                f"✨ Analysis complete: Found {results['statistics']['redundant_paragraphs']} "
-                f"redundant paragraphs in {results['statistics']['cluster_count']} clusters"
+                f"\n✨ Analysis complete:\n"
+                f"   - Files analyzed: {results['statistics']['files_analyzed']}\n"
+                f"   - Total paragraphs: {results['statistics']['total_paragraphs']}\n"
+                f"   - Redundant paragraphs: {results['statistics']['redundant_paragraphs']}\n"
+                f"   - Redundancy clusters: {results['statistics']['cluster_count']}\n"
+                f"   - Cross-file redundancies: {len(results['cross_file_redundancies'])}"
             )
             
             return results
