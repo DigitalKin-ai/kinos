@@ -264,20 +264,24 @@ class AiderManager:
             production_cmd[-1] = production_cmd[-1] + "\nFocus on the production objective"
             self.logger.info(f"🏭 Executing production-focused aider operation for {agent_name} agent...")
             
-            # Execute first aider call
-            process = subprocess.Popen(
+            # Execute first aider call with timeout
+            process = subprocess.run(
                 production_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 encoding='utf-8',
                 errors='replace',
-                env={**os.environ, 'PYTHONIOENCODING': 'utf-8'}
+                env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
+                timeout=300  # 5 minute timeout
             )
-            stdout, stderr = process.communicate()
 
             if process.returncode != 0:
                 self.logger.error(f"Production aider process failed with return code {process.returncode}")
-                raise subprocess.CalledProcessError(process.returncode, production_cmd, stdout, stderr)
+                raise subprocess.CalledProcessError(process.returncode, production_cmd, process.stdout, process.stderr)
+
+        except subprocess.TimeoutExpired:
+            self.logger.error("Production aider process timed out")
+            raise
 
             # Get intermediate state after first call
             intermediate_state = self._get_git_file_states()
@@ -287,20 +291,24 @@ class AiderManager:
             role_cmd[-1] = role_cmd[-1] + "\nFocus on the role-specific objective"
             self.logger.info(f"👤 Executing {agent_name}-specific aider operation...")
             
-            # Execute second aider call
-            process = subprocess.Popen(
+            # Execute second aider call with timeout
+            process = subprocess.run(
                 role_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 encoding='utf-8',
                 errors='replace',
-                env={**os.environ, 'PYTHONIOENCODING': 'utf-8'}
+                env={**os.environ, 'PYTHONIOENCODING': 'utf-8'},
+                timeout=300  # 5 minute timeout
             )
-            stdout, stderr = process.communicate()
 
             if process.returncode != 0:
                 self.logger.error(f"Role-specific aider process failed with return code {process.returncode}")
-                raise subprocess.CalledProcessError(process.returncode, role_cmd, stdout, stderr)
+                raise subprocess.CalledProcessError(process.returncode, role_cmd, process.stdout, process.stderr)
+
+        except subprocess.TimeoutExpired:
+            self.logger.error("Role-specific aider process timed out")
+            raise
 
             # Get final state after both calls
             final_state = self._get_git_file_states()
