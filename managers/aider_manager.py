@@ -188,17 +188,17 @@ class AiderManager:
             'i18n': '🌐'
         }
         
-        # Check if commit message starts with any known type
-        for commit_type, emoji in commit_types.items():
-            if commit_msg.lower().startswith(f"{commit_type}:"):
-                return commit_type, emoji
-                
-        # Default to other
-        return "other", "🔨"
-        
-    except UnicodeError as e:
-        self.logger.warning(f"⚠️ Encoding issue with commit message: {str(e)}")
-        return "other", "🔨"
+            # Check if commit message starts with any known type
+            for commit_type, emoji in commit_types.items():
+                if commit_msg.lower().startswith(f"{commit_type}:"):
+                    return commit_type, emoji
+                    
+            # Default to other
+            return "other", "🔨"
+            
+        except UnicodeError as e:
+            self.logger.warning(f"⚠️ Encoding issue with commit message: {str(e)}")
+            return "other", "🔨"
 
     def _get_git_file_states(self):
         """Get dictionary of tracked files and their current hash."""
