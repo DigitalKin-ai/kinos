@@ -329,9 +329,6 @@ class RedundancyManager:
                 - redundancy_clusters: Groups of similar content
                 - cross_file_redundancies: Duplicates across files
                 - statistics: Overall redundancy metrics
-                
-        Note:
-            Can be resource-intensive for large projects
         """
         try:
             # Initialize results
@@ -346,6 +343,9 @@ class RedundancyManager:
                 }
             }
             
+            # Get ignore patterns
+            ignore_patterns = self._get_ignore_patterns()
+            
             # Track processed paragraphs to avoid duplicates
             processed = set()
             
@@ -354,33 +354,44 @@ class RedundancyManager:
                 for file in files:
                     if file.endswith(('.md', '.txt')):
                         file_path = os.path.join(root, file)
+                        # Convert to relative path with forward slashes
+                        rel_path = os.path.relpath(file_path, '.').replace(os.sep, '/')
                         
-                        # Analyze file
-                        analysis = self.analyze_file(file_path, threshold)
-                        results['statistics']['files_analyzed'] += 1
-                        
-                        # Process redundant paragraphs
-                        for paragraph in analysis['redundant_paragraphs']:
-                            if paragraph not in processed:
-                                processed.add(paragraph)
-                                
-                                # Create cluster
-                                cluster = {
-                                    'original': paragraph,
-                                    'matches': analysis['matches'][paragraph],
-                                    'scores': analysis['scores'][paragraph],
-                                    'files': [file_path]
-                                }
-                                
-                                # Add to appropriate category
-                                if any(m['file_path'] != file_path for m in analysis['sources']):
-                                    results['cross_file_redundancies'].append(cluster)
-                                results['redundancy_clusters'].append(cluster)
-                                
-                        # Update statistics
-                        results['statistics']['total_paragraphs'] += len(analysis['redundant_paragraphs'])
-                        results['statistics']['redundant_paragraphs'] += len(analysis['redundant_paragraphs'])
-                        
+                        # Skip ignored files
+                        if self._should_ignore(rel_path, ignore_patterns):
+                            continue
+                            
+                        try:
+                            # Analyze file
+                            analysis = self.analyze_file(file_path, threshold)
+                            results['statistics']['files_analyzed'] += 1
+                            
+                            # Process redundant paragraphs
+                            for paragraph in analysis['redundant_paragraphs']:
+                                if paragraph not in processed:
+                                    processed.add(paragraph)
+                                    
+                                    # Create cluster
+                                    cluster = {
+                                        'original': paragraph,
+                                        'matches': analysis['matches'][paragraph],
+                                        'scores': analysis['scores'][paragraph],
+                                        'files': [file_path]
+                                    }
+                                    
+                                    # Add to appropriate category
+                                    if any(m['file_path'] != file_path for m in analysis['sources']):
+                                        results['cross_file_redundancies'].append(cluster)
+                                    results['redundancy_clusters'].append(cluster)
+                                    
+                            # Update statistics
+                            results['statistics']['total_paragraphs'] += len(analysis['redundant_paragraphs'])
+                            results['statistics']['redundant_paragraphs'] += len(analysis['redundant_paragraphs'])
+                            
+                        except Exception as e:
+                            self.logger.warning(f"⚠️ Failed to analyze {file_path}: {str(e)}")
+                            continue
+                            
             results['statistics']['cluster_count'] = len(results['redundancy_clusters'])
             
             self.logger.success(
