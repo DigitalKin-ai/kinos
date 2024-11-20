@@ -150,7 +150,7 @@ def main():
             
     elif command == "redundancy":
         if len(sys.argv) < 3:
-            print("Usage: kin redundancy <analyze|add|report|reset> [options]")
+            print("Usage: kin redundancy <analyze|add|report|delete|reset> [options]")
             print("\nCommands:")
             print("  analyze    Analyze files for redundancy")
             print("  add       Add files to redundancy database")
@@ -274,8 +274,7 @@ def main():
                 
             print(f"Report generated and saved to {output_file}")
             
-        else:
-            if subcommand == "delete":
+        elif subcommand == "delete":
                 # Parse options
                 auto_mode = "--auto" in sys.argv
                 dry_run = "--dry-run" in sys.argv
@@ -332,14 +331,14 @@ def main():
                     for error in results['errors']:
                         print(f"- {error}")
 
-            elif subcommand == "reset":
-                # Reset the redundancy database
-                manager = RedundancyManager()
-                manager._reset_collection()
-                print("✨ Redundancy database has been reset")
-            else:
-                print(f"Unknown redundancy command: {subcommand}")
-                sys.exit(1)
+        elif subcommand == "reset":
+            # Reset the redundancy database
+            manager = RedundancyManager()
+            manager._reset_collection()
+            print("✨ Redundancy database has been reset")
+        else:
+            print(f"Unknown redundancy command: {subcommand}")
+            sys.exit(1)
             
     else:
         print(f"Unknown command: {command}")
