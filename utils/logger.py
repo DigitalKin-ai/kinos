@@ -25,7 +25,7 @@ class Logger:
         self.suivi_file = 'suivi.md'
         file_formatter = logging.Formatter('%(asctime)s - %(message)s',
                                          datefmt='%Y-%m-%d %H:%M:%S')
-        file_handler = logging.FileHandler(self.suivi_file, encoding='utf-8', mode='a')
+        file_handler = logging.FileHandler(self.suivi_file, encoding='latin-1', mode='a')
         file_handler.setFormatter(file_formatter)
         file_handler.setLevel(logging.SUCCESS)  # Only log SUCCESS and above
         
@@ -127,9 +127,18 @@ class Logger:
             if not os.path.exists(self.suivi_file):
                 return
                 
-            # Check file size
-            with open(self.suivi_file, 'r', encoding='utf-8') as f:
-                content = f.read()
+            # Try reading with different encodings
+            content = None
+            for encoding in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
+                try:
+                    with open(self.suivi_file, 'r', encoding=encoding) as f:
+                        content = f.read()
+                    break
+                except UnicodeDecodeError:
+                    continue
+                    
+            if content is None:
+                raise ValueError(f"Could not read {self.suivi_file} with any supported encoding")
                 
             if len(content) > 25000:
                 # Format multi-line commit messages with proper indentation
@@ -200,8 +209,8 @@ class Logger:
                 final_content += summary
                 final_content += "\n\n# Nouveaux logs\n\n"
                 
-                # Write new summary with proper formatting
-                with open(self.suivi_file, 'w', encoding='utf-8') as f:
+                # Write new summary with latin-1 encoding for better French character support
+                with open(self.suivi_file, 'w', encoding='latin-1') as f:
                     f.write(final_content)
                     
                 self.logger.log(logging.SUCCESS, "✨ Suivi de mission résumé avec succès")
