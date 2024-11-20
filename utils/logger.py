@@ -174,18 +174,21 @@ class Logger:
                     handler.close()
                     self.logger.removeHandler(handler)
             
-            # Now we can safely read and modify the file
-            import chardet
-            with open(self.suivi_file, 'rb') as f:
-                raw = f.read()
-            detected = chardet.detect(raw)
-            encoding = detected['encoding']
+            # Try different encodings to read the file
+            content = None
+            encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
             
-            with open(self.suivi_file, 'r', encoding=encoding) as f:
-                content = f.read()
-                
-            if encoding and encoding != 'utf-8':
-                content = content.encode(encoding).decode('utf-8')
+            for encoding in encodings:
+                try:
+                    with open(self.suivi_file, 'r', encoding=encoding) as f:
+                        content = f.read()
+                    self.logger.debug(f"Successfully read file with {encoding} encoding")
+                    break
+                except UnicodeDecodeError:
+                    continue
+                    
+            if content is None:
+                raise ValueError(f"Could not read {self.suivi_file} with any supported encoding")
                 
             if len(content) > 25000:
                 # Format multi-line commit messages with proper indentation
