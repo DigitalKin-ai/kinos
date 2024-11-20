@@ -20,7 +20,7 @@ class RedundancyManager:
         self.chroma_client = None
         self.collection = None
         self.collection_name = "kinos_paragraphs"
-        self.SECTION_THRESHOLD = 5  # Split files with more than 5 sections
+        self.SECTION_THRESHOLD = 3  # Split files with more than 3 sections/subsections
 
     def _initialize_chroma(self):
         """
