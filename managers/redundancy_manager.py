@@ -673,20 +673,9 @@ class RedundancyManager:
         return True
 
     def _prepare_split_directory(self, original_file):
-        """Create and prepare directory for split files"""
+        """Create directory for split files"""
         dir_name = os.path.splitext(original_file)[0]
-        
-        # Create README explaining split
-        readme_content = f"""# Split Content Directory
-Original file: {original_file}
-Split date: {time.strftime('%Y-%m-%d %H:%M:%S')}
-This directory contains content split from the original file due to size/complexity.
-"""
-        
         os.makedirs(dir_name, exist_ok=True)
-        with open(os.path.join(dir_name, 'README.md'), 'w') as f:
-            f.write(readme_content)
-            
         return dir_name
 
     def _update_git(self, original_file, new_files):
