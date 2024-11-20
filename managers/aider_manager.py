@@ -109,6 +109,7 @@ class AiderManager:
             "--yes-always",
             "--cache-prompts",
             "--no-pretty",
+            "--encoding", "latin-1",  # Add explicit encoding parameter
             "--chat-history-file", f".aider.history.{agent_name}.md",
             "--restore-chat-history",
             "--input-history-file", f".aider.input.{agent_name}.md"
