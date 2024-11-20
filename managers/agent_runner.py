@@ -1,6 +1,7 @@
 import os
 import random
 import asyncio
+import time
 from concurrent.futures import ThreadPoolExecutor
 from utils.logger import Logger
 from managers.agents_manager import AgentsManager
@@ -158,7 +159,8 @@ class AgentRunner:
                 await asyncio.sleep(1)  # Wait if no agent available
                 return
                 
-            self.logger.info(f"🤖 Agent {agent_name} starting cycle")
+            start_time = time.time()
+            self.logger.info(f"🕐 Agent {agent_name} starting cycle at {start_time}")
             
             # Execute agent cycle in thread pool to prevent blocking
             loop = asyncio.get_event_loop()
@@ -168,6 +170,10 @@ class AgentRunner:
                 agent_name, 
                 mission_filepath
             )
+            
+            end_time = time.time()
+            duration = end_time - start_time
+            self.logger.info(f"⏱️ Agent {agent_name} completed cycle in {duration:.2f} seconds")
                 
         except Exception as e:
             self.logger.error(f"Error in agent cycle: {str(e)}")

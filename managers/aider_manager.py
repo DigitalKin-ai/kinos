@@ -247,13 +247,18 @@ class AiderManager:
         """Execute aider command and handle results."""
         map_manager = None
         try:
+            # Log start time
+            start_time = time.time()
+            self.logger.info(f"⏳ Starting aider execution at {start_time}")
+
             # Get initial state
             initial_state = self._get_git_file_states()
 
             # First call - Production objective
+            phase_start = time.time()
+            self.logger.info(f"🏭 Starting production phase at {phase_start}")
             production_cmd = cmd.copy()
             production_cmd[-1] = production_cmd[-1] + "\nFocus on the Production Objective"
-            self.logger.info(f"🏭 Executing production-focused aider operation...")
             self.logger.debug(f"Executing production command: {' '.join(production_cmd)}")
             
             process = subprocess.Popen(
@@ -269,13 +274,17 @@ class AiderManager:
                 self.logger.error(f"Production process failed with return code {process.returncode}")
                 raise subprocess.CalledProcessError(process.returncode, production_cmd, stdout, stderr)
 
+            phase_end = time.time()
+            self.logger.info(f"✨ Production phase completed in {phase_end - phase_start:.2f} seconds")
+
             # Get state after first call
             first_state = self._get_git_file_states()
 
             # Second call - Role-specific objective
+            phase_start = time.time()
+            self.logger.info(f"👤 Starting role-specific phase at {phase_start}")
             role_cmd = cmd.copy()
             role_cmd[-1] = role_cmd[-1] + "\nFocus on the Role-specific Objective"
-            self.logger.info(f"👤 Executing role-specific aider operation...")
             
             process = subprocess.Popen(
                 role_cmd,
@@ -290,8 +299,15 @@ class AiderManager:
                 self.logger.error(f"Role-specific process failed with return code {process.returncode}")
                 raise subprocess.CalledProcessError(process.returncode, role_cmd, stdout, stderr)
 
+            phase_end = time.time()
+            self.logger.info(f"✨ Role-specific phase completed in {phase_end - phase_start:.2f} seconds")
+
             # Get state after second call
             second_state = self._get_git_file_states()
+
+            # Log total duration
+            total_duration = time.time() - start_time
+            self.logger.info(f"🎯 Total aider execution completed in {total_duration:.2f} seconds")
 
             # Third call - Check for additional changes
             final_cmd = cmd.copy()
