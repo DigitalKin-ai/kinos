@@ -1,4 +1,5 @@
 import chromadb
+import time
 from utils.logger import Logger
 
 class RedundancyManager:
@@ -83,7 +84,21 @@ class RedundancyManager:
         Raises:
             ChromaDBError: If collection creation/access fails
         """
-        pass
+        try:
+            if not self.chroma_client:
+                self._initialize_chroma()
+                
+            if not self.collection:
+                self.collection = self.chroma_client.get_or_create_collection(
+                    name=self.collection_name,
+                    metadata={"hnsw:space": "cosine"}  # Use cosine similarity
+                )
+                
+            return self.collection
+            
+        except Exception as e:
+            self.logger.error(f"Failed to ensure collection: {str(e)}")
+            raise
 
     def _reset_collection(self):
         """
@@ -94,7 +109,15 @@ class RedundancyManager:
         Raises:
             ChromaDBError: If reset operation fails
         """
-        pass
+        try:
+            if self.collection:
+                self.chroma_client.delete_collection(self.collection_name)
+                self.collection = None
+                self.logger.info(f"Reset collection: {self.collection_name}")
+                
+        except Exception as e:
+            self.logger.error(f"Failed to reset collection: {str(e)}")
+            raise
 
     def _split_into_paragraphs(self, text):
         """
@@ -153,7 +176,12 @@ class RedundancyManager:
         Returns:
             dict: Metadata dictionary including source info and position
         """
-        pass
+        return {
+            "file_path": file_path,
+            "position": position,
+            "length": len(paragraph),
+            "timestamp": time.time()
+        }
 
     def analyze_paragraph(self, paragraph, threshold=0.85):
         """
@@ -273,7 +301,33 @@ class RedundancyManager:
             ValueError: If paragraph is empty or invalid
             ChromaDBError: If database operation fails
         """
-        pass
+        if not paragraph:
+            raise ValueError("Empty paragraph provided")
+            
+        # Clean input paragraph
+        cleaned_paragraph = self._clean_paragraph(paragraph)
+        if not cleaned_paragraph:
+            raise ValueError("Paragraph contains no content after cleaning")
+            
+        try:
+            # Ensure collection exists
+            self._ensure_collection()
+            
+            # Generate metadata
+            metadata = self._generate_metadata(cleaned_paragraph, file_path, position)
+            
+            # Add to collection
+            self.collection.add(
+                documents=[cleaned_paragraph],
+                metadatas=[metadata],
+                ids=[f"{file_path}_{position}"]
+            )
+            
+            self.logger.debug(f"Added paragraph from {file_path} at position {position}")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to add paragraph: {str(e)}")
+            raise
 
     def add_file(self, file_path):
         """
