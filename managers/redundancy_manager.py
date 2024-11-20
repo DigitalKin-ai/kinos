@@ -679,6 +679,7 @@ class RedundancyManager:
     def _generate_section_filename(self, level, title, index):
         """Generate unique, well-ordered filenames for sections"""
         import unicodedata
+        import re
         
         # Normalize unicode characters
         title = unicodedata.normalize('NFKD', title)
@@ -686,8 +687,11 @@ class RedundancyManager:
         # Remove accents but keep base characters
         title = ''.join(c for c in title if not unicodedata.combining(c))
         
-        # Clean remaining characters
-        safe_title = "".join(c for c in title if c.isalnum() or c in (' -_')).strip()
+        # Remove control characters and non-printable characters
+        title = ''.join(char for char in title if char.isprintable())
+        
+        # Clean remaining characters - only allow alphanumeric, space, hyphen, underscore
+        safe_title = re.sub(r'[^a-zA-Z0-9\s\-_]', '', title).strip()
         safe_title = safe_title.replace(' ', '_').lower()
         
         if not safe_title:
@@ -749,9 +753,13 @@ class RedundancyManager:
     def _update_git(self, original_file, new_files):
         """Handle git operations for split files"""
         try:
-            # Normalize file paths
-            original_file = original_file.strip('"')
-            new_files = [f.strip('"') for f in new_files]
+            # Sanitize file paths
+            def sanitize_path(path):
+                # Remove control characters
+                return ''.join(char for char in path if char.isprintable())
+                
+            original_file = sanitize_path(original_file.strip('"'))
+            new_files = [sanitize_path(f.strip('"')) for f in new_files]
             
             # First check if file is tracked by git
             status = subprocess.run(
@@ -767,12 +775,13 @@ class RedundancyManager:
                 
                 # Add new directory and files with proper encoding
                 for new_file in new_files:
-                    # Normalize path encoding
                     try:
-                        new_file = bytes(new_file, 'utf-8').decode('unicode-escape')
-                    except:
-                        pass
-                    subprocess.run(['git', 'add', new_file], check=True)
+                        # Normalize path encoding and remove control characters
+                        new_file = sanitize_path(new_file)
+                        subprocess.run(['git', 'add', new_file], check=True)
+                    except subprocess.CalledProcessError as e:
+                        self.logger.error(f"Failed to add file {new_file}: {str(e)}")
+                        continue
                     
                 # Create commit
                 msg = f"♻️ Split {original_file} into sections for better management"
@@ -784,12 +793,13 @@ class RedundancyManager:
                 
                 # Add new files to git
                 for new_file in new_files:
-                    # Normalize path encoding
                     try:
-                        new_file = bytes(new_file, 'utf-8').decode('unicode-escape')
-                    except:
-                        pass
-                    subprocess.run(['git', 'add', new_file], check=True)
+                        # Normalize path encoding and remove control characters
+                        new_file = sanitize_path(new_file)
+                        subprocess.run(['git', 'add', new_file], check=True)
+                    except subprocess.CalledProcessError as e:
+                        self.logger.error(f"Failed to add file {new_file}: {str(e)}")
+                        continue
                 
                 # Create commit
                 msg = f"♻️ Split {original_file} into sections for better management"
