@@ -574,9 +574,18 @@ class RedundancyManager:
             return False
             
         try:
-            # Read file content
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
+            # Read file content with robust encoding handling
+            content = None
+            for encoding in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
+                try:
+                    with open(file_path, 'r', encoding=encoding) as f:
+                        content = f.read()
+                    break
+                except UnicodeError:
+                    continue
+                    
+            if content is None:
+                raise ValueError(f"Could not read {file_path} with any supported encoding")
                 
             # Count sections and subsections
             sections = []
@@ -725,18 +734,25 @@ class RedundancyManager:
                         if file_path in new_files:
                             continue
                             
-                        # Update references
-                        with open(file_path, 'r') as f:
-                            content = f.read()
-                            
-                        # Replace references to original file with new structure
-                        if original_file in content:
-                            new_content = content.replace(
-                                original_file, 
-                                f"{os.path.splitext(original_file)[0]}/README.md"
-                            )
-                            with open(file_path, 'w') as f:
-                                f.write(new_content)
+                        # Update references with robust encoding handling
+                        for encoding in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
+                            try:
+                                with open(file_path, 'r', encoding=encoding) as f:
+                                    content = f.read()
+                                    
+                                # Replace references to original file with new structure
+                                if original_file in content:
+                                    new_content = content.replace(
+                                        original_file, 
+                                        f"{os.path.splitext(original_file)[0]}/README.md"
+                                    )
+                                    with open(file_path, 'w', encoding=encoding) as f:
+                                        f.write(new_content)
+                                break  # Successfully read and wrote file
+                            except UnicodeError:
+                                continue
+                        else:
+                            self.logger.warning(f"⚠️ Could not process {file_path} with any supported encoding")
                                 
         except Exception as e:
             self.logger.error(f"Failed to update references: {str(e)}")
