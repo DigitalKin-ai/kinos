@@ -634,6 +634,15 @@ class RedundancyManager:
             # Update references in other files
             self._update_references(file_path, new_files)
             
+            # After creating all new files, ensure original is removed
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                    self.logger.info(f"🗑️ Removed original file: {file_path}")
+                except Exception as e:
+                    self.logger.error(f"Failed to remove original file {file_path}: {str(e)}")
+                    raise
+
             # Handle git operations
             self._update_git(file_path, new_files)
             
@@ -698,8 +707,16 @@ class RedundancyManager:
         if not original_file or not isinstance(original_file, str):
             raise ValueError("Invalid original file path")
             
+        # Create directory name from original file
         dir_name = os.path.splitext(original_file)[0]
-        os.makedirs(dir_name, exist_ok=True)
+        
+        # If directory exists, remove it and its contents
+        if os.path.exists(dir_name):
+            import shutil
+            shutil.rmtree(dir_name)
+            
+        # Create fresh directory
+        os.makedirs(dir_name)
         
         return dir_name
 
