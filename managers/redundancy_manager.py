@@ -614,7 +614,8 @@ class RedundancyManager:
                 title = section_content[0].lstrip('#').strip()
                 # Prefix with level indicator for proper sorting
                 prefix = "1" if level == 1 else "2"
-                self._save_section(dir_name, f"{prefix}_{title}", section_content)
+                if not self._save_section(dir_name, f"{prefix}_{title}", section_content):
+                    self.logger.debug(f"Skipped duplicate section: {title}")
                 
             # Remove original file
             os.remove(file_path)
@@ -637,7 +638,17 @@ class RedundancyManager:
             raise
 
     def _save_section(self, dir_name, title, content):
-        """Save a section to its own file"""
+        """
+        Save a section to its own file, handling duplicates.
+        
+        Args:
+            dir_name (str): Directory to save section in
+            title (str): Section title
+            content (list): Section content lines
+            
+        Returns:
+            bool: True if saved, False if duplicate detected and removed
+        """
         # Create safe filename from title
         safe_title = "".join(c for c in title if c.isalnum() or c in (' -_')).strip()
         safe_title = safe_title.replace(' ', '_').lower()
@@ -646,9 +657,37 @@ class RedundancyManager:
             
         file_path = os.path.join(dir_name, f"{safe_title}.md")
         
-        # Write content
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(content))
+        # Check for existing file
+        if os.path.exists(file_path):
+            # Read existing content
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    existing_content = f.read()
+                    
+                # Compare normalized content (ignore whitespace differences)
+                new_content = '\n'.join(content).strip()
+                if existing_content.strip() == new_content:
+                    self.logger.warning(
+                        f"⚠️ Duplicate section '{title}' detected - content identical, skipping"
+                    )
+                    return False
+                else:
+                    self.logger.warning(
+                        f"⚠️ Duplicate section '{title}' detected - removing duplicate content"
+                    )
+                    return False
+            except Exception as e:
+                self.logger.error(f"Error checking duplicate content: {str(e)}")
+                return False
+                
+        # Write new content
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(content))
+            return True
+        except Exception as e:
+            self.logger.error(f"Error saving section: {str(e)}")
+            return False
 
     def add_all_files(self):
         """
