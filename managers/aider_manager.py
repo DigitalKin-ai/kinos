@@ -247,19 +247,26 @@ class AiderManager:
         """Execute aider command and handle results."""
         map_manager = None
         try:
+            # Extract agent name from cmd arguments
+            agent_name = None
+            for i, arg in enumerate(cmd):
+                if "--chat-history-file" in arg and i+1 < len(cmd):
+                    agent_name = cmd[i+1].replace('.aider.history.', '').replace('.md', '')
+                    break
+
             # Log start time
             start_time = time.time()
-            self.logger.info(f"⏳ Starting aider execution at {start_time}")
+            self.logger.info(f"⏳ Agent {agent_name} starting aider execution at {start_time}")
 
             # Get initial state
             initial_state = self._get_git_file_states()
 
             # First call - Production objective
             phase_start = time.time()
-            self.logger.info(f"🏭 Starting production phase at {phase_start}")
+            self.logger.info(f"🏭 Agent {agent_name} starting production phase at {phase_start}")
             production_cmd = cmd.copy()
             production_cmd[-1] = production_cmd[-1] + "\nFocus on the Production Objective"
-            self.logger.debug(f"Executing production command: {' '.join(production_cmd)}")
+            self.logger.debug(f"Agent {agent_name} executing production command: {' '.join(production_cmd)}")
             
             process = subprocess.Popen(
                 production_cmd,
@@ -275,14 +282,14 @@ class AiderManager:
                 raise subprocess.CalledProcessError(process.returncode, production_cmd, stdout, stderr)
 
             phase_end = time.time()
-            self.logger.info(f"✨ Production phase completed in {phase_end - phase_start:.2f} seconds")
+            self.logger.info(f"✨ Agent {agent_name} completed production phase in {phase_end - phase_start:.2f} seconds")
 
             # Get state after first call
             first_state = self._get_git_file_states()
 
             # Second call - Role-specific objective
             phase_start = time.time()
-            self.logger.info(f"👤 Starting role-specific phase at {phase_start}")
+            self.logger.info(f"👤 Agent {agent_name} starting role-specific phase at {phase_start}")
             role_cmd = cmd.copy()
             role_cmd[-1] = role_cmd[-1] + "\nFocus on the Role-specific Objective"
             
@@ -336,34 +343,35 @@ class AiderManager:
             # Check for files modified in each phase
             production_modified = self._get_modified_files(initial_state, first_state)
             if production_modified:
-                self.logger.info(f"📝 Production phase modified {len(production_modified)} files")
+                self.logger.info(f"📝 Agent {agent_name} production phase modified {len(production_modified)} files")
                 modified_files.update(production_modified)
                 
             role_modified = self._get_modified_files(first_state, second_state)
             if role_modified:
-                self.logger.info(f"📝 Role-specific phase modified {len(role_modified)} files")
+                self.logger.info(f"📝 Agent {agent_name} role-specific phase modified {len(role_modified)} files")
                 modified_files.update(role_modified)
 
             final_modified = self._get_modified_files(second_state, final_state)
             if final_modified:
-                self.logger.info(f"📝 Final check phase modified {len(final_modified)} files")
+                self.logger.info(f"📝 Agent {agent_name} final check phase modified {len(final_modified)} files")
                 modified_files.update(final_modified)
 
             # Update global map for all modified files
             if modified_files:
-                self.logger.info(f"📝 Total of {len(modified_files)} modified files")
+                self.logger.info(f"📝 Agent {agent_name} modified total of {len(modified_files)} files")
                 map_manager = MapManager()
                 for file_path in modified_files:
                     try:
                         file_path = file_path.encode('latin1').decode('utf-8')
-                        self.logger.info(f"🔄 Updating global map for: {file_path}")
+                        self.logger.info(f"🔄 Agent {agent_name} updating global map for: {file_path}")
                         map_manager.update_global_map(file_path)
-                        self.logger.debug(f"✅ Successfully updated map for: {file_path}")
+                        self.logger.debug(f"✅ Agent {agent_name} successfully updated map for: {file_path}")
                     except Exception as e:
-                        self.logger.error(f"❌ Failed to update map for {file_path}: {str(e)}")
+                        self.logger.error(f"❌ Agent {agent_name} failed to update map for {file_path}: {str(e)}")
 
         except Exception as e:
-            self.logger.error(f"💥 Aider execution failed: {str(e)}")
+            agent_msg = f"Agent {agent_name} " if agent_name else ""
+            self.logger.error(f"💥 {agent_msg}aider execution failed: {str(e)}")
             self.logger.error(f"Error type: {type(e).__name__}")
             if hasattr(e, 'output'):
                 self.logger.error(f"Error output:\n{e.output}")
