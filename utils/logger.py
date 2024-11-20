@@ -23,13 +23,28 @@ class Logger:
             
         # Initialize suivi file path and handler
         self.suivi_file = 'suivi.md'
-        file_formatter = logging.Formatter('%(asctime)s - %(message)s',
+        file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
                                          datefmt='%Y-%m-%d %H:%M:%S')
-        file_handler = logging.FileHandler(self.suivi_file, encoding='latin-1', mode='a')
+                                         
+        # Create file handler with latin-1 encoding but strip emojis first
+        class EmojiStrippingFileHandler(logging.FileHandler):
+            def emit(self, record):
+                # Strip emojis from message before writing to file
+                try:
+                    # Save original message
+                    original_msg = record.msg
+                    # Strip emojis and other special characters for file
+                    record.msg = ''.join(c for c in original_msg if ord(c) < 256)
+                    super().emit(record)
+                finally:
+                    # Restore original message for other handlers
+                    record.msg = original_msg
+
+        file_handler = EmojiStrippingFileHandler(self.suivi_file, encoding='latin-1', mode='a')
         file_handler.setFormatter(file_formatter)
         file_handler.setLevel(logging.SUCCESS)  # Only log SUCCESS and above
-        
-        # Custom formatter with colors
+
+        # Custom formatter with colors for console
         class ColorFormatter(logging.Formatter):
             FORMATS = {
                 logging.DEBUG: Fore.CYAN + '%(asctime)s - %(levelname)s - %(message)s' + Style.RESET_ALL,
@@ -45,9 +60,9 @@ class Logger:
                 formatter = logging.Formatter(log_fmt, datefmt='%Y-%m-%d %H:%M:%S')
                 return formatter.format(record)
 
-        # Setup handler with color formatter
-        handler = logging.StreamHandler()
-        handler.setFormatter(ColorFormatter())
+        # Setup console handler with color formatter and UTF-8 encoding
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(ColorFormatter())
         
         # Configure logger
         self.logger = logging.getLogger('KinOS')
@@ -55,7 +70,7 @@ class Logger:
         
         # Remove existing handlers and add our handlers
         self.logger.handlers = []
-        self.logger.addHandler(handler)
+        self.logger.addHandler(console_handler)
         self.logger.addHandler(file_handler)
         
         # Prevent propagation to root logger
