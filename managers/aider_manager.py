@@ -163,7 +163,8 @@ class AiderManager:
             cmd.extend(['--file', context_file])
             
         # Add global map as read-only
-        cmd.extend(['--read', 'map.md'])
+        cmd.extend(['--file', 'todolist.md'])
+        #cmd.extend(['--read', 'map.md'])
 
         # Add agent prompt as read-only
         cmd.extend(['--read', agent_filepath])
@@ -381,19 +382,19 @@ class AiderManager:
             # Run production phase
             production_files, production_state = self._run_aider_phase(
                 cmd, agent_name, "🏭 Production", 
-                "Focus on the Production Objective"
+                "--> Focus on the Production Objective"
             )
 
             # Run role-specific phase
             role_files, role_state = self._run_aider_phase(
                 cmd, agent_name, "👤 Role-specific",
-                "Focus on the Role-specific Objective"
+                "--> Focus on the Role-specific Objective"
             )
 
             # Run final check phase
             final_files, final_state = self._run_aider_phase(
                 cmd, agent_name, "🔍 Final Check",
-                "--> Any additional changes required?"
+                "--> Any additional changes required? Then update the todolist to reflect the changes."
             )
 
             # Log total duration and summary

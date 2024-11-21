@@ -494,10 +494,12 @@ Analyze this file in the context of the entire project and explain its unique ro
 ````
 
 Provide a one-line summary (max 300 chars) that:
-1. Explains what makes this file DIFFERENT from other files, highlights its SPECIFIC purpose
-2. Describes the file, NOT the content of the file
-3. Avoids repeating information already present in other files
-4. Indicates the current advancement of the file
+1. Taking into account its position within the project
+2. Explains what makes this file DIFFERENT from other files, highlights its SPECIFIC purpose
+3. Describes the file, NOT the content of the file
+4. Avoids repeating information already present in other files
+5. Indicates the current advancement of the file
+6. Is formulated as briefly as possible (start with the verb directly "contains", "serves as" etc.)
 
 Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file name.
 """
