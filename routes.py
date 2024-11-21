@@ -99,13 +99,13 @@ def main():
                         sys.exit(1)
                     
                 # Get agent count
-                agent_count = 10  # Default value
+                agent_count = 5  # Default value
                 if "--count" in sys.argv:
                     try:
                         count_index = sys.argv.index("--count") + 1
                         agent_count = int(sys.argv[count_index])
                     except (ValueError, IndexError):
-                        print("Invalid value for --count. Using default (10)")
+                        print("Invalid value for --count. Using default (5)")
                 
                 # Check for --generate flag    
                 should_generate = "--generate" in sys.argv
