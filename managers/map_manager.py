@@ -257,6 +257,7 @@ Select only files that are directly relevant to the current objective.
 ````
 
 # Global Project Map
+The following describes all files in the project and their purposes:
 ````
 {global_map_content}
 ````
@@ -266,22 +267,36 @@ Select only files that are directly relevant to the current objective.
 {objective_content}
 ````
 
-Analyze the objective and determine:
-1. Which files will need to be MODIFIED to implement the changes
-2. Which files provide necessary CONTEXT for understanding the system
+Using the project map descriptions, carefully analyze:
+
+1. MODIFICATIONS NEEDED:
+   - Which files need to be changed to implement the objective
+   - What specific changes are required in each file
+   - How these changes align with each file's documented purpose
+
+2. CONTEXT REQUIRED:
+   - Which files provide essential background information
+   - What specific knowledge each file contributes
+   - How this context supports the planned changes
+
+3. SYSTEM IMPACT:
+   - How modifications might affect related files
+   - Which dependencies need to be considered
+   - What potential risks need to be managed
 
 Provide your response in this format:
 
 # Context Map
 Files to modify:
-- file1.py - [Reason for modification]
-- file2.md - [Specific changes needed]
+- file1.py - [Current role: X] [Changes needed: Y] [Impact: Z]
+- file2.md - [Current role: X] [Changes needed: Y] [Impact: Z]
 
 Context files:
-- file3.py - [Why this context is needed]
-- file4.md - [What information it provides]
+- file3.py - [Purpose: X] [Relevant aspects: Y] [Relationship to changes: Z]
+- file4.md - [Purpose: X] [Relevant aspects: Y] [Relationship to changes: Z]
 
 Note: Select only the most relevant files (aim for 3-5 files to modify, 3-5 context files).
+Justify each selection based on the file's documented purpose in the project map.
 """
 
 
