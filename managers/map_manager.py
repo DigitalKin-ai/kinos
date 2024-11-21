@@ -144,9 +144,6 @@ class MapManager:
             if not all(self._validate_file(f) for f in [mission_filepath, objective_filepath, agent_filepath]):
                 raise ValueError("Invalid or missing input files")
                 
-            # Get available files
-            available_files = self._get_available_files()
-            
             # Load required content
             mission_content = self._read_file(mission_filepath)
             objective_content = self._read_file(objective_filepath)
@@ -156,8 +153,7 @@ class MapManager:
             context_map = self._generate_map_content(
                 mission_content, 
                 objective_content, 
-                agent_content,
-                available_files
+                agent_content
             )
             
             # Save map using extracted agent name
@@ -242,7 +238,7 @@ Select only files that are directly relevant to the current objective.
             self.logger.error(f"GPT API call failed: {str(e)}")
             raise
 
-    def _create_map_prompt(self, mission_content, objective_content, agent_content, available_files):
+    def _create_map_prompt(self, mission_content, objective_content, agent_content):
         """Create prompt for context map generation."""
         # Load global map content if it exists
         global_map_content = ""
@@ -268,11 +264,6 @@ Select only files that are directly relevant to the current objective.
 # Current Objective
 ````
 {objective_content}
-````
-
-# Available Files
-````
-{chr(10).join(available_files)}
 ````
 
 Analyze the objective and determine:
