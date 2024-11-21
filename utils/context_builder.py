@@ -5,7 +5,15 @@ import mimetypes
 from typing import List, Set
 
 class ContextBuilder:
-    """Utility class for building a complete project context file."""
+    """
+    A utility class for building a comprehensive project context file.
+    
+    This class scans a project directory and creates a single markdown file containing
+    the contents of all relevant text files, providing a complete context of the project.
+    
+    Attributes:
+        text_extensions (set): Set of file extensions considered as text files
+    """
     
     def __init__(self):
         # Initialize mimetypes
@@ -24,7 +32,16 @@ class ContextBuilder:
         }
 
     def _get_ignore_patterns(self) -> List[str]:
-        """Get patterns from .gitignore and .aiderignore."""
+        """
+        Get list of patterns for files to ignore from .gitignore and .aiderignore.
+        
+        Returns:
+            List[str]: List of glob patterns for files to ignore
+            
+        Note:
+            Always includes common ignore patterns like .git, node_modules, etc.
+            regardless of .gitignore contents
+        """
         patterns = []
         
         # Always exclude these patterns
@@ -55,7 +72,16 @@ class ContextBuilder:
         return patterns
 
     def _should_ignore(self, file_path: str, ignore_patterns: List[str]) -> bool:
-        """Check if file should be ignored based on patterns."""
+        """
+        Check if a file should be ignored based on ignore patterns.
+        
+        Args:
+            file_path (str): Path to file to check
+            ignore_patterns (List[str]): List of glob patterns to check against
+            
+        Returns:
+            bool: True if file should be ignored, False otherwise
+        """
         for pattern in ignore_patterns:
             if fnmatch.fnmatch(file_path, pattern):
                 return True
@@ -63,7 +89,18 @@ class ContextBuilder:
 
     def _is_text_file(self, file_path: str) -> bool:
         """
-        Determine if a file is a text file based on extension and content analysis.
+        Determine if a file is a text file through extension and content analysis.
+        
+        Uses multiple methods to detect text files:
+        1. Checks against known text extensions
+        2. Uses mime type detection
+        3. Attempts to read file as text
+        
+        Args:
+            file_path (str): Path to file to check
+            
+        Returns:
+            bool: True if file appears to be text, False otherwise
         """
         # Check extension first
         ext = os.path.splitext(file_path)[1].lower()
@@ -84,18 +121,36 @@ class ContextBuilder:
             return False
 
     def _get_file_size(self, file_path: str) -> int:
-        """Get file size in bytes."""
+        """
+        Get size of file in bytes.
+        
+        Args:
+            file_path (str): Path to file to check
+            
+        Returns:
+            int: Size of file in bytes
+        """
         return os.path.getsize(file_path)
 
     def build_context(self, root_dir: str = ".", output_file: str = "context.md", 
                      max_file_size: int = 1024 * 1024) -> None:
         """
-        Build context file from all text files in directory.
+        Build a comprehensive context file from all text files in a directory.
+        
+        Scans the given directory recursively, identifying text files and combining
+        their contents into a single markdown file for context. Respects gitignore
+        patterns and size limits.
         
         Args:
-            root_dir: Root directory to start from
-            output_file: Output context file name
-            max_file_size: Maximum file size to include (default 1MB)
+            root_dir (str): Root directory to start scanning from. Defaults to current directory
+            output_file (str): Name of output markdown file. Defaults to "context.md"
+            max_file_size (int): Maximum size in bytes for included files. Defaults to 1MB
+            
+        Note:
+            - Skips binary files and files larger than max_file_size
+            - Formats output as markdown with file contents in code blocks
+            - Includes relative paths to original files
+            - Handles text encoding using UTF-8
         """
         ignore_patterns = self._get_ignore_patterns()
         processed_files: Set[str] = set()
@@ -145,7 +200,17 @@ class ContextBuilder:
                             print(f"Error processing {rel_path}: {str(e)}")
 
 def main():
-    """Main function to run the context builder."""
+    """
+    Command-line interface for the context builder.
+    
+    Provides arguments for:
+    - Root directory to process
+    - Output file name
+    - Maximum file size
+    
+    Example:
+        python context_builder.py --dir ./myproject --output context.md --max-size 2097152
+    """
     import argparse
     
     parser = argparse.ArgumentParser(description='Build project context file.')
