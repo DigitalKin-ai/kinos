@@ -42,6 +42,52 @@ OPENAI_API_KEY=your_openai_key_here
 PERPLEXITY_API_KEY=your_perplexity_key_here
 ```
 
+4. Add KinOS to your PATH:
+   - **Windows**: Add the KinOS directory to your system's PATH environment variable
+   - **Linux/Mac**: Create a symbolic link to the `kin` script in /usr/local/bin
+
+### Starting Your First Project
+
+1. Create a new project directory:
+```bash
+mkdir my_project
+cd my_project
+```
+
+2. Create a mission file:
+```bash
+# Create .aider.mission.md file
+# This file describes what you want to accomplish
+# Example content:
+"""
+# Project Mission: Create a Python Web Scraper
+
+## Objective
+Build a web scraper that can:
+- Extract data from e-commerce websites
+- Save results to CSV files
+- Handle pagination and rate limiting
+- Respect robots.txt
+
+## Requirements
+- Use Python with BeautifulSoup
+- Include error handling
+- Add comprehensive documentation
+- Create unit tests
+"""
+```
+
+3. Launch KinOS:
+```bash
+# Generate and start 6 agents
+kin run agents --generate --count 6
+```
+
+4. Monitor Progress:
+- Check `suivi.md` for detailed logs
+- View `map.md` for project structure
+- Review `todolist.md` for pending tasks
+
 ## 📖 Usage
 
 ### Basic Commands
