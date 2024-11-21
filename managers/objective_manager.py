@@ -207,75 +207,65 @@ class ObjectiveManager:
         try:
             client = openai.OpenAI()
 
-            # Read last 50 lines from suivi.md if it exists
+            # Read last 80 lines from suivi.md if it exists
             suivi_content = ""
             if os.path.exists('suivi.md'):
                 try:
                     with open('suivi.md', 'r', encoding='utf-8') as f:
                         lines = f.readlines()
-                        last_lines = lines[-50:] if len(lines) > 50 else lines
+                        last_lines = lines[-80:] if len(lines) > 80 else lines
                         suivi_content = ''.join(last_lines)
                 except Exception as e:
                     self.logger.warning(f"⚠️ Could not read suivi.md: {str(e)}")
 
-            prompt = f"""
-Generate a clear, specific objective for the {agent_name} agent based on the mission and recent activity.
+            # Read todolist.md if it exists
+            todolist = ""
+            if os.path.exists('todolist.md'):
+                try:
+                    with open('todolist.md', 'r', encoding='utf-8') as f:
+                        todolist = f.read()
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not read todolist.md: {str(e)}")
 
-Reference Materials
-================
+            prompt = f"""
+Based on the following, generate a clear specific next step for the {agent_name} agent.
+
 # Mission
 ````
 {mission_content}
 ````
 
-# Recent Activity Log
+# Recent Activity (last 80 lines)
 ````
 {suivi_content}
 ````
 
-# Objective Generation Guidelines
-- Focus on the agent's specific role and capabilities
-- Consider recent activity to avoid duplication
-- Ensure objective aligns with mission goals
-- Make objective concrete and actionable
-- Keep scope focused and achievable
+# Todolist
+````
+{todolist}
+````
 
-Required Output Format
+Required Output
 ================
-Generate a single focused objective in markdown format that specifies:
+Create two objectives in markdown format - one for production, one specific to your role. Each objective should specify:
 
 1. **Action Statement**
-   - One specific task to accomplish
-   - Clear connection to mission goals
-   - Within agent's role and capabilities
+   - Single, specific task to accomplish
+   - Clear relation to current mission state
+   - Within agent's documented capabilities
 
-2. **Expected Outcome**
-   - Concrete deliverables
-   - Success criteria
-   - Impact on project
+2. **Operation Type**
+   - What kind of changes will be needed
+   - Expected impact on system
+   - Required capabilities
 
-3. **Implementation Steps**
-   - Clear sequence of actions
-   - Required resources
-   - Dependencies if any
+3. **Validation Points**
+   - How to verify success
+   - What output to check
+   - Which states to validate
 
-4. **Validation Criteria**
-   - How to verify completion
-   - Quality checks
-   - Acceptance criteria
-
-5. **Research Needs**
-   - If research is needed, add a "Search:" line with the specific query
-   - Only include if research is necessary
-
-The objective must be:
-- Focused on a single clear task
-- Achievable with current capabilities
-- Measurable for completion
-- Self-contained (no follow-ups needed)
-- Non-duplicative of recent work
-
-Provide the objective in a clear, actionable format that Aider can execute immediately.
+4. **Search**
+   - If research needed, add "Search:" line with query
 """
             self.logger.info(f"OBJECTIVE PROMPT: {prompt}")
             response = client.chat.completions.create(
