@@ -869,6 +869,9 @@ class RedundancyManager:
         """
         Save a section to its own file, removing duplicates with same title.
         
+        Creates individual files for each section with proper naming and structure.
+        Handles duplicate detection and content validation.
+        
         Args:
             dir_name (str): Directory to save section in
             level (int): Section level (1 for #, 2 for ##, etc)
@@ -878,6 +881,11 @@ class RedundancyManager:
             
         Returns:
             str: Path to saved file, or None if validation failed or duplicate title
+            
+        Note:
+            - Validates content before saving
+            - Checks for duplicate titles
+            - Uses consistent naming scheme
         """
         # Validate content
         if not self._validate_section_content(content):
