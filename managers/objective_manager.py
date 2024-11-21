@@ -207,39 +207,19 @@ class ObjectiveManager:
         try:
             client = openai.OpenAI()
 
-            # Load global map content if it exists
-            global_map_content = ""
-            if os.path.exists("map.md"):
-                try:
-                    global_map_content = self._read_file("map.md")
-                except Exception as e:
-                    self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
-                    # Continue without global map content
-
-            # Load todolist if it exists
-            todolist = ""
-            if os.path.exists("todolist.md"):
-                try:
-                    todolist = self._read_file("todolist.md")
-                except Exception as e:
-                    self.logger.warning(f"⚠️ Could not read todolist: {str(e)}")
-                    # Continue without todolist
-
-             # Read last 80 lines from suivi.md if it exists
+            # Read last 40 lines from suivi.md if it exists
             suivi_content = ""
             if os.path.exists('suivi.md'):
                 try:
-                    with open('suivi.md', 'r', encoding='latin-1') as f:  # Use latin-1 for suivi.md
-                        # Read all lines and get last
+                    with open('suivi.md', 'r', encoding='utf-8') as f:
                         lines = f.readlines()
-                        last_lines = lines[-80:] if len(lines) > 80 else lines
+                        last_lines = lines[-40:] if len(lines) > 40 else lines
                         suivi_content = ''.join(last_lines)
                 except Exception as e:
                     self.logger.warning(f"⚠️ Could not read suivi.md: {str(e)}")
-                    # Continue without suivi content
 
             prompt = f"""
-Based on the following contexts, generate a clear specific next step for the {agent_name} agent.
+Generate a clear, specific objective for the {agent_name} agent based on the mission and recent activity.
 
 Reference Materials
 ================
@@ -248,71 +228,54 @@ Reference Materials
 {mission_content}
 ````
 
-# Current Project Map
-````
-{global_map_content}
-````
-
-# Logs de suivi (travail de tous les agents - 80 dernières lignes)
+# Recent Activity Log
 ````
 {suivi_content}
 ````
 
-# Todolist
-````
-{todolist}
-````
+# Objective Generation Guidelines
+- Focus on the agent's specific role and capabilities
+- Consider recent activity to avoid duplication
+- Ensure objective aligns with mission goals
+- Make objective concrete and actionable
+- Keep scope focused and achievable
 
-# Breadth-First Pattern
-- Review the directives in the Mission if present
-- Review the uncompleted items in the todolist
-- Review the directives of your system prompt
-- Review the work already being done by the other agents
-- Then: Choose an item from the todolist (Maintain breadth-first exploration pattern)
-- Generate an item from your system prompt, according to your specific role in the project
-
-Required Output
+Required Output Format
 ================
-Create two objectives in markdown format - one for production, one specific to your role. Each objective should specify:
+Generate a single focused objective in markdown format that specifies:
 
 1. **Action Statement**
-   - Single, specific task to accomplish
-   - Clear relation to current mission state
-   - Within agent's documented capabilities
+   - One specific task to accomplish
+   - Clear connection to mission goals
+   - Within agent's role and capabilities
 
-2. **Source Files**
-   - Which specific files to analyze (use global map for context)
-   - Which sections are relevant
-   - Which dependencies matter
+2. **Expected Outcome**
+   - Concrete deliverables
+   - Success criteria
+   - Impact on project
 
-3. **Target Changes**
-   - Which files to modify
-   - Nature of expected changes
-   - Impact on system state
+3. **Implementation Steps**
+   - Clear sequence of actions
+   - Required resources
+   - Dependencies if any
 
-4. **Validation Points**
-   - How to verify success
-   - What output to check
-   - Which states to validate
+4. **Validation Criteria**
+   - How to verify completion
+   - Quality checks
+   - Acceptance criteria
 
-5. **Operation Bounds**
-   - Resource limitations
-   - Scope restrictions
-   - Dependency requirements
-
-6. **Search**
-   - If the task requires a search on Perplexity, add a "Search:" line with the specific search to be performed
-   - Do not include this line if no research is necessary
+5. **Research Needs**
+   - If research is needed, add a "Search:" line with the specific query
+   - Only include if research is necessary
 
 The objective must be:
-- Limited to one clear operation
-- Executable with current capabilities
-- Specific about file changes based on global map
-- Clear on completion checks
-- Self-contained (no follow-up needed)
-- Different from previous objectives
+- Focused on a single clear task
+- Achievable with current capabilities
+- Measurable for completion
+- Self-contained (no follow-ups needed)
+- Non-duplicative of recent work
 
-Ask Aider to make the edits now, without asking for clarification.
+Provide the objective in a clear, actionable format that Aider can execute immediately.
 """
             self.logger.info(f"OBJECTIVE PROMPT: {prompt}")
             response = client.chat.completions.create(
