@@ -274,7 +274,7 @@ class Logger:
             self.logger.addHandler(file_handler)
                 
         except Exception as e:
-            self.logger.error(f"⚠️ Erreur lors du résumé des logs: {str(e)}")
+            self.logger.error(f"⚠️ Erreur lors du résumé du suivi de mission: {str(e)}")
             # Make sure we restore the file handler even if there's an error
             file_handler = logging.FileHandler(self.suivi_file, encoding='utf-8', mode='a')
             file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
