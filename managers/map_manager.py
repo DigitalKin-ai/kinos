@@ -252,9 +252,8 @@ Select only files that are directly relevant to the current objective.
                     global_map_content = f.read()
             except Exception as e:
                 self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
-                # Continue without global map content
-        
-        return f"""Based on the following context, select the relevant files needed for the next operation.
+                
+        return f"""Based on the following context, analyze and select the relevant files needed for the next operation.
 
 # Mission
 ````
@@ -271,15 +270,27 @@ Select only files that are directly relevant to the current objective.
 {objective_content}
 ````
 
-Using the global map information about file contents, select only the most relevant files needed to complete the current objective.
-Consider:
-- File contents and purposes described in the global map
-- Current state and implementation status of each file
-- Dependencies between files
-- Relevance to the current objective
+# Available Files
+````
+{chr(10).join(available_files)}
+````
 
-Return a list of only the files needed to complete the current objective (aim for 6-10).
-Format as a simple markdown list under a "# Context Map" heading.
+Analyze the objective and determine:
+1. Which files will need to be MODIFIED to implement the changes
+2. Which files provide necessary CONTEXT for understanding the system
+
+Provide your response in this format:
+
+# Context Map
+Files to modify:
+- file1.py - [Reason for modification]
+- file2.md - [Specific changes needed]
+
+Context files:
+- file3.py - [Why this context is needed]
+- file4.md - [What information it provides]
+
+Note: Select only the most relevant files (aim for 3-5 files to modify, 3-5 context files).
 """
 
 
