@@ -815,7 +815,21 @@ class RedundancyManager:
             raise
 
     def _update_references(self, original_file, new_files):
-        """Update references in other files after splitting"""
+        """
+        Update references in other files after splitting.
+        
+        Scans project files and updates any references to the original file
+        to point to the new split file structure.
+        
+        Args:
+            original_file (str): Path to original file that was split
+            new_files (list): List of paths to new split files
+            
+        Note:
+            - Updates markdown links and references
+            - Handles multiple file encodings
+            - Preserves file structure
+        """
         try:
             # Find all markdown files
             for root, _, files in os.walk('.'):
