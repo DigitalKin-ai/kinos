@@ -26,7 +26,7 @@ KinOS is an advanced AI team orchestration system that enables autonomous collab
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/kinos.git
+git clone https://github.com/Lesterpaintstheworld/kinos.git
 cd kinos
 ```
 
@@ -186,9 +186,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📞 Support
 
-- Create an issue for bug reports
-- Join our community discussions
-- Check the wiki for detailed documentation
+- Telegram: https://t.me/+KfdkWFNZoONjMTE0
+- Patreon: https://www.patreon.com/c/kins_autonomousais/membership
+- Website: https://nlr.ai/
 
 ## 🔮 Future Plans
 
