@@ -126,6 +126,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - OpenAI for GPT-4
 - Perplexity for research capabilities
+- The AutonomousAI community for pioneering autonomous AI development
+- Aider for enabling AI-assisted development
 - The open-source community
 
 ## 📞 Support
