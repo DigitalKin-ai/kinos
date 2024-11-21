@@ -492,34 +492,7 @@ Justify each selection based on the file's documented purpose in the project map
             if should_update_description:
                 # Generate new summary with global context
                 client = openai.OpenAI()
-                prompt = f"""
-Analyze this file in the context of the entire project and explain its unique role.
-
-# Current Global Project Map
-````
-{global_map_content}
-````
-
-# Last Commit Message
-````
-{commit_msg}
-````
-
-# Modified File: {modified_file_path}
-````
-{file_content}
-````
-
-Provide a one-line summary (max 300 chars) that:
-1. Taking into account its position within the project
-2. Explains what makes this file DIFFERENT from other files, highlights its SPECIFIC purpose
-3. Describes the file, NOT the content of the file
-4. Avoids repeating information already present in other files
-5. Indicates the current advancement of the file
-6. Is formulated as briefly as possible (start with the verb directly "contains", "serves as" etc.)
-
-Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file name.
-"""
+                prompt = self._generate_file_summary_prompt(modified_file_path, file_content, global_map_content, commit_msg)
 
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
@@ -567,27 +540,7 @@ Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file 
                     global_map_content = f.read()
 
             client = openai.OpenAI()
-            prompt = f"""
-Analyze this file in the context of the entire project and explain its unique role.
-
-# Current Global Project Map
-````
-{global_map_content}
-````
-
-# Modified File: {filepath}
-````
-{content}
-````
-
-Provide a one-line summary (max 300 chars) that:
-1. Explains what makes this file DIFFERENT from other files, highlights its SPECIFIC purpose
-2. Describes the file, NOT the content of the file
-3. Avoids repeating information already present in other files
-4. Indicates the current advancement of the file
-
-Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file name.
-"""
+            prompt = self._generate_file_summary_prompt(filepath, content, global_map_content)
             
             response = await asyncio.to_thread(
                 lambda: client.chat.completions.create(
@@ -660,6 +613,58 @@ Use bold text (**) for key concepts, and relevant emojis. Don't repeat the file 
         except Exception as e:
             self.logger.error(f"Failed to update map file: {str(e)}")
             raise
+
+    def _generate_file_summary_prompt(self, filepath, content, global_map_content, commit_msg=None):
+        """
+        Generate a standardized prompt for file summary generation.
+        
+        Args:
+            filepath (str): Path to the file being summarized
+            content (str): Content of the file
+            global_map_content (str): Current global map content
+            commit_msg (str, optional): Recent commit message for context
+            
+        Returns:
+            str: Formatted prompt for GPT model
+        """
+        prompt = f"""
+Analyze this file in the context of the entire project and explain its unique role.
+
+# Current Global Project Map
+````
+{global_map_content}
+````
+"""
+
+        if commit_msg:
+            prompt += f"""
+# Last Commit Message
+````
+{commit_msg}
+````
+"""
+
+        prompt += f"""
+# File: {filepath}
+````
+{content}
+````
+
+Generate a one-line summary (max 300 chars) that:
+1. Starts with an action verb (contains, serves, provides, manages, etc.)
+2. Highlights the file's UNIQUE purpose within the project
+3. Describes the file's role, not its contents
+4. Indicates current development status
+5. Avoids duplicating information from other files
+6. Uses minimal but precise wording
+
+Format:
+- Use **bold** for key technical concepts
+- Include relevant emojis for file type/purpose
+- Don't repeat the file name
+- Focus on what makes this file DIFFERENT from others
+"""
+        return prompt
 
     def _update_map_file_fallback(self, filepath, token_count, summary):
         """Fallback method to update map file with alternative encodings."""
