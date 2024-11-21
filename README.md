@@ -30,7 +30,15 @@ git clone https://github.com/yourusername/kinos.git
 cd kinos
 ```
 
-2. Install dependencies:
+2. Install Aider locally:
+```bash
+git clone git@github.com:Aider-AI/aider.git
+cd aider
+pip install -e .
+cd ..
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
