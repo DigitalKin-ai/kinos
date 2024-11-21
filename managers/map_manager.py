@@ -616,7 +616,7 @@ Justify each selection based on the file's documented purpose in the project map
 
     def _generate_file_summary_prompt(self, filepath, content, commit_msg=None):
         """
-        Generate a standardized prompt for file summary generation.
+        Generate a prompt for file summary that emphasizes purpose within project structure.
         
         Args:
             filepath (str): Path to the file being summarized
@@ -626,9 +626,32 @@ Justify each selection based on the file's documented purpose in the project map
         Returns:
             str: Formatted prompt for GPT model
         """
-        prompt = f"""Analyze this file and explain its unique role in the project.
+        # Load mission content if available
+        mission_content = ""
+        if os.path.exists(".aider.mission.md"):
+            try:
+                with open(".aider.mission.md", 'r', encoding='utf-8') as f:
+                    mission_content = f.read()
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not read mission file: {str(e)}")
 
-# File: {filepath}
+        # Get directory structure context
+        dir_path = os.path.dirname(filepath)
+        file_name = os.path.basename(filepath)
+        
+        prompt = f"""Based on the project mission and file location, explain this file's specific purpose.
+
+# Project Mission
+````
+{mission_content}
+````
+
+# File Location
+Path: {filepath}
+Directory: {dir_path if dir_path else "root"}
+Name: {file_name}
+
+# Content
 ````
 {content}
 ````
@@ -643,18 +666,23 @@ Justify each selection based on the file's documented purpose in the project map
 """
 
         prompt += """
-Generate a one-line summary (max 300 chars) that:
-1. Starts with an action verb (contains, serves, provides, manages, etc.)
-2. Highlights the file's UNIQUE purpose
-3. Describes the file's role, not its contents
-4. Indicates current development status
-5. Uses minimal but precise wording
+Generate a one-line summary (max 300 chars) that explains:
+1. The file's INTENDED PURPOSE in achieving the mission
+2. Why it's placed in this specific directory
+3. How its name reflects its role
+4. Its relationship to other components
 
 Format:
+- Start with an action verb (defines, manages, coordinates, etc.)
 - Use **bold** for key technical concepts
-- Include relevant emojis for file type/purpose
-- Don't repeat the file name
-- Focus on what makes this file DIFFERENT from others
+- Include 1-2 relevant emojis for file type/role
+- Focus on architectural purpose, not implementation details
+- Explain why this file exists in this location
+
+Example formats:
+- 🔧 Manages **widget configuration** for core system, centralizing settings in utils/
+- 📝 Defines **user authentication** flows, implementing login requirements in auth/
+- 🎯 Coordinates **task scheduling** between agents, placed in managers/ for system control
 """
         return prompt
 
