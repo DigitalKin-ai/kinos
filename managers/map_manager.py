@@ -540,7 +540,7 @@ Justify each selection based on the file's documented purpose in the project map
                     global_map_content = f.read()
 
             client = openai.OpenAI()
-            prompt = self._generate_file_summary_prompt(filepath, content, global_map_content)
+            prompt = self._generate_file_summary_prompt(filepath, content)
             
             response = await asyncio.to_thread(
                 lambda: client.chat.completions.create(
@@ -614,49 +614,41 @@ Justify each selection based on the file's documented purpose in the project map
             self.logger.error(f"Failed to update map file: {str(e)}")
             raise
 
-    def _generate_file_summary_prompt(self, filepath, content, global_map_content, commit_msg=None):
+    def _generate_file_summary_prompt(self, filepath, content, commit_msg=None):
         """
         Generate a standardized prompt for file summary generation.
         
         Args:
             filepath (str): Path to the file being summarized
             content (str): Content of the file
-            global_map_content (str): Current global map content
             commit_msg (str, optional): Recent commit message for context
             
         Returns:
             str: Formatted prompt for GPT model
         """
-        prompt = f"""
-Analyze this file in the context of the entire project and explain its unique role.
+        prompt = f"""Analyze this file and explain its unique role in the project.
 
-# Current Global Project Map
+# File: {filepath}
 ````
-{global_map_content}
+{content}
 ````
 """
 
         if commit_msg:
             prompt += f"""
-# Last Commit Message
+# Recent Changes
 ````
 {commit_msg}
 ````
 """
 
-        prompt += f"""
-# File: {filepath}
-````
-{content}
-````
-
+        prompt += """
 Generate a one-line summary (max 300 chars) that:
 1. Starts with an action verb (contains, serves, provides, manages, etc.)
-2. Highlights the file's UNIQUE purpose within the project
+2. Highlights the file's UNIQUE purpose
 3. Describes the file's role, not its contents
 4. Indicates current development status
-5. Avoids duplicating information from other files
-6. Uses minimal but precise wording
+5. Uses minimal but precise wording
 
 Format:
 - Use **bold** for key technical concepts
