@@ -207,13 +207,13 @@ class ObjectiveManager:
         try:
             client = openai.OpenAI()
 
-            # Read last 40 lines from suivi.md if it exists
+            # Read last 50 lines from suivi.md if it exists
             suivi_content = ""
             if os.path.exists('suivi.md'):
                 try:
                     with open('suivi.md', 'r', encoding='utf-8') as f:
                         lines = f.readlines()
-                        last_lines = lines[-40:] if len(lines) > 40 else lines
+                        last_lines = lines[-50:] if len(lines) > 50 else lines
                         suivi_content = ''.join(last_lines)
                 except Exception as e:
                     self.logger.warning(f"⚠️ Could not read suivi.md: {str(e)}")
