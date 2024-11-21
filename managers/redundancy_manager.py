@@ -565,7 +565,9 @@ class RedundancyManager:
             'map.md', 
             'todolist.md',
             '.aider.mission.md',
-            'context.md'
+            'context.md',
+            'README.md',
+            'LICENSE'
         }
         
         # Check for exact matches or path endings
