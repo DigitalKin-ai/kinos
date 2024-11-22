@@ -973,10 +973,30 @@ Rules:
             raise
     def _create_file_analysis_prompt(self, filename: str, folder_context: dict) -> str:
         """Create prompt for analyzing a single file's role."""
+        # Get full relative path
+        rel_path = os.path.relpath(os.path.join(folder_context['path'], filename), self.project_root)
+        
+        # Build folder purpose hierarchy
+        folder_path = os.path.dirname(rel_path)
+        folder_purposes = []
+        current_path = ""
+        for part in folder_path.split(os.sep):
+            if part:
+                current_path = os.path.join(current_path, part) if current_path else part
+                # Get folder context for this level
+                level_context = self._get_folder_context_for_path(current_path)
+                if level_context and level_context.get('purpose'):
+                    prefix = "├─ " if folder_purposes else ""
+                    folder_purposes.append(f"{prefix}{part}: {level_context['purpose']}")
+                    
+        folder_hierarchy = "\n   │  ".join(folder_purposes) if folder_purposes else folder_context['purpose']
+
         return f"""Analyze this specific file's role within its folder context:
 
-Filename: {filename}
-Folder Purpose: {folder_context['purpose']}
+Filename: {rel_path}
+
+Folder Hierarchy:
+   {folder_hierarchy}
 
 Determine:
 1. Technical role (select ONE category with emoji)

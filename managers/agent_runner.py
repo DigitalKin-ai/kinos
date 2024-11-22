@@ -200,6 +200,32 @@ class AgentRunner:
             self._running_agents.add(agent_name)
             return agent_name
             
+    def _get_folder_context_for_path(self, folder_path: str) -> dict:
+        """Get folder context for a specific path."""
+        # Check if we have this path in our cache
+        if hasattr(self, '_context_cache'):
+            cached = self._context_cache.get(folder_path)
+            if cached:
+                return cached
+                
+        # If not in cache, we need to analyze this folder
+        try:
+            files = self._get_folder_files(folder_path)
+            subfolders = self._get_subfolders(folder_path)
+            
+            # Get context with empty mission content since this is just for hierarchy
+            context = self._get_folder_context(
+                folder_path=folder_path,
+                files=files,
+                subfolders=subfolders,
+                mission_content=""
+            )
+            
+            return context
+        except Exception as e:
+            self.logger.warning(f"Could not get context for {folder_path}: {str(e)}")
+            return None
+
     def _get_available_agents(self):
         """List available agents."""
         agent_types = [
