@@ -134,6 +134,14 @@ class FSUtils:
 
     def _should_ignore(self, path: str, ignore_patterns: List[str]) -> bool:
         """Check if a path should be ignored based on ignore patterns."""
+        # Normalize path for consistent comparison
+        path = path.replace('\\', '/')
+        
+        # Always ignore .aider folders
+        if '.aider' in path.split('/'):
+            return True
+            
+        # Check against other ignore patterns
         for pattern in ignore_patterns:
             if fnmatch.fnmatch(path, pattern):
                 return True
