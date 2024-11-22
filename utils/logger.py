@@ -243,25 +243,29 @@ class Logger:
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
-                        {"role": "system", "content": (
-                            "Tu es un expert en synthèse de logs de suivi de projet.\n"
-                            "Ta mission est de résumer l'historique des actions de manière détailée, en conservant :\n"
-                            "- Les informations essentielles sur la progression\n"
-                            "- Les décisions importantes\n"
-                            "- Les problèmes rencontrés et leurs solutions\n"
-                            "- Les fichiers principaux de travail\n"
-                            "- La chronologie détaillée\n\n"
-                            "Format ton résumé en markdown avec des sections claires."
-                        )},
-                        {"role": "user", "content": f"""Voici les logs complets du projet. 
-                        Fais-en un résumé structuré détaillé qui permettra de comprendre rapidement :
-                        - L'état d'avancement
-                        - Les principales réalisations
-                        - Les points importants à retenir
-                        
-                        Logs à résumer :
-                        
-                        {formatted_content}"""}
+                        {"role": "system", "content": """You are an expert project progress analyst.
+Your task is to summarize project logs in relation to the mission objectives.
+
+Focus on:
+1. Progress towards mission goals
+2. Key decisions and their alignment with objectives
+3. Problems encountered and solutions found
+4. Critical file modifications and their purpose
+5. Team coordination and agent interactions
+
+Format your summary in markdown with clear sections:
+- Mission Progress
+- Key Achievements
+- Technical Changes
+- Coordination Notes
+- Next Steps"""},
+                        {"role": "user", "content": f"""Project Mission:
+{self.mission_content}
+
+Recent Logs to Summarize:
+{formatted_content}
+
+Create a detailed progress summary that shows how recent activities align with mission objectives."""}
                     ],
                     temperature=0.3,
                     max_tokens=4000
