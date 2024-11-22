@@ -622,6 +622,47 @@ Return in format:
         # Default truncation with ellipsis
         return content[:max_length-3] + '...'
 
+    def generate_global_map(self, mission_filepath=".aider.mission.md"):
+        """
+        Generate a global project map based on mission context.
+        
+        Args:
+            mission_filepath (str): Path to mission file
+            
+        Raises:
+            ValueError: If mission file is invalid
+            Exception: For other errors during map generation
+        """
+        try:
+            self.logger.logger.setLevel(logging.DEBUG)
+            self.logger.debug("🔍 Starting global map generation")
+            
+            if not os.path.exists(mission_filepath):
+                raise ValueError(f"Mission file not found: {mission_filepath}")
+                
+            # Load mission content
+            with open(mission_filepath, 'r', encoding='utf-8') as f:
+                mission_content = f.read()
+                
+            # Analyze full project structure
+            self.logger.debug("📂 Analyzing project structure")
+            hierarchy = self._analyze_folder_hierarchy(".", mission_content, mission_content)
+            
+            # Generate map content
+            self.logger.debug("📝 Generating map content")
+            map_content = self._generate_map_content(hierarchy)
+            
+            # Save to map.md
+            self.logger.debug("💾 Saving global map")
+            with open("map.md", 'w', encoding='utf-8') as f:
+                f.write(map_content)
+                
+            self.logger.success("✨ Global map generated successfully")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to generate global map: {str(e)}")
+            raise
+
     def _parse_folder_analysis(self, analysis_text: str) -> dict:
         """
         Parse and validate GPT analysis response into structured format.
