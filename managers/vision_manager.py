@@ -131,13 +131,46 @@ class VisionManager:
                 ], check=True)
                 
                 # Installation in the correct directory
-                self.logger.info("📦 Installing repo-visualizer dependencies...")
+                repo_visualizer_path = os.path.join(os.getcwd(), 'repo-visualizer')
+                self.logger.info(f"📦 Installing dependencies in {repo_visualizer_path}...")
+                
                 try:
-                    subprocess.run(['npm', 'install'], cwd="repo-visualizer", check=True)
+                    # Vérifier la structure du projet
+                    self.logger.debug("📂 Checking project structure...")
+                    if os.path.exists(os.path.join(repo_visualizer_path, 'package.json')):
+                        with open(os.path.join(repo_visualizer_path, 'package.json'), 'r') as f:
+                            self.logger.debug(f"📄 package.json content: {f.read()}")
                     
-                    # Explicit project build
-                    self.logger.info("🔨 Building repo-visualizer...")
-                    subprocess.run(['npm', 'run', 'build'], cwd="repo-visualizer", check=True)
+                    # Installation des dépendances
+                    self.logger.info("📦 Running npm install...")
+                    install_result = subprocess.run(
+                        ['npm', 'install'], 
+                        cwd=repo_visualizer_path, 
+                        check=True,
+                        capture_output=True,
+                        text=True
+                    )
+                    self.logger.debug(f"📦 npm install output: {install_result.stdout}")
+                    
+                    # Build explicite du projet
+                    self.logger.info("🔨 Running npm run build...")
+                    build_result = subprocess.run(
+                        ['npm', 'run', 'build'], 
+                        cwd=repo_visualizer_path, 
+                        check=True,
+                        capture_output=True,
+                        text=True
+                    )
+                    self.logger.debug(f"🔨 npm run build output: {build_result.stdout}")
+                    
+                    # Vérifier la structure après build
+                    self.logger.debug("📂 Checking build output structure...")
+                    dist_path = os.path.join(repo_visualizer_path, 'dist')
+                    if os.path.exists(dist_path):
+                        self.logger.debug(f"📂 Contents of dist directory: {os.listdir(dist_path)}")
+                    else:
+                        self.logger.warning("⚠️ dist directory not found after build")
+                        
                 except subprocess.CalledProcessError as e:
                     self.logger.error(f"Failed to build repo-visualizer: {e.stderr}")
                     raise
