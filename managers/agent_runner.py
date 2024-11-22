@@ -203,16 +203,37 @@ class AgentRunner:
             
     def _get_folder_context(self, folder_path: str, files: list, subfolders: list,
                           mission_content: str) -> dict:
-        """Get folder purpose and relationships using GPT with caching."""
+        """
+        Get folder purpose and relationships using GPT with caching.
+        
+        Args:
+            folder_path (str): Path to current folder (relative or absolute)
+            files (list): List of files in folder
+            subfolders (list): List of subfolders
+            mission_content (str): Overall mission context
+            
+        Returns:
+            dict: Folder context including:
+                - path: Absolute path for internal use
+                - display_path: Relative path for display
+                - purpose: Folder's main purpose
+                - relationships: Dict of folder relationships
+                
+        Raises:
+            ValueError: If folder_path is empty or invalid
+            Exception: For API or parsing errors
+        """
         if not folder_path:
             raise ValueError("folder_path cannot be empty")
             
         try:
-            # Convert to absolute path for internal use, but keep relative for display
+            # Normalize paths
             abs_path = os.path.abspath(folder_path)
+            if not self._validate_path_in_project(abs_path):
+                raise ValueError(f"Path {folder_path} is outside project directory")
             rel_path = os.path.relpath(abs_path, self.project_root)
             
-            # Generate cache key using relative path
+            # Generate cache key using relative path for consistency
             cache_key = f"{rel_path}:{','.join(sorted(files))}:{','.join(sorted(subfolders))}"
             
             # Check cache first
@@ -224,7 +245,7 @@ class AgentRunner:
             else:
                 self._context_cache = {}
 
-            # Initialize context dictionary with required structure
+            # Initialize context with validated paths
             context = {
                 'path': abs_path,  # Internal absolute path
                 'display_path': rel_path,  # Display relative path
