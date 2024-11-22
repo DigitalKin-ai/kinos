@@ -12,7 +12,7 @@ class AiderManager:
         """Initialize the manager with logger."""
         self.logger = Logger()
 
-    def run_aider(self, objective_filepath, map_filepath, agent_filepath):
+    def run_aider(self, objective_filepath, map_filepath, agent_filepath, model="gpt-4o-mini"):
         """
         Execute aider operation with defined context.
         
@@ -20,6 +20,7 @@ class AiderManager:
             objective_filepath (str): Path to objective file
             map_filepath (str): Path to context map file
             agent_filepath (str): Path to agent configuration file
+            model (str): Model name to use (default: gpt-4o-mini)
             
         Raises:
             ValueError: If required files are invalid
@@ -40,7 +41,8 @@ class AiderManager:
                 objective_filepath,
                 map_filepath,
                 agent_filepath,
-                context_files
+                context_files,
+                model=model
             )
             
             # Execute aider
@@ -134,10 +136,17 @@ class AiderManager:
             self.logger.error(f"Error loading context map: {str(e)}")
             raise
 
-    def _build_aider_command(self, objective_filepath, map_filepath, agent_filepath, context_files):
+    def _build_aider_command(self, objective_filepath, map_filepath, agent_filepath, context_files, model="gpt-4o-mini"):
         """
         Build aider command with all required arguments.
         
+        Args:
+            objective_filepath (str): Path to objective file
+            map_filepath (str): Path to map file
+            agent_filepath (str): Path to agent file
+            context_files (list): List of context files
+            model (str): Model name to use (default: gpt-4o-mini)
+            
         Returns:
             list: Command arguments for subprocess
         """
@@ -148,7 +157,7 @@ class AiderManager:
         
         # Add required aider arguments
         cmd.extend([
-            "--model", "gpt-4o-mini",
+            "--model", model,
             "--edit-format", "diff", 
             "--yes-always",
             "--cache-prompts",

@@ -106,6 +106,15 @@ def main():
                         agent_count = int(sys.argv[count_index])
                     except (ValueError, IndexError):
                         print("Invalid value for --count. Using default (5)")
+
+                # Get model name
+                model = "gpt-4o-mini"  # Default value
+                if "--model" in sys.argv:
+                    try:
+                        model_index = sys.argv.index("--model") + 1
+                        model = sys.argv[model_index]
+                    except (ValueError, IndexError):
+                        print("Invalid value for --model. Using default (gpt-4o-mini)")
                 
                 # Check for --generate flag    
                 should_generate = "--generate" in sys.argv
@@ -117,7 +126,8 @@ def main():
                 await runner.run(
                     mission_path, 
                     generate_agents=should_generate,
-                    agent_count=agent_count
+                    agent_count=agent_count,
+                    model=model
                 )
 
             # Run the async initialization and execution
