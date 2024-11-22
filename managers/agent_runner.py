@@ -145,10 +145,13 @@ class AgentRunner:
                     tasks.add(task)
                     self.logger.debug(f"Added task for agent {agent_name}")
 
+                    # Add a small delay between agent starts to prevent resource contention
+                    await asyncio.sleep(1)  # 1 second delay between starts
+
                 if not tasks:
                     break  # No more tasks to run
 
-                # Wait for any task to complete
+                # Wait for any task to complete with a timeout
                 done, pending = await asyncio.wait(
                     tasks,
                     return_when=asyncio.FIRST_COMPLETED,
@@ -161,6 +164,19 @@ class AgentRunner:
                     try:
                         agent_name = await completed_task
                         running_agents.remove(agent_name)  # Make agent available again
+                        
+                        # Immediately start a new task if possible
+                        if len(tasks) < agent_count and len(running_agents) < len(available_agents):
+                            unused_agents = [a for a in available_agents if a not in running_agents]
+                            if unused_agents:
+                                new_agent = random.choice(unused_agents)
+                                running_agents.add(new_agent)
+                                new_task = asyncio.create_task(
+                                    self._run_single_agent_cycle(new_agent, mission_filepath, model=model)
+                                )
+                                tasks.add(new_task)
+                                self.logger.debug(f"Added replacement task for agent {new_agent}")
+                                
                         self.logger.debug(f"Agent {agent_name} completed cycle")
                     except Exception as e:
                         self.logger.error(f"Agent task failed: {str(e)}")
