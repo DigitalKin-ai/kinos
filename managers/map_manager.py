@@ -524,18 +524,35 @@ Important:
             indent = "  " * level
             content = []
             
+            # Get folder path and convert to relative path if needed
+            folder_path = folder_data['path']
+            if os.path.isabs(folder_path):
+                try:
+                    folder_path = os.path.relpath(folder_path, self.project_root)
+                except ValueError:
+                    # Keep absolute path if relpath fails
+                    pass
+            
             # Add folder header and purpose with better formatting
-            content.append(f"{indent}## {folder_data['path']}")
+            content.append(f"{indent}## {folder_path}")
             content.append(f"{indent}**Purpose:** {folder_data['purpose']}\n")
             
-            # Add files with better formatting
+            # Add files with better formatting and relative paths
             if folder_data['files']:
                 content.append(f"{indent}### Files:")
                 for file in folder_data['files']:
-                    content.append(f"{indent}- **{file['name']}** ({file['role']})  ")
+                    # Construct relative file path
+                    file_path = os.path.join(folder_path, file['name'])
+                    if os.path.isabs(file_path):
+                        try:
+                            file_path = os.path.relpath(file_path, self.project_root)
+                        except ValueError:
+                            file_path = file['name']  # Fallback to just filename
+                    
+                    content.append(f"{indent}- **{file_path}** ({file['role']})  ")
                     content.append(f"{indent}  _{file['description']}_\n")
             
-            # Add relationships if not root, with better formatting
+            # Add relationships if not root
             if level > 0:
                 content.append(f"{indent}### Relationships:")
                 content.append(f"{indent}- **Parent:** _{folder_data['relationships']['parent']}_")
