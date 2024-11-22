@@ -154,23 +154,27 @@ class ObjectiveManager:
             prompt = f"""
 Based on the following, generate a clear specific next step for the {agent_name} agent.
 
-# Mission
+Mission
+================
 ````
 {mission_content}
 ````
 
-# Project Structure
+Project Structure
+================
 ````
 {tree_text}
 ````
 (In the image attached is a visualization of the repository, showing file sizes and structure, that you can use to enhance your decision-making)
 
-# Recent Activity (last 80 lines)
+Recent Activity (last 80 lines)
+================
 ````
 {suivi_content}
 ````
 
-# Todolist
+Todolist
+================
 ````
 {todolist}
 ````
@@ -266,16 +270,20 @@ Your planning:
 
             client = openai.OpenAI()
             prompt = f"""
-# Logs de suivi précédents (50 dernières lignes)
+Logs de suivi précédents (50 dernières lignes)
+================
 ````
 {suivi_content}
 ````
 
-# Objectif
+Objectif
+================
 ````
 {objective}
 ````
 
+Instructions
+================
 A partir de l'Objectif, résume en une seule phrase ce que l'agent fait maintenant dans le cadre de la mission, en suivant strictement ce format :
 "L'agent {agent_name} [action] [objectif] [détail optionnel] [fichiers modifiés]"
 
@@ -312,7 +320,8 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
 Résume en une seule phrase ce qui a été trouvé par la recherche Perplexity, en suivant ce format:
 "L'agent {agent_name} effectue une recherche sur [sujet] : [résumé des découvertes principales]"
 
-Query de recherche : {query}
+Query de recherche :
+{query}
 
 Résultats complets :
 {result}
