@@ -1,9 +1,11 @@
 import os
 import time
+import json
 import subprocess
 from utils.logger import Logger
 from pathlib import Path
 from managers.map_manager import MapManager
+from managers.vision_manager import VisionManager
 
 class AiderManager:
     """Manager class for handling aider operations."""
@@ -11,6 +13,7 @@ class AiderManager:
     def __init__(self):
         """Initialize the manager with logger."""
         self.logger = Logger()
+        self._vision_manager = VisionManager()
 
     def _ensure_aider_installed(self):
         """Ensure aider is installed locally."""
@@ -23,6 +26,9 @@ class AiderManager:
                 ], check=True)
                 
                 try:
+                    # Get repo-visualizer path from VisionManager
+                    repo_visualizer_path = self._vision_manager._get_repo_visualizer_path()
+                    
                     # Vérifier la structure du projet
                     self.logger.debug("📂 Checking project structure...")
                     if os.path.exists(os.path.join(repo_visualizer_path, 'package.json')):
