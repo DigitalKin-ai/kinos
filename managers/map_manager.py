@@ -328,7 +328,12 @@ class MapManager:
             folder_path = os.path.relpath(folder_path, self.project_root)
             
         return f"""# Objective
-Define folder's purpose and relationships:
+Define folder's purpose and relationships
+
+# Mission Context
+````
+{mission_content}
+````
 
 # Current Folder Structure
 📂 ./
@@ -336,11 +341,6 @@ Define folder's purpose and relationships:
    {'└─ ' + files[-1] if files else ''}
    {chr(10).join(f'├─ {d}/' for d in subfolders[:-1])}
    {'└─ ' + subfolders[-1] + '/' if subfolders else ''}
-
-# Mission Context
-````
-{mission_content}
-````
 
 # Instructions
 Provide in this format:
@@ -1178,13 +1178,16 @@ Rules:
 
         tree_str = "\n".join(tree)
 
-        return f"""Analyze all files in this folder structure:
+        return f"""#Objective
+Analyze all files in this folder structure:
 
-Project Structure:
+# Project Structure
 {tree_str}
 
-Current Folder: {rel_path}
+# Current Folder
+{rel_path}
 
+# Instructions
 Generate descriptions in this EXACT format:
 ### Files:
 - **[tree prefix] [relative path]** ([CATEGORY] [EMOJI])  
