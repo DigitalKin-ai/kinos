@@ -1,5 +1,5 @@
 {
-  "output": "diagram.svg",
+  "output": "repo-visualization.svg",
   "depth": 4,
   "should_push": false,
   "style": {
@@ -33,10 +33,19 @@
         ".editorconfig": "#fff",
         ".toml": "#9C4221",
         ".properties": "#2C8EBB",
-        ".gradle": "#02303A"
+        ".gradle": "#02303A",
+        ".php": "#4F5D95",
+        ".rb": "#701516",
+        ".go": "#00ADD8",
+        ".rs": "#DEA584",
+        ".lua": "#000080",
+        ".scala": "#DC322F",
+        ".elm": "#60B5CC",
+        ".ex": "#6E4A7E",
+        ".erl": "#B83998"
       }
     }
   },
   "excluded_paths": "node_modules,dist,build,coverage,.git,.pytest_cache,.hypothesis,.idea,.vscode",
-  "excluded_globs": ".aider*/**/*;.aider.*/**/*;**/.aider*/**/*;**/.aider.*/**/*;**/__pycache__/**/*;**/*.pyc;**/*.pyo;**/*.pyd;**/*.so;**/*.dll;**/*.dylib;**/.DS_Store;**/Thumbs.db;**/desktop.ini;**/*.log;**/*.cache;**/*.bak;**/*.swp;**/*.tmp;**/*.temp;**/*~;**/.env;**/.env.*;**/*.local;**/.coverage;**/*.egg-info;**/*.egg;**/*.whl;**/*.manifest"
+  "excluded_globs": ".aider*/**/*;.aider.*/**/*;**/.aider*/**/*;**/.aider.*/**/*;**/__pycache__/**/*;**/*.pyc;**/*.pyo;**/*.pyd;**/*.so;**/*.dll;**/*.dylib;**/.DS_Store;**/Thumbs.db;**/desktop.ini;**/*.log;**/*.cache;**/*.bak;**/*.swp;**/*.tmp;**/*.temp;**/*~;**/.env;**/.env.*;**/*.local;**/.coverage;**/*.egg-info;**/*.egg;**/*.whl;**/*.manifest;**/.history/**/*;**/.venv/**/*;**/dist/**/*;**/build/**/*;**/.next/**/*;**/coverage/**/*;**/.nyc_output/**/*;**/node_modules/**/*;**/.yarn/**/*"
 }
