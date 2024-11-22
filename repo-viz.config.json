@@ -1,5 +1,5 @@
 {
-  "output": "repo-visualization.svg",
+  "output": "diagram.svg",
   "depth": 4,
   "should_push": false,
   "style": {
@@ -15,34 +15,7 @@
         ".yml": "#cb171e",
         ".yaml": "#cb171e",
         ".svg": "#ff9900",
-        ".txt": "#4B5563",
-        ".rst": "#3572A5",
-        ".ini": "#6E7681",
-        ".cfg": "#6E7681",
-        ".conf": "#6E7681",
-        ".sh": "#89E051",
-        ".bat": "#C1F12E",
-        ".ps1": "#012456",
-        ".env": "#2C8EBB",
-        ".xml": "#0060ac",
-        ".csv": "#237346",
-        ".sql": "#E38C00",
-        ".htaccess": "#009639",
-        ".gitignore": "#41454A",
-        ".dockerignore": "#384D54",
-        ".editorconfig": "#fff",
-        ".toml": "#9C4221",
-        ".properties": "#2C8EBB",
-        ".gradle": "#02303A",
-        ".php": "#4F5D95",
-        ".rb": "#701516",
-        ".go": "#00ADD8",
-        ".rs": "#DEA584",
-        ".lua": "#000080",
-        ".scala": "#DC322F",
-        ".elm": "#60B5CC",
-        ".ex": "#6E4A7E",
-        ".erl": "#B83998"
+        ".txt": "#4B5563"
       }
     }
   },
