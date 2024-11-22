@@ -366,10 +366,13 @@ Important:
             
             if not folder_path:
                 raise ValueError("folder_path cannot be empty")
+                
+            # Ensure we have absolute path
+            abs_path = os.path.abspath(folder_path)
             
             # Initialize context with absolute path
             context = {
-                'path': os.path.abspath(folder_path),
+                'path': abs_path,  # Always include the absolute path
                 'purpose': '',
                 'relationships': {
                     'parent': 'No parent relationship specified',
@@ -377,8 +380,8 @@ Important:
                     'children': 'No children relationships specified'
                 }
             }
-
-            client = openai.OpenAI()
+            
+            self.logger.debug(f"Initial context with path: {context}")
             
             # Convert to relative path for prompts and logging
             rel_path = os.path.relpath(folder_path, self.project_root)
@@ -393,6 +396,7 @@ Important:
             max_retries = 3
             for attempt in range(max_retries):
                 try:
+                    client = openai.OpenAI()
                     response = client.chat.completions.create(
                         model="gpt-4o-mini",
                         messages=[
@@ -415,20 +419,7 @@ Important:
             content = response.choices[0].message.content.strip()
             self.logger.debug(f"\n✨ FOLDER CONTEXT RESPONSE:\n{content}")
             
-            # Initialize context with default values
-            context = {
-                'purpose': '',
-                'relationships': {
-                    'parent': 'No parent relationship specified',
-                    'siblings': 'No sibling relationships specified',
-                    'children': 'No children relationships specified'
-                }
-            }
-            
-            content = response.choices[0].message.content.strip()
-            self.logger.debug(f"\n✨ FOLDER CONTEXT RESPONSE:\n{content}")
-            
-            # Parse response and update context
+            # Parse response but preserve the path
             for line in content.split('\n'):
                 line = line.strip()
                 if not line:
@@ -443,17 +434,16 @@ Important:
                 elif line.startswith('Children:'):
                     context['relationships']['children'] = line.replace('Children:', '').strip()
                     
-            self.logger.debug(f"Final context: {context}")
+            self.logger.debug(f"Final context with path: {context}")
             
-            # Validate required fields
-            if not context['purpose']:
-                folder_name = os.path.basename(folder_path)
-                context['purpose'] = f"Storage folder for {folder_name} content"
-                self.logger.warning(f"Generated default purpose for {folder_name}")
-                
             # Set default purpose if none provided
             if not context['purpose']:
-                context['purpose'] = f"Storage folder for {os.path.basename(folder_path)} content"
+                context['purpose'] = f"Storage folder for {os.path.basename(abs_path)} content"
+                
+            # Verify path is still present
+            if 'path' not in context:
+                self.logger.error(f"Path missing from context after GPT response")
+                context['path'] = abs_path
                 
             return context
             
