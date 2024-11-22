@@ -213,55 +213,100 @@ class MapManager:
             self.logger.error(f"Error reading file {filepath}: {str(e)}")
             raise
 
-    def _generate_map_content(self, mission_content, objective_content, agent_content):
-        """Generate context map content using GPT."""
+    def _analyze_folder_level(self, folder_path: str, files_content: dict, subfolders: list,
+                            mission_content: str, objective_content: str) -> dict:
+        """
+        Analyze a single folder level with complete context.
+        
+        Args:
+            folder_path: Path to current folder
+            files_content: Dict of {filename: content} for all files in folder
+            subfolders: List of subfolder names
+            mission_content: Overall mission context
+            objective_content: Current objective context
+            
+        Returns:
+            dict: Complete folder analysis including:
+                - purpose: Folder's main purpose
+                - files: List of analyzed files with roles
+                - relationships: Dict of folder relationships
+        """
         try:
             client = openai.OpenAI()
-            prompt = self._create_map_prompt(
-                mission_content, 
-                objective_content, 
-                agent_content
-            )
             
+            # Build comprehensive folder context
+            folder_context = {
+                'path': folder_path,
+                'parent': os.path.dirname(folder_path),
+                'name': os.path.basename(folder_path),
+                'files': files_content,
+                'subfolders': subfolders,
+                'sibling_folders': [d for d in os.listdir(os.path.dirname(folder_path))
+                                  if os.path.isdir(os.path.join(os.path.dirname(folder_path), d))
+                                  and d != os.path.basename(folder_path)]
+                                  if folder_path != '.' else []
+            }
+
+            # Create analysis prompt
+            prompt = f"""Analyze this folder's structure and contents:
+
+# Folder Context
+Path: {folder_context['path']}
+Parent: {folder_context['parent']}
+Siblings: {', '.join(folder_context['sibling_folders'])}
+Subfolders: {', '.join(subfolders)}
+
+# Mission Context
+{mission_content}
+
+# Current Objective
+{objective_content}
+
+# Files Content
+{self._format_files_content(files_content)}
+
+Provide a complete folder analysis in this format:
+
+1. FOLDER PURPOSE
+- Main responsibility
+- Support of project mission
+- Organization strategy
+
+2. FILE ANALYSIS
+For each file, provide:
+- Technical role (with emoji)
+- Purpose in this folder
+- Relationship to other files
+
+3. RELATIONSHIPS
+- Parent: How it supports parent folder
+- Siblings: How it complements peer folders
+- Children: How subfolders are organized
+
+Use these role categories:
+Core: 📊 PRIMARY, 📋 SPEC, ⚙️ IMPL, 📚 DOCS
+Support: ⚡ CONFIG, 🛠️ UTIL, 🧪 TEST, 📦 BUILD
+Working: ✍️ WORK, 📝 DRAFT, 📄 TEMPLATE, 📂 ARCHIVE
+Data: 💾 SOURCE, ⚡ GEN, 💫 CACHE, 💿 BACKUP"""
+
+            # Get GPT analysis
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": """
-{agent_content}
-
-# Mapping process
-You are asked to be a context mapping system that selects relevant files for an agent's next operation.
-Your task is to analyze the mission, objective, and agent configuration to determine which files from the available list are needed."""},
+                    {"role": "system", "content": "You are a technical architect analyzing project structure and organization."},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.7,
+                temperature=0.3,
                 max_tokens=2000
             )
+
+            # Parse response into structured analysis
+            analysis = self._parse_folder_analysis(response.choices[0].message.content)
             
-            # Get raw content
-            content = response.choices[0].message.content
-            
-            # Clean up the content:
-            # 1. Split into lines
-            lines = content.split('\n')
-            # 2. Remove any lines starting with '#' (headers)
-            # 3. Remove empty lines
-            # 4. Ensure each line starts with '-'
-            cleaned_lines = []
-            for line in lines:
-                line = line.strip()
-                if line and not line.startswith('#'):
-                    if not line.startswith('-'):
-                        line = f"- {line}"
-                    cleaned_lines.append(line)
-            
-            # Join lines with single newlines
-            context_map = "# Project Map\n\n" + "\n".join(cleaned_lines)
-            
-            return context_map
-            
+            return analysis
+
         except Exception as e:
-            self.logger.error(f"GPT API call failed: {str(e)}")
+            self.logger.error(f"Failed to analyze folder level {folder_path}: {str(e)}")
             raise
 
     def _create_folder_context_prompt(self, folder_path: str, files: list, subfolders: list,
