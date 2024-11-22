@@ -1122,6 +1122,9 @@ Rules:
         # Filter files using ignore patterns
         files = [f for f in files if not self._should_ignore(os.path.join(rel_path, f), ignore_patterns)]
         
+        # Get subfolders
+        subfolders = self._get_subfolders(folder_path)
+        
         tree = []
         
         # Handle root folder differently
@@ -1129,8 +1132,13 @@ Rules:
             tree.append("📂 ./")
             # Add current folder files (filtered)
             for i, f in enumerate(files):
-                prefix = "├─" if i < len(files) - 1 else "└─"
+                prefix = "├─" if (i < len(files) - 1 or subfolders) else "└─"
                 tree.append(f"   {prefix} {f}")
+            
+            # Add subfolders
+            for i, d in enumerate(subfolders):
+                prefix = "├─" if i < len(subfolders) - 1 else "└─"
+                tree.append(f"   {prefix} {d}/")
         else:
             # For subfolders, show parent path and filtered siblings
             parent_path = os.path.dirname(abs_path)
