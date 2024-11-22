@@ -149,11 +149,15 @@ class MapManager:
             objective_content = self._read_file(objective_filepath)
             agent_content = self._read_file(agent_filepath)
             
+            # Get available files
+            available_files = self._get_available_files()
+            
             # Generate map via GPT
             context_map = self._generate_map_content(
                 mission_content, 
                 objective_content, 
-                agent_content
+                agent_content,
+                available_files
             )
             
             # Save map using extracted agent name
