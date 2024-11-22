@@ -15,80 +15,35 @@ class AiderManager:
         self.logger = Logger()
         self._vision_manager = VisionManager()
 
-    def _ensure_aider_installed(self):
-        """Ensure aider is installed locally."""
-        try:
-            # Check if aider directory exists
-            if not os.path.exists("aider"):
-                self.logger.info("📦 Cloning aider...")
-                subprocess.run([
-                    'git', 'clone', 'https://github.com/Aider-AI/aider.git'
-                ], check=True)
-                
-                try:
-                    # Get repo-visualizer path from VisionManager
-                    repo_visualizer_path = self._vision_manager._get_repo_visualizer_path()
-                    
-                    # Vérifier la structure du projet
-                    self.logger.debug("📂 Checking project structure...")
-                    if os.path.exists(os.path.join(repo_visualizer_path, 'package.json')):
-                        with open(os.path.join(repo_visualizer_path, 'package.json'), 'r') as f:
-                            self.logger.debug(f"📄 package.json content: {f.read()}")
-                    
-                    # Create dist directory if it doesn't exist
-                    dist_path = os.path.join(repo_visualizer_path, 'dist')
-                    os.makedirs(dist_path, exist_ok=True)
-                
-                    # Update package.json build script
-                    package_json_path = os.path.join(repo_visualizer_path, 'package.json')
-                    with open(package_json_path, 'r') as f:
-                        package_json = json.load(f)
-                
-                    # Update build script to output to dist directory
-                    package_json['scripts'] = package_json.get('scripts', {})
-                    package_json['scripts']['build'] = "node_modules/.bin/esbuild --target=es2019 ./src/index.jsx --bundle --platform=node --outfile=dist/index.js"
-                
-                    # Save updated package.json
-                    with open(package_json_path, 'w') as f:
-                        json.dump(package_json, f, indent=2)
-                
-                    # Run npm install and build
-                    npm_path = 'npm'
-                    self.logger.info("📦 Running npm install...")
-                    install_result = subprocess.run(
-                        [npm_path, 'install'], 
-                        cwd=repo_visualizer_path, 
-                        check=True,
-                        capture_output=True,
-                        text=True
-                    )
-                    self.logger.debug(f"📦 npm install output: {install_result.stdout}")
-                
-                    # Build explicite du projet
-                    self.logger.info("🔨 Running npm run build...")
-                    build_result = subprocess.run(
-                        [npm_path, 'run', 'build'], 
-                        cwd=repo_visualizer_path, 
-                        check=True,
-                        capture_output=True,
-                        text=True
-                    )
-                    self.logger.debug(f"🔨 npm run build output: {build_result.stdout}")
-                
-                    # Verify build output
-                    if not os.path.exists(os.path.join(dist_path, 'index.js')):
-                        raise FileNotFoundError(f"Build failed: index.js not found in {dist_path}")
-                    
-                    self.logger.debug(f"📂 Contents of dist directory: {os.listdir(dist_path)}")
-                        
-                except subprocess.CalledProcessError as e:
-                    self.logger.error(f"Failed to build repo-visualizer: {e.stderr}")
-                    raise
-
-            return True
-        except Exception as e:
-            self.logger.error(f"Failed to install aider: {str(e)}")
-            raise
+    def _validate_repo_visualizer(self):
+        """
+        Validate that repo-visualizer is properly installed and configured.
+        
+        Raises:
+            FileNotFoundError: If required files are missing
+            ValueError: If configuration is invalid
+        """
+        repo_viz_path = self._get_repo_visualizer_path()
+        dist_path = os.path.join(repo_viz_path, 'dist')
+        index_js = os.path.join(dist_path, 'index.js')
+        
+        if not os.path.exists(repo_viz_path):
+            raise FileNotFoundError(
+                f"repo-visualizer not found at {repo_viz_path}. "
+                "Please install it first."
+            )
+            
+        if not os.path.exists(index_js):
+            raise FileNotFoundError(
+                f"repo-visualizer build not found at {index_js}. "
+                "Please build repo-visualizer first."
+            )
+            
+        if not os.access(index_js, os.X_OK):
+            raise ValueError(
+                f"repo-visualizer build at {index_js} is not executable. "
+                "Please check file permissions."
+            )
 
     def run_aider(self, objective_filepath, map_filepath, agent_filepath, model="gpt-4o-mini"):
         """

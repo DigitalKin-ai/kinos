@@ -121,87 +121,30 @@ class VisionManager:
 
 
     async def generate_visualization(self, root_path: str = "."):
-        """Updates the repo visualization using repo-visualizer."""
+        """
+        Updates the repo visualization using repo-visualizer.
+        
+        Args:
+            root_path (str): Root path to visualize
+            
+        Raises:
+            RuntimeError: If Node.js is not installed
+            FileNotFoundError: If repo-visualizer is not properly installed
+            subprocess.CalledProcessError: If visualization generation fails
+        """
         try:
-            # Ensure node is available
+            # Validate Node.js installation
             try:
                 subprocess.run(['node', '--version'], check=True, capture_output=True)
             except subprocess.CalledProcessError:
-                self.logger.error(
-                    "\n❌ Node.js not found! Please install Node.js:\n"
-                    "Download from https://nodejs.org/\n"
-                    "\nAfter installing, restart your terminal/command prompt."
+                raise RuntimeError(
+                    "Node.js not found! Please install Node.js from https://nodejs.org/"
                 )
-                raise RuntimeError("Node.js not installed")
 
-            # Get repo-visualizer path in KinOS installation directory
+            # Validate repo-visualizer installation
+            self._validate_repo_visualizer()
             repo_visualizer_path = self._get_repo_visualizer_path()
-
-            # Check if repo-visualizer directory exists, if not clone it
-            if not os.path.exists(repo_visualizer_path):
-                self.logger.info("📦 Cloning repo-visualizer...")
-                subprocess.run([
-                    'git', 'clone', 'https://github.com/githubocto/repo-visualizer.git',
-                    repo_visualizer_path  # Clone directly to KinOS directory
-                ], check=True)
-                self.logger.info(f"📦 Installing dependencies in {repo_visualizer_path}...")
-                
-                try:
-                    # Vérifier la structure du projet
-                    self.logger.debug("📂 Checking project structure...")
-                    if os.path.exists(os.path.join(repo_visualizer_path, 'package.json')):
-                        with open(os.path.join(repo_visualizer_path, 'package.json'), 'r') as f:
-                            self.logger.debug(f"📄 package.json content: {f.read()}")
-                    
-                    # Create dist directory if it doesn't exist
-                    dist_path = os.path.join(repo_visualizer_path, 'dist')
-                    os.makedirs(dist_path, exist_ok=True)
-                
-                    # Update package.json build script
-                    package_json_path = os.path.join(repo_visualizer_path, 'package.json')
-                    with open(package_json_path, 'r') as f:
-                        package_json = json.load(f)
-                
-                    # Update build script to output to dist directory
-                    package_json['scripts'] = package_json.get('scripts', {})
-                    package_json['scripts']['build'] = "node_modules/.bin/esbuild --target=es2019 ./src/index.jsx --bundle --platform=node --outfile=dist/index.js"
-                
-                    # Save updated package.json
-                    with open(package_json_path, 'w') as f:
-                        json.dump(package_json, f, indent=2)
-                
-                    # Run npm install and build
-                    npm_path = 'npm'
-                    self.logger.info("📦 Running npm install...")
-                    install_result = subprocess.run(
-                        [npm_path, 'install'], 
-                        cwd=repo_visualizer_path, 
-                        check=True,
-                        capture_output=True,
-                        text=True
-                    )
-                    self.logger.debug(f"📦 npm install output: {install_result.stdout}")
-                
-                    # Build explicite du projet
-                    self.logger.info("🔨 Running npm run build...")
-                    build_result = subprocess.run(
-                        [npm_path, 'run', 'build'], 
-                        cwd=repo_visualizer_path, 
-                        check=True,
-                        capture_output=True,
-                        text=True
-                    )
-                    self.logger.debug(f"🔨 npm run build output: {build_result.stdout}")
-                
-                    # Verify build output
-                    if not os.path.exists(os.path.join(dist_path, 'index.js')):
-                        raise FileNotFoundError(f"Build failed: index.js not found in {dist_path}")
-                    
-                    self.logger.debug(f"📂 Contents of dist directory: {os.listdir(dist_path)}")
-                        
-                except subprocess.CalledProcessError as e:
-                    self.logger.error(f"Failed to build repo-visualizer: {e.stderr}")
-                    raise
+            dist_path = os.path.join(repo_visualizer_path, 'dist')
 
             # Create visualization config
             config = {
