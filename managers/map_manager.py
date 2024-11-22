@@ -356,6 +356,56 @@ Important:
 - DO NOT reference any directories above the project root
 - Only discuss relationships within the project scope"""
 
+    def _get_folder_context_for_path(self, folder_path: str) -> dict:
+        """
+        Get folder context for a specific path.
+        
+        Args:
+            folder_path (str): Path to get context for
+            
+        Returns:
+            dict: Folder context including path and purpose
+            
+        Note:
+            Uses simpler context generation since this is just for hierarchy display
+        """
+        try:
+            # Convert to absolute path
+            abs_path = os.path.abspath(folder_path)
+            
+            # Check cache first
+            if hasattr(self, '_context_cache'):
+                cached = self._context_cache.get(abs_path)
+                if cached:
+                    return cached
+            
+            # Get files and subfolders
+            files = self._get_folder_files(abs_path)
+            subfolders = self._get_subfolders(abs_path)
+            
+            # Get context with minimal mission content
+            context = self._get_folder_context(
+                folder_path=abs_path,
+                files=files,
+                subfolders=subfolders,
+                mission_content="Analyze folder structure"  # Minimal context needed
+            )
+            
+            return context
+            
+        except Exception as e:
+            self.logger.warning(f"Could not get context for {folder_path}: {str(e)}")
+            # Return minimal context on error
+            return {
+                'path': abs_path,
+                'purpose': f"Storage folder for {os.path.basename(abs_path)} content",
+                'relationships': {
+                    'parent': 'No parent relationship specified',
+                    'siblings': 'No sibling relationships specified',
+                    'children': 'No children relationships specified'
+                }
+            }
+
     def _get_folder_context(self, folder_path: str, files: list, subfolders: list,
                           mission_content: str) -> dict:
         """
