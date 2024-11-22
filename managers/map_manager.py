@@ -605,7 +605,7 @@ Rules:
             content.append(f"{indent}**Purpose:** {folder_data['purpose']}\n")
             
             # Add files with better formatting and tree structure
-            if folder_data['files']:
+            if folder_data.get('files'):
                 content.append(f"{indent}### Files:")
                 for i, file in enumerate(folder_data['files']):
                     # Use tree branches for files too
@@ -613,31 +613,31 @@ Rules:
                     file_path = f"{full_path}/{file['name']}"
                     content.append(f"{indent}- **{file_branch}{file_path}** ({file['role']})  ")
                     content.append(f"{indent}  _{file['description']}_\n")
-            
+        
             # Add relationships if not root
             if level > 0:
                 content.append(f"{indent}Relationships:")
                 content.append(f"{indent}- **Parent:** _{folder_data['relationships']['parent']}_")
                 content.append(f"{indent}- **Siblings:** _{folder_data['relationships']['siblings']}_")
-                if folder_data['subfolders']:
+                if folder_data.get('subfolders'):
                     content.append(f"{indent}- **Children:** _{folder_data['relationships']['children']}_")
-            
+        
             # Add line break before subfolders
-            if folder_data['subfolders']:
+            if folder_data.get('subfolders'):
                 content.append("")
-            
+        
             # Calculate new path prefix for subfolders
             new_prefix = f"{path_prefix}{'│  ' if path_prefix else '   '}" if level > 0 else ""
-            
+        
             # Recursively add subfolders
-            subfolder_items = list(folder_data['subfolders'].items())
+            subfolder_items = list(folder_data.get('subfolders', {}).items())
             for i, (subfolder_name, subfolder_data) in enumerate(subfolder_items):
                 is_last = (i == len(subfolder_items) - 1)
                 if is_last:
                     content.append("\n" + _format_folder(subfolder_data, level + 1, new_prefix))
                 else:
                     content.append("\n" + _format_folder(subfolder_data, level + 1, new_prefix))
-                    
+                
             return "\n".join(content)
         
         return "# Project Map\n\n" + _format_folder(hierarchy)
