@@ -2,10 +2,9 @@ import os
 import asyncio
 import logging
 import time
-import fnmatch
 from pathlib import Path
-import fnmatch
 from utils.logger import Logger
+from utils.encoding_utils import EncodingUtils
 import openai
 import tiktoken
 from dotenv import load_dotenv
@@ -30,6 +29,7 @@ class MapManager:
     def __init__(self):
         """Initialize the map manager with required components."""
         self.logger = Logger()
+        self.encoding_utils = EncodingUtils()
         load_dotenv()
         openai.api_key = os.getenv('OPENAI_API_KEY')
         if not openai.api_key:
