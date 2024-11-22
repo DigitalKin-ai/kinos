@@ -142,6 +142,8 @@ class MapManager:
             self._initial_mapping_in_progress = True
             folder_path = os.path.abspath(folder_path)
             
+            self.logger.debug(f"🔍 Analyzing folder hierarchy for: {folder_path}")
+            
             if not folder_path:
                 raise ValueError("folder_path cannot be empty")
             
@@ -152,21 +154,26 @@ class MapManager:
                 raise ValueError(f"Path is not a directory: {folder_path}")
             
             # Phase 1: Analyze top two levels together
+            self.logger.debug("📊 Starting Phase 1: Top level analysis")
             top_level_analysis = self._analyze_top_levels(
                 folder_path=folder_path,
                 mission_content=mission_content,
                 max_depth=2
             )
+            self.logger.debug(f"✅ Phase 1 complete for {folder_path}")
             
             # Phase 2: For each level-2 folder, analyze its complete subtree
+            self.logger.debug("📊 Starting Phase 2: Subtree analysis")
             for subfolder_name, subfolder_data in top_level_analysis.get('subfolders', {}).items():
                 subfolder_path = os.path.join(folder_path, subfolder_name)
+                self.logger.debug(f"🔍 Analyzing subtree for: {subfolder_path}")
                 subtree_analysis = self._analyze_complete_subtree(
                     folder_path=subfolder_path,
                     mission_content=mission_content
                 )
                 # Update the subfolder data with complete subtree analysis
                 top_level_analysis['subfolders'][subfolder_name].update(subtree_analysis)
+                self.logger.debug(f"✅ Subtree analysis complete for: {subfolder_path}")
                 
         except Exception as e:
             self.logger.error(f"Failed to validate folder path: {str(e)}")
@@ -176,8 +183,10 @@ class MapManager:
         try:
             # Once complete analysis is done, generate SVG
             if folder_path == "." and self._initial_mapping_in_progress:
+                self.logger.debug("🎨 Finalizing map generation")
                 self._initial_mapping_in_progress = False
                 asyncio.run(self._vision_manager.generate_visualization())
+                self.logger.debug("✨ Map generation complete")
 
             return top_level_analysis
 
@@ -192,18 +201,22 @@ class MapManager:
     def _analyze_top_levels(self, folder_path: str, mission_content: str, max_depth: int = 2) -> dict:
         """Analyze top levels of folder structure in one go."""
         try:
+            self.logger.debug(f"📂 Collecting structure for top levels of {folder_path}")
             # Collect all files and folders up to max_depth
             structure = self._collect_structure(folder_path, max_depth)
             
+            self.logger.debug("📝 Creating analysis prompt")
             # Create comprehensive prompt for top levels
             prompt = self._create_multilevel_analysis_prompt(
                 structure=structure,
                 mission_content=mission_content
             )
             
+            self.logger.debug("🤖 Getting LLM analysis")
             # Get analysis from LLM
             analysis = self._get_llm_analysis(prompt)
             
+            self.logger.debug("✨ Parsing analysis results")
             return self._parse_multilevel_analysis(analysis, structure)
             
         except Exception as e:
