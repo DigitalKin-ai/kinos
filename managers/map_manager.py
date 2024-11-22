@@ -350,7 +350,10 @@ Important:
         Get folder purpose and relationships using GPT with caching.
         """
         try:
-            # Simple path handling - just store the provided path
+            # Convert to relative path for display and caching
+            rel_path = os.path.relpath(folder_path, self.project_root)
+            
+            # Initialize context structure
             context = {
                 'path': folder_path,
                 'purpose': '',
