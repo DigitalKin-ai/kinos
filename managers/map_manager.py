@@ -90,13 +90,13 @@ class MapManager:
             if not self._validate_path_in_project(abs_folder_path):
                 raise ValueError(f"Path {abs_folder_path} is outside project directory")
                 
-        # Get folder context for purpose and relationships
-        folder_context = self._get_folder_context(
-            folder_path=abs_folder_path,
-            files=list(files_content.keys()),
-            subfolders=subfolders,
-            mission_content=mission_content
-        )
+            # Get folder context for purpose and relationships
+            folder_context = self._get_folder_context(
+                folder_path=abs_folder_path,
+                files=list(files_content.keys()),
+                subfolders=subfolders,
+                mission_content=mission_content
+            )
             
         self.logger.debug(f"Folder context: {folder_context}")
             
