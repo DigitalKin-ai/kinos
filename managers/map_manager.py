@@ -124,7 +124,7 @@ class MapManager:
             
             # Generate SVG only if not during initial mapping
             if not self._initial_mapping_in_progress:
-                asyncio.run(self._vision_manager.update_map())
+                asyncio.run(self._vision_manager.generate_visualization())
                 
             return analysis_result
             
