@@ -1089,7 +1089,6 @@ Rules:
         for part in folder_path.split(os.sep):
             if part:
                 current_path = os.path.join(current_path, part) if current_path else part
-                # Get folder context for this level
                 level_context = self._get_folder_context_for_path(current_path)
                 if level_context and level_context.get('purpose'):
                     prefix = "├─ " if folder_purposes else ""
@@ -1097,52 +1096,56 @@ Rules:
                     
         folder_hierarchy = "\n   │  ".join(folder_purposes) if folder_purposes else folder_context['purpose']
 
-        return f"""Analyze this specific file's role within its folder context:
+        return f"""Analyze this file's role within its folder:
 
 Filename: {rel_path}
 
 Folder Hierarchy:
    {folder_hierarchy}
 
-Determine:
-1. Technical role (select ONE category with emoji)
-2. Detailed purpose description that explains:
-   - What this specific file does
-   - How it relates to other files in the folder
-   - Its unique contribution to the folder's purpose
-   - Any special characteristics or patterns it manages
+Return in format:
+[CATEGORY (EMOJI)] - [Action verb] [dense technical description] | USE: [when to use/not use]
 
-File Categories:
+Categories (select ONE):
 Core Project Files:
-* PRIMARY DELIVERABLE (📊) - Final outputs, key results
-* SPECIFICATION (📋) - Requirements, standards, protocols
-* IMPLEMENTATION (⚙️) - Core functionality, algorithms
-* DOCUMENTATION (📚) - Explanations, references, guides
+* PRIMARY (📊) - Final outputs, key results
+* SPECIFICATION (📋) - Requirements, standards
+* IMPLEMENTATION (⚙️) - Core functionality
+* DOCUMENTATION (📚) - Explanations, guides
 
 Support Files:
-* CONFIGURATION (⚡) - Settings, parameters, options
-* UTILITY (🛠️) - Helper functions, shared tools
-* TEST (🧪) - Validation, verification, quality checks
-* BUILD (📦) - Compilation, deployment, packaging
+* CONFIGURATION (⚡) - Settings, parameters
+* UTILITY (🛠️) - Helper functions, tools
+* TEST (🧪) - Validation, verification
+* BUILD (📦) - Compilation, deployment
 
 Working Files:
-* WORK DOCUMENT (✍️) - Active development, current focus
-* DRAFT (📝) - Work in progress, pending review
-* TEMPLATE (📄) - Patterns, structures, formats
-* ARCHIVE (📂) - Historical records, previous versions
+* WORK DOCUMENT (✍️) - Active development
+* DRAFT (📝) - Work in progress
+* TEMPLATE (📄) - Patterns, structures
+* ARCHIVE (📂) - Historical records
 
 Data Files:
-* SOURCE DATA (💾) - Input data, raw information
-* GENERATED (⚡) - Computed results, processed data
-* CACHE (💫) - Temporary storage, interim results
-* BACKUP (💿) - Data preservation, redundancy
-
-Return in format:
-[CATEGORY (EMOJI)] - [Detailed description of specific role and purpose, 2-3 sentences max]
+* SOURCE DATA (💾) - Input data
+* GENERATED (⚡) - Computed results
+* CACHE (💫) - Temporary storage
+* BACKUP (💿) - Data preservation
 
 Rules:
-- MUST use exact category name and emoji from list
-- Focus on this file's specific role, not the overall project
-- Explain how it fits into the folder's workflow
-- Be precise about its unique contribution
-- Avoid repeating folder purpose or mission context"""
+- Start with precise action verb
+- Pack technical details densely
+- Include key parameters/patterns
+- Specify input/output formats
+- State dependencies if any
+- Add clear usage guidance
+- Mention critical constraints
+- Note performance impacts
+
+Example:
+📊 PRIMARY - Aggregates biomarker correlation matrices (r>0.7) using sliding window analysis (window=30d) for 5 key protein markers | USE: When validating longitudinal marker patterns; NOT for preliminary screening or single-timepoint data.
+
+Remember:
+- Technical precision over general descriptions
+- Include quantitative parameters when relevant
+- State specific conditions and constraints
+- Highlight unique technical aspects"""
