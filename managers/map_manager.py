@@ -229,7 +229,7 @@ Working Files:
 * WORK DOCUMENT (✍️) - Active development
 * DRAFT (📝) - Work in progress
 * TEMPLATE (📄) - Patterns, structures
-* ARCHIVE (📂) - Historical records
+* ARCHIVE (🗄️) - Historical records
 
 Data Files:
 * SOURCE DATA (💾) - Input data
@@ -1212,7 +1212,7 @@ Working Files:
 * WORK DOCUMENT (✍️) - Active development
 * DRAFT (📝) - Work in progress
 * TEMPLATE (📄) - Patterns, structures
-* ARCHIVE (📂) - Historical records
+* ARCHIVE (🗄️) - Historical records
 
 Data Files:
 * SOURCE DATA (💾) - Input data
