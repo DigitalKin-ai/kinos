@@ -170,7 +170,19 @@ class MapManager:
             raise
 
     def _analyze_file(self, filename: str, folder_context: dict) -> dict:
-        """Analyze single file's role and purpose."""
+        """
+        Analyze single file's role and purpose.
+        
+        Args:
+            filename (str): Name of file to analyze
+            folder_context (dict): Context information about the containing folder
+            
+        Returns:
+            dict: Analysis containing:
+                - name: Filename
+                - role: Technical role with emoji
+                - description: Purpose description
+        """
         try:
             client = openai.OpenAI()
             prompt = self._create_file_analysis_prompt(filename, folder_context)
