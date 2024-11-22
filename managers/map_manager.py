@@ -668,9 +668,7 @@ Name: {file_name}
         prompt += """
 Generate a one-line summary (max 300 chars) that explains:
 1. The file's INTENDED PURPOSE in achieving the mission
-2. Why it's placed in this specific directory
-3. How its name reflects its role
-4. Its relationship to other components
+2. Its relationship to other components
 
 Format:
 - Start with an action verb (defines, manages, coordinates, etc.)
