@@ -62,13 +62,25 @@ cd ..
 ```bash
 pip install -r requirements.txt
 
-# Clone repo-visualizer
+# Clone and setup repo-visualizer
 git clone https://github.com/githubocto/repo-visualizer.git
-
-# Install dependencies and build
 cd repo-visualizer
-npm install
+
+# Create dist directory
+mkdir dist
+
+# Install dependencies with legacy peer deps flag
+npm install --legacy-peer-deps
+
+# Install esbuild globally
+npm install -g esbuild
+
+# Update package.json build script to:
+# "build": "npx esbuild --target=es2019 ./src/index.jsx --bundle --platform=node --outfile=dist/index.js"
+
+# Build the project
 npm run build
+
 cd ..
 ```
 
