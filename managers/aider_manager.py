@@ -78,8 +78,8 @@ class AiderManager:
                 model=model
             )
             
-            # Execute aider
-            self._execute_aider(cmd)
+            # Execute aider with await
+            await self._execute_aider(cmd)
             
             self.logger.info("✅ Aider operation completed successfully")
             
