@@ -635,22 +635,27 @@ Justify each selection based on the file's documented purpose in the project map
             raise
 
     def _create_map_prompt(self, mission_content, objective_content, agent_content):
-        """
-        Create prompt for context map generation.
-        
-        Args:
-            mission_content (str): Content of mission file
-            objective_content (str): Content of objective file
-            agent_content (str): Content of agent configuration file
-            
-        Returns:
-            str: Formatted prompt for GPT model
-        """
-        prompt = f"""Based on the following context, analyze and select the relevant files needed for the next operation.
+        """Create prompt for context map generation."""
+        # Load global map content if it exists
+        global_map_content = ""
+        if os.path.exists("map.md"):
+            try:
+                with open("map.md", 'r', encoding='utf-8') as f:
+                    global_map_content = f.read()
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
+                    
+        return f"""Based on the following context, analyze and select the relevant files needed for the next operation.
 
 # Mission
 ````
 {mission_content}
+````
+
+# Global Project Map
+The following describes all files in the project and their purposes:
+````
+{global_map_content}
 ````
 
 # Current Objective
@@ -658,43 +663,40 @@ Justify each selection based on the file's documented purpose in the project map
 {objective_content}
 ````
 
-# Agent Configuration
-````
-{agent_content}
-````
+For each file, you must:
 
-Using the project structure, carefully analyze:
+1. IDENTIFY PRIMARY DELIVERABLES:
+   - Which files are the main outputs/deliverables
+   - What is their role in fulfilling the mission
+   - How other files support these deliverables
 
-1. MODIFICATIONS NEEDED:
-   - Which files need to be changed to implement the objective
-   - What specific changes are required in each file
-   - How these changes align with each file's documented purpose
+2. ESTABLISH FILE RELATIONSHIPS:
+   - How each file relates to primary deliverables
+   - Whether files are source data, analysis tools, or outputs
+   - Clear hierarchy of file importance to mission
 
-2. CONTEXT REQUIRED:
-   - Which files provide essential background information
-   - What specific knowledge each file contributes
-   - How this context supports the planned changes
+3. DESCRIBE FUNCTIONAL ROLES:
+   - Use CAPS to indicate file role (e.g., PRIMARY DELIVERABLE, SOURCE DATA)
+   - Explain how file supports mission objectives
+   - Show clear connection to main deliverables
 
-3. SYSTEM IMPACT:
-   - How modifications might affect related files
-   - Which dependencies need to be considered
-   - What potential risks need to be managed
-
-Provide your response in this format:
+Format your response as:
 
 # Context Map
-Files to modify:
-- file1.py - [Current role: X] [Changes needed: Y] [Impact: Z]
-- file2.md - [Current role: X] [Changes needed: Y] [Impact: Z]
+filename.md (token_count tokens) 📊 ROLE - Clear description of how this file supports the mission's primary deliverables.
 
-Context files:
-- file3.py - [Purpose: X] [Relevant aspects: Y] [Relationship to changes: Z]
-- file4.md - [Purpose: X] [Relevant aspects: Y] [Relationship to changes: Z]
+Example entries:
+- analysis.md (358 tokens) 📊 PRIMARY DELIVERABLE - Synthesizes insights from all summaries to document key findings.
+- summaries/*.md (various tokens) 📚 READ-ONLY SOURCE DATA - Provides raw data for analysis.md.
+- helpers/*.md (various tokens) 🛠️ SUPPORT TOOLS - Contains utilities that assist in generating analysis.md.
 
-Note: Select only the most relevant files (aim for 3-5 files to modify, 3-5 context files).
-Justify each selection based on the file's documented purpose in the project map.
+Note:
+- Use CAPS for file roles
+- Show clear relationship to primary deliverables
+- Indicate if files are read-only or meant to be modified
+- Use appropriate emojis to indicate file purpose
+- Keep descriptions focused on mission support
 """
-        return prompt
 
     def _update_map_file_fallback(self, filepath, token_count, summary):
         """Fallback method to update map file with alternative encodings."""
