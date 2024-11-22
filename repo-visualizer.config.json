@@ -1,12 +1,15 @@
 {
-  "output": "diagram.svg",
-  "depth": 4,
   "should_push": false,
   "style": {
     "node": {
       "colors": {
         ".py": "#3572A5",
+        ".pyi": "#3572A5",
+        ".pyx": "#3572A5",
+        ".pyd": "#3572A5",
         ".md": "#083fa1",
+        ".rst": "#083fa1",
+        ".txt": "#083fa1",
         ".json": "#292929",
         ".js": "#f1e05a",
         ".jsx": "#f1e05a", 
@@ -14,29 +17,10 @@
         ".tsx": "#0060ac",
         ".yml": "#cb171e",
         ".yaml": "#cb171e",
-        ".svg": "#ff9900",
-        ".txt": "#4B5563",
-        ".rst": "#3572A5",
-        ".ini": "#6E7681",
-        ".cfg": "#6E7681",
-        ".conf": "#6E7681",
-        ".sh": "#89E051",
-        ".bat": "#C1F12E",
-        ".ps1": "#012456",
-        ".env": "#2C8EBB",
-        ".xml": "#0060ac",
-        ".csv": "#237346",
-        ".sql": "#E38C00",
-        ".htaccess": "#009639",
-        ".gitignore": "#41454A",
-        ".dockerignore": "#384D54",
-        ".editorconfig": "#fff",
-        ".toml": "#9C4221",
-        ".properties": "#2C8EBB",
-        ".gradle": "#02303A"
+        ".svg": "#ff9900"
       }
     }
   },
-  "excluded_paths": "node_modules,dist,build,coverage,.git,.pytest_cache,.hypothesis,.idea,.vscode",
-  "excluded_globs": ".aider*/**/*;.aider.*/**/*;**/.aider*/**/*;**/.aider.*/**/*;**/__pycache__/**/*;**/*.pyc;**/*.pyo;**/*.pyd;**/*.so;**/*.dll;**/*.dylib;**/.DS_Store;**/Thumbs.db;**/desktop.ini;**/*.log;**/*.cache;**/*.bak;**/*.swp;**/*.tmp;**/*.temp;**/*~;**/.env;**/.env.*;**/*.local;**/.coverage;**/*.egg-info;**/*.egg;**/*.whl;**/*.manifest"
+  "excluded_paths": "node_modules,dist,build,coverage,.git,.pytest_cache,.hypothesis,.idea,.vscode,.env,.venv,env,venv",
+  "excluded_globs": ".aider*/**/*;.aider.*/**/*;**/.aider*/**/*;**/.aider.*/**/*;**/__pycache__/**/*;**/*.pyc;**/*.pyo;**/*.pyd;**/*.so;**/*.dll;**/*.dylib;**/.DS_Store;**/Thumbs.db;**/desktop.ini;**/*.log;**/*.cache;**/*.bak;**/*.swp;**/*.tmp;**/*.temp;**/*~;**/.env;**/.env.*;**/*.local;**/.coverage;**/*.egg-info;**/*.egg;**/*.whl;**/*.manifest;**/.history/**/*;**/.venv/**/*;**/dist/**/*;**/build/**/*;**/.next/**/*;**/coverage/**/*;**/.nyc_output/**/*;**/node_modules/**/*;**/.yarn/**/*"
 }
