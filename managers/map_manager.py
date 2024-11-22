@@ -327,7 +327,20 @@ Rules:
     def _get_folder_context(self, folder_path: str, files: list, subfolders: list,
                           mission_content: str) -> dict:
         """
-        Get folder purpose and relationships using GPT with caching.
+        Get folder purpose and relationships using GPT.
+        
+        Args:
+            folder_path (str): Path to current folder
+            files (list): List of files in folder
+            subfolders (list): List of subfolders
+            mission_content (str): Overall mission context
+            
+        Returns:
+            dict: Folder context including purpose and relationships
+            
+        Raises:
+            ValueError: If folder_path is empty or invalid
+            Exception: For API or parsing errors
         """
         try:
             self.logger.debug(f"Getting folder context for: {folder_path}")
@@ -340,7 +353,7 @@ Rules:
             
             # Initialize context with absolute path
             context = {
-                'path': abs_path,  # Always include the absolute path
+                'path': abs_path,
                 'purpose': '',
                 'relationships': {
                     'parent': 'No parent relationship specified',
@@ -349,45 +362,30 @@ Rules:
                 }
             }
             
-            self.logger.debug(f"Initial context with path: {context}")
-            
-            # Convert to relative path for prompts and logging
-            rel_path = os.path.relpath(folder_path, self.project_root)
-            
             # Create prompt using relative path
+            rel_path = os.path.relpath(folder_path, self.project_root)
             prompt = self._create_folder_context_prompt(rel_path, files, subfolders, mission_content)
             
             # Log the prompt at debug level
             self.logger.debug(f"\n🔍 FOLDER CONTEXT PROMPT for {rel_path}:\n{prompt}")
             
-            # Make API call with retry logic
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    client = openai.OpenAI()
-                    response = client.chat.completions.create(
-                        model="gpt-4o-mini",
-                        messages=[
-                            {"role": "system", "content": "You are a technical architect analyzing project structure. Always respond in the exact format requested."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        temperature=0.3,
-                        max_tokens=500,
-                        presence_penalty=-0.5,
-                        frequency_penalty=0.0
-                    )
-                    break
-                except Exception as e:
-                    if attempt == max_retries - 1:
-                        raise
-                    self.logger.warning(f"API call failed, attempt {attempt + 1}/{max_retries}: {str(e)}")
-                    time.sleep(2 ** attempt)  # Exponential backoff
+            # Make API call
+            client = openai.OpenAI()
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a technical architect analyzing project structure. Always respond in the exact format requested."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=500
+            )
             
             # Log the response at debug level
             content = response.choices[0].message.content.strip()
             self.logger.debug(f"\n✨ FOLDER CONTEXT RESPONSE:\n{content}")
             
-            # Parse response but preserve the path
+            # Parse response
             current_file = None
             files_analysis = []
             
@@ -425,11 +423,6 @@ Rules:
             # Set default purpose if none provided
             if not context['purpose']:
                 context['purpose'] = f"Storage folder for {os.path.basename(abs_path)} content"
-                
-            # Verify path is still present
-            if 'path' not in context:
-                self.logger.error(f"Path missing from context after GPT response")
-                context['path'] = abs_path
                 
             return context
             
