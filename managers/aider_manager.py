@@ -38,6 +38,7 @@ class AiderManager:
             # Configure aider command
             cmd = self._build_aider_command(
                 objective_filepath,
+                map_filepath,
                 agent_filepath,
                 context_files
             )
@@ -133,7 +134,7 @@ class AiderManager:
             self.logger.error(f"Error loading context map: {str(e)}")
             raise
 
-    def _build_aider_command(self, objective_filepath, agent_filepath, context_files):
+    def _build_aider_command(self, objective_filepath, map_filepath, agent_filepath, context_files):
         """
         Build aider command with all required arguments.
         
@@ -169,10 +170,21 @@ class AiderManager:
         # Add agent prompt as read-only
         cmd.extend(['--read', agent_filepath])
         
-        # Add objective as initial prompt
+        # Combine objective and map content
+        combined_message = ""
+        
+        # Add objective content
         with open(objective_filepath, 'r', encoding='utf-8') as f:
-            objective = f.read()
-            cmd.extend(['--message', objective])
+            objective_content = f.read()
+            combined_message += "# Objective\n" + objective_content + "\n\n"
+        
+        # Add map content
+        with open(map_filepath, 'r', encoding='utf-8') as f:
+            map_content = f.read()
+            combined_message += "# Context Map\n" + map_content
+            
+        # Add combined message as initial prompt
+        cmd.extend(['--message', combined_message])
             
         return cmd
 
