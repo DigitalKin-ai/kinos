@@ -7,22 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [6.1.0] - 2024-01-24
 
 ### Added
-- ✨ Added --model flag to customize the model used by aider (defaults to gpt-4o-mini)
-- 🎯 File summaries now include their role in achieving project mission
-- 🔍 Map generation considers file location and directory structure
-- 📝 File descriptions now explain why files are in specific directories
-- 🏗️ Automatic detection of file relationships within project structure
+- ✨ Added --model parameter (currently supports gpt-4o-mini)
+- 🎯 Enhanced map generation with mission context
+- 🔍 Improved file role detection in project structure
+- 📝 Better directory context in file descriptions
 
 ### Changed
-- ♻️ Map manager now reads mission file for contextual understanding
-- 🔄 File summary prompt now analyzes directory placement purpose
-- 📊 Summary format now requires explanation of file naming choices
-- 🎨 File descriptions now highlight technical concepts in bold
+- ♻️ Refactored map manager for better mission integration
+- 🔄 Improved file context analysis
+- 📊 Enhanced file relationship mapping
+- 🎨 Clearer file role documentation
 
 ### Fixed
-- 🐛 UTF-8 encoding issues in file content reading
-- 🔧 Error handling when mission file is unavailable
-- 🚀 Performance bottlenecks in map generation process
+- 🐛 UTF-8 encoding issues
+- 🔧 Mission file validation
+- 🚀 Map generation performance
 
 ### Security
-- 🔒 Added validation of file paths before content access
+- 🔒 Added path validation checks
