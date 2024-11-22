@@ -705,6 +705,36 @@ Return in format:
                 return True
         return False
 
+    def _is_binary_file(self, file_path: str) -> bool:
+        """
+        Check if a file is binary by reading its first few bytes.
+        
+        Args:
+            file_path (str): Path to file to check
+            
+        Returns:
+            bool: True if file appears to be binary, False otherwise
+        """
+        try:
+            # Read first 1024 bytes
+            with open(file_path, 'rb') as f:
+                chunk = f.read(1024)
+                
+            # Check for null bytes
+            if b'\x00' in chunk:
+                return True
+                
+            # Try decoding as text
+            try:
+                chunk.decode('utf-8')
+                return False
+            except UnicodeDecodeError:
+                return True
+                
+        except Exception as e:
+            self.logger.error(f"Error checking if {file_path} is binary: {str(e)}")
+            return True  # Assume binary on error to be safe
+
     def _parse_folder_analysis(self, analysis_text: str) -> dict:
         """
         Parse and validate GPT analysis response into structured format.
