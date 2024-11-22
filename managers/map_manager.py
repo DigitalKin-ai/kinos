@@ -1082,49 +1082,45 @@ Rules:
         # Get full relative path
         rel_path = os.path.relpath(os.path.join(folder_context['path'], filename), self.project_root)
         
-        # Get current folder's files and subfolders
+        # Build folder tree structure
         current_folder = os.path.dirname(os.path.join(folder_context['path'], filename))
-        peer_files = self._get_folder_files(current_folder)
-        peer_folders = self._get_subfolders(current_folder)
-        
-        # Get parent folder's siblings
         parent_folder = os.path.dirname(current_folder)
-        if parent_folder:
-            parent_siblings = self._get_subfolders(parent_folder)
-        else:
-            parent_siblings = []
         
-        # Build folder purpose hierarchy
-        folder_path = os.path.dirname(rel_path)
-        folder_purposes = []
-        current_path = ""
-        for part in folder_path.split(os.sep):
-            if part:
-                current_path = os.path.join(current_path, part) if current_path else part
-                level_context = self._get_folder_context_for_path(current_path)
-                if level_context and level_context.get('purpose'):
-                    prefix = "├─ " if folder_purposes else ""
-                    folder_purposes.append(f"{prefix}{part}: {level_context['purpose']}")
-                    
-        folder_hierarchy = "\n   │  ".join(folder_purposes) if folder_purposes else folder_context['purpose']
+        # Get files and folders for tree
+        files = self._get_folder_files(current_folder)
+        subfolders = self._get_subfolders(current_folder)
+        parent_siblings = self._get_subfolders(parent_folder) if parent_folder else []
+        
+        # Build tree structure
+        tree = []
+        
+        # Add parent level
+        if parent_folder:
+            tree.append(f"📁 {os.path.basename(parent_folder)}/")
+            # Add sibling folders at parent level
+            for sibling in parent_siblings:
+                if sibling == os.path.basename(current_folder):
+                    # Current folder - expand it
+                    tree.append(f"   ├── 📂 {sibling}/")
+                    # Add files in current folder
+                    for i, f in enumerate(files):
+                        prefix = "   │   ├── " if i < len(files) - 1 else "   │   └── "
+                        if f == filename:
+                            tree.append(f"{prefix}📌 {f}  <-- Current file")
+                        else:
+                            tree.append(f"{prefix}📄 {f}")
+                    # Add subfolders
+                    for subfolder in subfolders:
+                        tree.append(f"   │   ├── 📁 {subfolder}/")
+                else:
+                    tree.append(f"   ├── 📁 {sibling}/")
 
-        return f"""Analyze this file's role within its folder:
+        tree_str = "\n".join(tree)
 
-Filename: {rel_path}
+        return f"""Analyze this file's role within its folder structure:
 
-Current Folder Context:
-Files Present:
-{chr(10).join(f'- {f}' for f in peer_files)}
-
-Subfolders:
-{chr(10).join(f'- {f}' for f in peer_folders)}
-
-Parent Folder ({os.path.basename(parent_folder) if parent_folder else 'root'}):
-Sibling Folders:
-{chr(10).join(f'- {f}' for f in parent_siblings)}
-
-Folder Hierarchy:
-   {folder_hierarchy}
+File Location:
+{tree_str}
 
 Return in format:
 [CATEGORY (EMOJI)] - [Action verb] [dense technical description] | USE: [when to use/not use]
