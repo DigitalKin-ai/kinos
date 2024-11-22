@@ -39,7 +39,7 @@ class AgentRunner:
         self.objective_manager = ObjectiveManager()
         self.aider_manager = AiderManager()
         self._active_agents = set()  # Track active agents
-        self._agent_lock = threading.Lock()  # Regular lock for sync access
+        self._agent_lock = asyncio.Lock()  # Use asyncio.Lock for async operations
 
     def _validate_mission_file(self, mission_filepath):
         """
@@ -202,11 +202,10 @@ class AgentRunner:
         """Execute a single cycle for one agent."""
         try:
             # Select an unused agent
-            async with self._agent_lock:
-                if agent_name in self._active_agents:
-                    await asyncio.sleep(1)  # Wait if agent is busy
-                    return
-                self._active_agents.add(agent_name)
+            agent_name = await self._select_available_agent()
+            if not agent_name:
+                await asyncio.sleep(1)  # Wait if no agent available
+                return
             
             start_time = time.time()
             self.logger.info(f"🕐 Agent {agent_name} starting cycle at {start_time}")
@@ -446,7 +445,8 @@ class AgentRunner:
             raise
             
         finally:
-            # Always release agent
-            with self._agent_lock:
-                if agent_name in self._active_agents:
-                    self._active_agents.remove(agent_name)
+            # Always release agent if it was acquired
+            if agent_name:
+                async with self._agent_lock:
+                    if agent_name in self._active_agents:
+                        self._active_agents.remove(agent_name)
