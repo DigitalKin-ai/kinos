@@ -553,15 +553,19 @@ Justify each selection based on the file's documented purpose in the project map
     async def _generate_file_summary_async(self, filepath, content):
         """Async version of file summary generation."""
         try:
-            # Read current global map content
-            global_map_content = ""
-            if os.path.exists("map.md"):
-                with open("map.md", 'r', encoding='utf-8') as f:
-                    global_map_content = f.read()
+            # Create a minimal mission and objective context for the prompt
+            mission_content = f"Analyze file: {filepath}"
+            objective_content = "Generate file description"
+            agent_content = "File summary generation"
+
+            # Use existing prompt generator with minimal context
+            prompt = self._create_map_prompt(
+                mission_content,
+                objective_content,
+                agent_content
+            )
 
             client = openai.OpenAI()
-            prompt = self._generate_file_summary_prompt(filepath, content)
-            
             response = await asyncio.to_thread(
                 lambda: client.chat.completions.create(
                     model="gpt-4o-mini",
