@@ -615,7 +615,7 @@ Data Files:
             if should_update_description:
                 # Generate new summary with global context
                 client = openai.OpenAI()
-                prompt = self._generate_file_summary_prompt(modified_file_path, file_content, global_map_content, commit_msg)
+                prompt = self._generate_file_summary_prompt(modified_file_path, file_content, global_map_content)
 
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
