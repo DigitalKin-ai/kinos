@@ -73,7 +73,7 @@ def main():
                 # Set default log level to SUCCESS (only show success and above)
                 runner.logger.logger.setLevel(logging.SUCCESS)
                 
-                # Check for --verbose flag
+                # Only change to DEBUG if --verbose flag is present
                 if "--verbose" in sys.argv:
                     runner.logger.logger.setLevel(logging.DEBUG)
                     
