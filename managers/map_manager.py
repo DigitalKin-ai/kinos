@@ -1226,33 +1226,33 @@ Analyze all files in this folder structure:
 # Instructions
 Generate descriptions in this EXACT format:
 ### Files:
-- **[tree prefix] [relative path]** ([CATEGORY] [EMOJI])  
+- **[tree prefix] [relative path]** ([CATEGORY] [TYPE])  
   _[Action verb] [dense technical description] | USE: [when to use]; NOT [when not to use]._
 
 Categories (select ONE per file):
 Core Project Files:
-* PRIMARY (📊) - Final outputs, key results
-* SPECIFICATION (📋) - Requirements, standards
-* IMPLEMENTATION (⚙️) - Core functionality
-* DOCUMENTATION (📚) - Explanations, guides
+* PRIMARY (CHART) - Final outputs, key results
+* SPECIFICATION (CHECKLIST) - Requirements, standards
+* IMPLEMENTATION (GEAR) - Core functionality
+* DOCUMENTATION (BOOKS) - Explanations, guides
 
 Support Files:
-* CONFIGURATION (⚡) - Settings, parameters
-* UTILITY (🛠️) - Helper functions, tools
-* TEST (🧪) - Validation, verification
-* BUILD (📦) - Compilation, deployment
+* CONFIGURATION (BOLT) - Settings, parameters
+* UTILITY (WRENCH) - Helper functions, tools
+* TEST (TEST_TUBE) - Validation, verification
+* BUILD (PACKAGE) - Compilation, deployment
 
 Working Files:
-* WORK DOCUMENT (✍️) - Active development
-* DRAFT (📝) - Work in progress
-* TEMPLATE (📄) - Patterns, structures
-* ARCHIVE (🗄️) - Historical records
+* WORK DOCUMENT (WRITING) - Active development
+* DRAFT (MEMO) - Work in progress
+* TEMPLATE (PAGE) - Patterns, structures
+* ARCHIVE (CABINET) - Historical records
 
 Data Files:
-* SOURCE DATA (💾) - Input data
-* GENERATED (⚡) - Computed results
-* CACHE (💫) - Temporary storage
-* BACKUP (💿) - Data preservation
+* SOURCE DATA (DISK) - Input data
+* GENERATED (BOLT) - Computed results
+* CACHE (SPARKLES) - Temporary storage
+* BACKUP (CD) - Data preservation
 
 Rules for each description:
 - Start with precise action verb
