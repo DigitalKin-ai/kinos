@@ -3,6 +3,7 @@ import random
 import asyncio
 import time
 import openai
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from utils.logger import Logger
 from managers.agents_manager import AgentsManager
@@ -38,7 +39,7 @@ class AgentRunner:
         self.objective_manager = ObjectiveManager()
         self.aider_manager = AiderManager()
         self._active_agents = set()  # Track active agents
-        self._agent_lock = asyncio.Lock()  # Synchronize shared resource access
+        self._agent_lock = threading.Lock()  # Regular lock for sync access
 
     def _validate_mission_file(self, mission_filepath):
         """
@@ -446,6 +447,6 @@ class AgentRunner:
             
         finally:
             # Always release agent
-            async with self._agent_lock:
+            with self._agent_lock:
                 if agent_name in self._active_agents:
                     self._active_agents.remove(agent_name)
