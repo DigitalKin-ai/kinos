@@ -76,6 +76,41 @@ class VisionManager:
         except (OSError, IOError):
             return 0
 
+    def _should_ignore(self, path: str, pattern: str) -> bool:
+        """
+        Check if a path matches an ignore pattern.
+        
+        Args:
+            path (str): Path to check
+            pattern (str): Glob pattern to match against
+            
+        Returns:
+            bool: True if path should be ignored, False otherwise
+        """
+        try:
+            # Handle directory-specific patterns
+            if pattern.endswith('/'):
+                if not os.path.isdir(path):
+                    return False
+                pattern = pattern[:-1]
+                
+            # Handle patterns starting with /
+            if pattern.startswith('/'):
+                pattern = pattern[1:]
+                # Match only from root
+                return fnmatch.fnmatch(path, pattern)
+            else:
+                # Match pattern against full path and any subpath
+                path_parts = path.split(os.sep)
+                return any(
+                    fnmatch.fnmatch(os.path.join(*path_parts[i:]), pattern)
+                    for i in range(len(path_parts))
+                )
+                
+        except Exception as e:
+            self.logger.warning(f"Error checking ignore pattern {pattern} for {path}: {str(e)}")
+            return False
+
     def _calculate_node_size(self, file_size: int) -> float:
         """
         Calculate node size based on file size with logarithmic scaling.
