@@ -742,28 +742,56 @@ Analyze this folder and its files:
 ````
 
 # Instructions
-Provide analysis in this format:
+Provide analysis in this EXACT format:
 
 Folder: 📁 [Action verb + direct object, max 10 words]
 
 Files:
-- **[tree prefix] [filename]** ([CATEGORY] [EMOJI])
-  _[Action verb] [technical description]_
+- **[tree prefix] [relative path]** ([CATEGORY] [EMOJI])  
+  _[Action verb] [dense technical description] | USE: [when to use]; NOT [when not to use]._
+
+Example using actual files:
+- **├─ ./managers/map_manager.py** (IMPL ⚙️)  
+  _Implements hierarchical project mapping using folder-based analysis | USE: When generating project structure maps; NOT for content analysis._
+- **├─ ./utils/logger.py** (UTIL 🛠️)  
+  _Provides emoji-based logging with multiple severity levels | USE: For standardized logging; NOT for data persistence._
+- **└─ ./prompts/specification.md** (SPEC 📋)  
+  _Defines agent analysis framework and validation rules | USE: For agent configuration; NOT for runtime data._
 
 Categories (select ONE per file):
-Core: PRIMARY 📊, SPEC 📋, IMPL ⚙️, DOCS 📚
-Support: CONFIG ⚡, UTIL 🛠️, TEST 🧪, BUILD 📦
-Working: WORK ✍️, DRAFT 📝, TEMPLATE 📄, ARCHIVE 📂
-Data: SOURCE 💾, GEN ⚡, CACHE 💫, BACKUP 💿
+Core Project Files:
+* PRIMARY (📊) - Final outputs, key results
+* SPECIFICATION (📋) - Requirements, standards
+* IMPLEMENTATION (⚙️) - Core functionality
+* DOCUMENTATION (📚) - Explanations, guides
 
-Rules:
-- Start all descriptions with action verb
-- Use technical, specific language
-- Maximum 10 words per line
-- Include appropriate emojis
+Support Files:
+* CONFIGURATION (⚡) - Settings, parameters
+* UTILITY (🛠️) - Helper functions, tools
+* TEST (🧪) - Validation, verification
+* BUILD (📦) - Compilation, deployment
 
-Example correct response:
-Folder: 📁 Manage authentication system configuration and credentials
+Working Files:
+* WORK DOCUMENT (✍️) - Active development
+* DRAFT (📝) - Work in progress
+* TEMPLATE (📄) - Patterns, structures
+* ARCHIVE (🗄️) - Historical records
+
+Data Files:
+* SOURCE DATA (💾) - Input data
+* GENERATED (⚡) - Computed results
+* CACHE (💫) - Temporary storage
+* BACKUP (💿) - Data preservation
+
+Rules for each description:
+- Start with precise action verb
+- Pack technical details densely
+- Include key parameters/patterns
+- Specify input/output formats
+- State dependencies if any
+- Add clear usage guidance
+- Mention critical constraints
+- Note performance impacts"""
 
 Files:
 - **├─ auth_config.json** (CONFIG ⚡)
