@@ -343,7 +343,7 @@ class MapManager:
         tree_str = "\n".join(tree)
 
         return f"""# Objective
-Define folder's purpose and relationships:
+Define folder's purpose:
 
 # Current Folder Structure
 {tree_str}
@@ -356,9 +356,6 @@ Define folder's purpose and relationships:
 # Instructions
 Provide in this format:
 Purpose: 📁 [Action verb + direct object, max 10 words]
-Parent: 🔼 [Direct relationship statement]
-Siblings: 🔄 [Direct relationship statement]
-Children: 🔽 [Direct relationship statement]
 
 Rules:
 - Start Purpose with action verb
