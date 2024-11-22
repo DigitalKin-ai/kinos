@@ -363,7 +363,6 @@ class AiderManager:
         modified_files = self._get_modified_files(before_state, after_state)
         if modified_files:
             self.logger.info(f"📝 Agent {agent_name} {phase_name} phase modified {len(modified_files)} files")
-            map_manager = MapManager()
             for file_path in modified_files:
                 try:
                     file_path = file_path.encode('latin1').decode('utf-8')
