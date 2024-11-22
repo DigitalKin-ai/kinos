@@ -101,11 +101,13 @@ kin run agents --generate --count 6
 ### Basic Commands
 
 ```bash
-# Launch with default configuration
-kin
-
-# Launch specific team
+# Launch with default configuration (uses gpt-4o-mini)
 kin run agents
+
+# Launch with specific model
+kin run agents --model gpt-4o           # Use OpenAI GPT-4 Omni
+kin run agents --model ollama/llama3.1:70b   # Use local Llama model via Ollama
+kin run agents --model claude-3-5-haiku-20241022  # Use Anthropic's Claude 3 Haiku
 
 # Generate new agents
 kin generate agents
@@ -113,6 +115,16 @@ kin generate agents
 # Run redundancy analysis
 kin redundancy analyze
 ```
+
+### Model Selection
+The `--model` flag allows you to specify which AI model to use:
+
+- Default: Uses `gpt-4o-mini` if no model is specified
+- OpenAI Models: Use any OpenAI model by name (e.g. `gpt-4o`)
+- Local Models: Use Ollama-hosted models with `ollama/` prefix:
+  - `ollama/llama3.1:70b` - Llama 3.1 70B
+  - And other Ollama-supported models
+- Other Providers: Support for various AI providers (e.g. Claude models)
 
 ### Common Operations
 
