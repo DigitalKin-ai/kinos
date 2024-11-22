@@ -1,128 +1,50 @@
 import os
-import json
-import fnmatch
 import subprocess
-from typing import List, Dict, Optional
 from utils.logger import Logger
 
 class VisionManager:
-    """
-    Manager class for maintaining and providing repository structure visualization.
-    Uses githubocto/repo-visualizer for generating interactive visualizations.
-    """
+    """Manager class for repository visualization using repo-visualizer."""
     
-    def _get_kinos_install_path(self) -> str:
-        """Get the KinOS installation directory path."""
-        # Get the directory containing the current script
-        current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        return current_dir
-
-    def _get_repo_visualizer_path(self) -> str:
-        """Get the repo-visualizer installation directory path."""
-        kinos_path = self._get_kinos_install_path()
-        return os.path.join(kinos_path, 'repo-viz')
-
-    def __init__(self, 
-                 output_file: str = "repo-visualizer.svg",
-                 max_depth: int = 9,
-                 file_colors: Optional[Dict[str, str]] = None):
-        """
-        Initialize the vision manager.
-        Uses githubocto/repo-visualizer for generating interactive visualizations.
-        
-        Args:
-            output_file (str): Path for output SVG file
-            max_depth (int): Maximum folder depth to visualize
-            file_colors (dict): Custom colors for file extensions
-        """
+    def __init__(self):
+        """Initialize the vision manager."""
         self.logger = Logger()
-        self.map_path = output_file
-        self.max_depth = max_depth
-        self.file_colors = file_colors or {}
-        
-        # Default excluded paths
-        self.default_excluded = [
-            "node_modules",
-            "bower_components",
-            "dist",
-            "out", 
-            "build",
-            "eject",
-            ".next",
-            ".netlify",
-            ".yarn",
-            ".vscode",
-            ".git",
-            "__pycache__",
-            "*.pyc",
-            "package-lock.json",
-            "yarn.lock"
-        ]
-        
-    async def get_ignored_files(self) -> List[str]:
-        """Gets list of ignored files and default exclusions."""
-        ignored = self.default_excluded.copy()
-        
-        # Add .aider* pattern
-        ignored.append(".aider*")
-        
-        # Add patterns from .gitignore
-        if os.path.exists(".gitignore"):
-            try:
-                with open(".gitignore", "r", encoding="utf-8") as f:
-                    ignored.extend(line.strip() for line in f 
-                                 if line.strip() and not line.startswith("#"))
-            except Exception as e:
-                self.logger.warning(f"⚠️ Error reading .gitignore: {str(e)}")
-                
-        return ignored
+        self.config_path = "repo-viz.config.json"
 
-    def _get_file_size(self, filepath: str) -> int:
-        """Get file size in bytes."""
-        try:
-            return os.path.getsize(filepath)
-        except (OSError, IOError):
-            return 0
-
-    def _should_ignore(self, path: str, pattern: str) -> bool:
+    def _validate_repo_visualizer(self):
         """
-        Check if a path matches an ignore pattern.
+        Validate that repo-visualizer is properly installed and configured.
         
-        Args:
-            path (str): Path to check
-            pattern (str): Glob pattern to match against
+        Raises:
+            FileNotFoundError: If required files are missing
+            ValueError: If configuration is invalid
+        """
+        # Get required paths
+        repo_viz_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'repo-viz')
+        dist_path = os.path.join(repo_viz_path, 'dist')
+        index_js = os.path.join(dist_path, 'index.js')
+        
+        # Validate installation
+        if not os.path.exists(repo_viz_path):
+            raise FileNotFoundError(
+                f"repo-visualizer not found at {repo_viz_path}. "
+                "Please install it manually in the repo-viz directory."
+            )
             
-        Returns:
-            bool: True if path should be ignored, False otherwise
-        """
-        try:
-            # Handle directory-specific patterns
-            if pattern.endswith('/'):
-                if not os.path.isdir(path):
-                    return False
-                pattern = pattern[:-1]
-                
-            # Handle patterns starting with /
-            if pattern.startswith('/'):
-                pattern = pattern[1:]
-                # Match only from root
-                return fnmatch.fnmatch(path, pattern)
-            else:
-                # Match pattern against full path and any subpath
-                path_parts = path.split(os.sep)
-                return any(
-                    fnmatch.fnmatch(os.path.join(*path_parts[i:]), pattern)
-                    for i in range(len(path_parts))
-                )
-                
-        except Exception as e:
-            self.logger.warning(f"Error checking ignore pattern {pattern} for {path}: {str(e)}")
-            return False
-
+        if not os.path.exists(index_js):
+            raise FileNotFoundError(
+                f"repo-visualizer build not found at {index_js}. "
+                "Please build repo-visualizer manually."
+            )
+            
+        if not os.access(index_js, os.X_OK):
+            raise ValueError(
+                f"repo-visualizer build at {index_js} is not executable. "
+                "Please check file permissions."
+            )
 
     async def generate_visualization(self, root_path: str = "."):
         """
-        Updates the repo visualization using repo-visualizer.
+        Generate repository visualization using repo-visualizer.
         
         Args:
             root_path (str): Root path to visualize
@@ -143,51 +65,25 @@ class VisionManager:
 
             # Validate repo-visualizer installation
             self._validate_repo_visualizer()
-            repo_visualizer_path = self._get_repo_visualizer_path()
-            dist_path = os.path.join(repo_visualizer_path, 'dist')
 
-            # Create visualization config
-            config = {
-                "output": self.map_path,
-                "rootPath": root_path,
-                "maxDepth": self.max_depth,
-                "exclude": await self.get_ignored_files(),
-                "colors": self.file_colors,
-                "layout": "force",
-                "direction": "LR",
-                "linkDistance": 100,
-                "linkStrength": 1,
-                "charge": -100
-            }
+            # Get paths
+            repo_viz_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'repo-viz')
+            dist_path = os.path.join(repo_viz_path, 'dist', 'index.js')
 
-            # Save config
-            config_path = os.path.join(os.path.dirname(self.map_path), "repo-visualizer.config.json")
-            with open(config_path, 'w') as f:
-                json.dump(config, f, indent=2)
-            
-            # Log config contents
-            self.logger.debug(f"Config file contents: {json.dumps(config, indent=2)}")
+            # Log config contents at debug level
+            if os.path.exists(self.config_path):
+                with open(self.config_path, 'r') as f:
+                    self.logger.debug(f"Config file contents: {f.read()}")
+            else:
+                self.logger.warning(f"Config file not found at {self.config_path}")
 
-            # Run visualization using the local clone
+            # Run visualization
             self.logger.debug("🎨 Generating repository visualization...")
             try:
-                dist_path = os.path.join(self._get_repo_visualizer_path(), 'dist', 'index.js')
-                
-                # Verify index.js exists and has content
-                if os.path.exists(dist_path):
-                    file_size = os.path.getsize(dist_path)
-                    self.logger.debug(f"index.js exists with size: {file_size} bytes")
-                else:
-                    raise FileNotFoundError(f"Built index.js not found at {dist_path}")
-
-                # Verify config file location
-                self.logger.debug(f"Config file exists: {os.path.exists(config_path)}")
-                self.logger.debug(f"Config file location: {os.path.abspath(config_path)}")
-                    
                 result = subprocess.run([
                     'node',
                     dist_path,
-                    '--config', config_path,
+                    '--config', self.config_path,
                     '--verbose'
                 ], check=False, capture_output=True, text=True)
                 
@@ -205,6 +101,9 @@ class VisionManager:
                         output=result.stdout,
                         stderr=result.stderr
                     )
+                    
+                self.logger.debug("✨ Repository visualization generated successfully")
+                
             except subprocess.CalledProcessError as e:
                 self.logger.error(f"Visualization command failed with return code {e.returncode}")
                 if e.stdout:
@@ -216,12 +115,8 @@ class VisionManager:
                 self.logger.error(f"Build file not found: {str(e)}")
                 raise
 
-            self.logger.debug(f"✨ Repository map updated: {self.map_path}")
-            
         except Exception as e:
-            self.logger.error(f"Failed to update repository map: {str(e)}")
-            if isinstance(e, subprocess.CalledProcessError):
-                self.logger.error(f"Command failed with output: {e.stderr}")
+            self.logger.error(f"Failed to generate visualization: {str(e)}")
             raise
 
     async def get_map(self, force_update: bool = False) -> str:
