@@ -786,7 +786,7 @@ Use same categories as before."""
 
             # Generate visualization using VisionManager
             self.logger.debug("🎨 Generating repository visualization")
-            await self._vision_manager.update_map()
+            await self._vision_manager.generate_visualization()
                 
             self.logger.success("✨ Global map generated successfully")
             
