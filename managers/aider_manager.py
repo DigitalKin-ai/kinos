@@ -558,30 +558,6 @@ Update map.md to reflect the current project structure while maintaining its for
             all_changes.update(role_files or [])
             all_changes.update(final_files or [])
 
-            if all_changes:
-                self.logger.info("🗺️ Starting map maintenance phase")
-                
-                # Get complete tree structure
-                tree_structure = self._get_complete_tree()
-                tree_text = "\n".join(tree_structure)
-                
-                # Generate map maintenance prompt
-                map_prompt = self._generate_map_maintenance_prompt(
-                    changed_files=all_changes,
-                    tree_structure=tree_structure
-                )
-                
-                # Run map maintenance phase
-                map_cmd = cmd.copy()
-                map_cmd.extend(['--file', 'map.md'])  # Add map.md as editable
-                map_cmd[-1] = map_prompt  # Replace message with map maintenance prompt
-                
-                self.logger.debug("🔄 Running map maintenance phase")
-                map_files, map_state = await self._run_aider_phase(
-                    map_cmd, agent_name, "🗺️ Map Maintenance", 
-                    "--> Update map.md to reflect all project changes"
-                )
-
             # Log total duration and summary
             total_duration = time.time() - start_time
             self.logger.info(f"🎯 Agent {agent_name} completed total aider execution in {total_duration:.2f} seconds")
