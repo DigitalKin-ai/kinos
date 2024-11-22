@@ -647,17 +647,26 @@ Rules:
         if os.path.isabs(folder_path):
             folder_path = os.path.relpath(folder_path, self.project_root)
             
+        # Build tree structure including both files and subfolders
+        tree = ["📂 ./"]
+        
+        # Add files first
+        for i, f in enumerate(files):
+            prefix = "├─ " if (i < len(files) - 1 or subfolders) else "└─ "
+            tree.append(f"   {prefix}{f}")
+            
+        # Add subfolders
+        for i, d in enumerate(subfolders):
+            prefix = "├─ " if i < len(subfolders) - 1 else "└─ "
+            tree.append(f"   {prefix}{d}/")
+        
+        tree_str = "\n".join(tree)
+
         return f"""# Objective
 Define folder's purpose and relationships:
 
-# Current Folder
-{folder_path}  # Now always using relative path
-
-# Files Present
-{chr(10).join(f'- {f}' for f in files)}
-
-# Subfolders
-{chr(10).join(f'- {f}' for f in subfolders)}
+# Current Folder Structure
+{tree_str}
 
 # Mission Context
 ````
