@@ -2,6 +2,7 @@ import os
 import requests
 from utils.logger import Logger
 from utils.encoding_utils import EncodingUtils
+from utils.encoding_utils import EncodingUtils
 import openai
 from dotenv import load_dotenv
 
@@ -80,13 +81,6 @@ class ObjectiveManager:
         basename = os.path.basename(agent_filepath)
         return basename.replace('.aider.agent.', '').replace('.md', '')
 
-    def _convert_to_utf8(self, filepath):
-        """Convert a file to UTF-8 encoding."""
-        return self.encoding_utils.convert_to_utf8(filepath)
-
-    def convert_all_to_utf8(self):
-        """Convert all text files in the project to UTF-8."""
-        return self.encoding_utils.convert_all_to_utf8()
 
     def _read_file(self, filepath):
         """Read content from file with robust encoding handling."""
@@ -289,9 +283,6 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             # Return a basic fallback summary with agent name
             return f"L'agent {agent_name} 🤖 a recherché sur : {query}"
 
-    def _convert_to_utf8(self, filepath):
-        """Convert a file to UTF-8 encoding."""
-        return self.encoding_utils.convert_to_utf8(filepath)
 
     def _save_objective(self, filepath, content):
         """Save objective content to file, including Perplexity research results if needed."""
