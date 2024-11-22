@@ -13,6 +13,25 @@ KinOS is an advanced AI team orchestration system that enables autonomous collab
 - 🔗 **Git Integration**: Automatic version control and change tracking
 - 📊 **Progress Monitoring**: Real-time status tracking and logging
 
+## 💡 Best Practices
+
+### Mission Definition
+- Be extremely specific about expected outputs and deliverables
+- Include clear format and structure requirements
+- Define validation criteria and constraints
+- Example: Instead of "Create documentation", specify "Generate HTML docs from Python docstrings into /docs with search function"
+
+### Repository Preparation
+- Add relevant reference materials and examples as text files
+- Structure directories to match expected output
+- Include any required templates or configurations
+
+### Interactive Guidance
+- Use `aider --architect` to open chat sessions with the project
+- Guide work in progress and clarify requirements
+- Review and refine implementations
+Note: Native chat integration planned for future releases
+
 ## 🚀 Getting Started
 
 ### Prerequisites
