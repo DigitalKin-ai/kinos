@@ -827,7 +827,8 @@ Rules:
     def _get_ignore_patterns(self) -> list:
         """Get list of patterns to ignore from .gitignore and defaults."""
         patterns = [
-            '.git*',
+            '.git/*',  # Ignore all .git directory contents
+            '.git*',   # Keep this for .gitignore and other git files
             '.aider*',
             'node_modules',
             '__pycache__',
