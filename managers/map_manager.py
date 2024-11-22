@@ -558,19 +558,24 @@ Important:
         return "# Project Map\n\n" + _format_folder(hierarchy)
     def _create_folder_context_prompt(self, folder_path: str, files: list, subfolders: list, mission_content: str) -> str:
         """Create prompt for analyzing folder context."""
-        return f"""Define folder's purpose and relationships:
+        return f"""# Objective
+Define folder's purpose and relationships:
 
-Current Folder: {folder_path}
+# Current Folder
+{folder_path}
 
-Files Present:
+# Files Present
 {chr(10).join(f'- {f}' for f in files)}
 
-Subfolders:
+# Subfolders
 {chr(10).join(f'- {f}' for f in subfolders)}
 
-Mission Context:
+# Mission Context
+````
 {mission_content}
+````
 
+# Instructions
 Provide in this format:
 Purpose: 📁 [Action verb + direct object, max 10 words]
 Parent: 🔼 [Direct relationship statement]
@@ -583,7 +588,7 @@ Rules:
 - Omit conditionals
 - Maximum 10 words per line
 - Focus on concrete actions
-- MUST include emojis as shown in format"""
+- Include emojis as shown in format"""
     def _format_files_content(self, files_content: dict) -> str:
         """
         Format files content for prompt with intelligent truncation.
