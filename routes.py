@@ -17,7 +17,7 @@ def main():
     # Route commands to appropriate managers
     if command == "generate":
         if len(sys.argv) < 3:
-            print("Usage: kin generate <agents|objective|map> [options]")
+            print("Usage: kin generate <agents|objective|map|viz> [options]")
             sys.exit(1)
 
         subcommand = sys.argv[2]
@@ -31,7 +31,10 @@ def main():
             mission_path = sys.argv[3] if len(sys.argv) > 3 else ".aider.mission.md"
             asyncio.run(manager.generate_agents(mission_path))
             
-        elif subcommand == "objective":
+        elif subcommand == "viz":
+            from managers.vision_manager import VisionManager
+            manager = VisionManager()
+            manager.generate_visualization()
             manager = ObjectiveManager()
             
             # Parse arguments
