@@ -493,21 +493,88 @@ The following files were modified in this session:
 {tree_text}
 ````
 
-# Instructions
-1. Review the current map.md content
-2. For each new or modified file:
-   - Add or update its description if missing
-   - Use the format: `- **filename** (CATEGORY EMOJI) - description`
-3. For deleted files:
-   - Remove their entries from the map
-4. Ensure all files have appropriate descriptions
-5. Maintain consistent categories and emojis:
-   Core: PRIMARY 📊, SPEC 📋, IMPL ⚙️, DOCS 📚
-   Support: CONFIG ⚡, UTIL 🛠️, TEST 🧪, BUILD 📦
-   Working: WORK ✍️, DRAFT 📝, TEMPLATE 📄, ARCHIVE 📂
-   Data: SOURCE 💾, GEN ⚡, CACHE 💫, BACKUP 💿
+# Instructions for Map Maintenance
 
-Update the map.md file to reflect these changes while maintaining its current structure and format.
+## 1. Folder Documentation
+For each folder, document:
+- **Purpose**: What is this folder's main responsibility
+- **Parent Relationship**: How does it serve its parent folder's purpose
+- **Content Guidelines**: What should/shouldn't be placed here
+- **Usage Context**: When to add files here vs other locations
+
+Format:
+```markdown
+### 📁 folder_name/
+- **Purpose**: [Main responsibility of this folder]
+- **Serves Parent**: [How it helps parent folder's mission]
+- **Contains**: [What belongs here]
+- **When to Use**: [Usage guidelines]
+```
+
+## 2. File Documentation
+For each file, document:
+- **Role**: How it contributes to its folder's purpose
+- **Usage**: When and how to use this file
+- **Dependencies**: What it relies on or what relies on it
+- **Category**: Use appropriate category and emoji
+
+Format:
+```markdown
+- **filename** (CATEGORY EMOJI) - [Role in folder] | Used for [purpose] | Dependencies: [list]
+```
+
+## 3. Categories and Emojis
+Core Files:
+- PRIMARY 📊 - Essential project infrastructure
+- SPEC 📋 - Specifications and requirements
+- IMPL ⚙️ - Core implementation files
+- DOCS 📚 - Documentation and guides
+
+Support Files:
+- CONFIG ⚡ - Configuration and settings
+- UTIL 🛠️ - Utility and helper functions
+- TEST 🧪 - Testing and validation
+- BUILD 📦 - Build and deployment
+
+Working Files:
+- WORK ✍️ - In-progress work
+- DRAFT 📝 - Draft documents
+- TEMPLATE 📄 - Templates and boilerplate
+- ARCHIVE 📂 - Archived content
+
+Data Files:
+- SOURCE 💾 - Original source data
+- GEN ⚡ - Generated content
+- CACHE 💫 - Temporary/cache data
+- BACKUP 💿 - Backup files
+
+## 4. Update Process
+1. Start from root directory
+2. For each folder:
+   - Add/update folder documentation
+   - Document relationships with parent/sibling folders
+   - Specify content guidelines
+3. For each file:
+   - Add/update file documentation
+   - Ensure category matches current role
+   - Document dependencies and usage
+4. For modified files:
+   - Update descriptions to reflect new purpose
+   - Verify category still appropriate
+5. For deleted files:
+   - Remove entries from map
+   - Update related dependency references
+
+## 5. Validation
+- Every folder must have complete documentation
+- Every file must have a description and category
+- All relationships must be documented
+- Categories must accurately reflect current usage
+- Dependencies must be explicitly stated
+- Usage guidelines must be clear and specific
+
+Update map.md to reflect these changes while maintaining its current structure and format.
+Focus on making the relationships and usage patterns clear and explicit.
 """
 
                 # Run map maintenance phase
