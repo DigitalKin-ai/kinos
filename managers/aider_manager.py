@@ -586,10 +586,11 @@ Update map.md to reflect the current project structure while maintaining its for
         ignore_patterns = fs_utils._get_ignore_patterns()
 
         for root, dirs, _ in os.walk('.'):
-            # Filter out ignored directories, especially .aider folders
+            # Filter out ignored directories, especially .git and .aider folders
             dirs[:] = [d for d in dirs 
                       if not fs_utils._should_ignore(os.path.join(root, d), ignore_patterns) 
-                      and not '.aider' in d]  # Explicitly exclude .aider folders
+                      and not d.startswith('.git')  # Explicitly exclude .git folders
+                      and not d.startswith('.aider')]  # Explicitly exclude .aider folders
             
             for dir_name in dirs:
                 folder_path = os.path.join(root, dir_name)
