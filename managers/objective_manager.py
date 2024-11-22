@@ -200,7 +200,7 @@ Create two objectives in markdown format - one for production, one specific to y
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": """
+                    {"role": "system", "content": f"""
 {agent_content}
                      
 # Planning
@@ -415,7 +415,7 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": """
+                    {"role": "system", "content": f"""
 {agent_content}
 
 In this context, you are an assistant who summarizes project actions in a concise sentence with appropriate emojis. These summaries will serve as tracking logs within the mission.
