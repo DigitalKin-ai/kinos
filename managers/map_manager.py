@@ -704,26 +704,30 @@ For each file, you must:
    - Clear hierarchy of file importance to mission
 
 3. DESCRIBE FUNCTIONAL ROLES:
-   - Use CAPS to indicate file role (e.g., PRIMARY DELIVERABLE, SOURCE DATA)
+   - Use CAPS to indicate file role (e.g., PRIMARY DELIVERABLE, WORK DOCUMENT)
    - Explain how file supports mission objectives
    - Show clear connection to main deliverables
 
 Format your response as:
 
-# Context Map
+# Project Map
 filename.md (token_count tokens) 📊 ROLE - Clear description of how this file supports the mission's primary deliverables.
 
 Example entries:
-- analysis.md (358 tokens) 📊 PRIMARY DELIVERABLE - Synthesizes insights from all summaries to document key findings.
-- summaries/*.md (various tokens) 📚 READ-ONLY SOURCE DATA - Provides raw data for analysis.md.
-- helpers/*.md (various tokens) 🛠️ SUPPORT TOOLS - Contains utilities that assist in generating analysis.md.
+- analysis.md (358 tokens) 📊 PRIMARY DELIVERABLE - Final analysis document that synthesizes all findings.
+- research_notes.md (250 tokens) 📋 WORK DOCUMENT - Working document containing research notes and drafts for analysis.md.
+- source_data.md (150 tokens) 📚 READ-ONLY SOURCE DATA - Reference material used to inform the analysis.
+- helper.py (120 tokens) 🛠️ SUPPORT TOOL - Script that assists in data processing.
 
 Note:
-- Use CAPS for file roles
-- Show clear relationship to primary deliverables
-- Indicate if files are read-only or meant to be modified
-- Use appropriate emojis to indicate file purpose
+- Use these roles with corresponding emojis:
+  * PRIMARY DELIVERABLE (📊) - Main output files
+  * WORK DOCUMENT (📋) - Documents being actively worked on
+  * READ-ONLY SOURCE DATA (📚) - Reference/input files
+  * SUPPORT TOOL (🛠️) - Helper files and utilities
+- Most documents should be marked as WORK DOCUMENT unless they are final deliverables
 - Keep descriptions focused on mission support
+- Show clear relationship to primary deliverables
 """
 
     def _update_map_file_fallback(self, filepath, token_count, summary):
