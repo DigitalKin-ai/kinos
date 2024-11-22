@@ -124,42 +124,36 @@ class MapManager:
             raise
 
     def _analyze_folder_hierarchy(self, folder_path: str, mission_content: str, objective_content: str) -> dict:
-        """
-        Analyze folder and all its subfolders recursively, with complete context.
-        
-        Args:
-            folder_path (str): Current folder to analyze
-            mission_content (str): Overall mission context
-            objective_content (str): Current objective context
-            
-        Returns:
-            dict: Complete folder analysis including:
-                - Folder purpose
-                - File categorizations
-                - Subfolder relationships
-                - Structural context
-                
-        Raises:
-            ValueError: If folder_path is invalid
-            OSError: If folder cannot be accessed
-            Exception: For other unexpected errors
-        """
+        """Analyze folder hierarchy using a two-phase approach."""
         try:
-            # Mark start of initial mapping
             self._initial_mapping_in_progress = True
+            folder_path = os.path.abspath(folder_path)
             
-            # Validate and normalize path
             if not folder_path:
                 raise ValueError("folder_path cannot be empty")
-            
-            # Convert to absolute path if relative
-            folder_path = os.path.abspath(folder_path)
             
             if not os.path.exists(folder_path):
                 raise ValueError(f"Folder does not exist: {folder_path}")
                 
             if not os.path.isdir(folder_path):
                 raise ValueError(f"Path is not a directory: {folder_path}")
+            
+            # Phase 1: Analyze top two levels together
+            top_level_analysis = self._analyze_top_levels(
+                folder_path=folder_path,
+                mission_content=mission_content,
+                max_depth=2
+            )
+            
+            # Phase 2: For each level-2 folder, analyze its complete subtree
+            for subfolder_name, subfolder_data in top_level_analysis.get('subfolders', {}).items():
+                subfolder_path = os.path.join(folder_path, subfolder_name)
+                subtree_analysis = self._analyze_complete_subtree(
+                    folder_path=subfolder_path,
+                    mission_content=mission_content
+                )
+                # Update the subfolder data with complete subtree analysis
+                top_level_analysis['subfolders'][subfolder_name].update(subtree_analysis)
                 
         except Exception as e:
             self.logger.error(f"Failed to validate folder path: {str(e)}")
@@ -167,57 +161,12 @@ class MapManager:
             raise
             
         try:
-            # Get files and subfolders using FSUtils
-            files = self.fs_utils.get_folder_files(folder_path)
-            subfolders = self.fs_utils.get_subfolders(folder_path)
-            
-            # Get file contents with encoding handling
-            files_content = {}
-            for file in files:
-                try:
-                    file_path = os.path.join(folder_path, file)
-                    if not self._is_binary_file(file_path):
-                        content = self.encoding_utils._read_file(file_path)
-                        if content is not None:
-                            files_content[file] = content
-                except Exception as e:
-                    self.logger.warning(f"Could not read {file}: {str(e)}")
-            
-            # Generate complete folder context
-            folder_analysis = self._analyze_folder_level(
-                folder_path=folder_path,
-                files_content=files_content,
-                subfolders=subfolders,
-                mission_content=mission_content,
-                objective_content=objective_content
-            )
-
-            # Recursively analyze subfolders
-            folder_analysis['subfolders'] = {}
-            for subfolder in subfolders:
-                try:
-                    subfolder_path = os.path.join(folder_path, subfolder)
-                    folder_analysis['subfolders'][subfolder] = self._analyze_folder_hierarchy(
-                        folder_path=subfolder_path,
-                        mission_content=mission_content,
-                        objective_content=objective_content
-                    )
-                except Exception as e:
-                    self.logger.error(f"Failed to analyze subfolder {subfolder}: {str(e)}")
-                    folder_analysis['subfolders'][subfolder] = {
-                        'path': subfolder_path,
-                        'purpose': f'Analysis failed: {str(e)}',
-                        'files': [],
-                        'relationships': {},
-                        'subfolders': {}
-                    }
-
             # Once complete analysis is done, generate SVG
             if folder_path == "." and self._initial_mapping_in_progress:
                 self._initial_mapping_in_progress = False
                 asyncio.run(self._vision_manager.update_map())
 
-            return folder_analysis
+            return top_level_analysis
 
         except Exception as e:
             self.logger.error(f"Failed to analyze folder hierarchy for {folder_path}: {str(e)}")
@@ -273,6 +222,230 @@ Rules:
 - Use technical, specific language
 - Maximum 10 words per line
 - Include appropriate emojis"""
+
+    def _analyze_top_levels(self, folder_path: str, mission_content: str, max_depth: int = 2) -> dict:
+        """Analyze top levels of folder structure in one go."""
+        try:
+            # Collect all files and folders up to max_depth
+            structure = self._collect_structure(folder_path, max_depth)
+            
+            # Create comprehensive prompt for top levels
+            prompt = self._create_multilevel_analysis_prompt(
+                structure=structure,
+                mission_content=mission_content
+            )
+            
+            # Get analysis from LLM
+            analysis = self._get_llm_analysis(prompt)
+            
+            return self._parse_multilevel_analysis(analysis, structure)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to analyze top levels: {str(e)}")
+            raise
+
+    def _analyze_complete_subtree(self, folder_path: str, mission_content: str) -> dict:
+        """Analyze complete subtree of a folder in one go."""
+        try:
+            # Collect complete subtree structure
+            structure = self._collect_structure(folder_path, max_depth=None)
+            
+            # Create prompt for complete subtree analysis
+            prompt = self._create_subtree_analysis_prompt(
+                structure=structure,
+                mission_content=mission_content
+            )
+            
+            # Get analysis from LLM
+            analysis = self._get_llm_analysis(prompt)
+            
+            return self._parse_multilevel_analysis(analysis, structure)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to analyze subtree: {str(e)}")
+            raise
+
+    def _collect_structure(self, folder_path: str, max_depth: int = None, current_depth: int = 0) -> dict:
+        """Collect folder structure up to specified depth."""
+        structure = {
+            'path': folder_path,
+            'files': self.fs_utils.get_folder_files(folder_path),
+            'subfolders': {}
+        }
+        
+        if max_depth is None or current_depth < max_depth:
+            for subfolder in self.fs_utils.get_subfolders(folder_path):
+                subfolder_path = os.path.join(folder_path, subfolder)
+                structure['subfolders'][subfolder] = self._collect_structure(
+                    subfolder_path, 
+                    max_depth,
+                    current_depth + 1
+                )
+                
+        return structure
+
+    def _create_multilevel_analysis_prompt(self, structure: dict, mission_content: str) -> str:
+        """Create prompt for analyzing multiple levels at once."""
+        return f"""Analyze this complete folder structure and all its files:
+
+# Current Structure
+{self._format_structure_for_prompt(structure)}
+
+# Mission Context
+{mission_content}
+
+# Instructions
+Provide a complete analysis in this format:
+
+## Root Folder
+Purpose: [Action verb + direct object, max 10 words]
+
+Files:
+- **[filename]** ([CATEGORY] [EMOJI])
+  _[Action verb] [technical description]_
+
+## Subfolders
+For each subfolder:
+- Purpose: [Action verb + direct object]
+- Files analysis (same format as above)
+- Relationships with other folders
+
+Use these categories:
+Core: PRIMARY 📊, SPEC 📋, IMPL ⚙️, DOCS 📚
+Support: CONFIG ⚡, UTIL 🛠️, TEST 🧪, BUILD 📦
+Working: WORK ✍️, DRAFT 📝, TEMPLATE 📄, ARCHIVE 📂
+Data: SOURCE 💾, GEN ⚡, CACHE 💫, BACKUP 💿"""
+
+    def _create_subtree_analysis_prompt(self, structure: dict, mission_content: str) -> str:
+        """Create prompt for analyzing a complete subtree."""
+        return f"""Analyze this complete subtree structure and ALL its files:
+
+# Current Structure
+{self._format_structure_for_prompt(structure)}
+
+# Mission Context
+{mission_content}
+
+# Instructions
+Provide a complete analysis of the entire subtree:
+
+## Current Folder
+Purpose: [Action verb + direct object, max 10 words]
+
+Files:
+- **[filename]** ([CATEGORY] [EMOJI])
+  _[Action verb] [technical description]_
+
+## Complete Subtree Analysis
+For each subfolder (all levels):
+- Full path and purpose
+- Complete file analysis
+- Technical relationships
+- Dependencies and data flow
+
+Use same categories as before."""
+
+    def _format_structure_for_prompt(self, structure: dict, indent: str = "") -> str:
+        """Format folder structure for prompt display."""
+        lines = []
+        
+        # Add current folder
+        folder_name = os.path.basename(structure['path']) or '.'
+        lines.append(f"{indent}📂 {folder_name}/")
+        
+        # Add files
+        for file in structure['files']:
+            lines.append(f"{indent}├── {file}")
+            
+        # Add subfolders
+        for name, subfolder in structure['subfolders'].items():
+            lines.append(self._format_structure_for_prompt(subfolder, indent + "│   "))
+            
+        return "\n".join(lines)
+
+    def _get_llm_analysis(self, prompt: str) -> str:
+        """Get analysis from LLM."""
+        try:
+            client = openai.OpenAI()
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a technical architect analyzing project structure. Always respond in the exact format requested."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=2000
+            )
+            
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            self.logger.error(f"LLM analysis failed: {str(e)}")
+            raise
+
+    def _parse_multilevel_analysis(self, analysis: str, structure: dict) -> dict:
+        """Parse the multilevel analysis response into structured data."""
+        result = {
+            'path': structure['path'],
+            'purpose': '',
+            'files': [],
+            'subfolders': {},
+            'relationships': {}
+        }
+        
+        current_section = None
+        current_folder = None
+        
+        for line in analysis.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+                
+            if line.startswith('## Root Folder') or line.startswith('## Current Folder'):
+                current_section = 'root'
+                current_folder = result
+            elif line.startswith('Purpose:'):
+                if current_folder:
+                    current_folder['purpose'] = line.replace('Purpose:', '').strip()
+            elif line.startswith('- **') and '**' in line:
+                if current_folder:
+                    file_info = self._parse_file_line(line)
+                    if file_info:
+                        current_folder['files'].append(file_info)
+            elif line.startswith('## Subfolders'):
+                current_section = 'subfolders'
+            elif line.startswith('## Complete Subtree Analysis'):
+                current_section = 'subtree'
+            elif line.startswith('- Full path:'):
+                path = line.replace('- Full path:', '').strip()
+                current_folder = result['subfolders'].setdefault(path, {
+                    'path': path,
+                    'purpose': '',
+                    'files': [],
+                    'relationships': {}
+                })
+                
+        return result
+
+    def _parse_file_line(self, line: str) -> dict:
+        """Parse a file analysis line into structured data."""
+        try:
+            # Extract filename and role
+            name_part = line.split('**')[1]
+            role_part = line.split('(')[1].split(')')[0]
+            
+            # Extract description if present
+            description = ''
+            if '_' in line:
+                description = line.split('_')[1].strip()
+                
+            return {
+                'name': name_part.strip(),
+                'role': role_part.strip(),
+                'description': description
+            }
+        except Exception:
+            return None
 
     def _get_folder_context_for_path(self, folder_path: str) -> dict:
         """
