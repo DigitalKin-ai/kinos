@@ -144,13 +144,25 @@ class VisionManager:
             root_path (str): Root directory to visualize
         """
         try:
-            # Create new directed graph
-            dot = graphviz.Digraph(
-                'repo_structure',
-                node_attr={'style': 'filled', 'fontname': 'Arial'},
-                edge_attr={'fontname': 'Arial'},
-                engine='dot'
-            )
+            try:
+                # Create new directed graph
+                dot = graphviz.Digraph(
+                    'repo_structure',
+                    node_attr={'style': 'filled', 'fontname': 'Arial'},
+                    edge_attr={'fontname': 'Arial'},
+                    engine='dot'
+                )
+            except Exception as e:
+                if "ExecutableNotFound" in str(e):
+                    self.logger.error(
+                        "\n❌ Graphviz not found! Please install Graphviz:\n"
+                        "Windows: Download from https://graphviz.org/download/ and add to PATH\n"
+                        "Linux: sudo apt-get install graphviz\n"
+                        "Mac: brew install graphviz\n"
+                        "\nAfter installing, restart your terminal/command prompt."
+                    )
+                    raise RuntimeError("Graphviz not installed or not in PATH") from e
+                raise
             
             # Get ignore patterns
             ignored_paths = await self.get_ignored_files()

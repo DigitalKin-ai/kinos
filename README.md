@@ -40,10 +40,18 @@ Note: Native chat integration planned for future releases
 - OpenAI API key
 - Perplexity API key (for research capabilities)
 - Git installed
+- Graphviz installed (for repository visualization)
 
 ### Installation
 
-1. Clone the repository:
+1. Install Graphviz:
+   - **Windows**: 
+     1. Download and install from [Graphviz Download Page](https://graphviz.org/download/)
+     2. Add the Graphviz bin directory to your system PATH (usually `C:\Program Files\Graphviz\bin`)
+   - **Linux**: `sudo apt-get install graphviz`
+   - **Mac**: `brew install graphviz`
+
+2. Clone the repository:
 ```bash
 git clone https://github.com/Lesterpaintstheworld/kinos.git
 cd kinos
