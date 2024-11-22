@@ -54,6 +54,30 @@ KinOS manages state through standardized files in the mission directory:
 
 ### 2.7 VisionManager Service
 - **Repository Visualization**
+  - Automatic repo-visualizer installation and setup
+  - Dynamic SVG generation
+  - Interactive project structure visualization
+  - Configurable depth and colors
+  - Gitignore integration
+
+- **Installation Management**
+  - Automatic Node.js dependency check
+  - Seamless repo-visualizer setup
+  - Dependency installation handling
+  - Build process automation
+
+- **Configuration**
+  - Customizable visualization depth
+  - File extension color schemes
+  - Ignore pattern management
+  - Layout customization options
+
+- **Integration**
+  - Automatic map updates on changes
+  - Path validation and security
+  - Error handling and recovery
+  - Progress logging and feedback
+- **Repository Visualization**
   - Local installation of repo-visualizer
   - Automatic build process
   - Configuration management
