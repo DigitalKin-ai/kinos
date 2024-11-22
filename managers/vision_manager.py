@@ -69,7 +69,7 @@ class VisionManager:
             self._validate_repo_visualizer()
 
             # Get paths
-            repo_viz_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'repo-viz')
+            repo_viz_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'repo-visualizer')
             dist_path = os.path.join(repo_viz_path, 'dist', 'index.js')
 
             # Log config contents at debug level
