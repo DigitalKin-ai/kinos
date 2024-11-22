@@ -350,25 +350,37 @@ Important:
         Get folder purpose and relationships using GPT with caching.
         
         Args:
-            folder_path (str): Path to current folder
+            folder_path (str): Path to current folder (relative or absolute)
             files (list): List of files in folder
             subfolders (list): List of subfolders
             mission_content (str): Overall mission context
             
         Returns:
-            dict: Folder context including purpose and relationships
-            
+            dict: Folder context including:
+                - path: Absolute path for internal use
+                - display_path: Relative path for display
+                - purpose: Folder's main purpose
+                - relationships: Dict of folder relationships
+                
         Raises:
-            ValueError: If input parameters are invalid
-            Exception: For API or parsing errors
+            ValueError: If folder_path is empty or invalid
         """
         if not folder_path:
             raise ValueError("folder_path cannot be empty")
             
         try:
-            # Convert to absolute path for internal use, but keep relative for display
-            abs_path = os.path.abspath(folder_path)
-            rel_path = os.path.relpath(abs_path, self.project_root)
+            # Normalize paths - handle both absolute and relative inputs
+            if os.path.isabs(folder_path):
+                abs_path = folder_path
+                if not self._validate_path_in_project(abs_path):
+                    raise ValueError(f"Path {folder_path} is outside project directory")
+                rel_path = os.path.relpath(abs_path, self.project_root)
+            else:
+                # Convert relative to absolute for internal use
+                abs_path = os.path.abspath(os.path.join(self.project_root, folder_path))
+                if not self._validate_path_in_project(abs_path):
+                    raise ValueError(f"Path {folder_path} is outside project directory")
+                rel_path = folder_path  # Keep original relative path
             
             # Generate cache key using relative path
             cache_key = f"{rel_path}:{','.join(sorted(files))}:{','.join(sorted(subfolders))}"
