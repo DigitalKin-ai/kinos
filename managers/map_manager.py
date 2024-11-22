@@ -572,17 +572,18 @@ Mission Context:
 {mission_content}
 
 Provide in this format:
-Purpose: [Action verb + direct object, max 10 words]
-Parent: [Direct relationship statement]
-Siblings: [Direct relationship statement]
-Children: [Direct relationship statement]
+Purpose: 📁 [Action verb + direct object, max 10 words]
+Parent: 🔼 [Direct relationship statement]
+Siblings: 🔄 [Direct relationship statement]
+Children: 🔽 [Direct relationship statement]
 
 Rules:
 - Start Purpose with action verb
 - Use declarative statements
 - Omit conditionals
 - Maximum 10 words per line
-- Focus on concrete actions"""
+- Focus on concrete actions
+- MUST include emojis as shown in format"""
     def _format_files_content(self, files_content: dict) -> str:
         """
         Format files content for prompt with intelligent truncation.
@@ -990,4 +991,10 @@ Data Files:
 * BACKUP (💿) - Backups
 
 Return in format:
-[TYPE NAME (EMOJI)] - [Action verb + direct object]"""
+[TYPE NAME (EMOJI)] - [Action verb + direct object]
+
+Rules:
+- MUST include emoji from list above
+- Start description with action verb
+- Maximum 10 words
+- Be specific and direct"""
