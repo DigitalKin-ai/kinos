@@ -6,6 +6,7 @@ from managers.objective_manager import ObjectiveManager
 from managers.map_manager import MapManager
 from managers.aider_manager import AiderManager
 from managers.agent_runner import AgentRunner
+from utils.logger import Logger
 
 def main():
     if len(sys.argv) < 2:
