@@ -9,7 +9,7 @@ class VisionManager:
     def __init__(self):
         """Initialize the vision manager."""
         self.logger = Logger()
-        self.config_path = "repo-viz.config.json"
+        self.config_path = "repo-visualizer.config.json"
 
     def _validate_repo_visualizer(self):
         """
