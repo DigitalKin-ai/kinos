@@ -497,8 +497,9 @@ Rules:
             folder_path = os.path.relpath(folder_path, self.project_root)
             
         # Build tree structure including both files and subfolders
-        tree = ["📂 ./"]
-        
+        folder_name = os.path.basename(folder_path)
+        tree = [f"📂 {folder_name}"]  # Show actual folder name instead of ./
+    
         # Add files first
         for i, f in enumerate(files):
             prefix = "├─ " if (i < len(files) - 1 or subfolders) else "└─ "
