@@ -354,7 +354,6 @@ Important:
             files (list): List of files in folder
             subfolders (list): List of subfolders
             mission_content (str): Overall mission context
-            objective_content (str): Current objective context
             
         Returns:
             dict: Folder context including purpose and relationships
@@ -383,7 +382,7 @@ Important:
             client = openai.OpenAI()
             
             # Improved prompt for more structured response
-            prompt = f"""Analyze this folder's purpose and relationships:
+            prompt = f"""Define folder's purpose and relationships:
 
 Current Folder: {folder_path}
 
@@ -396,17 +395,18 @@ Subfolders:
 Mission Context:
 {mission_content}
 
-Please provide your analysis in this EXACT format:
-Purpose: [One line describing the main purpose of this folder]
-Parent: [How this folder relates to its parent]
-Siblings: [How this folder relates to peer folders]
-Children: [How this folder relates to its subfolders]
+Provide in this format:
+Purpose: [Action verb + direct object, max 10 words]
+Parent: [Direct relationship statement]
+Siblings: [Direct relationship statement]
+Children: [Direct relationship statement]
 
-Important:
-- Each section MUST start with the exact label (Purpose:, Parent:, etc.)
-- The Purpose section is REQUIRED and must be meaningful
-- Keep each section to 1-2 lines maximum
-- Use clear, concise language"""
+Rules:
+- Start Purpose with action verb
+- Use declarative statements
+- Omit conditionals
+- Maximum 10 words per line
+- Focus on concrete actions"""
 
             # Make API call with retry logic and improved parameters
             max_retries = 3
@@ -573,42 +573,41 @@ Important:
         return "# Project Map\n\n" + _format_folder(hierarchy)
     def _create_file_analysis_prompt(self, filename: str, folder_context: dict) -> str:
         """Create prompt for analyzing a single file's role."""
-        return f"""Analyze this file's role in its folder:
+        return f"""Analyze this file's role:
 
 Filename: {filename}
 Folder Purpose: {folder_context['purpose']}
 
-Determine the file's:
-1. Technical role (using emoji categories below)
-2. Specific purpose in this folder
-3. How it supports the folder's purpose
+Determine:
+1. Technical role (select ONE from below)
+2. Direct purpose statement (start with action verb, max 10 words)
 
 Core Project Files:
-* PRIMARY DELIVERABLE (📊) - Final output files
-* SPECIFICATION (📋) - Requirements and plans
-* IMPLEMENTATION (⚙️) - Core functionality
-* DOCUMENTATION (📚) - User guides and docs
+* PRIMARY DELIVERABLE (📊) - Final outputs
+* SPECIFICATION (📋) - Requirements
+* IMPLEMENTATION (⚙️) - Core code
+* DOCUMENTATION (📚) - Reference docs
 
 Support Files:
-* CONFIGURATION (⚡) - Settings and configs
-* UTILITY (🛠️) - Helper functions
-* TEST (🧪) - Test cases
-* BUILD (📦) - Build scripts
+* CONFIGURATION (⚡) - Settings
+* UTILITY (🛠️) - Helpers
+* TEST (🧪) - Tests
+* BUILD (📦) - Build files
 
 Working Files:
-* WORK DOCUMENT (✍️) - Active files
-* DRAFT (📝) - In-progress work
-* TEMPLATE (📄) - Reusable patterns
-* ARCHIVE (📂) - Historical versions
+* WORK DOCUMENT (✍️) - Active work
+* DRAFT (📝) - In progress
+* TEMPLATE (📄) - Patterns
+* ARCHIVE (📂) - History
 
 Data Files:
-* SOURCE DATA (💾) - Input data
-* GENERATED (⚡) - Created outputs
-* CACHE (💫) - Temporary data
-* BACKUP (💿) - System backups
+* SOURCE DATA (💾) - Inputs
+* GENERATED (⚡) - Outputs
+* CACHE (💫) - Temp data
+* BACKUP (💿) - Backups
 
 Return in format:
-[EMOJI ROLE] - [Purpose description]"""
+[TYPE NAME (EMOJI)] - [Action verb + direct object]"""
     def _format_files_content(self, files_content: dict) -> str:
         """
         Format files content for prompt with intelligent truncation.
