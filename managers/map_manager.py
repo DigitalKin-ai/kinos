@@ -163,10 +163,10 @@ class MapManager:
             
             # Validate and normalize path
             if not folder_path:
-            raise ValueError("folder_path cannot be empty")
+                raise ValueError("folder_path cannot be empty")
             
-        # Convert to absolute path if relative
-        folder_path = os.path.abspath(folder_path)
+            # Convert to absolute path if relative
+            folder_path = os.path.abspath(folder_path)
             
         if not os.path.exists(folder_path):
             raise ValueError(f"Folder does not exist: {folder_path}")
