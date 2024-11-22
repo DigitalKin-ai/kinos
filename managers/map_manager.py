@@ -189,28 +189,6 @@ class MapManager:
         except Exception as e:
             self.logger.error(f"❌ Map generation failed: {str(e)}")
             raise
-                    self._get_ignore_patterns()
-                )]
-                
-                for dir_name in dirs:
-                    dir_path = os.path.join(root, dir_name)
-                    # Generate map for this directory
-                    dir_analysis = self._generate_map_content(
-                        dir_path,
-                        mission_content,
-                        objective_content
-                    )
-                    complete_map.append(dir_analysis)
-            
-            # Save complete map
-            output_path = f".aider.map.{agent_name}.md"
-            self._save_map(output_path, "\n\n".join(complete_map))
-            
-            self.logger.info(f"✅ Successfully generated hierarchical map for {agent_name}")
-            
-        except Exception as e:
-            self.logger.error(f"❌ Map generation failed: {str(e)}")
-            raise
 
     def _validate_file(self, filepath):
         """Validate file exists and is readable."""
