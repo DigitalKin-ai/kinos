@@ -673,18 +673,59 @@ Data Files:
             self.logger.error(f"Failed to generate file summary: {str(e)}")
             raise
 
-    def _get_existing_summary(self, map_content, file_path):
-        """Extract existing summary for a file from the map content."""
-        try:
-            for line in map_content.split('\n'):
-                if line.startswith(file_path):
-                    # Extract summary part after token count
-                    parts = line.split(')')
-                    if len(parts) > 1:
-                        return parts[1].strip()
-        except Exception as e:
-            self.logger.debug(f"Could not extract existing summary: {str(e)}")
-        return None
+    def _generate_file_summary_prompt(self, filepath, content, global_map_content):
+        """
+        Generate a prompt focused on file's structural role in the project.
+        
+        Args:
+            filepath (str): Path to the file being analyzed
+            content (str): Content of the file
+            global_map_content (str): Current global map content
+            
+        Returns:
+            str: Prompt for GPT to analyze file's role
+        """
+        # Get directory structure context
+        dir_name = os.path.dirname(filepath)
+        file_name = os.path.basename(filepath)
+        
+        # Get sibling files in same directory
+        sibling_files = []
+        if os.path.exists(dir_name):
+            sibling_files = [f for f in os.listdir(dir_name) 
+                           if os.path.isfile(os.path.join(dir_name, f))
+                           and f != file_name]
+
+        return f"""Analyze this file's structural role in the project:
+
+File: {filepath}
+Directory: {dir_name}
+Sibling Files: {', '.join(sibling_files)}
+
+Content:
+```
+{content}
+```
+
+Current Project Map:
+```
+{global_map_content}
+```
+
+Focus your analysis on:
+1. Why this file exists in this specific directory
+2. How it relates to sibling files
+3. Its role in the overall project structure
+4. Technical concepts it implements
+5. Key dependencies and relationships
+
+Provide a concise one-line summary that explains:
+- The file's technical role (marked in **bold**)
+- Why it's in this directory
+- How it supports the project architecture
+
+Format: "File implements **[technical role]** to [purpose] by [implementation detail]"
+"""
 
     def _update_map_file(self, filepath, token_count, summary):
         """Update map.md with new file summary."""
