@@ -2,6 +2,7 @@ import os
 import asyncio
 import logging
 import time
+import fnmatch
 from pathlib import Path
 import fnmatch
 from utils.logger import Logger
@@ -662,6 +663,47 @@ Return in format:
         except Exception as e:
             self.logger.error(f"Failed to generate global map: {str(e)}")
             raise
+
+    def _get_ignore_patterns(self) -> list:
+        """Get list of patterns to ignore from .gitignore and defaults."""
+        patterns = [
+            '.git*',
+            '.aider*',
+            'node_modules',
+            '__pycache__',
+            '*.pyc',
+            '*.pyo',
+            '*.pyd',
+            '.DS_Store',
+            'Thumbs.db'
+        ]
+        
+        # Add patterns from .gitignore if it exists
+        if os.path.exists('.gitignore'):
+            try:
+                with open('.gitignore', 'r', encoding='utf-8') as f:
+                    patterns.extend(line.strip() for line in f 
+                                  if line.strip() and not line.startswith('#'))
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not read .gitignore: {str(e)}")
+        
+        # Add patterns from .aiderignore if it exists        
+        if os.path.exists('.aiderignore'):
+            try:
+                with open('.aiderignore', 'r', encoding='utf-8') as f:
+                    patterns.extend(line.strip() for line in f 
+                                  if line.strip() and not line.startswith('#'))
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not read .aiderignore: {str(e)}")
+                
+        return patterns
+
+    def _should_ignore(self, path: str, ignore_patterns: list) -> bool:
+        """Check if a path should be ignored based on ignore patterns."""
+        for pattern in ignore_patterns:
+            if fnmatch.fnmatch(path, pattern):
+                return True
+        return False
 
     def _parse_folder_analysis(self, analysis_text: str) -> dict:
         """
