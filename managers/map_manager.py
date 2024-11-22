@@ -795,8 +795,7 @@ Rules for each description:
 
 """
     def _format_files_content(self, files_content: dict) -> str:
-        """
-        Format files content for prompt with intelligent truncation.
+        """Format files content for prompt with intelligent truncation.
         
         Args:
             files_content (dict): Dictionary of filename to content
