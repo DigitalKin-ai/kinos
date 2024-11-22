@@ -374,6 +374,9 @@ class AgentRunner:
         )
         
         
+        # Define map_filepath
+        map_filepath = f".aider.map.{agent_name}.md"
+        
         # Execute aider operation
         self.aider_manager.run_aider(
             objective_filepath,
