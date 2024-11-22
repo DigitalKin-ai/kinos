@@ -380,6 +380,9 @@ Important:
 
             client = openai.OpenAI()
             
+            # Convert to relative path for prompts and logging
+            rel_path = os.path.relpath(folder_path, self.project_root)
+            
             # Create prompt using relative path
             prompt = self._create_folder_context_prompt(rel_path, files, subfolders, mission_content)
             
@@ -444,8 +447,9 @@ Important:
             
             # Validate required fields
             if not context['purpose']:
-                context['purpose'] = f"Storage folder for {os.path.basename(rel_path)} content"
-                self.logger.warning(f"Generated default purpose for {rel_path}")
+                folder_name = os.path.basename(folder_path)
+                context['purpose'] = f"Storage folder for {folder_name} content"
+                self.logger.warning(f"Generated default purpose for {folder_name}")
                 
             # Set default purpose if none provided
             if not context['purpose']:
