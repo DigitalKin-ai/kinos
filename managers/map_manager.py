@@ -793,8 +793,8 @@ Rules for each description:
 - Mention critical constraints
 - Note performance impacts"""
 
-"""
     def _format_files_content(self, files_content: dict) -> str:
+        """
         """Format files content for prompt with intelligent truncation.
         
         Args:
@@ -989,7 +989,7 @@ Rules for each description:
 
     def _analyze_file(self, filename: str, folder_context: dict) -> dict:
         """
-        Analyze single file's role and purpose.
+        Analyze single file role and purpose.
         
         Args:
             filename (str): Name of file to analyze
