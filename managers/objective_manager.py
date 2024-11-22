@@ -227,6 +227,18 @@ class ObjectiveManager:
                 except Exception as e:
                     self.logger.warning(f"⚠️ Could not read todolist.md: {str(e)}")
 
+            # Check for Perplexity API key
+            perplexity_key = os.getenv('PERPLEXITY_API_KEY')
+            if perplexity_key:
+                # Include Search instruction in prompt
+                search_instruction = """
+
+4. **Search**
+   - If research needed, add "Search:" line with query"""
+            else:
+                # Skip Search instruction if no API key
+                search_instruction = ""
+
             prompt = f"""
 Based on the following, generate a clear specific next step for the {agent_name} agent.
 
@@ -262,10 +274,7 @@ Create two objectives in markdown format - one for production, one specific to y
 3. **Validation Points**
    - How to verify success
    - What output to check
-   - Which states to validate
-
-4. **Search**
-   - If research needed, add "Search:" line with query
+   - Which states to validate{search_instruction}
 """
             self.logger.info(f"OBJECTIVE PROMPT: {prompt}")
             response = client.chat.completions.create(
