@@ -648,37 +648,35 @@ Focus on making the relationships and usage patterns clear and explicit.
         self.logger.debug(f"Running map maintenance for folder: {folder_path}")
         
         try:
-            # Simulate a subprocess call or any maintenance logic
-            # Replace with actual logic as needed
-            self.logger.debug(f"Maintaining map for {folder_path}")
+            # Get the tree structure for this folder
+            fs_utils = FSUtils()
+            files = fs_utils.get_folder_files(folder_path)
+            subfolders = fs_utils.get_subfolders(folder_path)
+            tree_structure = fs_utils.build_tree_structure(
+                current_path=folder_path,
+                files=files,
+                subfolders=subfolders,
+                max_depth=None  # No depth limit for folder-specific maintenance
+            )
+
+            # Generate the map maintenance prompt for this folder
+            map_prompt = self._generate_map_maintenance_prompt(
+                tree_structure=tree_structure
+            )
+
+            # Execute aider with the generated prompt
+            cmd = self._build_aider_command(
+                objective_filepath=".aider.objective.map_maintenance.md",
+                map_filepath=f".aider.map.{os.path.basename(folder_path)}.md",
+                agent_filepath=".aider.agent.map_maintenance.md",
+                context_files=[folder_path]
+            )
             
-            # Example: Analyze folder structure
-            self.logger.debug(f"Analyzing folder structure for: {folder_path}")
-            
-            # Example: Check for specific files or conditions
-            # This is where you would implement the actual maintenance logic
-            # For example, updating a map file, checking for outdated files, etc.
-            
-            # Simulate a delay to represent processing time
-            time.sleep(1)  # Simulate processing time
-            
-            # Log completion of maintenance for the folder
-            self.logger.debug(f"Completed map maintenance for folder: {folder_path}")
-            
-        except Exception as e:
-            self.logger.error(f"Map maintenance failed for {folder_path}: {str(e)}")
-            raise
-        self.logger.debug(f"Running map maintenance for folder: {folder_path}")
-        
-        # Example: Implement map maintenance logic here
-        try:
-            # Simulate a subprocess call or any maintenance logic
-            # Replace with actual logic as needed
-            self.logger.debug(f"Maintaining map for {folder_path}")
-            
-            # Add more detailed logs for each step of the process
-            self.logger.debug(f"Analyzing folder structure for: {folder_path}")
-            # Implement actual map maintenance logic here
+            # Update the command with the map maintenance prompt
+            cmd[-1] = map_prompt
+
+            # Execute aider
+            self._execute_aider(cmd)
             
         except Exception as e:
             self.logger.error(f"Map maintenance failed for {folder_path}: {str(e)}")
