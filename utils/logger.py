@@ -238,7 +238,7 @@ class Logger:
                 formatted_content = '\n'.join(formatted_lines)
 
                 # Continue with GPT summarization...
-                self.logger.log(logging.SUCCESS, "📝 Génération du suivi de mission...")
+                self.logger.log(logging.SUCCESS, "📝 Generating mission tracking...")
                 
                 client = openai.OpenAI()
                 response = client.chat.completions.create(
@@ -288,7 +288,7 @@ Create a detailed progress summary that shows how recent activities align with m
                 with open(self.suivi_file, 'w', encoding='utf-8') as f:
                     f.write(final_content)
                     
-                self.logger.log(logging.SUCCESS, "✨ Suivi de mission résumé avec succès")
+                self.logger.log(logging.SUCCESS, "✨ Mission tracking summarized successfully")
             
             # Re-add the file handler
             file_handler = logging.FileHandler(self.suivi_file, encoding='utf-8', mode='a')
@@ -299,7 +299,7 @@ Create a detailed progress summary that shows how recent activities align with m
             self.logger.addHandler(file_handler)
                 
         except Exception as e:
-            self.logger.error(f"⚠️ Erreur lors du résumé du suivi de mission: {str(e)}")
+            self.logger.error(f"⚠️ Error summarizing mission tracking: {str(e)}")
             # Make sure we restore the file handler even if there's an error
             file_handler = logging.FileHandler(self.suivi_file, encoding='utf-8', mode='a')
             file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',

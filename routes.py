@@ -117,8 +117,8 @@ def main():
                 # Check for --generate flag    
                 should_generate = "--generate" in sys.argv
                 
-                # Afficher le message de démarrage
-                runner.logger.success("🌟 Lancement du KinOS...")
+                # Display startup message
+                runner.logger.success("🌟 Starting KinOS...")
 
                 # Run with the initialized runner
                 await runner.run(
