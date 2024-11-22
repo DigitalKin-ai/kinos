@@ -198,8 +198,9 @@ class AgentRunner:
                 
         return missing_agents
         
-    async def _run_single_agent_cycle(self, agent_name, mission_filepath, model="gpt-4o-mini"):
+    async def _run_single_agent_cycle(self, mission_filepath, model="gpt-4o-mini"):
         """Execute a single cycle for one agent."""
+        agent_name = None
         try:
             # Select an unused agent
             agent_name = await self._select_available_agent()
@@ -210,7 +211,7 @@ class AgentRunner:
             start_time = time.time()
             self.logger.info(f"🕐 Agent {agent_name} starting cycle at {start_time}")
             
-            # Execute agent cycle
+            # Execute agent cycle - now properly awaited
             await self._execute_agent_cycle(
                 agent_name,
                 mission_filepath,
@@ -220,10 +221,17 @@ class AgentRunner:
             end_time = time.time()
             duration = end_time - start_time
             self.logger.info(f"⏱️ Agent {agent_name} completed cycle in {duration:.2f} seconds")
-
+            
         except Exception as e:
             self.logger.error(f"Error in agent cycle for {agent_name}: {str(e)}")
-            raise
+            raise  # Propagate error to allow agent replacement
+            
+        finally:
+            # Always release agent if it was acquired
+            if agent_name:
+                async with self._agent_lock:
+                    if agent_name in self._active_agents:
+                        self._active_agents.remove(agent_name)
 
     async def _select_available_agent(self):
         """Select an unused agent in a thread-safe way.
