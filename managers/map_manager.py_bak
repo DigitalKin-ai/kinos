@@ -311,12 +311,23 @@ Data: 💾 SOURCE, ⚡ GEN, 💫 CACHE, 💿 BACKUP"""
 
     def _create_folder_context_prompt(self, folder_path: str, files: list, subfolders: list,
                                     mission_content: str, objective_content: str) -> str:
-        """Create prompt for context map generation."""
+        """Create prompt for context map generation.
+        
+        Args:
+            folder_path: Path to current folder being analyzed
+            files: List of files in the folder
+            subfolders: List of subfolders
+            mission_content: Overall mission context
+            objective_content: Current objective context
+            
+        Returns:
+            str: Generated prompt for folder analysis
+        """
         # Generate full tree structure
         full_tree = self._generate_tree_structure()
         
         # Get files in current folder
-        files_in_folder = self._get_files_in_folder(current_folder)
+        files_in_folder = [f for f in files if os.path.dirname(f) == folder_path]
         
         # Load global map for context
         global_map = ""
