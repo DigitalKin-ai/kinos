@@ -800,7 +800,7 @@ Format: "File implements **[technical role]** to [purpose] by [implementation de
             self.logger.error(f"Failed to write to {filepath}: {str(e)}")
             raise
 
-    def _generate_tree_structure(self, root_dir="."):
+    def _create_map_prompt(self, current_folder, mission_content, objective_content):
         """Create prompt for context map generation."""
         # Generate full tree structure
         full_tree = self._generate_tree_structure()
