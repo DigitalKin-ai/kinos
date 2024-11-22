@@ -512,34 +512,103 @@ Children: [How subfolders are organized] (if has subfolders)"""
             self.logger.error(f"Failed to initialize global map: {str(e)}")
             raise
 
-    def update_global_map(self, modified_file_path, force_refresh=False):
-        """
-        Update global map with latest file summary after a commit.
+    def _normalize_file_path(self, file_path):
+        """Normalize file path to use forward slashes and relative paths."""
+        # Convert to relative path if absolute
+        if os.path.isabs(file_path):
+            try:
+                file_path = os.path.relpath(file_path)
+            except ValueError:
+                # If path is on different drive, keep absolute
+                pass
         
-        Args:
-            modified_file_path (str): Path to the modified file
-            force_refresh (bool): If True, always generate new description regardless of random chance
-        """
+        # Normalize separators to forward slashes
+        return file_path.replace(os.sep, '/')
+
+    def _handle_file_splitting(self, file_path):
+        """Check if file needs to be split and handle splitting if needed."""
         try:
-            # Normalize and validate file path
-            file_path = self._normalize_file_path(modified_file_path)
-            if not os.path.exists(file_path):
-                self._remove_file_from_map(file_path)
+            from managers.redundancy_manager import RedundancyManager
+            redundancy_mgr = RedundancyManager()
+            
+            if os.path.exists(file_path):
+                was_split = redundancy_mgr.split_file(file_path)
+                if was_split:
+                    self.logger.success(f"🔄 Split {file_path} into sections")
+                    # Update map for each new file
+                    dir_name = os.path.splitext(file_path)[0]
+                    for new_file in os.listdir(dir_name):
+                        new_file_path = os.path.join(dir_name, new_file)
+                        self.update_global_map(new_file_path, force_refresh=True)
+                    return True
+            return False
+        except Exception as e:
+            self.logger.error(f"❌ Failed to check/split file {file_path}: {str(e)}")
+            return False
+
+    def _count_tokens(self, content):
+        """Count tokens in content using the initialized tokenizer."""
+        return len(self.tokenizer.encode(content))
+
+    def _generate_file_summary(self, file_path, content):
+        """Generate a summary for a file using GPT."""
+        try:
+            client = openai.OpenAI()
+            prompt = self._generate_file_summary_prompt(file_path, content, "")
+            
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a technical architect analyzing file roles and relationships."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=200
+            )
+            
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            self.logger.error(f"Failed to generate file summary: {str(e)}")
+            raise
+
+    def _update_map_entry(self, file_path, token_count, summary):
+        """Update a single entry in the map file."""
+        try:
+            map_path = "map.md"
+            file_entry = f"{file_path} ({token_count} tokens) {summary}\n"
+            
+            if not os.path.exists(map_path):
+                # Create new map file
+                with open(map_path, 'w', encoding='utf-8') as f:
+                    f.write("# Project Map\n\n")
+                    f.write(file_entry)
                 return
+                
+            # Read existing map
+            with open(map_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+                
+            # Update or add entry
+            entry_updated = False
+            for i, line in enumerate(lines):
+                if line.strip().startswith(file_path):
+                    lines[i] = file_entry
+                    entry_updated = True
+                    break
+                    
+            if not entry_updated:
+                lines.append(file_entry)
+                
+            # Write updated map
+            with open(map_path, 'w', encoding='utf-8') as f:
+                f.writelines(lines)
+                
+        except Exception as e:
+            self.logger.error(f"Failed to update map entry: {str(e)}")
+            raise
 
-            # Handle file splitting if needed
-            if self._handle_file_splitting(file_path):
-                return
-
-            # Get file content and token count
-            content = self._read_file_with_encoding(file_path)
-            token_count = self._count_tokens(content)
-
-            # Generate file summary
-            summary = self._generate_file_summary(file_path, content)
-
-            # Update map file
-            self._update_map_entry(file_path, token_count, summary)
+    def update_global_map(self, modified_file_path, force_refresh=False):
 
         except Exception as e:
             self.logger.error(f"Failed to update global map: {str(e)}")
@@ -692,127 +761,23 @@ Children: [How subfolders are organized] (if has subfolders)"""
             self.logger.error(f"Failed to generate file summary: {str(e)}")
             raise
 
-    def _generate_file_summary_prompt(self, filepath, content, global_map_content):
-        """
-        Generate a prompt focused on file's structural role in the project.
-        
-        Args:
-            filepath (str): Path to the file being analyzed
-            content (str): Content of the file
-            global_map_content (str): Current global map content
-            
-        Returns:
-            str: Prompt for GPT to analyze file's role
-        """
-        # Get directory structure context
-        dir_name = os.path.dirname(filepath)
-        file_name = os.path.basename(filepath)
-        
-        # Get sibling files in same directory
-        sibling_files = []
-        if os.path.exists(dir_name):
-            sibling_files = [f for f in os.listdir(dir_name) 
-                           if os.path.isfile(os.path.join(dir_name, f))
-                           and f != file_name]
 
-        return f"""Analyze this file's structural role in the project:
 
-File: {filepath}
-Directory: {dir_name}
-Sibling Files: {', '.join(sibling_files)}
-
-Content:
-```
-{content}
-```
-
-Current Project Map:
-```
-{global_map_content}
-```
-
-Focus your analysis on:
-1. Why this file exists in this specific directory
-2. How it relates to sibling files
-3. Its role in the overall project structure
-4. Technical concepts it implements
-5. Key dependencies and relationships
-
-Provide a concise one-line summary that explains:
-- The file's technical role (marked in **bold**)
-- Why it's in this directory
-- How it supports the project architecture
-
-Format: "File implements **[technical role]** to [purpose] by [implementation detail]"
-"""
-
-    def _update_map_file(self, filepath, token_count, summary):
-        """Update map.md with new file summary."""
-        try:
-            # First check if file exists, if not just return silently
-            if not os.path.exists(filepath):
-                # Remove entry from map if it exists
-                self._remove_file_from_map(filepath)
-                return
-
-            map_path = "map.md"
-            updated_lines = []
-            file_entry = f"{filepath} ({token_count} tokens) {summary}"
-            entry_updated = False
-            
-            # Read existing map if it exists
-            if os.path.exists(map_path):
-                with open(map_path, 'r', encoding='utf-8') as f:
-                    lines = f.readlines()
-                    
-                # Update existing entry or keep line
-                for line in lines:
-                    if line.strip().startswith(filepath):
-                        updated_lines.append(file_entry + '\n')
-                        entry_updated = True
-                    else:
-                        updated_lines.append(line)
-                    
-            # Add new entry if not updated
-            if not entry_updated:
-                if not updated_lines:  # New file
-                    updated_lines.append("# Project Map\n\n")
-                updated_lines.append(file_entry + '\n')
-                
-            # Write updated map
-            with open(map_path, 'w', encoding='utf-8') as f:
-                f.writelines(updated_lines)
-                
-        except Exception as e:
-            self.logger.error(f"Failed to update map file: {str(e)}")
-            raise
-
-    def _read_file_with_encoding(self, filepath):
-        """Read file content with robust encoding handling."""
-        for encoding in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
-            try:
-                with open(filepath, 'r', encoding=encoding) as f:
-                    return f.read()
-            except UnicodeDecodeError:
-                continue
-        raise ValueError(f"Could not read {filepath} with any supported encoding")
-
-    def _write_file_with_encoding(self, filepath, content):
-        """Write content to file with UTF-8 encoding."""
-        try:
-            with open(filepath, 'w', encoding='utf-8') as f:
-                f.write(content)
-        except Exception as e:
-            self.logger.error(f"Failed to write to {filepath}: {str(e)}")
-            raise
-
-    def _create_map_prompt(self, current_folder, mission_content, objective_content):
+    def _create_map_prompt(self, filepath, content):
         """Create prompt for context map generation."""
         # Generate full tree structure
         full_tree = self._generate_tree_structure()
         
-        # Get files in current folder
-        files_in_folder = self._get_files_in_folder(current_folder)
+        # Get directory context
+        dir_name = os.path.dirname(filepath)
+        file_name = os.path.basename(filepath)
+        
+        # Get sibling files
+        sibling_files = []
+        if os.path.exists(dir_name):
+            sibling_files = [f for f in os.listdir(dir_name)
+                           if os.path.isfile(os.path.join(dir_name, f))
+                           and f != file_name]
         
         # Load global map for context
         global_map = ""
