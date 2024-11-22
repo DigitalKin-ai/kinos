@@ -110,12 +110,7 @@ class VisionManager:
 
 
     async def update_map(self, root_path: str = "."):
-        """
-        Updates the repo visualization using repo-visualizer.
-        
-        Args:
-            root_path (str): Root directory to visualize
-        """
+        """Updates the repo visualization using repo-visualizer."""
         try:
             # Ensure node is available
             try:
@@ -136,9 +131,14 @@ class VisionManager:
                 ], check=True)
                 
                 # Install dependencies in the cloned repo
-                subprocess.run([
-                    'npm', 'install'
-                ], cwd="repo-visualizer", check=True)
+                self.logger.info("📦 Installing repo-visualizer dependencies...")
+                try:
+                    subprocess.run([
+                        'npm', 'install'
+                    ], cwd="repo-visualizer", check=True, capture_output=True, text=True)
+                except subprocess.CalledProcessError as e:
+                    self.logger.error(f"Failed to install dependencies: {e.stderr}")
+                    raise
 
             # Create visualization config
             config = {
@@ -161,16 +161,23 @@ class VisionManager:
 
             # Run visualization using the local clone
             self.logger.debug("🎨 Generating repository visualization...")
-            subprocess.run([
-                'node', 
-                'repo-visualizer/src/index.js',
-                '--config', config_path
-            ], check=True)
+            try:
+                result = subprocess.run([
+                    'node', 
+                    os.path.join('repo-visualizer', 'src', 'index.js'),
+                    '--config', config_path
+                ], check=True, capture_output=True, text=True)
+                self.logger.debug(f"Command output: {result.stdout}")
+            except subprocess.CalledProcessError as e:
+                self.logger.error(f"Visualization command failed: {e.stderr}")
+                raise
 
             self.logger.debug(f"✨ Repository map updated: {self.map_path}")
             
         except Exception as e:
             self.logger.error(f"Failed to update repository map: {str(e)}")
+            if isinstance(e, subprocess.CalledProcessError):
+                self.logger.error(f"Command failed with output: {e.stderr}")
             raise
 
     async def get_map(self, force_update: bool = False) -> str:
