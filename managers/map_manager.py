@@ -137,11 +137,11 @@ class MapManager:
     def generate_map(self, mission_filepath=".aider.mission.md", 
                     objective_filepath=None, 
                     agent_filepath=None):
-        """Generate a context map for an agent."""
+        """Generate a hierarchical context map for an agent."""
         try:
             # Extract agent name from filepath
             agent_name = self._extract_agent_name(agent_filepath)
-            self.logger.info(f"🗺️ Generating map for agent: {agent_filepath}")
+            self.logger.info(f"🗺️ Generating hierarchical map for agent: {agent_filepath}")
             
             # Validate input files
             if not all(self._validate_file(f) for f in [mission_filepath, objective_filepath, agent_filepath]):
@@ -150,24 +150,41 @@ class MapManager:
             # Load required content
             mission_content = self._read_file(mission_filepath)
             objective_content = self._read_file(objective_filepath)
-            agent_content = self._read_file(agent_filepath)
             
-            # Get available files
-            available_files = self._get_available_files()
+            # Initialize complete map content
+            complete_map = ["# Project Map\n"]
             
-            # Generate map via GPT
-            context_map = self._generate_map_content(
-                mission_content, 
-                objective_content, 
-                agent_content,
-                available_files
+            # Process root directory first
+            root_analysis = self._generate_map_content(
+                ".",
+                mission_content,
+                objective_content
             )
+            complete_map.append(root_analysis)
             
-            # Save map using extracted agent name
+            # Process each subdirectory
+            for root, dirs, _ in os.walk("."):
+                # Skip ignored directories
+                dirs[:] = [d for d in dirs if not self._should_ignore(
+                    os.path.join(root, d), 
+                    self._get_ignore_patterns()
+                )]
+                
+                for dir_name in dirs:
+                    dir_path = os.path.join(root, dir_name)
+                    # Generate map for this directory
+                    dir_analysis = self._generate_map_content(
+                        dir_path,
+                        mission_content,
+                        objective_content
+                    )
+                    complete_map.append(dir_analysis)
+            
+            # Save complete map
             output_path = f".aider.map.{agent_name}.md"
-            self._save_map(output_path, context_map)
+            self._save_map(output_path, "\n\n".join(complete_map))
             
-            self.logger.info(f"✅ Successfully generated context map for {agent_name}")
+            self.logger.info(f"✅ Successfully generated hierarchical map for {agent_name}")
             
         except Exception as e:
             self.logger.error(f"❌ Map generation failed: {str(e)}")
@@ -662,100 +679,137 @@ Justify each selection based on the file's documented purpose in the project map
             self.logger.error(f"Failed to update map file: {str(e)}")
             raise
 
-    def _create_map_prompt(self, mission_content, objective_content, agent_content):
+    def _generate_tree_structure(self, root_dir="."):
+        """Generate a tree view of the project structure."""
+        tree = []
+        ignore_patterns = self._get_ignore_patterns()
+        
+        for root, dirs, files in os.walk(root_dir):
+            # Skip ignored directories
+            dirs[:] = [d for d in dirs if not self._should_ignore(os.path.join(root, d), ignore_patterns)]
+            
+            level = root.replace(root_dir, '').count(os.sep)
+            indent = '  ' * level
+            tree.append(f"{indent}{os.path.basename(root)}/")
+            
+            # Add files at this level
+            for f in sorted(files):
+                if not self._should_ignore(os.path.join(root, f), ignore_patterns):
+                    tree.append(f"{indent}  {f}")
+                    
+        return '\n'.join(tree)
+
+    def _get_files_in_folder(self, folder_path):
+        """Get list of files in the current folder (not recursive)."""
+        files = []
+        ignore_patterns = self._get_ignore_patterns()
+        
+        for entry in os.scandir(folder_path):
+            if entry.is_file() and not self._should_ignore(entry.path, ignore_patterns):
+                files.append(entry.name)
+                
+        return sorted(files)
+
+    def _create_map_prompt(self, current_folder, mission_content, objective_content):
         """Create prompt for context map generation."""
-        # Load global map content if it exists
-        global_map_content = ""
+        # Generate full tree structure
+        full_tree = self._generate_tree_structure()
+        
+        # Get files in current folder
+        files_in_folder = self._get_files_in_folder(current_folder)
+        
+        # Load global map for context
+        global_map = ""
         if os.path.exists("map.md"):
             try:
                 with open("map.md", 'r', encoding='utf-8') as f:
-                    global_map_content = f.read()
+                    global_map = f.read()
             except Exception as e:
                 self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
-                    
-        return f"""Based on the following context, analyze and select the relevant files needed for the next operation.
+
+        return f"""Analyze this folder's contents and its place in the project structure.
 
 # Mission
-````
+```
 {mission_content}
-````
-
-# Global Project Map
-The following describes all files in the project and their purposes:
-````
-{global_map_content}
-````
+```
 
 # Current Objective
-````
+```
 {objective_content}
-````
+```
 
-For each file, you must:
+# Current Folder: {current_folder}
 
-1. IDENTIFY PRIMARY DELIVERABLES:
-   - Which files are the main outputs/deliverables
-   - What is their role in fulfilling the mission
-   - How other files support these deliverables
+# Complete Project Tree:
+```
+{full_tree}
+```
 
-2. ESTABLISH FILE RELATIONSHIPS:
-   - How each file relates to primary deliverables
-   - Whether files are source data, analysis tools, or outputs
-   - Clear hierarchy of file importance to mission
+# Files to Analyze in Current Folder:
+```
+{', '.join(files_in_folder)}
+```
 
-3. DESCRIBE FUNCTIONAL ROLES:
-   - Use CAPS to indicate file role (e.g., PRIMARY DELIVERABLE, WORK DOCUMENT)
-   - Explain how file supports mission objectives
-   - Show clear connection to main deliverables
+# Existing Global Map:
+```
+{global_map}
+```
 
-Format your response as:
+Analyze each file in this folder considering:
 
-# Project Map
-filename.md (token_count tokens) 📊 ROLE - Clear description of how this file supports the mission's primary deliverables.
+1. FOLDER CONTEXT:
+   - How this folder supports project objectives
+   - Why these files are grouped together
+   - Relationship to parent/sibling folders
 
-Example entries:
-- requirements.md (358 tokens) 📋 SPECIFICATION - Core system requirements defining project scope and features.
-- api/endpoints.py (250 tokens) ⚙️ IMPLEMENTATION - REST API endpoints implementing core business logic.
-- docs/api_reference.md (150 tokens) 📚 DOCUMENTATION - Comprehensive API documentation for external users.
-- utils/data_processor.py (120 tokens) 🛠️ UTILITY - Shared data processing functions used across modules.
-- tests/api_tests.py (180 tokens) 🧪 TEST - Integration tests validating API functionality.
-- .env.example (90 tokens) ⚡ CONFIGURATION - Template for environment configuration.
-- data/raw_input.json (200 tokens) 💾 SOURCE DATA - Original data from client system.
-- temp/cache.json (100 tokens) 💫 CACHE - Temporary processing results.
+2. FILE ANALYSIS:
+   - Role of each file in current folder
+   - How it supports folder's purpose
+   - Relationships between files
 
-Note:
-- Use these expanded roles with corresponding emojis:
+3. STRUCTURAL IMPACT:
+   - How this level affects overall architecture
+   - Dependencies with other folders
+   - Integration points
+
+Provide your response in this format:
+
+## Folder Purpose
+[Explain why this folder exists and its role in the project]
+
+## File Mapping
+[For each file in current folder only:]
+- filename.ext (📊 ROLE) - Clear description showing:
+  * Purpose in this folder
+  * Relationship to other files
+  * Support of project mission
+
+Use these roles with corresponding emojis:
 
 Core Project Files:
-  * PRIMARY DELIVERABLE (📊) - Final output files that directly fulfill mission objectives
-  * SPECIFICATION (📋) - Design documents, requirements, and architectural plans
-  * IMPLEMENTATION (⚙️) - Core functionality and business logic files
-  * DOCUMENTATION (📚) - User guides, API docs, and technical references
+* PRIMARY DELIVERABLE (📊) - Final output files
+* SPECIFICATION (📋) - Requirements and plans
+* IMPLEMENTATION (⚙️) - Core functionality
+* DOCUMENTATION (📚) - User guides and docs
 
 Support Files:
-  * CONFIGURATION (⚡) - Settings, environment configs, and parameters
-  * UTILITY (🛠️) - Helper functions, shared libraries, and tools
-  * TEST (🧪) - Test cases, fixtures, and validation scripts
-  * BUILD (📦) - Build scripts, deployment configs, and CI/CD files
+* CONFIGURATION (⚡) - Settings and configs
+* UTILITY (🛠️) - Helper functions
+* TEST (🧪) - Test cases
+* BUILD (📦) - Build scripts
 
 Working Files:
-  * WORK DOCUMENT (✍️) - Files actively being modified (default for most files)
-  * DRAFT (📝) - Incomplete or in-progress deliverables
-  * TEMPLATE (📄) - Reusable patterns and boilerplate
-  * ARCHIVE (📂) - Historical or reference versions
+* WORK DOCUMENT (✍️) - Active files
+* DRAFT (📝) - In-progress work
+* TEMPLATE (📄) - Reusable patterns
+* ARCHIVE (📂) - Historical versions
 
 Data Files:
-  * SOURCE DATA (💾) - Input data and raw resources
-  * GENERATED (⚡) - Automatically created outputs
-  * CACHE (💫) - Temporary or intermediate data
-  * BACKUP (💿) - System and data backups
-
-Notes:
-- Mark files as WORK DOCUMENT by default unless they clearly fit another role
-- Each file should show clear connection to mission objectives
-- Include rationale for file location and naming
-- Explain relationships between files
-"""
+* SOURCE DATA (💾) - Input data
+* GENERATED (⚡) - Created outputs
+* CACHE (💫) - Temporary data
+* BACKUP (💿) - System backups"""
 
     def _update_map_file_fallback(self, filepath, token_count, summary):
         """Fallback method to update map file with alternative encodings."""
