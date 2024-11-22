@@ -270,66 +270,106 @@ Your task is to analyze the mission, objective, and agent configuration to deter
             self.logger.error(f"GPT API call failed: {str(e)}")
             raise
 
-    def _create_map_prompt(self, mission_content, objective_content, agent_content):
+    def _create_map_prompt(self, current_folder, mission_content, objective_content):
         """Create prompt for context map generation."""
-        # Load global map content if it exists
-        global_map_content = ""
+        # Generate full tree structure
+        full_tree = self._generate_tree_structure()
+        
+        # Get files in current folder
+        files_in_folder = self._get_files_in_folder(current_folder)
+        
+        # Load global map for context
+        global_map = ""
         if os.path.exists("map.md"):
             try:
                 with open("map.md", 'r', encoding='utf-8') as f:
-                    global_map_content = f.read()
+                    global_map = f.read()
             except Exception as e:
                 self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
-                
-        return f"""Based on the following context, analyze and select the relevant files needed for the next operation.
+
+        return f"""Analyze this folder's contents and its place in the project structure.
 
 # Mission
-````
+```
 {mission_content}
-````
-
-# Global Project Map
-The following describes all files in the project and their purposes:
-````
-{global_map_content}
-````
+```
 
 # Current Objective
-````
+```
 {objective_content}
-````
+```
 
-Using the project map descriptions, carefully analyze:
+# Current Folder: {current_folder}
 
-1. MODIFICATIONS NEEDED:
-   - Which files need to be changed to implement the objective
-   - What specific changes are required in each file
-   - How these changes align with each file's documented purpose
+# Complete Project Tree:
+```
+{full_tree}
+```
 
-2. CONTEXT REQUIRED:
-   - Which files provide essential background information
-   - What specific knowledge each file contributes
-   - How this context supports the planned changes
+# Files to Analyze in Current Folder:
+```
+{', '.join(files_in_folder)}
+```
 
-3. SYSTEM IMPACT:
-   - How modifications might affect related files
-   - Which dependencies need to be considered
-   - What potential risks need to be managed
+# Existing Global Map:
+```
+{global_map}
+```
+
+Analyze each file in this folder considering:
+
+1. FOLDER CONTEXT:
+   - How this folder supports project objectives
+   - Why these files are grouped together
+   - Relationship to parent/sibling folders
+
+2. FILE ANALYSIS:
+   - Role of each file in current folder
+   - How it supports folder's purpose
+   - Relationships between files
+
+3. STRUCTURAL IMPACT:
+   - How this level affects overall architecture
+   - Dependencies with other folders
+   - Integration points
 
 Provide your response in this format:
 
-# Context Map
-Files to modify:
-- file1.py - [Current role: X] [Changes needed: Y] [Impact: Z]
-- file2.md - [Current role: X] [Changes needed: Y] [Impact: Z]
+## Folder Purpose
+[Explain why this folder exists and its role in the project]
 
-Context files:
-- file3.py - [Purpose: X] [Relevant aspects: Y] [Relationship to changes: Z]
-- file4.md - [Purpose: X] [Relevant aspects: Y] [Relationship to changes: Z]
+## File Mapping
+[For each file in current folder only:]
+- filename.ext (📊 ROLE) - Clear description showing:
+  * Purpose in this folder
+  * Relationship to other files
+  * Support of project mission
 
-Note: Select only the most relevant files (aim for 3-5 files to modify, 3-5 context files).
-Justify each selection based on the file's documented purpose in the project map.
-"""
+Use these roles with corresponding emojis:
+
+Core Project Files:
+* PRIMARY DELIVERABLE (📊) - Final output files
+* SPECIFICATION (📋) - Requirements and plans
+* IMPLEMENTATION (⚙️) - Core functionality
+* DOCUMENTATION (📚) - User guides and docs
+
+Support Files:
+* CONFIGURATION (⚡) - Settings and configs
+* UTILITY (🛠️) - Helper functions
+* TEST (🧪) - Test cases
+* BUILD (📦) - Build scripts
+
+Working Files:
+* WORK DOCUMENT (✍️) - Active files
+* DRAFT (📝) - In-progress work
+* TEMPLATE (📄) - Reusable patterns
+* ARCHIVE (📂) - Historical versions
+
+Data Files:
+* SOURCE DATA (💾) - Input data
+* GENERATED (⚡) - Created outputs
+* CACHE (💫) - Temporary data
+* BACKUP (💿) - System backups"""
 
 
     def _remove_file_from_map(self, filepath):
@@ -354,6 +394,37 @@ Justify each selection based on the file's documented purpose in the project map
                     
         except Exception as e:
             self.logger.debug(f"Could not remove {filepath} from map: {str(e)}")
+
+    def _generate_tree_structure(self, root_dir="."):
+        """Generate a tree view of the project structure."""
+        tree = []
+        ignore_patterns = self._get_ignore_patterns()
+        
+        for root, dirs, files in os.walk(root_dir):
+            # Skip ignored directories
+            dirs[:] = [d for d in dirs if not self._should_ignore(os.path.join(root, d), ignore_patterns)]
+            
+            level = root.replace(root_dir, '').count(os.sep)
+            indent = '  ' * level
+            tree.append(f"{indent}{os.path.basename(root)}/")
+            
+            # Add files at this level
+            for f in sorted(files):
+                if not self._should_ignore(os.path.join(root, f), ignore_patterns):
+                    tree.append(f"{indent}  {f}")
+                    
+        return '\n'.join(tree)
+
+    def _get_files_in_folder(self, folder_path):
+        """Get list of files in the current folder (not recursive)."""
+        files = []
+        ignore_patterns = self._get_ignore_patterns()
+        
+        for entry in os.scandir(folder_path):
+            if entry.is_file() and not self._should_ignore(entry.path, ignore_patterns):
+                files.append(entry.name)
+                
+        return sorted(files)
 
     def _save_map(self, filepath, content):
         """Save context map content to file."""
