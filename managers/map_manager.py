@@ -168,11 +168,16 @@ class MapManager:
             # Convert to absolute path if relative
             folder_path = os.path.abspath(folder_path)
             
-        if not os.path.exists(folder_path):
-            raise ValueError(f"Folder does not exist: {folder_path}")
-            
-        if not os.path.isdir(folder_path):
-            raise ValueError(f"Path is not a directory: {folder_path}")
+            if not os.path.exists(folder_path):
+                raise ValueError(f"Folder does not exist: {folder_path}")
+                
+            if not os.path.isdir(folder_path):
+                raise ValueError(f"Path is not a directory: {folder_path}")
+                
+        except Exception as e:
+            self.logger.error(f"Failed to validate folder path: {str(e)}")
+            self._initial_mapping_in_progress = False  # Reset on error
+            raise
             
         try:
             # Get immediate files and their contents
