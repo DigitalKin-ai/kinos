@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "@githubocto/repo-visualizer": "^0.9.1"
+    "@githubocto/repo-visualizer": "github:githubocto/repo-visualizer"
   }
 }
