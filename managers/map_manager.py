@@ -83,14 +83,15 @@ class MapManager:
         """
         try:
             self.logger.debug(f"Analyzing folder level: {folder_path}")
-        if not folder_path:
-            raise ValueError("folder_path cannot be empty")
+            
+            if not folder_path:
+                raise ValueError("folder_path cannot be empty")
                 
-        if not isinstance(files_content, dict):
-            raise TypeError("files_content must be a dictionary")
+            if not isinstance(files_content, dict):
+                raise TypeError("files_content must be a dictionary")
                 
-        if not isinstance(subfolders, list):
-            raise TypeError("subfolders must be a list")
+            if not isinstance(subfolders, list):
+                raise TypeError("subfolders must be a list")
                 
         # Ensure we have an absolute path
         abs_folder_path = os.path.abspath(folder_path)
