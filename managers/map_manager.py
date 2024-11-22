@@ -474,8 +474,10 @@ Important:
                 context['purpose'] = f"Storage folder for {os.path.basename(rel_path)} content"
                 self.logger.warning(f"Generated default purpose for {rel_path}")
                 
-            # Cache the result
-            self._context_cache[cache_key] = context
+            # Set default purpose if none provided
+            if not context['purpose']:
+                context['purpose'] = f"Storage folder for {os.path.basename(folder_path)} content"
+                
             return context
             
         except Exception as e:
@@ -871,31 +873,17 @@ Rules:
         Returns:
             dict: Analysis containing:
                 - name: Filename
-                - path: Relative path to file
                 - role: Technical role with emoji
                 - description: Purpose description
-                
-        Raises:
-            ValueError: If folder context is invalid
-            Exception: For API or parsing errors
         """
         try:
-            # Validate folder context
-            if not isinstance(folder_context, dict):
-                raise ValueError("Invalid folder context")
-                
-            # Get folder path, preferring display_path
-            folder_path = folder_context.get('display_path')
+            # Get simple folder path from context
+            folder_path = folder_context.get('path', '')
             if not folder_path:
-                if 'path' not in folder_context:
-                    raise ValueError("No valid path in folder context")
-                folder_path = os.path.relpath(folder_context['path'], self.project_root)
-                
-            # Build and validate file path
+                raise ValueError("No valid path in folder context")
+
+            # Build simple file path by joining folder and filename
             file_path = os.path.join(folder_path, filename)
-            abs_file_path = os.path.join(self.project_root, file_path)
-            if not self._validate_path_in_project(abs_file_path):
-                raise ValueError(f"File path {file_path} is outside project directory")
             
             client = openai.OpenAI()
             prompt = self._create_file_analysis_prompt(file_path, folder_context)
