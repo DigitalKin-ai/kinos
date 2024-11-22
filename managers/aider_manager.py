@@ -631,7 +631,13 @@ Focus on making the relationships and usage patterns clear and explicit.
     def run_map_maintenance_for_all_folders(self):
         """Run map maintenance for each folder in the repository."""
         self.logger.debug("Starting map maintenance for all folders...")
+        fs_utils = FSUtils()
+        ignore_patterns = fs_utils._get_ignore_patterns()
+
         for root, dirs, _ in os.walk('.'):
+            # Filter out ignored directories
+            dirs[:] = [d for d in dirs if not fs_utils._should_ignore(os.path.join(root, d), ignore_patterns)]
+            
             for dir_name in dirs:
                 folder_path = os.path.join(root, dir_name)
                 self.logger.debug(f"Initiating map maintenance for folder: {folder_path}")
