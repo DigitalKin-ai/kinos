@@ -392,13 +392,13 @@ In this context, you are an assistant who summarizes project actions in a concis
         try:
             client = openai.OpenAI()
             prompt = f"""
-Query de recherche
+Search Query 
 ================
 ````
 {query}
 ````
 
-Résultats complets
+Complete Results
 ================
 ````
 {result}
@@ -406,12 +406,12 @@ Résultats complets
 
 Instructions
 ================
-Résume en une seule phrase ce qui a été trouvé par la recherche Perplexity, en suivant ce format :
-"L'agent {agent_name} effectue une recherche sur [sujet] : [résumé des découvertes principales]"
+Summarize in a single sentence what was found by the Perplexity search, following this format:
+"Agent {agent_name}: I'm conducting a search on [topic]: [summary of main findings]"
 
-Réponds uniquement avec la phrase formatée, rien d'autre.
+Reply only with the formatted sentence, nothing else.
 """
-            
+             
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
