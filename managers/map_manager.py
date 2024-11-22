@@ -197,9 +197,82 @@ class MapManager:
                     
         return sorted(folders)
 
+    def _create_folder_context_prompt(self, folder_path: str, files: list, 
+                                    subfolders: list, mission_content: str, 
+                                    objective_content: str) -> str:
+        """
+        Create prompt for analyzing folder context.
+        
+        Args:
+            folder_path (str): Path to current folder
+            files (list): List of files in folder
+            subfolders (list): List of subfolders
+            mission_content (str): Overall mission context
+            objective_content (str): Current objective context
+            
+        Returns:
+            str: Formatted prompt for GPT analysis
+        """
+        return f"""Analyze this folder's purpose and relationships:
+
+Current Folder: {folder_path}
+
+Files Present:
+{chr(10).join(f'- {f}' for f in files)}
+
+Subfolders:
+{chr(10).join(f'- {f}' for f in subfolders)}
+
+Mission Context:
+{mission_content}
+
+Current Objective:
+{objective_content}
+
+Analyze and provide:
+1. FOLDER PURPOSE
+   - Main purpose of this folder
+   - How it supports the mission
+   - Why files are grouped here
+
+2. FILE ANALYSIS
+   - Role of each file
+   - How files work together
+   - Critical vs. supporting files
+
+3. RELATIONSHIPS
+   - Parent: How this connects to parent folder
+   - Siblings: Relationship with peer folders
+   - Children: Purpose of subfolders
+
+Format response with these exact headers:
+Purpose: [folder purpose]
+Parent: [parent relationship]
+Siblings: [sibling relationships]
+Children: [children relationships]"""
+
     def _get_folder_context(self, folder_path: str, files: list, subfolders: list,
                           mission_content: str, objective_content: str) -> dict:
-        """Get folder purpose and relationships using GPT."""
+        """
+        Get folder purpose and relationships using GPT.
+        
+        Args:
+            folder_path (str): Path to current folder
+            files (list): List of files in folder
+            subfolders (list): List of subfolders
+            mission_content (str): Overall mission context
+            objective_content (str): Current objective context
+            
+        Returns:
+            dict: Folder context including purpose and relationships
+            
+        Raises:
+            ValueError: If input parameters are invalid
+            Exception: For API or parsing errors
+        """
+        if not folder_path:
+            raise ValueError("folder_path cannot be empty")
+            
         try:
             client = openai.OpenAI()
             prompt = self._create_folder_context_prompt(
@@ -219,8 +292,9 @@ class MapManager:
             
             # Parse response into structure
             content = response.choices[0].message.content
-            lines = content.split('\n')
-            
+            if not content:
+                raise ValueError("Empty response from GPT")
+                
             context = {
                 'purpose': '',
                 'relationships': {
@@ -230,21 +304,25 @@ class MapManager:
                 }
             }
             
-            current_section = None
-            for line in lines:
+            # Parse response line by line
+            for line in content.split('\n'):
+                line = line.strip()
+                if not line:
+                    continue
+                    
                 if line.startswith('Purpose:'):
-                    current_section = 'purpose'
                     context['purpose'] = line.replace('Purpose:', '').strip()
                 elif line.startswith('Parent:'):
-                    current_section = 'parent'
                     context['relationships']['parent'] = line.replace('Parent:', '').strip()
                 elif line.startswith('Siblings:'):
-                    current_section = 'siblings'
                     context['relationships']['siblings'] = line.replace('Siblings:', '').strip()
                 elif line.startswith('Children:'):
-                    current_section = 'children'
                     context['relationships']['children'] = line.replace('Children:', '').strip()
-                    
+            
+            # Validate parsed content
+            if not context['purpose']:
+                raise ValueError("Failed to parse folder purpose from response")
+                
             return context
             
         except Exception as e:
