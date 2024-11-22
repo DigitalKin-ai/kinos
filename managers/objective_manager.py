@@ -59,12 +59,12 @@ class ObjectiveManager:
             objective = self._generate_objective_content(mission_content, agent_content, agent_name)
         
             # Generate summary for logging
-            summary = self._generate_summary(objective, agent_name)
+            summary = self._generate_summary(objective, agent_name, agent_content)  # Pass agent_content
             self.logger.success(summary)
         
             # Save objective
             output_path = f".aider.objective.{agent_name}.md"
-            self._save_objective(output_path, objective)
+            self._save_objective(output_path, objective, agent_name, agent_content)  # Pass agent_content
         
             self.logger.info(f"✅ Successfully generated objective for {agent_name}")
             
