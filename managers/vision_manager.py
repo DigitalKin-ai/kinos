@@ -133,11 +133,11 @@ class VisionManager:
                 # Install dependencies in the cloned repo
                 self.logger.info("📦 Installing repo-visualizer dependencies...")
                 try:
-                    subprocess.run([
-                        'npm', 'install'
-                    ], cwd="repo-visualizer", check=True, capture_output=True, text=True)
+                    # First build the project
+                    subprocess.run(['npm', 'install'], cwd="repo-visualizer", check=True)
+                    subprocess.run(['npm', 'run', 'build'], cwd="repo-visualizer", check=True)
                 except subprocess.CalledProcessError as e:
-                    self.logger.error(f"Failed to install dependencies: {e.stderr}")
+                    self.logger.error(f"Failed to build repo-visualizer: {e.stderr}")
                     raise
 
             # Create visualization config
@@ -163,8 +163,8 @@ class VisionManager:
             self.logger.debug("🎨 Generating repository visualization...")
             try:
                 result = subprocess.run([
-                    'node', 
-                    os.path.join('repo-visualizer', 'src', 'index.js'),
+                    'node',
+                    os.path.join('repo-visualizer', 'dist', 'index.js'),  # Use dist instead of src
                     '--config', config_path
                 ], check=True, capture_output=True, text=True)
                 self.logger.debug(f"Command output: {result.stdout}")
