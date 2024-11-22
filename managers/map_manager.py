@@ -492,31 +492,18 @@ Rules:
         return "# Project Map\n\n" + _format_folder(hierarchy)
     def _create_folder_context_prompt(self, folder_path: str, files: list, subfolders: list, mission_content: str) -> str:
         """Create prompt for analyzing folder context."""
-        # Ensure we're using relative path
-        if os.path.isabs(folder_path):
-            folder_path = os.path.relpath(folder_path, self.project_root)
-            
-        # Split path into components
-        path_parts = folder_path.split(os.sep)
+        # Set current folder for tree building
+        self.fs_utils.set_current_folder(os.path.abspath(folder_path))
         
-        # Build tree structure showing full path hierarchy
-        tree = []
+        # Build tree structure using FSUtils
+        tree = self.fs_utils.build_tree_structure(
+            current_path=".",
+            files=files,
+            subfolders=subfolders,
+            max_depth=3  # Show 3 levels for non-current branches
+        )
         
-        # Add path hierarchy
-        for i, part in enumerate(path_parts):
-            indent = "   " * i
-            if i < len(path_parts) - 1:
-                tree.append(f"{indent}├─ {part}")
-            else:
-                # Last part (current folder) gets the folder emoji
-                tree.append(f"{indent}📂 {part}")
-        
-        # Add files with proper indentation
-        base_indent = "   " * len(path_parts)
-        for i, f in enumerate(files):
-            prefix = "├─ " if i < len(files) - 1 else "└─ "
-            tree.append(f"{base_indent}{prefix}{f}")
-        
+        # Join tree lines
         tree_str = "\n".join(tree)
 
         return f"""# Objective
