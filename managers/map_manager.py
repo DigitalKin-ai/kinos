@@ -18,6 +18,8 @@ class MapManager:
         openai.api_key = os.getenv('OPENAI_API_KEY')
         if not openai.api_key:
             raise ValueError("OpenAI API key not found in environment variables")
+        self.api_semaphore = asyncio.Semaphore(10)  # Limit concurrent API calls
+        self.tokenizer = tiktoken.encoding_for_model("gpt-4")
 
     def _get_ignore_patterns(self):
         """Get patterns from .gitignore and .aiderignore."""
@@ -364,21 +366,31 @@ Justify each selection based on the file's documented purpose in the project map
                 
                 self.logger.info(f"📦 Processing batch {current_batch}/{total_batches} ({len(batch)} files)")
                 
-                # Create tasks for batch
+                # Process batch files in parallel
+                batch_files = []
                 for filepath in batch:
                     try:
-                        self.logger.debug(f"📄 Reading file: {filepath}")
-                        with open(filepath, 'r', encoding='utf-8') as f:
-                            file_content = f.read()
-                        token_count = len(tokenizer.encode(file_content))
+                        # Read files asynchronously
+                        content = await self._read_file_async(filepath)
+                        token_count = await self._count_tokens_async(content)
                         self.logger.debug(f"📊 File {filepath}: {token_count} tokens")
-                        
-                        # Create task for file summary generation
-                        task = asyncio.create_task(self._generate_file_summary_async(filepath, file_content))
-                        batch_tasks.append((filepath, token_count, task))
+                        batch_files.append((filepath, content, token_count))
                     except Exception as e:
                         self.logger.warning(f"⚠️ Could not read {filepath}: {str(e)}")
                         continue
+
+                # Generate summaries in parallel
+                summaries = await asyncio.gather(
+                    *[self._generate_file_summary_async(filepath, content)
+                      for filepath, content, _ in batch_files]
+                )
+            
+                # Combine results
+                batch_tasks = [
+                    (filepath, token_count, summary)
+                    for (filepath, _, token_count), summary 
+                    in zip(batch_files, summaries)
+                ]
                 
                 # Wait for all summaries in batch
                 self.logger.info(f"⏳ Generating summaries for batch {current_batch}...")
@@ -550,36 +562,45 @@ Justify each selection based on the file's documented purpose in the project map
             self.logger.error(f"Failed to update global map: {str(e)}")
             raise
 
+    async def _read_file_async(self, filepath):
+        """Read file content asynchronously using thread pool."""
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, self._read_file, filepath)
+
+    async def _count_tokens_async(self, content):
+        """Count tokens asynchronously using thread pool."""
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, lambda: len(self.tokenizer.encode(content)))
+
     async def _generate_file_summary_async(self, filepath, content):
-        """Async version of file summary generation."""
+        """Generate file summary with rate limiting."""
         try:
-            # Create a minimal mission and objective context for the prompt
-            mission_content = f"Analyze file: {filepath}"
-            objective_content = "Generate file description"
-            agent_content = "File summary generation"
+            async with self.api_semaphore:
+                mission_content = f"Analyze file: {filepath}"
+                objective_content = "Generate file description"
+                agent_content = "File summary generation"
 
-            # Use existing prompt generator with minimal context
-            prompt = self._create_map_prompt(
-                mission_content,
-                objective_content,
-                agent_content
-            )
-
-            client = openai.OpenAI()
-            response = await asyncio.to_thread(
-                lambda: client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": "You are a technical analyst specializing in identifying unique characteristics and differentiating features of files within a project."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.3,
-                    max_tokens=200
+                prompt = self._create_map_prompt(
+                    mission_content,
+                    objective_content,
+                    agent_content
                 )
-            )
-            
-            return response.choices[0].message.content.strip()
-            
+
+                client = openai.OpenAI()
+                response = await asyncio.to_thread(
+                    lambda: client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {"role": "system", "content": "You are a technical analyst specializing in identifying unique characteristics and differentiating features of files within a project."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        temperature=0.3,
+                        max_tokens=200
+                    )
+                )
+                
+                return response.choices[0].message.content.strip()
+                
         except Exception as e:
             self.logger.error(f"Failed to generate file summary: {str(e)}")
             raise
