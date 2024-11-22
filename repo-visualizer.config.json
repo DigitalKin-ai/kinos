@@ -1,5 +1,5 @@
 {
-  "should_push": false,
+  "should_push": true,
   "style": {
     "node": {
       "colors": {
