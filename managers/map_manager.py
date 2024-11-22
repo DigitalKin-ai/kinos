@@ -81,18 +81,24 @@ class MapManager:
             TypeError: If input parameters have invalid types
             Exception: For other unexpected errors
         """
+        try:
+            self.logger.debug(f"Analyzing folder level: {folder_path}")
         if not folder_path:
             raise ValueError("folder_path cannot be empty")
-            
+                
         if not isinstance(files_content, dict):
             raise TypeError("files_content must be a dictionary")
-            
+                
         if not isinstance(subfolders, list):
             raise TypeError("subfolders must be a list")
-            
+                
+        # Ensure we have an absolute path
+        abs_folder_path = os.path.abspath(folder_path)
+        self.logger.debug(f"Absolute folder path: {abs_folder_path}")
+                
         # Validate path is within project
-        if not self._validate_path_in_project(folder_path):
-            raise ValueError(f"Path {folder_path} is outside project directory")
+        if not self._validate_path_in_project(abs_folder_path):
+            raise ValueError(f"Path {abs_folder_path} is outside project directory")
             
         try:
             # Validate folder exists
@@ -103,14 +109,14 @@ class MapManager:
                 raise ValueError(f"Path is not a directory: {folder_path}")
             
             # Get folder context including purpose and relationships
-            # Use relative path for folder context
-            rel_path = os.path.relpath(folder_path, self.project_root)
             folder_context = self._get_folder_context(
-                folder_path=rel_path,
+                folder_path=abs_folder_path,
                 files=list(files_content.keys()),
                 subfolders=subfolders,
                 mission_content=mission_content
             )
+            
+            self.logger.debug(f"Folder context: {folder_context}")
             
             # Analyze each file in the folder
             analyzed_files = []
@@ -141,11 +147,13 @@ class MapManager:
                 raise ValueError(f"Failed to determine relationships for {folder_path}")
             
             analysis_result = {
-                'path': folder_path,
+                'path': abs_folder_path,
                 'purpose': folder_context['purpose'],
                 'files': analyzed_files,
                 'relationships': folder_context['relationships']
             }
+            
+            self.logger.debug(f"Analysis result: {analysis_result}")
             
             # Generate SVG only if not during initial mapping
             if not self._initial_mapping_in_progress:
@@ -350,12 +358,14 @@ Important:
         Get folder purpose and relationships using GPT with caching.
         """
         try:
-            # Convert to relative path for display and caching
-            rel_path = os.path.relpath(folder_path, self.project_root)
+            self.logger.debug(f"Getting folder context for: {folder_path}")
             
-            # Initialize context structure
+            if not folder_path:
+                raise ValueError("folder_path cannot be empty")
+            
+            # Initialize context with absolute path
             context = {
-                'path': folder_path,
+                'path': os.path.abspath(folder_path),
                 'purpose': '',
                 'relationships': {
                     'parent': 'No parent relationship specified',
@@ -425,6 +435,8 @@ Important:
                     context['relationships']['siblings'] = line.replace('Siblings:', '').strip()
                 elif line.startswith('Children:'):
                     context['relationships']['children'] = line.replace('Children:', '').strip()
+                    
+            self.logger.debug(f"Final context: {context}")
             
             # Validate required fields
             if not context['purpose']:
