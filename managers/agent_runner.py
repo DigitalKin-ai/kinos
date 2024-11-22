@@ -9,18 +9,36 @@ from managers.agents_manager import AgentsManager
 from managers.objective_manager import ObjectiveManager
 from managers.aider_manager import AiderManager
 
+# Configuration constants
+DEFAULT_MODEL = "gpt-4o-mini"
+DEFAULT_AGENT_COUNT = 10
+AGENT_START_DELAY = 10  # seconds between agent starts
+DEFAULT_MISSION_FILE = ".aider.mission.md"
+
 class AgentRunner:
-    """Runner class for executing and managing agent operations."""
+    """Runner class for executing and managing agent operations.
+    
+    This class handles the parallel execution of AI agents, managing their lifecycle
+    and coordinating their operations. It ensures proper resource management and
+    synchronization between agents.
+    
+    Attributes:
+        logger (Logger): Logging utility instance
+        agents_manager (AgentsManager): Manager for agent generation and configuration
+        objective_manager (ObjectiveManager): Manager for agent objectives
+        aider_manager (AiderManager): Manager for aider operations
+        _active_agents (set): Set of currently active agent names
+        _agent_lock (asyncio.Lock): Lock for synchronizing agent operations
+    """
     
     def __init__(self):
-        """Initialize the runner with required managers and logger."""
+        """Initialize the runner with required managers and synchronization primitives."""
         self.logger = Logger()
         self.agents_manager = AgentsManager()
         self.objective_manager = ObjectiveManager()
         self.aider_manager = AiderManager()
-        self._running_agents = set()  # Track active agents
+        self._active_agents = set()  # Track active agents
         self._agent_lock = asyncio.Lock()  # Synchronize shared resource access
-        self._active_agents = set()  # Track currently active agents
 
     async def initialize(self):
         """Initialize async components of the runner."""
@@ -32,21 +50,24 @@ class AgentRunner:
         runner = cls()
         return await runner.initialize()
         
-    async def run(self, mission_filepath=".aider.mission.md", generate_agents=False, agent_count=10, model="gpt-4o-mini"):
-        """
-        Main execution loop for running agents in parallel.
+    async def run(self, mission_filepath=DEFAULT_MISSION_FILE, generate_agents=False, 
+                 agent_count=DEFAULT_AGENT_COUNT, model=DEFAULT_MODEL):
+        """Main execution loop for running agents in parallel.
+        
+        Args:
+            mission_filepath (str): Path to mission specification file
+            generate_agents (bool): Whether to generate missing agents
+            agent_count (int): Number of agents to run in parallel
+            model (str): Name of the AI model to use
+            
+        Raises:
+            SystemExit: If mission file is invalid
+            ValueError: If no agents are available
+            RuntimeError: If agent execution fails
         """
         try:
-            # First validate mission file
-            if not os.path.exists(mission_filepath):
-                self.logger.error("❌ Mission file not found!")
-                self.logger.info("\n📋 To start KinOS, you must:")
-                self.logger.info("   1. Either create a '.aider.mission.md' file in the current folder")
-                self.logger.info("   2. Or specify the path to your mission file with --mission")
-                self.logger.info("\n💡 Examples:")
-                self.logger.info("   kin run agents --generate")
-                self.logger.info("   kin run agents --generate --mission path/to/my_mission.md")
-                self.logger.info("\n📝 The mission file must contain your project description.")
+            # Validate mission file
+            if not self._validate_mission_file(mission_filepath):
                 raise SystemExit(1)
 
             # Then check for missing agents
@@ -188,16 +209,26 @@ class AgentRunner:
             raise  # Propagate error to allow agent replacement
 
     async def _select_available_agent(self):
-        """Select an unused agent in a thread-safe way."""
+        """Select an unused agent in a thread-safe way.
+        
+        This method ensures proper synchronization when selecting agents
+        to prevent race conditions in parallel execution.
+        
+        Returns:
+            str: Name of selected agent, or None if no agents available
+            
+        Thread Safety:
+            This method uses asyncio.Lock for thread-safe agent selection
+        """
         async with self._agent_lock:
             available_agents = self._get_available_agents()
-            unused_agents = [a for a in available_agents if a not in self._running_agents]
+            unused_agents = [a for a in available_agents if a not in self._active_agents]
             
             if not unused_agents:
                 return None
                 
             agent_name = random.choice(unused_agents)
-            self._running_agents.add(agent_name)
+            self._active_agents.add(agent_name)
             return agent_name
             
     def _get_folder_context(self, folder_path: str, files: list, subfolders: list, mission_content: str) -> dict:

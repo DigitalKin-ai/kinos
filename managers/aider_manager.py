@@ -157,8 +157,44 @@ class AiderManager:
             self.logger.error(f"Failed to fix git encodings: {str(e)}")
             raise
 
+    def _validate_mission_file(self, mission_filepath):
+        """Validate that the mission file exists and is readable.
+        
+        Args:
+            mission_filepath (str): Path to mission file
+            
+        Returns:
+            bool: True if file is valid, False otherwise
+            
+        Side Effects:
+            Logs error messages if validation fails
+        """
+        if not os.path.exists(mission_filepath):
+            self.logger.error("❌ Mission file not found!")
+            self.logger.info("\n📋 To start KinOS, you must:")
+            self.logger.info("   1. Either create a '.aider.mission.md' file in the current folder")
+            self.logger.info("   2. Or specify the path to your mission file with --mission")
+            self.logger.info("\n💡 Examples:")
+            self.logger.info("   kin run agents --generate")
+            self.logger.info("   kin run agents --generate --mission path/to/my_mission.md")
+            self.logger.info("\n📝 The mission file must contain your project description.")
+            return False
+        
+        if not os.access(mission_filepath, os.R_OK):
+            self.logger.error(f"❌ Cannot read mission file: {mission_filepath}")
+            return False
+            
+        return True
+
     def _validate_files(self, *filepaths):
-        """Validate all input files exist and are readable."""
+        """Validate that all input files exist and are readable.
+        
+        Args:
+            *filepaths: Variable number of file paths to validate
+            
+        Returns:
+            bool: True if all files are valid, False otherwise
+        """
         for filepath in filepaths:
             if not filepath or not os.path.exists(filepath):
                 self.logger.error(f"❌ Missing file: {filepath}")
