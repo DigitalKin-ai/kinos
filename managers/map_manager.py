@@ -98,27 +98,28 @@ class MapManager:
                 mission_content=mission_content
             )
             
-        self.logger.debug(f"Folder context: {folder_context}")
+            self.logger.debug(f"Folder context: {folder_context}")
             
-        # Analyze each file in the folder
-        files_analysis = []
-        for filename, content in files_content.items():
-            file_analysis = self._analyze_file(filename, folder_context)
-            files_analysis.append(file_analysis)
-            
-        # Build comprehensive analysis result
-        analysis_result = {
-            'path': abs_folder_path,
-            'purpose': folder_context['purpose'],
-            'files': files_analysis,
-            'relationships': folder_context['relationships'],
-            'structure': {
+            # Analyze each file in the folder
+            files_analysis = []
+            for filename, content in files_content.items():
+                file_analysis = self._analyze_file(filename, folder_context)
+                files_analysis.append(file_analysis)
+                
+            # Build comprehensive analysis result
+            analysis_result = {
                 'path': abs_folder_path,
-                'files': list(files_content.keys()),
-                'subfolders': subfolders,
-                'mission_context': mission_content
+                'purpose': folder_context['purpose'],
+                'files': files_analysis,
+                'relationships': folder_context['relationships'],
+                'structure': {
+                    'path': abs_folder_path,
+                    'files': list(files_content.keys()),
+                    'subfolders': subfolders,
+                    'mission_context': mission_content
+                }
             }
-        }
+            
             self.logger.debug(f"Analysis result: {analysis_result}")
             
             # Generate SVG only if not during initial mapping
