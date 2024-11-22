@@ -61,6 +61,7 @@ class MapManager:
                             objective_content: str) -> dict:
         """
         Analyze a single folder level with its files and immediate subfolders.
+        Uses batch analysis and caching for efficiency.
         
         Args:
             folder_path (str): Path to current folder
@@ -81,25 +82,42 @@ class MapManager:
             TypeError: If input parameters have invalid types
             Exception: For other unexpected errors
         """
+        # Generate cache key from folder contents
+        cache_key = f"{folder_path}:{','.join(sorted(files_content.keys()))}:{','.join(sorted(subfolders))}"
+        
+        # Check cache first
+        if hasattr(self, '_folder_cache'):
+            cached = self._folder_cache.get(cache_key)
+            if cached:
+                self.logger.debug(f"Using cached analysis for {folder_path}")
+                return cached
+        else:
+            self._folder_cache = {}
         try:
             self.logger.debug(f"Analyzing folder level: {folder_path}")
             
+            # Input validation
             if not folder_path:
                 raise ValueError("folder_path cannot be empty")
-                
             if not isinstance(files_content, dict):
                 raise TypeError("files_content must be a dictionary")
-                
             if not isinstance(subfolders, list):
                 raise TypeError("subfolders must be a list")
-                
-            # Ensure we have an absolute path
+            
+            # Path normalization and validation
             abs_folder_path = os.path.abspath(folder_path)
             self.logger.debug(f"Absolute folder path: {abs_folder_path}")
-                
-            # Validate path is within project
+            
             if not self._validate_path_in_project(abs_folder_path):
                 raise ValueError(f"Path {abs_folder_path} is outside project directory")
+                
+            # Get complete folder structure once
+            folder_structure = {
+                'path': abs_folder_path,
+                'files': list(files_content.keys()),
+                'subfolders': subfolders,
+                'mission_context': mission_content[:500]  # Truncate for cache key
+            }
         except Exception as e:
             self.logger.error(f"Failed to validate folder parameters: {str(e)}")
             raise
@@ -112,23 +130,22 @@ class MapManager:
             if not os.path.isdir(folder_path):
                 raise ValueError(f"Path is not a directory: {folder_path}")
             
-            # Get folder context including purpose and relationships
+            # Get folder context and analyze files in parallel
             folder_context = self._get_folder_context(
                 folder_path=abs_folder_path,
-                files=list(files_content.keys()),
-                subfolders=subfolders,
-                mission_content=mission_content
+                files=folder_structure['files'],
+                subfolders=folder_structure['subfolders'],
+                mission_content=folder_structure['mission_context']
             )
             
             self.logger.debug(f"Folder context: {folder_context}")
             
-            # Analyze all files in batch
-            analyzed_files = self._analyze_files_batch(abs_folder_path, list(files_content.keys()))
+            # Batch analyze all files at once
+            analyzed_files = self._analyze_files_batch(abs_folder_path, folder_structure['files'])
             
-            # Validate folder context
+            # Validate and build result
             if not folder_context.get('purpose'):
                 raise ValueError(f"Failed to determine purpose for {folder_path}")
-                
             if not folder_context.get('relationships'):
                 raise ValueError(f"Failed to determine relationships for {folder_path}")
             
@@ -136,8 +153,12 @@ class MapManager:
                 'path': abs_folder_path,
                 'purpose': folder_context['purpose'],
                 'files': analyzed_files,
-                'relationships': folder_context['relationships']
+                'relationships': folder_context['relationships'],
+                'structure': folder_structure
             }
+            
+            # Cache the result
+            self._folder_cache[cache_key] = analysis_result
             
             self.logger.debug(f"Analysis result: {analysis_result}")
             
