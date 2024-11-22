@@ -1,5 +1,6 @@
 import os
 import subprocess
+from typing import Dict
 from utils.logger import Logger
 
 class VisionManager:
