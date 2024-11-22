@@ -47,6 +47,7 @@ def main():
             
         elif subcommand == "map":
             manager = MapManager()
+            manager.logger.logger.setLevel(logging.DEBUG)  # Set debug logging
             
             # Check if --agent flag is present
             if "--agent" in sys.argv:
@@ -75,7 +76,6 @@ def main():
                 
                 try:
                     manager.generate_global_map(mission_path)
-                    print("✨ Global map generated successfully")
                 except Exception as e:
                     print(f"❌ Failed to generate global map: {str(e)}")
                     sys.exit(1)
