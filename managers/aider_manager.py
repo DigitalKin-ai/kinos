@@ -118,70 +118,14 @@ class AiderManager:
             raise
             
     def fix_git_encoding(self):
-        """Fix encoding of existing git commits."""
+        """Configure git to use UTF-8 for new commits."""
         try:
-            # Configure git to use UTF-8
+            # Configure git to use UTF-8 for new commits
             subprocess.run(['git', 'config', 'i18n.commitEncoding', 'utf-8'], check=True)
             subprocess.run(['git', 'config', 'i18n.logOutputEncoding', 'utf-8'], check=True)
-            
-            # Get all commits
-            result = subprocess.run(
-                ['git', 'log', '--format=%H'],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            commit_hashes = result.stdout.splitlines()
-            
-            for commit_hash in commit_hashes:
-                # Get commit message
-                result = subprocess.run(
-                    ['git', 'log', '-1', '--pretty=%B', commit_hash],
-                    capture_output=True,
-                    text=True,
-                    check=True
-                )
-                commit_msg = result.stdout
-                
-                # Fix encoding - try multiple encodings
-                try:
-                    # Try different encodings in order
-                    encodings = ['utf-8', 'latin1', 'cp1252', 'iso-8859-1']
-                    fixed_msg = None
-                    
-                    for encoding in encodings:
-                        try:
-                            if isinstance(commit_msg, str):
-                                # If it's already a string, encode then decode
-                                fixed_msg = commit_msg.encode(encoding).decode('utf-8')
-                            else:
-                                # If it's bytes, decode directly
-                                fixed_msg = commit_msg.decode(encoding)
-                            break
-                        except UnicodeError:
-                            continue
-                    
-                    if fixed_msg:
-                        # Amend commit with fixed message
-                        subprocess.run(
-                            ['git', 'filter-branch', '-f', '--msg-filter', 
-                             f'echo "{fixed_msg}"', f'{commit_hash}^..{commit_hash}'],
-                            check=True,
-                            encoding='utf-8'
-                        )
-                        self.logger.debug(f"Fixed encoding for commit {commit_hash[:8]}")
-                    else:
-                        raise UnicodeError(f"Could not decode commit message with any encoding")
-                        
-                except UnicodeError as e:
-                    self.logger.warning(f"⚠️ Could not fix encoding for commit {commit_hash[:8]}: {str(e)}")
-                    continue
-                    
-            self.logger.success("✨ Git commit encodings fixed")
-            
+            self.logger.debug("✨ Git configured to use UTF-8 encoding")
         except Exception as e:
-            self.logger.error(f"Failed to fix git encodings: {str(e)}")
-            raise
+            self.logger.warning(f"⚠️ Could not configure git encoding: {str(e)}")
 
     def _validate_mission_file(self, mission_filepath):
         """Validate that the mission file exists and is readable.
