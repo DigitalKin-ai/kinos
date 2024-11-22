@@ -327,18 +327,33 @@ class MapManager:
         if os.path.isabs(folder_path):
             folder_path = os.path.relpath(folder_path, self.project_root)
             
-        # Build tree structure including both files and subfolders
-        tree = ["📂 ./"]
+        # Split path into components
+        path_parts = folder_path.split(os.sep)
         
-        # Add files first
+        # Build tree structure showing full path hierarchy
+        tree = []
+        
+        # Add path hierarchy
+        for i, part in enumerate(path_parts):
+            indent = "   " * i
+            if i < len(path_parts) - 1:
+                tree.append(f"{indent}├─ {part}")
+            else:
+                # Last part (current folder) gets the folder emoji
+                tree.append(f"{indent}📂 {part}")
+        
+        # Add current folder contents with proper indentation
+        base_indent = "   " * len(path_parts)
+        
+        # Add files
         for i, f in enumerate(files):
             prefix = "├─ " if (i < len(files) - 1 or subfolders) else "└─ "
-            tree.append(f"   {prefix}{f}")
+            tree.append(f"{base_indent}{prefix}{f}")
             
         # Add subfolders
         for i, d in enumerate(subfolders):
             prefix = "├─ " if i < len(subfolders) - 1 else "└─ "
-            tree.append(f"   {prefix}{d}/")
+            tree.append(f"{base_indent}{prefix}{d}/")
         
         tree_str = "\n".join(tree)
 
