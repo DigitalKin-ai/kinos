@@ -33,37 +33,6 @@ class MapManager:
             raise ValueError("OpenAI API key not found in environment variables")
         self.tokenizer = tiktoken.encoding_for_model("gpt-4")
         self.api_semaphore = asyncio.Semaphore(10)
-    def _analyze_file(self, filename: str, folder_context: dict) -> dict:
-        """Analyze single file's role and purpose."""
-        try:
-            client = openai.OpenAI()
-            prompt = self._create_file_analysis_prompt(filename, folder_context)
-            
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a technical analyst identifying file roles and purposes."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.3,
-                max_tokens=200
-            )
-            
-            # Parse response into structure
-            content = response.choices[0].message.content
-            parts = content.split(' - ', 1)
-            
-            return {
-                'name': filename,
-                'role': parts[0].strip(),
-                'description': parts[1].strip() if len(parts) > 1 else ''
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Failed to analyze file {filename}: {str(e)}")
-            raise
-
-
     def _analyze_folder_hierarchy(self, folder_path: str, mission_content: str, objective_content: str) -> dict:
         """
         Analyze folder and all its subfolders recursively, with complete context.
