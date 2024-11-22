@@ -716,6 +716,10 @@ Return in format:
             bool: True if file appears to be binary, False otherwise
         """
         try:
+            # Always treat .md files as text
+            if file_path.lower().endswith('.md'):
+                return False
+                
             # Read first 1024 bytes
             with open(file_path, 'rb') as f:
                 chunk = f.read(1024)
