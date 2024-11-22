@@ -343,7 +343,7 @@ class MapManager:
         tree_str = "\n".join(tree)
 
         return f"""# Objective
-Define folder's purpose and relationships
+Define folder's purpose and relationships:
 
 # Current Folder Structure
 {tree_str}
