@@ -47,7 +47,9 @@ def main():
             
         elif subcommand == "map":
             manager = MapManager()
-            manager.logger.logger.setLevel(logging.DEBUG)  # Set debug logging
+            # Set debug logging globally and on manager
+            Logger().logger.setLevel(logging.DEBUG)
+            manager.logger.logger.setLevel(logging.DEBUG)
             
             # Check if --agent flag is present
             if "--agent" in sys.argv:
