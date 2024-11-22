@@ -114,7 +114,7 @@ class AgentRunner:
             # Create initial tasks up to agent_count
             for i in range(min(agent_count, len(available_agents))):
                 task = asyncio.create_task(
-                    self._run_single_agent_cycle(available_agents[i], mission_filepath, model=model)
+                    self._run_single_agent_cycle(mission_filepath, model)
                 )
                 tasks.add(task)
                 await asyncio.sleep(10)  # 10 second delay between each start
@@ -138,7 +138,7 @@ class AgentRunner:
                     if len(pending) < agent_count and available_agents:
                         await asyncio.sleep(3)  # Delay before starting new agent
                         new_task = asyncio.create_task(
-                            self._run_single_agent_cycle(available_agents[0], mission_filepath, model=model)
+                            self._run_single_agent_cycle(mission_filepath, model)
                         )
                         pending.add(new_task)
                 
