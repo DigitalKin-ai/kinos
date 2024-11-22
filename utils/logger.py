@@ -63,13 +63,14 @@ class Logger:
                 formatter = logging.Formatter(log_fmt, datefmt='%Y-%m-%d %H:%M:%S')
                 return formatter.format(record)
 
-        # Setup console handler with color formatter and UTF-8 encoding
+        # Setup console handler with color formatter and debug level
         console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)  # Set handler level to DEBUG
         console_handler.setFormatter(ColorFormatter())
         
-        # Configure logger
+        # Configure logger with debug level
         self.logger = logging.getLogger('KinOS')
-        self.logger.setLevel(logging.SUCCESS)
+        self.logger.setLevel(logging.DEBUG)  # Set base level to DEBUG
         
         # Remove existing handlers and add our handlers
         self.logger.handlers = []
