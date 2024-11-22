@@ -242,7 +242,8 @@ class AgentRunner:
         self.aider_manager.run_aider(
             objective_filepath,
             map_filepath,
-            agent_filepath
+            agent_filepath,
+            model=model
         )
             
         self.logger.info(f"✅ Completed execution cycle for {agent_name}")
