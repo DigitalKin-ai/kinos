@@ -50,6 +50,10 @@ class FSUtils:
         """Build tree structure with proper indentation and active folder highlighting."""
         tree = []
         
+        # Initialize current_folder_path if None
+        if self.current_folder_path is None:
+            self.current_folder_path = ""
+        
         # Determine if this is the active folder
         is_active = os.path.abspath(current_path) == self.current_folder_path
         
@@ -75,7 +79,9 @@ class FSUtils:
             subfolder_path = os.path.join(current_path, d)
             
             # Determine if this subfolder is part of current path
-            is_current_subfolder = is_current_branch and subfolder_path in self.current_folder_path
+            is_current_subfolder = (is_current_branch and 
+                                  self.current_folder_path and 
+                                  subfolder_path in self.current_folder_path)
             
             if is_current_subfolder or current_depth < max_depth:
                 sub_files = self.get_folder_files(subfolder_path)

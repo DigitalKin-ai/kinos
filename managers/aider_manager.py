@@ -601,6 +601,8 @@ Update map.md to reflect the current project structure while maintaining its for
         try:
             # Get the COMPLETE tree structure starting from root
             fs_utils = FSUtils()
+            fs_utils.set_current_folder(folder_path)  # Set current folder before building tree
+        
             root_files = fs_utils.get_folder_files(".")
             root_subfolders = fs_utils.get_subfolders(".")
             tree_structure = fs_utils.build_tree_structure(
