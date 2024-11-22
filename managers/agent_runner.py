@@ -71,31 +71,23 @@ class AgentRunner:
                         agent_filepath
                     )
 
-            # Initialize task tracking
+            # Initialize tasks
             tasks = set()
-            active_agents = set()
+            
+            # Create initial batch of tasks
+            for i in range(min(agent_count, len(available_agents))):
+                agent_name = await self._select_available_agent()
+                if not agent_name:
+                    break
+                    
+                task = asyncio.create_task(
+                    self._run_single_agent_cycle(agent_name, mission_filepath, model=model)
+                )
+                tasks.add(task)
+                await asyncio.sleep(10)  # 10 second delay between each start
             
             # Main execution loop
             while True:
-                # Start new tasks if needed
-                while len(active_agents) < min(agent_count, len(available_agents)):
-                    # Select an unused agent
-                    unused_agents = [a for a in available_agents if a not in active_agents]
-                    if not unused_agents:
-                        break
-                        
-                    agent_name = unused_agents[0]
-                    active_agents.add(agent_name)
-                    
-                    # Create and start new task
-                    task = asyncio.create_task(
-                        self._run_single_agent_cycle(agent_name, mission_filepath, model=model)
-                    )
-                    tasks.add(task)
-                    
-                    # Add delay between starts
-                    if len(active_agents) < min(agent_count, len(available_agents)):
-                        await asyncio.sleep(10)  # 10 second delay between starts
 
                 if not tasks:
                     break  # No more tasks to run
@@ -366,7 +358,7 @@ class AgentRunner:
         return [agent_type for agent_type in agent_types 
                 if os.path.exists(f".aider.agent.{agent_type}.md")]
         
-    async def _execute_agent_cycle(self, agent_name, mission_filepath, model="gpt-4o-mini"):
+    def _execute_agent_cycle(self, agent_name, mission_filepath, model="gpt-4o-mini"):
         """Execute a single agent cycle."""
         agent_filepath = f".aider.agent.{agent_name}.md"
         objective_filepath = f".aider.objective.{agent_name}.md"
@@ -382,7 +374,7 @@ class AgentRunner:
         map_filepath = f".aider.map.{agent_name}.md"
         
         # Execute aider operation
-        await self.aider_manager.run_aider(
+        self.aider_manager.run_aider(
             objective_filepath,
             map_filepath,
             agent_filepath,
