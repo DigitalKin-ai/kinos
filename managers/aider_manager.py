@@ -196,7 +196,6 @@ class AiderManager:
             "--model", model,
             "--edit-format", "diff", 
             "--yes-always",
-            "--cache-prompts",
             "--no-pretty",
             "--no-fancy-input",
             "--encoding", "utf-8",  # Force UTF-8 encoding
@@ -478,7 +477,7 @@ Document each folder with:
 ## 2. File Documentation
 Document each file with:
 ```markdown
-- **filename** (CATEGORY) - Role and purpose
+- **filename** (CATEGORY) - Role and purpose in relation to the mission, in relation to the folder. When to use it.
 ```
 
 ## File Categories:
@@ -645,8 +644,6 @@ Update map.md to reflect the current project structure while maintaining its for
             cmd.extend([
                 "--model", "gpt-4o-mini",
                 "--edit-format", "diff", 
-                "--yes-always",
-                "--cache-prompts",
                 "--no-pretty",
                 "--no-fancy-input",
                 "--encoding", "utf-8",
