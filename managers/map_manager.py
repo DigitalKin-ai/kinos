@@ -33,14 +33,69 @@ class MapManager:
             raise ValueError("OpenAI API key not found in environment variables")
         self.tokenizer = tiktoken.encoding_for_model("gpt-4")
         self.api_semaphore = asyncio.Semaphore(10)
+    def _analyze_folder_level(self, folder_path: str, files_content: dict, 
+                            subfolders: list, mission_content: str, 
+                            objective_content: str) -> dict:
+        """
+        Analyze a single folder level with its files and immediate subfolders.
+        
+        Args:
+            folder_path (str): Path to current folder
+            files_content (dict): Dictionary of filename to file content
+            subfolders (list): List of immediate subfolder names
+            mission_content (str): Overall mission context
+            objective_content (str): Current objective context
+            
+        Returns:
+            dict: Folder analysis including:
+                - path: Folder path
+                - purpose: Folder's purpose
+                - files: List of file analyses
+                - relationships: Dict of folder relationships
+        """
+        try:
+            # Get folder context including purpose and relationships
+            folder_context = self._get_folder_context(
+                folder_path=folder_path,
+                files=list(files_content.keys()),
+                subfolders=subfolders,
+                mission_content=mission_content,
+                objective_content=objective_content
+            )
+            
+            # Analyze each file in the folder
+            analyzed_files = []
+            for filename in files_content:
+                try:
+                    file_analysis = self._analyze_file(filename, folder_context)
+                    analyzed_files.append(file_analysis)
+                except Exception as e:
+                    self.logger.warning(f"Failed to analyze file {filename}: {str(e)}")
+                    analyzed_files.append({
+                        'name': filename,
+                        'role': '⚠️ ERROR',
+                        'description': f'Analysis failed: {str(e)}'
+                    })
+            
+            return {
+                'path': folder_path,
+                'purpose': folder_context['purpose'],
+                'files': analyzed_files,
+                'relationships': folder_context['relationships']
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Failed to analyze folder level {folder_path}: {str(e)}")
+            raise
+
     def _analyze_folder_hierarchy(self, folder_path: str, mission_content: str, objective_content: str) -> dict:
         """
         Analyze folder and all its subfolders recursively, with complete context.
         
         Args:
-            folder_path: Current folder to analyze
-            mission_content: Overall mission context
-            objective_content: Current objective context
+            folder_path (str): Current folder to analyze
+            mission_content (str): Overall mission context
+            objective_content (str): Current objective context
             
         Returns:
             dict: Complete folder analysis including:
@@ -48,7 +103,21 @@ class MapManager:
                 - File categorizations
                 - Subfolder relationships
                 - Structural context
+                
+        Raises:
+            ValueError: If folder_path is invalid
+            OSError: If folder cannot be accessed
+            Exception: For other unexpected errors
         """
+        if not folder_path:
+            raise ValueError("folder_path cannot be empty")
+            
+        if not os.path.exists(folder_path):
+            raise ValueError(f"Folder does not exist: {folder_path}")
+            
+        if not os.path.isdir(folder_path):
+            raise ValueError(f"Path is not a directory: {folder_path}")
+            
         try:
             # Get immediate files and their contents
             files_content = {}
@@ -57,8 +126,11 @@ class MapManager:
                     file_path = os.path.join(folder_path, file)
                     with open(file_path, 'r', encoding='utf-8') as f:
                         files_content[file] = f.read()
-                except Exception as e:
+                except (OSError, UnicodeDecodeError) as e:
                     self.logger.warning(f"Could not read {file}: {str(e)}")
+                    files_content[file] = ""
+                except Exception as e:
+                    self.logger.error(f"Unexpected error reading {file}: {str(e)}")
                     files_content[file] = ""
 
             # Get subfolder structure
@@ -76,12 +148,22 @@ class MapManager:
             # Recursively analyze subfolders
             folder_analysis['subfolders'] = {}
             for subfolder in subfolders:
-                subfolder_path = os.path.join(folder_path, subfolder)
-                folder_analysis['subfolders'][subfolder] = self._analyze_folder_hierarchy(
-                    folder_path=subfolder_path,
-                    mission_content=mission_content,
-                    objective_content=objective_content
-                )
+                try:
+                    subfolder_path = os.path.join(folder_path, subfolder)
+                    folder_analysis['subfolders'][subfolder] = self._analyze_folder_hierarchy(
+                        folder_path=subfolder_path,
+                        mission_content=mission_content,
+                        objective_content=objective_content
+                    )
+                except Exception as e:
+                    self.logger.error(f"Failed to analyze subfolder {subfolder}: {str(e)}")
+                    folder_analysis['subfolders'][subfolder] = {
+                        'path': subfolder_path,
+                        'purpose': f'Analysis failed: {str(e)}',
+                        'files': [],
+                        'relationships': {},
+                        'subfolders': {}
+                    }
 
             return folder_analysis
 
