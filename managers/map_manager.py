@@ -337,37 +337,42 @@ Justify each selection based on the file's documented purpose in the project map
             raise
 
     async def initialize_global_map(self):
-        """
-        Initialize or reset the global map file with summaries of all project files.
-        Processes files in batches of 10 for better performance.
-        """
+        """Initialize or reset the global map file with summaries of all project files."""
         try:
             self.logger.info("🗺️ Initializing global project map...")
             
             # Initialize tokenizer for GPT-4
+            self.logger.info("🔄 Initializing GPT-4 tokenizer...")
             tokenizer = tiktoken.encoding_for_model("gpt-4")
             
             # Get all available files
+            self.logger.info("🔍 Scanning project directory for files...")
             available_files = self._get_available_files()
             total_files = len(available_files)
+            self.logger.info(f"📊 Found {total_files} files to process")
             
             # Create map header
             map_content = "# Project Map\n\n"
             
             # Process files in batches of 10
             batch_size = 10
+            total_batches = (total_files + batch_size - 1) // batch_size
+            
             for i in range(0, total_files, batch_size):
                 batch = available_files[i:i+batch_size]
                 batch_tasks = []
+                current_batch = i//batch_size + 1
                 
-                self.logger.info(f"📊 Processing batch {i//batch_size + 1}/{(total_files+batch_size-1)//batch_size} ({len(batch)} files)")
+                self.logger.info(f"📦 Processing batch {current_batch}/{total_batches} ({len(batch)} files)")
                 
                 # Create tasks for batch
                 for filepath in batch:
                     try:
+                        self.logger.debug(f"📄 Reading file: {filepath}")
                         with open(filepath, 'r', encoding='utf-8') as f:
                             file_content = f.read()
                         token_count = len(tokenizer.encode(file_content))
+                        self.logger.debug(f"📊 File {filepath}: {token_count} tokens")
                         
                         # Create task for file summary generation
                         task = asyncio.create_task(self._generate_file_summary_async(filepath, file_content))
@@ -377,22 +382,34 @@ Justify each selection based on the file's documented purpose in the project map
                         continue
                 
                 # Wait for all summaries in batch
+                self.logger.info(f"⏳ Generating summaries for batch {current_batch}...")
                 for filepath, token_count, task in batch_tasks:
                     try:
                         summary = await task
                         map_content += f"{filepath} ({token_count} tokens) {summary}\n"
+                        self.logger.debug(f"✅ Generated summary for {filepath}")
                     except Exception as e:
                         self.logger.warning(f"⚠️ Could not process {filepath}: {str(e)}")
                         continue
                 
+                # Log batch completion and progress
+                progress = (current_batch / total_batches) * 100
+                self.logger.info(f"✨ Completed batch {current_batch}/{total_batches} ({progress:.1f}%)")
+                
                 # Small delay between batches to avoid rate limits
-                await asyncio.sleep(1)
+                if current_batch < total_batches:
+                    self.logger.debug("⏸️ Brief pause between batches...")
+                    await asyncio.sleep(1)
                     
             # Save map file
+            self.logger.info("💾 Saving global map file...")
             with open("map.md", 'w', encoding='utf-8') as f:
                 f.write(map_content)
                 
-            self.logger.success("✨ Global project map initialized")
+            self.logger.success(f"""✨ Global project map initialized:
+   - Processed {total_files} files
+   - Generated {total_batches} batches
+   - Created comprehensive project map""")
             
         except Exception as e:
             self.logger.error(f"Failed to initialize global map: {str(e)}")
