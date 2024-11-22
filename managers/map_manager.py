@@ -340,13 +340,17 @@ Justify each selection based on the file's documented purpose in the project map
     async def initialize_global_map(self):
         """Initialize or reset the global map file with summaries of all project files."""
         try:
+            print("Starting map initialization...")  # Debug print
+            self.logger.logger.setLevel(logging.DEBUG)  # Force debug level temporarily 
             self.logger.info("🗺️ Initializing global project map...")
             
             # Initialize tokenizer for GPT-4
+            print("Initializing tokenizer...")  # Debug print
             self.logger.info("🔄 Initializing GPT-4 tokenizer...")
             tokenizer = tiktoken.encoding_for_model("gpt-4")
             
             # Get all available files
+            print("Scanning for files...")  # Debug print
             self.logger.info("🔍 Scanning project directory for files...")
             available_files = self._get_available_files()
             total_files = len(available_files)
