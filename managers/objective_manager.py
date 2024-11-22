@@ -152,20 +152,15 @@ class ObjectiveManager:
                 search_instruction = ""
 
             prompt = f"""
-Based on the following, generate a clear specific next step for the {agent_name} agent.
-
 Mission
 ================
 ````
 {mission_content}
 ````
 
-Project Structure
+Project Structure Diagram
 ================
-````
-{tree_text}
-````
-(In the image attached is a visualization of the repository, showing file sizes and structure, that you can use to enhance your decision-making)
+The image attached is a visualization of the repository showing folders, file sizes and structure, that you can use to enhance your decision-making.
 
 Recent Activity (last 80 lines)
 ================
@@ -179,8 +174,9 @@ Todolist
 {todolist}
 ````
 
-Required Output
+Instructions
 ================
+Based on the provided info, generate a clear specific next step for the {agent_name} agent.
 Create two objectives in markdown format - one for production, one specific to your role. Each objective should specify:
 
 1. **Action Statement**
@@ -223,42 +219,52 @@ Your planning:
 
             # Get file context for objective
             file_context_prompt = f"""
-Based on this objective:
+Objectives
+================
 ````
 {objective}
 ````
 
-And this project structure:
+Project structure
+================
 ````
 {tree_text}
 ````
 
-List ONLY the files needed to achieve this objective, in this exact format:
+Instructions
+================
+
+Based on the objectives and the project structure, list the files needed to achieve both objectives, in this exact format:
 
 # Context Files (read-only)
-- path/to/file1
-- path/to/file2
+- path/to/file1 (emoji) File Role
+- path/to/file2 (emoji) File Role
 
 # Write Files (to be modified)
-- path/to/file3
-- path/to/file4
+- path/to/file3 (emoji) File Role
+- path/to/file4 (emoji) File Role
 
 Rules:
-1. Only include directly relevant files
-2. Context files = files needed for understanding/reference
+1. Include directly relevant files
+2. Context files = files needed for understanding/reference, or that could add interesting complementary info
 3. Write files = files that will be modified
 4. Use exact paths from project structure
 5. Do not include files that don't exist
-6. Do not add explanations or other text
+6. Include explanation about the role of each file, and a relevant emoji
+7. Aim for 8 to 12 files
 
-Respond ONLY with the file lists in the format shown above.
+Respond only with the file lists in the format shown above.
 """
 
             try:
                 file_context_response = client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
-                        {"role": "system", "content": "You are a precise file context analyzer for AI development tasks."},
+                        {"role": "system", "content": """
+{agent_content}
+                         
+In this context, you are a precise file context analyzer for AI development tasks.
+"""},
                         {"role": "user", "content": file_context_prompt}
                     ],
                     temperature=0.3,
@@ -325,23 +331,23 @@ Respond ONLY with the file lists in the format shown above.
             if os.path.exists('suivi.md'):
                 try:
                     with open('suivi.md', 'r', encoding='utf-8') as f:
-                        # Read all lines and get last 50
+                        # Read all lines and get last 80
                         lines = f.readlines()
-                        last_50_lines = lines[-50:] if len(lines) > 50 else lines
-                        suivi_content = ''.join(last_50_lines)
+                        last_lines = lines[-80:] if len(lines) > 80 else lines
+                        suivi_content = ''.join(last_lines)
                 except Exception as e:
                     self.logger.warning(f"⚠️ Could not read suivi.md: {str(e)}")
                     # Continue without suivi content
 
             client = openai.OpenAI()
             prompt = f"""
-Logs de suivi précédents (50 dernières lignes)
+Previous tracking logs (last 80 lines)
 ================
 ````
 {suivi_content}
 ````
 
-Objectif
+Objective
 ================
 ````
 {objective}
@@ -349,25 +355,29 @@ Objectif
 
 Instructions
 ================
-A partir de l'Objectif, résume en une seule phrase ce que l'agent fait maintenant dans le cadre de la mission, en suivant strictement ce format :
-"L'agent {agent_name} [action] [objectif] [détail optionnel] [fichiers modifiés]"
+Based on the Objective, summarize in a single sentence what the agent is currently doing as part of the mission, strictly following this format:
+"Agent {agent_name}: I'm [action] [objective] [optional detail] [files to be modified]"
 
-Consignes :
-- Ne répète pas la mission (qui est connue de l'utilisateur), mais seulement ce que l'agent fait précisément dans le cadre de celle-ci
-- Ne répète pas les informations déjà présentes dans les logs de suivi
-- Utilise des emojis appropriés en fonction du type d'action
+Guidelines:
+- Don't repeat the mission (which is known to the user), but only what the agent is precisely doing within it
+- Don't repeat information already present in the tracking logs
+- Use appropriate emojis based on the type of action
+- Phrase it from your agent point of view
 
-Réponds uniquement avec la phrase formatée, rien d'autre.
+Reply only with the formatted sentence, nothing else.
 """
             
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "Tu es un assistant qui résume des actions au sein d'un projet en une phrase concise avec des emojis appropriés. Ces résumés serviront de logs de suivi au sein de la mission."},
+                    {"role": "system", "content": """
+{agent_content}
+                     
+In this context, you are an assistant who summarizes project actions in a concise sentence with appropriate emojis. These summaries will serve as tracking logs within the mission."""},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.3,
-                max_tokens=100
+                temperature=0.4,
+                max_tokens=150
             )
             
             return response.choices[0].message.content.strip()
@@ -382,14 +392,22 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
         try:
             client = openai.OpenAI()
             prompt = f"""
-Résume en une seule phrase ce qui a été trouvé par la recherche Perplexity, en suivant ce format:
-"L'agent {agent_name} effectue une recherche sur [sujet] : [résumé des découvertes principales]"
-
-Query de recherche :
+Query de recherche
+================
+````
 {query}
+````
 
-Résultats complets :
+Résultats complets
+================
+````
 {result}
+````
+
+Instructions
+================
+Résume en une seule phrase ce qui a été trouvé par la recherche Perplexity, en suivant ce format :
+"L'agent {agent_name} effectue une recherche sur [sujet] : [résumé des découvertes principales]"
 
 Réponds uniquement avec la phrase formatée, rien d'autre.
 """
@@ -397,11 +415,15 @@ Réponds uniquement avec la phrase formatée, rien d'autre.
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "Tu es un assistant qui résume des résultats de recherche de manière concise. Ces résumés seront utilisés pour des logs de suivi de projet."},
+                    {"role": "system", "content": """
+{agent_content}
+
+In this context, you are an assistant who summarizes project actions in a concise sentence with appropriate emojis. These summaries will serve as tracking logs within the mission.
+"""},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.3,
-                max_tokens=100
+                temperature=0.,
+                max_tokens=150
             )
             
             return response.choices[0].message.content.strip()
