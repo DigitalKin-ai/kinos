@@ -518,27 +518,34 @@ Important:
 
     def _generate_map_content(self, hierarchy: dict) -> str:
         """
-        Generate map content from folder hierarchy.
+        Generate map content from folder hierarchy with improved formatting.
         """
         def _format_folder(folder_data: dict, level: int = 0) -> str:
             indent = "  " * level
             content = []
             
-            # Add folder header and purpose
+            # Add folder header and purpose with better formatting
             content.append(f"{indent}## {folder_data['path']}")
-            content.append(f"{indent}Purpose: {folder_data['purpose']}\n")
+            content.append(f"{indent}**Purpose:** {folder_data['purpose']}\n")
             
-            # Add files
-            for file in folder_data['files']:
-                content.append(f"{indent}- {file['name']} ({file['role']}) - {file['description']}")
+            # Add files with better formatting
+            if folder_data['files']:
+                content.append(f"{indent}### Files:")
+                for file in folder_data['files']:
+                    content.append(f"{indent}- **{file['name']}** ({file['role']})  ")
+                    content.append(f"{indent}  _{file['description']}_\n")
             
-            # Add relationships if not root
+            # Add relationships if not root, with better formatting
             if level > 0:
-                content.append(f"\n{indent}Relationships:")
-                content.append(f"{indent}- Parent: {folder_data['relationships']['parent']}")
-                content.append(f"{indent}- Siblings: {folder_data['relationships']['siblings']}")
+                content.append(f"{indent}### Relationships:")
+                content.append(f"{indent}- **Parent:** _{folder_data['relationships']['parent']}_")
+                content.append(f"{indent}- **Siblings:** _{folder_data['relationships']['siblings']}_")
                 if folder_data['subfolders']:
-                    content.append(f"{indent}- Children: {folder_data['relationships']['children']}")
+                    content.append(f"{indent}- **Children:** _{folder_data['relationships']['children']}_")
+            
+            # Add line break before subfolders
+            if folder_data['subfolders']:
+                content.append("")
             
             # Recursively add subfolders
             for subfolder_name, subfolder_data in folder_data['subfolders'].items():
