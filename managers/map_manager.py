@@ -327,20 +327,31 @@ class MapManager:
         if os.path.isabs(folder_path):
             folder_path = os.path.relpath(folder_path, self.project_root)
             
+        # Build tree structure including both files and subfolders
+        tree = ["📂 ./"]
+        
+        # Add files first
+        for i, f in enumerate(files):
+            prefix = "├─ " if (i < len(files) - 1 or subfolders) else "└─ "
+            tree.append(f"   {prefix}{f}")
+            
+        # Add subfolders
+        for i, d in enumerate(subfolders):
+            prefix = "├─ " if i < len(subfolders) - 1 else "└─ "
+            tree.append(f"   {prefix}{d}/")
+        
+        tree_str = "\n".join(tree)
+
         return f"""# Objective
-Define folder's purpose and relationships
+Define folder's purpose and relationships:
+
+# Current Folder Structure
+{tree_str}
 
 # Mission Context
 ````
 {mission_content}
 ````
-
-# Current Folder Structure
-📂 ./
-   ├─ {chr(10).join(f'├─ {f}' for f in files[:-1])}
-   {'└─ ' + files[-1] if files else ''}
-   {chr(10).join(f'├─ {d}/' for d in subfolders[:-1])}
-   {'└─ ' + subfolders[-1] + '/' if subfolders else ''}
 
 # Instructions
 Provide in this format:
