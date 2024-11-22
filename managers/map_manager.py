@@ -345,6 +345,12 @@ Use same categories as before."""
     def _get_llm_analysis(self, prompt: str) -> str:
         """Get analysis from LLM."""
         try:
+            # Log the full prompt
+            self.logger.debug("\n🔍 SENDING PROMPT TO LLM:")
+            self.logger.debug("=" * 80)
+            self.logger.debug(prompt)
+            self.logger.debug("=" * 80)
+
             client = openai.OpenAI()
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -356,7 +362,14 @@ Use same categories as before."""
                 max_tokens=2000
             )
             
-            return response.choices[0].message.content.strip()
+            # Log the full response
+            content = response.choices[0].message.content.strip()
+            self.logger.debug("\n✨ LLM RESPONSE:")
+            self.logger.debug("=" * 80)
+            self.logger.debug(content)
+            self.logger.debug("=" * 80)
+            
+            return content
             
         except Exception as e:
             self.logger.error(f"LLM analysis failed: {str(e)}")
