@@ -289,95 +289,37 @@ Your task is to analyze the mission, objective, and agent configuration to deter
                              if os.path.isdir(os.path.join(parent_folder, d))
                              and d != os.path.basename(folder_path)]
         
-        return f"""Analyze this folder's role in the project structure.
-
-Folder: {folder_path}
-Parent: {parent_folder if parent_folder else 'ROOT'}
-Siblings: {', '.join(sibling_folders) if sibling_folders else 'None'}
-Files: {', '.join(files)}
-Subfolders: {', '.join(subfolders)}
-
-# Mission
+        return f"""Project Context:
 ```
 {mission_content}
 ```
 
-# Current Objective
+Current Objective:
 ```
 {objective_content}
 ```
 
-# Current Folder: {current_folder}
+Analyze this folder's:
 
-# Complete Project Tree:
-```
-{full_tree}
-```
+1. PURPOSE
+- What is this folder's main responsibility?
+- How does it support the project mission?
+- Why are these specific files grouped here?
 
-# Files to Analyze in Current Folder:
-```
-{', '.join(files_in_folder)}
-```
+2. RELATIONSHIPS
+- Parent: How does it fit into its parent folder's purpose?
+- Siblings: How does it complement other folders at same level?
+- Children: How are its subfolders organized (if any)?
 
-# Existing Global Map:
-```
-{global_map}
-```
+Provide your analysis in this exact format:
 
-Analyze each file in this folder considering:
+Purpose: [Single sentence explaining folder's core responsibility]
 
-1. FOLDER CONTEXT:
-   - How this folder supports project objectives
-   - Why these files are grouped together
-   - Relationship to parent/sibling folders
+Parent: [How it relates to parent folder]
 
-2. FILE ANALYSIS:
-   - Role of each file in current folder
-   - How it supports folder's purpose
-   - Relationships between files
+Siblings: [How it relates to sibling folders]
 
-3. STRUCTURAL IMPACT:
-   - How this level affects overall architecture
-   - Dependencies with other folders
-   - Integration points
-
-Provide your response in this format:
-
-## Folder Purpose
-[Explain why this folder exists and its role in the project]
-
-## File Mapping
-[For each file in current folder only:]
-- filename.ext (📊 ROLE) - Clear description showing:
-  * Purpose in this folder
-  * Relationship to other files
-  * Support of project mission
-
-Use these roles with corresponding emojis:
-
-Core Project Files:
-* PRIMARY DELIVERABLE (📊) - Final output files
-* SPECIFICATION (📋) - Requirements and plans
-* IMPLEMENTATION (⚙️) - Core functionality
-* DOCUMENTATION (📚) - User guides and docs
-
-Support Files:
-* CONFIGURATION (⚡) - Settings and configs
-* UTILITY (🛠️) - Helper functions
-* TEST (🧪) - Test cases
-* BUILD (📦) - Build scripts
-
-Working Files:
-* WORK DOCUMENT (✍️) - Active files
-* DRAFT (📝) - In-progress work
-* TEMPLATE (📄) - Reusable patterns
-* ARCHIVE (📂) - Historical versions
-
-Data Files:
-* SOURCE DATA (💾) - Input data
-* GENERATED (⚡) - Created outputs
-* CACHE (💫) - Temporary data
-* BACKUP (💿) - System backups"""
+Children: [How subfolders are organized] (if has subfolders)"""
 
 
     def _remove_file_from_map(self, filepath):
