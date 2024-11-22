@@ -179,27 +179,34 @@ class AgentRunner:
             if not os.path.exists(agent_filepath):
                 raise FileNotFoundError(f"Agent file not found: {agent_filepath}")
 
-            # Generate objective
+            # Generate objective (this should be quick)
+            self.logger.debug(f"Generating objective for {agent_name}")
             self.objective_manager.generate_objective(
                 mission_filepath,
                 agent_filepath
             )
+            self.logger.debug(f"Objective generated for {agent_name}")
 
             start_time = time.time()
-            self.logger.info(f"🕐 Agent {self._get_agent_emoji(agent_name)} {agent_name} starting cycle at {start_time}")
+            self.logger.debug(f"Starting aider execution for {agent_name}")
             
-            # Execute aider operation
-            await self.aider_manager.run_aider(
-                objective_filepath,
-                map_filepath,
-                agent_filepath,
-                model=model
-            )
-                
+            # Execute aider operation with proper async handling
+            try:
+                await self.aider_manager.run_aider(
+                    objective_filepath,
+                    map_filepath,
+                    agent_filepath,
+                    model=model
+                )
+                self.logger.debug(f"Aider execution completed for {agent_name}")
+            except Exception as e:
+                self.logger.error(f"Aider execution failed for {agent_name}: {str(e)}")
+                raise
+                    
             end_time = time.time()
             duration = end_time - start_time
             self.logger.info(f"⏱️ Agent {agent_name} completed cycle in {duration:.2f} seconds")
-                
+                    
             return agent_name
 
         except Exception as e:

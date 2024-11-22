@@ -76,6 +76,9 @@ class AiderManager:
             stdout, stderr = await process.communicate()
             
             if process.returncode != 0:
+                self.logger.error(f"Aider process failed with return code {process.returncode}")
+                self.logger.error(f"stdout: {stdout.decode()}")
+                self.logger.error(f"stderr: {stderr.decode()}")
                 raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
                 
             self.logger.debug("Aider execution completed")
