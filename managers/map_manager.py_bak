@@ -64,6 +64,117 @@ class MapManager:
                 return True
         return False
 
+    def _normalize_file_path(self, file_path: str) -> str:
+        """
+        Normalize file path to use forward slashes and relative paths.
+        
+        Args:
+            file_path: Path to normalize
+            
+        Returns:
+            str: Normalized path using forward slashes and relative to project root
+        """
+        # Convert to relative path if absolute
+        if os.path.isabs(file_path):
+            try:
+                file_path = os.path.relpath(file_path)
+            except ValueError:
+                # If path is on different drive, keep absolute
+                pass
+        
+        # Normalize separators to forward slashes
+        return file_path.replace(os.sep, '/')
+
+    def _get_files_in_folder(self, folder_path: str) -> list:
+        """
+        Get list of files in specified folder, respecting ignore patterns.
+        
+        Args:
+            folder_path: Path to folder to scan
+            
+        Returns:
+            list: List of file paths in folder
+        """
+        ignore_patterns = self._get_ignore_patterns()
+        files = []
+        
+        try:
+            for entry in os.scandir(folder_path):
+                if entry.is_file():
+                    rel_path = os.path.relpath(entry.path, '.')
+                    if not self._should_ignore(rel_path, ignore_patterns):
+                        files.append(entry.name)
+        except OSError as e:
+            self.logger.warning(f"⚠️ Cannot access folder {folder_path}: {str(e)}")
+            return []
+                        
+        return sorted(files)
+
+    def _count_tokens(self, content: str) -> int:
+        """
+        Count tokens in content using the initialized tokenizer.
+        
+        Args:
+            content: Text content to tokenize
+            
+        Returns:
+            int: Number of tokens in content
+        """
+        return len(self.tokenizer.encode(content))
+
+    def _generate_file_summary_prompt(self, filepath: str, content: str, global_map: str = "") -> str:
+        """
+        Create prompt for generating file summary.
+        
+        Args:
+            filepath: Path to file being analyzed
+            content: Content of file
+            global_map: Current global map content for context
+            
+        Returns:
+            str: Generated prompt for GPT analysis
+        """
+        dir_name = os.path.dirname(filepath)
+        file_name = os.path.basename(filepath)
+        
+        # Get sibling files for context
+        sibling_files = []
+        if os.path.exists(dir_name):
+            sibling_files = [f for f in os.listdir(dir_name)
+                           if os.path.isfile(os.path.join(dir_name, f))
+                           and f != file_name]
+
+        return f"""Analyze this file's role and purpose in the project:
+
+Filepath: {filepath}
+Directory: {dir_name}
+Sibling Files: {', '.join(sibling_files)}
+
+File Content Preview:
+```
+{content[:1000]}... [truncated]
+```
+
+Existing Project Context:
+```
+{global_map[:1000]}... [truncated]
+```
+
+Provide a concise analysis in this format:
+[EMOJI ROLE] - [Purpose description]
+
+Use these role categories:
+Core: 📊 PRIMARY, 📋 SPEC, ⚙️ IMPL, 📚 DOCS
+Support: ⚡ CONFIG, 🛠️ UTIL, 🧪 TEST, 📦 BUILD
+Working: ✍️ WORK, 📝 DRAFT, 📄 TEMPLATE, 📂 ARCHIVE
+Data: 💾 SOURCE, ⚡ GEN, 💫 CACHE, 💿 BACKUP
+
+Focus on:
+1. Technical role in project
+2. Relationship to sibling files
+3. Support of project mission
+"""
+
     def _get_available_files(self):
         """Get list of available files respecting ignore patterns."""
         ignore_patterns = self._get_ignore_patterns()
