@@ -685,7 +685,7 @@ Rules:
         # Default truncation with ellipsis
         return content[:max_length-3] + '...'
 
-    def generate_global_map(self, mission_filepath=".aider.mission.md"):
+    async def generate_global_map(self, mission_filepath=".aider.mission.md"):
         """
         Generate a global project map based on mission context.
         
@@ -719,6 +719,10 @@ Rules:
             self.logger.debug("💾 Saving global map")
             with open("map.md", 'w', encoding='utf-8') as f:
                 f.write(map_content)
+
+            # Generate visualization using VisionManager
+            self.logger.debug("🎨 Generating repository visualization")
+            await self._vision_manager.update_map()
                 
             self.logger.success("✨ Global map generated successfully")
             

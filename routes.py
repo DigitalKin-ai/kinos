@@ -61,7 +61,8 @@ def main():
                 objective_path = f".aider.objective.{agent_name}.md"
                 mission_path = ".aider.mission.md"
                 
-                manager.generate_map(mission_path, objective_path, agent_path)
+                # Use asyncio.run() to run the async method
+                asyncio.run(manager.generate_map(mission_path, objective_path, agent_path))
             else:
                 # Global map generation
                 mission_path = ".aider.mission.md"  # default
@@ -75,7 +76,8 @@ def main():
                         sys.exit(1)
                 
                 try:
-                    manager.generate_global_map(mission_path)
+                    # Use asyncio.run() to run the async method
+                    asyncio.run(manager.generate_global_map(mission_path))
                 except Exception as e:
                     print(f"❌ Failed to generate global map: {str(e)}")
                     sys.exit(1)
