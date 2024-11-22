@@ -318,74 +318,21 @@ class MapManager:
                     
         return sorted(folders)
 
-    def _create_folder_context_prompt(self, folder_path: str, files: list, 
-                                    subfolders: list, mission_content: str) -> str:
-        """
-        Create prompt for analyzing folder context.
-        
-        Args:
-            folder_path (str): Path to current folder (relative to project root)
-            files (list): List of files in folder
-            subfolders (list): List of subfolders
-            mission_content (str): Overall mission context
-            
-        Returns:
-            str: Formatted prompt for GPT analysis
-        """
+    def _create_folder_context_prompt(self, folder_path: str, files: list, subfolders: list, mission_content: str) -> str:
+        """Create prompt for analyzing folder context."""
         # Ensure we're using relative path
         if os.path.isabs(folder_path):
             folder_path = os.path.relpath(folder_path, self.project_root)
             
-        # Get ignore patterns
-        ignore_patterns = self._get_ignore_patterns()
-        
-        # Filter files and subfolders
-        files = [f for f in files if not self._should_ignore(os.path.join(folder_path, f), ignore_patterns)]
-        subfolders = [d for d in subfolders if not self._should_ignore(os.path.join(folder_path, d), ignore_patterns)]
-        
-        # Build tree structure
-        tree = []
-        
-        # Handle root folder differently
-        if folder_path == "." or os.path.abspath(folder_path) == self.project_root:
-            tree.append("📂 ./")
-            # Add files
-            for i, f in enumerate(files):
-                prefix = "├─" if i < len(files) - 1 or subfolders else "└─"
-                tree.append(f"   {prefix} {f}")
-            # Add subfolders
-            for i, d in enumerate(subfolders):
-                is_last = (i == len(subfolders) - 1)
-                tree.append(f"   {'└─' if is_last else '├─'} {d}/")
-        else:
-            # For subfolders, show parent path
-            parts = folder_path.split(os.sep)
-            for i, part in enumerate(parts[:-1]):
-                prefix = "   " * i
-                tree.append(f"{prefix}├─ {part}/")
-                
-            # Current folder with 📂
-            current_prefix = "   " * (len(parts) - 1)
-            tree.append(f"{current_prefix}📂 {os.path.basename(folder_path)}/")
-            
-            # Files in current folder
-            file_prefix = "   " * len(parts)
-            for i, f in enumerate(files):
-                prefix = "├─" if i < len(files) - 1 or subfolders else "└─"
-                tree.append(f"{file_prefix}{prefix} {f}")
-                
-            # Subfolders
-            for i, d in enumerate(subfolders):
-                is_last = (i == len(subfolders) - 1)
-                tree.append(f"{file_prefix}{'└─' if is_last else '├─'} {d}/")
-
-        tree_str = "\n".join(tree)
-
         return f"""# Objective
 Define folder's purpose and relationships:
 
 # Current Folder Structure
-{tree_str}
+📂 ./
+   ├─ {chr(10).join(f'├─ {f}' for f in files[:-1])}
+   {'└─ ' + files[-1] if files else ''}
+   {chr(10).join(f'├─ {d}/' for d in subfolders[:-1])}
+   {'└─ ' + subfolders[-1] + '/' if subfolders else ''}
 
 # Mission Context
 ````
