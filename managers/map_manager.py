@@ -381,34 +381,13 @@ Important:
             
             client = openai.OpenAI()
             
-            # Improved prompt for more structured response
-            prompt = f"""Define folder's purpose and relationships:
-
-Current Folder: {folder_path}
-
-Files Present:
-{chr(10).join(f'- {f}' for f in files)}
-
-Subfolders:
-{chr(10).join(f'- {f}' for f in subfolders)}
-
-Mission Context:
-{mission_content}
-
-Provide in this format:
-Purpose: [Action verb + direct object, max 10 words]
-Parent: [Direct relationship statement]
-Siblings: [Direct relationship statement]
-Children: [Direct relationship statement]
-
-Rules:
-- Start Purpose with action verb
-- Use declarative statements
-- Omit conditionals
-- Maximum 10 words per line
-- Focus on concrete actions"""
-
-            # Make API call with retry logic and improved parameters
+            # Create prompt
+            prompt = self._create_folder_context_prompt(folder_path, files, subfolders, mission_content)
+            
+            # Log the prompt at debug level
+            self.logger.debug(f"\n🔍 FOLDER CONTEXT PROMPT:\n{prompt}")
+            
+            # Make API call with retry logic
             max_retries = 3
             for attempt in range(max_retries):
                 try:
@@ -492,6 +471,9 @@ Rules:
             client = openai.OpenAI()
             prompt = self._create_file_analysis_prompt(filename, folder_context)
             
+            # Log the prompt at debug level
+            self.logger.debug(f"\n🔍 FILE ANALYSIS PROMPT for {filename}:\n{prompt}")
+            
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -502,8 +484,11 @@ Rules:
                 max_tokens=200
             )
             
-            # Parse response into structure
+            # Log the response at debug level
             content = response.choices[0].message.content
+            self.logger.debug(f"\n✨ FILE ANALYSIS RESPONSE for {filename}:\n{content}")
+            
+            # Parse response into structure 
             parts = content.split(' - ', 1)
             
             return {
