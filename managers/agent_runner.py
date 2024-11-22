@@ -35,7 +35,7 @@ class AgentRunner:
         runner = cls()
         return await runner.initialize()
         
-    async def run(self, mission_filepath=".aider.mission.md", generate_agents=False, agent_count=10):
+    async def run(self, mission_filepath=".aider.mission.md", generate_agents=False, agent_count=10, model="gpt-4o-mini"):
         """
         Main execution loop for running agents in parallel.
         """
@@ -68,7 +68,7 @@ class AgentRunner:
                 
             # Create initial tasks up to agent_count
             for i in range(min(agent_count, len(available_agents))):
-                task = asyncio.create_task(self._run_single_agent_cycle(mission_filepath))
+                task = asyncio.create_task(self._run_single_agent_cycle(mission_filepath, model=model))
                 tasks.add(task)
                 await asyncio.sleep(10)  # 10 second delay between each start
 
@@ -149,7 +149,7 @@ class AgentRunner:
                 
         return missing_agents
         
-    async def _run_single_agent_cycle(self, mission_filepath):
+    async def _run_single_agent_cycle(self, mission_filepath, model="gpt-4o-mini"):
         """Execute a single cycle for one agent."""
         agent_name = None
         try:
@@ -168,7 +168,8 @@ class AgentRunner:
                 None,  # Uses default executor
                 self._execute_agent_cycle,
                 agent_name, 
-                mission_filepath
+                mission_filepath,
+                model
             )
             
             end_time = time.time()
@@ -217,7 +218,7 @@ class AgentRunner:
         return [agent_type for agent_type in agent_types 
                 if os.path.exists(f".aider.agent.{agent_type}.md")]
         
-    def _execute_agent_cycle(self, agent_name, mission_filepath):
+    def _execute_agent_cycle(self, agent_name, mission_filepath, model="gpt-4o-mini"):
         """Execute a single agent cycle."""
         agent_filepath = f".aider.agent.{agent_name}.md"
         objective_filepath = f".aider.objective.{agent_name}.md"
