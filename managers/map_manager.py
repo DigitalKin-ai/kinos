@@ -366,26 +366,42 @@ Important:
             raise ValueError("folder_path cannot be empty")
             
         try:
-            # Generate cache key
-            cache_key = f"{folder_path}:{','.join(sorted(files))}:{','.join(sorted(subfolders))}"
+            # Convert to absolute path for internal use, but keep relative for display
+            abs_path = os.path.abspath(folder_path)
+            rel_path = os.path.relpath(abs_path, self.project_root)
+            
+            # Generate cache key using relative path
+            cache_key = f"{rel_path}:{','.join(sorted(files))}:{','.join(sorted(subfolders))}"
             
             # Check cache first
             if hasattr(self, '_context_cache'):
                 cached = self._context_cache.get(cache_key)
                 if cached:
-                    self.logger.debug(f"Using cached context for {folder_path}")
+                    self.logger.debug(f"Using cached context for {rel_path}")
                     return cached
             else:
                 # Initialize cache if needed
                 self._context_cache = {}
             
+            # Initialize context with both paths
+            context = {
+                'path': abs_path,  # Keep absolute path for internal use
+                'display_path': rel_path,  # Use relative path for display
+                'purpose': '',
+                'relationships': {
+                    'parent': 'No parent relationship specified',
+                    'siblings': 'No sibling relationships specified',
+                    'children': 'No children relationships specified'
+                }
+            }
+
             client = openai.OpenAI()
             
-            # Create prompt
-            prompt = self._create_folder_context_prompt(folder_path, files, subfolders, mission_content)
+            # Create prompt using relative path
+            prompt = self._create_folder_context_prompt(rel_path, files, subfolders, mission_content)
             
             # Log the prompt at debug level
-            self.logger.debug(f"\n🔍 FOLDER CONTEXT PROMPT:\n{prompt}")
+            self.logger.debug(f"\n🔍 FOLDER CONTEXT PROMPT for {rel_path}:\n{prompt}")
             
             # Make API call with retry logic
             max_retries = 3
@@ -507,13 +523,10 @@ Important:
             indent = "  " * level
             content = []
             
-            # Get folder path and convert to relative path if needed
-            folder_path = folder_data['path']
-            if os.path.isabs(folder_path):
-                try:
-                    folder_path = os.path.relpath(folder_path, self.project_root)
-                except ValueError:
-                    pass
+            # Always use display_path or convert absolute to relative if needed
+            folder_path = folder_data.get('display_path')
+            if not folder_path and 'path' in folder_data:
+                folder_path = os.path.relpath(folder_data['path'], self.project_root)
 
             # Create tree branch prefix
             if level > 0:
@@ -565,11 +578,15 @@ Important:
         return "# Project Map\n\n" + _format_folder(hierarchy)
     def _create_folder_context_prompt(self, folder_path: str, files: list, subfolders: list, mission_content: str) -> str:
         """Create prompt for analyzing folder context."""
+        # Ensure we're using relative path
+        if os.path.isabs(folder_path):
+            folder_path = os.path.relpath(folder_path, self.project_root)
+            
         return f"""# Objective
 Define folder's purpose and relationships:
 
 # Current Folder
-{folder_path}
+{folder_path}  # Now always using relative path
 
 # Files Present
 {chr(10).join(f'- {f}' for f in files)}
