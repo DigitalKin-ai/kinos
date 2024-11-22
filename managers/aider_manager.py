@@ -640,8 +640,24 @@ Focus on making the relationships and usage patterns clear and explicit.
     def run_map_maintenance(self, folder_path):
         """Perform map maintenance for a specific folder."""
         self.logger.debug(f"Running map maintenance for folder: {folder_path}")
-        self.logger.debug("Completed map maintenance for all folders.")
-        # Example debug log for each step:
-        self.logger.debug(f"Analyzing folder structure for: {folder_path}")
-        # Add more detailed logs as needed for each step of the process
-        # Implement the map maintenance logic for the folder here
+        self.logger.debug(f"Running map maintenance for folder: {folder_path}")
+        
+        # Example: Implement map maintenance logic here
+        try:
+            # Simulate a subprocess call or any maintenance logic
+            # Replace with actual logic as needed
+            result = subprocess.run(
+                ['echo', f'Maintaining map for {folder_path}'],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            self.logger.debug(f"Subprocess output: {result.stdout.strip()}")
+            
+            # Add more detailed logs for each step of the process
+            self.logger.debug(f"Analyzing folder structure for: {folder_path}")
+            # Implement actual map maintenance logic here
+            
+        except subprocess.CalledProcessError as e:
+            self.logger.error(f"Map maintenance failed for {folder_path}: {str(e)}")
+            raise
