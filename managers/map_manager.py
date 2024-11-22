@@ -104,69 +104,56 @@ Return in format:
 
     def _analyze_folder_hierarchy(self, folder_path: str, mission_content: str, objective_content: str) -> dict:
         """
-        Analyze folder and all its subfolders recursively, maintaining hierarchy.
+        Analyze folder and all its subfolders recursively, with complete context.
         
+        Args:
+            folder_path: Current folder to analyze
+            mission_content: Overall mission context
+            objective_content: Current objective context
+            
         Returns:
-            dict: Hierarchical structure like:
-            {
-                'path': folder_path,
-                'purpose': 'Folder purpose description',
-                'files': [
-                    {
-                        'name': 'file.py',
-                        'role': '⚙️ IMPL',
-                        'description': 'File purpose...'
-                    }
-                ],
-                'subfolders': {
-                    'subfolder_name': {
-                        'path': subfolder_path,
-                        'purpose': 'Subfolder purpose...',
-                        'files': [...],
-                        'subfolders': {...}
-                    }
-                },
-                'relationships': {
-                    'parent': 'How this folder relates to parent',
-                    'siblings': 'How it relates to sibling folders',
-                    'children': 'How subfolders are organized'
-                }
-            }
+            dict: Complete folder analysis including:
+                - Folder purpose
+                - File categorizations
+                - Subfolder relationships
+                - Structural context
         """
         try:
-            # Get immediate files and subfolders
-            files = self._get_folder_files(folder_path)
+            # Get immediate files and their contents
+            files_content = {}
+            for file in self._get_folder_files(folder_path):
+                try:
+                    file_path = os.path.join(folder_path, file)
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        files_content[file] = f.read()
+                except Exception as e:
+                    self.logger.warning(f"Could not read {file}: {str(e)}")
+                    files_content[file] = ""
+
+            # Get subfolder structure
             subfolders = self._get_subfolders(folder_path)
             
-            # Get folder's own context first
-            folder_context = self._get_folder_context(
-                folder_path,
-                files,
-                subfolders,
-                mission_content,
-                objective_content
+            # Generate complete folder context
+            folder_analysis = self._analyze_folder_level(
+                folder_path=folder_path,
+                files_content=files_content,
+                subfolders=subfolders,
+                mission_content=mission_content,
+                objective_content=objective_content
             )
-            
-            # Build hierarchical structure
-            hierarchy = {
-                'path': folder_path,
-                'purpose': folder_context['purpose'],
-                'files': [self._analyze_file(f, folder_context) for f in files],
-                'subfolders': {},
-                'relationships': folder_context['relationships']
-            }
-            
+
             # Recursively analyze subfolders
+            folder_analysis['subfolders'] = {}
             for subfolder in subfolders:
                 subfolder_path = os.path.join(folder_path, subfolder)
-                hierarchy['subfolders'][subfolder] = self._analyze_folder_hierarchy(
-                    subfolder_path,
-                    mission_content,
-                    objective_content
+                folder_analysis['subfolders'][subfolder] = self._analyze_folder_hierarchy(
+                    folder_path=subfolder_path,
+                    mission_content=mission_content,
+                    objective_content=objective_content
                 )
-                
-            return hierarchy
-            
+
+            return folder_analysis
+
         except Exception as e:
             self.logger.error(f"Failed to analyze folder hierarchy for {folder_path}: {str(e)}")
             raise
@@ -350,3 +337,57 @@ Data Files:
 
 Return in format:
 [EMOJI ROLE] - [Purpose description]"""
+    def _format_files_content(self, files_content: dict) -> str:
+        """Format files content for prompt, with reasonable length limits."""
+        formatted = []
+        for filename, content in files_content.items():
+            # Truncate very large files
+            if len(content) > 1000:
+                content = content[:1000] + "...[truncated]"
+            formatted.append(f"## {filename}\n```\n{content}\n```")
+        return "\n\n".join(formatted)
+
+    def _parse_folder_analysis(self, analysis_text: str) -> dict:
+        """Parse GPT analysis response into structured format."""
+        sections = {
+            'purpose': '',
+            'files': [],
+            'relationships': {'parent': '', 'siblings': '', 'children': ''}
+        }
+        
+        current_section = None
+        current_file = None
+        
+        for line in analysis_text.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+                
+            if line.startswith('1. FOLDER PURPOSE'):
+                current_section = 'purpose'
+            elif line.startswith('2. FILE ANALYSIS'):
+                current_section = 'files'
+            elif line.startswith('3. RELATIONSHIPS'):
+                current_section = 'relationships'
+            elif current_section == 'purpose' and line.startswith('-'):
+                sections['purpose'] += line[1:].strip() + ' '
+            elif current_section == 'files' and line.startswith('-'):
+                # Parse file entry: "- filename.ext (📊 ROLE) - description"
+                parts = line[1:].split(' - ', 1)
+                if len(parts) == 2:
+                    name_role = parts[0].split(' (')
+                    if len(name_role) == 2:
+                        sections['files'].append({
+                            'name': name_role[0].strip(),
+                            'role': name_role[1].rstrip(')'),
+                            'description': parts[1].strip()
+                        })
+            elif current_section == 'relationships':
+                if line.startswith('- Parent:'):
+                    sections['relationships']['parent'] = line.split(':', 1)[1].strip()
+                elif line.startswith('- Siblings:'):
+                    sections['relationships']['siblings'] = line.split(':', 1)[1].strip()
+                elif line.startswith('- Children:'):
+                    sections['relationships']['children'] = line.split(':', 1)[1].strip()
+                    
+        return sections
