@@ -12,6 +12,26 @@ class AiderManager:
         """Initialize the manager with logger."""
         self.logger = Logger()
 
+    def _ensure_aider_installed(self):
+        """Ensure aider is installed locally."""
+        try:
+            # Check if aider directory exists
+            if not os.path.exists("aider"):
+                self.logger.info("📦 Cloning aider...")
+                subprocess.run([
+                    'git', 'clone', 'https://github.com/Aider-AI/aider.git'
+                ], check=True)
+                
+                # Install aider in editable mode
+                subprocess.run([
+                    'pip', 'install', '-e', './aider'
+                ], check=True)
+
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to install aider: {str(e)}")
+            raise
+
     def run_aider(self, objective_filepath, map_filepath, agent_filepath, model="gpt-4o-mini"):
         """
         Execute aider operation with defined context.
@@ -28,6 +48,9 @@ class AiderManager:
         """
         try:
             self.logger.info("🚀 Starting aider operation")
+            
+            # Ensure aider is installed
+            self._ensure_aider_installed()
             
             # Validate input files
             if not self._validate_files(objective_filepath, map_filepath, agent_filepath):
