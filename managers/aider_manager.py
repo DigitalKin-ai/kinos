@@ -69,6 +69,13 @@ class AiderManager:
             # Load context map
             context_files = self._load_context_map(map_filepath)
             
+            # Get agent name from filepath for post-processing
+            agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
+            
+            # Get initial git state
+            before_state = self._get_git_file_states()
+            self.logger.debug(f"📝 Captured initial git state with {len(before_state)} files")
+            
             # Configure aider command
             cmd = self._build_aider_command(
                 objective_filepath,
@@ -80,6 +87,13 @@ class AiderManager:
             
             # Execute aider with await
             await self._execute_aider(cmd)
+            
+            # Get final git state
+            after_state = self._get_git_file_states()
+            self.logger.debug(f"📝 Captured final git state with {len(after_state)} files")
+            
+            # Handle post-aider operations
+            await self._handle_post_aider(agent_name, before_state, after_state, "Production")
             
             self.logger.info("✅ Aider operation completed successfully")
             
