@@ -451,7 +451,7 @@ Rules:
                 
             # Add folder header with full path
             content.append(f"{indent}## {full_path}")
-            content.append(f"{indent}**Purpose:** {folder_data['purpose']}\n")
+            content.append(f"{indent}**Purpose:** {folder_data.get('purpose', 'No purpose specified')}\n")
             
             # Add files with better formatting and tree structure
             if folder_data.get('files'):
@@ -460,24 +460,25 @@ Rules:
                     # Use tree branches for files too
                     file_branch = "├─ " if i < len(folder_data['files']) - 1 else "└─ "
                     file_path = f"{full_path}/{file['name']}"
-                    content.append(f"{indent}- **{file_branch}{file_path}** ({file['role']})  ")
-                    content.append(f"{indent}  _{file['description']}_\n")
-        
-            # Add relationships if not root
-            if level > 0:
-                content.append(f"{indent}Relationships:")
-                content.append(f"{indent}- **Parent:** _{folder_data['relationships']['parent']}_")
-                content.append(f"{indent}- **Siblings:** _{folder_data['relationships']['siblings']}_")
+                    content.append(f"{indent}- **{file_branch}{file_path}** ({file.get('role', 'UNKNOWN')})  ")
+                    content.append(f"{indent}  _{file.get('description', 'No description')}_\n")
+    
+            # Add relationships if not root and if they exist
+            if level > 0 and 'relationships' in folder_data:
+                content.append(f"{indent}### Relationships:")
+                relationships = folder_data.get('relationships', {})
+                content.append(f"{indent}- **Parent:** _{relationships.get('parent', 'No parent specified')}_")
+                content.append(f"{indent}- **Siblings:** _{relationships.get('siblings', 'No siblings specified')}_")
                 if folder_data.get('subfolders'):
-                    content.append(f"{indent}- **Children:** _{folder_data['relationships']['children']}_")
-        
+                    content.append(f"{indent}- **Children:** _{relationships.get('children', 'No children specified')}_")
+    
             # Add line break before subfolders
             if folder_data.get('subfolders'):
                 content.append("")
-        
+    
             # Calculate new path prefix for subfolders
             new_prefix = f"{path_prefix}{'│  ' if path_prefix else '   '}" if level > 0 else ""
-        
+    
             # Recursively add subfolders
             subfolder_items = list(folder_data.get('subfolders', {}).items())
             for i, (subfolder_name, subfolder_data) in enumerate(subfolder_items):
