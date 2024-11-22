@@ -435,8 +435,8 @@ class AgentRunner:
                 agent_filepath
             )
             
-            # Execute aider operation with model parameter
-            self.aider_manager.run_aider(
+            # Execute aider operation with model parameter - now properly awaited
+            await self.aider_manager.run_aider(
                 objective_filepath,
                 map_filepath,
                 agent_filepath,
