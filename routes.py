@@ -48,43 +48,37 @@ def main():
         elif subcommand == "map":
             manager = MapManager()
             
-            # Parse arguments
-            if len(sys.argv) < 4 or sys.argv[3] != "--agent":
-                print("Usage: kin generate map --agent <agent_name>")
-                sys.exit(1)
-                
-            if len(sys.argv) < 5:
-                print("Usage: kin generate map --agent <agent_name>")
-                sys.exit(1)
-                
-            agent_name = sys.argv[4]
-            agent_path = f".aider.agent.{agent_name}.md"
-            objective_path = f".aider.objective.{agent_name}.md"
-            mission_path = ".aider.mission.md"
-            
-            manager.generate_map(mission_path, objective_path, agent_path)
-            
-        elif subcommand == "map":
-            manager = MapManager()
-            
-            # Get mission file path (optional)
-            mission_path = ".aider.mission.md"  # default
-            if "--mission" in sys.argv:
-                try:
-                    mission_index = sys.argv.index("--mission") + 1
-                    if mission_index < len(sys.argv):
-                        mission_path = sys.argv[mission_index]
-                except (ValueError, IndexError):
-                    print("Missing value for --mission flag")
+            # Check if --agent flag is present
+            if "--agent" in sys.argv:
+                # Agent-specific map generation
+                if len(sys.argv) < 5 or sys.argv[3] != "--agent":
+                    print("Usage: kin generate map --agent <agent_name>")
                     sys.exit(1)
-            
-            try:
-                # Call the full map generation
-                manager.generate_global_map(mission_path)
-                print("✨ Global map generated successfully")
-            except Exception as e:
-                print(f"❌ Failed to generate global map: {str(e)}")
-                sys.exit(1)
+                
+                agent_name = sys.argv[4]
+                agent_path = f".aider.agent.{agent_name}.md"
+                objective_path = f".aider.objective.{agent_name}.md"
+                mission_path = ".aider.mission.md"
+                
+                manager.generate_map(mission_path, objective_path, agent_path)
+            else:
+                # Global map generation
+                mission_path = ".aider.mission.md"  # default
+                if "--mission" in sys.argv:
+                    try:
+                        mission_index = sys.argv.index("--mission") + 1
+                        if mission_index < len(sys.argv):
+                            mission_path = sys.argv[mission_index]
+                    except (ValueError, IndexError):
+                        print("Missing value for --mission flag")
+                        sys.exit(1)
+                
+                try:
+                    manager.generate_global_map(mission_path)
+                    print("✨ Global map generated successfully")
+                except Exception as e:
+                    print(f"❌ Failed to generate global map: {str(e)}")
+                    sys.exit(1)
             
     elif command == "run":
         if len(sys.argv) < 3:
