@@ -99,7 +99,7 @@ class VisionManager:
                     self.logger.error(f"stderr: {stderr.decode()}")
                 raise subprocess.CalledProcessError(
                     process.returncode,
-                    process.args,
+                    f"node {dist_path} --config {self.config_path} --verbose",
                     output=stdout,
                     stderr=stderr
                 )
