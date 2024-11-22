@@ -6,12 +6,17 @@
     "node": {
       "colors": {
         ".py": "#3572A5",
-        ".pyi": "#3572A5",
+        ".pyi": "#3572A5", 
         ".pyx": "#3572A5",
         ".pyd": "#3572A5",
+        ".pyc": "#3572A5",
+        ".pyo": "#3572A5",
+        ".pyw": "#3572A5",
+        ".ipynb": "#3572A5",
         ".md": "#083fa1",
-        ".rst": "#083fa1",
+        ".rst": "#083fa1", 
         ".txt": "#083fa1",
+        ".adoc": "#083fa1",
         ".json": "#292929",
         ".js": "#f1e05a",
         ".jsx": "#f1e05a", 
@@ -24,6 +29,6 @@
       }
     }
   },
-  "excluded_paths": "node_modules,dist,build,coverage,.git,.pytest_cache,.hypothesis,.idea,.vscode,.env,.venv,env,venv",
+  "excluded_paths": "node_modules,dist,build,coverage,.git,.pytest_cache,.hypothesis,.idea,.vscode,.env,.venv,env,venv,__pycache__,*.egg-info",
   "excluded_globs": ".aider*/**/*;.aider.*/**/*;**/.aider*/**/*;**/.aider.*/**/*;**/__pycache__/**/*;**/*.pyc;**/*.pyo;**/*.pyd;**/*.so;**/*.dll;**/*.dylib;**/.DS_Store;**/Thumbs.db;**/desktop.ini;**/*.log;**/*.cache;**/*.bak;**/*.swp;**/*.tmp;**/*.temp;**/*~;**/.env;**/.env.*;**/*.local;**/.coverage;**/*.egg-info;**/*.egg;**/*.whl;**/*.manifest;**/.history/**/*;**/.venv/**/*;**/dist/**/*;**/build/**/*;**/.next/**/*;**/coverage/**/*;**/.nyc_output/**/*;**/node_modules/**/*;**/.yarn/**/*"
 }
