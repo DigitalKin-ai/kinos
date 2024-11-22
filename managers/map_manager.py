@@ -63,44 +63,6 @@ class MapManager:
             self.logger.error(f"Failed to analyze file {filename}: {str(e)}")
             raise
 
-    def _create_file_analysis_prompt(self, filename: str, folder_context: dict) -> str:
-        """Create prompt for analyzing a single file's role."""
-        return f"""Analyze this file's role in its folder:
-
-Filename: {filename}
-Folder Purpose: {folder_context['purpose']}
-
-Determine the file's:
-1. Technical role (using emoji categories below)
-2. Specific purpose in this folder
-3. How it supports folder's purpose
-
-Core Project Files:
-* PRIMARY DELIVERABLE (📊) - Final output files
-* SPECIFICATION (📋) - Requirements and plans
-* IMPLEMENTATION (⚙️) - Core functionality
-* DOCUMENTATION (📚) - User guides and docs
-
-Support Files:
-* CONFIGURATION (⚡) - Settings and configs
-* UTILITY (🛠️) - Helper functions
-* TEST (🧪) - Test cases
-* BUILD (📦) - Build scripts
-
-Working Files:
-* WORK DOCUMENT (✍️) - Active files
-* DRAFT (📝) - In-progress work
-* TEMPLATE (📄) - Reusable patterns
-* ARCHIVE (📂) - Historical versions
-
-Data Files:
-* SOURCE DATA (💾) - Input data
-* GENERATED (⚡) - Created outputs
-* CACHE (💫) - Temporary data
-* BACKUP (💿) - System backups
-
-Return in format:
-[EMOJI ROLE] - [Purpose description]"""
 
     def _analyze_folder_hierarchy(self, folder_path: str, mission_content: str, objective_content: str) -> dict:
         """
