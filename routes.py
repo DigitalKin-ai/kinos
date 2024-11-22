@@ -52,8 +52,12 @@ def main():
             Logger().logger.setLevel(logging.DEBUG)
             manager.logger.logger.setLevel(logging.DEBUG)
             
+            # Add debug message to confirm logging level
+            Logger().logger.debug("🔧 Debug logging enabled for map generation")
+            
             # Check if --agent flag is present
             if "--agent" in sys.argv:
+                Logger().logger.debug("🔍 Generating agent-specific map")
                 # Agent-specific map generation
                 if len(sys.argv) < 5 or sys.argv[3] != "--agent":
                     print("Usage: kin generate map --agent <agent_name>")
@@ -68,21 +72,24 @@ def main():
                 asyncio.run(manager.generate_map(mission_path, objective_path, agent_path))
             else:
                 # Global map generation
+                Logger().logger.debug("🗺️ Generating global project map")
                 mission_path = ".aider.mission.md"  # default
                 if "--mission" in sys.argv:
                     try:
                         mission_index = sys.argv.index("--mission") + 1
                         if mission_index < len(sys.argv):
                             mission_path = sys.argv[mission_index]
+                            Logger().logger.debug(f"📄 Using custom mission file: {mission_path}")
                     except (ValueError, IndexError):
-                        print("Missing value for --mission flag")
+                        Logger().logger.error("Missing value for --mission flag")
                         sys.exit(1)
                 
                 try:
-                    # Use asyncio.run() to run the async method
+                    Logger().logger.debug("🚀 Starting map generation process")
                     asyncio.run(manager.generate_global_map(mission_path))
+                    Logger().logger.debug("✨ Map generation completed")
                 except Exception as e:
-                    print(f"❌ Failed to generate global map: {str(e)}")
+                    Logger().logger.error(f"❌ Failed to generate global map: {str(e)}")
                     sys.exit(1)
             
     elif command == "run":
