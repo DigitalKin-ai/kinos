@@ -9,6 +9,35 @@ class EncodingUtils:
     def __init__(self):
         self.logger = Logger()
 
+    def _read_file(self, filepath: str) -> str:
+        """
+        Read content from file with robust encoding handling.
+        
+        Args:
+            filepath (str): Path to file to read
+            
+        Returns:
+            str: File content
+            
+        Raises:
+            Exception: If file cannot be read
+        """
+        try:
+            # First try UTF-8
+            with open(filepath, 'r', encoding='utf-8') as f:
+                return f.read()
+        except UnicodeDecodeError:
+            # If UTF-8 fails, try to convert the file
+            if self.convert_to_utf8(filepath):
+                # Try reading again with UTF-8
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    return f.read()
+            else:
+                raise ValueError(f"Could not read file {filepath} - encoding conversion failed")
+        except Exception as e:
+            self.logger.error(f"Failed to read {filepath}: {str(e)}")
+            raise
+
     def convert_to_utf8(self, filepath: str) -> bool:
         """
         Convert a file to UTF-8 encoding.
