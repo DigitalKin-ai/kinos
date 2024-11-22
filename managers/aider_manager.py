@@ -367,7 +367,7 @@ class AiderManager:
                 try:
                     file_path = file_path.encode('latin1').decode('utf-8')
                     self.logger.info(f"🔄 Agent {agent_name} updating global map for: {file_path}")
-                    map_manager.update_global_map(file_path)
+                    self._vision_manager.update_global_map(file_path)
                     self.logger.debug(f"✅ Agent {agent_name} successfully updated map for: {file_path}")
                 except Exception as e:
                     self.logger.error(f"❌ Agent {agent_name} failed to update map for {file_path}: {str(e)}")
