@@ -246,7 +246,7 @@ class MapManager:
 Analyze this folder and its files:
 
 # Current Structure
-{tree_str}
+👉 {tree_str}
 
 # Mission Context
 ````
