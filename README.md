@@ -131,6 +131,10 @@ kin run agents --model claude-3-5-haiku-20241022  # Use Anthropic's Claude 3 Hai
 # Generate new agents
 kin generate agents
 
+# Generate project map
+kin generate map                    # Uses default mission file
+kin generate map --mission my.md    # Uses custom mission file
+
 # Run redundancy analysis
 kin redundancy analyze
 ```
