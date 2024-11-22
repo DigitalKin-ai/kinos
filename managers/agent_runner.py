@@ -100,7 +100,7 @@ class AgentRunner:
             if not self._validate_mission_file(mission_filepath):
                 raise SystemExit(1)
 
-            # Then check for missing agents
+            # Check for missing agents
             missing_agents = self._agents_exist(force_regenerate=generate_agents)
             if missing_agents:
                 self.logger.info("🔄 Generating automatic agents...")
@@ -123,23 +123,27 @@ class AgentRunner:
                         agent_filepath
                     )
 
-            # Initialize tasks
+            # Create a pool of tasks
             tasks = set()
-            
-            # Create initial batch of tasks
-            for i in range(min(agent_count, len(available_agents))):
-                agent_name = await self._select_available_agent()
-                if not agent_name:
-                    break
-                    
-                task = asyncio.create_task(
-                    self._run_single_agent_cycle(agent_name, mission_filepath, model=model)
-                )
-                tasks.add(task)
-                await asyncio.sleep(10)  # 10 second delay between each start
-            
-            # Main execution loop
+            running_agents = set()
+
             while True:
+                # Add new tasks until we reach agent_count
+                while len(tasks) < agent_count and len(running_agents) < len(available_agents):
+                    # Select an available agent
+                    unused_agents = [a for a in available_agents if a not in running_agents]
+                    if not unused_agents:
+                        break
+                        
+                    agent_name = random.choice(unused_agents)
+                    running_agents.add(agent_name)
+                    
+                    # Create and add new task
+                    task = asyncio.create_task(
+                        self._run_single_agent_cycle(agent_name, mission_filepath, model=model)
+                    )
+                    tasks.add(task)
+                    self.logger.debug(f"Added task for agent {agent_name}")
 
                 if not tasks:
                     break  # No more tasks to run
@@ -155,10 +159,14 @@ class AgentRunner:
                 for completed_task in done:
                     tasks.remove(completed_task)
                     try:
-                        agent_name = await completed_task  # Get agent name from task
-                        self._active_agents.remove(agent_name)  # Remove from active set
+                        agent_name = await completed_task
+                        running_agents.remove(agent_name)  # Make agent available again
+                        self.logger.debug(f"Agent {agent_name} completed cycle")
                     except Exception as e:
                         self.logger.error(f"Agent task failed: {str(e)}")
+
+                # Keep remaining tasks
+                tasks = pending
         except Exception as e:
             self.logger.error(f"Error during execution: {str(e)}")
             raise
