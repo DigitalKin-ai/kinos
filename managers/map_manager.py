@@ -2,6 +2,7 @@ import os
 import asyncio
 import logging
 import time
+import fnmatch
 from pathlib import Path
 from utils.logger import Logger
 from utils.encoding_utils import EncodingUtils
