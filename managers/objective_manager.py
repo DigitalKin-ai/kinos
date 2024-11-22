@@ -274,6 +274,9 @@ Respond ONLY with the file lists in the format shown above.
                 self.logger.warning(f"⚠️ Could not generate file context: {str(e)}")
                 # Continue without file context
 
+            # Initialize messages list
+            messages = []
+            
             # Add diagram if available
             if diagram_content:
                 try:
