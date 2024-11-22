@@ -652,18 +652,12 @@ Focus on making the relationships and usage patterns clear and explicit.
         try:
             # Simulate a subprocess call or any maintenance logic
             # Replace with actual logic as needed
-            result = subprocess.run(
-                ['echo', f'Maintaining map for {folder_path}'],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            self.logger.debug(f"Subprocess output: {result.stdout.strip()}")
+            self.logger.debug(f"Maintaining map for {folder_path}")
             
             # Add more detailed logs for each step of the process
             self.logger.debug(f"Analyzing folder structure for: {folder_path}")
             # Implement actual map maintenance logic here
             
-        except subprocess.CalledProcessError as e:
+        except Exception as e:
             self.logger.error(f"Map maintenance failed for {folder_path}: {str(e)}")
             raise
