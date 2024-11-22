@@ -72,10 +72,18 @@ def main():
                 
                 # Set default log level to SUCCESS (only show success and above)
                 runner.logger.logger.setLevel(logging.SUCCESS)
-                
-                # Only change to DEBUG if --verbose flag is present
+                # Also set console handler to SUCCESS by default
+                for handler in runner.logger.logger.handlers:
+                    if isinstance(handler, logging.StreamHandler):
+                        handler.setLevel(logging.SUCCESS)
+
+                # Check for --verbose flag
                 if "--verbose" in sys.argv:
                     runner.logger.logger.setLevel(logging.DEBUG)
+                    # Also set console handler to DEBUG
+                    for handler in runner.logger.logger.handlers:
+                        if isinstance(handler, logging.StreamHandler):
+                            handler.setLevel(logging.DEBUG)
                     
                 # Get mission file path
                 mission_path = ".aider.mission.md"  # default
