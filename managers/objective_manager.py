@@ -120,16 +120,23 @@ class ObjectiveManager:
                 except Exception as e:
                     self.logger.warning(f"⚠️ Could not read todolist.md: {str(e)}")
 
+            # Read and encode diagram.svg if it exists
+            diagram_content = None
+            if os.path.exists('./diagram.svg'):
+                try:
+                    with open('./diagram.svg', 'rb') as f:
+                        diagram_content = f.read()
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not read diagram.svg: {str(e)}")
+
             # Check for Perplexity API key
             perplexity_key = os.getenv('PERPLEXITY_API_KEY')
             if perplexity_key:
-                # Include Search instruction in prompt
                 search_instruction = """
 
 4. **Search**
    - If research needed, add "Search:" line with query"""
             else:
-                # Skip Search instruction if no API key
                 search_instruction = ""
 
             prompt = f"""
@@ -170,10 +177,9 @@ Create two objectives in markdown format - one for production, one specific to y
    - Which states to validate{search_instruction}
 """
             self.logger.info(f"OBJECTIVE PROMPT: {prompt}")
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": """
+
+            messages = [
+                {"role": "system", "content": """
 {agent_content}
                      
 # Planning
@@ -181,9 +187,33 @@ Your planning:
 1. Prioritizes explicit mission instructions
 2. Does not repeats previous actions, or work done by the other agents
 3. Maintains clear progression
-"""},
-                    {"role": "user", "content": prompt}
-                ],
+"""}
+            ]
+
+            # Add diagram if available
+            if diagram_content:
+                messages.append({
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "image_bytes": {
+                                "bytes": diagram_content
+                            }
+                        },
+                        {
+                            "type": "text",
+                            "text": "Above is the current project structure visualization. Use it to inform your objective planning."
+                        }
+                    ]
+                })
+
+            # Add main prompt
+            messages.append({"role": "user", "content": prompt})
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
                 temperature=0.5,
                 max_tokens=2000
             )
