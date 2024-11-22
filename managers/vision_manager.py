@@ -17,13 +17,12 @@ class VisionManager:
                  file_colors: Optional[Dict[str, str]] = None):
         """
         Initialize the vision manager.
+        Uses githubocto/repo-visualizer for generating interactive visualizations.
         
         Args:
             output_file (str): Path for output SVG file
             max_depth (int): Maximum folder depth to visualize
             file_colors (dict): Custom colors for file extensions
-            min_size (float): Minimum node size in inches
-            max_size (float): Maximum node size in inches
         """
         self.logger = Logger()
         self.map_path = output_file
@@ -109,29 +108,6 @@ class VisionManager:
             self.logger.warning(f"Error checking ignore pattern {pattern} for {path}: {str(e)}")
             return False
 
-    def _calculate_node_size(self, file_size: int) -> float:
-        """
-        Calculate node size based on file size with logarithmic scaling.
-        
-        Args:
-            file_size (int): Size of file in bytes
-            
-        Returns:
-            float: Node size in inches between min_size and max_size
-        """
-        if file_size == 0:
-            return self.min_size
-            
-        import math
-        # Use log scaling to handle wide range of file sizes
-        log_size = math.log(file_size + 1, 10)  # +1 to handle empty files
-        max_log_size = math.log(1024 * 1024 * 100, 10)  # 100MB max for scaling
-        
-        # Scale between min and max size
-        scale = (log_size / max_log_size)
-        size = self.min_size + (self.max_size - self.min_size) * scale
-        
-        return min(max(size, self.min_size), self.max_size)
 
     async def update_map(self, root_path: str = "."):
         """
