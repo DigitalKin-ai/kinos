@@ -20,7 +20,7 @@ class VisionManager:
     def _get_repo_visualizer_path(self) -> str:
         """Get the repo-visualizer installation directory path."""
         kinos_path = self._get_kinos_install_path()
-        return os.path.join(kinos_path, 'repo-visualizer')
+        return os.path.join(kinos_path, 'repo-viz')
 
     def __init__(self, 
                  output_file: str = "repo-visualizer.svg",
