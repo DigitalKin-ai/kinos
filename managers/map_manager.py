@@ -714,20 +714,47 @@ Format your response as:
 filename.md (token_count tokens) 📊 ROLE - Clear description of how this file supports the mission's primary deliverables.
 
 Example entries:
-- analysis.md (358 tokens) 📊 PRIMARY DELIVERABLE - Final analysis document that synthesizes all findings.
-- research_notes.md (250 tokens) 📋 WORK DOCUMENT - Working document containing research notes and drafts for analysis.md.
-- source_data.md (150 tokens) 📚 READ-ONLY SOURCE DATA - Reference material used to inform the analysis.
-- helper.py (120 tokens) 🛠️ SUPPORT TOOL - Script that assists in data processing.
+- requirements.md (358 tokens) 📋 SPECIFICATION - Core system requirements defining project scope and features.
+- api/endpoints.py (250 tokens) ⚙️ IMPLEMENTATION - REST API endpoints implementing core business logic.
+- docs/api_reference.md (150 tokens) 📚 DOCUMENTATION - Comprehensive API documentation for external users.
+- utils/data_processor.py (120 tokens) 🛠️ UTILITY - Shared data processing functions used across modules.
+- tests/api_tests.py (180 tokens) 🧪 TEST - Integration tests validating API functionality.
+- .env.example (90 tokens) ⚡ CONFIGURATION - Template for environment configuration.
+- data/raw_input.json (200 tokens) 💾 SOURCE DATA - Original data from client system.
+- temp/cache.json (100 tokens) 💫 CACHE - Temporary processing results.
 
 Note:
-- Use these roles with corresponding emojis:
-  * PRIMARY DELIVERABLE (📊) - Main output files
-  * WORK DOCUMENT (📋) - Documents being actively worked on
-  * READ-ONLY SOURCE DATA (📚) - Reference/input files
-  * SUPPORT TOOL (🛠️) - Helper files and utilities
-- Most documents should be marked as WORK DOCUMENT unless they are final deliverables
-- Keep descriptions focused on mission support
-- Show clear relationship to primary deliverables
+- Use these expanded roles with corresponding emojis:
+
+Core Project Files:
+  * PRIMARY DELIVERABLE (📊) - Final output files that directly fulfill mission objectives
+  * SPECIFICATION (📋) - Design documents, requirements, and architectural plans
+  * IMPLEMENTATION (⚙️) - Core functionality and business logic files
+  * DOCUMENTATION (📚) - User guides, API docs, and technical references
+
+Support Files:
+  * CONFIGURATION (⚡) - Settings, environment configs, and parameters
+  * UTILITY (🛠️) - Helper functions, shared libraries, and tools
+  * TEST (🧪) - Test cases, fixtures, and validation scripts
+  * BUILD (📦) - Build scripts, deployment configs, and CI/CD files
+
+Working Files:
+  * WORK DOCUMENT (✍️) - Files actively being modified (default for most files)
+  * DRAFT (📝) - Incomplete or in-progress deliverables
+  * TEMPLATE (📄) - Reusable patterns and boilerplate
+  * ARCHIVE (📂) - Historical or reference versions
+
+Data Files:
+  * SOURCE DATA (💾) - Input data and raw resources
+  * GENERATED (⚡) - Automatically created outputs
+  * CACHE (💫) - Temporary or intermediate data
+  * BACKUP (💿) - System and data backups
+
+Notes:
+- Mark files as WORK DOCUMENT by default unless they clearly fit another role
+- Each file should show clear connection to mission objectives
+- Include rationale for file location and naming
+- Explain relationships between files
 """
 
     def _update_map_file_fallback(self, filepath, token_count, summary):
