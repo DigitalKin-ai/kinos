@@ -221,19 +221,27 @@ class VisionManager:
             config_path = os.path.join(os.path.dirname(self.map_path), "repo-visualizer.config.json")
             with open(config_path, 'w') as f:
                 json.dump(config, f, indent=2)
+            
+            # Log config contents
+            self.logger.debug(f"Config file contents: {json.dumps(config, indent=2)}")
 
             # Run visualization using the local clone
             self.logger.debug("🎨 Generating repository visualization...")
             try:
                 dist_path = os.path.join(self._get_repo_visualizer_path(), 'dist', 'index.js')
                 
-                if not os.path.exists(dist_path):
+                # Verify index.js exists and has content
+                if os.path.exists(dist_path):
+                    file_size = os.path.getsize(dist_path)
+                    self.logger.debug(f"index.js exists with size: {file_size} bytes")
+                else:
                     raise FileNotFoundError(f"Built index.js not found at {dist_path}")
                     
                 result = subprocess.run([
                     'node',
                     dist_path,  # Use absolute path
-                    '--config', config_path
+                    '--config', config_path,
+                    '--verbose'  # Add verbose flag
                 ], check=True, capture_output=True, text=True)
                 self.logger.debug(f"Command output: {result.stdout}")
             except subprocess.CalledProcessError as e:
