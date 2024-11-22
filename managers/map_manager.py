@@ -502,10 +502,8 @@ Important:
             raise
 
     def _generate_map_content(self, hierarchy: dict) -> str:
-        """
-        Generate map content from folder hierarchy with improved formatting.
-        """
-        def _format_folder(folder_data: dict, level: int = 0) -> str:
+        """Generate map content from folder hierarchy with improved tree formatting."""
+        def _format_folder(folder_data: dict, level: int = 0, path_prefix: str = "") -> str:
             indent = "  " * level
             content = []
             
@@ -515,26 +513,27 @@ Important:
                 try:
                     folder_path = os.path.relpath(folder_path, self.project_root)
                 except ValueError:
-                    # Keep absolute path if relpath fails
                     pass
-            
-            # Add folder header and purpose with better formatting
-            content.append(f"{indent}## {folder_path}")
+
+            # Create tree branch prefix
+            if level > 0:
+                branch = "├─ " if path_prefix else "└─ "
+                full_path = f"{path_prefix}{branch}{os.path.basename(folder_path)}"
+            else:
+                full_path = "."  # Root folder
+                
+            # Add folder header with full path
+            content.append(f"{indent}## {full_path}")
             content.append(f"{indent}**Purpose:** {folder_data['purpose']}\n")
             
-            # Add files with better formatting and relative paths
+            # Add files with better formatting and tree structure
             if folder_data['files']:
                 content.append(f"{indent}### Files:")
-                for file in folder_data['files']:
-                    # Construct relative file path
-                    file_path = os.path.join(folder_path, file['name'])
-                    if os.path.isabs(file_path):
-                        try:
-                            file_path = os.path.relpath(file_path, self.project_root)
-                        except ValueError:
-                            file_path = file['name']  # Fallback to just filename
-                    
-                    content.append(f"{indent}- **{file_path}** ({file['role']})  ")
+                for i, file in enumerate(folder_data['files']):
+                    # Use tree branches for files too
+                    file_branch = "├─ " if i < len(folder_data['files']) - 1 else "└─ "
+                    file_path = f"{full_path}/{file['name']}"
+                    content.append(f"{indent}- **{file_branch}{file_path}** ({file['role']})  ")
                     content.append(f"{indent}  _{file['description']}_\n")
             
             # Add relationships if not root
@@ -549,10 +548,18 @@ Important:
             if folder_data['subfolders']:
                 content.append("")
             
+            # Calculate new path prefix for subfolders
+            new_prefix = f"{path_prefix}{'│  ' if path_prefix else '   '}" if level > 0 else ""
+            
             # Recursively add subfolders
-            for subfolder_name, subfolder_data in folder_data['subfolders'].items():
-                content.append("\n" + _format_folder(subfolder_data, level + 1))
-                
+            subfolder_items = list(folder_data['subfolders'].items())
+            for i, (subfolder_name, subfolder_data) in enumerate(subfolder_items):
+                is_last = (i == len(subfolder_items) - 1)
+                if is_last:
+                    content.append("\n" + _format_folder(subfolder_data, level + 1, new_prefix))
+                else:
+                    content.append("\n" + _format_folder(subfolder_data, level + 1, new_prefix))
+                    
             return "\n".join(content)
         
         return "# Project Map\n\n" + _format_folder(hierarchy)
