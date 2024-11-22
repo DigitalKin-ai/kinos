@@ -154,6 +154,9 @@ class AgentsManager:
             except Exception as e:
                 self.logger.warning(f"⚠️ Could not load custom prompt for {agent_name}: {str(e)}")
 
+        # Ensure we're getting the complete mission content
+        self.logger.debug(f"Mission content length: {len(mission_content)} characters")
+        
         return f"""
 # Generate KinOS Agent Configuration
 
@@ -161,21 +164,20 @@ Using the provided analysis framework, generate an Aider agent configuration for
 
 ## Input Context
 
-MISSION:
-```
+MISSION (COMPLETE):
+````
 {mission_content}
-```
+````
 
-CURRENT PROJECT MAP
+CURRENT PROJECT MAP:
 ````
 {global_map_content}
 ````
 
-
 ANALYSIS FRAMEWORK:
-```
+````
 {custom_prompt if custom_prompt else "Using default KinOS analysis framework"}
-```
+````
 
 ## Generation Process
 
