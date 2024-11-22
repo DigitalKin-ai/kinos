@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [6.1.0] - 2024-01-24
 
 ### Added
+- ✨ Added --model flag to customize the model used by aider (defaults to gpt-4o-mini)
 - 🎯 File summaries now include their role in achieving project mission
 - 🔍 Map generation considers file location and directory structure
 - 📝 File descriptions now explain why files are in specific directories
