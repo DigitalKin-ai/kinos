@@ -47,17 +47,22 @@ class FSUtils:
     def build_tree_structure(self, current_path: str, files: list, subfolders: list, 
                            max_depth: int = 3, current_depth: int = 0, 
                            is_current_branch: bool = True) -> list:
-        """Build tree structure with proper indentation."""
+        """Build tree structure with proper indentation and active folder highlighting."""
         tree = []
+        
+        # Determine if this is the active folder
+        is_active = os.path.abspath(current_path) == self.current_folder_path
         
         # Show root folder without indentation
         if current_depth == 0:
-            tree.append("📂 ./")
+            active_indicator = "👉 " if is_active else ""
+            tree.append(f"{active_indicator}📂 ./")
             base_indent = "   "  # Base indentation for root level items
         else:
             folder_name = os.path.basename(current_path)
             base_indent = "   " * current_depth
-            tree.append(f"{base_indent}📂 {folder_name}")
+            active_indicator = "👉 " if is_active else ""
+            tree.append(f"{base_indent}{active_indicator}📂 {folder_name}")
         
         # Add files with proper indentation
         for i, f in enumerate(files):
