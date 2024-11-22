@@ -92,6 +92,19 @@ class AiderManager:
             after_state = self._get_git_file_states()
             self.logger.debug(f"📝 Captured final git state with {len(after_state)} files")
             
+            # Get latest commit info
+            try:
+                result = subprocess.run(
+                    ['git', 'log', '-1', '--pretty=format:%h - %s'],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                if result.stdout:
+                    self.logger.success(f"🔨 Git commit: {result.stdout}")
+            except subprocess.CalledProcessError as e:
+                self.logger.warning(f"Could not get commit info: {e}")
+            
             # Handle post-aider operations
             await self._handle_post_aider(agent_name, before_state, after_state, "Production")
             
@@ -427,8 +440,21 @@ class AiderManager:
         final_state = self._get_git_file_states()
         modified_files = await self._handle_post_aider(agent_name, initial_state, final_state, phase_name)
     
-        # Push changes to GitHub if files were modified
+        # Get latest commit info if files were modified
         if modified_files:
+            try:
+                result = subprocess.run(
+                    ['git', 'log', '-1', '--pretty=format:%h - %s'],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                if result.stdout:
+                    self.logger.success(f"🔨 Git commit: {result.stdout}")
+            except subprocess.CalledProcessError as e:
+                self.logger.warning(f"Could not get commit info: {e}")
+
+            # Push changes to GitHub
             try:
                 self.logger.info(f"🔄 Attempting to push changes...")
                 subprocess.run(['git', 'push'], check=True, capture_output=True, text=True)
