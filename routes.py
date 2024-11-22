@@ -3,7 +3,6 @@ import logging
 import asyncio
 from managers.agents_manager import AgentsManager
 from managers.objective_manager import ObjectiveManager
-from managers.map_manager import MapManager
 from managers.aider_manager import AiderManager
 from managers.agent_runner import AgentRunner
 from utils.logger import Logger
@@ -26,8 +25,7 @@ def main():
             manager = AiderManager()
             manager.run_map_maintenance()
             
-        subcommand = sys.argv[2]
-        if subcommand == "agents":
+        elif subcommand == "agents":
             manager = AgentsManager()
             # Optional mission file path
             mission_path = sys.argv[3] if len(sys.argv) > 3 else ".aider.mission.md"
