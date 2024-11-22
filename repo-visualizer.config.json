@@ -1,6 +1,7 @@
 {
   "output": "diagram.svg",
   "depth": 4,
+  "pushToRepo": false,
   "style": {
     "node": {
       "colors": {
@@ -8,7 +9,7 @@
         ".md": "#083fa1",
         ".json": "#292929",
         ".js": "#f1e05a",
-        ".jsx": "#f1e05a",
+        ".jsx": "#f1e05a", 
         ".ts": "#0060ac",
         ".tsx": "#0060ac",
         ".yml": "#cb171e",
@@ -62,22 +63,21 @@
     }
   },
   "exclude": [
-    "node_modules",
-    ".git",
-    "__pycache__",
-    "dist",
-    "build", 
-    "coverage",
     ".aider*",
-    "*.aider.*",
-    ".aider.chat_history",
-    ".aider.input.history",
-    ".aider.tags.md",
-    ".aider.mission.md",
-    ".aider.objective.*.md",
-    ".aider.map.*.md",
-    ".aider.agent.*.md",
-    ".aider.history.*.md",
+    ".aider.*",
+    ".aider/**/*",
+    "**/.aider*", 
+    "**/.aider.*",
+    "**/.aider/**/*",
+    ".git",
+    ".git/**/*",
+    "node_modules",
+    "node_modules/**/*",
+    "__pycache__",
+    "**/__pycache__",
+    "dist",
+    "build",
+    "coverage",
     "*.pyc",
     "*.pyo",
     "*.pyd",
@@ -88,7 +88,7 @@
     "Thumbs.db",
     "desktop.ini",
     "*.log",
-    "*.cache", 
+    "*.cache",
     "*.bak",
     "*.swp",
     "*.tmp",
@@ -107,6 +107,5 @@
     "*.egg",
     "*.whl",
     "*.manifest"
-  ],
-  "pushToRepo": false
+  ]
 }
