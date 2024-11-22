@@ -1031,7 +1031,7 @@ Use same categories as before."""
                 )
                 
                 # Update repo map
-                await self._vision_manager.update_map()
+                await self._vision_manager.generate_visualization()
                 
                 self.logger.debug(f"✨ Folder analysis and visualization updated for: {folder_path}")
                 
