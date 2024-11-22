@@ -167,7 +167,14 @@ class AgentRunner:
             self.logger.info(f"🕐 Agent {agent_name} starting cycle at {start_time}")
             
             # Execute agent cycle with proper async handling
-            await self._execute_agent_cycle(agent_name, mission_filepath, model)
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(
+                None,  # Uses default executor
+                self._execute_agent_cycle,
+                agent_name,
+                mission_filepath,
+                model
+            )
             
             end_time = time.time()
             duration = end_time - start_time
