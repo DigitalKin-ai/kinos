@@ -45,7 +45,7 @@ class AiderManager:
                 "Please check file permissions."
             )
 
-    def run_aider(self, objective_filepath, map_filepath, agent_filepath, model="gpt-4o-mini"):
+    async def run_aider(self, objective_filepath, map_filepath, agent_filepath, model="gpt-4o-mini"):
         """
         Execute aider operation with defined context.
         
@@ -358,22 +358,40 @@ class AiderManager:
         
         return modified_files
 
-    def _handle_post_aider(self, agent_name, before_state, after_state, phase_name):
+    async def _handle_post_aider(self, agent_name, before_state, after_state, phase_name):
         """Handle all post-aider operations for a single phase."""
         modified_files = self._get_modified_files(before_state, after_state)
         if modified_files:
             self.logger.info(f"📝 Agent {agent_name} {phase_name} phase modified {len(modified_files)} files")
+            
+            # Track if any files were created or deleted
+            files_changed = False
             for file_path in modified_files:
                 try:
                     file_path = file_path.encode('latin1').decode('utf-8')
                     self.logger.info(f"🔄 Agent {agent_name} updating global map for: {file_path}")
                     self._vision_manager.update_global_map(file_path)
                     self.logger.debug(f"✅ Agent {agent_name} successfully updated map for: {file_path}")
+                    
+                    # Check if file was created or deleted
+                    if file_path not in before_state or file_path not in after_state:
+                        files_changed = True
+                        
                 except Exception as e:
                     self.logger.error(f"❌ Agent {agent_name} failed to update map for {file_path}: {str(e)}")
+            
+            # Generate new visualization if files were created or deleted
+            if files_changed:
+                try:
+                    self.logger.info("🎨 Updating repository visualization...")
+                    await self._vision_manager.generate_visualization()
+                    self.logger.success("✨ Repository visualization updated")
+                except Exception as e:
+                    self.logger.error(f"❌ Failed to update visualization: {str(e)}")
+                    
         return modified_files
 
-    def _run_aider_phase(self, cmd, agent_name, phase_name, phase_prompt):
+    async def _run_aider_phase(self, cmd, agent_name, phase_name, phase_prompt):
         """Run a single aider phase and handle its results."""
         phase_start = time.time()
         self.logger.info(f"{phase_name} Agent {agent_name} starting phase at {phase_start}")
@@ -401,7 +419,7 @@ class AiderManager:
 
         # Get final state and handle post-aider operations
         final_state = self._get_git_file_states()
-        modified_files = self._handle_post_aider(agent_name, initial_state, final_state, phase_name)
+        modified_files = await self._handle_post_aider(agent_name, initial_state, final_state, phase_name)
     
         # Push changes to GitHub if files were modified
         if modified_files:
@@ -499,7 +517,7 @@ Update map.md to reflect the current project structure while maintaining its for
             max_depth=None  # No depth limit
         )
 
-    def _execute_aider(self, cmd):
+    async def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
         try:
             # Configure git to use UTF-8 for commit messages
@@ -518,19 +536,19 @@ Update map.md to reflect the current project structure while maintaining its for
             self.logger.info(f"⏳ Agent {agent_name} starting aider execution at {start_time}")
 
             # Run production phase
-            production_files, production_state = self._run_aider_phase(
+            production_files, production_state = await self._run_aider_phase(
                 cmd, agent_name, "🏭 Production", 
                 "--> Focus on the Production Objective"
             )
 
             # Run role-specific phase
-            role_files, role_state = self._run_aider_phase(
+            role_files, role_state = await self._run_aider_phase(
                 cmd, agent_name, "👤 Role-specific",
                 "--> Focus on the Role-specific Objective"
             )
 
             # Run final check phase
-            final_files, final_state = self._run_aider_phase(
+            final_files, final_state = await self._run_aider_phase(
                 cmd, agent_name, "🔍 Final Check",
                 "--> Any additional changes required? Then update the todolist to reflect the changes."
             )
@@ -560,7 +578,7 @@ Update map.md to reflect the current project structure while maintaining its for
                 map_cmd[-1] = map_prompt  # Replace message with map maintenance prompt
                 
                 self.logger.debug("🔄 Running map maintenance phase")
-                map_files, map_state = self._run_aider_phase(
+                map_files, map_state = await self._run_aider_phase(
                     map_cmd, agent_name, "🗺️ Map Maintenance", 
                     "--> Update map.md to reflect all project changes"
                 )
