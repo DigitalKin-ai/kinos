@@ -716,11 +716,24 @@ Return in format:
             bool: True if file appears to be binary, False otherwise
         """
         try:
-            # Always treat .md files as text
-            if file_path.lower().endswith('.md'):
+            # Define known text file extensions
+            text_extensions = {
+                '.txt', '.md', '.py', '.js', '.html', '.css', '.json', 
+                '.yaml', '.yml', '.ini', '.cfg', '.conf', '.sh', '.bat',
+                '.ps1', '.env', '.rst', '.xml', '.csv', '.sql', '.htaccess',
+                '.gitignore', '.dockerignore', '.editorconfig', '.toml',
+                '.properties', '.gradle', '.jsx', '.tsx', '.vue', '.php',
+                '.rb', '.pl', '.java', '.kt', '.go', '.rs', '.c', '.cpp',
+                '.h', '.hpp', '.cs', '.vb', '.swift', '.r', '.scala',
+                '.clj', '.ex', '.exs', '.erl', '.fs', '.fsx', '.dart'
+            }
+            
+            # Check extension first
+            ext = os.path.splitext(file_path)[1].lower()
+            if ext in text_extensions:
                 return False
                 
-            # Read first 1024 bytes
+            # For unknown extensions, check content
             with open(file_path, 'rb') as f:
                 chunk = f.read(1024)
                 
