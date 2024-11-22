@@ -847,6 +847,64 @@ Rules:
             self.logger.error(f"Error checking if {file_path} is binary: {str(e)}")
             return True  # Assume binary on error to be safe
 
+    def _analyze_file(self, filename: str, folder_context: dict) -> dict:
+        """
+        Analyze single file's role and purpose.
+        
+        Args:
+            filename (str): Name of file to analyze
+            folder_context (dict): Context information about the containing folder
+            
+        Returns:
+            dict: Analysis containing:
+                - name: Filename
+                - role: Technical role with emoji
+                - description: Purpose description
+        """
+        try:
+            # Get folder path from context
+            folder_path = folder_context.get('display_path', '')  # Use display_path (relative) by default
+            if not folder_path and 'path' in folder_context:
+                # Fallback to absolute path if needed
+                folder_path = os.path.relpath(folder_context['path'], self.project_root)
+                
+            # Build full relative path for file
+            file_path = os.path.join(folder_path, filename)
+            
+            client = openai.OpenAI()
+            prompt = self._create_file_analysis_prompt(file_path, folder_context)
+            
+            # Log the prompt at debug level
+            self.logger.debug(f"\n🔍 FILE ANALYSIS PROMPT for {file_path}:\n{prompt}")
+            
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a technical analyst identifying file roles and purposes."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=200
+            )
+            
+            # Log the response at debug level
+            content = response.choices[0].message.content
+            self.logger.debug(f"\n✨ FILE ANALYSIS RESPONSE for {file_path}:\n{content}")
+            
+            # Parse response into structure 
+            parts = content.split(' - ', 1)
+            
+            return {
+                'name': filename,
+                'path': file_path,  # Add relative path to result
+                'role': parts[0].strip(),
+                'description': parts[1].strip() if len(parts) > 1 else ''
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Failed to analyze file {filename}: {str(e)}")
+            raise
+
     def _parse_folder_analysis(self, analysis_text: str) -> dict:
         """
         Parse and validate GPT analysis response into structured format.
