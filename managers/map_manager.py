@@ -430,9 +430,9 @@ Rules:
                     self.logger.warning(f"API call failed, attempt {attempt + 1}/{max_retries}: {str(e)}")
                     time.sleep(2 ** attempt)  # Exponential backoff
             
-            # Parse response with improved error handling
+            # Log the response at debug level
             content = response.choices[0].message.content.strip()
-            self.logger.debug(f"GPT Response for {folder_path}:\n{content}")
+            self.logger.debug(f"\n✨ FOLDER CONTEXT RESPONSE:\n{content}")
             
             # Initialize context with default values
             context = {
@@ -571,43 +571,33 @@ Rules:
             return "\n".join(content)
         
         return "# Project Map\n\n" + _format_folder(hierarchy)
-    def _create_file_analysis_prompt(self, filename: str, folder_context: dict) -> str:
-        """Create prompt for analyzing a single file's role."""
-        return f"""Analyze this file's role:
+    def _create_folder_context_prompt(self, folder_path: str, files: list, subfolders: list, mission_content: str) -> str:
+        """Create prompt for analyzing folder context."""
+        return f"""Define folder's purpose and relationships:
 
-Filename: {filename}
-Folder Purpose: {folder_context['purpose']}
+Current Folder: {folder_path}
 
-Determine:
-1. Technical role (select ONE from below)
-2. Direct purpose statement (start with action verb, max 10 words)
+Files Present:
+{chr(10).join(f'- {f}' for f in files)}
 
-Core Project Files:
-* PRIMARY DELIVERABLE (📊) - Final outputs
-* SPECIFICATION (📋) - Requirements
-* IMPLEMENTATION (⚙️) - Core code
-* DOCUMENTATION (📚) - Reference docs
+Subfolders:
+{chr(10).join(f'- {f}' for f in subfolders)}
 
-Support Files:
-* CONFIGURATION (⚡) - Settings
-* UTILITY (🛠️) - Helpers
-* TEST (🧪) - Tests
-* BUILD (📦) - Build files
+Mission Context:
+{mission_content}
 
-Working Files:
-* WORK DOCUMENT (✍️) - Active work
-* DRAFT (📝) - In progress
-* TEMPLATE (📄) - Patterns
-* ARCHIVE (📂) - History
+Provide in this format:
+Purpose: [Action verb + direct object, max 10 words]
+Parent: [Direct relationship statement]
+Siblings: [Direct relationship statement]
+Children: [Direct relationship statement]
 
-Data Files:
-* SOURCE DATA (💾) - Inputs
-* GENERATED (⚡) - Outputs
-* CACHE (💫) - Temp data
-* BACKUP (💿) - Backups
-
-Return in format:
-[TYPE NAME (EMOJI)] - [Action verb + direct object]"""
+Rules:
+- Start Purpose with action verb
+- Use declarative statements
+- Omit conditionals
+- Maximum 10 words per line
+- Focus on concrete actions"""
     def _format_files_content(self, files_content: dict) -> str:
         """
         Format files content for prompt with intelligent truncation.
@@ -979,3 +969,40 @@ Return in format:
         except Exception as e:
             self.logger.error(f"Failed to update folder analysis: {str(e)}")
             raise
+    def _create_file_analysis_prompt(self, filename: str, folder_context: dict) -> str:
+        """Create prompt for analyzing a single file's role."""
+        return f"""Analyze this file's role:
+
+Filename: {filename}
+Folder Purpose: {folder_context['purpose']}
+
+Determine:
+1. Technical role (select ONE from below)
+2. Direct purpose statement (start with action verb, max 10 words)
+
+Core Project Files:
+* PRIMARY DELIVERABLE (📊) - Final outputs
+* SPECIFICATION (📋) - Requirements
+* IMPLEMENTATION (⚙️) - Core code
+* DOCUMENTATION (📚) - Reference docs
+
+Support Files:
+* CONFIGURATION (⚡) - Settings
+* UTILITY (🛠️) - Helpers
+* TEST (🧪) - Tests
+* BUILD (📦) - Build files
+
+Working Files:
+* WORK DOCUMENT (✍️) - Active work
+* DRAFT (📝) - In progress
+* TEMPLATE (📄) - Patterns
+* ARCHIVE (📂) - History
+
+Data Files:
+* SOURCE DATA (💾) - Inputs
+* GENERATED (⚡) - Outputs
+* CACHE (💫) - Temp data
+* BACKUP (💿) - Backups
+
+Return in format:
+[TYPE NAME (EMOJI)] - [Action verb + direct object]"""
