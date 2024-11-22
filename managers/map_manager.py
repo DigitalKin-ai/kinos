@@ -212,10 +212,30 @@ Files:
   _[Action verb] [technical description]_
 
 Categories (select ONE per file):
-Core: PRIMARY 📊, SPEC 📋, IMPL ⚙️, DOCS 📚
-Support: CONFIG ⚡, UTIL 🛠️, TEST 🧪, BUILD 📦
-Working: WORK ✍️, DRAFT 📝, TEMPLATE 📄, ARCHIVE 📂
-Data: SOURCE 💾, GEN ⚡, CACHE 💫, BACKUP 💿
+
+Core Project Files:
+* PRIMARY (📊) - Final outputs, key results
+* SPECIFICATION (📋) - Requirements, standards  
+* IMPLEMENTATION (⚙️) - Core functionality
+* DOCUMENTATION (📚) - Explanations, guides
+
+Support Files:
+* CONFIGURATION (⚡) - Settings, parameters
+* UTILITY (🛠️) - Helper functions, tools
+* TEST (🧪) - Validation, verification 
+* BUILD (📦) - Compilation, deployment
+
+Working Files:
+* WORK DOCUMENT (✍️) - Active development
+* DRAFT (📝) - Work in progress
+* TEMPLATE (📄) - Patterns, structures
+* ARCHIVE (📂) - Historical records
+
+Data Files:
+* SOURCE DATA (💾) - Input data
+* GENERATED (⚡) - Computed results  
+* CACHE (💫) - Temporary storage
+* BACKUP (💿) - Data preservation
 
 Rules:
 - Start all descriptions with action verb
