@@ -61,39 +61,41 @@ class AgentRunner:
             if not available_agents:
                 raise ValueError("No agents available to run")
 
-            # Create tasks list to maintain
-            tasks = []
-            
-            # Initial launch of agents up to agent_count
+            # Create initial tasks
+            initial_tasks = []
             for _ in range(min(agent_count, len(available_agents))):
-                task = asyncio.create_task(
-                    self._run_single_agent_cycle(mission_filepath, model=model)
-                )
-                tasks.append(task)
-                await asyncio.sleep(10)  # Keep 10 second delay between initial starts
+                task = self._run_single_agent_cycle(mission_filepath, model=model)
+                initial_tasks.append(task)
+
+            # Launch initial tasks with delay between starts
+            tasks = []
+            for task in initial_tasks:
+                tasks.append(asyncio.create_task(task))
+                await asyncio.sleep(10)  # 10 second delay between starts
 
             # Main loop to maintain parallel execution
             while True:
                 if not tasks:
                     break
-                    
+
                 # Wait for any task to complete
                 done, pending = await asyncio.wait(
                     tasks,
-                    return_when=asyncio.FIRST_COMPLETED
+                    return_when=asyncio.FIRST_COMPLETED,
+                    timeout=30  # Add timeout to prevent hanging
                 )
-                
-                # Remove completed tasks
+
+                # Update tasks list
                 tasks = list(pending)
-                
-                # Process completed tasks and start new ones if needed
+
+                # Replace completed tasks immediately
                 for completed_task in done:
                     try:
                         await completed_task  # Get any exceptions
                     except Exception as e:
                         self.logger.error(f"Agent task failed: {str(e)}")
-                    
-                    # Start a new task if we're below agent_count
+
+                    # Start new task immediately if we're below agent_count
                     if len(tasks) < agent_count:
                         new_task = asyncio.create_task(
                             self._run_single_agent_cycle(mission_filepath, model=model)
