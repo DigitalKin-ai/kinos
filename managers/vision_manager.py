@@ -38,7 +38,22 @@ class VisionManager:
         Note:
             Always includes .aider* pattern regardless of .gitignore contents
         """
-        pass
+        # Start with default patterns
+        ignored = [".aider*"]
+        
+        # Add patterns from .gitignore if it exists
+        if os.path.exists(".gitignore"):
+            try:
+                with open(".gitignore", "r", encoding="utf-8") as f:
+                    # Add each non-empty, non-comment line
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#"):
+                            ignored.append(line)
+            except Exception as e:
+                self.logger.warning(f"⚠️ Error reading .gitignore: {str(e)}")
+        
+        return ignored
 
     async def update_map(self) -> bool:
         """
@@ -81,7 +96,31 @@ class VisionManager:
         Returns:
             bool: True if files have been modified, False otherwise
         """
-        pass
+        # If no previous update, consider it changed
+        if not self._last_update:
+            return True
+            
+        try:
+            # Walk through repository
+            for root, _, files in os.walk("."):
+                # Skip ignored directories
+                if any(p in root for p in [".git", "__pycache__", "node_modules"]):
+                    continue
+                    
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    try:
+                        # Check if file was modified after last update
+                        if os.path.getmtime(file_path) > self._last_update:
+                            return True
+                    except OSError:
+                        continue  # Skip files we can't access
+                        
+            return False
+            
+        except Exception as e:
+            self.logger.error(f"Error checking for changes: {str(e)}")
+            return True  # Assume changes on error to be safe
 
     async def _generate_map(self) -> None:
         """
