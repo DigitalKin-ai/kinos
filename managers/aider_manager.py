@@ -419,6 +419,19 @@ class AiderManager:
     
         return modified_files, final_state
 
+    def _get_complete_tree(self):
+        """Get complete tree structure without depth limit."""
+        fs_utils = FSUtils()
+        current_path = "."
+        files = fs_utils.get_folder_files(current_path)
+        subfolders = fs_utils.get_subfolders(current_path)
+        return fs_utils.build_tree_structure(
+            current_path=current_path,
+            files=files,
+            subfolders=subfolders,
+            max_depth=None  # No depth limit
+        )
+
     def _execute_aider(self, cmd):
         """Execute aider command and handle results."""
         try:
@@ -455,18 +468,62 @@ class AiderManager:
                 "--> Any additional changes required? Then update the todolist to reflect the changes."
             )
 
+            # Get list of all modified/added/deleted files
+            all_changes = set()
+            all_changes.update(production_files or [])
+            all_changes.update(role_files or [])
+            all_changes.update(final_files or [])
+
+            if all_changes:
+                self.logger.info("🗺️ Starting map maintenance phase")
+                
+                # Get complete tree structure
+                tree_structure = self._get_complete_tree()
+                tree_text = "\n".join(tree_structure)
+                
+                # Create map maintenance prompt
+                map_prompt = f"""
+# Project Structure Changes
+The following files were modified in this session:
+{', '.join(all_changes)}
+
+# Current Complete Project Structure
+{tree_text}
+
+# Instructions
+1. Review the current map.md content
+2. For each new or modified file:
+   - Add or update its description if missing
+   - Use the format: `- **filename** (CATEGORY EMOJI) - description`
+3. For deleted files:
+   - Remove their entries from the map
+4. Ensure all files have appropriate descriptions
+5. Maintain consistent categories and emojis:
+   Core: PRIMARY 📊, SPEC 📋, IMPL ⚙️, DOCS 📚
+   Support: CONFIG ⚡, UTIL 🛠️, TEST 🧪, BUILD 📦
+   Working: WORK ✍️, DRAFT 📝, TEMPLATE 📄, ARCHIVE 📂
+   Data: SOURCE 💾, GEN ⚡, CACHE 💫, BACKUP 💿
+
+Update the map.md file to reflect these changes while maintaining its current structure and format.
+"""
+
+                # Run map maintenance phase
+                map_cmd = cmd.copy()
+                map_cmd.extend(['--file', 'map.md'])  # Add map.md as editable
+                map_cmd[-1] = map_prompt  # Replace message with map maintenance prompt
+                
+                self.logger.debug("🔄 Running map maintenance phase")
+                map_files, map_state = self._run_aider_phase(
+                    map_cmd, agent_name, "🗺️ Map Maintenance", 
+                    "--> Update map.md to reflect all project changes"
+                )
+
             # Log total duration and summary
             total_duration = time.time() - start_time
             self.logger.info(f"🎯 Agent {agent_name} completed total aider execution in {total_duration:.2f} seconds")
             
-            # Combine all modified files
-            all_modified = set()
-            all_modified.update(production_files or [])
-            all_modified.update(role_files or [])
-            all_modified.update(final_files or [])
-            
-            if all_modified:
-                self.logger.info(f"📝 Agent {agent_name} modified total of {len(all_modified)} files")
+            if all_changes:
+                self.logger.info(f"📝 Agent {agent_name} modified total of {len(all_changes)} files")
 
         except Exception as e:
             agent_msg = f"Agent {agent_name} " if agent_name else ""
