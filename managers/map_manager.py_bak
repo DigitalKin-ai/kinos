@@ -11,16 +11,25 @@ import tiktoken
 from dotenv import load_dotenv
 
 class MapManager:
-    """Manager class for generating context maps for agent operations."""
+    """
+    Manager class for generating and maintaining project structure maps.
+    
+    Responsible for:
+    - Generating folder-specific structural maps
+    - Tracking file creation and deletion
+    - Analyzing folder roles and relationships
+    - Maintaining folder-based organization
+    """
     
     def __init__(self):
+        """Initialize the map manager with required components."""
         self.logger = Logger()
         load_dotenv()
         openai.api_key = os.getenv('OPENAI_API_KEY')
         if not openai.api_key:
             raise ValueError("OpenAI API key not found in environment variables")
-        self.api_semaphore = asyncio.Semaphore(10)  # Limit concurrent API calls
         self.tokenizer = tiktoken.encoding_for_model("gpt-4")
+        self.api_semaphore = asyncio.Semaphore(10)
 
     def _get_ignore_patterns(self):
         """Get patterns from .gitignore and .aiderignore."""
@@ -134,58 +143,43 @@ class MapManager:
         
         return sorted(available_files)  # Sort for consistent output
 
-    def generate_map(self, mission_filepath=".aider.mission.md", 
-                    objective_filepath=None, 
-                    agent_filepath=None):
-        """Generate a hierarchical context map for an agent."""
-        try:
-            # Extract agent name from filepath
-            agent_name = self._extract_agent_name(agent_filepath)
-            self.logger.info(f"🗺️ Generating hierarchical map for agent: {agent_filepath}")
+    def generate_map(self, mission_filepath, objective_filepath, agent_filepath):
+        """
+        Generate a folder-based context map for an agent.
+        
+        Args:
+            mission_filepath (str): Path to mission specification file
+            objective_filepath (str): Path to agent's current objective
+            agent_filepath (str): Path to agent configuration file
             
+        Raises:
+            ValueError: If required files are invalid or missing
+        """
+        try:
             # Validate input files
             if not all(self._validate_file(f) for f in [mission_filepath, objective_filepath, agent_filepath]):
                 raise ValueError("Invalid or missing input files")
-                
+
+            # Extract agent name for output file
+            agent_name = self._extract_agent_name(agent_filepath)
+            self.logger.info(f"🗺️ Generating folder map for agent: {agent_name}")
+
             # Load required content
-            mission_content = self._read_file(mission_filepath)
-            objective_content = self._read_file(objective_filepath)
-            
-            # Initialize complete map content
-            complete_map = ["# Project Map\n"]
-            
-            # Process root directory first
-            root_analysis = self._generate_map_content(
-                ".",
-                mission_content,
-                objective_content
+            mission_content = self._read_file_safe(mission_filepath)
+            objective_content = self._read_file_safe(objective_filepath)
+
+            # Generate folder structure analysis
+            folder_map = self._analyze_folder_structure(
+                mission_content=mission_content,
+                objective_content=objective_content
             )
-            complete_map.append(root_analysis)
-            
-            # Process each subdirectory
-            for root, dirs, _ in os.walk("."):
-                # Skip ignored directories
-                dirs[:] = [d for d in dirs if not self._should_ignore(
-                    os.path.join(root, d), 
-                    self._get_ignore_patterns()
-                )]
-                
-                for dir_name in dirs:
-                    dir_path = os.path.join(root, dir_name)
-                    # Generate map for this directory
-                    dir_analysis = self._generate_map_content(
-                        dir_path,
-                        mission_content,
-                        objective_content
-                    )
-                    complete_map.append(dir_analysis)
-            
-            # Save complete map
+
+            # Save map
             output_path = f".aider.map.{agent_name}.md"
-            self._save_map(output_path, "\n\n".join(complete_map))
+            self._write_file_safe(output_path, folder_map)
             
-            self.logger.info(f"✅ Successfully generated hierarchical map for {agent_name}")
-            
+            self.logger.info(f"✅ Generated folder map for {agent_name}")
+
         except Exception as e:
             self.logger.error(f"❌ Map generation failed: {str(e)}")
             raise

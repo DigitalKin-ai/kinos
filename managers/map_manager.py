@@ -33,3 +33,45 @@ class MapManager:
             raise ValueError("OpenAI API key not found in environment variables")
         self.tokenizer = tiktoken.encoding_for_model("gpt-4")
         self.api_semaphore = asyncio.Semaphore(10)
+    def _analyze_folder_structure(self, mission_content, objective_content):
+        """
+        Analyze current folder structure and generate map.
+        
+        Args:
+            mission_content (str): Content of mission file
+            objective_content (str): Content of objective file
+            
+        Returns:
+            str: Generated folder map content
+        """
+        try:
+            # Get current working directory
+            current_dir = os.getcwd()
+            
+            # Generate complete tree structure
+            tree_structure = self._generate_tree_structure()
+            
+            # Get folder analysis from GPT
+            client = openai.OpenAI()
+            prompt = self._create_map_prompt(
+                current_dir,
+                tree_structure,
+                mission_content,
+                objective_content
+            )
+            
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a technical architect analyzing project folder structures and file organization."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=2000
+            )
+            
+            return response.choices[0].message.content
+
+        except Exception as e:
+            self.logger.error(f"Failed to analyze folder structure: {str(e)}")
+            raise
