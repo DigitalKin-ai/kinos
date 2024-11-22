@@ -54,33 +54,47 @@ class AgentRunner:
                 self.logger.info("🔄 Generating automatic agents...")
                 await self.agents_manager.generate_agents(mission_filepath)
 
-            self.logger.info(f"🚀 Starting with {agent_count} agents in parallel")
-
-            # Get available agents
+            # Get available agents and validate
             available_agents = self._get_available_agents()
             if not available_agents:
                 raise ValueError("No agents available to run")
 
+            self.logger.info(f"🚀 Starting with {agent_count} agents in parallel")
+
+            # Pre-generate objectives for all agents
+            for agent_name in available_agents:
+                agent_filepath = f".aider.agent.{agent_name}.md"
+                objective_filepath = f".aider.objective.{agent_name}.md"
+                if not os.path.exists(objective_filepath):
+                    self.objective_manager.generate_objective(
+                        mission_filepath,
+                        agent_filepath
+                    )
+
             # Initialize task tracking
             tasks = set()
-            active_count = 0
-
+            active_agents = set()
+            
             # Main execution loop
             while True:
                 # Start new tasks if needed
-                while active_count < agent_count:
-                    if len(tasks) >= len(available_agents):
-                        break  # No more agents available
+                while len(active_agents) < min(agent_count, len(available_agents)):
+                    # Select an unused agent
+                    unused_agents = [a for a in available_agents if a not in active_agents]
+                    if not unused_agents:
+                        break
                         
+                    agent_name = unused_agents[0]
+                    active_agents.add(agent_name)
+                    
                     # Create and start new task
                     task = asyncio.create_task(
-                        self._run_single_agent_cycle(mission_filepath, model=model)
+                        self._run_single_agent_cycle(agent_name, mission_filepath, model=model)
                     )
                     tasks.add(task)
-                    active_count += 1
                     
                     # Add delay between starts
-                    if active_count < agent_count:
+                    if len(active_agents) < min(agent_count, len(available_agents)):
                         await asyncio.sleep(10)  # 10 second delay between starts
 
                 if not tasks:
@@ -96,9 +110,9 @@ class AgentRunner:
                 # Handle completed tasks
                 for completed_task in done:
                     tasks.remove(completed_task)
-                    active_count -= 1
                     try:
-                        await completed_task  # Get any exceptions
+                        agent_name = await completed_task  # Get agent name from task
+                        active_agents.remove(agent_name)  # Remove from active set
                     except Exception as e:
                         self.logger.error(f"Agent task failed: {str(e)}")
         except Exception as e:
@@ -154,38 +168,24 @@ class AgentRunner:
                 
         return missing_agents
         
-    async def _run_single_agent_cycle(self, mission_filepath, model="gpt-4o-mini"):
+    async def _run_single_agent_cycle(self, agent_name, mission_filepath, model="gpt-4o-mini"):
         """Execute a single cycle for one agent."""
-        agent_name = None
         try:
-            # Select an unused agent
-            agent_name = await self._select_available_agent()
-            if not agent_name:
-                await asyncio.sleep(1)  # Wait if no agent available
-                return
-                
             start_time = time.time()
             self.logger.info(f"🕐 Agent {agent_name} starting cycle at {start_time}")
             
-            # Execute agent cycle in thread pool to prevent blocking
-            loop = asyncio.get_event_loop()
             # Execute agent cycle with proper async handling
             await self._execute_agent_cycle(agent_name, mission_filepath, model)
             
             end_time = time.time()
             duration = end_time - start_time
             self.logger.info(f"⏱️ Agent {agent_name} completed cycle in {duration:.2f} seconds")
+            
+            return agent_name  # Return agent name for task tracking
                 
         except Exception as e:
             self.logger.error(f"Error in agent cycle: {str(e)}")
             raise  # Propagate error to allow agent replacement
-            
-        finally:
-            # Always release agent if it was acquired
-            if agent_name:
-                async with self._agent_lock:
-                    if agent_name in self._running_agents:
-                        self._running_agents.remove(agent_name)
 
     async def _select_available_agent(self):
         """Select an unused agent in a thread-safe way."""
