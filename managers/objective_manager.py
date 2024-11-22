@@ -246,7 +246,7 @@ Your planning:
                 max_tokens=2000
             )
             
-            return response.choices[0].message.content
+            return objective
             
         except Exception as e:
             self.logger.error(f"GPT API call failed: {str(e)}")
