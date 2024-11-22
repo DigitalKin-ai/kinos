@@ -1,5 +1,5 @@
 {
-  "should_push": false,
+  "should_push": "false",
   "style": {
     "node": {
       "colors": {
@@ -22,5 +22,5 @@
     }
   },
   "excluded_paths": "node_modules,dist,build,coverage,.git,.pytest_cache,.hypothesis,.idea,.vscode,.env,.venv,env,venv",
-  "excluded_globs": ".aider*/**/*;.aider.*/**/*;**/.aider*/**/*;**/.aider.*/**/*;**/__pycache__/**/*;**/*.pyc;**/*.pyo;**/*.pyd;**/*.so;**/*.dll;**/*.dylib;**/.DS_Store;**/Thumbs.db;**/desktop.ini;**/*.log;**/*.cache;**/*.bak;**/*.swp;**/*.tmp;**/*.temp;**/*~;**/.env;**/.env.*;**/*.local;**/.coverage;**/*.egg-info;**/*.egg;**/*.whl;**/*.manifest;**/.history/**/*;**/.venv/**/*;**/dist/**/*;**/build/**/*;**/.next/**/*;**/coverage/**/*;**/.nyc_output/**/*;**/node_modules/**/*;**/.yarn/**/*"
+  "excluded_globs": ".aider*/**/*;**/.aider*/**/*;**/__pycache__/**/*;**/*.pyc;**/*.pyo;**/*.pyd;**/*.so;**/*.dll;**/*.dylib;**/.DS_Store;**/Thumbs.db;**/desktop.ini;**/*.log;**/*.cache;**/*.bak;**/*.swp;**/*.tmp;**/*.temp;**/*~;**/.env;**/.env.*;**/*.local;**/.coverage;**/*.egg-info;**/*.egg;**/*.whl;**/*.manifest;**/.history/**/*;**/.venv/**/*;**/dist/**/*;**/build/**/*;**/.next/**/*;**/coverage/**/*;**/.nyc_output/**/*;**/node_modules/**/*;**/.yarn/**/*"
 }
