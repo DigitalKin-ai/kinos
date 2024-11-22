@@ -200,8 +200,11 @@ Create two objectives in markdown format - one for production, one specific to y
 """
             self.logger.info(f"OBJECTIVE PROMPT: {prompt}")
 
-            messages = [
-                {"role": "system", "content": """
+            # First get the main objective
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": """
 {agent_content}
                      
 # Planning
@@ -210,7 +213,66 @@ Your planning:
 2. Does not repeats previous actions, or work done by the other agents
 3. Maintains clear progression
 """}
-            ]
+                ],
+                temperature=0.5,
+                max_tokens=2000
+            )
+
+            # Get initial objective content
+            objective = response.choices[0].message.content
+
+            # Get file context for objective
+            file_context_prompt = f"""
+Based on this objective:
+````
+{objective}
+````
+
+And this project structure:
+````
+{tree_text}
+````
+
+List ONLY the files needed to achieve this objective, in this exact format:
+
+# Context Files (read-only)
+- path/to/file1
+- path/to/file2
+
+# Write Files (to be modified)
+- path/to/file3
+- path/to/file4
+
+Rules:
+1. Only include directly relevant files
+2. Context files = files needed for understanding/reference
+3. Write files = files that will be modified
+4. Use exact paths from project structure
+5. Do not include files that don't exist
+6. Do not add explanations or other text
+
+Respond ONLY with the file lists in the format shown above.
+"""
+
+            try:
+                file_context_response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": "You are a precise file context analyzer for AI development tasks."},
+                        {"role": "user", "content": file_context_prompt}
+                    ],
+                    temperature=0.3,
+                    max_tokens=500
+                )
+                
+                file_context = file_context_response.choices[0].message.content.strip()
+                
+                # Add file context to objective
+                objective += "\n\n# Required Files\n" + file_context
+
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not generate file context: {str(e)}")
+                # Continue without file context
 
             # Add diagram if available
             if diagram_content:
