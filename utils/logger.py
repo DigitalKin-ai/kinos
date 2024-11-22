@@ -63,9 +63,9 @@ class Logger:
                 formatter = logging.Formatter(log_fmt, datefmt='%Y-%m-%d %H:%M:%S')
                 return formatter.format(record)
 
-        # Setup console handler with color formatter and debug level
+        # Setup console handler with color formatter and SUCCESS level by default
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.DEBUG)  # Set handler level to DEBUG
+        console_handler.setLevel(logging.SUCCESS)  # Set default handler level to SUCCESS
         console_handler.setFormatter(ColorFormatter())
         
         # Configure logger with debug level
