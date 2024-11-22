@@ -236,16 +236,38 @@ class VisionManager:
                     self.logger.debug(f"index.js exists with size: {file_size} bytes")
                 else:
                     raise FileNotFoundError(f"Built index.js not found at {dist_path}")
+
+                # Verify config file location
+                self.logger.debug(f"Config file exists: {os.path.exists(config_path)}")
+                self.logger.debug(f"Config file location: {os.path.abspath(config_path)}")
                     
                 result = subprocess.run([
                     'node',
-                    dist_path,  # Use absolute path
+                    dist_path,
                     '--config', config_path,
-                    '--verbose'  # Add verbose flag
-                ], check=True, capture_output=True, text=True)
-                self.logger.debug(f"Command output: {result.stdout}")
+                    '--verbose'
+                ], check=False, capture_output=True, text=True)
+                
+                # Log both stdout and stderr
+                if result.stdout:
+                    self.logger.debug(f"Command stdout: {result.stdout}")
+                if result.stderr:
+                    self.logger.debug(f"Command stderr: {result.stderr}")
+                    
+                # Check return code after logging
+                if result.returncode != 0:
+                    raise subprocess.CalledProcessError(
+                        result.returncode,
+                        result.args,
+                        output=result.stdout,
+                        stderr=result.stderr
+                    )
             except subprocess.CalledProcessError as e:
-                self.logger.error(f"Visualization command failed: {e.stderr}")
+                self.logger.error(f"Visualization command failed with return code {e.returncode}")
+                if e.stdout:
+                    self.logger.error(f"stdout: {e.stdout}")
+                if e.stderr:
+                    self.logger.error(f"stderr: {e.stderr}")
                 raise
             except FileNotFoundError as e:
                 self.logger.error(f"Build file not found: {str(e)}")
