@@ -120,7 +120,7 @@ class VisionManager:
             return False
 
 
-    async def update_map(self, root_path: str = "."):
+    async def generate_visualization(self, root_path: str = "."):
         """Updates the repo visualization using repo-visualizer."""
         try:
             # Ensure node is available

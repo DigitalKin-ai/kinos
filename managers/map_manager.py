@@ -177,7 +177,7 @@ class MapManager:
             # Once complete analysis is done, generate SVG
             if folder_path == "." and self._initial_mapping_in_progress:
                 self._initial_mapping_in_progress = False
-                asyncio.run(self._vision_manager.update_map())
+                asyncio.run(self._vision_manager.generate_visualization())
 
             return top_level_analysis
 
