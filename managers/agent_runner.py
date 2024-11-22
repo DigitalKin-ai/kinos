@@ -2,6 +2,7 @@ import os
 import random
 import asyncio
 import time
+import openai
 from concurrent.futures import ThreadPoolExecutor
 from utils.logger import Logger
 from managers.agents_manager import AgentsManager
