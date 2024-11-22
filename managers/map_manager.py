@@ -111,12 +111,15 @@ class MapManager:
             if not self._validate_path_in_project(abs_folder_path):
                 raise ValueError(f"Path {abs_folder_path} is outside project directory")
                 
-            # Get complete folder structure once
+            # Generate cache key with truncated mission content
+            cache_key = f"{folder_path}:{','.join(sorted(files_content.keys()))}:{','.join(sorted(subfolders))}:{mission_content[:500]}"
+            
+            # Get complete folder structure with full mission content
             folder_structure = {
                 'path': abs_folder_path,
                 'files': list(files_content.keys()),
                 'subfolders': subfolders,
-                'mission_context': mission_content[:500]  # Truncate for cache key
+                'mission_context': mission_content  # Use full mission content
             }
         except Exception as e:
             self.logger.error(f"Failed to validate folder parameters: {str(e)}")
