@@ -82,8 +82,7 @@ class MapManager:
                 folder_path=folder_path,
                 files=list(files_content.keys()),
                 subfolders=subfolders,
-                mission_content=mission_content,
-                objective_content=objective_content
+                mission_content=mission_content
             )
             
             # Analyze each file in the folder
@@ -311,7 +310,7 @@ Siblings: [sibling relationships]
 Children: [children relationships]"""
 
     def _get_folder_context(self, folder_path: str, files: list, subfolders: list,
-                          mission_content: str, objective_content: str) -> dict:
+                          mission_content: str) -> dict:
         """
         Get folder purpose and relationships using GPT with caching.
         
@@ -361,9 +360,6 @@ Subfolders:
 
 Mission Context:
 {mission_content}
-
-Current Objective:
-{objective_content}
 
 Please provide your analysis in this EXACT format:
 Purpose: [One line describing the main purpose of this folder]
