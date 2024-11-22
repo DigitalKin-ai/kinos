@@ -62,38 +62,7 @@ class MapManager:
                             objective_content: str) -> dict:
         """
         Analyze a single folder level with its files and immediate subfolders.
-        Uses batch analysis and caching for efficiency.
-        
-        Args:
-            folder_path (str): Path to current folder
-            files_content (dict): Dictionary of filename to file content
-            subfolders (list): List of immediate subfolder names
-            mission_content (str): Overall mission context
-            objective_content (str): Current objective context
-            
-        Returns:
-            dict: Folder analysis including:
-                - path: Folder path
-                - purpose: Folder's purpose
-                - files: List of file analyses
-                - relationships: Dict of folder relationships
-                
-        Raises:
-            ValueError: If folder_path is invalid or missing
-            TypeError: If input parameters have invalid types
-            Exception: For other unexpected errors
         """
-        # Generate cache key from folder contents
-        cache_key = f"{folder_path}:{','.join(sorted(files_content.keys()))}:{','.join(sorted(subfolders))}"
-        
-        # Check cache first
-        if hasattr(self, '_folder_cache'):
-            cached = self._folder_cache.get(cache_key)
-            if cached:
-                self.logger.debug(f"Using cached analysis for {folder_path}")
-                return cached
-        else:
-            self._folder_cache = {}
         try:
             self.logger.debug(f"Analyzing folder level: {folder_path}")
             
@@ -112,58 +81,32 @@ class MapManager:
             if not self._validate_path_in_project(abs_folder_path):
                 raise ValueError(f"Path {abs_folder_path} is outside project directory")
                 
-            # Generate cache key with truncated mission content
-            cache_key = f"{folder_path}:{','.join(sorted(files_content.keys()))}:{','.join(sorted(subfolders))}:{mission_content[:500]}"
-            
-            # Get complete folder structure with full mission content
-            folder_structure = {
-                'path': abs_folder_path,
-                'files': list(files_content.keys()),
-                'subfolders': subfolders,
-                'mission_context': mission_content  # Use full mission content
-            }
-        except Exception as e:
-            self.logger.error(f"Failed to validate folder parameters: {str(e)}")
-            raise
-            
-        try:
-            # Validate folder exists
-            if not os.path.exists(folder_path):
-                raise ValueError(f"Folder does not exist: {folder_path}")
-                
-            if not os.path.isdir(folder_path):
-                raise ValueError(f"Path is not a directory: {folder_path}")
-            
-            # Get folder context and analyze files in parallel
+            # Get folder context which now includes file analysis
             folder_context = self._get_folder_context(
                 folder_path=abs_folder_path,
-                files=folder_structure['files'],
-                subfolders=folder_structure['subfolders'],
-                mission_content=folder_structure['mission_context']
+                files=list(files_content.keys()),
+                subfolders=subfolders,
+                mission_content=mission_content
             )
             
             self.logger.debug(f"Folder context: {folder_context}")
             
-            # Batch analyze all files at once
-            analyzed_files = self._analyze_files_batch(abs_folder_path, folder_structure['files'])
-            
             # Validate and build result
             if not folder_context.get('purpose'):
                 raise ValueError(f"Failed to determine purpose for {folder_path}")
-            if not folder_context.get('relationships'):
-                raise ValueError(f"Failed to determine relationships for {folder_path}")
             
             analysis_result = {
                 'path': abs_folder_path,
                 'purpose': folder_context['purpose'],
-                'files': analyzed_files,
-                'relationships': folder_context['relationships'],
-                'structure': folder_structure
+                'files': folder_context.get('files', []),  # File analysis now comes from folder context
+                'relationships': folder_context.get('relationships', {}),
+                'structure': {
+                    'path': abs_folder_path,
+                    'files': list(files_content.keys()),
+                    'subfolders': subfolders,
+                    'mission_context': mission_content
+                }
             }
-            
-            # Cache the result
-            self._folder_cache[cache_key] = analysis_result
-            
             self.logger.debug(f"Analysis result: {analysis_result}")
             
             # Generate SVG only if not during initial mapping
