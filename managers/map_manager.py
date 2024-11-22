@@ -1113,38 +1113,47 @@ Rules:
         # Build complete tree structure
         tree = []
         
-        # Add path from root
-        if rel_path != ".":
+        # Handle root folder differently
+        if rel_path == "." or abs_path == self.project_root:
+            # For root folder, only show its own contents
+            tree.append("📂 ./")
+            # Add current folder files
+            for i, f in enumerate(files):
+                prefix = "├─" if i < len(files) - 1 else "└─"
+                tree.append(f"   {prefix} {f}")
+        else:
+            # For subfolders, show parent path and siblings
+            # Add path from root
             parts = rel_path.split(os.sep)
             for i, part in enumerate(parts[:-1]):
                 prefix = "   " * i
                 tree.append(f"{prefix}├─ {part}/")
             
-        # Add current folder
-        current_prefix = "   " * (len(rel_path.split(os.sep)) - 1) if rel_path != "." else ""
-        tree.append(f"{current_prefix}📂 {os.path.basename(folder_path) or '.'}/")
-        
-        # Add current folder files
-        file_prefix = "   " * (len(rel_path.split(os.sep)))
-        for i, f in enumerate(files):
-            prefix = "├─" if i < len(files) - 1 else "└─"
-            tree.append(f"{file_prefix}{prefix} {f}")
-        
-        # Add sibling folders (at same level)
-        if parent_path:
-            for sibling in sorted(os.listdir(parent_path)):
-                sibling_path = os.path.join(parent_path, sibling)
-                if os.path.isdir(sibling_path) and sibling_path != abs_path:
-                    tree.append(f"{current_prefix}├─ {sibling}/")
-                    # Add first level of sibling's contents
-                    try:
-                        sibling_contents = sorted(os.listdir(sibling_path))[:3]  # Limit to first 3 items
-                        for item in sibling_contents:
-                            tree.append(f"{file_prefix}├─ {item}")
-                        if len(os.listdir(sibling_path)) > 3:
-                            tree.append(f"{file_prefix}└─ ...")
-                    except OSError:
-                        continue
+            # Add current folder
+            current_prefix = "   " * (len(parts) - 1)
+            tree.append(f"{current_prefix}📂 {os.path.basename(folder_path)}/")
+            
+            # Add current folder files
+            file_prefix = "   " * len(parts)
+            for i, f in enumerate(files):
+                prefix = "├─" if i < len(files) - 1 else "└─"
+                tree.append(f"{file_prefix}{prefix} {f}")
+            
+            # Add sibling folders (at same level)
+            if parent_path:
+                for sibling in sorted(os.listdir(parent_path)):
+                    sibling_path = os.path.join(parent_path, sibling)
+                    if os.path.isdir(sibling_path) and sibling_path != abs_path:
+                        tree.append(f"{current_prefix}├─ {sibling}/")
+                        # Add first level of sibling's contents
+                        try:
+                            sibling_contents = sorted(os.listdir(sibling_path))[:3]  # Limit to first 3 items
+                            for item in sibling_contents:
+                                tree.append(f"{file_prefix}├─ {item}")
+                            if len(os.listdir(sibling_path)) > 3:
+                                tree.append(f"{file_prefix}└─ ...")
+                        except OSError:
+                            continue
 
         tree_str = "\n".join(tree)
 
