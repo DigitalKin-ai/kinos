@@ -82,19 +82,7 @@ class AgentRunner:
         
     async def run(self, mission_filepath=DEFAULT_MISSION_FILE, generate_agents=False, 
                  agent_count=DEFAULT_AGENT_COUNT, model=DEFAULT_MODEL):
-        """Main execution loop for running agents in parallel.
-        
-        Args:
-            mission_filepath (str): Path to mission specification file
-            generate_agents (bool): Whether to generate missing agents
-            agent_count (int): Number of agents to run in parallel
-            model (str): Name of the AI model to use
-            
-        Raises:
-            SystemExit: If mission file is invalid
-            ValueError: If no agents are available
-            RuntimeError: If agent execution fails
-        """
+        """Run agents in parallel."""
         try:
             # Validate mission file
             if not self._validate_mission_file(mission_filepath):
@@ -106,7 +94,7 @@ class AgentRunner:
                 self.logger.info("🔄 Generating automatic agents...")
                 await self.agents_manager.generate_agents(mission_filepath)
 
-            # Get available agents and validate
+            # Get available agents
             available_agents = self._get_available_agents()
             if not available_agents:
                 raise ValueError("No agents available to run")
@@ -123,51 +111,16 @@ class AgentRunner:
                         agent_filepath
                     )
 
-            # Create initial set of tasks up to agent_count
-            tasks = set()
-            running_agents = set()
-            
-            # Initialize with first batch of agents
-            initial_agents = available_agents[:agent_count]
-            for agent_name in initial_agents:
-                task = asyncio.create_task(
-                    self._run_single_agent_cycle(agent_name, mission_filepath, model=model)
-                )
-                tasks.add(task)
-                running_agents.add(agent_name)
+            # Create tasks for initial batch of agents
+            tasks = []
+            for agent_name in available_agents[:agent_count]:
+                task = self._run_single_agent_cycle(agent_name, mission_filepath, model=model)
+                tasks.append(task)
                 self.logger.debug(f"Added task for agent {self._get_agent_emoji(agent_name)} {agent_name}")
-                await asyncio.sleep(1)  # Small delay between starts
 
-            # Main execution loop
-            while tasks:
-                # Wait for any task to complete
-                done, pending = await asyncio.wait(
-                    tasks,
-                    return_when=asyncio.FIRST_COMPLETED,
-                    timeout=30
-                )
+            # Run all tasks concurrently
+            await asyncio.gather(*tasks)
 
-                # Update tasks set
-                tasks = pending
-
-                # Handle completed tasks
-                for completed_task in done:
-                    try:
-                        agent_name = await completed_task
-                        running_agents.remove(agent_name)
-                        
-                        # Select new agent to run
-                        available_next = [a for a in available_agents if a not in running_agents]
-                        if available_next:
-                            next_agent = random.choice(available_next)
-                            new_task = asyncio.create_task(
-                                self._run_single_agent_cycle(next_agent, mission_filepath, model=model)
-                            )
-                            tasks.add(new_task)
-                            running_agents.add(next_agent)
-                            self.logger.debug(f"Added replacement task for agent {self._get_agent_emoji(next_agent)} {next_agent}")
-                    except Exception as e:
-                        self.logger.error(f"Agent task failed: {str(e)}")
         except Exception as e:
             self.logger.error(f"Error during execution: {str(e)}")
             raise
