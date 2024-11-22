@@ -628,7 +628,16 @@ Focus on making the relationships and usage patterns clear and explicit.
             if hasattr(e, 'output'):
                 self.logger.error(f"Error output:\n{e.output}")
             raise
-    def run_map_maintenance(self):
-        """Placeholder for map maintenance logic."""
-        self.logger.info("Running map maintenance...")
-        # Implement map maintenance logic here
+    def run_map_maintenance_for_all_folders(self):
+        """Run map maintenance for each folder in the repository."""
+        self.logger.info("Running map maintenance for all folders...")
+        for root, dirs, _ in os.walk('.'):
+            for dir_name in dirs:
+                folder_path = os.path.join(root, dir_name)
+                self.logger.info(f"Running map maintenance for folder: {folder_path}")
+                self.run_map_maintenance(folder_path)
+
+    def run_map_maintenance(self, folder_path):
+        """Perform map maintenance for a specific folder."""
+        self.logger.info(f"Running map maintenance for folder: {folder_path}")
+        # Implement the map maintenance logic for the folder here

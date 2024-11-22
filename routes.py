@@ -23,7 +23,7 @@ def main():
         subcommand = sys.argv[2]
         if subcommand == "map":
             manager = AiderManager()
-            manager.run_map_maintenance()
+            manager.run_map_maintenance_for_all_folders()
             
         elif subcommand == "agents":
             manager = AgentsManager()
