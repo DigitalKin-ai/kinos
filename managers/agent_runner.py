@@ -84,42 +84,24 @@ class AgentRunner:
                  agent_count=DEFAULT_AGENT_COUNT, model=DEFAULT_MODEL):
         """Run agents in parallel."""
         try:
-            # Validate mission file
+            # Basic validation
             if not self._validate_mission_file(mission_filepath):
-                raise SystemExit(1)
-
-            # Check for missing agents
-            missing_agents = self._agents_exist(force_regenerate=generate_agents)
-            if missing_agents:
-                self.logger.info("🔄 Generating automatic agents...")
-                await self.agents_manager.generate_agents(mission_filepath)
+                raise ValueError("Invalid mission file")
 
             # Get available agents
             available_agents = self._get_available_agents()
+            self.logger.debug(f"Available agents: {available_agents}")
+            
             if not available_agents:
                 raise ValueError("No agents available to run")
 
             self.logger.info(f"🚀 Starting with {agent_count} agents in parallel")
 
-            # Pre-generate objectives for all agents
-            for agent_name in available_agents:
-                agent_filepath = f".aider.agent.{agent_name}.md"
-                objective_filepath = f".aider.objective.{agent_name}.md"
-                if not os.path.exists(objective_filepath):
-                    self.objective_manager.generate_objective(
-                        mission_filepath,
-                        agent_filepath
-                    )
-
-            # Create tasks for initial batch of agents
-            tasks = []
-            for agent_name in available_agents[:agent_count]:
-                task = self._run_single_agent_cycle(agent_name, mission_filepath, model=model)
-                tasks.append(task)
-                self.logger.debug(f"Added task for agent {self._get_agent_emoji(agent_name)} {agent_name}")
-
-            # Run all tasks concurrently
-            await asyncio.gather(*tasks)
+            # Just run one agent first for testing
+            agent_name = available_agents[0]
+            self.logger.debug(f"Testing with agent: {agent_name}")
+            
+            await self._run_single_agent_cycle(agent_name, mission_filepath, model=model)
 
         except Exception as e:
             self.logger.error(f"Error during execution: {str(e)}")
@@ -177,25 +159,47 @@ class AgentRunner:
     async def _run_single_agent_cycle(self, agent_name, mission_filepath, model="gpt-4o-mini"):
         """Execute a single cycle for one agent."""
         try:
-            start_time = time.time()
-            self.logger.info(f"🕐 Agent {agent_name} starting cycle at {start_time}")
+            self.logger.debug(f"Starting cycle for agent {agent_name}")
             
-            # Execute agent cycle with proper async handling
-            await self._execute_agent_cycle(
-                agent_name,
+            agent_filepath = f".aider.agent.{agent_name}.md"
+            objective_filepath = f".aider.objective.{agent_name}.md"
+            map_filepath = f".aider.map.{agent_name}.md"
+
+            # Log file paths for debugging
+            self.logger.debug(f"Agent file: {agent_filepath}")
+            self.logger.debug(f"Objective file: {objective_filepath}")
+            self.logger.debug(f"Map file: {map_filepath}")
+
+            # Verify files exist
+            if not os.path.exists(agent_filepath):
+                raise FileNotFoundError(f"Agent file not found: {agent_filepath}")
+
+            # Generate objective
+            self.objective_manager.generate_objective(
                 mission_filepath,
-                model
+                agent_filepath
             )
+
+            start_time = time.time()
+            self.logger.info(f"🕐 Agent {self._get_agent_emoji(agent_name)} {agent_name} starting cycle at {start_time}")
             
+            # Execute aider operation
+            await self.aider_manager.run_aider(
+                objective_filepath,
+                map_filepath,
+                agent_filepath,
+                model=model
+            )
+                
             end_time = time.time()
             duration = end_time - start_time
             self.logger.info(f"⏱️ Agent {agent_name} completed cycle in {duration:.2f} seconds")
-            
-            return agent_name  # Return agent name for task tracking
                 
+            return agent_name
+
         except Exception as e:
-            self.logger.error(f"Error in agent cycle: {str(e)}")
-            raise  # Propagate error to allow agent replacement
+            self.logger.error(f"Error in agent cycle for {agent_name}: {str(e)}")
+            raise
 
     async def _select_available_agent(self):
         """Select an unused agent in a thread-safe way.

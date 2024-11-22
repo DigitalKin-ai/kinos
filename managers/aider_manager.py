@@ -46,72 +46,38 @@ class AiderManager:
             )
 
     async def run_aider(self, objective_filepath, map_filepath, agent_filepath, model="gpt-4o-mini"):
-        """
-        Execute aider operation with defined context.
-        
-        Args:
-            objective_filepath (str): Path to objective file
-            map_filepath (str): Path to context map file
-            agent_filepath (str): Path to agent configuration file
-            model (str): Model name to use (default: gpt-4o-mini)
-            
-        Raises:
-            ValueError: If required files are invalid
-            subprocess.CalledProcessError: If aider execution fails
-        """
+        """Execute aider operation with defined context."""
         try:
-            self.logger.info("🚀 Starting aider operation")
-            
-            # Fix git encodings before running aider
-            self.fix_git_encoding()
+            self.logger.debug(f"Starting aider for agent: {agent_filepath}")
             
             # Validate input files
             if not self._validate_files(objective_filepath, map_filepath, agent_filepath):
                 raise ValueError("Invalid or missing input files")
                 
-            # Load context map
-            context_files = self._load_context_map(map_filepath)
-            
-            # Get agent name from filepath for post-processing
-            agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
-            
-            # Get initial git state
-            before_state = self._get_git_file_states()
-            self.logger.debug(f"📝 Captured initial git state with {len(before_state)} files")
-            
             # Configure aider command
             cmd = self._build_aider_command(
                 objective_filepath,
                 map_filepath,
                 agent_filepath,
-                context_files,
+                [],  # Empty context files for now
                 model=model
             )
             
-            # Execute aider with await
-            await self._execute_aider(cmd)
+            self.logger.debug(f"Aider command: {cmd}")
             
-            # Get final git state
-            after_state = self._get_git_file_states()
-            self.logger.debug(f"📝 Captured final git state with {len(after_state)} files")
+            # Execute aider with proper async handling
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
             
-            # Get latest commit info
-            try:
-                result = subprocess.run(
-                    ['git', 'log', '-1', '--pretty=format:%h - %s'],
-                    capture_output=True,
-                    text=True,
-                    check=True
-                )
-                if result.stdout:
-                    self.logger.success(f"🔨 Git commit: {result.stdout}")
-            except subprocess.CalledProcessError as e:
-                self.logger.warning(f"Could not get commit info: {e}")
+            stdout, stderr = await process.communicate()
             
-            # Handle post-aider operations
-            await self._handle_post_aider(agent_name, before_state, after_state, "Production")
-            
-            self.logger.info("✅ Aider operation completed successfully")
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
+                
+            self.logger.debug("Aider execution completed")
             
         except Exception as e:
             self.logger.error(f"Aider operation failed: {str(e)}")
