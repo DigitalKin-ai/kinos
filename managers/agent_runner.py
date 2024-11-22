@@ -210,12 +210,9 @@ class AgentRunner:
             start_time = time.time()
             self.logger.info(f"🕐 Agent {agent_name} starting cycle at {start_time}")
             
-            # Execute agent cycle in thread pool to prevent blocking
-            loop = asyncio.get_event_loop()
-            await loop.run_in_executor(
-                None,  # Uses default executor
-                self._execute_agent_cycle,
-                agent_name, 
+            # Execute agent cycle
+            await self._execute_agent_cycle(
+                agent_name,
                 mission_filepath,
                 model
             )
@@ -417,7 +414,7 @@ class AgentRunner:
         return [agent_type for agent_type in agent_types 
                 if os.path.exists(f".aider.agent.{agent_type}.md")]
         
-    def _execute_agent_cycle(self, agent_name, mission_filepath, model="gpt-4o-mini"):
+    async def _execute_agent_cycle(self, agent_name, mission_filepath, model="gpt-4o-mini"):
         """Execute a single agent cycle."""
         try:
             agent_filepath = f".aider.agent.{agent_name}.md"
