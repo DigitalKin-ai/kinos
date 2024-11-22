@@ -23,13 +23,13 @@ class AiderManager:
             FileNotFoundError: If required files are missing
             ValueError: If configuration is invalid
         """
-        repo_viz_path = self._get_repo_visualizer_path()
-        dist_path = os.path.join(repo_viz_path, 'dist')
+        repo_visualizer_path = self._get_repo_visualizer_path()
+        dist_path = os.path.join(repo_visualizer_path, 'dist')
         index_js = os.path.join(dist_path, 'index.js')
         
-        if not os.path.exists(repo_viz_path):
+        if not os.path.exists(repo_visualizer_path):
             raise FileNotFoundError(
-                f"repo-visualizer not found at {repo_viz_path}. "
+                f"repo-visualizer not found at {repo_visualizer_path}. "
                 "Please install it first."
             )
             
