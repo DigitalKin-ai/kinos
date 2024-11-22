@@ -52,6 +52,36 @@ KinOS manages state through standardized files in the mission directory:
   - Tracks folder-level changes
   - Updates only on structural changes
 
+### 2.7 VisionManager Service
+- **Repository Visualization**
+  - Local installation of repo-visualizer
+  - Automatic build process
+  - Configuration management
+  - SVG generation
+  - Path validation
+
+- **Installation Management**
+  - Automatic dependency installation
+  - Build process handling
+  - Version control integration
+  - Error recovery
+
+- **Configuration**
+  - Custom color schemes
+  - Depth control
+  - File exclusions
+  - Layout options
+
+- **Integration**
+  - Node.js compatibility check
+  - Build verification
+  - Path management
+  - Error handling
+  - Analyzes project structure by folder
+  - Maintains folder-specific context maps
+  - Tracks folder-level changes
+  - Updates only on structural changes
+
 - **Change Detection**
   - Monitors file creation/deletion
   - Ignores content-only changes

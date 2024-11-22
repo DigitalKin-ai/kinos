@@ -61,7 +61,15 @@ cd ..
 3. Install dependencies:
 ```bash
 pip install -r requirements.txt
-npm install github:githubocto/repo-visualizer
+
+# Clone repo-visualizer
+git clone https://github.com/githubocto/repo-visualizer.git
+
+# Install dependencies and build
+cd repo-visualizer
+npm install
+npm run build
+cd ..
 ```
 
 4. Set up environment variables:
