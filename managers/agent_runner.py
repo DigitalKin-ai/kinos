@@ -123,66 +123,51 @@ class AgentRunner:
                         agent_filepath
                     )
 
-            # Create a pool of tasks
+            # Create initial set of tasks up to agent_count
             tasks = set()
             running_agents = set()
+            
+            # Initialize with first batch of agents
+            initial_agents = available_agents[:agent_count]
+            for agent_name in initial_agents:
+                task = asyncio.create_task(
+                    self._run_single_agent_cycle(agent_name, mission_filepath, model=model)
+                )
+                tasks.add(task)
+                running_agents.add(agent_name)
+                self.logger.debug(f"Added task for agent {self._get_agent_emoji(agent_name)} {agent_name}")
+                await asyncio.sleep(1)  # Small delay between starts
 
-            while True:
-                # Add new tasks until we reach agent_count
-                while len(tasks) < agent_count and len(running_agents) < len(available_agents):
-                    # Select an available agent
-                    unused_agents = [a for a in available_agents if a not in running_agents]
-                    if not unused_agents:
-                        break
-                        
-                    agent_name = random.choice(unused_agents)
-                    running_agents.add(agent_name)
-                    
-                    # Create and add new task
-                    task = asyncio.create_task(
-                        self._run_single_agent_cycle(agent_name, mission_filepath, model=model)
-                    )
-                    tasks.add(task)
-                    self.logger.debug(f"Added task for agent {agent_name}")
-
-                    # Add a small delay between agent starts to prevent resource contention
-                    await asyncio.sleep(1)  # 1 second delay between starts
-
-                if not tasks:
-                    break  # No more tasks to run
-
-                # Wait for any task to complete with a timeout
+            # Main execution loop
+            while tasks:
+                # Wait for any task to complete
                 done, pending = await asyncio.wait(
                     tasks,
                     return_when=asyncio.FIRST_COMPLETED,
-                    timeout=30  # Add timeout to prevent hanging
+                    timeout=30
                 )
+
+                # Update tasks set
+                tasks = pending
 
                 # Handle completed tasks
                 for completed_task in done:
-                    tasks.remove(completed_task)
                     try:
                         agent_name = await completed_task
-                        running_agents.remove(agent_name)  # Make agent available again
+                        running_agents.remove(agent_name)
                         
-                        # Immediately start a new task if possible
-                        if len(tasks) < agent_count and len(running_agents) < len(available_agents):
-                            unused_agents = [a for a in available_agents if a not in running_agents]
-                            if unused_agents:
-                                new_agent = random.choice(unused_agents)
-                                running_agents.add(new_agent)
-                                new_task = asyncio.create_task(
-                                    self._run_single_agent_cycle(new_agent, mission_filepath, model=model)
-                                )
-                                tasks.add(new_task)
-                                self.logger.debug(f"Added replacement task for agent {new_agent}")
-                                
-                        self.logger.debug(f"Agent {agent_name} completed cycle")
+                        # Select new agent to run
+                        available_next = [a for a in available_agents if a not in running_agents]
+                        if available_next:
+                            next_agent = random.choice(available_next)
+                            new_task = asyncio.create_task(
+                                self._run_single_agent_cycle(next_agent, mission_filepath, model=model)
+                            )
+                            tasks.add(new_task)
+                            running_agents.add(next_agent)
+                            self.logger.debug(f"Added replacement task for agent {self._get_agent_emoji(next_agent)} {next_agent}")
                     except Exception as e:
                         self.logger.error(f"Agent task failed: {str(e)}")
-
-                # Keep remaining tasks
-                tasks = pending
         except Exception as e:
             self.logger.error(f"Error during execution: {str(e)}")
             raise
