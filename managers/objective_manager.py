@@ -2,7 +2,7 @@ import os
 import requests
 from utils.logger import Logger
 from utils.encoding_utils import EncodingUtils
-from utils.encoding_utils import EncodingUtils
+from utils.fs_utils import FSUtils
 import openai
 from dotenv import load_dotenv
 
@@ -100,6 +100,18 @@ class ObjectiveManager:
         try:
             client = openai.OpenAI()
 
+            # Generate complete tree structure
+            fs_utils = FSUtils()
+            root_files = fs_utils.get_folder_files(".")
+            root_subfolders = fs_utils.get_subfolders(".")
+            tree_structure = fs_utils.build_tree_structure(
+                current_path=".",
+                files=root_files,
+                subfolders=root_subfolders,
+                max_depth=None  # No depth limit to get full tree
+            )
+            tree_text = "\n".join(tree_structure)
+
             # Read last 80 lines from suivi.md if it exists
             suivi_content = ""
             if os.path.exists('suivi.md'):
@@ -145,6 +157,11 @@ Based on the following, generate a clear specific next step for the {agent_name}
 # Mission
 ````
 {mission_content}
+````
+
+# Project Structure
+````
+{tree_text}
 ````
 
 # Recent Activity (last 80 lines)
