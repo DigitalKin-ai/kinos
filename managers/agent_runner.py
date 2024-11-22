@@ -97,11 +97,16 @@ class AgentRunner:
 
             self.logger.info(f"🚀 Starting with {agent_count} agents in parallel")
 
-            # Just run one agent first for testing
-            agent_name = available_agents[0]
-            self.logger.debug(f"Testing with agent: {agent_name}")
-            
-            await self._run_single_agent_cycle(agent_name, mission_filepath, model=model)
+            # Create tasks for initial batch of agents
+            tasks = []
+            for agent_name in available_agents[:agent_count]:
+                self.logger.debug(f"Creating task for agent: {agent_name}")
+                task = self._run_single_agent_cycle(agent_name, mission_filepath, model=model)
+                tasks.append(task)
+
+            # Run all tasks concurrently
+            self.logger.debug(f"Starting {len(tasks)} tasks in parallel")
+            await asyncio.gather(*tasks)
 
         except Exception as e:
             self.logger.error(f"Error during execution: {str(e)}")
