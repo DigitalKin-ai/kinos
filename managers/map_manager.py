@@ -639,10 +639,12 @@ Use same categories as before."""
             subfolder_items = list(folder_data.get('subfolders', {}).items())
             for i, (subfolder_name, subfolder_data) in enumerate(subfolder_items):
                 is_last = (i == len(subfolder_items) - 1)
-                if is_last:
-                    content.append("\n" + _format_folder(subfolder_data, level + 1, new_prefix))
-                else:
-                    content.append("\n" + _format_folder(subfolder_data, level + 1, new_prefix))
+                # Recursively analyze the subfolder
+                subfolder_hierarchy = self._analyze_folder_hierarchy(
+                    os.path.join(folder_data['path'], subfolder_name),
+                    "", ""  # Pass mission_content and objective_content
+                )
+                content.append("\n" + _format_folder(subfolder_hierarchy, level + 1, new_prefix))
                 
             return "\n".join(content)
         
