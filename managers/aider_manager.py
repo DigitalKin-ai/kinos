@@ -15,6 +15,21 @@ class AiderManager:
         self.logger = Logger()
         self._vision_manager = VisionManager()
 
+    def _ensure_aider_installed(self):
+        """
+        Verify that aider directory exists locally.
+        
+        Raises:
+            RuntimeError: If aider directory is not found
+        """
+        if not os.path.exists('aider'):
+            self.logger.error("❌ Aider directory not found")
+            raise RuntimeError(
+                "Aider directory not found. Please ensure you have cloned "
+                "the aider repository in the same directory as KinOS."
+            )
+        self.logger.debug("✓ Aider directory verified")
+
     def _validate_repo_visualizer(self):
         """
         Validate that repo-visualizer is properly installed and configured.
