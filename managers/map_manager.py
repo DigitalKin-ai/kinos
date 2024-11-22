@@ -284,7 +284,7 @@ class MapManager:
 
 
     def _create_folder_context_prompt(self, folder_path: str, files: list, subfolders: list, mission_content: str) -> str:
-        """Create prompt for analyzing folder context."""
+        """Create prompt for analyzing folder and all its files at once."""
         # Set current folder for tree building
         self.fs_utils.set_current_folder(os.path.abspath(folder_path))
         
@@ -300,9 +300,9 @@ class MapManager:
         tree_str = "\n".join(tree)
 
         return f"""# Objective
-Define folder's purpose:
+Analyze this folder and its files:
 
-# Current Folder Structure
+# Current Structure
 {tree_str}
 
 # Mission Context
@@ -311,16 +311,25 @@ Define folder's purpose:
 ````
 
 # Instructions
-Provide in this format:
-Purpose: 📁 [Action verb + direct object, max 10 words]
+Provide analysis in this format:
+
+Folder: 📁 [Action verb + direct object, max 10 words]
+
+Files:
+- **[tree prefix] [filename]** ([CATEGORY] [EMOJI])
+  _[Action verb] [technical description]_
+
+Categories (select ONE per file):
+Core: PRIMARY 📊, SPEC 📋, IMPL ⚙️, DOCS 📚
+Support: CONFIG ⚡, UTIL 🛠️, TEST 🧪, BUILD 📦
+Working: WORK ✍️, DRAFT 📝, TEMPLATE 📄, ARCHIVE 📂
+Data: SOURCE 💾, GEN ⚡, CACHE 💫, BACKUP 💿
 
 Rules:
-- Start Purpose with action verb
-- Use declarative statements
-- Omit conditionals
+- Start all descriptions with action verb
+- Use technical, specific language
 - Maximum 10 words per line
-- Focus on concrete actions
-- Include emojis as shown in format"""
+- Include appropriate emojis"""
 
     def _get_folder_context_for_path(self, folder_path: str) -> dict:
         """
@@ -436,19 +445,37 @@ Rules:
             self.logger.debug(f"\n✨ FOLDER CONTEXT RESPONSE:\n{content}")
             
             # Parse response but preserve the path
+            current_file = None
+            files_analysis = []
+            
             for line in content.split('\n'):
                 line = line.strip()
                 if not line:
                     continue
                     
-                if line.startswith('Purpose:'):
-                    context['purpose'] = line.replace('Purpose:', '').strip()
-                elif line.startswith('Parent:'):
-                    context['relationships']['parent'] = line.replace('Parent:', '').strip()
-                elif line.startswith('Siblings:'):
-                    context['relationships']['siblings'] = line.replace('Siblings:', '').strip()
-                elif line.startswith('Children:'):
-                    context['relationships']['children'] = line.replace('Children:', '').strip()
+                if line.startswith('Folder:'):
+                    context['purpose'] = line.replace('Folder:', '').strip()
+                elif line.startswith('- **'):
+                    # Extract filename and role from line like:
+                    # - **├─ ./filename.ext** (CATEGORY EMOJI)
+                    parts = line.split('**')
+                    if len(parts) >= 3:
+                        file_info = parts[1].split(' ')[-1]  # Get just the filename
+                        role_part = parts[2].strip()[1:-1]  # Remove parentheses
+                        current_file = {
+                            'name': os.path.basename(file_info),
+                            'role': role_part,
+                            'description': ''
+                        }
+                elif line.startswith('  _') and current_file:
+                    # Extract description from line like:
+                    #   _Description text._
+                    current_file['description'] = line.strip(' _.')
+                    files_analysis.append(current_file)
+                    current_file = None
+                    
+            # Add files analysis to context
+            context['files'] = files_analysis
                     
             self.logger.debug(f"Final context with path: {context}")
             
@@ -467,74 +494,6 @@ Rules:
             self.logger.error(f"Failed to get folder context for {folder_path}: {str(e)}")
             raise
 
-    def _analyze_files_batch(self, folder_path: str, files: list) -> list:
-        """
-        Analyze all files in a folder in a single batch.
-        
-        Args:
-            folder_path (str): Path to folder containing files
-            files (list): List of filenames to analyze
-            
-        Returns:
-            list: List of file analyses with role and description
-        """
-        try:
-            if not files:
-                return []
-
-            client = openai.OpenAI()
-            prompt = self._create_folder_analysis_prompt(folder_path, files)
-            
-            # Log the prompt at debug level
-            self.logger.debug(f"\n🔍 FOLDER FILES ANALYSIS PROMPT:\n{prompt}")
-            
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a technical analyst identifying file roles and purposes."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.3,
-                max_tokens=1000
-            )
-            
-            # Log the response at debug level
-            content = response.choices[0].message.content
-            self.logger.debug(f"\n✨ FOLDER FILES ANALYSIS RESPONSE:\n{content}")
-            
-            # Parse response into file analyses
-            analyses = []
-            current_file = None
-            
-            for line in content.split('\n'):
-                line = line.strip()
-                if not line:
-                    continue
-                    
-                if line.startswith('- **'):
-                    # Extract filename and role from line like:
-                    # - **├─ ./filename.ext** (CATEGORY EMOJI)
-                    parts = line.split('**')
-                    if len(parts) >= 3:
-                        file_info = parts[1].split(' ')[-1]  # Get just the filename
-                        role_part = parts[2].strip()[1:-1]  # Remove parentheses
-                        current_file = {
-                            'name': os.path.basename(file_info),
-                            'role': role_part,
-                            'description': ''
-                        }
-                elif line.startswith('  _') and current_file:
-                    # Extract description from line like:
-                    #   _Description text._
-                    current_file['description'] = line.strip(' _.')
-                    analyses.append(current_file)
-                    current_file = None
-            
-            return analyses
-            
-        except Exception as e:
-            self.logger.error(f"Failed to analyze files in {folder_path}: {str(e)}")
-            raise
 
     def _generate_map_content(self, hierarchy: dict) -> str:
         """Generate map content from folder hierarchy with improved tree formatting."""
