@@ -61,7 +61,30 @@ class VisionManager:
                     stderr=stderr
                 )
 
-            self.logger.debug("✨ Repository visualization generated successfully")
+            self.logger.debug("✨ Repository visualization SVG generated successfully")
+
+            # Convert SVG to PNG
+            try:
+                from cairosvg import svg2png
+                
+                # Read the SVG
+                with open('./diagram.svg', 'rb') as svg_file:
+                    svg_data = svg_file.read()
+                    
+                # Convert and save as PNG
+                svg2png(bytestring=svg_data,
+                       write_to='./diagram.png',
+                       output_width=1024,
+                       output_height=1024)
+                
+                self.logger.debug("✨ Repository visualization PNG generated successfully")
+                
+            except ImportError:
+                self.logger.error("❌ cairosvg not installed. Please install with: pip install cairosvg")
+                raise
+            except Exception as e:
+                self.logger.error(f"Failed to convert SVG to PNG: {str(e)}")
+                raise
 
         except Exception as e:
             self.logger.error(f"Failed to generate visualization: {str(e)}")

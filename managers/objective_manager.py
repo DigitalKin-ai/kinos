@@ -132,14 +132,14 @@ class ObjectiveManager:
                 except Exception as e:
                     self.logger.warning(f"⚠️ Could not read todolist.md: {str(e)}")
 
-            # Read and encode diagram.svg if it exists
+            # Read and encode diagram.png if it exists
             diagram_content = None
-            if os.path.exists('./diagram.svg'):
+            if os.path.exists('./diagram.png'):
                 try:
-                    with open('./diagram.svg', 'rb') as f:
+                    with open('./diagram.png', 'rb') as f:
                         diagram_content = f.read()
                 except Exception as e:
-                    self.logger.warning(f"⚠️ Could not read diagram.svg: {str(e)}")
+                    self.logger.warning(f"⚠️ Could not read diagram.png: {str(e)}")
 
             # Check for Perplexity API key
             perplexity_key = os.getenv('PERPLEXITY_API_KEY')
@@ -220,7 +220,7 @@ Your planning:
                             {
                                 "type": "image_url",
                                 "image_url": {
-                                    "url": f"data:image/svg+xml;base64,{encoded_bytes}"
+                                    "url": f"data:image/png;base64,{encoded_bytes}"
                                 }
                             },
                             {
