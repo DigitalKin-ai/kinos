@@ -2,8 +2,8 @@ import os
 import asyncio
 import logging
 import time
-import fnmatch
 from pathlib import Path
+from utils.fs_utils import FSUtils
 from utils.logger import Logger
 from utils.encoding_utils import EncodingUtils
 from utils.encoding_utils import EncodingUtils
@@ -32,6 +32,7 @@ class MapManager:
         """Initialize the map manager with required components."""
         self.logger = Logger()
         self.encoding_utils = EncodingUtils()
+        self.fs_utils = FSUtils()
         self.project_root = os.path.abspath('.')  # Store absolute path of project root
         load_dotenv()
         openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -225,7 +226,7 @@ class MapManager:
         try:
             # Get immediate files and their contents
             files_content = {}
-            for file in self._get_folder_files(folder_path):
+            for file in self.fs_utils.get_folder_files(folder_path):
                 try:
                     file_path = os.path.join(folder_path, file)
                     
@@ -252,7 +253,7 @@ class MapManager:
                     self.logger.error(f"Unexpected error reading {file}: {str(e)}")
 
             # Get subfolder structure
-            subfolders = self._get_subfolders(folder_path)
+            subfolders = self.fs_utils.get_subfolders(folder_path)
             
             # Generate complete folder context
             folder_analysis = self._analyze_folder_level(
@@ -395,7 +396,10 @@ class MapManager:
         self.current_folder_path = os.path.abspath(folder_path)
         
         # Build tree structure
-        tree = self._build_tree_structure(
+        # Set current folder for tree building
+        self.fs_utils.set_current_folder(self.current_folder_path)
+        
+        tree = self.fs_utils.build_tree_structure(
             current_path=".",
             files=files,
             subfolders=subfolders,
@@ -451,8 +455,8 @@ Rules:
                     return cached
             
             # Get files and subfolders
-            files = self._get_folder_files(abs_path)
-            subfolders = self._get_subfolders(abs_path)
+            files = self.fs_utils.get_folder_files(abs_path)
+            subfolders = self.fs_utils.get_subfolders(abs_path)
             
             # Get context with minimal mission content
             context = self._get_folder_context(
