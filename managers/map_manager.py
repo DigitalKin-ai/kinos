@@ -35,6 +35,8 @@ class MapManager:
             raise ValueError("OpenAI API key not found in environment variables")
         self.tokenizer = tiktoken.encoding_for_model("gpt-4")
         self.api_semaphore = asyncio.Semaphore(10)
+        self._initial_mapping_in_progress = False
+        self._vision_manager = VisionManager()
     def _analyze_folder_level(self, folder_path: str, files_content: dict, 
                             subfolders: list, mission_content: str, 
                             objective_content: str) -> dict:
@@ -113,12 +115,18 @@ class MapManager:
             if not folder_context.get('relationships'):
                 raise ValueError(f"Failed to determine relationships for {folder_path}")
             
-            return {
+            analysis_result = {
                 'path': folder_path,
                 'purpose': folder_context['purpose'],
                 'files': analyzed_files,
                 'relationships': folder_context['relationships']
             }
+            
+            # Generate SVG only if not during initial mapping
+            if not self._initial_mapping_in_progress:
+                asyncio.run(self._vision_manager.update_map())
+                
+            return analysis_result
             
         except Exception as e:
             self.logger.error(
@@ -149,6 +157,9 @@ class MapManager:
             OSError: If folder cannot be accessed
             Exception: For other unexpected errors
         """
+        try:
+            # Mark start of initial mapping
+            self._initial_mapping_in_progress = True
         # Validate and normalize path
         if not folder_path:
             raise ValueError("folder_path cannot be empty")
@@ -223,10 +234,16 @@ class MapManager:
                         'subfolders': {}
                     }
 
+            # Once complete analysis is done, generate SVG
+            if folder_path == "." and self._initial_mapping_in_progress:
+                self._initial_mapping_in_progress = False
+                asyncio.run(self._vision_manager.update_map())
+
             return folder_analysis
 
         except Exception as e:
             self.logger.error(f"Failed to analyze folder hierarchy for {folder_path}: {str(e)}")
+            self._initial_mapping_in_progress = False  # Reset on error
             raise
 
     def _get_folder_files(self, folder_path: str) -> list:
@@ -887,3 +904,37 @@ Return in format:
             raise ValueError("No relationships defined")
             
         return sections
+    async def update_folder(self, folder_path: str):
+        """
+        Updates analysis of a specific folder and regenerates SVG.
+        
+        Args:
+            folder_path (str): Path to modified folder
+        """
+        try:
+            if not self._initial_mapping_in_progress:
+                self.logger.debug(f"🔄 Updating folder analysis for: {folder_path}")
+                
+                # Update folder analysis
+                mission_content = self._get_mission_content()
+                objective_content = self._get_objective_content()
+                
+                # Analyze only the modified folder
+                folder_analysis = self._analyze_folder_level(
+                    folder_path=folder_path,
+                    files_content=self._get_folder_files_content(folder_path),
+                    subfolders=self._get_subfolders(folder_path),
+                    mission_content=mission_content,
+                    objective_content=objective_content
+                )
+                
+                # Update repo map
+                await self._vision_manager.update_map()
+                
+                self.logger.debug(f"✨ Folder analysis and visualization updated for: {folder_path}")
+                
+                return folder_analysis
+                
+        except Exception as e:
+            self.logger.error(f"Failed to update folder analysis: {str(e)}")
+            raise
