@@ -52,8 +52,29 @@ class MapManager:
                 - purpose: Folder's purpose
                 - files: List of file analyses
                 - relationships: Dict of folder relationships
+                
+        Raises:
+            ValueError: If folder_path is invalid or missing
+            TypeError: If input parameters have invalid types
+            Exception: For other unexpected errors
         """
+        if not folder_path:
+            raise ValueError("folder_path cannot be empty")
+            
+        if not isinstance(files_content, dict):
+            raise TypeError("files_content must be a dictionary")
+            
+        if not isinstance(subfolders, list):
+            raise TypeError("subfolders must be a list")
+            
         try:
+            # Validate folder exists
+            if not os.path.exists(folder_path):
+                raise ValueError(f"Folder does not exist: {folder_path}")
+                
+            if not os.path.isdir(folder_path):
+                raise ValueError(f"Path is not a directory: {folder_path}")
+            
             # Get folder context including purpose and relationships
             folder_context = self._get_folder_context(
                 folder_path=folder_path,
@@ -65,17 +86,31 @@ class MapManager:
             
             # Analyze each file in the folder
             analyzed_files = []
-            for filename in files_content:
+            for filename, content in files_content.items():
                 try:
+                    if not isinstance(content, str):
+                        raise TypeError(f"Content for {filename} must be string")
+                        
                     file_analysis = self._analyze_file(filename, folder_context)
                     analyzed_files.append(file_analysis)
+                    
                 except Exception as e:
-                    self.logger.warning(f"Failed to analyze file {filename}: {str(e)}")
+                    self.logger.warning(
+                        f"Failed to analyze file {filename}: {str(e)}\n"
+                        f"Error type: {type(e).__name__}"
+                    )
                     analyzed_files.append({
                         'name': filename,
                         'role': '⚠️ ERROR',
                         'description': f'Analysis failed: {str(e)}'
                     })
+            
+            # Validate folder context
+            if not folder_context.get('purpose'):
+                raise ValueError(f"Failed to determine purpose for {folder_path}")
+                
+            if not folder_context.get('relationships'):
+                raise ValueError(f"Failed to determine relationships for {folder_path}")
             
             return {
                 'path': folder_path,
@@ -85,7 +120,11 @@ class MapManager:
             }
             
         except Exception as e:
-            self.logger.error(f"Failed to analyze folder level {folder_path}: {str(e)}")
+            self.logger.error(
+                f"Failed to analyze folder level {folder_path}\n"
+                f"Error type: {type(e).__name__}\n"
+                f"Error details: {str(e)}"
+            )
             raise
 
     def _analyze_folder_hierarchy(self, folder_path: str, mission_content: str, objective_content: str) -> dict:
