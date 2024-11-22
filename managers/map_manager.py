@@ -321,39 +321,86 @@ class MapManager:
                     
         return sorted(folders)
 
-    def _create_folder_context_prompt(self, folder_path: str, files: list, subfolders: list, mission_content: str) -> str:
-        """Create prompt for analyzing folder context."""
-        # Ensure we're using relative path
-        if os.path.isabs(folder_path):
-            folder_path = os.path.relpath(folder_path, self.project_root)
+    def _build_tree_structure(self, current_path: str, files: list, subfolders: list, max_depth: int = 3, current_depth: int = 0, is_current_branch: bool = True) -> list:
+        """
+        Build tree structure with depth limits for non-current branches.
+        
+        Args:
+            current_path: Path being analyzed
+            files: List of files in current folder
+            subfolders: List of subfolders
+            max_depth: Maximum depth to show for non-current branches
+            current_depth: Current recursion depth
+            is_current_branch: Whether this is the branch containing current folder
             
-        # Split path into components
-        path_parts = folder_path.split(os.sep)
-        
-        # Build tree structure showing full path hierarchy
+        Returns:
+            list: Lines of tree structure
+        """
         tree = []
+        path_parts = current_path.split(os.sep)
+        base_indent = "   " * current_depth
         
-        # Add path hierarchy
-        for i, part in enumerate(path_parts):
-            indent = "   " * i
-            if i < len(path_parts) - 1:
-                tree.append(f"{indent}├─ {part}")
-            else:
-                # Last part (current folder) gets the folder emoji
-                tree.append(f"{indent}📂 {part}")
+        # Show current folder
+        if current_depth == 0:
+            tree.append("📂 ./")
+        else:
+            folder_name = path_parts[-1]
+            tree.append(f"{base_indent}📂 {folder_name}")
         
-        # Add current folder contents with proper indentation
-        base_indent = "   " * len(path_parts)
+        # Check depth limits for non-current branches
+        if not is_current_branch and current_depth >= max_depth:
+            if files or subfolders:
+                tree.append(f"{base_indent}   ...")
+            return tree
         
         # Add files
         for i, f in enumerate(files):
             prefix = "├─ " if (i < len(files) - 1 or subfolders) else "└─ "
-            tree.append(f"{base_indent}{prefix}{f}")
-            
+            tree.append(f"{base_indent}   {prefix}{f}")
+        
         # Add subfolders
         for i, d in enumerate(subfolders):
             prefix = "├─ " if i < len(subfolders) - 1 else "└─ "
-            tree.append(f"{base_indent}{prefix}{d}/")
+            subfolder_path = os.path.join(current_path, d)
+            
+            # Determine if this subfolder is part of the current folder's path
+            is_current_subfolder = is_current_branch and current_path in self.current_folder_path
+            
+            # Get subfolder contents if needed
+            if is_current_subfolder or current_depth < max_depth:
+                sub_files = self._get_folder_files(subfolder_path)
+                sub_folders = self._get_subfolders(subfolder_path)
+                
+                # Recursively build subtree
+                subtree = self._build_tree_structure(
+                    subfolder_path,
+                    sub_files,
+                    sub_folders,
+                    max_depth,
+                    current_depth + 1,
+                    is_current_subfolder
+                )
+                
+                # Add subtree with proper prefix
+                tree.extend([f"{base_indent}   {prefix}{line}" for line in subtree])
+            else:
+                # Just show folder name for depth-limited branches
+                tree.append(f"{base_indent}   {prefix}{d}/")
+        
+        return tree
+
+    def _create_folder_context_prompt(self, folder_path: str, files: list, subfolders: list, mission_content: str) -> str:
+        """Create prompt for analyzing folder context."""
+        # Store current folder path for tree building
+        self.current_folder_path = os.path.abspath(folder_path)
+        
+        # Build tree structure
+        tree = self._build_tree_structure(
+            current_path=".",
+            files=files,
+            subfolders=subfolders,
+            max_depth=3  # Show 3 levels for non-current branches
+        )
         
         tree_str = "\n".join(tree)
 
