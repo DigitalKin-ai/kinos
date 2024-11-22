@@ -160,8 +160,9 @@ class MapManager:
         try:
             # Mark start of initial mapping
             self._initial_mapping_in_progress = True
-        # Validate and normalize path
-        if not folder_path:
+            
+            # Validate and normalize path
+            if not folder_path:
             raise ValueError("folder_path cannot be empty")
             
         # Convert to absolute path if relative
