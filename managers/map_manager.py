@@ -453,24 +453,15 @@ Rules:
             content.append(f"{indent}## {full_path}")
             content.append(f"{indent}**Purpose:** {folder_data.get('purpose', 'No purpose specified')}\n")
             
-            # Add files with better formatting and tree structure
+            # Add files section if there are files
             if folder_data.get('files'):
-                content.append(f"{indent}### Files:")
+                content.append(f"{indent}### Files")
                 for i, file in enumerate(folder_data['files']):
-                    # Use tree branches for files too
+                    # Use tree branches for files
                     file_branch = "├─ " if i < len(folder_data['files']) - 1 else "└─ "
-                    file_path = f"{full_path}/{file['name']}"
-                    content.append(f"{indent}- **{file_branch}{file_path}** ({file.get('role', 'UNKNOWN')})  ")
-                    content.append(f"{indent}  _{file.get('description', 'No description')}_\n")
-    
-            # Add relationships if not root and if they exist
-            if level > 0 and 'relationships' in folder_data:
-                content.append(f"{indent}### Relationships:")
-                relationships = folder_data.get('relationships', {})
-                content.append(f"{indent}- **Parent:** _{relationships.get('parent', 'No parent specified')}_")
-                content.append(f"{indent}- **Siblings:** _{relationships.get('siblings', 'No siblings specified')}_")
-                if folder_data.get('subfolders'):
-                    content.append(f"{indent}- **Children:** _{relationships.get('children', 'No children specified')}_")
+                    content.append(f"{indent}- **{file_branch}{file['name']}** ({file.get('role', 'UNKNOWN')})")
+                    if file.get('description'):
+                        content.append(f"{indent}  _{file.get('description')}_\n")
     
             # Add line break before subfolders
             if folder_data.get('subfolders'):
