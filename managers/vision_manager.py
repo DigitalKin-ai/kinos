@@ -11,6 +11,17 @@ class VisionManager:
     Uses githubocto/repo-visualizer for generating interactive visualizations.
     """
     
+    def _get_kinos_install_path(self) -> str:
+        """Get the KinOS installation directory path."""
+        # Get the directory containing the current script
+        current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        return current_dir
+
+    def _get_repo_visualizer_path(self) -> str:
+        """Get the repo-visualizer installation directory path."""
+        kinos_path = self._get_kinos_install_path()
+        return os.path.join(kinos_path, 'repo-visualizer')
+
     def __init__(self, 
                  output_file: str = "repo-visualizer.svg",
                  max_depth: int = 9,
@@ -123,15 +134,16 @@ class VisionManager:
                 )
                 raise RuntimeError("Node.js not installed")
 
+            # Get repo-visualizer path in KinOS installation directory
+            repo_visualizer_path = self._get_repo_visualizer_path()
+
             # Check if repo-visualizer directory exists, if not clone it
-            if not os.path.exists("repo-visualizer"):
+            if not os.path.exists(repo_visualizer_path):
                 self.logger.info("📦 Cloning repo-visualizer...")
                 subprocess.run([
-                    'git', 'clone', 'https://github.com/githubocto/repo-visualizer.git'
+                    'git', 'clone', 'https://github.com/githubocto/repo-visualizer.git',
+                    repo_visualizer_path  # Clone directly to KinOS directory
                 ], check=True)
-                
-                # Installation in the correct directory
-                repo_visualizer_path = os.path.join(os.getcwd(), 'repo-visualizer')
                 self.logger.info(f"📦 Installing dependencies in {repo_visualizer_path}...")
                 
                 try:
@@ -197,8 +209,7 @@ class VisionManager:
             # Run visualization using the local clone
             self.logger.debug("🎨 Generating repository visualization...")
             try:
-                repo_visualizer_path = os.path.join(os.getcwd(), 'repo-visualizer')
-                dist_path = os.path.join(repo_visualizer_path, 'dist', 'index.js')
+                dist_path = os.path.join(self._get_repo_visualizer_path(), 'dist', 'index.js')
                 
                 if not os.path.exists(dist_path):
                     raise FileNotFoundError(f"Built index.js not found at {dist_path}")
