@@ -259,12 +259,17 @@ Format your summary in markdown with clear sections:
 - Technical Changes
 - Coordination Notes
 - Next Steps"""},
-                        {"role": "user", "content": f"""Project Mission:
+                        {"role": "user", "content": f"""# Project Mission
+````
 {self.mission_content}
+````
 
-Recent Logs to Summarize:
+# Recent Logs to Summarize
+````
 {formatted_content}
+````
 
+# Instructions
 Create a detailed progress summary that shows how recent activities align with mission objectives."""}
                     ],
                     temperature=0.3,
