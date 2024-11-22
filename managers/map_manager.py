@@ -595,48 +595,25 @@ Data Files:
                 raise ValueError(f"Could not read {modified_file_path} with any supported encoding")
 
             # Get token count
-            # Get last commit message for this file
-            try:
-                commit_msg = subprocess.check_output(
-                    ['git', 'log', '-1', '--pretty=format:%s', modified_file_path],
-                    text=True,
-                    encoding='utf-8',
-                    errors='replace'
-                ).strip()
-            except subprocess.CalledProcessError:
-                commit_msg = "No commit message found"
-
             tokenizer = tiktoken.encoding_for_model("gpt-4")
             token_count = len(tokenizer.encode(file_content))
 
-            # Always generate new description if force_refresh is True
-            should_update_description = force_refresh or random.random() < 0.10
+            # Generate new summary with structural focus
+            client = openai.OpenAI()
+            prompt = self._generate_file_summary_prompt(modified_file_path, file_content, global_map_content)
 
-            if should_update_description:
-                # Generate new summary with global context
-                client = openai.OpenAI()
-                prompt = self._generate_file_summary_prompt(modified_file_path, file_content, global_map_content)
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a technical architect specializing in analyzing file roles and relationships within project structures."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=200
+            )
 
-                response = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": "You are a technical analyst specializing in identifying unique characteristics and differentiating features of files within a project."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.3,
-                    max_tokens=200
-                )
-
-                summary = response.choices[0].message.content.strip()
-                # Log when we generate a new description
-                self.logger.success(f"📝 {modified_file_path} : {summary}")
-            else:
-                # Get existing summary from map if available
-                summary = self._get_existing_summary(global_map_content, modified_file_path)
-                if not summary:
-                    summary = "File updated"  # Fallback if no existing summary
-                # Log simple modification notice with commit message
-                self.logger.success(f"Modified file: {modified_file_path} ({commit_msg})")
+            summary = response.choices[0].message.content.strip()
+            self.logger.success(f"📝 {modified_file_path} : {summary}")
 
             # Update map.md with new or existing summary
             # Always write with UTF-8 encoding
