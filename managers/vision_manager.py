@@ -19,9 +19,14 @@ class VisionManager:
             subprocess.CalledProcessError: If visualization generation fails
         """
         try:
-            # Validate Node.js installation
+            # Validate Node.js installation quietly
             try:
-                await asyncio.create_subprocess_exec('node', '--version')
+                process = await asyncio.create_subprocess_exec(
+                    'node', '--version',
+                    stdout=asyncio.subprocess.DEVNULL,
+                    stderr=asyncio.subprocess.DEVNULL
+                )
+                await process.wait()
             except FileNotFoundError:
                 raise RuntimeError(
                     "Node.js not found! Please install Node.js from https://nodejs.org/"
