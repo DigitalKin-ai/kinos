@@ -43,7 +43,7 @@ class VisionManager:
                 "Please check file permissions."
             )
 
-    async def generate_visualization(self, root_path: str = "."):
+    def generate_visualization(self, root_path: str = "."):
         """
         Generate repository visualization using repo-visualizer.
         
