@@ -34,7 +34,7 @@ def main():
         elif subcommand == "viz":
             from managers.vision_manager import VisionManager
             manager = VisionManager()
-            manager.generate_visualization()
+            asyncio.run(manager.generate_visualization())
             manager = ObjectiveManager()
             
             # Parse arguments

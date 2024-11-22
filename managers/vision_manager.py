@@ -1,5 +1,6 @@
 import os
 import subprocess
+import asyncio
 from typing import Dict
 from utils.logger import Logger
 
@@ -43,9 +44,9 @@ class VisionManager:
                 "Please check file permissions."
             )
 
-    def generate_visualization(self, root_path: str = "."):
+    async def generate_visualization(self, root_path: str = "."):
         """
-        Generate repository visualization using repo-visualizer.
+        Asynchronously generate repository visualization using repo-visualizer.
         
         Args:
             root_path (str): Root path to visualize
@@ -58,8 +59,8 @@ class VisionManager:
         try:
             # Validate Node.js installation
             try:
-                subprocess.run(['node', '--version'], check=True, capture_output=True)
-            except subprocess.CalledProcessError:
+                await asyncio.create_subprocess_exec('node', '--version')
+            except FileNotFoundError:
                 raise RuntimeError(
                     "Node.js not found! Please install Node.js from https://nodejs.org/"
                 )
@@ -80,41 +81,30 @@ class VisionManager:
 
             # Run visualization
             self.logger.debug("🎨 Generating repository visualization...")
-            try:
-                result = subprocess.run([
-                    'node',
-                    dist_path,
-                    '--config', self.config_path,
-                    '--verbose'
-                ], check=False, capture_output=True, text=True)
-                
-                # Log both stdout and stderr
-                if result.stdout:
-                    self.logger.debug(f"Command stdout: {result.stdout}")
-                if result.stderr:
-                    self.logger.debug(f"Command stderr: {result.stderr}")
-                    
-                # Check return code after logging
-                if result.returncode != 0:
-                    raise subprocess.CalledProcessError(
-                        result.returncode,
-                        result.args,
-                        output=result.stdout,
-                        stderr=result.stderr
-                    )
-                    
-                self.logger.debug("✨ Repository visualization generated successfully")
-                
-            except subprocess.CalledProcessError as e:
-                self.logger.error(f"Visualization command failed with return code {e.returncode}")
-                if e.stdout:
-                    self.logger.error(f"stdout: {e.stdout}")
-                if e.stderr:
-                    self.logger.error(f"stderr: {e.stderr}")
-                raise
-            except FileNotFoundError as e:
-                self.logger.error(f"Build file not found: {str(e)}")
-                raise
+            process = await asyncio.create_subprocess_exec(
+                'node',
+                dist_path,
+                '--config', self.config_path,
+                '--verbose',
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await process.communicate()
+
+            if process.returncode != 0:
+                self.logger.error(f"Visualization command failed with return code {process.returncode}")
+                if stdout:
+                    self.logger.error(f"stdout: {stdout.decode()}")
+                if stderr:
+                    self.logger.error(f"stderr: {stderr.decode()}")
+                raise subprocess.CalledProcessError(
+                    process.returncode,
+                    process.args,
+                    output=stdout,
+                    stderr=stderr
+                )
+
+            self.logger.debug("✨ Repository visualization generated successfully")
 
         except Exception as e:
             self.logger.error(f"Failed to generate visualization: {str(e)}")
