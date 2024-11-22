@@ -148,8 +148,12 @@ class MapManager:
             OSError: If folder cannot be accessed
             Exception: For other unexpected errors
         """
+        # Validate and normalize path
         if not folder_path:
             raise ValueError("folder_path cannot be empty")
+            
+        # Convert to absolute path if relative
+        folder_path = os.path.abspath(folder_path)
             
         if not os.path.exists(folder_path):
             raise ValueError(f"Folder does not exist: {folder_path}")
@@ -163,14 +167,28 @@ class MapManager:
             for file in self._get_folder_files(folder_path):
                 try:
                     file_path = os.path.join(folder_path, file)
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        files_content[file] = f.read()
+                    
+                    # Check if file is binary
+                    if self._is_binary_file(file_path):
+                        self.logger.debug(f"Skipping binary file: {file}")
+                        continue
+                        
+                    # Try different encodings
+                    for encoding in ['utf-8', 'latin1', 'cp1252']:
+                        try:
+                            with open(file_path, 'r', encoding=encoding) as f:
+                                content = f.read()
+                                files_content[file] = content
+                                break
+                        except UnicodeDecodeError:
+                            continue
+                    else:
+                        self.logger.warning(f"Could not decode {file} with any supported encoding")
+                        
                 except (OSError, UnicodeDecodeError) as e:
                     self.logger.warning(f"Could not read {file}: {str(e)}")
-                    files_content[file] = ""
                 except Exception as e:
                     self.logger.error(f"Unexpected error reading {file}: {str(e)}")
-                    files_content[file] = ""
 
             # Get subfolder structure
             subfolders = self._get_subfolders(folder_path)
@@ -293,7 +311,7 @@ Children: [children relationships]"""
     def _get_folder_context(self, folder_path: str, files: list, subfolders: list,
                           mission_content: str, objective_content: str) -> dict:
         """
-        Get folder purpose and relationships using GPT.
+        Get folder purpose and relationships using GPT with caching.
         
         Args:
             folder_path (str): Path to current folder
@@ -313,21 +331,44 @@ Children: [children relationships]"""
             raise ValueError("folder_path cannot be empty")
             
         try:
+            # Generate cache key
+            cache_key = f"{folder_path}:{','.join(sorted(files))}:{','.join(sorted(subfolders))}"
+            
+            # Check cache first
+            if hasattr(self, '_context_cache'):
+                cached = self._context_cache.get(cache_key)
+                if cached:
+                    self.logger.debug(f"Using cached context for {folder_path}")
+                    return cached
+            else:
+                # Initialize cache if needed
+                self._context_cache = {}
+            
             client = openai.OpenAI()
             prompt = self._create_folder_context_prompt(
                 folder_path, files, subfolders,
                 mission_content, objective_content
             )
             
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a technical architect analyzing project structure and organization."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.3,
-                max_tokens=1000
-            )
+            # Make API call with retry logic
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {"role": "system", "content": "You are a technical architect analyzing project structure and organization."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        temperature=0.3,
+                        max_tokens=1000
+                    )
+                    break
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        raise
+                    self.logger.warning(f"API call failed, attempt {attempt + 1}/{max_retries}: {str(e)}")
+                    time.sleep(2 ** attempt)  # Exponential backoff
             
             # Parse response into structure
             content = response.choices[0].message.content
@@ -480,22 +521,134 @@ Data Files:
 Return in format:
 [EMOJI ROLE] - [Purpose description]"""
     def _format_files_content(self, files_content: dict) -> str:
-        """Format files content for prompt, with reasonable length limits."""
+        """
+        Format files content for prompt with intelligent truncation.
+        
+        Args:
+            files_content (dict): Dictionary of filename to content
+            
+        Returns:
+            str: Formatted content string
+        """
         formatted = []
         for filename, content in files_content.items():
-            # Truncate very large files
-            if len(content) > 1000:
-                content = content[:1000] + "...[truncated]"
-            formatted.append(f"## {filename}\n```\n{content}\n```")
+            # Determine file type
+            file_type = self._detect_file_type(filename)
+            
+            # Get appropriate truncation length based on file type
+            max_length = self._get_max_length(file_type)
+            
+            # Intelligent truncation
+            if len(content) > max_length:
+                # Keep important sections based on file type
+                truncated = self._smart_truncate(content, max_length, file_type)
+                content = truncated + f"\n...[truncated, full length: {len(content)} chars]"
+                
+            formatted.append(f"## {filename} ({file_type})\n```\n{content}\n```")
+            
         return "\n\n".join(formatted)
+        
+    def _detect_file_type(self, filename: str) -> str:
+        """Detect file type based on extension and content patterns."""
+        ext = os.path.splitext(filename)[1].lower()
+        
+        # Common file types
+        type_map = {
+            '.py': 'Python',
+            '.js': 'JavaScript',
+            '.ts': 'TypeScript',
+            '.html': 'HTML',
+            '.css': 'CSS',
+            '.md': 'Markdown',
+            '.json': 'JSON',
+            '.yml': 'YAML',
+            '.yaml': 'YAML',
+            '.xml': 'XML',
+            '.sql': 'SQL',
+            '.sh': 'Shell',
+            '.bat': 'Batch',
+            '.ps1': 'PowerShell',
+            '.txt': 'Text'
+        }
+        
+        return type_map.get(ext, 'Unknown')
+        
+    def _get_max_length(self, file_type: str) -> int:
+        """Get appropriate max length based on file type."""
+        # Customize lengths based on file type importance
+        type_lengths = {
+            'Python': 2000,    # More context for code
+            'JavaScript': 2000,
+            'TypeScript': 2000,
+            'HTML': 1500,
+            'CSS': 1000,
+            'Markdown': 3000,  # More context for documentation
+            'JSON': 1000,
+            'YAML': 1000,
+            'XML': 1000,
+            'SQL': 1500,
+            'Shell': 1000,
+            'Batch': 1000,
+            'PowerShell': 1000,
+            'Text': 1000
+        }
+        
+        return type_lengths.get(file_type, 1000)
+        
+    def _smart_truncate(self, content: str, max_length: int, file_type: str) -> str:
+        """Intelligently truncate content based on file type."""
+        if len(content) <= max_length:
+            return content
+            
+        if file_type in ['Python', 'JavaScript', 'TypeScript']:
+            # Keep imports/requires and main structure
+            lines = content.split('\n')
+            imports = [l for l in lines if l.strip().startswith(('import ', 'from ', 'require'))]
+            classes = [l for l in lines if l.strip().startswith(('class ', 'def ', 'function'))]
+            
+            important = imports + ['...'] + classes
+            important_content = '\n'.join(important)
+            
+            if len(important_content) < max_length:
+                return important_content
+                
+        elif file_type == 'Markdown':
+            # Keep headers and structure
+            lines = content.split('\n')
+            headers = [l for l in lines if l.strip().startswith('#')]
+            return '\n'.join(headers[:max_length//20]) + '\n...'
+            
+        # Default truncation with ellipsis
+        return content[:max_length-3] + '...'
 
     def _parse_folder_analysis(self, analysis_text: str) -> dict:
-        """Parse GPT analysis response into structured format."""
+        """
+        Parse and validate GPT analysis response into structured format.
+        
+        Args:
+            analysis_text (str): Raw GPT response text
+            
+        Returns:
+            dict: Validated and structured analysis
+            
+        Raises:
+            ValueError: If response format is invalid
+        """
+        # Initialize with required structure
         sections = {
             'purpose': '',
             'files': [],
             'relationships': {'parent': '', 'siblings': '', 'children': ''}
         }
+        
+        # Validate basic structure
+        if not analysis_text or not isinstance(analysis_text, str):
+            raise ValueError("Invalid analysis text")
+            
+        required_sections = ['FOLDER PURPOSE', 'FILE ANALYSIS', 'RELATIONSHIPS']
+        for section in required_sections:
+            if section not in analysis_text:
+                raise ValueError(f"Missing required section: {section}")
         
         current_section = None
         current_file = None
@@ -505,31 +658,73 @@ Return in format:
             if not line:
                 continue
                 
+            # Section detection with validation
             if line.startswith('1. FOLDER PURPOSE'):
                 current_section = 'purpose'
+                if sections['purpose']:
+                    raise ValueError("Duplicate FOLDER PURPOSE section")
             elif line.startswith('2. FILE ANALYSIS'):
                 current_section = 'files'
             elif line.startswith('3. RELATIONSHIPS'):
                 current_section = 'relationships'
+                if any(sections['relationships'].values()):
+                    raise ValueError("Duplicate RELATIONSHIPS section")
+            
+            # Content parsing with validation
             elif current_section == 'purpose' and line.startswith('-'):
-                sections['purpose'] += line[1:].strip() + ' '
+                content = line[1:].strip()
+                if not content:
+                    continue
+                sections['purpose'] += content + ' '
+                
             elif current_section == 'files' and line.startswith('-'):
-                # Parse file entry: "- filename.ext (📊 ROLE) - description"
-                parts = line[1:].split(' - ', 1)
-                if len(parts) == 2:
+                # Validate and parse file entry
+                try:
+                    # Expected format: "- filename.ext (📊 ROLE) - description"
+                    if ' - ' not in line:
+                        raise ValueError(f"Invalid file entry format: {line}")
+                        
+                    parts = line[1:].split(' - ', 1)
+                    if len(parts) != 2:
+                        raise ValueError(f"Invalid file entry parts: {line}")
+                        
                     name_role = parts[0].split(' (')
-                    if len(name_role) == 2:
-                        sections['files'].append({
-                            'name': name_role[0].strip(),
-                            'role': name_role[1].rstrip(')'),
-                            'description': parts[1].strip()
-                        })
-            elif current_section == 'relationships':
-                if line.startswith('- Parent:'):
-                    sections['relationships']['parent'] = line.split(':', 1)[1].strip()
-                elif line.startswith('- Siblings:'):
-                    sections['relationships']['siblings'] = line.split(':', 1)[1].strip()
-                elif line.startswith('- Children:'):
-                    sections['relationships']['children'] = line.split(':', 1)[1].strip()
+                    if len(name_role) != 2 or not name_role[1].endswith(')'):
+                        raise ValueError(f"Invalid file role format: {parts[0]}")
+                        
+                    file_entry = {
+                        'name': name_role[0].strip(),
+                        'role': name_role[1].rstrip(')'),
+                        'description': parts[1].strip()
+                    }
                     
+                    # Validate entry
+                    if not all(file_entry.values()):
+                        raise ValueError(f"Missing required file entry fields: {file_entry}")
+                        
+                    sections['files'].append(file_entry)
+                    
+                except ValueError as e:
+                    self.logger.warning(f"Skipping invalid file entry: {str(e)}")
+                    continue
+                    
+            elif current_section == 'relationships':
+                try:
+                    if line.startswith('- Parent:'):
+                        sections['relationships']['parent'] = line.split(':', 1)[1].strip()
+                    elif line.startswith('- Siblings:'):
+                        sections['relationships']['siblings'] = line.split(':', 1)[1].strip()
+                    elif line.startswith('- Children:'):
+                        sections['relationships']['children'] = line.split(':', 1)[1].strip()
+                except IndexError:
+                    self.logger.warning(f"Invalid relationship line format: {line}")
+                    continue
+        
+        # Final validation
+        if not sections['purpose']:
+            raise ValueError("Empty folder purpose")
+            
+        if not any(sections['relationships'].values()):
+            raise ValueError("No relationships defined")
+            
         return sections
