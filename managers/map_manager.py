@@ -93,13 +93,16 @@ class MapManager:
             if not isinstance(subfolders, list):
                 raise TypeError("subfolders must be a list")
                 
-        # Ensure we have an absolute path
-        abs_folder_path = os.path.abspath(folder_path)
-        self.logger.debug(f"Absolute folder path: {abs_folder_path}")
+            # Ensure we have an absolute path
+            abs_folder_path = os.path.abspath(folder_path)
+            self.logger.debug(f"Absolute folder path: {abs_folder_path}")
                 
-        # Validate path is within project
-        if not self._validate_path_in_project(abs_folder_path):
-            raise ValueError(f"Path {abs_folder_path} is outside project directory")
+            # Validate path is within project
+            if not self._validate_path_in_project(abs_folder_path):
+                raise ValueError(f"Path {abs_folder_path} is outside project directory")
+        except Exception as e:
+            self.logger.error(f"Failed to validate folder parameters: {str(e)}")
+            raise
             
         try:
             # Validate folder exists
