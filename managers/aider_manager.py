@@ -418,122 +418,73 @@ class AiderManager:
     
         return modified_files, final_state
 
-    def _generate_map_maintenance_prompt(self, changed_files=None, tree_structure=None):
+    def _generate_map_maintenance_prompt(self, tree_structure=None):
         """
-        Generate comprehensive map maintenance prompt.
+        Generate map maintenance prompt for updating map.md.
         
         Args:
-            changed_files (set, optional): Set of files that were modified
             tree_structure (list, optional): Current project tree structure
             
         Returns:
             str: Formatted map maintenance prompt
         """
-        # Build changes section if files were changed
-        changes_section = ""
-        if changed_files:
-            changes_section = f"""
-# Project Structure Changes
-The following files were modified in this session:
-{', '.join(changed_files)}
-"""
+        self.logger.debug("Generating map maintenance prompt...")
 
         # Add tree structure if provided
         structure_section = ""
         if tree_structure:
             tree_text = "\n".join(tree_structure)
             structure_section = f"""
-# Current Complete Project Structure
+# Current Project Structure
 ````
 {tree_text}
 ````
 """
+            self.logger.debug(f"Added tree structure with {len(tree_structure)} lines")
 
         # Core prompt content
-        return f"""{changes_section}{structure_section}
-# Instructions for Map Maintenance
+        prompt = f"""{structure_section}
+# Map Maintenance Instructions
+
+Please update map.md to document the project structure. For each folder and file:
 
 ## 1. Folder Documentation
-For each folder, document:
-- **Purpose**: What is this folder's main responsibility
-- **Parent Relationship**: How does it serve its parent folder's purpose
-- **Content Guidelines**: What should/shouldn't be placed here
-- **Usage Context**: When to add files here vs other locations
-
-Format:
+Document each folder with:
 ```markdown
 ### 📁 folder_name/
-- **Purpose**: [Main responsibility of this folder]
-- **Serves Parent**: [How it helps parent folder's mission]
-- **Contains**: [What belongs here]
-- **When to Use**: [Usage guidelines]
+- **Purpose**: Main responsibility
+- **Contains**: What belongs here
+- **Usage**: When to use this folder
 ```
 
 ## 2. File Documentation
-For each file, document:
-- **Role**: How it contributes to its folder's purpose
-- **Usage**: When and how to use this file
-- **Dependencies**: What it relies on or what relies on it
-- **Category**: Use appropriate category and emoji
-
-Format:
+Document each file with:
 ```markdown
-- **filename** (CATEGORY EMOJI) - [Role in folder] | Used for [purpose] | Dependencies: [list]
+- **filename** (CATEGORY) - Role and purpose
 ```
 
-## 3. Categories and Emojis
-Core Files:
-- PRIMARY 📊 - Essential project infrastructure
-- SPEC 📋 - Specifications and requirements
-- IMPL ⚙️ - Core implementation files
-- DOCS 📚 - Documentation and guides
+## File Categories:
+- PRIMARY 📊 - Core project files
+- SPEC 📋 - Specifications
+- IMPL ⚙️ - Implementation
+- DOCS 📚 - Documentation
+- CONFIG ⚡ - Configuration
+- UTIL 🛠️ - Utilities
+- TEST 🧪 - Testing
+- DATA 💾 - Data files
 
-Support Files:
-- CONFIG ⚡ - Configuration and settings
-- UTIL 🛠️ - Utility and helper functions
-- TEST 🧪 - Testing and validation
-- BUILD 📦 - Build and deployment
+## Guidelines:
+1. Focus on clarity and organization
+2. Use consistent formatting
+3. Keep descriptions concise but informative
+4. Ensure all paths are documented
+5. Maintain existing structure in map.md
 
-Working Files:
-- WORK ✍️ - In-progress work
-- DRAFT 📝 - Draft documents
-- TEMPLATE 📄 - Templates and boilerplate
-- ARCHIVE 📂 - Archived content
-
-Data Files:
-- SOURCE 💾 - Original source data
-- GEN ⚡ - Generated content
-- CACHE 💫 - Temporary/cache data
-- BACKUP 💿 - Backup files
-
-## 4. Update Process
-1. Start from root directory
-2. For each folder:
-   - Add/update folder documentation
-   - Document relationships with parent/sibling folders
-   - Specify content guidelines
-3. For each file:
-   - Add/update file documentation
-   - Ensure category matches current role
-   - Document dependencies and usage
-4. For modified files:
-   - Update descriptions to reflect new purpose
-   - Verify category still appropriate
-5. For deleted files:
-   - Remove entries from map
-   - Update related dependency references
-
-## 5. Validation
-- Every folder must have complete documentation
-- Every file must have a description and category
-- All relationships must be documented
-- Categories must accurately reflect current usage
-- Dependencies must be explicitly stated
-- Usage guidelines must be clear and specific
-
-Update map.md to reflect these changes while maintaining its current structure and format.
-Focus on making the relationships and usage patterns clear and explicit.
+Update map.md to reflect the current project structure while maintaining its format.
 """
+
+        self.logger.debug("Generated map maintenance prompt")
+        return prompt
 
     def _get_complete_tree(self):
         """Get complete tree structure without depth limit."""
