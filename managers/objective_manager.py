@@ -163,6 +163,7 @@ Based on the following, generate a clear specific next step for the {agent_name}
 ````
 {tree_text}
 ````
+(In the image attached is a visualization of the repository, showing file sizes and structure, that you can use to enhance your decision-making)
 
 # Recent Activity (last 80 lines)
 ````
