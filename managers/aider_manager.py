@@ -665,15 +665,18 @@ Focus on making the relationships and usage patterns clear and explicit.
             )
 
             # Execute aider with the generated prompt
-            cmd = self._build_aider_command(
-                objective_filepath=".aider.objective.map_maintenance.md",
-                map_filepath=f".aider.map.{os.path.basename(folder_path)}.md",
-                agent_filepath=".aider.agent.map_maintenance.md",
-                context_files=[folder_path]
-            )
-            
-            # Update the command with the map maintenance prompt
-            cmd[-1] = map_prompt
+            cmd = ["python", "-m", "aider"]
+            cmd.extend([
+                "--model", "gpt-4o-mini",
+                "--edit-format", "diff", 
+                "--yes-always",
+                "--cache-prompts",
+                "--no-pretty",
+                "--no-fancy-input",
+                "--encoding", "utf-8",  # Force UTF-8 encoding
+                "--file", folder_path,  # Add the folder path as editable
+                "--message", map_prompt
+            ])
 
             # Execute aider
             self._execute_aider(cmd)
