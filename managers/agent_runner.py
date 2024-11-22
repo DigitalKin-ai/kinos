@@ -20,6 +20,7 @@ class AgentRunner:
         self.aider_manager = AiderManager()
         self._running_agents = set()  # Track active agents
         self._agent_lock = asyncio.Lock()  # Synchronize shared resource access
+        self._active_agents = set()  # Track currently active agents
 
     async def initialize(self):
         """Initialize async components of the runner."""
@@ -104,7 +105,7 @@ class AgentRunner:
                     tasks.remove(completed_task)
                     try:
                         agent_name = await completed_task  # Get agent name from task
-                        active_agents.remove(agent_name)  # Remove from active set
+                        self._active_agents.remove(agent_name)  # Remove from active set
                     except Exception as e:
                         self.logger.error(f"Agent task failed: {str(e)}")
         except Exception as e:
