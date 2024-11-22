@@ -28,8 +28,8 @@ class VisionManager:
                 )
 
             # Get repo-visualizer path
-            repo_viz_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'repo-visualizer')
-            dist_path = os.path.join(repo_viz_path, 'dist', 'index.js')
+            repo_visualizer_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'repo-visualizer')
+            dist_path = os.path.join(repo_visualizer_path, 'dist', 'index.js')
 
             if not os.path.exists(dist_path):
                 raise FileNotFoundError(
