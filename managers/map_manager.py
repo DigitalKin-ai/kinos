@@ -348,61 +348,15 @@ Important:
                           mission_content: str) -> dict:
         """
         Get folder purpose and relationships using GPT with caching.
-        
-        Args:
-            folder_path (str): Path to current folder (relative or absolute)
-            files (list): List of files in folder
-            subfolders (list): List of subfolders
-            mission_content (str): Overall mission context
-            
-        Returns:
-            dict: Folder context including:
-                - path: Absolute path for internal use
-                - display_path: Relative path for display
-                - purpose: Folder's main purpose
-                - relationships: Dict of folder relationships
-                
-        Raises:
-            ValueError: If folder_path is empty or invalid
         """
-        if not folder_path:
-            raise ValueError("folder_path cannot be empty")
-            
         try:
-            # Normalize paths - handle both absolute and relative inputs
-            if os.path.isabs(folder_path):
-                abs_path = folder_path
-                if not self._validate_path_in_project(abs_path):
-                    raise ValueError(f"Path {folder_path} is outside project directory")
-                rel_path = os.path.relpath(abs_path, self.project_root)
-            else:
-                # Convert relative to absolute for internal use
-                abs_path = os.path.abspath(os.path.join(self.project_root, folder_path))
-                if not self._validate_path_in_project(abs_path):
-                    raise ValueError(f"Path {folder_path} is outside project directory")
-                rel_path = folder_path  # Keep original relative path
-            
-            # Generate cache key using relative path
-            cache_key = f"{rel_path}:{','.join(sorted(files))}:{','.join(sorted(subfolders))}"
-            
-            # Check cache first
-            if hasattr(self, '_context_cache'):
-                cached = self._context_cache.get(cache_key)
-                if cached:
-                    self.logger.debug(f"Using cached context for {rel_path}")
-                    return cached
-            else:
-                # Initialize cache if needed
-                self._context_cache = {}
-            
-            # Initialize context with both paths
+            # Simple path handling - just store the provided path
             context = {
-                'path': abs_path,  # Keep absolute path for internal use
-                'display_path': rel_path,  # Use relative path for display
+                'path': folder_path,
                 'purpose': '',
                 'relationships': {
                     'parent': 'No parent relationship specified',
-                    'siblings': 'No sibling relationships specified',
+                    'siblings': 'No sibling relationships specified', 
                     'children': 'No children relationships specified'
                 }
             }
