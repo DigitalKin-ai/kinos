@@ -526,6 +526,30 @@ Data Files:
             force_refresh (bool): If True, always generate new description regardless of random chance
         """
         try:
+            # Normalize and validate file path
+            file_path = self._normalize_file_path(modified_file_path)
+            if not os.path.exists(file_path):
+                self._remove_file_from_map(file_path)
+                return
+
+            # Handle file splitting if needed
+            if self._handle_file_splitting(file_path):
+                return
+
+            # Get file content and token count
+            content = self._read_file_with_encoding(file_path)
+            token_count = self._count_tokens(content)
+
+            # Generate file summary
+            summary = self._generate_file_summary(file_path, content)
+
+            # Update map file
+            self._update_map_entry(file_path, token_count, summary)
+
+        except Exception as e:
+            self.logger.error(f"Failed to update global map: {str(e)}")
+            raise
+        try:
             # First decode the path if it's already encoded
             if isinstance(modified_file_path, str):
                 # Remove any extra quotes
@@ -768,38 +792,26 @@ Format: "File implements **[technical role]** to [purpose] by [implementation de
             self.logger.error(f"Failed to update map file: {str(e)}")
             raise
 
+    def _read_file_with_encoding(self, filepath):
+        """Read file content with robust encoding handling."""
+        for encoding in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
+            try:
+                with open(filepath, 'r', encoding=encoding) as f:
+                    return f.read()
+            except UnicodeDecodeError:
+                continue
+        raise ValueError(f"Could not read {filepath} with any supported encoding")
+
+    def _write_file_with_encoding(self, filepath, content):
+        """Write content to file with UTF-8 encoding."""
+        try:
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(content)
+        except Exception as e:
+            self.logger.error(f"Failed to write to {filepath}: {str(e)}")
+            raise
+
     def _generate_tree_structure(self, root_dir="."):
-        """Generate a tree view of the project structure."""
-        tree = []
-        ignore_patterns = self._get_ignore_patterns()
-        
-        for root, dirs, files in os.walk(root_dir):
-            # Skip ignored directories
-            dirs[:] = [d for d in dirs if not self._should_ignore(os.path.join(root, d), ignore_patterns)]
-            
-            level = root.replace(root_dir, '').count(os.sep)
-            indent = '  ' * level
-            tree.append(f"{indent}{os.path.basename(root)}/")
-            
-            # Add files at this level
-            for f in sorted(files):
-                if not self._should_ignore(os.path.join(root, f), ignore_patterns):
-                    tree.append(f"{indent}  {f}")
-                    
-        return '\n'.join(tree)
-
-    def _get_files_in_folder(self, folder_path):
-        """Get list of files in the current folder (not recursive)."""
-        files = []
-        ignore_patterns = self._get_ignore_patterns()
-        
-        for entry in os.scandir(folder_path):
-            if entry.is_file() and not self._should_ignore(entry.path, ignore_patterns):
-                files.append(entry.name)
-                
-        return sorted(files)
-
-    def _create_map_prompt(self, current_folder, mission_content, objective_content):
         """Create prompt for context map generation."""
         # Generate full tree structure
         full_tree = self._generate_tree_structure()
