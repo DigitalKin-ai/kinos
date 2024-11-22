@@ -9,4 +9,4 @@ asyncio>=3.4.3
 aiofiles>=23.2.1
 gitpython>=3.1.40
 tqdm>=4.66.1
-githubocto-repo-visualizer==0.7.1
+graphviz>=0.20.1

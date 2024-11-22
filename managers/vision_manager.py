@@ -1,19 +1,20 @@
 import os
 from typing import List, Dict, Optional
-from repo_visualizer import render_repository_graph
+import graphviz
 from utils.logger import Logger
 
 class VisionManager:
     """
     Manager class for maintaining and providing repository structure visualization.
-    
-    Uses repo-visualizer v0.7.1 to generate SVG visualizations of repository structure.
+    Uses graphviz to generate SVG visualizations of repository structure with size-proportional nodes.
     """
     
     def __init__(self, 
                  output_file: str = "repo-map.svg",
                  max_depth: int = 9,
-                 file_colors: Optional[Dict[str, str]] = None):
+                 file_colors: Optional[Dict[str, str]] = None,
+                 min_size: float = 0.5,
+                 max_size: float = 4.0):
         """
         Initialize the vision manager.
         
@@ -21,13 +22,17 @@ class VisionManager:
             output_file (str): Path for output SVG file
             max_depth (int): Maximum folder depth to visualize
             file_colors (dict): Custom colors for file extensions
+            min_size (float): Minimum node size in inches
+            max_size (float): Maximum node size in inches
         """
         self.logger = Logger()
         self.map_path = output_file
         self.max_depth = max_depth
         self.file_colors = file_colors or {}
+        self.min_size = min_size
+        self.max_size = max_size
         
-        # Default excluded paths for repo-visualizer
+        # Default excluded paths
         self.default_excluded = [
             "node_modules",
             "bower_components",
@@ -64,45 +69,112 @@ class VisionManager:
                 
         return ignored
 
+    def _get_file_size(self, filepath: str) -> int:
+        """Get file size in bytes."""
+        try:
+            return os.path.getsize(filepath)
+        except (OSError, IOError):
+            return 0
+
+    def _calculate_node_size(self, file_size: int) -> float:
+        """
+        Calculate node size based on file size with logarithmic scaling.
+        
+        Args:
+            file_size (int): Size of file in bytes
+            
+        Returns:
+            float: Node size in inches between min_size and max_size
+        """
+        if file_size == 0:
+            return self.min_size
+            
+        import math
+        # Use log scaling to handle wide range of file sizes
+        log_size = math.log(file_size + 1, 10)  # +1 to handle empty files
+        max_log_size = math.log(1024 * 1024 * 100, 10)  # 100MB max for scaling
+        
+        # Scale between min and max size
+        scale = (log_size / max_log_size)
+        size = self.min_size + (self.max_size - self.min_size) * scale
+        
+        return min(max(size, self.min_size), self.max_size)
+
     async def update_map(self, root_path: str = "."):
         """
-        Updates the repo map SVG using repo-visualizer.
+        Updates the repo map SVG using graphviz.
         
         Args:
             root_path (str): Root directory to visualize
-            
-        Raises:
-            Exception: If visualization fails
-            OSError: If there are file system issues
         """
         try:
-            # Get ignore patterns
-            excluded_paths = await self.get_ignored_files()
-            
-            # Convert excluded paths to glob patterns
-            excluded_globs = [f"**/{path}/**" for path in excluded_paths]
-            excluded_globs.extend([
-                "**/*.{png,jpg,jpeg,gif,ico,svg}",  # Exclude images
-                "**/*.{pyc,pyo,pyd}",  # Exclude Python bytecode
-                "**/__pycache__/**"     # Exclude Python cache
-            ])
-            
-            self.logger.debug("Generating repository visualization...")
-            
-            # Generate SVG using repo-visualizer v0.7.1 with correct options
-            svg_content = render_repository_graph(
-                root_path=root_path,
-                output_file=self.map_path,
-                excluded_paths=excluded_paths,  # List of paths, not comma-separated
-                excluded_globs=excluded_globs,  # List of globs, not semicolon-separated
-                max_depth=self.max_depth,
-                colors=self.file_colors  # Parameter is 'colors' not 'file_colors'
+            # Create new directed graph
+            dot = graphviz.Digraph(
+                'repo_structure',
+                node_attr={'style': 'filled', 'fontname': 'Arial'},
+                edge_attr={'fontname': 'Arial'},
+                engine='dot'
             )
             
-            # Save the SVG
-            with open(self.map_path, "w", encoding="utf-8") as f:
-                f.write(svg_content)
+            # Get ignore patterns
+            ignored_paths = await self.get_ignored_files()
+            
+            # Track processed paths to handle symlinks
+            processed = set()
+            
+            def add_path_to_graph(path: str, parent: Optional[str] = None, depth: int = 0):
+                """Recursively add paths to graph."""
+                if depth > self.max_depth:
+                    return
+                    
+                rel_path = os.path.relpath(path, root_path)
+                if any(self._should_ignore(rel_path, pattern) for pattern in ignored_paths):
+                    return
+                    
+                abs_path = os.path.abspath(path)
+                if abs_path in processed:  # Handle symlinks
+                    return
+                processed.add(abs_path)
                 
+                # Get path properties
+                is_dir = os.path.isdir(path)
+                name = os.path.basename(path) or path
+                
+                # Calculate node properties
+                if is_dir:
+                    color = '#E8E8E8'  # Light gray for directories
+                    size = self.min_size  # Fixed size for directories
+                else:
+                    ext = os.path.splitext(name)[1].lower()
+                    color = self.file_colors.get(ext, '#FFFFFF')  # White default
+                    size = self._calculate_node_size(self._get_file_size(path))
+                
+                # Add node with size-based dimensions
+                dot.node(
+                    rel_path,
+                    name,
+                    fillcolor=color,
+                    width=str(size),
+                    height=str(size)
+                )
+                
+                # Add edge from parent
+                if parent:
+                    dot.edge(parent, rel_path)
+                
+                # Recurse into directories
+                if is_dir:
+                    try:
+                        for entry in os.scandir(path):
+                            add_path_to_graph(entry.path, rel_path, depth + 1)
+                    except PermissionError:
+                        self.logger.warning(f"Permission denied: {path}")
+            
+            # Start from root
+            add_path_to_graph(root_path)
+            
+            # Save as SVG
+            dot.render(self.map_path.replace('.svg', ''), format='svg', cleanup=True)
             self.logger.debug(f"✨ Repository map updated: {self.map_path}")
             
         except Exception as e:
