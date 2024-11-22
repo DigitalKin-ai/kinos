@@ -663,6 +663,8 @@ Focus on making the relationships and usage patterns clear and explicit.
             map_prompt = self._generate_map_maintenance_prompt(
                 tree_structure=tree_structure
             )
+            
+            self.logger.debug(f"Generated map maintenance prompt:\n{map_prompt}")
 
             # Execute aider with the generated prompt
             cmd = ["python", "-m", "aider"]
@@ -678,8 +680,22 @@ Focus on making the relationships and usage patterns clear and explicit.
                 "--message", map_prompt
             ])
 
-            # Execute aider
-            self._execute_aider(cmd)
+            # Execute aider and capture output
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding='utf-8',
+                errors='replace'
+            )
+            stdout, stderr = process.communicate()
+            
+            self.logger.debug(f"Aider response:\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}")
+
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
+                
+            self.logger.info(f"✅ Map maintenance completed for {folder_path}")
             
         except Exception as e:
             self.logger.error(f"Map maintenance failed for {folder_path}: {str(e)}")
