@@ -202,14 +202,14 @@ class MapManager:
             self.logger.error(f"Error reading file {filepath}: {str(e)}")
             raise
 
-    def _generate_map_content(self, mission_content, objective_content, agent_content, available_files):
+    def _generate_map_content(self, mission_content, objective_content, agent_content):
         """Generate context map content using GPT."""
         try:
             client = openai.OpenAI()
             prompt = self._create_map_prompt(
                 mission_content, 
                 objective_content, 
-                agent_content  # Removed available_files argument
+                agent_content
             )
             
             response = client.chat.completions.create(
@@ -220,24 +220,33 @@ class MapManager:
 
 # Mapping process
 You are asked to be a context mapping system that selects relevant files for an agent's next operation.
-Your task is to analyze the mission, objective, and agent configuration to determine which files from the available list are needed.
-
-Output format must be a simple markdown list of files:
-
-# Context Map
-- file1.py
-- path/to/file2.md
-- etc.
-
-Select only files that are directly relevant to the current objective.
-"""},
+Your task is to analyze the mission, objective, and agent configuration to determine which files from the available list are needed."""},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
                 max_tokens=2000
             )
             
-            context_map = response.choices[0].message.content
+            # Get raw content
+            content = response.choices[0].message.content
+            
+            # Clean up the content:
+            # 1. Split into lines
+            lines = content.split('\n')
+            # 2. Remove any lines starting with '#' (headers)
+            # 3. Remove empty lines
+            # 4. Ensure each line starts with '-'
+            cleaned_lines = []
+            for line in lines:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    if not line.startswith('-'):
+                        line = f"- {line}"
+                    cleaned_lines.append(line)
+            
+            # Join lines with single newlines
+            context_map = "# Project Map\n\n" + "\n".join(cleaned_lines)
+            
             return context_map
             
         except Exception as e:
