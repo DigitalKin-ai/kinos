@@ -1134,89 +1134,31 @@ Rules:
             raise
     def _create_folder_analysis_prompt(self, folder_path: str, files: list) -> str:
         """Create prompt for analyzing all files in a folder."""
-        # Get absolute and relative paths
-        abs_path = os.path.abspath(folder_path)
-        rel_path = os.path.relpath(folder_path, self.project_root)
+        # Ensure we're using relative path
+        if os.path.isabs(folder_path):
+            folder_path = os.path.relpath(folder_path, self.project_root)
+            
+        # Split path into components
+        path_parts = folder_path.split(os.sep)
         
-        # Get ignore patterns
-        ignore_patterns = self._get_ignore_patterns()
-        
-        # Filter files using ignore patterns
-        files = [f for f in files if not self._should_ignore(os.path.join(rel_path, f), ignore_patterns)]
-        
-        # Get subfolders
-        subfolders = self._get_subfolders(folder_path)
-        
+        # Build tree structure showing full path hierarchy
         tree = []
         
-        # Handle root folder differently
-        if rel_path == "." or abs_path == self.project_root:
-            tree.append("📂 ./")
-            # Add current folder files (filtered)
-            for i, f in enumerate(files):
-                prefix = "├─" if (i < len(files) - 1 or subfolders) else "└─"
-                tree.append(f"   {prefix} {f}")
-            
-            # Add subfolders
-            for i, d in enumerate(subfolders):
-                prefix = "├─" if i < len(subfolders) - 1 else "└─"
-                tree.append(f"   {prefix} {d}/")
-        else:
-            # For subfolders, show parent path and filtered siblings
-            parent_path = os.path.dirname(abs_path)
-            
-            # Add path from root (filtered)
-            parts = rel_path.split(os.sep)
-            for i, part in enumerate(parts[:-1]):
-                prefix = "   " * i
-                tree.append(f"{prefix}├─ {part}/")
-            
-            # Add current folder
-            current_prefix = "   " * (len(parts) - 1)
-            tree.append(f"{current_prefix}📂 {os.path.basename(folder_path)}/")
-            
-            # Add current folder files (filtered)
-            file_prefix = "   " * len(parts)
-            for i, f in enumerate(files):
-                prefix = "├─" if i < len(files) - 1 else "└─"
-                tree.append(f"{file_prefix}{prefix} {f}")
-            
-            # Add filtered sibling folders
-            if parent_path:
-                siblings = []
-                for sibling in sorted(os.listdir(parent_path)):
-                    sibling_path = os.path.join(parent_path, sibling)
-                    rel_sibling = os.path.relpath(sibling_path, self.project_root)
-                    
-                    # Skip if should be ignored
-                    if self._should_ignore(rel_sibling, ignore_patterns):
-                        continue
-                        
-                    if os.path.isdir(sibling_path) and sibling_path != abs_path:
-                        siblings.append(sibling)
-                        
-                # Add filtered siblings with their first few contents
-                for i, sibling in enumerate(siblings):
-                    is_last = (i == len(siblings) - 1)
-                    sibling_path = os.path.join(parent_path, sibling)
-                    tree.append(f"{current_prefix}{'└─' if is_last else '├─'} {sibling}/")
-                    
-                    # Add first few contents of sibling (also filtered)
-                    try:
-                        sibling_contents = [
-                            item for item in sorted(os.listdir(sibling_path))
-                            if not self._should_ignore(os.path.join(rel_sibling, item), ignore_patterns)
-                        ][:3]  # Limit to first 3 non-ignored items
-                        
-                        for j, item in enumerate(sibling_contents):
-                            is_last_item = (j == len(sibling_contents) - 1)
-                            tree.append(f"{file_prefix}{'└─' if is_last_item else '├─'} {item}")
-                            
-                        if len(sibling_contents) > 3:
-                            tree.append(f"{file_prefix}└─ ...")
-                    except OSError:
-                        continue
-
+        # Add path hierarchy
+        for i, part in enumerate(path_parts):
+            indent = "   " * i
+            if i < len(path_parts) - 1:
+                tree.append(f"{indent}├─ {part}")
+            else:
+                # Last part (current folder) gets the folder emoji
+                tree.append(f"{indent}📂 {part}")
+        
+        # Add files with proper indentation
+        base_indent = "   " * len(path_parts)
+        for i, f in enumerate(files):
+            prefix = "├─ " if i < len(files) - 1 else "└─ "
+            tree.append(f"{base_indent}{prefix}{f}")
+        
         tree_str = "\n".join(tree)
 
         return f"""#Objective
@@ -1226,7 +1168,7 @@ Analyze all files in this folder structure:
 {tree_str}
 
 # Current Folder
-{rel_path}
+{folder_path}
 
 # Instructions
 Generate descriptions in this EXACT format:
