@@ -200,6 +200,87 @@ class AgentRunner:
             self._running_agents.add(agent_name)
             return agent_name
             
+    def _get_folder_context(self, folder_path: str, files: list, subfolders: list,
+                          mission_content: str) -> dict:
+        """Get folder purpose and relationships using GPT with caching."""
+        if not folder_path:
+            raise ValueError("folder_path cannot be empty")
+            
+        try:
+            # Convert to absolute path for internal use, but keep relative for display
+            abs_path = os.path.abspath(folder_path)
+            rel_path = os.path.relpath(abs_path, self.project_root)
+            
+            # Generate cache key using relative path
+            cache_key = f"{rel_path}:{','.join(sorted(files))}:{','.join(sorted(subfolders))}"
+            
+            # Check cache first
+            if hasattr(self, '_context_cache'):
+                cached = self._context_cache.get(cache_key)
+                if cached:
+                    self.logger.debug(f"Using cached context for {rel_path}")
+                    return cached
+            else:
+                self._context_cache = {}
+
+            # Initialize context dictionary with required structure
+            context = {
+                'path': abs_path,  # Internal absolute path
+                'display_path': rel_path,  # Display relative path
+                'purpose': '',
+                'relationships': {
+                    'parent': 'No parent relationship specified',
+                    'siblings': 'No sibling relationships specified',
+                    'children': 'No children relationships specified'
+                }
+            }
+
+            # Create and execute GPT prompt
+            prompt = self._create_folder_context_prompt(rel_path, files, subfolders, mission_content)
+            self.logger.debug(f"\n🔍 FOLDER CONTEXT PROMPT for {rel_path}:\n{prompt}")
+            
+            client = openai.OpenAI()
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are a technical architect analyzing project structure. Always respond in the exact format requested."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.3,
+                max_tokens=500
+            )
+            
+            content = response.choices[0].message.content.strip()
+            self.logger.debug(f"\n✨ FOLDER CONTEXT RESPONSE:\n{content}")
+            
+            # Parse response and update context
+            for line in content.split('\n'):
+                line = line.strip()
+                if not line:
+                    continue
+                    
+                if line.startswith('Purpose:'):
+                    context['purpose'] = line.replace('Purpose:', '').strip()
+                elif line.startswith('Parent:'):
+                    context['relationships']['parent'] = line.replace('Parent:', '').strip()
+                elif line.startswith('Siblings:'):
+                    context['relationships']['siblings'] = line.replace('Siblings:', '').strip()
+                elif line.startswith('Children:'):
+                    context['relationships']['children'] = line.replace('Children:', '').strip()
+            
+            # Validate required fields
+            if not context['purpose']:
+                context['purpose'] = f"Storage folder for {os.path.basename(rel_path)} content"
+                self.logger.warning(f"Generated default purpose for {rel_path}")
+                
+            # Cache the result
+            self._context_cache[cache_key] = context
+            return context
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get folder context for {rel_path}: {str(e)}")
+            raise
+
     def _get_folder_context_for_path(self, folder_path: str) -> dict:
         """Get folder context for a specific path."""
         # Check if we have this path in our cache
