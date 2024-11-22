@@ -439,28 +439,29 @@ Important:
                 }
             }
             
-            # Parse response line by line with more robustness
+            content = response.choices[0].message.content.strip()
+            self.logger.debug(f"\n✨ FOLDER CONTEXT RESPONSE:\n{content}")
+            
+            # Parse response and update context
             for line in content.split('\n'):
                 line = line.strip()
                 if not line:
                     continue
-
-                # More flexible parsing approach
-                for key in ['Purpose:', 'Parent:', 'Siblings:', 'Children:']:
-                    if line.startswith(key):
-                        value = line[len(key):].strip()
-                        if key == 'Purpose:':
-                            context['purpose'] = value
-                        else:
-                            rel_key = key.lower().rstrip(':')
-                            context['relationships'][rel_key] = value
+                    
+                if line.startswith('Purpose:'):
+                    context['purpose'] = line.replace('Purpose:', '').strip()
+                elif line.startswith('Parent:'):
+                    context['relationships']['parent'] = line.replace('Parent:', '').strip()
+                elif line.startswith('Siblings:'):
+                    context['relationships']['siblings'] = line.replace('Siblings:', '').strip()
+                elif line.startswith('Children:'):
+                    context['relationships']['children'] = line.replace('Children:', '').strip()
             
-            # Enhanced validation with fallback
+            # Validate required fields
             if not context['purpose']:
-                folder_name = os.path.basename(folder_path)
-                context['purpose'] = f"Storage folder for {folder_name} related content"
-                self.logger.warning(f"Generated default purpose for {folder_path}: {context['purpose']}")
-            
+                context['purpose'] = f"Storage folder for {os.path.basename(rel_path)} content"
+                self.logger.warning(f"Generated default purpose for {rel_path}")
+                
             # Cache the result
             self._context_cache[cache_key] = context
             return context
