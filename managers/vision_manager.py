@@ -130,11 +130,13 @@ class VisionManager:
                     'git', 'clone', 'https://github.com/githubocto/repo-visualizer.git'
                 ], check=True)
                 
-                # Install dependencies in the cloned repo
+                # Installation in the correct directory
                 self.logger.info("📦 Installing repo-visualizer dependencies...")
                 try:
-                    # First build the project
                     subprocess.run(['npm', 'install'], cwd="repo-visualizer", check=True)
+                    
+                    # Explicit project build
+                    self.logger.info("🔨 Building repo-visualizer...")
                     subprocess.run(['npm', 'run', 'build'], cwd="repo-visualizer", check=True)
                 except subprocess.CalledProcessError as e:
                     self.logger.error(f"Failed to build repo-visualizer: {e.stderr}")
@@ -162,14 +164,23 @@ class VisionManager:
             # Run visualization using the local clone
             self.logger.debug("🎨 Generating repository visualization...")
             try:
+                repo_visualizer_path = os.path.join(os.getcwd(), 'repo-visualizer')
+                dist_path = os.path.join(repo_visualizer_path, 'dist', 'index.js')
+                
+                if not os.path.exists(dist_path):
+                    raise FileNotFoundError(f"Built index.js not found at {dist_path}")
+                    
                 result = subprocess.run([
                     'node',
-                    os.path.join('repo-visualizer', 'dist', 'index.js'),  # Use dist instead of src
+                    dist_path,  # Use absolute path
                     '--config', config_path
                 ], check=True, capture_output=True, text=True)
                 self.logger.debug(f"Command output: {result.stdout}")
             except subprocess.CalledProcessError as e:
                 self.logger.error(f"Visualization command failed: {e.stderr}")
+                raise
+            except FileNotFoundError as e:
+                self.logger.error(f"Build file not found: {str(e)}")
                 raise
 
             self.logger.debug(f"✨ Repository map updated: {self.map_path}")
