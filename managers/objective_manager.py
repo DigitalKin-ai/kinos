@@ -209,21 +209,27 @@ Your planning:
 
             # Add diagram if available
             if diagram_content:
-                messages.append({
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image",
-                            "image_bytes": {
-                                "bytes": diagram_content
+                try:
+                    import base64
+                    # Encode bytes to base64
+                    encoded_bytes = base64.b64encode(diagram_content).decode('utf-8')
+                    messages.append({
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "image_bytes": {
+                                    "base64": encoded_bytes
+                                }
+                            },
+                            {
+                                "type": "text",
+                                "text": "Above is the current project structure visualization. Use it to inform your objective planning."
                             }
-                        },
-                        {
-                            "type": "text",
-                            "text": "Above is the current project structure visualization. Use it to inform your objective planning."
-                        }
-                    ]
-                })
+                        ]
+                    })
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not encode diagram: {str(e)}")
 
             # Add main prompt
             messages.append({"role": "user", "content": prompt})
