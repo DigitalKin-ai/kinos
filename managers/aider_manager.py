@@ -599,18 +599,18 @@ Update map.md to reflect the current project structure while maintaining its for
         self.logger.debug(f"Running map maintenance for folder: {folder_path}")
         
         try:
-            # Get the tree structure for this folder
+            # Get the COMPLETE tree structure starting from root
             fs_utils = FSUtils()
-            files = fs_utils.get_folder_files(folder_path)
-            subfolders = fs_utils.get_subfolders(folder_path)
+            root_files = fs_utils.get_folder_files(".")
+            root_subfolders = fs_utils.get_subfolders(".")
             tree_structure = fs_utils.build_tree_structure(
-                current_path=folder_path,
-                files=files,
-                subfolders=subfolders,
-                max_depth=None  # No depth limit for folder-specific maintenance
+                current_path=".",  # Start from root
+                files=root_files,
+                subfolders=root_subfolders,
+                max_depth=None  # No depth limit to get full tree
             )
 
-            # Generate the map maintenance prompt for this folder
+            # Generate the map maintenance prompt with full tree
             map_prompt = self._generate_map_maintenance_prompt(
                 tree_structure=tree_structure
             )
@@ -626,8 +626,8 @@ Update map.md to reflect the current project structure while maintaining its for
                 "--cache-prompts",
                 "--no-pretty",
                 "--no-fancy-input",
-                "--encoding", "utf-8",  # Force UTF-8 encoding
-                "--file", folder_path,  # Add the folder path as editable
+                "--encoding", "utf-8",
+                "--file", "map.md",  # Always update map.md
                 "--message", map_prompt
             ])
 
