@@ -201,27 +201,23 @@ class AgentRunner:
             self._running_agents.add(agent_name)
             return agent_name
             
-    def _get_folder_context(self, folder_path: str, files: list, subfolders: list,
-                          mission_content: str) -> dict:
+    def _get_folder_context(self, folder_path: str, files: list, subfolders: list, mission_content: str) -> dict:
         """
-        Get folder purpose and relationships using GPT with caching.
+        Get folder purpose and relationships using GPT.
         
         Args:
-            folder_path (str): Path to current folder (relative or absolute)
+            folder_path (str): Path to current folder
             files (list): List of files in folder
             subfolders (list): List of subfolders
             mission_content (str): Overall mission context
             
         Returns:
             dict: Folder context including:
-                - path: Absolute path for internal use
-                - display_path: Relative path for display
                 - purpose: Folder's main purpose
                 - relationships: Dict of folder relationships
-                
-        Raises:
-            ValueError: If folder_path is empty or invalid
-            Exception: For API or parsing errors
+                    - parent: Relationship with parent folder
+                    - siblings: Relationships with sibling folders
+                    - children: Relationships with child folders
         """
         if not folder_path:
             raise ValueError("folder_path cannot be empty")

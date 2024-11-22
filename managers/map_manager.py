@@ -57,11 +57,22 @@ class MapManager:
         # Check if path is within project root
         return os.path.commonpath([abs_path, self.project_root]) == self.project_root
 
-    def _analyze_folder_level(self, folder_path: str, files_content: dict, 
-                            subfolders: list, mission_content: str, 
-                            objective_content: str) -> dict:
+    def _analyze_folder_level(self, folder_path: str, files_content: dict, subfolders: list, mission_content: str) -> dict:
         """
         Analyze a single folder level with its files and immediate subfolders.
+        
+        Args:
+            folder_path (str): Path to current folder
+            files_content (dict): Dictionary of filename to content
+            subfolders (list): List of immediate subfolders
+            mission_content (str): Overall mission context
+            
+        Returns:
+            dict: Analysis containing:
+                - path: Absolute folder path
+                - purpose: Folder's main purpose
+                - files: List of file analyses
+                - relationships: Dict of folder relationships
         """
         try:
             self.logger.debug(f"Analyzing folder level: {folder_path}")
@@ -76,37 +87,38 @@ class MapManager:
             
             # Path normalization and validation
             abs_folder_path = os.path.abspath(folder_path)
-            self.logger.debug(f"Absolute folder path: {abs_folder_path}")
-            
             if not self._validate_path_in_project(abs_folder_path):
                 raise ValueError(f"Path {abs_folder_path} is outside project directory")
                 
-            # Get folder context which now includes file analysis
-            folder_context = self._get_folder_context(
-                folder_path=abs_folder_path,
-                files=list(files_content.keys()),
-                subfolders=subfolders,
-                mission_content=mission_content
-            )
+        # Get folder context for purpose and relationships
+        folder_context = self._get_folder_context(
+            folder_path=abs_folder_path,
+            files=list(files_content.keys()),
+            subfolders=subfolders,
+            mission_content=mission_content
+        )
             
-            self.logger.debug(f"Folder context: {folder_context}")
+        self.logger.debug(f"Folder context: {folder_context}")
             
-            # Validate and build result
-            if not folder_context.get('purpose'):
-                raise ValueError(f"Failed to determine purpose for {folder_path}")
+        # Analyze each file in the folder
+        files_analysis = []
+        for filename, content in files_content.items():
+            file_analysis = self._analyze_file(filename, folder_context)
+            files_analysis.append(file_analysis)
             
-            analysis_result = {
+        # Build comprehensive analysis result
+        analysis_result = {
+            'path': abs_folder_path,
+            'purpose': folder_context['purpose'],
+            'files': files_analysis,
+            'relationships': folder_context['relationships'],
+            'structure': {
                 'path': abs_folder_path,
-                'purpose': folder_context['purpose'],
-                'files': folder_context.get('files', []),  # File analysis now comes from folder context
-                'relationships': folder_context.get('relationships', {}),
-                'structure': {
-                    'path': abs_folder_path,
-                    'files': list(files_content.keys()),
-                    'subfolders': subfolders,
-                    'mission_context': mission_content
-                }
+                'files': list(files_content.keys()),
+                'subfolders': subfolders,
+                'mission_context': mission_content
             }
+        }
             self.logger.debug(f"Analysis result: {analysis_result}")
             
             # Generate SVG only if not during initial mapping
