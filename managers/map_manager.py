@@ -361,48 +361,37 @@ Justify each selection based on the file's documented purpose in the project map
             
             for i in range(0, total_files, batch_size):
                 batch = available_files[i:i+batch_size]
-                batch_tasks = []
                 current_batch = i//batch_size + 1
                 
                 self.logger.info(f"📦 Processing batch {current_batch}/{total_batches} ({len(batch)} files)")
                 
                 # Process batch files in parallel
-                batch_files = []
+                batch_tasks = []
                 for filepath in batch:
                     try:
-                        # Read files asynchronously
+                        # Read file content
                         content = await self._read_file_async(filepath)
                         token_count = await self._count_tokens_async(content)
                         self.logger.debug(f"📊 File {filepath}: {token_count} tokens")
-                        batch_files.append((filepath, content, token_count))
+                        
+                        # Create task for summary generation
+                        task = self._generate_file_summary_async(filepath, content)
+                        batch_tasks.append((filepath, token_count, task))
                     except Exception as e:
-                        self.logger.warning(f"⚠️ Could not read {filepath}: {str(e)}")
+                        self.logger.warning(f"⚠️ Could not process {filepath}: {str(e)}")
                         continue
-
-                # Generate summaries in parallel
-                summaries = await asyncio.gather(
-                    *[self._generate_file_summary_async(filepath, content)
-                      for filepath, content, _ in batch_files]
-                )
             
-                # Combine results
-                batch_tasks = [
-                    (filepath, token_count, summary)
-                    for (filepath, _, token_count), summary 
-                    in zip(batch_files, summaries)
-                ]
-                
                 # Wait for all summaries in batch
                 self.logger.info(f"⏳ Generating summaries for batch {current_batch}...")
                 for filepath, token_count, task in batch_tasks:
                     try:
-                        summary = await task
+                        summary = await task  # Await the task here
                         map_content += f"{filepath} ({token_count} tokens) {summary}\n"
                         self.logger.debug(f"✅ Generated summary for {filepath}")
                     except Exception as e:
                         self.logger.warning(f"⚠️ Could not process {filepath}: {str(e)}")
                         continue
-                
+            
                 # Log batch completion and progress
                 progress = (current_batch / total_batches) * 100
                 self.logger.info(f"✨ Completed batch {current_batch}/{total_batches} ({progress:.1f}%)")
