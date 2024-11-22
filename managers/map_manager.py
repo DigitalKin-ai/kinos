@@ -304,17 +304,15 @@ class MapManager:
         return sorted(folders)
 
     def _create_folder_context_prompt(self, folder_path: str, files: list, 
-                                    subfolders: list, mission_content: str, 
-                                    objective_content: str) -> str:
+                                    subfolders: list, mission_content: str) -> str:
         """
         Create prompt for analyzing folder context.
         
         Args:
-            folder_path (str): Path to current folder
+            folder_path (str): Path to current folder (relative to project root)
             files (list): List of files in folder
             subfolders (list): List of subfolders
             mission_content (str): Overall mission context
-            objective_content (str): Current objective context
             
         Returns:
             str: Formatted prompt for GPT analysis
@@ -332,30 +330,19 @@ Subfolders:
 Mission Context:
 {mission_content}
 
-Current Objective:
-{objective_content}
+Please provide your analysis in this EXACT format:
+Purpose: [One line describing the main purpose of this folder]
+Parent: [How this folder relates to its parent WITHIN the project only]
+Siblings: [How this folder relates to peer folders in the SAME directory]
+Children: [How this folder relates to its immediate subfolders]
 
-Analyze and provide:
-1. FOLDER PURPOSE
-   - Main purpose of this folder
-   - How it supports the mission
-   - Why files are grouped here
-
-2. FILE ANALYSIS
-   - Role of each file
-   - How files work together
-   - Critical vs. supporting files
-
-3. RELATIONSHIPS
-   - Parent: How this connects to parent folder
-   - Siblings: Relationship with peer folders
-   - Children: Purpose of subfolders
-
-Format response with these exact headers:
-Purpose: [folder purpose]
-Parent: [parent relationship]
-Siblings: [sibling relationships]
-Children: [children relationships]"""
+Important:
+- Each section MUST start with the exact label (Purpose:, Parent:, etc.)
+- The Purpose section is REQUIRED and must be meaningful
+- Keep each section to 1-2 lines maximum
+- Use clear, concise language
+- DO NOT reference any directories above the project root
+- Only discuss relationships within the project scope"""
 
     def _get_folder_context(self, folder_path: str, files: list, subfolders: list,
                           mission_content: str) -> dict:
