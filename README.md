@@ -151,10 +151,8 @@ kin run agents --model gpt-4o-mini
 # Generate new agents
 kin generate agents
 
-# Generate project map
-kin generate map                    # Generate global project map
-kin generate map --agent <name>     # Generate agent-specific map
-kin generate map --mission my.md    # Use custom mission file
+# Run map maintenance
+kin run map
 
 # Run redundancy analysis
 kin redundancy analyze

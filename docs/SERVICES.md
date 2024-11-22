@@ -33,13 +33,10 @@ KinOS manages state through standardized files in the mission directory:
 - Progress tracking
 - Automatic summarization
 
-### 2.4 map_manager Service
-- Context-aware file mapping
-- Gitignore integration
-- Intelligent file selection
-- Path validation
-
-### 2.5 aider_manager Service
+### 2.5 AiderManager Service
+- Handles map maintenance operations
+- Uses `kin run map` command to initiate map maintenance
+- Integrates with other components for seamless operation
 - Commit type detection
 - Emoji-based logging
 - Command validation

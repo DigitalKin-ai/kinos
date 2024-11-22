@@ -47,6 +47,7 @@ KinOS v6 represents a fundamental shift towards true AI autonomy, implementing:
 - Directory-based operation
 - Dynamic resource allocation
 - Self-monitoring capabilities
+- Map maintenance using AiderManager
 
 #### Core Agent Types
 1. **SpecificationAgent**
