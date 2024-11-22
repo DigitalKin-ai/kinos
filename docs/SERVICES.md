@@ -45,6 +45,43 @@ KinOS manages state through standardized files in the mission directory:
 - Command validation
 - History tracking
 
+### 2.6 MapManager Service
+- **Folder-Centric Operation**
+  - Analyzes project structure by folder
+  - Maintains folder-specific context maps
+  - Tracks folder-level changes
+  - Updates only on structural changes
+
+- **Change Detection**
+  - Monitors file creation/deletion
+  - Ignores content-only changes
+  - Maintains folder integrity
+  - Updates parent folder contexts
+
+- **Context Analysis**
+  - Evaluates folder purpose
+  - Analyzes file grouping logic
+  - Maps inter-folder relationships
+  - Documents structural dependencies
+
+- **Map Generation**
+  - Creates folder-specific maps
+  - Includes folder purpose explanation
+  - Documents file relationships
+  - Maintains hierarchical context
+
+- **File Categories**
+  - Core Project Files (📊 PRIMARY, 📋 SPEC, ⚙️ IMPL, 📚 DOCS)
+  - Support Files (⚡ CONFIG, 🛠️ UTIL, 🧪 TEST, 📦 BUILD)
+  - Working Files (✍️ WORK, 📝 DRAFT, 📄 TEMPLATE, 📂 ARCHIVE)
+  - Data Files (💾 SOURCE, ⚡ GEN, 💫 CACHE, 💿 BACKUP)
+
+- **Integration**
+  - Works with git for change detection
+  - Coordinates with redundancy manager
+  - Supports agent operations
+  - Maintains global project context
+
 ## 3. Service Integration
 
 ### 3.1 Communication
