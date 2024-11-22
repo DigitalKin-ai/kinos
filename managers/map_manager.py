@@ -6,7 +6,6 @@ from pathlib import Path
 from utils.fs_utils import FSUtils
 from utils.logger import Logger
 from utils.encoding_utils import EncodingUtils
-from utils.encoding_utils import EncodingUtils
 import openai
 import tiktoken
 from dotenv import load_dotenv
@@ -34,6 +33,7 @@ class MapManager:
         self.encoding_utils = EncodingUtils()
         self.fs_utils = FSUtils()
         self.project_root = os.path.abspath('.')  # Store absolute path of project root
+        self._initial_mapping_in_progress = False
         load_dotenv()
         openai.api_key = os.getenv('OPENAI_API_KEY')
         if not openai.api_key:
@@ -224,36 +224,21 @@ class MapManager:
             raise
             
         try:
-            # Get immediate files and their contents
+            # Get files and subfolders using FSUtils
+            files = self.fs_utils.get_folder_files(folder_path)
+            subfolders = self.fs_utils.get_subfolders(folder_path)
+            
+            # Get file contents with encoding handling
             files_content = {}
-            for file in self.fs_utils.get_folder_files(folder_path):
+            for file in files:
                 try:
                     file_path = os.path.join(folder_path, file)
-                    
-                    # Check if file is binary
-                    if self._is_binary_file(file_path):
-                        self.logger.debug(f"Skipping binary file: {file}")
-                        continue
-                        
-                    # Try different encodings
-                    for encoding in ['utf-8', 'latin1', 'cp1252']:
-                        try:
-                            with open(file_path, 'r', encoding=encoding) as f:
-                                content = f.read()
-                                files_content[file] = content
-                                break
-                        except UnicodeDecodeError:
-                            continue
-                    else:
-                        self.logger.warning(f"Could not decode {file} with any supported encoding")
-                        
-                except (OSError, UnicodeDecodeError) as e:
-                    self.logger.warning(f"Could not read {file}: {str(e)}")
+                    if not self._is_binary_file(file_path):
+                        content = self.encoding_utils._read_file(file_path)
+                        if content is not None:
+                            files_content[file] = content
                 except Exception as e:
-                    self.logger.error(f"Unexpected error reading {file}: {str(e)}")
-
-            # Get subfolder structure
-            subfolders = self.fs_utils.get_subfolders(folder_path)
+                    self.logger.warning(f"Could not read {file}: {str(e)}")
             
             # Generate complete folder context
             folder_analysis = self._analyze_folder_level(
@@ -300,13 +285,10 @@ class MapManager:
 
     def _create_folder_context_prompt(self, folder_path: str, files: list, subfolders: list, mission_content: str) -> str:
         """Create prompt for analyzing folder context."""
-        # Store current folder path for tree building
-        self.current_folder_path = os.path.abspath(folder_path)
-        
-        # Build tree structure
         # Set current folder for tree building
-        self.fs_utils.set_current_folder(self.current_folder_path)
+        self.fs_utils.set_current_folder(os.path.abspath(folder_path))
         
+        # Build tree structure using FSUtils
         tree = self.fs_utils.build_tree_structure(
             current_path=".",
             files=files,
@@ -314,6 +296,7 @@ class MapManager:
             max_depth=3  # Show 3 levels for non-current branches
         )
         
+        # Join tree lines
         tree_str = "\n".join(tree)
 
         return f"""# Objective
