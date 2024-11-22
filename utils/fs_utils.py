@@ -143,8 +143,8 @@ class FSUtils:
         # Normalize path for consistent comparison
         path = path.replace('\\', '/')
         
-        # Always ignore .aider folders
-        if '.aider' in path.split('/'):
+        # Always ignore .aider folders and files
+        if '.aider' in path.split('/') or path.startswith('.aider'):
             return True
             
         # Check against other ignore patterns
