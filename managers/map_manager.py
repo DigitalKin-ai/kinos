@@ -347,23 +347,50 @@ Children: [children relationships]"""
                 self._context_cache = {}
             
             client = openai.OpenAI()
-            prompt = self._create_folder_context_prompt(
-                folder_path, files, subfolders,
-                mission_content, objective_content
-            )
             
-            # Make API call with retry logic
+            # Improved prompt for more structured response
+            prompt = f"""Analyze this folder's purpose and relationships:
+
+Current Folder: {folder_path}
+
+Files Present:
+{chr(10).join(f'- {f}' for f in files)}
+
+Subfolders:
+{chr(10).join(f'- {f}' for f in subfolders)}
+
+Mission Context:
+{mission_content}
+
+Current Objective:
+{objective_content}
+
+Please provide your analysis in this EXACT format:
+Purpose: [One line describing the main purpose of this folder]
+Parent: [How this folder relates to its parent]
+Siblings: [How this folder relates to peer folders]
+Children: [How this folder relates to its subfolders]
+
+Important:
+- Each section MUST start with the exact label (Purpose:, Parent:, etc.)
+- The Purpose section is REQUIRED and must be meaningful
+- Keep each section to 1-2 lines maximum
+- Use clear, concise language"""
+
+            # Make API call with retry logic and improved parameters
             max_retries = 3
             for attempt in range(max_retries):
                 try:
                     response = client.chat.completions.create(
                         model="gpt-4o-mini",
                         messages=[
-                            {"role": "system", "content": "You are a technical architect analyzing project structure and organization."},
+                            {"role": "system", "content": "You are a technical architect analyzing project structure. Always respond in the exact format requested."},
                             {"role": "user", "content": prompt}
                         ],
                         temperature=0.3,
-                        max_tokens=1000
+                        max_tokens=500,
+                        presence_penalty=-0.5,
+                        frequency_penalty=0.0
                     )
                     break
                 except Exception as e:
@@ -372,39 +399,44 @@ Children: [children relationships]"""
                     self.logger.warning(f"API call failed, attempt {attempt + 1}/{max_retries}: {str(e)}")
                     time.sleep(2 ** attempt)  # Exponential backoff
             
-            # Parse response into structure
-            content = response.choices[0].message.content
-            if not content:
-                raise ValueError("Empty response from GPT")
-                
+            # Parse response with improved error handling
+            content = response.choices[0].message.content.strip()
+            self.logger.debug(f"GPT Response for {folder_path}:\n{content}")
+            
+            # Initialize context with default values
             context = {
                 'purpose': '',
                 'relationships': {
-                    'parent': '',
-                    'siblings': '',
-                    'children': ''
+                    'parent': 'No parent relationship specified',
+                    'siblings': 'No sibling relationships specified',
+                    'children': 'No children relationships specified'
                 }
             }
             
-            # Parse response line by line
+            # Parse response line by line with more robustness
             for line in content.split('\n'):
                 line = line.strip()
                 if not line:
                     continue
-                    
-                if line.startswith('Purpose:'):
-                    context['purpose'] = line.replace('Purpose:', '').strip()
-                elif line.startswith('Parent:'):
-                    context['relationships']['parent'] = line.replace('Parent:', '').strip()
-                elif line.startswith('Siblings:'):
-                    context['relationships']['siblings'] = line.replace('Siblings:', '').strip()
-                elif line.startswith('Children:'):
-                    context['relationships']['children'] = line.replace('Children:', '').strip()
+
+                # More flexible parsing approach
+                for key in ['Purpose:', 'Parent:', 'Siblings:', 'Children:']:
+                    if line.startswith(key):
+                        value = line[len(key):].strip()
+                        if key == 'Purpose:':
+                            context['purpose'] = value
+                        else:
+                            rel_key = key.lower().rstrip(':')
+                            context['relationships'][rel_key] = value
             
-            # Validate parsed content
+            # Enhanced validation with fallback
             if not context['purpose']:
-                raise ValueError("Failed to parse folder purpose from response")
-                
+                folder_name = os.path.basename(folder_path)
+                context['purpose'] = f"Storage folder for {folder_name} related content"
+                self.logger.warning(f"Generated default purpose for {folder_path}: {context['purpose']}")
+            
+            # Cache the result
+            self._context_cache[cache_key] = context
             return context
             
         except Exception as e:
