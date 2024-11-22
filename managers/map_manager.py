@@ -206,8 +206,7 @@ class MapManager:
             prompt = self._create_map_prompt(
                 mission_content, 
                 objective_content, 
-                agent_content,
-                available_files
+                agent_content  # Removed available_files argument
             )
             
             response = client.chat.completions.create(
