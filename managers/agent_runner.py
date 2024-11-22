@@ -7,7 +7,6 @@ from concurrent.futures import ThreadPoolExecutor
 from utils.logger import Logger
 from managers.agents_manager import AgentsManager
 from managers.objective_manager import ObjectiveManager
-from managers.map_manager import MapManager
 from managers.aider_manager import AiderManager
 
 class AgentRunner:
@@ -18,16 +17,12 @@ class AgentRunner:
         self.logger = Logger()
         self.agents_manager = AgentsManager()
         self.objective_manager = ObjectiveManager()
-        self.map_manager = MapManager()
         self.aider_manager = AiderManager()
         self._running_agents = set()  # Track active agents
         self._agent_lock = asyncio.Lock()  # Synchronize shared resource access
 
     async def initialize(self):
         """Initialize async components of the runner."""
-        # Initialize global map if it doesn't exist
-        if not os.path.exists("map.md"):
-            await self.map_manager.initialize_global_map()
         return self
 
     @classmethod
@@ -378,14 +373,6 @@ class AgentRunner:
             agent_filepath
         )
         
-        # Generate context map
-        map_filepath = f".aider.map.{agent_name}.md"
-        # Generate map directly
-        self.map_manager.generate_map(
-            mission_filepath,
-            objective_filepath,
-            agent_filepath
-        )
         
         # Execute aider operation
         self.aider_manager.run_aider(
