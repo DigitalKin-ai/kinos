@@ -323,7 +323,7 @@ In this context, you are a precise file context analyzer for AI development task
             self.logger.error(f"GPT API call failed: {str(e)}")
             raise
 
-    def _generate_summary(self, objective, agent_name):
+    def _generate_summary(self, objective, agent_name, agent_content):
         """Generate a one-line summary of the objective."""
         try:
             # Read last 50 lines from suivi.md if it exists
@@ -370,7 +370,7 @@ Reply only with the formatted sentence, nothing else.
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": """
+                    {"role": "system", "content": f"""
 {agent_content}
                      
 In this context, you are an assistant who summarizes project actions in a concise sentence with appropriate emojis. These summaries will serve as tracking logs within the mission."""},
@@ -387,7 +387,7 @@ In this context, you are an assistant who summarizes project actions in a concis
             # Return a basic fallback summary
             return f"L'agent {agent_name} 🤖 va exécuter une nouvelle tâche"
 
-    def _generate_research_summary(self, query, result, agent_name):
+    def _generate_research_summary(self, query, result, agent_name, agent_content):
         """Generate a summary of the Perplexity research results."""
         try:
             client = openai.OpenAI()
@@ -434,7 +434,7 @@ In this context, you are an assistant who summarizes project actions in a concis
             return f"L'agent {agent_name} 🤖 a recherché sur : {query}"
 
 
-    def _save_objective(self, filepath, content):
+    def _save_objective(self, filepath, content, agent_name, agent_content):
         """Save objective content to file, including Perplexity research results if needed."""
         try:
             # Extract agent name from filepath
@@ -478,7 +478,12 @@ In this context, you are an assistant who summarizes project actions in a concis
                             research_result = response.json()["choices"][0]["message"]["content"]
                             
                             # Generate summary of research results with agent name
-                            research_summary = self._generate_research_summary(research_query, research_result, agent_name)
+                            research_summary = self._generate_research_summary(
+                                research_query, 
+                                research_result, 
+                                agent_name,
+                                agent_content
+                            )
                             self.logger.success(research_summary)
                             
                             # Add research results to objective
