@@ -20,7 +20,7 @@ class VisionManager:
             ValueError: If configuration is invalid
         """
         # Get required paths
-        repo_viz_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'repo-viz')
+        repo_viz_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'repo-visualizer')
         dist_path = os.path.join(repo_viz_path, 'dist')
         index_js = os.path.join(dist_path, 'index.js')
         
@@ -28,7 +28,7 @@ class VisionManager:
         if not os.path.exists(repo_viz_path):
             raise FileNotFoundError(
                 f"repo-visualizer not found at {repo_viz_path}. "
-                "Please install it manually in the repo-viz directory."
+                "Please install it manually in the repo-visualizer directory."
             )
             
         if not os.path.exists(index_js):
