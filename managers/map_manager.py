@@ -610,7 +610,7 @@ Use same categories as before."""
             indent = "  " * level
             content = []
             
-            # Always use display_path or convert absolute to relative if needed
+            # Get folder path
             folder_path = folder_data.get('display_path')
             if not folder_path and 'path' in folder_data:
                 folder_path = os.path.relpath(folder_data['path'], self.project_root)
@@ -624,7 +624,10 @@ Use same categories as before."""
                 
             # Add folder header with full path
             content.append(f"{indent}## {full_path}")
-            content.append(f"{indent}**Purpose:** {folder_data.get('purpose', 'No purpose specified')}\n")
+            
+            # Add folder purpose with emoji
+            purpose = folder_data.get('purpose', 'Store and organize project files')
+            content.append(f"{indent}**Purpose:** 📁 {purpose}\n")
             
             # Add files section if there are files
             if folder_data.get('files'):
@@ -632,9 +635,32 @@ Use same categories as before."""
                 for i, file in enumerate(folder_data['files']):
                     # Use tree branches for files
                     file_branch = "├─ " if i < len(folder_data['files']) - 1 else "└─ "
-                    content.append(f"{indent}- **{file_branch}{file['name']}** ({file.get('role', 'UNKNOWN')})")
-                    if file.get('description'):
-                        content.append(f"{indent}  _{file.get('description')}_\n")
+                    
+                    # Format role and description
+                    role = file.get('role', 'DOCS 📚')  # Default role
+                    description = file.get('description', '')
+                    
+                    # Add USE/NOT USE if not present
+                    if description and ' | USE: ' not in description:
+                        file_type = role.split()[0].lower()
+                        if file_type == 'primary':
+                            use_case = "For latest data analysis; NOT for historical records"
+                        elif file_type == 'spec':
+                            use_case = "For requirement definition; NOT for implementation details"
+                        elif file_type == 'docs':
+                            use_case = "For documentation reference; NOT for active development"
+                        elif file_type == 'work':
+                            use_case = "For active development; NOT for final documentation"
+                        else:
+                            use_case = f"For {file_type} purposes; NOT for other uses"
+                        description = f"{description} | USE: {use_case}"
+                    
+                    # Format file entry
+                    content.append(f"{indent}- **{file_branch}{file['name']}** ({role})")
+                    if description:
+                        content.append(f"{indent}  _{description}_\n")
+                    else:
+                        content.append(f"{indent}  _Stores and manages {file['name']} content_\n")
     
             # Add line break before subfolders
             if folder_data.get('subfolders'):
