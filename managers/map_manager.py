@@ -512,9 +512,9 @@ Rules:
         tree_str = "\n".join(tree)
 
         return f"""# Objective
-Define folder's purpose and relationships:
+Analyze this folder and its files:
 
-# Current Folder Structure
+# Current Structure
 {tree_str}
 
 # Mission Context
@@ -523,16 +523,36 @@ Define folder's purpose and relationships:
 ````
 
 # Instructions
-Provide in this format:
-Purpose: 📁 [Action verb + direct object, max 10 words]
+Provide analysis in this format:
+
+Folder: 📁 [Action verb + direct object, max 10 words]
+
+Files:
+- **[tree prefix] [filename]** ([CATEGORY] [EMOJI])
+  _[Action verb] [technical description]_
+
+Categories (select ONE per file):
+Core: PRIMARY 📊, SPEC 📋, IMPL ⚙️, DOCS 📚
+Support: CONFIG ⚡, UTIL 🛠️, TEST 🧪, BUILD 📦
+Working: WORK ✍️, DRAFT 📝, TEMPLATE 📄, ARCHIVE 📂
+Data: SOURCE 💾, GEN ⚡, CACHE 💫, BACKUP 💿
 
 Rules:
-- Start Purpose with action verb
-- Use declarative statements
-- Omit conditionals
+- Start all descriptions with action verb
+- Use technical, specific language
 - Maximum 10 words per line
-- Focus on concrete actions
-- Include emojis as shown in format"""
+- Include appropriate emojis
+
+Example correct response:
+Folder: 📁 Manage authentication system configuration and credentials
+
+Files:
+- **├─ auth_config.json** (CONFIG ⚡)
+  _Stores API keys and OAuth2 client credentials_
+- **├─ auth_utils.py** (UTIL 🛠️)
+  _Implements JWT token validation and session management_
+- **└─ auth_test.py** (TEST 🧪)
+  _Validates authentication flow with mock credentials_"""
     def _format_files_content(self, files_content: dict) -> str:
         """
         Format files content for prompt with intelligent truncation.
