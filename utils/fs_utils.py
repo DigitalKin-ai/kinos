@@ -53,6 +53,10 @@ class FSUtils:
         # Initialize current_folder_path if None
         if self.current_folder_path is None:
             self.current_folder_path = ""
+            
+        # Handle None max_depth by setting it to a large number
+        if max_depth is None:
+            max_depth = float('inf')  # Use infinity for unlimited depth
         
         # Determine if this is the active folder
         is_active = os.path.abspath(current_path) == self.current_folder_path
