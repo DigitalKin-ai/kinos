@@ -489,7 +489,9 @@ The following files were modified in this session:
 {', '.join(all_changes)}
 
 # Current Complete Project Structure
+````
 {tree_text}
+````
 
 # Instructions
 1. Review the current map.md content
