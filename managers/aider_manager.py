@@ -366,7 +366,8 @@ class AiderManager:
                 try:
                     file_path = file_path.encode('latin1').decode('utf-8')
                     self.logger.info(f"🔄 Agent {agent_name} updating global map for: {file_path}")
-                    self._vision_manager.update_global_map(file_path)
+                    # Run map maintenance instead of using update_global_map
+                    self.run_map_maintenance_for_all_folders()
                     self.logger.debug(f"✅ Agent {agent_name} successfully updated map for: {file_path}")
                     
                     # Check if file was created or deleted
