@@ -635,14 +635,14 @@ Justify each selection based on the file's documented purpose in the project map
             self.logger.error(f"Failed to update map file: {str(e)}")
             raise
 
-    def _generate_file_summary_prompt(self, filepath, content, commit_msg=None):
+    def _create_map_prompt(self, mission_content, objective_content, agent_content):
         """
-        Generate a prompt for file summary that emphasizes purpose within project structure.
+        Create prompt for context map generation.
         
         Args:
-            filepath (str): Path to the file being summarized
-            content (str): Content of the file
-            commit_msg (str, optional): Recent commit message for context
+            mission_content (str): Content of mission file
+            objective_content (str): Content of objective file
+            agent_content (str): Content of agent configuration file
             
         Returns:
             str: Formatted prompt for GPT model
