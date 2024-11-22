@@ -47,56 +47,36 @@ class FSUtils:
     def build_tree_structure(self, current_path: str, files: list, subfolders: list, 
                            max_depth: int = 3, current_depth: int = 0, 
                            is_current_branch: bool = True) -> list:
-        """
-        Build tree structure with depth limits for non-current branches.
-        
-        Args:
-            current_path: Path being analyzed
-            files: List of files in current folder
-            subfolders: List of subfolders
-            max_depth: Maximum depth to show for non-current branches
-            current_depth: Current recursion depth
-            is_current_branch: Whether this is the branch containing current folder
-            
-        Returns:
-            list: Lines of tree structure
-        """
+        """Build tree structure with proper indentation."""
         tree = []
-        path_parts = current_path.split(os.sep)
-        base_indent = "   " * current_depth
         
-        # Show current folder
+        # Show root folder without indentation
         if current_depth == 0:
             tree.append("📂 ./")
+            base_indent = "   "  # Base indentation for root level items
         else:
-            folder_name = path_parts[-1]
+            folder_name = os.path.basename(current_path)
+            base_indent = "   " * current_depth
             tree.append(f"{base_indent}📂 {folder_name}")
         
-        # Check depth limits for non-current branches
-        if not is_current_branch and current_depth >= max_depth:
-            if files or subfolders:
-                tree.append(f"{base_indent}   ...")
-            return tree
-        
-        # Add files
+        # Add files with proper indentation
         for i, f in enumerate(files):
             prefix = "├─ " if (i < len(files) - 1 or subfolders) else "└─ "
-            tree.append(f"{base_indent}   {prefix}{f}")
+            tree.append(f"{base_indent}{prefix}{f}")
         
-        # Add subfolders
+        # Add subfolders without extra indentation
         for i, d in enumerate(subfolders):
             prefix = "├─ " if i < len(subfolders) - 1 else "└─ "
             subfolder_path = os.path.join(current_path, d)
             
-            # Determine if this subfolder is part of the current folder's path
-            is_current_subfolder = is_current_branch and current_path in self.current_folder_path
+            # Determine if this subfolder is part of current path
+            is_current_subfolder = is_current_branch and subfolder_path in self.current_folder_path
             
-            # Get subfolder contents if needed
             if is_current_subfolder or current_depth < max_depth:
                 sub_files = self.get_folder_files(subfolder_path)
                 sub_folders = self.get_subfolders(subfolder_path)
                 
-                # Recursively build subtree
+                # Add subfolder and its contents
                 subtree = self.build_tree_structure(
                     subfolder_path,
                     sub_files,
@@ -105,12 +85,10 @@ class FSUtils:
                     current_depth + 1,
                     is_current_subfolder
                 )
-                
-                # Add subtree with proper prefix
-                tree.extend([f"{base_indent}   {prefix}{line}" for line in subtree])
+                tree.extend(subtree)
             else:
                 # Just show folder name for depth-limited branches
-                tree.append(f"{base_indent}   {prefix}{d}/")
+                tree.append(f"{base_indent}{prefix}{d}/...")
         
         return tree
 
