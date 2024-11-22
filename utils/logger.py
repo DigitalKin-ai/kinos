@@ -8,10 +8,14 @@ class Logger:
     """Utility class for handling logging operations."""
     
     def __init__(self):
+        """Initialize the logger with mission context."""
         # Force UTF-8 for stdin/stdout
         import sys
         sys.stdin.reconfigure(encoding='utf-8')
         sys.stdout.reconfigure(encoding='utf-8')
+
+        # Load mission context
+        self.mission_content = self._load_mission_content()
         
         # Set locale to UTF-8
         import locale
@@ -162,8 +166,19 @@ class Logger:
                     f.write(content)
                 self.logger.success(f"✅ Converted {filepath} from {encoding} to UTF-8")
         
+    def _load_mission_content(self):
+        """Load mission content from .aider.mission.md file."""
+        try:
+            if os.path.exists('.aider.mission.md'):
+                with open('.aider.mission.md', 'r', encoding='utf-8') as f:
+                    return f.read()
+            return ""
+        except Exception as e:
+            print(f"Warning: Could not load mission file: {str(e)}")
+            return ""
+
     def _check_and_summarize_logs(self):
-        """Check log file size and summarize if needed."""
+        """Check log file size and summarize if needed with mission context."""
         try:
             if not os.path.exists(self.suivi_file):
                 return
