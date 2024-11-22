@@ -343,7 +343,7 @@ class MapManager:
         tree_str = "\n".join(tree)
 
         return f"""# Objective
-Define folder's purpose and relationships:
+Define folder's purpose and relationships
 
 # Current Folder Structure
 {tree_str}
@@ -616,7 +616,7 @@ Rules:
             
             # Add relationships if not root
             if level > 0:
-                content.append(f"{indent}### Relationships:")
+                content.append(f"{indent}Relationships:")
                 content.append(f"{indent}- **Parent:** _{folder_data['relationships']['parent']}_")
                 content.append(f"{indent}- **Siblings:** _{folder_data['relationships']['siblings']}_")
                 if folder_data['subfolders']:
