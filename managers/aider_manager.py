@@ -22,10 +22,62 @@ class AiderManager:
                     'git', 'clone', 'https://github.com/Aider-AI/aider.git'
                 ], check=True)
                 
-                # Install aider in editable mode
-                subprocess.run([
-                    'pip', 'install', '-e', './aider'
-                ], check=True)
+                try:
+                    # Vérifier la structure du projet
+                    self.logger.debug("📂 Checking project structure...")
+                    if os.path.exists(os.path.join(repo_visualizer_path, 'package.json')):
+                        with open(os.path.join(repo_visualizer_path, 'package.json'), 'r') as f:
+                            self.logger.debug(f"📄 package.json content: {f.read()}")
+                    
+                    # Create dist directory if it doesn't exist
+                    dist_path = os.path.join(repo_visualizer_path, 'dist')
+                    os.makedirs(dist_path, exist_ok=True)
+                
+                    # Update package.json build script
+                    package_json_path = os.path.join(repo_visualizer_path, 'package.json')
+                    with open(package_json_path, 'r') as f:
+                        package_json = json.load(f)
+                
+                    # Update build script to output to dist directory
+                    package_json['scripts'] = package_json.get('scripts', {})
+                    package_json['scripts']['build'] = "node_modules/.bin/esbuild --target=es2019 ./src/index.jsx --bundle --platform=node --outfile=dist/index.js"
+                
+                    # Save updated package.json
+                    with open(package_json_path, 'w') as f:
+                        json.dump(package_json, f, indent=2)
+                
+                    # Run npm install and build
+                    npm_path = 'npm'
+                    self.logger.info("📦 Running npm install...")
+                    install_result = subprocess.run(
+                        [npm_path, 'install'], 
+                        cwd=repo_visualizer_path, 
+                        check=True,
+                        capture_output=True,
+                        text=True
+                    )
+                    self.logger.debug(f"📦 npm install output: {install_result.stdout}")
+                
+                    # Build explicite du projet
+                    self.logger.info("🔨 Running npm run build...")
+                    build_result = subprocess.run(
+                        [npm_path, 'run', 'build'], 
+                        cwd=repo_visualizer_path, 
+                        check=True,
+                        capture_output=True,
+                        text=True
+                    )
+                    self.logger.debug(f"🔨 npm run build output: {build_result.stdout}")
+                
+                    # Verify build output
+                    if not os.path.exists(os.path.join(dist_path, 'index.js')):
+                        raise FileNotFoundError(f"Build failed: index.js not found in {dist_path}")
+                    
+                    self.logger.debug(f"📂 Contents of dist directory: {os.listdir(dist_path)}")
+                        
+                except subprocess.CalledProcessError as e:
+                    self.logger.error(f"Failed to build repo-visualizer: {e.stderr}")
+                    raise
 
             return True
         except Exception as e:
