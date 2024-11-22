@@ -122,26 +122,8 @@ class MapManager:
             
             self.logger.debug(f"Folder context: {folder_context}")
             
-            # Analyze each file in the folder
-            analyzed_files = []
-            for filename, content in files_content.items():
-                try:
-                    if not isinstance(content, str):
-                        raise TypeError(f"Content for {filename} must be string")
-                        
-                    file_analysis = self._analyze_file(filename, folder_context)
-                    analyzed_files.append(file_analysis)
-                    
-                except Exception as e:
-                    self.logger.warning(
-                        f"Failed to analyze file {filename}: {str(e)}\n"
-                        f"Error type: {type(e).__name__}"
-                    )
-                    analyzed_files.append({
-                        'name': filename,
-                        'role': '⚠️ ERROR',
-                        'description': f'Analysis failed: {str(e)}'
-                    })
+            # Analyze all files in batch
+            analyzed_files = self._analyze_files_batch(abs_folder_path, list(files_content.keys()))
             
             # Validate folder context
             if not folder_context.get('purpose'):
@@ -501,26 +483,26 @@ Important:
             self.logger.error(f"Failed to get folder context for {folder_path}: {str(e)}")
             raise
 
-    def _analyze_file(self, filename: str, folder_context: dict) -> dict:
+    def _analyze_files_batch(self, folder_path: str, files: list) -> list:
         """
-        Analyze single file's role and purpose.
+        Analyze all files in a folder in a single batch.
         
         Args:
-            filename (str): Name of file to analyze
-            folder_context (dict): Context information about the containing folder
+            folder_path (str): Path to folder containing files
+            files (list): List of filenames to analyze
             
         Returns:
-            dict: Analysis containing:
-                - name: Filename
-                - role: Technical role with emoji
-                - description: Purpose description
+            list: List of file analyses with role and description
         """
         try:
+            if not files:
+                return []
+
             client = openai.OpenAI()
-            prompt = self._create_file_analysis_prompt(filename, folder_context)
+            prompt = self._create_folder_analysis_prompt(folder_path, files)
             
             # Log the prompt at debug level
-            self.logger.debug(f"\n🔍 FILE ANALYSIS PROMPT for {filename}:\n{prompt}")
+            self.logger.debug(f"\n🔍 FOLDER FILES ANALYSIS PROMPT:\n{prompt}")
             
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -529,24 +511,45 @@ Important:
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
-                max_tokens=200
+                max_tokens=1000
             )
             
             # Log the response at debug level
             content = response.choices[0].message.content
-            self.logger.debug(f"\n✨ FILE ANALYSIS RESPONSE for {filename}:\n{content}")
+            self.logger.debug(f"\n✨ FOLDER FILES ANALYSIS RESPONSE:\n{content}")
             
-            # Parse response into structure 
-            parts = content.split(' - ', 1)
+            # Parse response into file analyses
+            analyses = []
+            current_file = None
             
-            return {
-                'name': filename,
-                'role': parts[0].strip(),
-                'description': parts[1].strip() if len(parts) > 1 else ''
-            }
+            for line in content.split('\n'):
+                line = line.strip()
+                if not line:
+                    continue
+                    
+                if line.startswith('- **'):
+                    # Extract filename and role from line like:
+                    # - **├─ ./filename.ext** (CATEGORY EMOJI)
+                    parts = line.split('**')
+                    if len(parts) >= 3:
+                        file_info = parts[1].split(' ')[-1]  # Get just the filename
+                        role_part = parts[2].strip()[1:-1]  # Remove parentheses
+                        current_file = {
+                            'name': os.path.basename(file_info),
+                            'role': role_part,
+                            'description': ''
+                        }
+                elif line.startswith('  _') and current_file:
+                    # Extract description from line like:
+                    #   _Description text._
+                    current_file['description'] = line.strip(' _.')
+                    analyses.append(current_file)
+                    current_file = None
+            
+            return analyses
             
         except Exception as e:
-            self.logger.error(f"Failed to analyze file {filename}: {str(e)}")
+            self.logger.error(f"Failed to analyze files in {folder_path}: {str(e)}")
             raise
 
     def _generate_map_content(self, hierarchy: dict) -> str:
@@ -1077,55 +1080,32 @@ Rules:
         except Exception as e:
             self.logger.error(f"Failed to update folder analysis: {str(e)}")
             raise
-    def _create_file_analysis_prompt(self, filename: str, folder_context: dict) -> str:
-        """Create prompt for analyzing a single file's role."""
-        # Get full relative path
-        rel_path = os.path.relpath(os.path.join(folder_context['path'], filename), self.project_root)
-        
+    def _create_folder_analysis_prompt(self, folder_path: str, files: list) -> str:
+        """Create prompt for analyzing all files in a folder."""
         # Build folder tree structure
-        current_folder = os.path.dirname(os.path.join(folder_context['path'], filename))
-        parent_folder = os.path.dirname(current_folder)
-        
-        # Get files and folders for tree
-        files = self._get_folder_files(current_folder)
-        subfolders = self._get_subfolders(current_folder)
-        parent_siblings = self._get_subfolders(parent_folder) if parent_folder else []
-        
-        # Build tree structure
         tree = []
+        rel_path = os.path.relpath(folder_path, self.project_root)
         
-        # Add parent level
-        if parent_folder:
-            tree.append(f"📁 {os.path.basename(parent_folder)}/")
-            # Add sibling folders at parent level
-            for sibling in parent_siblings:
-                if sibling == os.path.basename(current_folder):
-                    # Current folder - expand it
-                    tree.append(f"   ├── 📂 {sibling}/")
-                    # Add files in current folder
-                    for i, f in enumerate(files):
-                        prefix = "   │   ├── " if i < len(files) - 1 else "   │   └── "
-                        if f == filename:
-                            tree.append(f"{prefix}📌 {f}  <-- Current file")
-                        else:
-                            tree.append(f"{prefix}📄 {f}")
-                    # Add subfolders
-                    for subfolder in subfolders:
-                        tree.append(f"   │   ├── 📁 {subfolder}/")
-                else:
-                    tree.append(f"   ├── 📁 {sibling}/")
+        # Add current folder files with tree structure
+        for i, f in enumerate(files):
+            prefix = "├─" if i < len(files) - 1 else "└─"
+            tree.append(f"{prefix} ./{f}")
 
         tree_str = "\n".join(tree)
 
-        return f"""Analyze this file's role within its folder structure:
+        return f"""Analyze all files in this folder structure:
 
-File Location:
+Current Folder: {rel_path}
+
+Files Present:
 {tree_str}
 
-Return in format:
-[CATEGORY (EMOJI)] - [Action verb] [dense technical description] | USE: [when to use/not use]
+Generate descriptions in this EXACT format:
+### Files:
+- **[tree prefix] [relative path]** ([CATEGORY] [EMOJI])  
+  _[Action verb] [dense technical description] | USE: [when to use]; NOT [when not to use]._
 
-Categories (select ONE):
+Categories (select ONE per file):
 Core Project Files:
 * PRIMARY (📊) - Final outputs, key results
 * SPECIFICATION (📋) - Requirements, standards
@@ -1150,7 +1130,7 @@ Data Files:
 * CACHE (💫) - Temporary storage
 * BACKUP (💿) - Data preservation
 
-Rules:
+Rules for each description:
 - Start with precise action verb
 - Pack technical details densely
 - Include key parameters/patterns
@@ -1161,7 +1141,8 @@ Rules:
 - Note performance impacts
 
 Example:
-📊 PRIMARY - Aggregates biomarker correlation matrices (r>0.7) using sliding window analysis (window=30d) for 5 key protein markers | USE: When validating longitudinal marker patterns; NOT for preliminary screening or single-timepoint data.
+- **├─ ./analysis_results.md** (📊 PRIMARY)  
+  _Aggregates biomarker correlation matrices (r>0.7) using sliding window analysis (window=30d) for 5 key protein markers | USE: When validating longitudinal marker patterns; NOT for preliminary screening or single-timepoint data._
 
 Remember:
 - Technical precision over general descriptions
