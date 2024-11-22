@@ -415,17 +415,6 @@ Data Files:
                     
         return '\n'.join(tree)
 
-    def _get_files_in_folder(self, folder_path):
-        """Get list of files in the current folder (not recursive)."""
-        files = []
-        ignore_patterns = self._get_ignore_patterns()
-        
-        for entry in os.scandir(folder_path):
-            if entry.is_file() and not self._should_ignore(entry.path, ignore_patterns):
-                files.append(entry.name)
-                
-        return sorted(files)
-
     def _save_map(self, filepath, content):
         """Save context map content to file."""
         try:
