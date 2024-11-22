@@ -54,7 +54,7 @@ class AgentRunner:
                 self.logger.info("🔄 Génération automatique des agents...")
                 await self.agents_manager.generate_agents(mission_filepath)
 
-            self.logger.info(f"🚀 Démarrage avec {agent_count} agents en parallèle")
+            self.logger.info(f"🚀 Starting with {agent_count} agents in parallel")
 
             # Create initial pool of agents
             tasks = set()

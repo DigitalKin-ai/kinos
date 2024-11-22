@@ -385,7 +385,7 @@ In this context, you are an assistant who summarizes project actions in a concis
         except Exception as e:
             self.logger.error(f"Failed to generate summary: {str(e)}")
             # Return a basic fallback summary
-            return f"L'agent {agent_name} 🤖 va exécuter une nouvelle tâche"
+            return f"Agent {agent_name} 🤖 will execute a new task"
 
     def _generate_research_summary(self, query, result, agent_name, agent_content):
         """Generate a summary of the Perplexity research results."""
@@ -431,7 +431,7 @@ In this context, you are an assistant who summarizes project actions in a concis
         except Exception as e:
             self.logger.error(f"Failed to generate research summary: {str(e)}")
             # Return a basic fallback summary with agent name
-            return f"L'agent {agent_name} 🤖 a recherché sur : {query}"
+            return f"Agent {agent_name} 🤖 searched for: {query}"
 
 
     def _save_objective(self, filepath, content, agent_name, agent_content):
@@ -487,8 +487,8 @@ In this context, you are an assistant who summarizes project actions in a concis
                             self.logger.success(research_summary)
                             
                             # Add research results to objective
-                            content += "\n\n## Informations complémentaires\n"
-                            content += f"Résultats de la recherche Perplexity pour : {research_query}\n\n"
+                            content += "\n\n## Additional Information\n"
+                            content += f"Perplexity search results for: {research_query}\n\n"
                             content += research_result
                         else:
                             error_msg = f"Perplexity API call failed with status {response.status_code}"
