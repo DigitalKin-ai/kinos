@@ -793,13 +793,7 @@ Rules for each description:
 - Mention critical constraints
 - Note performance impacts"""
 
-Files:
-- **├─ auth_config.json** (CONFIG ⚡)
-  _Stores API keys and OAuth2 client credentials_
-- **├─ auth_utils.py** (UTIL 🛠️)
-  _Implements JWT token validation and session management_
-- **└─ auth_test.py** (TEST 🧪)
-  _Validates authentication flow with mock credentials_"""
+"""
     def _format_files_content(self, files_content: dict) -> str:
         """
         Format files content for prompt with intelligent truncation.
