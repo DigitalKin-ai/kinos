@@ -9,6 +9,7 @@ from utils.logger import Logger
 import openai
 import tiktoken
 from dotenv import load_dotenv
+from managers.vision_manager import VisionManager
 
 class MapManager:
     """
