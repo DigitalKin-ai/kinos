@@ -1,5 +1,8 @@
 {
   "name": "kinos",
   "version": "6.1.0",
-  "private": true
+  "private": true,
+  "scripts": {
+    "build": "node_modules/.bin/esbuild --target=es2019 ./src/index.jsx --bundle --platform=node --outfile=dist/index.js"
+  }
 }
