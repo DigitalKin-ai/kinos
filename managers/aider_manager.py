@@ -630,14 +630,18 @@ Focus on making the relationships and usage patterns clear and explicit.
             raise
     def run_map_maintenance_for_all_folders(self):
         """Run map maintenance for each folder in the repository."""
-        self.logger.info("Running map maintenance for all folders...")
+        self.logger.debug("Starting map maintenance for all folders...")
         for root, dirs, _ in os.walk('.'):
             for dir_name in dirs:
                 folder_path = os.path.join(root, dir_name)
-                self.logger.info(f"Running map maintenance for folder: {folder_path}")
+                self.logger.debug(f"Initiating map maintenance for folder: {folder_path}")
                 self.run_map_maintenance(folder_path)
 
     def run_map_maintenance(self, folder_path):
         """Perform map maintenance for a specific folder."""
-        self.logger.info(f"Running map maintenance for folder: {folder_path}")
+        self.logger.debug(f"Running map maintenance for folder: {folder_path}")
+        self.logger.debug("Completed map maintenance for all folders.")
+        # Example debug log for each step:
+        self.logger.debug(f"Analyzing folder structure for: {folder_path}")
+        # Add more detailed logs as needed for each step of the process
         # Implement the map maintenance logic for the folder here

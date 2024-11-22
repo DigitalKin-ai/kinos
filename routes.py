@@ -23,6 +23,7 @@ def main():
         subcommand = sys.argv[2]
         if subcommand == "map":
             manager = AiderManager()
+            manager.logger.logger.setLevel(logging.DEBUG)  # Set log level to DEBUG
             manager.run_map_maintenance_for_all_folders()
             
         elif subcommand == "agents":
