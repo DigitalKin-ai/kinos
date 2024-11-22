@@ -966,44 +966,50 @@ Rules:
             raise
     def _create_file_analysis_prompt(self, filename: str, folder_context: dict) -> str:
         """Create prompt for analyzing a single file's role."""
-        return f"""Analyze this file's role:
+        return f"""Analyze this specific file's role within its folder context:
 
 Filename: {filename}
 Folder Purpose: {folder_context['purpose']}
 
 Determine:
-1. Technical role (select ONE from below)
-2. Direct purpose statement (start with action verb, max 10 words)
+1. Technical role (select ONE category with emoji)
+2. Detailed purpose description that explains:
+   - What this specific file does
+   - How it relates to other files in the folder
+   - Its unique contribution to the folder's purpose
+   - Any special characteristics or patterns it manages
 
+File Categories:
 Core Project Files:
-* PRIMARY DELIVERABLE (📊) - Final outputs
-* SPECIFICATION (📋) - Requirements
-* IMPLEMENTATION (⚙️) - Core code
-* DOCUMENTATION (📚) - Reference docs
+* PRIMARY DELIVERABLE (📊) - Final outputs, key results
+* SPECIFICATION (📋) - Requirements, standards, protocols
+* IMPLEMENTATION (⚙️) - Core functionality, algorithms
+* DOCUMENTATION (📚) - Explanations, references, guides
 
 Support Files:
-* CONFIGURATION (⚡) - Settings
-* UTILITY (🛠️) - Helpers
-* TEST (🧪) - Tests
-* BUILD (📦) - Build files
+* CONFIGURATION (⚡) - Settings, parameters, options
+* UTILITY (🛠️) - Helper functions, shared tools
+* TEST (🧪) - Validation, verification, quality checks
+* BUILD (📦) - Compilation, deployment, packaging
 
 Working Files:
-* WORK DOCUMENT (✍️) - Active work
-* DRAFT (📝) - In progress
-* TEMPLATE (📄) - Patterns
-* ARCHIVE (📂) - History
+* WORK DOCUMENT (✍️) - Active development, current focus
+* DRAFT (📝) - Work in progress, pending review
+* TEMPLATE (📄) - Patterns, structures, formats
+* ARCHIVE (📂) - Historical records, previous versions
 
 Data Files:
-* SOURCE DATA (💾) - Inputs
-* GENERATED (⚡) - Outputs
-* CACHE (💫) - Temp data
-* BACKUP (💿) - Backups
+* SOURCE DATA (💾) - Input data, raw information
+* GENERATED (⚡) - Computed results, processed data
+* CACHE (💫) - Temporary storage, interim results
+* BACKUP (💿) - Data preservation, redundancy
 
 Return in format:
-[TYPE NAME (EMOJI)] - [Action verb + direct object]
+[CATEGORY (EMOJI)] - [Detailed description of specific role and purpose, 2-3 sentences max]
 
 Rules:
-- MUST include emoji from list above
-- Start description with action verb
-- Maximum 10 words
-- Be specific and direct"""
+- MUST use exact category name and emoji from list
+- Focus on this file's specific role, not the overall project
+- Explain how it fits into the folder's workflow
+- Be precise about its unique contribution
+- Avoid repeating folder purpose or mission context"""
