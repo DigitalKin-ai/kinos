@@ -1,5 +1,5 @@
 {
-  "dependencies": {
-    "@githubocto/repo-visualizer": "github:githubocto/repo-visualizer"
-  }
+  "name": "kinos",
+  "version": "6.1.0",
+  "private": true
 }

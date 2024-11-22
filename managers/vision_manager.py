@@ -117,17 +117,28 @@ class VisionManager:
             root_path (str): Root directory to visualize
         """
         try:
-            # Ensure node and npm are available
+            # Ensure node is available
             try:
                 subprocess.run(['node', '--version'], check=True, capture_output=True)
-                subprocess.run(['npm', '--version'], check=True, capture_output=True)
             except subprocess.CalledProcessError:
                 self.logger.error(
-                    "\n❌ Node.js/npm not found! Please install Node.js:\n"
+                    "\n❌ Node.js not found! Please install Node.js:\n"
                     "Download from https://nodejs.org/\n"
                     "\nAfter installing, restart your terminal/command prompt."
                 )
-                raise RuntimeError("Node.js/npm not installed")
+                raise RuntimeError("Node.js not installed")
+
+            # Check if repo-visualizer directory exists, if not clone it
+            if not os.path.exists("repo-visualizer"):
+                self.logger.info("📦 Cloning repo-visualizer...")
+                subprocess.run([
+                    'git', 'clone', 'https://github.com/githubocto/repo-visualizer.git'
+                ], check=True)
+                
+                # Install dependencies in the cloned repo
+                subprocess.run([
+                    'npm', 'install'
+                ], cwd="repo-visualizer", check=True)
 
             # Create visualization config
             config = {
@@ -148,16 +159,11 @@ class VisionManager:
             with open(config_path, 'w') as f:
                 json.dump(config, f, indent=2)
 
-            # Install repo-visualizer if needed
-            if not os.path.exists("node_modules/@githubocto/repo-visualizer"):
-                self.logger.info("📦 Installing repo-visualizer...")
-                subprocess.run(['npm', 'install'], check=True)
-
-            # Run visualization
+            # Run visualization using the local clone
             self.logger.debug("🎨 Generating repository visualization...")
             subprocess.run([
-                'npx', 
-                '@githubocto/repo-visualizer',
+                'node', 
+                'repo-visualizer/src/index.js',
                 '--config', config_path
             ], check=True)
 
