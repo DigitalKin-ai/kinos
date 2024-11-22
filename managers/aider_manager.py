@@ -162,6 +162,7 @@ class AiderManager:
             "--yes-always",
             "--cache-prompts",
             "--no-pretty",
+            "--no-fancy-input",
             "--encoding", "utf-8",  # Force UTF-8 encoding
             "--chat-history-file", f".aider.history.{agent_name}.md",
             "--restore-chat-history",
