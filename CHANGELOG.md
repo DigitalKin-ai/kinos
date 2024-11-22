@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🔄 Improved file context analysis
 - 📊 Enhanced file relationship mapping
 - 🎨 Clearer file role documentation
+- 🌐 Translated remaining French phrases to English for consistency
 
 ### Fixed
 - 🐛 UTF-8 encoding issues
