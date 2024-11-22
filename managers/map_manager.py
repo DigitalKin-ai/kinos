@@ -32,6 +32,7 @@ class MapManager:
         """Initialize the map manager with required components."""
         self.logger = Logger()
         self.encoding_utils = EncodingUtils()
+        self.project_root = os.path.abspath('.')  # Store absolute path of project root
         load_dotenv()
         openai.api_key = os.getenv('OPENAI_API_KEY')
         if not openai.api_key:
@@ -40,6 +41,21 @@ class MapManager:
         self.api_semaphore = asyncio.Semaphore(10)
         self._initial_mapping_in_progress = False
         self._vision_manager = VisionManager()
+    def _validate_path_in_project(self, path: str) -> bool:
+        """
+        Validate that a path is within the project directory.
+        
+        Args:
+            path (str): Path to validate
+            
+        Returns:
+            bool: True if path is within project, False otherwise
+        """
+        # Convert to absolute path
+        abs_path = os.path.abspath(path)
+        # Check if path is within project root
+        return os.path.commonpath([abs_path, self.project_root]) == self.project_root
+
     def _analyze_folder_level(self, folder_path: str, files_content: dict, 
                             subfolders: list, mission_content: str, 
                             objective_content: str) -> dict:
@@ -74,6 +90,10 @@ class MapManager:
         if not isinstance(subfolders, list):
             raise TypeError("subfolders must be a list")
             
+        # Validate path is within project
+        if not self._validate_path_in_project(folder_path):
+            raise ValueError(f"Path {folder_path} is outside project directory")
+            
         try:
             # Validate folder exists
             if not os.path.exists(folder_path):
@@ -83,8 +103,10 @@ class MapManager:
                 raise ValueError(f"Path is not a directory: {folder_path}")
             
             # Get folder context including purpose and relationships
+            # Use relative path for folder context
+            rel_path = os.path.relpath(folder_path, self.project_root)
             folder_context = self._get_folder_context(
-                folder_path=folder_path,
+                folder_path=rel_path,
                 files=list(files_content.keys()),
                 subfolders=subfolders,
                 mission_content=mission_content
