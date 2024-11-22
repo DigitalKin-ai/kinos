@@ -6,6 +6,8 @@ from utils.logger import Logger
 class VisionManager:
     """
     Manager class for maintaining and providing repository structure visualization.
+    
+    Uses repo-visualizer v0.7.1 to generate SVG visualizations of repository structure.
     """
     
     def __init__(self, 
@@ -25,7 +27,7 @@ class VisionManager:
         self.max_depth = max_depth
         self.file_colors = file_colors or {}
         
-        # Default excluded paths
+        # Default excluded paths for repo-visualizer
         self.default_excluded = [
             "node_modules",
             "bower_components",
@@ -37,6 +39,9 @@ class VisionManager:
             ".netlify",
             ".yarn",
             ".vscode",
+            ".git",
+            "__pycache__",
+            "*.pyc",
             "package-lock.json",
             "yarn.lock"
         ]
@@ -84,14 +89,14 @@ class VisionManager:
             
             self.logger.debug("Generating repository visualization...")
             
-            # Generate SVG using repo-visualizer with full options
+            # Generate SVG using repo-visualizer v0.7.1 with correct options
             svg_content = render_repository_graph(
                 root_path=root_path,
                 output_file=self.map_path,
-                excluded_paths=",".join(excluded_paths),
-                excluded_globs=";".join(excluded_globs),
+                excluded_paths=excluded_paths,  # List of paths, not comma-separated
+                excluded_globs=excluded_globs,  # List of globs, not semicolon-separated
                 max_depth=self.max_depth,
-                file_colors=self.file_colors
+                colors=self.file_colors  # Parameter is 'colors' not 'file_colors'
             )
             
             # Save the SVG
