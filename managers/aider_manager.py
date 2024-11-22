@@ -420,79 +420,39 @@ class AiderManager:
     
         return modified_files, final_state
 
-    def _get_complete_tree(self):
-        """Get complete tree structure without depth limit."""
-        fs_utils = FSUtils()
-        current_path = "."
-        files = fs_utils.get_folder_files(current_path)
-        subfolders = fs_utils.get_subfolders(current_path)
-        return fs_utils.build_tree_structure(
-            current_path=current_path,
-            files=files,
-            subfolders=subfolders,
-            max_depth=None  # No depth limit
-        )
-
-    def _execute_aider(self, cmd):
-        """Execute aider command and handle results."""
-        try:
-            # Configure git to use UTF-8 for commit messages
-            subprocess.run(['git', 'config', 'i18n.commitEncoding', 'utf-8'], check=True)
-            subprocess.run(['git', 'config', 'i18n.logOutputEncoding', 'utf-8'], check=True)
+    def _generate_map_maintenance_prompt(self, changed_files=None, tree_structure=None):
+        """
+        Generate comprehensive map maintenance prompt.
+        
+        Args:
+            changed_files (set, optional): Set of files that were modified
+            tree_structure (list, optional): Current project tree structure
             
-            # Extract agent name from cmd arguments
-            agent_name = None
-            for i, arg in enumerate(cmd):
-                if "--chat-history-file" in arg and i+1 < len(cmd):
-                    agent_name = cmd[i+1].replace('.aider.history.', '').replace('.md', '')
-                    break
-
-            # Log start time
-            start_time = time.time()
-            self.logger.info(f"⏳ Agent {agent_name} starting aider execution at {start_time}")
-
-            # Run production phase
-            production_files, production_state = self._run_aider_phase(
-                cmd, agent_name, "🏭 Production", 
-                "--> Focus on the Production Objective"
-            )
-
-            # Run role-specific phase
-            role_files, role_state = self._run_aider_phase(
-                cmd, agent_name, "👤 Role-specific",
-                "--> Focus on the Role-specific Objective"
-            )
-
-            # Run final check phase
-            final_files, final_state = self._run_aider_phase(
-                cmd, agent_name, "🔍 Final Check",
-                "--> Any additional changes required? Then update the todolist to reflect the changes."
-            )
-
-            # Get list of all modified/added/deleted files
-            all_changes = set()
-            all_changes.update(production_files or [])
-            all_changes.update(role_files or [])
-            all_changes.update(final_files or [])
-
-            if all_changes:
-                self.logger.info("🗺️ Starting map maintenance phase")
-                
-                # Get complete tree structure
-                tree_structure = self._get_complete_tree()
-                tree_text = "\n".join(tree_structure)
-                
-                # Create map maintenance prompt
-                map_prompt = f"""
+        Returns:
+            str: Formatted map maintenance prompt
+        """
+        # Build changes section if files were changed
+        changes_section = ""
+        if changed_files:
+            changes_section = f"""
 # Project Structure Changes
 The following files were modified in this session:
-{', '.join(all_changes)}
+{', '.join(changed_files)}
+"""
 
+        # Add tree structure if provided
+        structure_section = ""
+        if tree_structure:
+            tree_text = "\n".join(tree_structure)
+            structure_section = f"""
 # Current Complete Project Structure
 ````
 {tree_text}
 ````
+"""
 
+        # Core prompt content
+        return f"""{changes_section}{structure_section}
 # Instructions for Map Maintenance
 
 ## 1. Folder Documentation
@@ -577,6 +537,74 @@ Update map.md to reflect these changes while maintaining its current structure a
 Focus on making the relationships and usage patterns clear and explicit.
 """
 
+    def _get_complete_tree(self):
+        """Get complete tree structure without depth limit."""
+        fs_utils = FSUtils()
+        current_path = "."
+        files = fs_utils.get_folder_files(current_path)
+        subfolders = fs_utils.get_subfolders(current_path)
+        return fs_utils.build_tree_structure(
+            current_path=current_path,
+            files=files,
+            subfolders=subfolders,
+            max_depth=None  # No depth limit
+        )
+
+    def _execute_aider(self, cmd):
+        """Execute aider command and handle results."""
+        try:
+            # Configure git to use UTF-8 for commit messages
+            subprocess.run(['git', 'config', 'i18n.commitEncoding', 'utf-8'], check=True)
+            subprocess.run(['git', 'config', 'i18n.logOutputEncoding', 'utf-8'], check=True)
+            
+            # Extract agent name from cmd arguments
+            agent_name = None
+            for i, arg in enumerate(cmd):
+                if "--chat-history-file" in arg and i+1 < len(cmd):
+                    agent_name = cmd[i+1].replace('.aider.history.', '').replace('.md', '')
+                    break
+
+            # Log start time
+            start_time = time.time()
+            self.logger.info(f"⏳ Agent {agent_name} starting aider execution at {start_time}")
+
+            # Run production phase
+            production_files, production_state = self._run_aider_phase(
+                cmd, agent_name, "🏭 Production", 
+                "--> Focus on the Production Objective"
+            )
+
+            # Run role-specific phase
+            role_files, role_state = self._run_aider_phase(
+                cmd, agent_name, "👤 Role-specific",
+                "--> Focus on the Role-specific Objective"
+            )
+
+            # Run final check phase
+            final_files, final_state = self._run_aider_phase(
+                cmd, agent_name, "🔍 Final Check",
+                "--> Any additional changes required? Then update the todolist to reflect the changes."
+            )
+
+            # Get list of all modified/added/deleted files
+            all_changes = set()
+            all_changes.update(production_files or [])
+            all_changes.update(role_files or [])
+            all_changes.update(final_files or [])
+
+            if all_changes:
+                self.logger.info("🗺️ Starting map maintenance phase")
+                
+                # Get complete tree structure
+                tree_structure = self._get_complete_tree()
+                tree_text = "\n".join(tree_structure)
+                
+                # Generate map maintenance prompt
+                map_prompt = self._generate_map_maintenance_prompt(
+                    changed_files=all_changes,
+                    tree_structure=tree_structure
+                )
+                
                 # Run map maintenance phase
                 map_cmd = cmd.copy()
                 map_cmd.extend(['--file', 'map.md'])  # Add map.md as editable
