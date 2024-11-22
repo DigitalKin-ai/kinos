@@ -218,9 +218,9 @@ Your planning:
                         "role": "user",
                         "content": [
                             {
-                                "type": "image",
-                                "image_bytes": {
-                                    "base64": encoded_bytes
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/svg+xml;base64,{encoded_bytes}"
                                 }
                             },
                             {
