@@ -1,21 +1,19 @@
 import os
-import fnmatch
+import json
+import subprocess
 from typing import List, Dict, Optional
-import graphviz
 from utils.logger import Logger
 
 class VisionManager:
     """
     Manager class for maintaining and providing repository structure visualization.
-    Uses graphviz to generate SVG visualizations of repository structure with size-proportional nodes.
+    Uses githubocto/repo-visualizer for generating interactive visualizations.
     """
     
     def __init__(self, 
-                 output_file: str = "repo-map.svg",
+                 output_file: str = "repo-visualizer.svg",
                  max_depth: int = 9,
-                 file_colors: Optional[Dict[str, str]] = None,
-                 min_size: float = 0.5,
-                 max_size: float = 4.0):
+                 file_colors: Optional[Dict[str, str]] = None):
         """
         Initialize the vision manager.
         
@@ -30,8 +28,6 @@ class VisionManager:
         self.map_path = output_file
         self.max_depth = max_depth
         self.file_colors = file_colors or {}
-        self.min_size = min_size
-        self.max_size = max_size
         
         # Default excluded paths
         self.default_excluded = [
@@ -138,91 +134,56 @@ class VisionManager:
 
     async def update_map(self, root_path: str = "."):
         """
-        Updates the repo map SVG using graphviz.
+        Updates the repo visualization using repo-visualizer.
         
         Args:
             root_path (str): Root directory to visualize
         """
         try:
+            # Ensure node and npm are available
             try:
-                # Create new directed graph
-                dot = graphviz.Digraph(
-                    'repo_structure',
-                    node_attr={'style': 'filled', 'fontname': 'Arial'},
-                    edge_attr={'fontname': 'Arial'},
-                    engine='dot'
+                subprocess.run(['node', '--version'], check=True, capture_output=True)
+                subprocess.run(['npm', '--version'], check=True, capture_output=True)
+            except subprocess.CalledProcessError:
+                self.logger.error(
+                    "\n❌ Node.js/npm not found! Please install Node.js:\n"
+                    "Download from https://nodejs.org/\n"
+                    "\nAfter installing, restart your terminal/command prompt."
                 )
-            except Exception as e:
-                if "ExecutableNotFound" in str(e):
-                    self.logger.error(
-                        "\n❌ Graphviz not found! Please install Graphviz:\n"
-                        "Windows: Download from https://graphviz.org/download/ and add to PATH\n"
-                        "Linux: sudo apt-get install graphviz\n"
-                        "Mac: brew install graphviz\n"
-                        "\nAfter installing, restart your terminal/command prompt."
-                    )
-                    raise RuntimeError("Graphviz not installed or not in PATH") from e
-                raise
-            
-            # Get ignore patterns
-            ignored_paths = await self.get_ignored_files()
-            
-            # Track processed paths to handle symlinks
-            processed = set()
-            
-            def add_path_to_graph(path: str, parent: Optional[str] = None, depth: int = 0):
-                """Recursively add paths to graph."""
-                if depth > self.max_depth:
-                    return
-                    
-                rel_path = os.path.relpath(path, root_path)
-                if any(self._should_ignore(rel_path, pattern) for pattern in ignored_paths):
-                    return
-                    
-                abs_path = os.path.abspath(path)
-                if abs_path in processed:  # Handle symlinks
-                    return
-                processed.add(abs_path)
-                
-                # Get path properties
-                is_dir = os.path.isdir(path)
-                name = os.path.basename(path) or path
-                
-                # Calculate node properties
-                if is_dir:
-                    color = '#E8E8E8'  # Light gray for directories
-                    size = self.min_size  # Fixed size for directories
-                else:
-                    ext = os.path.splitext(name)[1].lower()
-                    color = self.file_colors.get(ext, '#FFFFFF')  # White default
-                    size = self._calculate_node_size(self._get_file_size(path))
-                
-                # Add node with size-based dimensions
-                dot.node(
-                    rel_path,
-                    name,
-                    fillcolor=color,
-                    width=str(size),
-                    height=str(size)
-                )
-                
-                # Add edge from parent
-                if parent:
-                    dot.edge(parent, rel_path)
-                
-                # Recurse into directories
-                if is_dir:
-                    try:
-                        for entry in os.scandir(path):
-                            add_path_to_graph(entry.path, rel_path, depth + 1)
-                    except PermissionError:
-                        self.logger.warning(f"Permission denied: {path}")
-            
-            # Start from root
-            add_path_to_graph(root_path)
-            
-            # Save as SVG
-            dot.render(self.map_path.replace('.svg', ''), format='svg', cleanup=True)
+                raise RuntimeError("Node.js/npm not installed")
+
+            # Create visualization config
+            config = {
+                "output": self.map_path,
+                "rootPath": root_path,
+                "maxDepth": self.max_depth,
+                "exclude": await self.get_ignored_files(),
+                "colors": self.file_colors,
+                "layout": "force",
+                "direction": "LR",
+                "linkDistance": 100,
+                "linkStrength": 1,
+                "charge": -100
+            }
+
+            # Save config
+            config_path = os.path.join(os.path.dirname(self.map_path), "repo-visualizer.config.json")
+            with open(config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+
+            # Install repo-visualizer if needed
+            if not os.path.exists("node_modules/@githubocto/repo-visualizer"):
+                self.logger.info("📦 Installing repo-visualizer...")
+                subprocess.run(['npm', 'install'], check=True)
+
+            # Run visualization
+            self.logger.debug("🎨 Generating repository visualization...")
+            subprocess.run([
+                'npx', 
+                '@githubocto/repo-visualizer',
+                '--config', config_path
+            ], check=True)
+
             self.logger.debug(f"✨ Repository map updated: {self.map_path}")
             
         except Exception as e:

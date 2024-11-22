@@ -8,7 +8,6 @@ asyncio>=3.4.3
 aiofiles>=23.2.1
 gitpython>=3.1.40
 tqdm>=4.66.1
-graphviz>=0.20.1
 transformers>=4.39.0
 tokenizers>=0.19.1
 anthropic>=0.37.1,<0.38.0
