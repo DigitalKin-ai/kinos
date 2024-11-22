@@ -1082,23 +1082,57 @@ Rules:
             raise
     def _create_folder_analysis_prompt(self, folder_path: str, files: list) -> str:
         """Create prompt for analyzing all files in a folder."""
-        # Build folder tree structure
-        tree = []
+        # Get absolute and relative paths
+        abs_path = os.path.abspath(folder_path)
         rel_path = os.path.relpath(folder_path, self.project_root)
         
-        # Add current folder files with tree structure
+        # Get parent folder path
+        parent_path = os.path.dirname(abs_path)
+        
+        # Build complete tree structure
+        tree = []
+        
+        # Add path from root
+        if rel_path != ".":
+            parts = rel_path.split(os.sep)
+            for i, part in enumerate(parts[:-1]):
+                prefix = "   " * i
+                tree.append(f"{prefix}├─ {part}/")
+            
+        # Add current folder
+        current_prefix = "   " * (len(rel_path.split(os.sep)) - 1) if rel_path != "." else ""
+        tree.append(f"{current_prefix}📂 {os.path.basename(folder_path) or '.'}/")
+        
+        # Add current folder files
+        file_prefix = "   " * (len(rel_path.split(os.sep)))
         for i, f in enumerate(files):
             prefix = "├─" if i < len(files) - 1 else "└─"
-            tree.append(f"{prefix} ./{f}")
+            tree.append(f"{file_prefix}{prefix} {f}")
+        
+        # Add sibling folders (at same level)
+        if parent_path:
+            for sibling in sorted(os.listdir(parent_path)):
+                sibling_path = os.path.join(parent_path, sibling)
+                if os.path.isdir(sibling_path) and sibling_path != abs_path:
+                    tree.append(f"{current_prefix}├─ {sibling}/")
+                    # Add first level of sibling's contents
+                    try:
+                        sibling_contents = sorted(os.listdir(sibling_path))[:3]  # Limit to first 3 items
+                        for item in sibling_contents:
+                            tree.append(f"{file_prefix}├─ {item}")
+                        if len(os.listdir(sibling_path)) > 3:
+                            tree.append(f"{file_prefix}└─ ...")
+                    except OSError:
+                        continue
 
         tree_str = "\n".join(tree)
 
         return f"""Analyze all files in this folder structure:
 
-Current Folder: {rel_path}
-
-Files Present:
+Project Structure:
 {tree_str}
+
+Current Folder: {rel_path}
 
 Generate descriptions in this EXACT format:
 ### Files:
