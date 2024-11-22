@@ -38,60 +38,67 @@ class AgentRunner:
         try:
             # First validate mission file
             if not os.path.exists(mission_filepath):
-                self.logger.error("❌ Fichier de mission introuvable!")
-                self.logger.info("\n📋 Pour démarrer KinOS, vous devez :")
-                self.logger.info("   1. Soit créer un fichier '.aider.mission.md' dans le dossier courant")
-                self.logger.info("   2. Soit spécifier le chemin vers votre fichier de mission avec --mission")
-                self.logger.info("\n💡 Exemples :")
+                self.logger.error("❌ Mission file not found!")
+                self.logger.info("\n📋 To start KinOS, you must:")
+                self.logger.info("   1. Either create a '.aider.mission.md' file in the current folder")
+                self.logger.info("   2. Or specify the path to your mission file with --mission")
+                self.logger.info("\n💡 Examples:")
                 self.logger.info("   kin run agents --generate")
-                self.logger.info("   kin run agents --generate --mission chemin/vers/ma_mission.md")
-                self.logger.info("\n📝 Le fichier de mission doit contenir la description de votre projet.")
+                self.logger.info("   kin run agents --generate --mission path/to/my_mission.md")
+                self.logger.info("\n📝 The mission file must contain your project description.")
                 raise SystemExit(1)
 
             # Then check for missing agents
             missing_agents = self._agents_exist(force_regenerate=generate_agents)
             if missing_agents:
-                self.logger.info("🔄 Génération automatique des agents...")
+                self.logger.info("🔄 Generating automatic agents...")
                 await self.agents_manager.generate_agents(mission_filepath)
 
             self.logger.info(f"🚀 Starting with {agent_count} agents in parallel")
 
-            # Create initial pool of agents
-            tasks = set()
+            # Get available agents
             available_agents = self._get_available_agents()
             if not available_agents:
                 raise ValueError("No agents available to run")
-                
-            # Create initial tasks up to agent_count
-            for i in range(min(agent_count, len(available_agents))):
-                task = asyncio.create_task(self._run_single_agent_cycle(mission_filepath, model=model))
-                tasks.add(task)
-                await asyncio.sleep(10)  # 10 second delay between each start
 
-            if not tasks:
-                raise ValueError("No tasks could be created")
+            # Create tasks list to maintain
+            tasks = []
+            
+            # Initial launch of agents up to agent_count
+            for _ in range(min(agent_count, len(available_agents))):
+                task = asyncio.create_task(
+                    self._run_single_agent_cycle(mission_filepath, model=model)
+                )
+                tasks.append(task)
+                await asyncio.sleep(10)  # Keep 10 second delay between initial starts
 
-            # Maintain active agent count
-            while tasks:  # Changed condition to check if tasks exists
-                # Wait for an agent to complete
-                done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            # Main loop to maintain parallel execution
+            while True:
+                if not tasks:
+                    break
+                    
+                # Wait for any task to complete
+                done, pending = await asyncio.wait(
+                    tasks,
+                    return_when=asyncio.FIRST_COMPLETED
+                )
                 
-                # Handle completed agents
-                for task in done:
+                # Remove completed tasks
+                tasks = list(pending)
+                
+                # Process completed tasks and start new ones if needed
+                for completed_task in done:
                     try:
-                        await task  # Get potential errors
+                        await completed_task  # Get any exceptions
                     except Exception as e:
                         self.logger.error(f"Agent task failed: {str(e)}")
                     
-                    # Create new agent to replace completed one if we have available agents
-                    if len(pending) < agent_count and available_agents:
-                        await asyncio.sleep(3)  # Delay before starting new agent
-                        new_task = asyncio.create_task(self._run_single_agent_cycle(mission_filepath))
-                        pending.add(new_task)
-                
-                # Update tasks set
-                tasks = pending
-                
+                    # Start a new task if we're below agent_count
+                    if len(tasks) < agent_count:
+                        new_task = asyncio.create_task(
+                            self._run_single_agent_cycle(mission_filepath, model=model)
+                        )
+                        tasks.append(new_task)
         except Exception as e:
             self.logger.error(f"Error during execution: {str(e)}")
             raise
