@@ -647,61 +647,53 @@ Justify each selection based on the file's documented purpose in the project map
         Returns:
             str: Formatted prompt for GPT model
         """
-        # Load mission content if available
-        mission_content = ""
-        if os.path.exists(".aider.mission.md"):
-            try:
-                with open(".aider.mission.md", 'r', encoding='utf-8') as f:
-                    mission_content = f.read()
-            except Exception as e:
-                self.logger.warning(f"⚠️ Could not read mission file: {str(e)}")
+        prompt = f"""Based on the following context, analyze and select the relevant files needed for the next operation.
 
-        # Get directory structure context
-        dir_path = os.path.dirname(filepath)
-        file_name = os.path.basename(filepath)
-        
-        prompt = f"""Based on the project mission and file location, explain this file's specific purpose.
-
-# Project Mission
+# Mission
 ````
 {mission_content}
 ````
 
-# File Location
-Path: {filepath}
-Directory: {dir_path if dir_path else "root"}
-Name: {file_name}
-
-# Content
+# Current Objective
 ````
-{content}
+{objective_content}
 ````
-"""
 
-        if commit_msg:
-            prompt += f"""
-# Recent Changes
+# Agent Configuration
 ````
-{commit_msg}
+{agent_content}
 ````
-"""
 
-        prompt += """
-Generate a one-line summary (max 300 chars) that explains:
-1. The file's INTENDED PURPOSE in achieving the mission
-2. Its relationship to other components
+Using the project structure, carefully analyze:
 
-Format:
-- Start with an action verb (defines, manages, coordinates, etc.)
-- Use **bold** for key technical concepts
-- Include 1-2 relevant emojis for file type/role
-- Focus on architectural purpose, not implementation details
-- Explain why this file exists in this location
+1. MODIFICATIONS NEEDED:
+   - Which files need to be changed to implement the objective
+   - What specific changes are required in each file
+   - How these changes align with each file's documented purpose
 
-Example formats:
-- 🔧 Manages **widget configuration** for core system, centralizing settings in utils/
-- 📝 Defines **user authentication** flows, implementing login requirements in auth/
-- 🎯 Coordinates **task scheduling** between agents, placed in managers/ for system control
+2. CONTEXT REQUIRED:
+   - Which files provide essential background information
+   - What specific knowledge each file contributes
+   - How this context supports the planned changes
+
+3. SYSTEM IMPACT:
+   - How modifications might affect related files
+   - Which dependencies need to be considered
+   - What potential risks need to be managed
+
+Provide your response in this format:
+
+# Context Map
+Files to modify:
+- file1.py - [Current role: X] [Changes needed: Y] [Impact: Z]
+- file2.md - [Current role: X] [Changes needed: Y] [Impact: Z]
+
+Context files:
+- file3.py - [Purpose: X] [Relevant aspects: Y] [Relationship to changes: Z]
+- file4.md - [Purpose: X] [Relevant aspects: Y] [Relationship to changes: Z]
+
+Note: Select only the most relevant files (aim for 3-5 files to modify, 3-5 context files).
+Justify each selection based on the file's documented purpose in the project map.
 """
         return prompt
 
