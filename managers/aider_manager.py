@@ -91,14 +91,28 @@ class AiderManager:
                 
             self.logger.debug("Aider execution completed")
 
-            # Push changes to GitHub
-            try:
-                self.logger.info(f"🔄 Attempting to push changes...")
-                subprocess.run(['git', 'push'], check=True, capture_output=True, text=True)
-                self.logger.info(f"✨ Changes pushed successfully")
-            except subprocess.CalledProcessError as e:
-                # Just log info for push failures since remote might not be configured
-                self.logger.info(f"💡 Git push skipped: {e.stderr.strip()}")
+            # Get latest commit info if files were modified
+            if modified_files:
+                try:
+                    result = subprocess.run(
+                        ['git', 'log', '-1', '--pretty=format:%h - %s'],
+                        capture_output=True,
+                        text=True,
+                        check=True
+                    )
+                    if result.stdout:
+                        self.logger.success(f"🔨 Git commit: {result.stdout}")
+                except subprocess.CalledProcessError as e:
+                    self.logger.warning(f"Could not get commit info: {e}")
+
+                # Push changes to GitHub
+                try:
+                    self.logger.info(f"🔄 Attempting to push changes...")
+                    subprocess.run(['git', 'push'], check=True, capture_output=True, text=True)
+                    self.logger.info(f"✨ Changes pushed successfully")
+                except subprocess.CalledProcessError as e:
+                    # Just log info for push failures since remote might not be configured
+                    self.logger.info(f"💡 Git push skipped: {e.stderr.strip()}")
             
         except Exception as e:
             self.logger.error(f"Aider operation failed: {str(e)}")
