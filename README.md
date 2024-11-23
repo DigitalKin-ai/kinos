@@ -50,13 +50,13 @@ See it in action: https://nlr.ai/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/Lesterpaintstheworld/kinos.git
+git clone git clone https://github.com/DigitalKin-ai/kinos.git
 cd kinos
 ```
 
 2. Install Aider locally:
 ```bash
-git clone git@github.com:Aider-AI/aider.git
+git clone https://github.com/Aider-AI/aider.git
 cd aider
 pip install -e .
 cd ..
