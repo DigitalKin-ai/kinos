@@ -233,19 +233,17 @@ class InteractiveManager:
             self.logger.info("   - Analyzing current todolist...")
             self.logger.info("   - Generating enhanced objective...")
             
-            client = openai.OpenAI()
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": """You are an AI project manager helping to process user objectives.
+            # Create the prompt
+            system_prompt = """You are an AI project manager helping to process user objectives.
 Your task is to analyze and enhance user objectives to align with the project mission and current state.
 
 Format the objective to include:
 1. Clear action items
 2. Success criteria
 3. Constraints and requirements
-4. Validation steps"""},
-                    {"role": "user", "content": f"""
+4. Validation steps"""
+
+            user_prompt = f"""
 Mission Context:
 ```
 {mission_content}
@@ -259,7 +257,18 @@ Current Todolist:
 User Objective:
 {objective}
 
-Process this objective to be more specific and actionable while maintaining alignment with the mission."""}
+Process this objective to be more specific and actionable while maintaining alignment with the mission."""
+
+            # Log the prompts at debug level
+            self.logger.debug("\n🔍 GPT SYSTEM PROMPT:\n" + system_prompt)
+            self.logger.debug("\n🔍 GPT USER PROMPT:\n" + user_prompt)
+            
+            client = openai.OpenAI()
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
                 ],
                 temperature=0.3,
                 max_tokens=500,
