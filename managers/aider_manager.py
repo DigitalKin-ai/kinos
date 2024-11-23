@@ -46,19 +46,18 @@ class AiderManager:
                 "Please check file permissions."
             )
 
-    async def run_aider(self, objective_filepath, map_filepath, agent_filepath, model="gpt-4o-mini"):
+    async def run_aider(self, objective_filepath, agent_filepath, model="gpt-4o-mini"):
         """Execute aider operation with defined context."""
         try:
             self.logger.debug(f"Starting aider for agent: {agent_filepath}")
             
             # Validate input files
-            if not self._validate_files(objective_filepath, map_filepath, agent_filepath):
+            if not self._validate_files(objective_filepath, agent_filepath):
                 raise ValueError("Invalid or missing input files")
                 
             # Configure aider command
             cmd = self._build_aider_command(
                 objective_filepath,
-                map_filepath,
                 agent_filepath,
                 [],  # Empty context files for now
                 model=model
@@ -241,13 +240,12 @@ class AiderManager:
             self.logger.error(f"Error loading context map: {str(e)}")
             raise
 
-    def _build_aider_command(self, objective_filepath, map_filepath, agent_filepath, context_files, model="gpt-4o-mini"):
+    def _build_aider_command(self, objective_filepath, agent_filepath, context_files, model="gpt-4o-mini"):
         """
         Build aider command with all required arguments.
         
         Args:
             objective_filepath (str): Path to objective file
-            map_filepath (str): Path to map file
             agent_filepath (str): Path to agent file
             context_files (list): List of context files
             model (str): Model name to use (default: gpt-4o-mini)
@@ -284,21 +282,12 @@ class AiderManager:
         # Add agent prompt as read-only
         cmd.extend(['--read', agent_filepath])
         
-        # Combine objective and map content
-        combined_message = ""
-        
-        # Add objective content
+        # Read objective content
         with open(objective_filepath, 'r', encoding='utf-8') as f:
             objective_content = f.read()
-            combined_message += "# Objective\n" + objective_content + "\n\n"
-        
-        # Add map content
-        with open(map_filepath, 'r', encoding='utf-8') as f:
-            map_content = f.read()
-            combined_message += "# Context Map\n" + map_content
             
-        # Add combined message as initial prompt
-        cmd.extend(['--message', combined_message])
+        # Add objective as initial prompt
+        cmd.extend(['--message', f"# Objective\n{objective_content}"])
             
         return cmd
 
