@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 class Logger:
     """Utility class for handling logging operations."""
     
+    # Class variable for global log level
+    _global_level = logging.SUCCESS
+    
     def __init__(self):
         """Initialize the logger with mission context."""
         # Force UTF-8 for stdin/stdout
@@ -68,17 +71,32 @@ class Logger:
         console_handler.setLevel(logging.SUCCESS)  # Set default handler level to SUCCESS
         console_handler.setFormatter(ColorFormatter())
         
-        # Configure logger with debug level
+        # Configure logger with global level
         self.logger = logging.getLogger('KinOS')
-        self.logger.setLevel(logging.DEBUG)  # Set base level to DEBUG
+        self.logger.setLevel(self._global_level)
         
         # Remove existing handlers and add our handlers
         self.logger.handlers = []
         self.logger.addHandler(console_handler)
         self.logger.addHandler(file_handler)
         
+        # Set handler levels to match global level
+        for handler in self.logger.handlers:
+            handler.setLevel(self._global_level)
+        
         # Prevent propagation to root logger
         self.logger.propagate = False
+
+    @classmethod
+    def set_global_level(cls, level):
+        """Set the global logging level for all logger instances."""
+        cls._global_level = level
+        # Update existing loggers
+        for logger in logging.Logger.manager.loggerDict.values():
+            if isinstance(logger, logging.Logger):
+                logger.setLevel(level)
+                for handler in logger.handlers:
+                    handler.setLevel(level)
         
     def _get_agent_emoji(self, text):
         """Parse text for agent names and add their emoji prefixes."""

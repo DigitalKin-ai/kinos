@@ -70,20 +70,11 @@ def main():
                 # Use the factory method to create and initialize the runner
                 runner = await AgentRunner.create()
                 
-                # Set default log level to SUCCESS (only show success and above)
-                runner.logger.logger.setLevel(logging.SUCCESS)
-                # Also set console handler to SUCCESS by default
-                for handler in runner.logger.logger.handlers:
-                    if isinstance(handler, logging.StreamHandler):
-                        handler.setLevel(logging.SUCCESS)
-
-                # Check for --verbose flag
+                # Set global log level based on verbose flag
                 if "--verbose" in sys.argv:
-                    runner.logger.logger.setLevel(logging.DEBUG)
-                    # Also set console handler to DEBUG
-                    for handler in runner.logger.logger.handlers:
-                        if isinstance(handler, logging.StreamHandler):
-                            handler.setLevel(logging.DEBUG)
+                    Logger.set_global_level(logging.DEBUG)
+                else:
+                    Logger.set_global_level(logging.SUCCESS)
                     
                 # Get mission file path
                 mission_path = ".aider.mission.md"  # default
