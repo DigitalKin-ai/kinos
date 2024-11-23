@@ -61,20 +61,24 @@ class InteractiveManager:
             
             # Get multi-line user objective
             print("\n🎯 Enter your objective (or 'quit' to exit):")
-            print("(Press Ctrl+D or Ctrl+Z (Windows) on a new line to finish)")
+            print("(Enter a blank line or type 'done' to finish)")
+            
             objective_lines = []
-            try:
-                while True:
-                    line = input("> " if not objective_lines else "... ").strip()
-                    if not line and objective_lines:  # Empty line after content
+            while True:
+                try:
+                    line = input("> " if not objective_lines else "... ")
+                    if line.strip().lower() in ('quit', 'exit', 'q'):
+                        return None
+                    if line.strip().lower() == 'done' or (not line.strip() and objective_lines):
                         break
                     objective_lines.append(line)
-            except EOFError:  # Ctrl+D (Unix) or Ctrl+Z (Windows)
-                pass
+                except (EOFError, KeyboardInterrupt):
+                    # Handle Ctrl+D/Z or Ctrl+C gracefully
+                    print("\nInput completed.")
+                    break
 
-            objective = "\n".join(objective_lines).strip()
-            
-            if not objective or objective.lower() in ('quit', 'exit', 'q'):
+            objective = "\n".join(objective_lines)
+            if not objective.strip():
                 return None
                 
             # Process objective with GPT
