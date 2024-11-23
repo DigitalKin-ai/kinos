@@ -90,6 +90,15 @@ class AiderManager:
                 raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
                 
             self.logger.debug("Aider execution completed")
+
+            # Push changes to GitHub
+            try:
+                self.logger.info(f"🔄 Attempting to push changes...")
+                subprocess.run(['git', 'push'], check=True, capture_output=True, text=True)
+                self.logger.info(f"✨ Changes pushed successfully")
+            except subprocess.CalledProcessError as e:
+                # Just log info for push failures since remote might not be configured
+                self.logger.info(f"💡 Git push skipped: {e.stderr.strip()}")
             
         except Exception as e:
             self.logger.error(f"Aider operation failed: {str(e)}")
