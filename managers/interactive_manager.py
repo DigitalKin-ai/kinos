@@ -296,49 +296,55 @@ Process this objective to be more specific and actionable while maintaining alig
     async def _analyze_file_context(self, processed_objective):
         """Analyze and select relevant files for the objective."""
         try:
-            # Get complete repository structure
-            files = self.fs_utils.get_folder_files(".")
-            subfolders = self.fs_utils.get_subfolders(".")
-            tree_structure = self.fs_utils.build_tree_structure(
-                current_path=".",
-                files=files,
-                subfolders=subfolders,
-                max_depth=None  # No depth limit
-            )
-            tree_text = "\n".join(tree_structure)
+            # Get complete repository structure with actual files
+            fs_utils = FSUtils()
+            files = []
+            for root, _, filenames in os.walk('.'):
+                for filename in filenames:
+                    # Skip .git and other hidden folders
+                    if not any(part.startswith('.') for part in root.split(os.sep)):
+                        full_path = os.path.join(root, filename)
+                        # Convert to relative path with forward slashes
+                        rel_path = os.path.relpath(full_path, '.').replace(os.sep, '/')
+                        if os.path.exists(rel_path):  # Verify file exists
+                            files.append(f"- ./{rel_path}")
+
+            # Create tree text with only existing files
+            tree_text = "\n".join(files)
+            
+            self.logger.debug(f"\n🌳 Available files:\n{tree_text}")
 
             # Generate fresh visualization
             await self.vision_manager.generate_visualization()
             
-            # Read diagram if available
-            diagram_content = None
+            # Initialize messages list
+            messages = [
+                {"role": "system", "content": """You are a technical analyst selecting relevant files for a development objective.
+List ONLY files that exist in the provided project structure.
+
+Format:
+# Context Files (read-only)
+- ./path/to/file1 (emoji) Purpose
+- ./path/to/file2 (emoji) Purpose
+
+# Write Files (to be modified)
+- ./path/to/file3 (emoji) Purpose
+- ./path/to/file4 (emoji) Purpose
+
+Rules:
+1. ONLY use paths from the provided project structure
+2. All paths must start with './'
+3. Context files = files needed for understanding
+4. Write files = files that will be modified
+5. Include relevant emoji and purpose for each file
+6. Aim for 3-8 files per category"""}
+            ]
+
+            # Add diagram if available
             if os.path.exists('./diagram.png'):
                 try:
                     with open('./diagram.png', 'rb') as f:
                         diagram_content = f.read()
-                except Exception as e:
-                    self.logger.warning(f"⚠️ Could not read diagram.png: {str(e)}")
-
-            # Initialize messages list
-            messages = [
-                {"role": "system", "content": """You are a technical analyst selecting relevant files for a development objective.
-List files in two categories:
-1. Context Files (read-only, needed for understanding)
-2. Write Files (to be modified)
-
-Format:
-# Context Files (read-only)
-- path/to/file1 (emoji) Purpose
-- path/to/file2 (emoji) Purpose
-
-# Write Files (to be modified)
-- path/to/file3 (emoji) Purpose
-- path/to/file4 (emoji) Purpose"""}
-            ]
-
-            # Add diagram if available
-            if diagram_content:
-                try:
                     import base64
                     encoded_bytes = base64.b64encode(diagram_content).decode('utf-8')
                     messages.append({
@@ -352,7 +358,7 @@ Format:
                             },
                             {
                                 "type": "text",
-                                "text": "Above is the current project structure visualization. Use it to inform your file selection."
+                                "text": "Above is the current project structure visualization."
                             }
                         ]
                     })
@@ -368,15 +374,23 @@ Objective:
 {processed_objective}
 ```
 
-Project Structure:
+Available Project Files:
 ```
 {tree_text}
 ```
 
-Select relevant files for this objective, following the format above."""
+Select relevant files from the above list ONLY. Do not invent or suggest non-existent files."""
             })
             
-            # Make API call with enhanced context
+            # Log the prompts at debug level
+            self.logger.debug("\n🔍 File Context Analysis Prompt:")
+            for msg in messages:
+                if isinstance(msg["content"], str):
+                    self.logger.debug(f"\n{msg['role'].upper()}:\n{msg['content']}")
+                else:
+                    self.logger.debug(f"\n{msg['role'].upper()}: [Image + Text Content]")
+            
+            # Make API call
             self.logger.info("🔍 Analyzing file context with GPT...")
             client = openai.OpenAI()
             response = client.chat.completions.create(
@@ -387,8 +401,22 @@ Select relevant files for this objective, following the format above."""
             )
             
             result = response.choices[0].message.content
+            
+            # Validate suggested files exist
+            validated_lines = []
+            for line in result.split('\n'):
+                if line.startswith('- ./'):
+                    file_path = line.split(' ')[1]  # Extract path
+                    if os.path.exists(file_path):
+                        validated_lines.append(line)
+                    else:
+                        self.logger.warning(f"⚠️ Skipping non-existent file: {file_path}")
+                else:
+                    validated_lines.append(line)
+                    
+            validated_result = '\n'.join(validated_lines)
             self.logger.success("✨ File context analysis completed")
-            return result
+            return validated_result
             
         except Exception as e:
             self.logger.error(f"File context analysis error: {str(e)}")
