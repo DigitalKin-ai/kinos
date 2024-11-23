@@ -467,51 +467,68 @@ class AiderManager:
         # Get initial state
         initial_state = self._get_git_file_states()
         
-        # Execute aider
-        process = subprocess.Popen(
-            phase_cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            encoding='utf-8',
-            errors='replace'
-        )
-        stdout, stderr = process.communicate()
+        try:
+            # Execute aider with explicit UTF-8 encoding
+            process = subprocess.Popen(
+                phase_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                encoding='utf-8',
+                errors='replace'  # Handle encoding errors by replacing invalid chars
+            )
+            stdout, stderr = process.communicate()
+            
+            if process.returncode != 0:
+                self.logger.error(f"{phase_name} process failed with return code {process.returncode}")
+                raise subprocess.CalledProcessError(process.returncode, phase_cmd, stdout, stderr)
+
+            # Get final state and handle post-aider operations
+            final_state = self._get_git_file_states()
+            modified_files = await self._handle_post_aider(agent_name, initial_state, final_state, phase_name)
         
-        if process.returncode != 0:
-            self.logger.error(f"{phase_name} process failed with return code {process.returncode}")
-            raise subprocess.CalledProcessError(process.returncode, phase_cmd, stdout, stderr)
+            # Get latest commit info if files were modified
+            if modified_files:
+                try:
+                    result = subprocess.run(
+                        ['git', 'log', '-1', '--pretty=format:%h - %s'],
+                        capture_output=True,
+                        text=True,
+                        encoding='utf-8',  # Explicit UTF-8 encoding
+                        errors='replace',   # Replace invalid chars
+                        check=True
+                    )
+                    if result.stdout:
+                        # Ensure proper encoding of commit message
+                        commit_msg = result.stdout.encode('utf-8', errors='replace').decode('utf-8')
+                        self.logger.success(f"🔨 Git commit: {commit_msg}")
+                except subprocess.CalledProcessError as e:
+                    self.logger.warning(f"Could not get commit info: {e}")
 
-        # Get final state and handle post-aider operations
-        final_state = self._get_git_file_states()
-        modified_files = await self._handle_post_aider(agent_name, initial_state, final_state, phase_name)
-    
-        # Get latest commit info if files were modified
-        if modified_files:
-            try:
-                result = subprocess.run(
-                    ['git', 'log', '-1', '--pretty=format:%h - %s'],
-                    capture_output=True,
-                    text=True,
-                    check=True
-                )
-                if result.stdout:
-                    self.logger.success(f"🔨 Git commit: {result.stdout}")
-            except subprocess.CalledProcessError as e:
-                self.logger.warning(f"Could not get commit info: {e}")
-
-            # Push changes to GitHub
-            try:
-                self.logger.info(f"🔄 Attempting to push changes...")
-                subprocess.run(['git', 'push'], check=True, capture_output=True, text=True)
-                self.logger.info(f"✨ Changes pushed successfully")
-            except subprocess.CalledProcessError as e:
-                # Just log info for push failures since remote might not be configured
-                self.logger.info(f"💡 Git push skipped: {e.stderr.strip()}")
-    
-        phase_end = time.time()
-        self.logger.info(f"✨ Agent {agent_name} completed {phase_name} phase in {phase_end - phase_start:.2f} seconds")
-    
-        return modified_files, final_state
+                # Push changes to GitHub
+                try:
+                    self.logger.info(f"🔄 Attempting to push changes...")
+                    subprocess.run(
+                        ['git', 'push'], 
+                        check=True, 
+                        capture_output=True, 
+                        text=True,
+                        encoding='utf-8',  # Explicit UTF-8 encoding
+                        errors='replace'    # Replace invalid chars
+                    )
+                    self.logger.info(f"✨ Changes pushed successfully")
+                except subprocess.CalledProcessError as e:
+                    # Just log info for push failures since remote might not be configured
+                    error_msg = e.stderr.encode('utf-8', errors='replace').decode('utf-8')
+                    self.logger.info(f"💡 Git push skipped: {error_msg.strip()}")
+        
+            phase_end = time.time()
+            self.logger.info(f"✨ Agent {agent_name} completed {phase_name} phase in {phase_end - phase_start:.2f} seconds")
+        
+            return modified_files, final_state
+            
+        except Exception as e:
+            self.logger.error(f"Error in {phase_name} phase for agent {agent_name}: {str(e)}")
+            raise
 
     def _generate_map_maintenance_prompt(self, tree_structure=None):
         """
