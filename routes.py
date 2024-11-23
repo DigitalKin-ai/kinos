@@ -146,6 +146,11 @@ def main():
                 agent_filepath=agent_path
             )
             
+    elif command == "interactive":
+        from managers.interactive_manager import InteractiveManager
+        manager = InteractiveManager()
+        asyncio.run(manager.start_session())
+            
     elif command == "redundancy":
         if len(sys.argv) < 3:
             print("Usage: kin redundancy <analyze|add|report|delete|reset> [options]")

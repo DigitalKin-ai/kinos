@@ -145,6 +145,9 @@ kin run agents --generate --count 6
 ### Basic Commands
 
 ```bash
+# Start interactive session
+kin interactive
+
 # Launch with default configuration (uses gpt-4o-mini)
 kin run agents
 
@@ -166,6 +169,17 @@ kin redundancy analyze
 OPENAI_API_KEY=your_openai_key_here        # Required for all operations
 PERPLEXITY_API_KEY=your_perplexity_key_here # Required for research capabilities
 ```
+
+### Interactive Mode
+```bash
+# Start interactive session
+kin interactive
+```
+This mode provides:
+- Guided objective planning
+- Smart file context selection
+- Interactive aider sessions
+- Session history tracking
 
 ### Common Operations
 

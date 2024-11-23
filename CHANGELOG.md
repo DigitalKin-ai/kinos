@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [6.1.0] - 2024-01-24
 
+### Added
+- ✨ Added interactive mode with `kin interactive` command
+- 🎯 Two-phase planning and action workflow
+- 📝 Enhanced objective processing with GPT
+- 🔍 Smart file context analysis
+
 ### Removed
 - 🗑️ Removed dependency on .aider.map.{name}.md files
 - 🔄 Switched to aider's automatic file handling
