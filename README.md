@@ -4,9 +4,6 @@
 
 KinOS is an advanced AI team orchestration system that enables autonomous collaboration between specialized AI agents. It uses a file-based architecture to coordinate multiple GPT-4 agents working together on complex projects.
 
-## 📊 Project Structure
-![Project Structure](./diagram.svg)
-
 ## ✨ Key Features
 
 - 🤖 **Autonomous Agent Teams**: Pre-configured specialized teams for different project types
@@ -15,6 +12,9 @@ KinOS is an advanced AI team orchestration system that enables autonomous collab
 - 🔍 **Intelligent Content Management**: Built-in deduplication and content organization
 - 🔗 **Git Integration**: Automatic version control and change tracking
 - 📊 **Progress Monitoring**: Real-time status tracking and logging
+
+## 📊 Project Structure
+![Project Structure](./diagram.svg)
 
 ## 💡 Best Practices
 
