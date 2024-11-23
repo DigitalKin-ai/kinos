@@ -91,6 +91,14 @@ class AiderManager:
                 
             self.logger.debug("Aider execution completed")
 
+            # Check if any files were modified by looking for changes in git status
+            modified_files = False
+            try:
+                result = subprocess.run(['git', 'status', '--porcelain'], capture_output=True, text=True, check=True)
+                modified_files = bool(result.stdout.strip())
+            except subprocess.CalledProcessError as e:
+                self.logger.warning(f"Could not check git status: {e}")
+
             # Get latest commit info if files were modified
             if modified_files:
                 try:
