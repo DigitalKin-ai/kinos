@@ -4,6 +4,8 @@
 
 KinOS is an advanced AI team orchestration system that enables autonomous collaboration between specialized AI agents. It uses a file-based architecture to coordinate multiple GPT-4 agents working together on complex projects.
 
+See it in action: https://nlr.ai/
+
 ## ✨ Key Features
 
 - 🤖 **Autonomous Agent Teams**: Pre-configured specialized teams for different project types
@@ -30,10 +32,9 @@ KinOS is an advanced AI team orchestration system that enables autonomous collab
 - Include any required templates or configurations
 
 ### Interactive Guidance
-- Use `aider --architect` to open chat sessions with the project
+- Use `kin interactive` to open chat sessions with the project
 - Guide work in progress and clarify requirements
 - Review and refine implementations
-Note: Native chat integration planned for future releases
 
 ## 🚀 Getting Started
 
@@ -106,7 +107,7 @@ mkdir my_project
 cd my_project
 ```
 
-2. Create a mission file:
+2. Create a aider.mission.md file:
 ```bash
 # Create .aider.mission.md file
 # This file describes what you want to accomplish
@@ -131,13 +132,13 @@ Build a web scraper that can:
 
 3. Launch KinOS:
 ```bash
-# Generate and start 6 agents
+# Generate and start 6 parallel agents
 kin run agents --generate --count 6
 ```
 
 4. Monitor Progress:
 - Check `suivi.md` for detailed logs
-- View `map.md` for project structure
+- View `diagram.svg` for your repository diagram 
 - Review `todolist.md` for pending tasks
 
 ## 📖 Usage
@@ -145,23 +146,17 @@ kin run agents --generate --count 6
 ### Basic Commands
 
 ```bash
-# Start interactive session
-kin interactive
-
 # Launch with default configuration (uses gpt-4o-mini)
 kin run agents
 
-# Launch with specific model (currently supports gpt-4o-mini only)
+# Launch with specific model (currently supports gpt-4o-mini only - you can try ollama/llama3.1:70B or similar, but feature is untested)
 kin run agents --model gpt-4o-mini
 
 # Generate new agents
 kin generate agents
 
-# Run map maintenance
-kin run map
-
-# Run redundancy analysis
-kin redundancy analyze
+# Launch an interactive session with the project
+kin interactive
 ```
 
 ### Required Environment Variables
@@ -169,17 +164,6 @@ kin redundancy analyze
 OPENAI_API_KEY=your_openai_key_here        # Required for all operations
 PERPLEXITY_API_KEY=your_perplexity_key_here # Required for research capabilities
 ```
-
-### Interactive Mode
-```bash
-# Start interactive session
-kin interactive
-```
-This mode provides:
-- Guided objective planning
-- Smart file context selection
-- Interactive aider sessions
-- Session history tracking
 
 ### Common Operations
 
@@ -194,12 +178,9 @@ echo "Project mission details..." > .aider.mission.md
 
 # Launch KinOS
 kin run agents --generate
-```
 
-2. **Monitor Progress**
-- Check `suivi.md` for detailed logs
-- View `map.md` for project structure
-- Review `todolist.md` for pending tasks
+# add --verbose to any command to get more info
+```
 
 ## 🛠️ Core Components
 
@@ -216,21 +197,17 @@ kin run agents --generate
 9. **ChercheurAgent**: Research and analysis
 10. **IntegrationAgent**: System integration and deployment
 
-### Teams
+### Possible Use-cases
 
-- 📚 Book Writing Team
-- 🔬 Literature Review Team
-- 💻 Coding Team
+- 📚 Book Writing
+- 🔬 Literature Reviews
+- 💻 Coding
+-  Business Plans
+- Company Documentation
 
 ## 🤝 Contributing
 
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to your branch
-5. Create a Pull Request
+We welcome contributions! Feel free to reach out directly to me: contact on https://nlr.ai/
 
 ### Development Guidelines
 
@@ -245,11 +222,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- OpenAI for GPT-4
-- Perplexity for research capabilities
-- The AutonomousAI community for pioneering autonomous AI development
 - Aider for enabling AI-assisted development
-- The open-source community
+- The AutonomousAI community for pioneering autonomous AI development
+- Claude for being an awesome collaborator
 
 ## 📞 Support
 
@@ -259,11 +234,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🔮 Future Plans
 
-- Additional specialized teams
-- Enhanced collaboration patterns
-- Improved resource optimization
-- Extended plugin system
+- Ollama full support
+- Packaged version
+- GUI
+- General improvments, especially about convergence
 
 ---
 
-Made with ❤️ by the KinOS Community
+Made with ❤️ by NLR, Claude & the KinOS Community
