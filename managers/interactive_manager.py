@@ -2,7 +2,9 @@ import os
 import asyncio
 import openai
 from utils.logger import Logger
+from utils.fs_utils import FSUtils
 from managers.aider_manager import AiderManager
+from managers.vision_manager import VisionManager
 
 class InteractiveManager:
     """Manager class for interactive agent sessions."""
@@ -11,6 +13,8 @@ class InteractiveManager:
         """Initialize the interactive manager."""
         self.logger = Logger()
         self.aider_manager = AiderManager()
+        self.vision_manager = VisionManager()
+        self.fs_utils = FSUtils()
         
     async def start_session(self):
         """Start an interactive session."""
@@ -153,16 +157,32 @@ Process this objective to be more specific and actionable while maintaining alig
     async def _analyze_file_context(self, processed_objective):
         """Analyze and select relevant files for the objective."""
         try:
-            # Get repository structure
-            import subprocess
-            result = subprocess.run(['git', 'ls-files'], capture_output=True, text=True)
-            files = result.stdout.splitlines()
+            # Get complete repository structure
+            files = self.fs_utils.get_folder_files(".")
+            subfolders = self.fs_utils.get_subfolders(".")
+            tree_structure = self.fs_utils.build_tree_structure(
+                current_path=".",
+                files=files,
+                subfolders=subfolders,
+                max_depth=None  # No depth limit
+            )
+            tree_text = "\n".join(tree_structure)
+
+            # Generate fresh visualization
+            await self.vision_manager.generate_visualization()
             
-            client = openai.OpenAI()
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": """You are a technical analyst selecting relevant files for a development objective.
+            # Read diagram if available
+            diagram_content = None
+            if os.path.exists('./diagram.png'):
+                try:
+                    with open('./diagram.png', 'rb') as f:
+                        diagram_content = f.read()
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not read diagram.png: {str(e)}")
+
+            # Initialize messages list
+            messages = [
+                {"role": "system", "content": """You are a technical analyst selecting relevant files for a development objective.
 List files in two categories:
 1. Context Files (read-only, needed for understanding)
 2. Write Files (to be modified)
@@ -174,20 +194,54 @@ Format:
 
 # Write Files (to be modified)
 - path/to/file3 (emoji) Purpose
-- path/to/file4 (emoji) Purpose"""},
-                    {"role": "user", "content": f"""
+- path/to/file4 (emoji) Purpose"""}
+            ]
+
+            # Add diagram if available
+            if diagram_content:
+                try:
+                    import base64
+                    encoded_bytes = base64.b64encode(diagram_content).decode('utf-8')
+                    messages.append({
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{encoded_bytes}"
+                                }
+                            },
+                            {
+                                "type": "text",
+                                "text": "Above is the current project structure visualization. Use it to inform your file selection."
+                            }
+                        ]
+                    })
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not encode diagram: {str(e)}")
+
+            # Add main analysis prompt
+            messages.append({
+                "role": "user", 
+                "content": f"""
 Objective:
 ```
 {processed_objective}
 ```
 
-Available Files:
+Project Structure:
 ```
-{files}
+{tree_text}
 ```
 
-Select relevant files for this objective, following the format above."""}
-                ],
+Select relevant files for this objective, following the format above."""
+            })
+            
+            # Make API call with enhanced context
+            client = openai.OpenAI()
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
                 temperature=0.3,
                 max_tokens=500
             )
