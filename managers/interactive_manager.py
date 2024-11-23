@@ -60,8 +60,9 @@ class InteractiveManager:
                 print(todolist)
             
             # Get multi-line user objective
-            print("\n🎯 Enter your objective (or 'quit' to exit):")
-            print("(Enter a blank line or type 'done' to finish)")
+            self.logger.info("\n🎯 Enter your objective (or 'quit' to exit):")
+            self.logger.info("💡 Multi-line input: Enter a blank line or type 'done' to finish")
+            self.logger.info("❌ Use Ctrl+C to cancel at any time")
             
             objective_lines = []
             while True:
@@ -146,12 +147,14 @@ class InteractiveManager:
                 ]
             }
             
+            self.logger.info("🔍 Executing research query...")
             response = requests.post(
                 "https://api.perplexity.ai/chat/completions",
                 headers=headers,
                 json=payload,
                 timeout=30
             )
+            self.logger.success("✨ Research query completed")
             
             if response.status_code == 200:
                 return response.json()["choices"][0]["message"]["content"]
@@ -178,6 +181,7 @@ class InteractiveManager:
                 with open('todolist.md', 'r', encoding='utf-8') as f:
                     todolist_content = f.read()
                     
+            self.logger.info("🤖 Processing objective with GPT...")
             client = openai.OpenAI()
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -210,7 +214,9 @@ Process this objective to be more specific and actionable while maintaining alig
                 max_tokens=500
             )
             
-            return response.choices[0].message.content
+            result = response.choices[0].message.content
+            self.logger.success("✨ Objective processing completed")
+            return result
             
         except Exception as e:
             self.logger.error(f"Objective processing error: {str(e)}")
@@ -300,15 +306,18 @@ Select relevant files for this objective, following the format above."""
             })
             
             # Make API call with enhanced context
+            self.logger.info("🔍 Analyzing file context with GPT...")
             client = openai.OpenAI()
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o-mini", 
                 messages=messages,
                 temperature=0.3,
                 max_tokens=500
             )
             
-            return response.choices[0].message.content
+            result = response.choices[0].message.content
+            self.logger.success("✨ File context analysis completed")
+            return result
             
         except Exception as e:
             self.logger.error(f"File context analysis error: {str(e)}")
