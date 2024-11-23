@@ -118,16 +118,48 @@ class InteractiveManager:
         try:
             self.logger.info("\n🚀 Starting aider session...")
             
-            # Filter out missing files from objective
+            # Extract and validate files from objective
+            files_to_modify = []
             filtered_lines = []
+            
             for line in objective.split('\n'):
                 if line.strip().startswith('- ./'):
-                    file_path = line.strip()[3:].split(' ')[0]  # Extract path
-                    if not os.path.exists(file_path):
+                    # Extract file path and description
+                    parts = line.strip()[3:].split(' ', 1)
+                    file_path = parts[0]
+                    description = parts[1] if len(parts) > 1 else ""
+                    
+                    if os.path.exists(file_path):
+                        files_to_modify.append((file_path, description))
+                        filtered_lines.append(line)
+                    else:
                         self.logger.warning(f"⚠️ Skipping missing file: {file_path}")
-                        continue
-                filtered_lines.append(line)
-            
+                else:
+                    filtered_lines.append(line)
+
+            if not files_to_modify:
+                self.logger.error("❌ No valid files to modify")
+                raise ValueError("No valid files to modify")
+
+            # Display contents of files to be modified
+            self.logger.info("\n📄 Files to be modified:")
+            for file_path, description in files_to_modify:
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                        
+                    self.logger.info(f"\n📎 {file_path} {description}")
+                    print(f"```\n{content}\n```")
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not read {file_path}: {str(e)}")
+
+            # Ask for confirmation
+            print("\nProceed with modifications? [Y/n]")
+            confirm = input("> ").strip().lower()
+            if confirm not in ('y', 'yes', ''):
+                self.logger.info("❌ Operation cancelled by user")
+                return
+
             # Update objective with only existing files
             filtered_objective = '\n'.join(filtered_lines)
             with open('.aider.objective.interactive.md', 'w', encoding='utf-8') as f:
