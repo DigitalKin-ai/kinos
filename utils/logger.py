@@ -4,6 +4,10 @@ from colorama import init, Fore, Style
 import openai
 from dotenv import load_dotenv
 
+# Add SUCCESS level between INFO and WARNING
+logging.SUCCESS = 25  # Between INFO(20) and WARNING(30)
+logging.addLevelName(logging.SUCCESS, 'SUCCESS')
+
 class Logger:
     """Utility class for handling logging operations."""
     
