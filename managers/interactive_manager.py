@@ -59,11 +59,22 @@ class InteractiveManager:
                 self.logger.info("\n📋 Current Todolist:\n")
                 print(todolist)
             
-            # Get user objective
+            # Get multi-line user objective
             print("\n🎯 Enter your objective (or 'quit' to exit):")
-            objective = input("> ").strip()
+            print("(Press Ctrl+D or Ctrl+Z (Windows) on a new line to finish)")
+            objective_lines = []
+            try:
+                while True:
+                    line = input("> " if not objective_lines else "... ").strip()
+                    if not line and objective_lines:  # Empty line after content
+                        break
+                    objective_lines.append(line)
+            except EOFError:  # Ctrl+D (Unix) or Ctrl+Z (Windows)
+                pass
+
+            objective = "\n".join(objective_lines).strip()
             
-            if objective.lower() in ('quit', 'exit', 'q'):
+            if not objective or objective.lower() in ('quit', 'exit', 'q'):
                 return None
                 
             # Process objective with GPT
