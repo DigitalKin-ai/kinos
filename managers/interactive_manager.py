@@ -228,7 +228,11 @@ class InteractiveManager:
                 with open('todolist.md', 'r', encoding='utf-8') as f:
                     todolist_content = f.read()
                     
-            self.logger.info("🤖 Processing objective with GPT...")
+            self.logger.info("🤖 Starting objective processing...")
+            self.logger.info("   - Loading mission context...")
+            self.logger.info("   - Analyzing current todolist...")
+            self.logger.info("   - Generating enhanced objective...")
+            
             client = openai.OpenAI()
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -258,12 +262,23 @@ User Objective:
 Process this objective to be more specific and actionable while maintaining alignment with the mission."""}
                 ],
                 temperature=0.3,
-                max_tokens=500
+                max_tokens=500,
+                stream=True  # Enable streaming
             )
             
-            result = response.choices[0].message.content
+            # Stream the response
+            result = []
+            print("\n📝 Enhanced objective:")
+            for chunk in response:
+                if chunk.choices[0].delta.content:
+                    content = chunk.choices[0].delta.content
+                    result.append(content)
+                    print(content, end='', flush=True)
+            print("\n")  # Add newline after streaming
+            
+            final_result = ''.join(result)
             self.logger.success("✨ Objective processing completed")
-            return result
+            return final_result
             
         except Exception as e:
             self.logger.error(f"Objective processing error: {str(e)}")
