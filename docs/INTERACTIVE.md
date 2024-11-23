@@ -64,7 +64,6 @@ The Interactive Manager provides a user-controlled agent experience, allowing di
 ```
 .aider.objective.interactive.md  # Current objective and context
 .aider.history.interactive.md    # Session history
-.aider.map.interactive.md        # Context mapping
 ```
 
 ### File Handling

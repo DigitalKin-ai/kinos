@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [6.1.0] - 2024-01-24
 
+### Removed
+- 🗑️ Removed dependency on .aider.map.{name}.md files
+- 🔄 Switched to aider's automatic file handling
+
 ### Added
 - ✨ Added --model parameter (currently supports gpt-4o-mini)
 - 🎯 Enhanced map generation with mission context
