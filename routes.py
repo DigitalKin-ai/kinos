@@ -143,7 +143,6 @@ def main():
             
             manager.run_aider(
                 objective_filepath=objective_path,
-                map_filepath=map_path,
                 agent_filepath=agent_path
             )
             

@@ -427,7 +427,6 @@ class AgentRunner:
         try:
             agent_filepath = f".aider.agent.{agent_name}.md"
             objective_filepath = f".aider.objective.{agent_name}.md"
-            map_filepath = f".aider.map.{agent_name}.md"
             
             # Generate objective directly since we're in a thread
             self.objective_manager.generate_objective(
@@ -438,7 +437,6 @@ class AgentRunner:
             # Execute aider operation with model parameter - now properly awaited
             await self.aider_manager.run_aider(
                 objective_filepath,
-                map_filepath,
                 agent_filepath,
                 model=model
             )
