@@ -1,0 +1,26 @@
+import os
+import asyncio
+import logging
+import time
+from pathlib import Path
+from utils.fs_utils import FSUtils
+from utils.logger import Logger
+from utils.encoding_utils import EncodingUtils
+from dotenv import load_dotenv
+from managers.vision_manager import VisionManager
+
+class MapManager:
+    """
+    Manager class for generating and maintaining project structure maps.
+    
+    Responsible for:
+    - Generating hierarchical maps of project structure
+    - Maintaining global project map
+    - Analyzing file roles and relationships
+    - Tracking structural changes
+    
+    Attributes:
+        logger (Logger): Logging utility instance
+        tokenizer (tiktoken.Encoding): GPT tokenizer for content analysis
+        api_semaphore (asyncio.Semaphore): Rate limiter for API calls
+    """

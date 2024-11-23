@@ -194,7 +194,7 @@ Create two objectives in markdown format - one for production, one specific to y
    - What output to check
    - Which states to validate{search_instruction}
 """
-            self.logger.info(f"OBJECTIVE PROMPT: {prompt}")
+            #self.logger.info(f"OBJECTIVE PROMPT: {prompt}")
 
             # First get the main objective
             response = client.chat.completions.create(

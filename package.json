@@ -1,8 +1,0 @@
-{
-  "name": "kinos",
-  "version": "6.1.0",
-  "private": true,
-  "scripts": {
-    "build": "npx esbuild --target=es2019 ./src/index.jsx --bundle --platform=node --outfile=dist/index.js"
-  }
-}
