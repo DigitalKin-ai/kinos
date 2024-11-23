@@ -118,6 +118,21 @@ class InteractiveManager:
         try:
             self.logger.info("\n🚀 Starting aider session...")
             
+            # Filter out missing files from objective
+            filtered_lines = []
+            for line in objective.split('\n'):
+                if line.strip().startswith('- ./'):
+                    file_path = line.strip()[3:].split(' ')[0]  # Extract path
+                    if not os.path.exists(file_path):
+                        self.logger.warning(f"⚠️ Skipping missing file: {file_path}")
+                        continue
+                filtered_lines.append(line)
+            
+            # Update objective with only existing files
+            filtered_objective = '\n'.join(filtered_lines)
+            with open('.aider.objective.interactive.md', 'w', encoding='utf-8') as f:
+                f.write(filtered_objective)
+
             await self.aider_manager.run_aider(
                 objective_filepath='.aider.objective.interactive.md',
                 agent_filepath=None,  # No agent file needed for interactive
