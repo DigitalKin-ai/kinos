@@ -1,6 +1,7 @@
 import os
 import asyncio
 import openai
+import requests
 from utils.logger import Logger
 from utils.fs_utils import FSUtils
 from managers.aider_manager import AiderManager
@@ -15,6 +16,12 @@ class InteractiveManager:
         self.aider_manager = AiderManager()
         self.vision_manager = VisionManager()
         self.fs_utils = FSUtils()
+        self._init_history_files()
+        
+    def _init_history_files(self):
+        """Initialize history files for interactive session."""
+        self.history_file = '.aider.history.interactive.md'
+        self.input_file = '.aider.input.interactive.md'
         
     async def start_session(self):
         """Start an interactive session."""
@@ -41,6 +48,10 @@ class InteractiveManager:
     async def _planning_phase(self):
         """Execute the planning phase of interaction."""
         try:
+            # Refresh visualization
+            self.logger.info("🎨 Refreshing repository visualization...")
+            await self.vision_manager.generate_visualization()
+            
             # Display current todolist
             if os.path.exists('todolist.md'):
                 with open('todolist.md', 'r', encoding='utf-8') as f:
@@ -100,6 +111,42 @@ class InteractiveManager:
         except Exception as e:
             self.logger.error(f"Action phase error: {str(e)}")
             raise
+
+    async def _research_objective(self, query):
+        """Perform research using Perplexity API if needed."""
+        try:
+            perplexity_key = os.getenv('PERPLEXITY_API_KEY')
+            if not perplexity_key:
+                return None
+                
+            headers = {
+                "Authorization": f"Bearer {perplexity_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": "llama-3.1-sonar-small-128k-online",
+                "messages": [
+                    {"role": "system", "content": "You are a helpful research assistant providing accurate, detailed information."},
+                    {"role": "user", "content": query}
+                ]
+            }
+            
+            response = requests.post(
+                "https://api.perplexity.ai/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                return response.json()["choices"][0]["message"]["content"]
+            else:
+                self.logger.warning(f"⚠️ Perplexity API call failed with status {response.status_code}")
+                return None
+                
+        except Exception as e:
+            self.logger.warning(f"⚠️ Research failed: {str(e)}")
+            return None
 
     async def _process_objective(self, objective):
         """Process user objective through GPT."""
