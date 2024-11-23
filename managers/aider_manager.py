@@ -73,6 +73,14 @@ class AiderManager:
                 stderr=asyncio.subprocess.PIPE
             )
             
+            # Stream output in real-time when in verbose mode
+            while True:
+                line = await process.stdout.readline()
+                if not line:
+                    break
+                self.logger.debug(f"AIDER: {line.decode().strip()}")
+                
+            # Get final output and check for errors
             stdout, stderr = await process.communicate()
             
             if process.returncode != 0:
