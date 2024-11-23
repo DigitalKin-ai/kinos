@@ -432,26 +432,13 @@ class AiderManager:
         if modified_files:
             self.logger.info(f"📝 Agent {agent_name} {phase_name} phase modified {len(modified_files)} files")
             
-            # Track if any files were created or deleted
-            files_changed = False
-            for file_path in modified_files:
-                try:
-                    file_path = file_path.encode('latin1').decode('utf-8')
-                    # Check if file was created or deleted
-                    if file_path not in before_state or file_path not in after_state:
-                        files_changed = True
-                        
-                except Exception as e:
-                    self.logger.error(f"❌ Agent {agent_name} failed to process {file_path}: {str(e)}")
-            
-            # Generate new visualization if files were created or deleted
-            if files_changed:
-                try:
-                    self.logger.info("🎨 Updating repository visualization...")
-                    await self._vision_manager.generate_visualization()
-                    self.logger.success("✨ Repository visualization updated")
-                except Exception as e:
-                    self.logger.error(f"❌ Failed to update visualization: {str(e)}")
+            try:
+                # Always update visualization when files are modified
+                self.logger.info("🎨 Updating repository visualization...")
+                await self._vision_manager.generate_visualization()
+                self.logger.success("✨ Repository visualization updated")
+            except Exception as e:
+                self.logger.error(f"❌ Failed to update visualization: {str(e)}")
                     
         return modified_files
 
