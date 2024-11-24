@@ -10,15 +10,15 @@ class EncodingUtils:
         self.logger = Logger(model=model)
         self.model = model
 
-    def _read_file(self, filepath: str) -> str:
+    def read_file_safely(self, filepath: str) -> str:
         """
-        Read content from file with robust encoding handling.
+        Read file content with robust encoding handling.
         
         Args:
             filepath (str): Path to file to read
             
         Returns:
-            str: File content
+            str: File content with normalized line endings
             
         Raises:
             Exception: If file cannot be read
