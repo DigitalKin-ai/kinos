@@ -135,13 +135,19 @@ class AgentRunner:
                     except Exception as e:
                         self.logger.error(f"Agent task failed: {str(e)}")
                     
-                    # Create new agent to replace completed one if we have available agents
+                    # Refresh available agents list
+                    available_agents = self._get_available_agents()
+                    
+                    # Create new agent to replace completed one
                     if len(pending) < agent_count and available_agents:
                         await asyncio.sleep(3)  # Delay before starting new agent
                         new_task = asyncio.create_task(
                             self._run_single_agent_cycle(mission_filepath, model)
                         )
                         pending.add(new_task)
+                        self.logger.info(f"🔄 Replaced completed agent. Active agents: {len(pending)}/{agent_count}")
+                    else:
+                        self.logger.warning(f"⚠️ Could not replace agent. Pending: {len(pending)}, Target: {agent_count}, Available: {len(available_agents)}")
                 
                 # Update tasks set
                 tasks = pending
