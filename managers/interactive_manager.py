@@ -307,27 +307,6 @@ Process this objective to be more specific and actionable while maintaining alig
             if not processed_objective:
                 raise ValueError("No processed objective provided for file context analysis")
 
-            # Get complete repository structure with actual files
-            fs_utils = FSUtils()
-            files = []
-            for root, _, filenames in os.walk('.'):
-                for filename in filenames:
-                    # Skip .git and other hidden folders
-                    if not any(part.startswith('.') for part in root.split(os.sep)):
-                        full_path = os.path.join(root, filename)
-                        # Convert to relative path with forward slashes
-                        rel_path = os.path.relpath(full_path, '.').replace(os.sep, '/')
-                        if os.path.exists(rel_path):  # Verify file exists
-                            files.append(f"- ./{rel_path}")
-
-            # Create tree text with only existing files
-            tree_text = "\n".join(files)
-            
-            self.logger.debug(f"\n🌳 Available files:\n{tree_text}")
-
-            # Ensure we have files to analyze
-            if not files:
-                raise ValueError("No files found in repository for context analysis")
 
             # Generate fresh visualization
             await self.vision_manager.generate_visualization()
