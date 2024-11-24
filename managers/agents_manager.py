@@ -211,6 +211,55 @@ Example Sections:
             Exception: If API call fails
         """
         try:
+            self.logger.debug("\n🤖 AGENT CONFIGURATION PROMPT:")
+            self.logger.debug("=== System Message ===")
+            self.logger.debug("""
+# KinOS Agent Generator
+
+You create strategic role definitions for KinOS agents by applying specialized analysis frameworks.
+
+## Operational Context
+- Agent operates through Aider file operations
+- Main loop handles all triggers and timing
+- Single-step file modifications only
+- Directory-based mission scope
+
+## Framework Integration
+1. Question Analysis
+   - Process each framework section
+   - Extract relevant guidelines
+   - Apply to current context
+
+2. Role Mapping
+   - Map responsibilities to framework sections
+   - Align capabilities with framework requirements
+   - Define boundaries using framework structure
+
+3. Planning Through Framework
+   - Use framework sections as planning guides
+   - Ensure comprehensive coverage
+   - Maintain framework-aligned validation
+
+## Core Requirements
+1. Mission Contribution
+   - Framework-guided responsibilities
+   - Framework-aligned success metrics
+   - Quality standards from framework
+
+2. Team Integration
+   - Framework-based coordination
+   - Shared objective alignment
+   - Quality interdependencies
+
+Remember: 
+- Answer framework questions practically
+- Keep focus on achievable file operations
+- Use framework to structure planning
+- Maintain mission alignment
+""")
+            self.logger.debug("\n=== User Message ===")
+            self.logger.debug(prompt)
+
             client = openai.OpenAI()
             response = client.chat.completions.create(
                 model="gpt-4o",  # Using the BIG Omni model!
@@ -268,12 +317,17 @@ Remember:
             # Extract the generated configuration from the response
             config = response.choices[0].message.content
             
-            # Log full response for debugging
-            self.logger.debug(f"OpenAI Response: {response}")
+            # Log the response content
+            self.logger.debug("\n✨ AGENT CONFIGURATION RESPONSE:")
+            self.logger.debug(config)
             
             return config
             
         except Exception as e:
             self.logger.error(f"GPT API call failed. Error: {str(e)}")
-            self.logger.error(f"Last response received: {response if 'response' in locals() else 'No response'}")
+            if 'response' in locals():
+                self.logger.error("\n🔍 Last Response Details:")
+                self.logger.error(f"Status: {response.status}")
+                self.logger.error(f"Headers: {response.headers}")
+                self.logger.error(f"Content: {response.choices[0].message.content if response.choices else 'No content'}")
             raise
