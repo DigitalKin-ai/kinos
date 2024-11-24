@@ -255,10 +255,53 @@ Project structure
 ````
 {tree_text}
 ````
-
-Instructions
-================
 """
+            # Add diagram if available
+            if os.path.exists('./diagram.png'):
+                try:
+                    with open('./diagram.png', 'rb') as f:
+                        diagram_content = f.read()
+                    import base64
+                    encoded_bytes = base64.b64encode(diagram_content).decode('utf-8')
+                    file_context_prompt = f"""
+[A visual diagram of the project structure is attached to help inform your decisions]
+
+{file_context_prompt}
+"""
+                    messages = [
+                        {"role": "system", "content": f"""
+{agent_content}
+                         
+In this context, you are a precise file context analyzer for AI development tasks. Always follow the existing project structure.
+"""},
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/png;base64,{encoded_bytes}"
+                                    }
+                                },
+                                {
+                                    "type": "text",
+                                    "text": file_context_prompt
+                                }
+                            ]
+                        }
+                    ]
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not include diagram in context: {str(e)}")
+                    messages = [
+                        {"role": "system", "content": agent_content},
+                        {"role": "user", "content": file_context_prompt}
+                    ]
+            else:
+                messages = [
+                    {"role": "system", "content": agent_content},
+                    {"role": "user", "content": file_context_prompt}
+                ]
+
             # Log the complete prompt being sent to GPT
             self.logger.debug(f"File context prompt:\n{file_context_prompt}")
 
@@ -289,14 +332,7 @@ Respond only with the file lists in the format shown above.
             try:
                 file_context_response = client.chat.completions.create(
                     model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": """
-{agent_content}
-                         
-In this context, you are a precise file context analyzer for AI development tasks. Always follow the existing project structure.
-"""},
-                        {"role": "user", "content": file_context_prompt}
-                    ],
+                    messages=messages,
                     temperature=0.3,
                     max_tokens=500
                 )
