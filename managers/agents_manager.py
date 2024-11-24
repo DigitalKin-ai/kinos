@@ -1,4 +1,5 @@
 import os
+import sys
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from utils.logger import Logger
@@ -133,8 +134,18 @@ class AgentsManager:
         Returns:
             str: Detailed prompt for agent generation
         """
-        # Try to load custom prompt template
-        prompt_path = f"prompts/{agent_name}.md"
+        # Get the KinOS installation directory
+        if getattr(sys, 'frozen', False):
+            # If running as compiled executable
+            install_dir = os.path.dirname(sys.executable)
+        else:
+            # If running from source
+            install_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            
+        # Look for prompts in the installation directory
+        prompt_path = os.path.join(install_dir, "prompts", f"{agent_name}.md")
+        self.logger.debug(f"Looking for prompt at: {prompt_path}")
+        
         custom_prompt = ""
     
         if os.path.exists(prompt_path):
