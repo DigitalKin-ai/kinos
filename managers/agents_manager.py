@@ -136,14 +136,17 @@ class AgentsManager:
         # Try to load custom prompt template
         prompt_path = f"prompts/{agent_name}.md"
         custom_prompt = ""
-        
+    
         if os.path.exists(prompt_path):
             try:
                 with open(prompt_path, 'r', encoding='utf-8') as f:
                     custom_prompt = f.read()
+                if not custom_prompt.strip():
+                    raise ValueError(f"Prompt file {prompt_path} exists but is empty")
                 self.logger.info(f"📝 Using custom prompt template for {agent_name}")
             except Exception as e:
-                self.logger.warning(f"⚠️ Could not load custom prompt for {agent_name}: {str(e)}")
+                self.logger.error(f"❌ Failed to load prompt for {agent_name}: {str(e)}")
+                raise ValueError(f"Could not load required prompt file {prompt_path}: {str(e)}")
 
         # Ensure we're getting the complete mission content
         self.logger.debug(f"Mission content length: {len(mission_content)} characters")
