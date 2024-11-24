@@ -137,11 +137,12 @@ kin run agents --generate --count 6
 ### Basic Commands
 
 ```bash
-# Launch with default configuration (uses gpt-4o-mini)
+# Launch with default configuration
 kin run agents
 
-# Launch with specific model (currently supports gpt-4o-mini only - you can try ollama/llama3.1:70B or similar, but feature is untested)
-kin run agents --model gpt-4o-mini
+# Launch with specific model
+kin run agents --model gpt-4o-mini  # Default model
+kin run agents --model gpt-4  # Other models may be supported in future
 
 # Generate new agents
 kin generate agents

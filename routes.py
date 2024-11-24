@@ -12,6 +12,15 @@ def main():
         print("Usage: kin <command> [options]")
         sys.exit(1)
 
+    # Get model from command line args
+    model = "gpt-4o-mini"  # Default value
+    if "--model" in sys.argv:
+        try:
+            model_index = sys.argv.index("--model") + 1
+            model = sys.argv[model_index]
+        except (ValueError, IndexError):
+            print("Invalid value for --model. Using default (gpt-4o-mini)")
+
     command = sys.argv[1]
     
     # Route commands to appropriate managers

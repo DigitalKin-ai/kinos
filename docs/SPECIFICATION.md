@@ -226,6 +226,9 @@ OPENAI_API_KEY=required
 PERPLEXITY_API_KEY=required
 DEBUG=boolean
 
+# Model Configuration
+DEFAULT_MODEL=gpt-4o-mini  # Default AI model to use
+
 # Performance Settings
 CACHE_DURATION=3600
 RETRY_ATTEMPTS=3

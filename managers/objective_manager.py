@@ -9,9 +9,10 @@ from dotenv import load_dotenv
 class ObjectiveManager:
     """Manager class for generating agent-specific objectives."""
     
-    def __init__(self):
+    def __init__(self, model="gpt-4o-mini"):
         self.logger = Logger()
         self.encoding_utils = EncodingUtils()
+        self.model = model
         load_dotenv()
         openai.api_key = os.getenv('OPENAI_API_KEY')
         if not openai.api_key:

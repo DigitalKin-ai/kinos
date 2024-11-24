@@ -14,8 +14,9 @@ class Logger:
     # Class variable for global log level
     _global_level = logging.SUCCESS
     
-    def __init__(self):
+    def __init__(self, model="gpt-4o-mini"):
         """Initialize the logger with mission context."""
+        self.model = model
         # Force UTF-8 for stdin/stdout
         import sys
         sys.stdin.reconfigure(encoding='utf-8')

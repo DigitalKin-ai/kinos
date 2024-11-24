@@ -24,7 +24,8 @@ KinOS manages state through standardized files in the mission directory:
 - Mission-driven agent generation
 - Multi-encoding file support
 - Parallel agent creation
-- GPT-4o-mini integration
+- Configurable model support (default: gpt-4o-mini)
+- Model consistency across operations
 
 ### 2.3 objective_manager Service
 - Dynamic objective generation
