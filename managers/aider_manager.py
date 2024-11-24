@@ -264,7 +264,9 @@ class AiderManager:
         # Extract agent name from filepath for history files
         agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
         
-        cmd = ["python", "-m", "aider"]
+        # Use custom aider from vendor submodule
+        aider_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'vendor', 'aider')
+        cmd = ["python", os.path.join(aider_path, "aider")]
         
         # Add required aider arguments
         cmd.extend([
@@ -695,7 +697,8 @@ Update map.md to reflect the current project structure while maintaining its for
             self.logger.debug(f"Generated map maintenance prompt:\n{map_prompt}")
 
             # Execute aider with the generated prompt
-            cmd = ["python", "-m", "aider"]
+            aider_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'vendor', 'aider')
+            cmd = ["python", os.path.join(aider_path, "aider")]
             cmd.extend([
                 "--model", "gpt-4o-mini",
                 "--edit-format", "diff", 
