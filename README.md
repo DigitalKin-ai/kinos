@@ -21,10 +21,9 @@ See it in action: https://nlr.ai/
 ## 💡 Best Practices
 
 ### Mission Definition
-- Be extremely specific about expected outputs and deliverables
+- Be specific and detailed about expected outputs and deliverables
 - Include clear format and structure requirements
 - Define validation criteria and constraints
-- Example: Instead of "Create documentation", specify "Generate HTML docs from Python docstrings into /docs with search function"
 
 ### Repository Preparation
 - Add relevant reference materials and examples as text files
@@ -49,12 +48,10 @@ See it in action: https://nlr.ai/
 ### Optional Model Providers
 - **Ollama**: For local model execution
   - Install from [Ollama.ai](https://ollama.ai)
-  - Supported models: llama2, mistral, codellama, etc.
   - Usage: `--model ollama_chat/<model_name>`
 
 - **OpenRouter**: For additional model providers
   - Get API key from [OpenRouter.ai](https://openrouter.ai)
-  - Supported providers: Anthropic, Google, Meta, etc.
   - Usage: `--model openrouter/<provider>/<model_name>`
 
 - **Default**: OpenAI GPT-4o-mini
@@ -158,17 +155,13 @@ kin run agents
 
 # Launch with specific model
 kin run agents --model gpt-4o-mini  # Default model
-kin run agents --model gpt-4  # Other models may be supported in future
+kin run agents --model gpt-4o  # Other models may be supported in future
 
 # Use with local models via Ollama
-kin run agents --model ollama_chat/llama2  # Use local Llama 2
-kin run agents --model ollama_chat/mistral  # Use local Mistral
-kin run agents --model ollama_chat/codellama  # Use local CodeLlama
+kin run agents --model ollama_chat/llama3.1:70B  # Use local Llama 3.1
 
 # Use with model routers
-kin run agents --model openrouter/anthropic/claude-2  # Use Claude 2 via OpenRouter
-kin run agents --model openrouter/google/palm  # Use PaLM via OpenRouter
-kin run agents --model openrouter/meta/llama2  # Use Llama 2 via OpenRouter
+kin run agents --model openrouter/anthropic/claude-3-5-haiku  # Use Haiku 3.5 via OpenRouter
 
 # Generate new agents
 kin generate agents
@@ -195,7 +188,7 @@ cd my_project
 echo "Project mission details..." > .aider.mission.md
 
 # Launch KinOS
-kin run agents --generate
+kin run agents
 
 # add --verbose to any command to get more info
 ```
@@ -227,13 +220,6 @@ kin run agents --generate
 
 We welcome contributions! Feel free to reach out directly to me: contact on https://nlr.ai/
 
-### Development Guidelines
-
-- Follow existing code patterns
-- Add comprehensive documentation
-- Include tests for new features
-- Update README for significant changes
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
@@ -247,15 +233,14 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 📞 Support
 
 - Telegram: https://t.me/+KfdkWFNZoONjMTE0
-- Patreon: https://www.patreon.com/c/kins_autonomousais/membership
 - Website: https://nlr.ai/
+- Patreon: https://www.patreon.com/c/kins_autonomousais/membership
 
 ## 🔮 Future Plans
 
-- Ollama full support
 - Packaged version
 - GUI
-- General improvments, especially about convergence
+- Improved agent convergence
 
 ---
 
