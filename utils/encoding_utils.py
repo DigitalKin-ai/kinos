@@ -60,9 +60,17 @@ class EncodingUtils:
             if detected['encoding']:
                 self.logger.info(f"🔍 Detected {filepath} encoding as: {detected['encoding']} (confidence: {detected['confidence']})")
                 
+                # Si c'est déjà en UTF-8, ne rien faire
+                if detected['encoding'].lower().replace('-', '') == 'utf8':
+                    self.logger.debug(f"✓ {filepath} is already UTF-8")
+                    return True
+            
                 # Read with detected encoding
                 content = raw.decode(detected['encoding'])
-                
+            
+                # Normaliser les retours à la ligne
+                content = '\n'.join(line.rstrip() for line in content.splitlines())
+            
                 # Write back in UTF-8
                 with open(filepath, 'w', encoding='utf-8') as f:
                     f.write(content)

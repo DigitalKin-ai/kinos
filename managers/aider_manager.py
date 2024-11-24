@@ -57,11 +57,16 @@ class AiderManager:
             if not self._validate_files(objective_filepath, agent_filepath):
                 raise ValueError("Invalid or missing input files")
                 
-            # Convert files to UTF-8 if needed
-            self.logger.debug("Checking file encodings...")
-            self.encoding_utils.convert_to_utf8(objective_filepath)
-            self.encoding_utils.convert_to_utf8(agent_filepath)
-            self.logger.debug("File encodings verified")
+            # Vérifier uniquement si les fichiers sont lisibles en UTF-8
+            try:
+                with open(objective_filepath, 'r', encoding='utf-8') as f:
+                    f.read()
+                with open(agent_filepath, 'r', encoding='utf-8') as f:
+                    f.read()
+            except UnicodeDecodeError:
+                self.logger.warning(f"⚠️ Non-UTF-8 files detected, converting...")
+                self.encoding_utils.convert_to_utf8(objective_filepath)
+                self.encoding_utils.convert_to_utf8(agent_filepath)
                 
             # Configure aider command
             cmd = self._build_aider_command(
