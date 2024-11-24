@@ -5,6 +5,7 @@ import asyncio
 import subprocess
 from utils.logger import Logger
 from utils.fs_utils import FSUtils
+from utils.encoding_utils import EncodingUtils
 from pathlib import Path
 from managers.vision_manager import VisionManager
 
@@ -15,6 +16,7 @@ class AiderManager:
         """Initialize the manager with logger."""
         self.logger = Logger()
         self._vision_manager = VisionManager()
+        self.encoding_utils = EncodingUtils()  # Add encoding utils
 
     def _validate_repo_visualizer(self):
         """
@@ -54,6 +56,12 @@ class AiderManager:
             # Validate input files
             if not self._validate_files(objective_filepath, agent_filepath):
                 raise ValueError("Invalid or missing input files")
+                
+            # Convert files to UTF-8 if needed
+            self.logger.debug("Checking file encodings...")
+            self.encoding_utils.convert_to_utf8(objective_filepath)
+            self.encoding_utils.convert_to_utf8(agent_filepath)
+            self.logger.debug("File encodings verified")
                 
             # Configure aider command
             cmd = self._build_aider_command(
