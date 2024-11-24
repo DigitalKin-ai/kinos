@@ -88,16 +88,7 @@ class ObjectiveManager:
 
     def _read_file(self, filepath):
         """Read content from file with robust encoding handling."""
-        try:
-            # First try UTF-8
-            with open(filepath, 'r', encoding='utf-8') as f:
-                return f.read()
-        except UnicodeDecodeError:
-            # If UTF-8 fails, try to convert the file
-            self._convert_to_utf8(filepath)
-            # Try reading again with UTF-8
-            with open(filepath, 'r', encoding='utf-8') as f:
-                return f.read()
+        return self.encoding_utils.read_file_safely(filepath)
 
     def _generate_objective_content(self, mission_content, agent_content, agent_name):
         """Generate objective content using GPT."""
@@ -454,8 +445,7 @@ In this context, you are an assistant who summarizes project actions in a concis
         """Load mission content from .aider.mission.md file."""
         try:
             if os.path.exists('.aider.mission.md'):
-                with open('.aider.mission.md', 'r', encoding='utf-8') as f:
-                    return f.read()
+                return self.encoding_utils.read_file_safely('.aider.mission.md')
             return ""
         except Exception as e:
             self.logger.warning(f"⚠️ Could not load mission file: {str(e)}")
