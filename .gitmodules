@@ -1,0 +1,6 @@
+[submodule "vendor/aider"]
+    path = vendor/aider
+    url = https://github.com/Aider-AI/aider.git
+[submodule "vendor/repo-visualizer"]
+    path = vendor/repo-visualizer
+    url = https://github.com/githubocto/repo-visualizer.git

@@ -33,7 +33,7 @@ class VisionManager:
                 )
 
             # Get repo-visualizer path
-            repo_visualizer_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'repo-visualizer')
+            repo_visualizer_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'vendor', 'repo-visualizer')
             dist_path = os.path.join(repo_visualizer_path, 'dist', 'index.js')
 
             if not os.path.exists(dist_path):
