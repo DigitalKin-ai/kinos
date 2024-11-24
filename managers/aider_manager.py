@@ -74,6 +74,9 @@ class AiderManager:
                 agent_filepath,
                 model=model
             )
+        except Exception as e:
+            self.logger.error(f"Aider operation failed: {str(e)}")
+            raise
 
     async def _run_aider_with_encoding(self, objective_filepath, agent_filepath, model="gpt-4o-mini"):
         """Execute aider with proper UTF-8 encoding handling."""
