@@ -109,13 +109,13 @@ class Logger:
         agent_emojis = {
             'specification': '📌',
             'management': '🧭', 
-            'redaction': '🖋️',
+            'writing': '🖋️',
             'evaluation': '⚖️',
             'deduplication': '👥',
-            'chroniqueur': '📜',
-            'redondance': '🎭',
+            'chronicler': '📜',
+            'redundancy': '🎭',
             'production': '🏭',
-            'chercheur': '🔬',
+            'researcher': '🔬',
             'integration': '🌐'
         }
         

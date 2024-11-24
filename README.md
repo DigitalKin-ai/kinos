@@ -199,13 +199,13 @@ kin run agents
 
 1. **SpecificationAgent**: Requirements analysis and documentation
 2. **ManagementAgent**: Project coordination and resource allocation
-3. **RedactionAgent**: Content creation and documentation
+3. **writingAgent**: Content creation and documentation
 4. **EvaluationAgent**: Quality assurance and testing
 5. **DeduplicationAgent**: Content organization and redundancy management
-6. **ChroniqueurAgent**: Progress tracking and logging
-7. **RedondanceAgent**: Backup and consistency management
+6. **chroniclerAgent**: Progress tracking and logging
+7. **redundancyAgent**: Backup and consistency management
 8. **ProductionAgent**: Code/content generation
-9. **ChercheurAgent**: Research and analysis
+9. **researcherAgent**: Research and analysis
 10. **IntegrationAgent**: System integration and deployment
 
 ### Possible Use-cases

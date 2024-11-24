@@ -161,13 +161,13 @@ class AgentRunner:
         agent_emojis = {
             'specification': '📌',
             'management': '🧭',
-            'redaction': '✍️',
+            'writing': '✍️',
             'evaluation': '⚖️',
             'deduplication': '👥',
-            'chroniqueur': '📜',
-            'redondance': '🎭',
+            'chronicler': '📜',
+            'redundancy': '🎭',
             'production': '🏭',
-            'chercheur': '🔬',
+            'researcher': '🔬',
             'integration': '🌐' 
         }
         return agent_emojis.get(agent_type, '🤖')
@@ -185,13 +185,13 @@ class AgentRunner:
         agent_types = [
             "specification",
             "management", 
-            "redaction",
+            "writing",
             "evaluation",
             "deduplication",
-            "chroniqueur",
-            "redondance",
+            "chronicler",
+            "redundancy",
             "production",
-            "chercheur",
+            "researcher",
             "integration"
         ]
         
@@ -416,13 +416,13 @@ class AgentRunner:
         agent_types = [
             "specification",
             "management", 
-            "redaction",
+            "writing",
             "evaluation",
             "deduplication",
-            "chroniqueur",
-            "redondance",
+            "chronicler",
+            "redundancy",
             "production",
-            "chercheur",
+            "researcher",
             "integration"
         ]
         

@@ -62,7 +62,7 @@ KinOS v6 represents a fundamental shift towards true AI autonomy, implementing:
    - Progress tracking
    - Team optimization
 
-3. **RedactionAgent**
+3. **writingAgent**
    - Content creation
    - Documentation writing
    - Style consistency
@@ -93,13 +93,13 @@ KinOS v6 represents a fundamental shift towards true AI autonomy, implementing:
      - Structure improvements
      - Cross-file analysis
 
-6. **ChroniqueurAgent**
+6. **chroniclerAgent**
    - Progress tracking
    - History maintenance
    - Event logging
    - Timeline management
 
-7. **RedondanceAgent**
+7. **redundancyAgent**
    - Backup verification
    - Redundancy management
    - Data consistency
@@ -111,7 +111,7 @@ KinOS v6 represents a fundamental shift towards true AI autonomy, implementing:
    - Dependency management
    - Testing integration
 
-9. **ChercheurAgent**
+9. **researcherAgent**
    - Research coordination
    - Data gathering
    - Analysis synthesis

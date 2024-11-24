@@ -1,4 +1,4 @@
-# Redaction Agent Analysis Framework
+# writing Agent Analysis Framework
 
 ## 1. Content Scope Analysis
 
