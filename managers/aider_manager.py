@@ -91,16 +91,14 @@ class AiderManager:
             
             self.logger.debug(f"Aider command: {cmd}")
 
-            # Create process with explicit UTF-8 encoding
+            # Create process without encoding parameter
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                encoding='utf-8',
-                errors='replace'  # Replace invalid chars instead of failing
+                stderr=asyncio.subprocess.PIPE
             )
 
-            # Stream output in real-time
+            # Stream output in real-time with manual decoding
             while True:
                 line = await process.stdout.readline()
                 if not line:
@@ -111,13 +109,13 @@ class AiderManager:
                 except Exception as e:
                     self.logger.warning(f"Failed to decode output line: {str(e)}")
 
-            # Get final output
+            # Get final output with proper decoding
             stdout, stderr = await process.communicate()
             
             if process.returncode != 0:
                 self.logger.error(f"Aider process failed with return code {process.returncode}")
-                self.logger.error(f"stdout: {stdout.decode('utf-8', errors='replace')}")
-                self.logger.error(f"stderr: {stderr.decode('utf-8', errors='replace')}")
+                self.logger.error(f"stdout: {stdout.decode('utf-8', errors='replace') if stdout else ''}")
+                self.logger.error(f"stderr: {stderr.decode('utf-8', errors='replace') if stderr else ''}")
                 raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
 
             self.logger.debug("Aider execution completed")
