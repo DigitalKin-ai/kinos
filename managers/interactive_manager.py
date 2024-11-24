@@ -149,7 +149,6 @@ class InteractiveManager:
                     filtered_lines.append(line)
                 else:
                     self.logger.warning(f"⚠️ Skipping missing file: {file_path}")
-                else:
                     filtered_lines.append(line)
 
             if not files_to_modify:
