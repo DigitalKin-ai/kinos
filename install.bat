@@ -1,5 +1,26 @@
 @echo off
 
+:: Check for .env file
+if not exist .env (
+    echo Error: .env file not found
+    echo Please copy .env.example to .env and configure your API keys
+    exit /b 1
+)
+
+:: Check for required API keys
+findstr /C:"OPENAI_API_KEY=sk-" .env >nul
+if errorlevel 1 (
+    echo Error: OpenAI API key not properly configured in .env
+    exit /b 1
+)
+findstr /C:"PERPLEXITY_API_KEY=pplx-" .env >nul
+if errorlevel 1 (
+    echo Error: Perplexity API key not properly configured in .env
+    exit /b 1
+)
+
+echo ✓ Environment configuration verified
+
 :: Check for required dependencies
 where git >nul 2>&1
 if errorlevel 1 (

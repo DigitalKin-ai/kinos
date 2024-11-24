@@ -50,31 +50,38 @@ See it in action: https://nlr.ai/
   - Linux: `sudo apt-get install libcairo2-dev pkg-config python3-dev`
   - macOS: `brew install cairo pkg-config`
 
-### Installation
+### Installation Steps
 
-1. Clone the repository with submodules:
-```bash
-git clone --recursive https://github.com/DigitalKin-ai/kinos.git
-cd kinos
-```
+1. Verify Prerequisites:
+   - Python 3.8+ installed (`python --version`)
+   - Git installed (`git --version`)
+   - Node.js and npm installed (`node --version`, `npm --version`)
+   - Cairo graphics library installed:
+     - Windows: Install GTK3 runtime from [GTK for Windows](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer)
+     - Linux: `sudo apt-get install libcairo2-dev pkg-config python3-dev`
+     - macOS: `brew install cairo pkg-config`
 
-2. Run the installation script:
-- **Linux/Mac**:
-  ```bash
-  chmod +x install.sh
-  ./install.sh
-  ```
-- **Windows**:
-  ```batch
-  install.bat
-  ```
+2. Clone the Repository:
+   ```bash
+   git clone --recursive https://github.com/DigitalKin-ai/kinos.git
+   cd kinos
+   ```
 
-3. Set up environment variables:
-```bash
-# Create .env file
-OPENAI_API_KEY=your_openai_key_here
-PERPLEXITY_API_KEY=your_perplexity_key_here
-```
+3. Configure Environment:
+   ```bash
+   cp .env.example .env
+   # Edit .env and add your API keys:
+   # - OPENAI_API_KEY
+   # - PERPLEXITY_API_KEY
+   ```
+
+4. Run Installation Script:
+   - Windows: `install.bat`
+   - Linux/Mac: 
+     ```bash
+     chmod +x install.sh
+     ./install.sh
+     ```
 
 The installation script will:
 - Update git submodules
