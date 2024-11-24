@@ -245,19 +245,24 @@ Format the objective to include:
 4. Validation steps"""
 
             user_prompt = f"""
-Mission Context:
+Mission Context
+================
 ```
 {mission_content}
 ```
 
-Current Todolist:
+Current Todolist
+================
 ```
 {todolist_content}
 ```
 
-User Objective:
+User Objective
+================
 {objective}
 
+Instructions
+================
 Process this objective to be more specific and actionable while maintaining alignment with the mission."""
 
             # Log the prompts at debug level
@@ -320,25 +325,25 @@ Process this objective to be more specific and actionable while maintaining alig
             
             # Initialize messages list
             messages = [
-                {"role": "system", "content": """You are a technical analyst selecting relevant files for a development objective.
+                {"role": "system", "content": """You are a technical analyst selecting relevant files for a development objective. You have access to a visualization of the current files structured by folder and displayed by size.
 List ONLY files that exist in the provided project structure.
 
 Format:
 # Context Files (read-only)
-- ./path/to/file1 (emoji) Purpose
-- ./path/to/file2 (emoji) Purpose
+- path/to/file1 (emoji) File: Purpose with regar to the mission. Purpose with regards to the objective
+- path/to/file2 (emoji) File: Purpose with regar to the mission. Purpose with regards to the objective
 
 # Write Files (to be modified)
-- ./path/to/file3 (emoji) Purpose
-- ./path/to/file4 (emoji) Purpose
+- path/to/file3 (emoji) File:  Purpose with regar to the mission. Purpose with regards to the objective
+- path/to/file4 (emoji) File:  Purpose with regar to the mission. Purpose with regards to the objective
 
 Rules:
-1. ONLY use paths from the provided project structure
-2. All paths must start with './'
-3. Context files = files needed for understanding
-4. Write files = files that will be modified
-5. Include relevant emoji and purpose for each file
-6. Aim for 3-8 files per category"""}
+- ONLY use paths from the provided project structure
+- Context files = files needed for understanding
+- Write files = files that will be modified
+- Always include the path
+- Include relevant emoji and purpose for each file
+- Aim for 4-8 files per category. Include at least 8 files in total"""}
             ]
 
             # Add diagram if available
@@ -356,10 +361,6 @@ Rules:
                                 "image_url": {
                                     "url": f"data:image/png;base64,{encoded_bytes}"
                                 }
-                            },
-                            {
-                                "type": "text",
-                                "text": "Above is the current project structure visualization."
                             }
                         ]
                     })
@@ -370,17 +371,21 @@ Rules:
             messages.append({
                 "role": "user", 
                 "content": f"""
-Objective:
+Objective
+================
 ```
 {processed_objective}
 ```
 
-Available Project Files:
+Available Project Files
+================
 ```
 {tree_text}
 ```
 
-Select relevant files from the above list ONLY. Do not invent or suggest non-existent files."""
+Instructions
+================
+Select 4-8 files relevant to the Objective per category, from the above list ONLY. Do not invent or suggest non-existent files."""
             })
             
             # Log the prompts at debug level
