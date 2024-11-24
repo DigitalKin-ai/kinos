@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🎯 Two-phase planning and action workflow
 - 📝 Enhanced objective processing with GPT
 - 🔍 Smart file context analysis
+- 🤖 Improved agent generation with custom prompts
+- 🎨 Better agent role specialization
 
 ### Removed
 - 🗑️ Removed dependency on .aider.map.{name}.md files
