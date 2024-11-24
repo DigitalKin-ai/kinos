@@ -13,7 +13,7 @@ def main():
         sys.exit(1)
 
     # Get model from command line args
-    model = self.model  # Use instance model
+    model = "gpt-4o-mini"  # Default model
     if "--model" in sys.argv:
         try:
             model_index = sys.argv.index("--model") + 1
@@ -76,8 +76,17 @@ def main():
         if subcommand == "agents":
             # Create and initialize runner asynchronously
             async def init_and_run_agents():
+                # Get model name
+                run_model = "gpt-4o-mini"  # Default value
+                if "--model" in sys.argv:
+                    try:
+                        model_index = sys.argv.index("--model") + 1
+                        run_model = sys.argv[model_index]
+                    except (ValueError, IndexError):
+                        print("Invalid value for --model. Using default (gpt-4o-mini)")
+
                 # Use the factory method to create and initialize the runner
-                runner = await AgentRunner.create(model=model)
+                runner = await AgentRunner.create(model=run_model)
                 
                 # Set global log level based on verbose flag
                 if "--verbose" in sys.argv:
