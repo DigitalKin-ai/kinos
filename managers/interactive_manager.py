@@ -307,13 +307,24 @@ Process this objective to be more specific and actionable while maintaining alig
             if not processed_objective:
                 raise ValueError("No processed objective provided for file context analysis")
 
+            # Get complete repository structure with actual files
+            fs_utils = FSUtils()
+            files = []
+            for root, _, filenames in os.walk('.'):
+                # Skip .git folder but allow other dot files/folders
+                if '.git' not in root.split(os.sep):
+                    for filename in filenames:
+                        full_path = os.path.join(root, filename)
+                        rel_path = os.path.relpath(full_path, '.').replace(os.sep, '/')
+                        files.append(f"- ./{rel_path}")
+
+            # Create tree text with all files
+            tree_text = "\n".join(sorted(files)) if files else "No existing files"
+            
+            self.logger.debug(f"\n🌳 Available files:\n{tree_text}")
 
             # Generate fresh visualization
             await self.vision_manager.generate_visualization()
-            
-            # Validate we have all required components for the API call
-            if not processed_objective.strip():
-                raise ValueError("Empty processed objective")
 
             # Initialize messages list
             messages = [
@@ -359,6 +370,12 @@ Rules:
             messages.append({
                 "role": "user", 
                 "content": f"""
+Current Files
+================
+```
+{tree_text}
+```
+
 Objective
 ================
 ```
@@ -367,7 +384,12 @@ Objective
 
 Instructions
 ================
-Suggest appropriate files to read and modify for this objective. Aider will handle file creation and modifications."""
+Based on the current files and objective:
+1. Select relevant existing files to read for context
+2. Suggest files to modify or create
+3. Aider will handle the actual file operations
+
+Respond with the two file lists as shown in the format above."""
             })
             
             # Log the prompts at debug level
