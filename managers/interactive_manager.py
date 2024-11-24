@@ -124,17 +124,31 @@ class InteractiveManager:
             filtered_lines = []
             
             for line in objective.split('\n'):
-                if line.strip().startswith('- ./'):
-                    # Extract file path and description
+                # Handle paths with backticks
+                if '`' in line and './' in line:
+                    # Extract path between backticks
+                    start = line.find('`') + 1
+                    end = line.find('`', start)
+                    if start > 0 and end > start:
+                        file_path = line[start:end]
+                    else:
+                        filtered_lines.append(line)
+                        continue
+                elif line.strip().startswith('- ./'):
+                    # Handle traditional format
                     parts = line.strip()[3:].split(' ', 1)
                     file_path = parts[0]
-                    description = parts[1] if len(parts) > 1 else ""
+                else:
+                    filtered_lines.append(line)
+                    continue
+
+                description = parts[1] if len(parts) > 1 else ""
                     
-                    if os.path.exists(file_path):
-                        files_to_modify.append((file_path, description))
-                        filtered_lines.append(line)
-                    else:
-                        self.logger.warning(f"⚠️ Skipping missing file: {file_path}")
+                if os.path.exists(file_path):
+                    files_to_modify.append((file_path, description))
+                    filtered_lines.append(line)
+                else:
+                    self.logger.warning(f"⚠️ Skipping missing file: {file_path}")
                 else:
                     filtered_lines.append(line)
 
