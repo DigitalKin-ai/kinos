@@ -373,14 +373,15 @@ class AiderManager:
             try:
                 with open(objective_filepath, 'r', encoding='utf-8') as f:
                     content = f.read()
-                # Look for "Context Files" section
-                if "# Context Files" in content:
-                    context_section = content.split("# Context Files")[1].split("#")[0]
-                    for line in context_section.split('\n'):
+                # Look for "Required Files" section
+                if "# Required Files" in content:
+                    required_section = content.split("# Required Files")[1].split("#")[0]
+                    for line in required_section.split('\n'):
                         if line.strip().startswith('- ./'):
                             file_path = line.strip()[3:].split(' ')[0]
                             if os.path.exists(file_path):
                                 context_files.append(file_path)
+                                self.logger.debug(f"Added required file: {file_path}")
             except Exception as e:
                 self.logger.warning(f"⚠️ Could not extract context files: {str(e)}")
 
@@ -397,13 +398,11 @@ class AiderManager:
             "--input-history-file", f".aider.input.{agent_name}.md"
         ])
         
-        # Add context files with --file prefix
+        # Add todolist.md and context files as writable files
+        cmd.extend(['--file', 'todolist.md'])
+        # Add all context files as writable
         for context_file in context_files:
             cmd.extend(['--file', context_file])
-            
-        # Add global map as read-only
-        cmd.extend(['--file', 'todolist.md'])
-        #cmd.extend(['--read', 'map.md'])
 
         # Add agent prompt as read-only if provided
         if agent_filepath:
