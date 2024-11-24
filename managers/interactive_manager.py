@@ -340,25 +340,20 @@ Process this objective to be more specific and actionable while maintaining alig
 
             # Initialize messages list
             messages = [
-                {"role": "system", "content": """You are a technical analyst selecting relevant files for a development objective. You have access to a visualization of the current files structured by folder and displayed by size.
-List ONLY files that exist in the provided project structure.
+                {"role": "system", "content": """You are a technical analyst helping to plan file operations for a development objective.
 
-Format:
+Format your response as:
 # Context Files (read-only)
-- path/to/file1 (emoji) File: Purpose with regar to the mission. Purpose with regards to the objective
-- path/to/file2 (emoji) File: Purpose with regar to the mission. Purpose with regards to the objective
+- Suggest files to read for context
 
-# Write Files (to be modified)
-- path/to/file3 (emoji) File:  Purpose with regar to the mission. Purpose with regards to the objective
-- path/to/file4 (emoji) File:  Purpose with regar to the mission. Purpose with regards to the objective
+# Write Files (to be modified/created)
+- Suggest files to modify or create
 
 Rules:
-- ONLY use paths from the provided project structure
-- Context files = files needed for understanding
-- Write files = files that will be modified
-- Always include the path
-- Include relevant emoji and purpose for each file
-- Aim for 4-8 files per category. Include at least 8 files in total"""}
+- Files should be organized in appropriate folders
+- Include clear purpose for each file
+- Use relevant emojis
+- Consider project structure best practices"""}
             ]
 
             # Add diagram if available
@@ -393,15 +388,9 @@ Objective
 {processed_objective}
 ```
 
-Available Project Files
-================
-```
-{tree_text}
-```
-
 Instructions
 ================
-Select 4-8 files relevant to the Objective per category, from the above list ONLY. Do not invent or suggest non-existent files."""
+Suggest appropriate files to read and modify for this objective. Aider will handle file creation and modifications."""
             })
             
             # Log the prompts at debug level
