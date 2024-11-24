@@ -338,7 +338,7 @@ class AiderManager:
         
         Args:
             objective_filepath (str): Path to objective file
-            agent_filepath (str): Path to agent file
+            agent_filepath (str): Path to agent file 
             context_files (list): List of context files
             model (str): Model name to use (default: gpt-4o-mini)
             
@@ -346,7 +346,7 @@ class AiderManager:
             list: Command arguments for subprocess
         """
         # Extract agent name from filepath for history files
-        agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
+        agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '') if agent_filepath else 'interactive'
         
         # Use python -m to execute aider as module
         aider_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'vendor', 'aider')
@@ -355,6 +355,23 @@ class AiderManager:
         # Add aider path to PYTHONPATH
         os.environ["PYTHONPATH"] = aider_path + os.pathsep + os.environ.get("PYTHONPATH", "")
         
+        # Extract context files from objective if not provided
+        if not context_files:
+            context_files = []
+            try:
+                with open(objective_filepath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                # Look for "Context Files" section
+                if "# Context Files" in content:
+                    context_section = content.split("# Context Files")[1].split("#")[0]
+                    for line in context_section.split('\n'):
+                        if line.strip().startswith('- ./'):
+                            file_path = line.strip()[3:].split(' ')[0]
+                            if os.path.exists(file_path):
+                                context_files.append(file_path)
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not extract context files: {str(e)}")
+
         # Add required aider arguments
         cmd.extend([
             "--model", model,
@@ -376,8 +393,9 @@ class AiderManager:
         cmd.extend(['--file', 'todolist.md'])
         #cmd.extend(['--read', 'map.md'])
 
-        # Add agent prompt as read-only
-        cmd.extend(['--read', agent_filepath])
+        # Add agent prompt as read-only if provided
+        if agent_filepath:
+            cmd.extend(['--read', agent_filepath])
         
         # Read objective content
         with open(objective_filepath, 'r', encoding='utf-8') as f:
