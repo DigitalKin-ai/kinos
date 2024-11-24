@@ -10,6 +10,9 @@ KinOS manages state through standardized files in the mission directory:
 ## 2. Core Services
 
 ### 2.1 agents_runner Service
+- Model configuration support (--model flag)
+- Consistent model usage across operations 
+- Default model: gpt-4o-mini
 - Parallel agent execution using asyncio
 - Dynamic agent count management via --count parameter
 - Automatic agent generation when missing
@@ -21,6 +24,8 @@ KinOS manages state through standardized files in the mission directory:
 - Thread-safe agent selection and management
 
 ### 2.2 agents_manager Service
+- Configurable model support (default: gpt-4o-mini)
+- Model consistency across operations
 - Mission-driven agent generation
 - Multi-encoding file support
 - Parallel agent creation
@@ -28,6 +33,8 @@ KinOS manages state through standardized files in the mission directory:
 - Model consistency across operations
 
 ### 2.3 objective_manager Service
+- Model-specific processing
+- Configurable AI model selection
 - Dynamic objective generation
 - Perplexity research integration
 - Multi-encoding support

@@ -70,6 +70,7 @@ def main():
             print("  --generate    Generate agents if missing")
             print("  --verbose     Show detailed debug information")
             print("  --mission     Specify mission file path")
+            print("  --model      Specify model to use (default: gpt-4o-mini)")
             sys.exit(1)
             
         subcommand = sys.argv[2]

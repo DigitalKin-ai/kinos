@@ -228,6 +228,7 @@ DEBUG=boolean
 
 # Model Configuration
 DEFAULT_MODEL=gpt-4o-mini  # Default AI model to use
+# Model can be overridden with --model flag
 
 # Performance Settings
 CACHE_DURATION=3600
