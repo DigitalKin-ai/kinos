@@ -69,39 +69,54 @@ class AiderManager:
                 self.encoding_utils.convert_to_utf8(objective_filepath)
                 self.encoding_utils.convert_to_utf8(agent_filepath)
                 
-            # Configure aider command
+            await self._run_aider_with_encoding(
+                objective_filepath,
+                agent_filepath,
+                model=model
+            )
+
+    async def _run_aider_with_encoding(self, objective_filepath, agent_filepath, model="gpt-4o-mini"):
+        """Execute aider with proper UTF-8 encoding handling."""
+        try:
+            # Build command as before
             cmd = self._build_aider_command(
                 objective_filepath,
                 agent_filepath,
-                [],  # Empty context files for now
+                [],
                 model=model
             )
             
             self.logger.debug(f"Aider command: {cmd}")
-            
-            # Execute aider with proper async handling
+
+            # Create process with explicit UTF-8 encoding
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
+                encoding='utf-8',
+                errors='replace'  # Replace invalid chars instead of failing
             )
-            
-            # Stream output in real-time when in verbose mode
+
+            # Stream output in real-time
             while True:
                 line = await process.stdout.readline()
                 if not line:
                     break
-                self.logger.debug(f"AIDER: {line.decode().strip()}")
-                
-            # Get final output and check for errors
+                try:
+                    decoded_line = line.decode('utf-8', errors='replace').strip()
+                    self.logger.debug(f"AIDER: {decoded_line}")
+                except Exception as e:
+                    self.logger.warning(f"Failed to decode output line: {str(e)}")
+
+            # Get final output
             stdout, stderr = await process.communicate()
             
             if process.returncode != 0:
                 self.logger.error(f"Aider process failed with return code {process.returncode}")
-                self.logger.error(f"stdout: {stdout.decode()}")
-                self.logger.error(f"stderr: {stderr.decode()}")
+                self.logger.error(f"stdout: {stdout.decode('utf-8', errors='replace')}")
+                self.logger.error(f"stderr: {stderr.decode('utf-8', errors='replace')}")
                 raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
-                
+
             self.logger.debug("Aider execution completed")
 
             # Check if any files were modified by looking for changes in git status
