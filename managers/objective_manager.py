@@ -293,7 +293,6 @@ Rules:
 
 Respond only with the file lists in the format shown above.
 """
-"""
 
             try:
                 file_context_response = client.chat.completions.create(
