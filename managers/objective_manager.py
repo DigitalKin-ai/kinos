@@ -219,6 +219,7 @@ Your proposals must be:
 - Achievable in one aider operation
 - Verifiable through file changes
 - Within project directory scope
+- Don't suggest files names or locations, this will be handled in the process later.
 
 # Planning
 Your planning:
@@ -292,7 +293,7 @@ Respond only with the file lists in the format shown above.
                         {"role": "system", "content": """
 {agent_content}
                          
-In this context, you are a precise file context analyzer for AI development tasks.
+In this context, you are a precise file context analyzer for AI development tasks. Always follow the existing project structure.
 """},
                         {"role": "user", "content": file_context_prompt}
                     ],
