@@ -62,24 +62,36 @@ class AiderManager:
             # Vérifier uniquement si les fichiers sont lisibles en UTF-8
             try:
                 with open(objective_filepath, 'r', encoding='utf-8') as f:
-                    f.read()
+                    objective_content = f.read()
                 with open(agent_filepath, 'r', encoding='utf-8') as f:
                     f.read()
             except UnicodeDecodeError:
                 self.logger.warning(f"⚠️ Non-UTF-8 files detected, converting...")
                 self.encoding_utils.convert_to_utf8(objective_filepath)
                 self.encoding_utils.convert_to_utf8(agent_filepath)
+
+            # Extract context files from objective content
+            context_files = []
+            if "# Context Files" in objective_content:
+                context_section = objective_content.split("# Context Files")[1].split("#")[0]
+                for line in context_section.split('\n'):
+                    if line.strip().startswith('- ./'):
+                        file_path = line.strip()[3:].split(' ')[0]
+                        if os.path.exists(file_path):
+                            context_files.append(file_path)
+                            self.logger.debug(f"Added context file: {file_path}")
                 
             await self._run_aider_with_encoding(
                 objective_filepath,
                 agent_filepath,
+                context_files=context_files,
                 model=model
             )
         except Exception as e:
             self.logger.error(f"Aider operation failed: {str(e)}")
             raise
 
-    async def _run_aider_with_encoding(self, objective_filepath, agent_filepath, model="gpt-4o-mini"):
+    async def _run_aider_with_encoding(self, objective_filepath, agent_filepath, context_files=None, model="gpt-4o-mini"):
         """Execute aider with proper UTF-8 encoding handling."""
         try:
             # Build command as before
