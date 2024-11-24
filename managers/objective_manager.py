@@ -99,13 +99,25 @@ class ObjectiveManager:
             fs_utils = FSUtils()
             root_files = fs_utils.get_folder_files(".")
             root_subfolders = fs_utils.get_subfolders(".")
+        
+            # Log the raw files and folders found
+            self.logger.debug(f"Found root files: {root_files}")
+            self.logger.debug(f"Found subfolders: {root_subfolders}")
+        
             tree_structure = fs_utils.build_tree_structure(
                 current_path=".",
                 files=root_files,
                 subfolders=root_subfolders,
                 max_depth=None  # No depth limit to get full tree
             )
+        
+            # Log the generated tree structure
+            self.logger.debug(f"Generated tree structure: {tree_structure}")
+        
             tree_text = "\n".join(tree_structure)
+        
+            # Log the final tree text
+            self.logger.debug(f"Final tree text:\n{tree_text}")
 
             # Read last 80 lines from suivi.md if it exists
             suivi_content = ""
@@ -238,6 +250,7 @@ Your planning:
             objective = response.choices[0].message.content
 
             # Get file context for objective
+            # Create file context prompt with logged tree text
             file_context_prompt = f"""
 Objectives
 ================
@@ -253,6 +266,11 @@ Project structure
 
 Instructions
 ================
+"""
+            # Log the complete prompt being sent to GPT
+            self.logger.debug(f"File context prompt:\n{file_context_prompt}")
+
+            # Add instructions to prompt
 
 Based on the objectives and the project structure, list the files needed to achieve both objectives, in this exact format:
 
@@ -292,6 +310,8 @@ In this context, you are a precise file context analyzer for AI development task
                 )
                 
                 file_context = file_context_response.choices[0].message.content.strip()
+                # Log the response received
+                self.logger.debug(f"File context response:\n{file_context}")
                 
                 # Add file context to objective
                 objective += "\n\n# Required Files\n" + file_context
