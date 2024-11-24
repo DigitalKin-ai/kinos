@@ -99,14 +99,12 @@ class AiderManager:
                 # Force UTF-8 for Windows console
                 os.system('chcp 65001')
 
-            # Create process with UTF-8 encoding
+            # Create process without encoding parameter
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                env=env,
-                encoding='utf-8',
-                errors='replace'  # Replace invalid chars instead of failing
+                env=env
             )
 
             # Stream output in real-time with manual decoding
@@ -115,19 +113,19 @@ class AiderManager:
                 if not line:
                     break
                 try:
-                    # Line is already decoded due to encoding parameter
-                    decoded_line = line.strip()
+                    # Manually decode the bytes
+                    decoded_line = line.decode('utf-8', errors='replace').strip()
                     self.logger.debug(f"AIDER: {decoded_line}")
                 except Exception as e:
                     self.logger.warning(f"Failed to decode output line: {str(e)}")
 
-            # Get final output with proper decoding
+            # Get final output with manual decoding
             stdout, stderr = await process.communicate()
             
             if process.returncode != 0:
                 self.logger.error(f"Aider process failed with return code {process.returncode}")
-                self.logger.error(f"stdout: {stdout if stdout else ''}")
-                self.logger.error(f"stderr: {stderr if stderr else ''}")
+                self.logger.error(f"stdout: {stdout.decode('utf-8', errors='replace') if stdout else ''}")
+                self.logger.error(f"stderr: {stderr.decode('utf-8', errors='replace') if stderr else ''}")
                 raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
 
             self.logger.debug("Aider execution completed")
