@@ -271,7 +271,7 @@ Instructions
             self.logger.debug(f"File context prompt:\n{file_context_prompt}")
 
             # Add instructions to prompt
-
+            file_context_prompt += """
 Based on the objectives and the project structure, list the files needed to achieve both objectives, in this exact format:
 
 # Context Files (read-only)
@@ -292,6 +292,7 @@ Rules:
 7. Aim for 8 to 12 files
 
 Respond only with the file lists in the format shown above.
+"""
 """
 
             try:
