@@ -1,6 +1,0 @@
-[submodule "vendor/aider"]
-	path = vendor/aider
-	url = https://github.com/DigitalKin-ai/aider.git
-[submodule "vendor/repo-visualizer"]
-	path = vendor/repo-visualizer
-	url = https://github.com/DigitalKin-ai/repo-visualizer.git
