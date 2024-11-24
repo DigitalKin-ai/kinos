@@ -13,7 +13,7 @@ def main():
         sys.exit(1)
 
     # Get model from command line args
-    model = "gpt-4o-mini"  # Default value
+    model = self.model  # Use instance model
     if "--model" in sys.argv:
         try:
             model_index = sys.argv.index("--model") + 1
@@ -36,7 +36,7 @@ def main():
             manager.run_map_maintenance_for_all_folders()
             
         elif subcommand == "agents":
-            manager = AgentsManager()
+            manager = AgentsManager(model=model)
             # Optional mission file path
             mission_path = sys.argv[3] if len(sys.argv) > 3 else ".aider.mission.md"
             asyncio.run(manager.generate_agents(mission_path))
@@ -77,7 +77,7 @@ def main():
             # Create and initialize runner asynchronously
             async def init_and_run_agents():
                 # Use the factory method to create and initialize the runner
-                runner = await AgentRunner.create()
+                runner = await AgentRunner.create(model=model)
                 
                 # Set global log level based on verbose flag
                 if "--verbose" in sys.argv:
@@ -157,7 +157,7 @@ def main():
             
     elif command == "interactive":
         from managers.interactive_manager import InteractiveManager
-        manager = InteractiveManager()
+        manager = InteractiveManager(model=model)
         asyncio.run(manager.start_session())
             
     elif command == "redundancy":
@@ -175,7 +175,7 @@ def main():
             sys.exit(1)
 
         from managers.redundancy_manager import RedundancyManager
-        manager = RedundancyManager()
+        manager = RedundancyManager(model=model)
         
         subcommand = sys.argv[2]
         

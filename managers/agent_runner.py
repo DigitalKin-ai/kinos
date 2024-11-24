@@ -32,14 +32,15 @@ class AgentRunner:
         _agent_lock (asyncio.Lock): Lock for synchronizing agent operations
     """
     
-    def __init__(self):
+    def __init__(self, model="gpt-4o-mini"):
         """Initialize the runner with required managers and synchronization primitives."""
-        self.logger = Logger()
-        self.agents_manager = AgentsManager()
-        self.objective_manager = ObjectiveManager()
-        self.aider_manager = AiderManager()
+        self.logger = Logger(model=model)
+        self.agents_manager = AgentsManager(model=model)
+        self.objective_manager = ObjectiveManager(model=model)
+        self.aider_manager = AiderManager(model=model)
         self._active_agents = set()  # Track active agents
         self._agent_lock = asyncio.Lock()  # Use asyncio.Lock for async operations
+        self.model = model
 
     def _validate_mission_file(self, mission_filepath):
         """
@@ -76,9 +77,9 @@ class AgentRunner:
         return self
 
     @classmethod
-    async def create(cls):
+    async def create(cls, model="gpt-4o-mini"):
         """Factory method to create and initialize an AgentRunner instance."""
-        runner = cls()
+        runner = cls(model=model)
         return await runner.initialize()
         
     async def run(self, mission_filepath=DEFAULT_MISSION_FILE, generate_agents=False, 

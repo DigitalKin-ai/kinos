@@ -12,11 +12,12 @@ from managers.vision_manager import VisionManager
 class AiderManager:
     """Manager class for handling aider operations."""
     
-    def __init__(self):
+    def __init__(self, model="gpt-4o-mini"):
         """Initialize the manager with logger."""
-        self.logger = Logger()
+        self.logger = Logger(model=model)
         self._vision_manager = VisionManager()
         self.encoding_utils = EncodingUtils()  # Add encoding utils
+        self.model = model
 
     def _validate_repo_visualizer(self):
         """
