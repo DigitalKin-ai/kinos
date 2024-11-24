@@ -24,17 +24,65 @@ class EncodingUtils:
             Exception: If file cannot be read
         """
         try:
-            # First try UTF-8
-            with open(filepath, 'r', encoding='utf-8') as f:
-                return f.read()
-        except UnicodeDecodeError:
-            # If UTF-8 fails, try to convert the file
-            if self.convert_to_utf8(filepath):
-                # Try reading again with UTF-8
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    return f.read()
-            else:
-                raise ValueError(f"Could not read file {filepath} - encoding conversion failed")
+            # First verify if file is already valid UTF-8
+            try:
+                with open(filepath, 'rb') as f:
+                    content = f.read()
+                    if content.decode('utf-8'):
+                        # File is already valid UTF-8, read normally
+                        with open(filepath, 'r', encoding='utf-8', newline='') as f:
+                            return f.read()
+            except UnicodeDecodeError:
+                pass  # Not UTF-8, continue to conversion
+
+            # Try different encodings
+            encodings = ['latin-1', 'cp1252', 'iso-8859-1']
+            for encoding in encodings:
+                try:
+                    with open(filepath, 'rb') as f:
+                        content = f.read()
+                    decoded = content.decode(encoding)
+                    
+                    # Verify this isn't already UTF-8 encoded content
+                    try:
+                        if content.decode('utf-8'):
+                            self.logger.debug(f"File {filepath} is already UTF-8")
+                            return decoded
+                    except UnicodeDecodeError:
+                        # Not UTF-8, safe to convert
+                        # Normalize line endings to system default without duplicating
+                        lines = decoded.splitlines()
+                        utf8_content = os.linesep.join(lines)
+                        
+                        # Only write back if content actually changed
+                        if content != utf8_content.encode('utf-8'):
+                            with open(filepath, 'w', encoding='utf-8', newline='') as f:
+                                f.write(utf8_content)
+                            self.logger.info(f"✨ Converted {filepath} from {encoding} to UTF-8")
+                        return utf8_content
+                except UnicodeDecodeError:
+                    continue
+            
+            # If all encodings fail, try binary read with replacement
+            self.logger.warning(f"⚠️ All encodings failed for {filepath}, using replacement mode")
+            with open(filepath, 'rb') as f:
+                content = f.read()
+                decoded = content.decode('utf-8', errors='replace')
+                # Normalize line endings
+                lines = decoded.splitlines()
+                normalized = os.linesep.join(lines)
+                
+                # Only write back if absolutely necessary
+                try:
+                    original = content.decode('utf-8')
+                    if original == normalized:
+                        return original
+                except UnicodeDecodeError:
+                    with open(filepath, 'w', encoding='utf-8', newline='') as f:
+                        f.write(normalized)
+                    self.logger.warning(f"⚠️ Forced UTF-8 decode for {filepath}")
+                return normalized
+                
         except Exception as e:
             self.logger.error(f"Failed to read {filepath}: {str(e)}")
             raise
