@@ -161,7 +161,7 @@ Generate a role definition and plan for the {agent_name} agent that fulfills the
 
 2. Analysis Framework
 ````
-{framework_content}
+{custom_prompt}
 ````
 
 ## Requirements
