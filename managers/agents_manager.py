@@ -136,16 +136,6 @@ class AgentsManager:
         # Try to load custom prompt template
         prompt_path = f"prompts/{agent_name}.md"
         custom_prompt = ""
-
-        # Load global map content if it exists
-        global_map_content = ""
-        if os.path.exists("map.md"):
-            try:
-                with open("map.md", 'r', encoding='utf-8') as f:
-                    global_map_content = f.read()
-            except Exception as e:
-                self.logger.warning(f"⚠️ Could not read global map: {str(e)}")
-                # Continue without global map content
         
         if os.path.exists(prompt_path):
             try:
@@ -161,46 +151,50 @@ class AgentsManager:
         return f"""
 # Generate KinOS Agent Configuration
 
-Using the provided analysis framework, generate an Aider agent configuration for the {agent_name} role. Your output will be saved as .aider.agent.{agent_name}.md and will guide Aider's file operations.
+Generate a role definition and plan for the {agent_name} agent that fulfills the mission while following the analysis framework.
 
-## Input Context
-
-MISSION (COMPLETE):
+## Context Analysis
+1. Mission Details
 ````
 {mission_content}
 ````
 
-CURRENT PROJECT MAP:
+2. Analysis Framework
 ````
-{global_map_content}
-````
-
-ANALYSIS FRAMEWORK:
-````
-{custom_prompt if custom_prompt else "Using default KinOS analysis framework"}
+{framework_content}
 ````
 
-## Generation Process
+## Requirements
 
-1. Analyze Framework Questions
-   - Work through each section of the analysis framework
-   - Consider how each question applies to this specific agent type for this mission
-   - Identify the most relevant patterns and triggers
-   - Determine concrete file operations needed
+1. Mission Alignment
+   - How agent's role serves mission objectives
+   - Critical mission needs to address
+   - Mission-specific success criteria
 
-2. Translate Analysis to Operations
-   - Transform insights into specific file monitoring rules
-   - Define clear Aider operation patterns
-   - Establish explicit content validation criteria
-   - Specify optimization and deduplication strategies
+2. Framework Application
+   - Apply framework questions to mission context
+   - Use framework to structure mission approach
+   - Define mission-specific validation points
 
-3. Structure Agent Configuration
-   - Create clear file monitoring directives
-   - Define specific Aider operation triggers
-   - Establish concrete validation rules
-   - Document success indicators
+3. Role Definition
+   - Core responsibilities for mission completion
+   - Interaction patterns within mission scope
+   - Mission-aligned success criteria
 
-Your output should be a practical, actionable configuration focused on concrete file operations via Aider. Ensure all directives are grounded in KinOS's file-based architecture.
+4. High-Level Plan
+   - Major mission milestones
+   - Systematic approach to mission goals
+   - Quality standards for mission deliverables
+
+Your output should clearly show how this agent will contribute to mission success through the lens of the analysis framework.
+
+Example Sections:
+- Mission Understanding
+- Role in Mission Completion
+- Framework-Guided Approach
+- Key Objectives & Milestones
+- Quality Standards
+- Success Criteria
 """
 
     def _call_gpt(self, prompt):
@@ -222,67 +216,49 @@ Your output should be a practical, actionable configuration focused on concrete 
                 model="gpt-4o",  # Using the BIG Omni model!
                 messages=[
                     {"role": "system", "content": """
-# KinOS Agent Generator System Prompt
+# KinOS Agent Generator
 
-You are the generator component of KinOS, creating specialized prompts for Aider-based autonomous agents. Your understanding of KinOS's core architecture is essential for generating relevant and executable prompts.
+You create strategic role definitions for KinOS agents by applying specialized analysis frameworks.
 
-## KinOS Operational Context
+## Operational Context
+- Agent operates through Aider file operations
+- Main loop handles all triggers and timing
+- Single-step file modifications only
+- Directory-based mission scope
 
-### Core Architecture
-- File-based state management (no direct inter-agent communication)
-- Aider as execution engine for all file modifications
-- Atomic file operations with explicit validation
-- Directory-based mission contextualization
+## Framework Integration
+1. Question Analysis
+   - Process each framework section
+   - Extract relevant guidelines
+   - Apply to current context
 
-### Agent Operation Model
-- Each agent independently monitors specific files
-- Changes are made only through Aider-mediated file operations
-- All state exists in files - no external state management
-- Validation occurs through file content verification
+2. Role Mapping
+   - Map responsibilities to framework sections
+   - Align capabilities with framework requirements
+   - Define boundaries using framework structure
 
-### File Interaction Patterns
-- Read: Monitor designated files for changes
-- Analyze: Process file content against validation rules
-- Modify: Request changes through Aider
-- Validate: Verify file state post-modification
+3. Planning Through Framework
+   - Use framework sections as planning guides
+   - Ensure comprehensive coverage
+   - Maintain framework-aligned validation
 
-## Prompt Generation Principles
+## Core Requirements
+1. Mission Contribution
+   - Framework-guided responsibilities
+   - Framework-aligned success metrics
+   - Quality standards from framework
 
-1. **File-Centric Operation**
-   - Every instruction must relate to file operations
-   - State changes only through file modifications
-   - All validation based on file content
-   - Clear file scope definition
+2. Team Integration
+   - Framework-based coordination
+   - Shared objective alignment
+   - Quality interdependencies
 
-2. **Aider-Specific Direction**
-   - Instructions compatible with Aider's capabilities
-   - Clear file modification protocols
-   - Explicit success validation criteria
-   - Error detection through file state
-
-3. **Mission Contextualization**
-   - Derive requirements from mission files
-   - Map file dependencies and interactions
-   - Define file-based validation rules
-   - Establish clear file modification boundaries
-
-4. **Pattern Integration**
-   - File monitoring patterns
-   - Content validation patterns
-   - Error detection patterns
-   - Recovery operation patterns
-
-## Validation Requirements
-
-Every generated prompt must ensure:
-- All operations reference specific files
-- State validation through file content
-- Error detection via file state
-- Recovery through file operations
-- Clear file scope boundaries
-
-Your prompts must enable agents to operate autonomously within KinOS's file-based architecture, ensuring all actions and validations occur through proper file operations mediated by Aider.
-                     """},
+Remember: 
+- Answer framework questions practically
+- Keep focus on achievable file operations
+- Use framework to structure planning
+- Maintain mission alignment
+"""},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.4,
