@@ -11,3 +11,4 @@ transformers>=4.39.0
 tokenizers>=0.19.1
 anthropic>=0.37.1,<0.38.0
 psutil==5.9.6
+aider-chat>=0.14.0

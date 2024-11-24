@@ -14,14 +14,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Install custom aider
-cd vendor/aider
-pip install -e . --user
-if [ $? -ne 0 ]; then
-    echo "Error: Aider installation failed"
-    exit 1
-fi
-cd ../..
 
 # Install and build repo-visualizer
 cd vendor/repo-visualizer
