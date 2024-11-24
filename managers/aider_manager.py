@@ -96,8 +96,8 @@ class AiderManager:
             env = os.environ.copy()
             if os.name == 'nt':  # Windows
                 env['PYTHONIOENCODING'] = 'utf-8'
-                # Force UTF-8 for Windows console
-                os.system('chcp 65001')
+                # Force UTF-8 for Windows console but suppress output
+                os.system('chcp 65001 >NUL 2>&1')
 
             # Create process without encoding parameter
             process = await asyncio.create_subprocess_exec(
