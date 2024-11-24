@@ -96,10 +96,31 @@ class AiderManager:
             env = os.environ.copy()
             if os.name == 'nt':  # Windows
                 env['PYTHONIOENCODING'] = 'utf-8'
+                # Log current code page before changing
+                try:
+                    import subprocess
+                    current_cp = subprocess.check_output('chcp', shell=True).decode('ascii', errors='replace')
+                    self.logger.debug(f"Current code page before change: {current_cp.strip()}")
+                except Exception as e:
+                    self.logger.debug(f"Could not get current code page: {str(e)}")
+
                 # Force UTF-8 for Windows console but suppress output
                 os.system('chcp 65001 >NUL 2>&1')
+                
+                # Verify code page change
+                try:
+                    new_cp = subprocess.check_output('chcp', shell=True).decode('ascii', errors='replace')
+                    self.logger.debug(f"Code page after change: {new_cp.strip()}")
+                except Exception as e:
+                    self.logger.debug(f"Could not verify code page change: {str(e)}")
 
-            # Create process without encoding parameter
+            # Log environment encoding settings
+            self.logger.debug(f"PYTHONIOENCODING: {env.get('PYTHONIOENCODING')}")
+            self.logger.debug(f"File system encoding: {sys.getfilesystemencoding()}")
+            self.logger.debug(f"Default encoding: {sys.getdefaultencoding()}")
+
+            try:
+                # Create process without encoding parameter
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
@@ -107,28 +128,56 @@ class AiderManager:
                 env=env
             )
 
-            # Stream output in real-time with manual decoding
+            # Stream output in real-time with manual decoding and detailed error logging
             while True:
                 line = await process.stdout.readline()
                 if not line:
                     break
                 try:
+                    # Log raw bytes for debugging
+                    self.logger.debug(f"Raw bytes: {line}")
                     # Manually decode the bytes
                     decoded_line = line.decode('utf-8', errors='replace').strip()
                     self.logger.debug(f"AIDER: {decoded_line}")
                 except Exception as e:
-                    self.logger.warning(f"Failed to decode output line: {str(e)}")
+                    self.logger.error(f"Failed to decode output line: {str(e)}")
+                    self.logger.error(f"Raw bytes causing error: {line.hex()}")
+                    self.logger.error(f"Exception type: {type(e).__name__}")
+                    self.logger.error(f"Exception details: {str(e)}")
 
-            # Get final output with manual decoding
+            # Get final output with manual decoding and error details
             stdout, stderr = await process.communicate()
+            
+            if stdout:
+                self.logger.debug(f"Final stdout raw bytes: {stdout.hex()}")
+            if stderr:
+                self.logger.debug(f"Final stderr raw bytes: {stderr.hex()}")
             
             if process.returncode != 0:
                 self.logger.error(f"Aider process failed with return code {process.returncode}")
-                self.logger.error(f"stdout: {stdout.decode('utf-8', errors='replace') if stdout else ''}")
-                self.logger.error(f"stderr: {stderr.decode('utf-8', errors='replace') if stderr else ''}")
+                if stdout:
+                    try:
+                        self.logger.error(f"stdout: {stdout.decode('utf-8', errors='replace')}")
+                    except Exception as e:
+                        self.logger.error(f"Failed to decode stdout: {str(e)}")
+                        self.logger.error(f"stdout bytes: {stdout.hex()}")
+                if stderr:
+                    try:
+                        self.logger.error(f"stderr: {stderr.decode('utf-8', errors='replace')}")
+                    except Exception as e:
+                        self.logger.error(f"Failed to decode stderr: {str(e)}")
+                        self.logger.error(f"stderr bytes: {stderr.hex()}")
                 raise subprocess.CalledProcessError(process.returncode, cmd, stdout, stderr)
 
             self.logger.debug("Aider execution completed")
+
+        except Exception as e:
+            self.logger.error(f"Process execution error: {type(e).__name__}")
+            self.logger.error(f"Error details: {str(e)}")
+            if hasattr(e, '__traceback__'):
+                import traceback
+                self.logger.error(f"Traceback:\n{''.join(traceback.format_tb(e.__traceback__))}")
+            raise
 
             # Check if any files were modified by looking for changes in git status
             modified_files = False
