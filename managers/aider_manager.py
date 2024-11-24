@@ -147,11 +147,6 @@ class AiderManager:
             except Exception as e:
                 self.logger.error(f"Process execution error: {str(e)}")
                 raise
-                except Exception as e:
-                    self.logger.error(f"Failed to decode output line: {str(e)}")
-                    self.logger.error(f"Raw bytes causing error: {line.hex()}")
-                    self.logger.error(f"Exception type: {type(e).__name__}")
-                    self.logger.error(f"Exception details: {str(e)}")
 
             # Get final output with manual decoding and error details
             stdout, stderr = await process.communicate()
