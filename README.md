@@ -45,6 +45,10 @@ See it in action: https://nlr.ai/
 - Perplexity API key (for research capabilities)
 - Git installed
 - Node.js and npm installed (for repository visualization)
+- Cairo graphics library (for SVG to PNG conversion):
+  - Windows: Install GTK3 runtime from [GTK for Windows](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer)
+  - Linux: `sudo apt-get install libcairo2-dev pkg-config python3-dev`
+  - macOS: `brew install cairo pkg-config`
 
 ### Installation
 
