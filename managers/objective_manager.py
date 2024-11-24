@@ -98,12 +98,14 @@ class ObjectiveManager:
             # Build list of all file paths
             files = []
             for root, _, filenames in os.walk('.'):
-                # Skip .git folder but allow other dot files/folders
-                if '.git' not in root.split(os.sep):
+                # Skip any folder that starts with .
+                if not any(part.startswith('.') for part in root.split(os.sep)[1:]):
                     for filename in filenames:
-                        full_path = os.path.join(root, filename)
-                        rel_path = os.path.relpath(full_path, '.').replace(os.sep, '/')
-                        files.append(f"- ./{rel_path}")
+                        # Skip files that start with . or .aider
+                        if not (filename.startswith('.') or filename.startswith('.aider')):
+                            full_path = os.path.join(root, filename)
+                            rel_path = os.path.relpath(full_path, '.').replace(os.sep, '/')
+                            files.append(f"- ./{rel_path}")
 
             # Create sorted list of paths
             tree_text = "\n".join(sorted(files)) if files else "No existing files"
