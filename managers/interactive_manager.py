@@ -302,6 +302,11 @@ Process this objective to be more specific and actionable while maintaining alig
     async def _analyze_file_context(self, processed_objective):
         """Analyze and select relevant files for the objective."""
         try:
+            # Force file context analysis
+            self.logger.info("🔍 Analyzing file context...")
+            if not processed_objective:
+                raise ValueError("No processed objective provided for file context analysis")
+
             # Get complete repository structure with actual files
             fs_utils = FSUtils()
             files = []
@@ -319,6 +324,10 @@ Process this objective to be more specific and actionable while maintaining alig
             tree_text = "\n".join(files)
             
             self.logger.debug(f"\n🌳 Available files:\n{tree_text}")
+
+            # Ensure we have files to analyze
+            if not files:
+                raise ValueError("No files found in repository for context analysis")
 
             # Generate fresh visualization
             await self.vision_manager.generate_visualization()
@@ -364,6 +373,7 @@ Rules:
                             }
                         ]
                     })
+                    self.logger.debug("Added diagram to analysis context")
                 except Exception as e:
                     self.logger.warning(f"⚠️ Could not encode diagram: {str(e)}")
 
@@ -396,17 +406,28 @@ Select 4-8 files relevant to the Objective per category, from the above list ONL
                 else:
                     self.logger.debug(f"\n{msg['role'].upper()}: [Image + Text Content]")
             
-            # Make API call
-            self.logger.info("🔍 Analyzing file context with GPT...")
-            client = openai.OpenAI()
-            response = client.chat.completions.create(
-                model="gpt-4o-mini", 
-                messages=messages,
-                temperature=0.3,
-                max_tokens=500
-            )
-            
-            result = response.choices[0].message.content
+            # Make API call with explicit error handling
+            try:
+                self.logger.info("🔍 Analyzing file context with GPT...")
+                client = openai.OpenAI()
+                response = client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=0.3,
+                    max_tokens=500
+                )
+                
+                if not response.choices:
+                    raise ValueError("No response choices received from GPT")
+                    
+                result = response.choices[0].message.content
+                
+                if not result.strip():
+                    raise ValueError("Empty response from GPT")
+                    
+            except Exception as e:
+                self.logger.error(f"GPT API call failed: {str(e)}")
+                raise
             
             # Validate suggested files exist
             validated_lines = []
