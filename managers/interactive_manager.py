@@ -332,6 +332,12 @@ Process this objective to be more specific and actionable while maintaining alig
             # Generate fresh visualization
             await self.vision_manager.generate_visualization()
             
+            # Validate we have all required components for the API call
+            if not processed_objective.strip():
+                raise ValueError("Empty processed objective")
+            if not tree_text.strip():
+                raise ValueError("Empty file tree")
+
             # Initialize messages list
             messages = [
                 {"role": "system", "content": """You are a technical analyst selecting relevant files for a development objective. You have access to a visualization of the current files structured by folder and displayed by size.
