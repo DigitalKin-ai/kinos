@@ -269,9 +269,12 @@ class AiderManager:
         # Extract agent name from filepath for history files
         agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '')
         
-        # Use custom aider from vendor submodule
+        # Use python -m to execute aider as module
         aider_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'vendor', 'aider')
-        cmd = ["python", os.path.join(aider_path, "aider")]
+        cmd = ["python", "-m", "aider.main"]
+        
+        # Add aider path to PYTHONPATH
+        os.environ["PYTHONPATH"] = aider_path + os.pathsep + os.environ.get("PYTHONPATH", "")
         
         # Add required aider arguments
         cmd.extend([
