@@ -2,9 +2,13 @@
 
 :: Update submodules
 git submodule update --init --recursive
+if errorlevel 1 (
+    echo Error: Submodule update failed
+    exit /b 1
+)
 
 :: Install Python dependencies
-pip install -r requirements.txt
+pip install -r requirements.txt --user
 if errorlevel 1 (
     echo Error: Python dependencies installation failed
     exit /b 1
@@ -12,7 +16,7 @@ if errorlevel 1 (
 
 :: Install custom aider
 cd vendor\aider
-pip install -e .
+pip install -e . --user
 if errorlevel 1 (
     echo Error: Aider installation failed
     exit /b 1
