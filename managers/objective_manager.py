@@ -177,7 +177,7 @@ Todolist
 
 Instructions
 ================
-Based on the provided info, generate a clear specific next step for the {agent_name} agent.
+Based on the provided info, generate a clear specific single next step for the {agent_name} agent.
 Create two objectives in markdown format - one for production, one specific to your role. Each objective should specify:
 
 1. **Action Statement**
@@ -202,13 +202,38 @@ Create two objectives in markdown format - one for production, one specific to y
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": f"""
-{agent_content}
-                     
+# Context
+
+## KinOS Operation Parameters
+You are an agent in KinOS v6, operating with these key capabilities:
+- File operations through aider interface
+- Single-step actions using GPT-4o-mini
+- Directory-based scope (current working directory)
+- Git integration for tracking changes
+
+## Core Limitations
+- One operation per planning cycle
+- Cannot access external resources
+- Must work through documented interfaces
+- Changes limited to project files
+
+## Action Requirements
+Your proposals must be:
+- Achievable in one aider operation
+- Verifiable through file changes
+- Within project directory scope
+
 # Planning
 Your planning:
-1. Prioritizes explicit mission instructions
-2. Does not repeats previous actions, or work done by the other agents
-3. Maintains clear progression
+- Prioritizes explicit mission instructions
+- Follows the todolist
+- Avoids repeating previous work
+- Maintains clear progression
+- Focuses on single, achievable steps                     
+
+                     
+# System Prompt
+{agent_content}
 """}
                 ],
                 temperature=0.5,
