@@ -128,8 +128,25 @@ class AiderManager:
                     env=env
                 )
 
-            # Stream output in real-time with manual decoding and detailed error logging
-            while True:
+                # Stream output in real-time with manual decoding and detailed error logging
+                while True:
+                    line = await process.stdout.readline()
+                    if not line:
+                        break
+                    try:
+                        # Log raw bytes for debugging
+                        self.logger.debug(f"Raw bytes: {line}")
+                        # Manually decode the bytes
+                        decoded_line = line.decode('utf-8', errors='replace').strip()
+                        self.logger.debug(f"AIDER: {decoded_line}")
+                    except Exception as e:
+                        self.logger.error(f"Failed to decode output line: {str(e)}")
+                        self.logger.error(f"Raw bytes causing error: {line.hex()}")
+                        self.logger.error(f"Exception type: {type(e).__name__}")
+                        self.logger.error(f"Exception details: {str(e)}")
+            except Exception as e:
+                self.logger.error(f"Process execution error: {str(e)}")
+                raise
                 line = await process.stdout.readline()
                 if not line:
                     break
