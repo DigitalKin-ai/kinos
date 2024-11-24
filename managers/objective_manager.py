@@ -368,7 +368,7 @@ In this context, you are a precise file context analyzer for AI development task
         """Generate a one-line summary of the objective."""
         try:
             client = openai.OpenAI()
-            prompt = f"""
+            prompt = f'''
 Mission Context
 ================
 ````
@@ -393,7 +393,7 @@ Guidelines:
 - Phrase it from your agent point of view
 
 Reply only with the formatted sentence, nothing else.
-"""
+'''
             
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
