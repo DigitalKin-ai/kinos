@@ -6,6 +6,13 @@
 secrets.yaml
 config.local.yaml
 
+# Vendor Submodules Build Artifacts
+vendor/repo-visualizer/dist/
+vendor/repo-visualizer/node_modules/
+vendor/*/__pycache__/
+vendor/*/*.egg-info/
+vendor/*/build/
+
 # Python
 __pycache__/
 *.py[cod]

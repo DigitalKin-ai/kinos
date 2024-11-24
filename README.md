@@ -48,56 +48,36 @@ See it in action: https://nlr.ai/
 
 ### Installation
 
-1. Clone the repository:
+1. Clone the repository with submodules:
 ```bash
-git clone git clone https://github.com/DigitalKin-ai/kinos.git
+git clone --recursive https://github.com/DigitalKin-ai/kinos.git
 cd kinos
 ```
 
-2. Install Aider locally:
-```bash
-git clone https://github.com/Aider-AI/aider.git
-cd aider
-pip install -e .
-cd ..
-```
+2. Run the installation script:
+- **Linux/Mac**:
+  ```bash
+  chmod +x install.sh
+  ./install.sh
+  ```
+- **Windows**:
+  ```batch
+  install.bat
+  ```
 
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-
-# Clone and setup repo-visualizer
-git clone https://github.com/githubocto/repo-visualizer.git
-cd repo-visualizer
-
-# Create dist directory
-mkdir dist
-
-# Install dependencies with legacy peer deps flag
-npm install --legacy-peer-deps
-
-# Install esbuild globally
-npm install -g esbuild
-
-# Update package.json build script to:
-# "build": "npx esbuild --target=es2019 ./src/index.jsx --bundle --platform=node --outfile=dist/index.js"
-
-# Build the project
-npm run build
-
-cd ..
-```
-
-4. Set up environment variables:
+3. Set up environment variables:
 ```bash
 # Create .env file
 OPENAI_API_KEY=your_openai_key_here
 PERPLEXITY_API_KEY=your_perplexity_key_here
 ```
 
-4. Add KinOS to your PATH:
-   - **Windows**: Add the KinOS directory to your system's PATH environment variable
-   - **Linux/Mac**: Create a symbolic link to the `kin` script in /usr/local/bin
+The installation script will:
+- Update git submodules
+- Install Python dependencies
+- Set up custom Aider
+- Build repo-visualizer
+- Add KinOS to your PATH
 
 ### Starting Your First Project
 
