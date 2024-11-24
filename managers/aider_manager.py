@@ -1,5 +1,5 @@
 import os
-import os
+import sys
 import time
 import json
 import asyncio
@@ -147,15 +147,6 @@ class AiderManager:
             except Exception as e:
                 self.logger.error(f"Process execution error: {str(e)}")
                 raise
-                line = await process.stdout.readline()
-                if not line:
-                    break
-                try:
-                    # Log raw bytes for debugging
-                    self.logger.debug(f"Raw bytes: {line}")
-                    # Manually decode the bytes
-                    decoded_line = line.decode('utf-8', errors='replace').strip()
-                    self.logger.debug(f"AIDER: {decoded_line}")
                 except Exception as e:
                     self.logger.error(f"Failed to decode output line: {str(e)}")
                     self.logger.error(f"Raw bytes causing error: {line.hex()}")
