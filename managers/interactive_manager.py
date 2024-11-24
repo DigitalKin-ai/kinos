@@ -314,8 +314,6 @@ Process this objective to be more specific and actionable while maintaining alig
             # Validate we have all required components for the API call
             if not processed_objective.strip():
                 raise ValueError("Empty processed objective")
-            if not tree_text.strip():
-                raise ValueError("Empty file tree")
 
             # Initialize messages list
             messages = [
