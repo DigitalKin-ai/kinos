@@ -109,9 +109,6 @@ class ObjectiveManager:
 
             # Create sorted list of paths
             tree_text = "\n".join(sorted(files)) if files else "No existing files"
-        
-            # Log the final tree text
-            self.logger.debug(f"Final tree text:\n{tree_text}")
 
             # Read last 80 lines from suivi.md if it exists
             suivi_content = ""
