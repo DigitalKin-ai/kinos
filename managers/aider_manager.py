@@ -121,12 +121,12 @@ class AiderManager:
 
             try:
                 # Create process without encoding parameter
-            process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                env=env
-            )
+                process = await asyncio.create_subprocess_exec(
+                    *cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    env=env
+                )
 
             # Stream output in real-time with manual decoding and detailed error logging
             while True:
