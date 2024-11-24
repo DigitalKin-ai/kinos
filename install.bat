@@ -45,5 +45,5 @@ if errorlevel 1 (
 )
 cd ..\..
 
-:: Add to PATH (requires admin privileges)
-setx PATH "%PATH%;%CD%" /M
+:: Add to user PATH instead of system PATH
+setx PATH "%PATH%;%CD%"
