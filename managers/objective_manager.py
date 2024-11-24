@@ -398,10 +398,10 @@ Reply only with the formatted sentence, nothing else.
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": f"""
+                    {"role": "system", "content": f'''
 {agent_content}
                      
-In this context, you are an assistant who summarizes project actions in a concise sentence with appropriate emojis. These summaries will serve as tracking logs within the mission."""},
+In this context, you are an assistant who summarizes project actions in a concise sentence with appropriate emojis. These summaries will serve as tracking logs within the mission.'''},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.4,
@@ -419,7 +419,7 @@ In this context, you are an assistant who summarizes project actions in a concis
         """Generate a summary of the Perplexity research results."""
         try:
             client = openai.OpenAI()
-            prompt = f"""
+            prompt = f'''
 Search Query 
 ================
 ````
@@ -438,16 +438,16 @@ Summarize in a single sentence what was found by the Perplexity search, followin
 "Agent {agent_name}: I'm conducting a search on [topic]: [summary of main findings]"
 
 Reply only with the formatted sentence, nothing else.
-"""
+'''
              
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": f"""
+                    {"role": "system", "content": f'''
 {agent_content}
 
 In this context, you are an assistant who summarizes project actions in a concise sentence with appropriate emojis. These summaries will serve as tracking logs within the mission.
-"""},
+'''},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.,
