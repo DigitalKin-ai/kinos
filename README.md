@@ -45,6 +45,22 @@ See it in action: https://nlr.ai/
 - Perplexity API key (for research capabilities)
 - Git installed
 - Node.js and npm installed (for repository visualization)
+
+### Optional Model Providers
+- **Ollama**: For local model execution
+  - Install from [Ollama.ai](https://ollama.ai)
+  - Supported models: llama2, mistral, codellama, etc.
+  - Usage: `--model ollama_chat/<model_name>`
+
+- **OpenRouter**: For additional model providers
+  - Get API key from [OpenRouter.ai](https://openrouter.ai)
+  - Supported providers: Anthropic, Google, Meta, etc.
+  - Usage: `--model openrouter/<provider>/<model_name>`
+
+- **Default**: OpenAI GPT-4o-mini
+  - Requires OpenAI API key
+  - Most stable and tested option
+  - Usage: `--model gpt-4o-mini` (default)
 - Cairo graphics library (for SVG to PNG conversion):
   - Windows: Install GTK3 runtime from [GTK for Windows](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer)
   - Linux: `sudo apt-get install libcairo2-dev pkg-config python3-dev`
@@ -143,6 +159,16 @@ kin run agents
 # Launch with specific model
 kin run agents --model gpt-4o-mini  # Default model
 kin run agents --model gpt-4  # Other models may be supported in future
+
+# Use with local models via Ollama
+kin run agents --model ollama_chat/llama2  # Use local Llama 2
+kin run agents --model ollama_chat/mistral  # Use local Mistral
+kin run agents --model ollama_chat/codellama  # Use local CodeLlama
+
+# Use with model routers
+kin run agents --model openrouter/anthropic/claude-2  # Use Claude 2 via OpenRouter
+kin run agents --model openrouter/google/palm  # Use PaLM via OpenRouter
+kin run agents --model openrouter/meta/llama2  # Use Llama 2 via OpenRouter
 
 # Generate new agents
 kin generate agents
