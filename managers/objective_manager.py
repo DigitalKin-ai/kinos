@@ -17,6 +17,9 @@ class ObjectiveManager:
         openai.api_key = os.getenv('OPENAI_API_KEY')
         if not openai.api_key:
             raise ValueError("OpenAI API key not found in environment variables")
+        
+        # Load mission content
+        self.mission_content = self._load_mission_content()
 
     def generate_objective(self, mission_filepath=".aider.mission.md", agent_filepath=None):
         """
@@ -352,25 +355,12 @@ In this context, you are a precise file context analyzer for AI development task
     def _generate_summary(self, objective, agent_name, agent_content):
         """Generate a one-line summary of the objective."""
         try:
-            # Read last 50 lines from suivi.md if it exists
-            suivi_content = ""
-            if os.path.exists('suivi.md'):
-                try:
-                    with open('suivi.md', 'r', encoding='utf-8') as f:
-                        # Read all lines and get last 80
-                        lines = f.readlines()
-                        last_lines = lines[-80:] if len(lines) > 80 else lines
-                        suivi_content = ''.join(last_lines)
-                except Exception as e:
-                    self.logger.warning(f"⚠️ Could not read suivi.md: {str(e)}")
-                    # Continue without suivi content
-
             client = openai.OpenAI()
             prompt = f"""
-Previous tracking logs (last 80 lines)
+Mission Context
 ================
 ````
-{suivi_content}
+{self.mission_content}
 ````
 
 Objective
@@ -459,6 +449,17 @@ In this context, you are an assistant who summarizes project actions in a concis
             # Return a basic fallback summary with agent name
             return f"Agent {agent_name} 🤖 searched for: {query}"
 
+
+    def _load_mission_content(self):
+        """Load mission content from .aider.mission.md file."""
+        try:
+            if os.path.exists('.aider.mission.md'):
+                with open('.aider.mission.md', 'r', encoding='utf-8') as f:
+                    return f.read()
+            return ""
+        except Exception as e:
+            self.logger.warning(f"⚠️ Could not load mission file: {str(e)}")
+            return ""
 
     def _save_objective(self, filepath, content, agent_name, agent_content):
         """Save objective content to file, including Perplexity research results if needed."""
