@@ -40,13 +40,13 @@ class AgentsManager:
             agent_types = [
                 "specification",
                 "management", 
-                "redaction",
+                "writing",
                 "evaluation",
                 "deduplication",
-                "chroniqueur",
-                "redondance",
+                "chronicler",
+                "redundancy",
                 "production",
-                "chercheur",
+                "researcher",
                 "integration"
             ]
             
