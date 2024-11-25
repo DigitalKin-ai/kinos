@@ -321,7 +321,7 @@ class AgentRunner:
             
             client = openai.OpenAI()
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=self.model,
                 messages=[
                     {"role": "system", "content": "You are a technical architect analyzing project structure. Always respond in the exact format requested."},
                     {"role": "user", "content": prompt}

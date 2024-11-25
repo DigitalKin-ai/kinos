@@ -196,7 +196,7 @@ Create two objectives in markdown format - one for production, one specific to {
 
             # First get the main objective
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=self.model,
                 messages=[
                     {"role": "system", "content": f"""
 # Context
@@ -204,7 +204,7 @@ Create two objectives in markdown format - one for production, one specific to {
 ## KinOS Operation Parameters
 You are an agent in KinOS v6, operating with these key capabilities:
 - File operations through aider interface
-- Focused-step actions using GPT-4o-mini
+- Focused-step actions using {self.model}
 - Directory-based scope (current working directory)
 - Git integration for tracking changes
 
@@ -330,7 +330,7 @@ Respond only with the file lists in the format shown above.
 
             try:
                 file_context_response = client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model=self.model,
                     messages=messages,
                     temperature=0.3,
                     max_tokens=500
@@ -422,7 +422,7 @@ Reply only with the formatted sentence, nothing else.
 '''
             
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=self.model,
                 messages=[
                     {"role": "system", "content": f'''
 {agent_content}
@@ -467,7 +467,7 @@ Reply only with the formatted sentence, nothing else.
 '''
              
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=self.model,
                 messages=[
                     {"role": "system", "content": f'''
 {agent_content}
