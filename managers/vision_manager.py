@@ -6,7 +6,7 @@ from utils.logger import Logger
 class VisionManager:
     """Manager class for repository visualization using repo-visualizer."""
     
-    def __init__(self, model="gpt-4o-mini"):
+    def __init__(self, model=None):
         """Initialize the vision manager."""
         self.logger = Logger(model=model)
         self.model = model
