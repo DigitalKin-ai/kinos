@@ -33,10 +33,13 @@ Version 6.1.2 is out! Check the [Changelog](./CHANGELOG.md)
 - Structure directories to match expected output
 - Include any required templates or configurations
 
-### Interactive Guidance
-- Use `kin interactive` to open chat sessions with the project
-- Guide work in progress and clarify requirements
-- Review and refine implementations
+### Active monitoring
+What are the agents up to?
+- Check `suivi.md` to get the logs and synthesis of the progress
+- Check `todolist.md` to see what work is coming
+- Check `diagram.md` to get an overview of the progress
+
+You can also open an interactive session with `kin interactive` and ask it question about the agents' progress.
 
 ## 🚀 Getting Started
 
