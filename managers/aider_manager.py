@@ -455,6 +455,9 @@ class AiderManager:
             "--input-history-file", f".aider.input.{agent_name}.md"
         ])
         
+        # Add mission file as read-only
+        cmd.extend(['--read', '.aider.mission.md'])
+        
         # Add todolist.md and context files as writable files
         cmd.extend(['--file', 'todolist.md'])
             
