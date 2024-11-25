@@ -103,6 +103,24 @@ The installation script will:
 - Build repo-visualizer
 - Add KinOS to your PATH
 
+### Updating KinOS
+
+To update KinOS to the latest version:
+
+```bash
+# Windows
+install.bat update
+
+# Linux/Mac
+./install.sh update
+```
+
+This will:
+- Pull the latest changes from the repository
+- Update all submodules
+- Update Python dependencies
+- Rebuild components as needed
+
 ### Starting Your First Project
 
 1. Create a new project directory:
