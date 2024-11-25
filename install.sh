@@ -1,6 +1,16 @@
 #!/bin/bash
 
-# Check for .env file
+# Check if this is an update
+if [ "$1" = "update" ]; then
+    echo "🔄 Updating KinOS..."
+    # Pull latest changes
+    git pull
+    # Update submodules to latest
+    git submodule update --remote --merge
+    echo "✓ Repository updated"
+fi
+
+# Check for .env file (skip check if updating)
 if [ ! -f .env ]; then
     echo "Error: .env file not found"
     echo "Please copy .env.example to .env and configure your API keys"
@@ -33,7 +43,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Install Python dependencies
+# Install/Update Python dependencies
 pip install -r requirements.txt --user
 if [ $? -ne 0 ]; then
     echo "Error: Python dependencies installation failed"
@@ -41,7 +51,7 @@ if [ $? -ne 0 ]; then
 fi
 
 
-# Install and build repo-visualizer
+# Install/Update and build repo-visualizer
 cd vendor/repo-visualizer
 npm install --legacy-peer-deps
 if [ $? -ne 0 ]; then

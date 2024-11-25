@@ -1,6 +1,16 @@
 @echo off
 
-:: Check for .env file
+:: Check if this is an update
+if "%1"=="update" (
+    echo 🔄 Updating KinOS...
+    :: Pull latest changes
+    git pull
+    :: Update submodules to latest
+    git submodule update --remote --merge
+    echo ✓ Repository updated
+)
+
+:: Check for .env file (skip check if updating)
 if not exist .env (
     echo Error: .env file not found
     echo Please copy .env.example to .env and configure your API keys
@@ -50,7 +60,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-:: Install Python dependencies
+:: Install/Update Python dependencies
 pip install -r requirements.txt --user
 if errorlevel 1 (
     echo Error: Python dependencies installation failed
@@ -65,7 +75,7 @@ if errorlevel 1 (
     echo Please install GTK3 runtime from https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer
 )
 
-:: Install and build repo-visualizer
+:: Install/Update and build repo-visualizer
 cd vendor\repo-visualizer
 call npm install --legacy-peer-deps
 if errorlevel 1 (
