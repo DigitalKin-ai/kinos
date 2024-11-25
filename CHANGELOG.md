@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🌐 Standardized logs to English only
 - 🔄 Simplified repository updates with single command
 - 🔍 More robust file detection with improved filtering
+- 🐍 Added smart Python command detection (supports both 'python' and 'python3')
 
 ### Changed
 - 🔄 Updated required Python version to 3.9+
