@@ -77,7 +77,8 @@ def main():
         if subcommand == "agents":
             # Create and initialize runner asynchronously
             async def init_and_run_agents():
-                # Get model name
+                # Get model name from outer scope
+                nonlocal model
                 run_model = model  # Use the model from command line
                 if "--model" in sys.argv:
                     try:
