@@ -44,7 +44,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Install/Update Python dependencies
-pip install -r requirements.txt --user
+$(python3 -c 'from utils.fs_utils import FSUtils; print(FSUtils.get_python_command())') -m pip install -r requirements.txt --user
 if [ $? -ne 0 ]; then
     echo "Error: Python dependencies installation failed"
     exit 1

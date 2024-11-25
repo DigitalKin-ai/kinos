@@ -370,7 +370,8 @@ class AiderManager:
         
         # Use python -m to execute aider as module
         aider_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'vendor', 'aider')
-        cmd = ["python", "-m", "aider.main"]
+        python_cmd = FSUtils.get_python_command()
+        cmd = [python_cmd, "-m", "aider.main"]
         
         # Add aider path to PYTHONPATH
         os.environ["PYTHONPATH"] = aider_path + os.pathsep + os.environ.get("PYTHONPATH", "")

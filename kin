@@ -1,2 +1,2 @@
 #!/bin/bash
-python "$(dirname "$0")/routes.py" "$@"
+"$(dirname "$0")/$(python3 -c 'from utils.fs_utils import FSUtils; print(FSUtils.get_python_command())')" "$(dirname "$0")/routes.py" "$@"

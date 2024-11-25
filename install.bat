@@ -61,7 +61,8 @@ if errorlevel 1 (
 )
 
 :: Install/Update Python dependencies
-pip install -r requirements.txt --user
+for /f %%i in ('python -c "from utils.fs_utils import FSUtils; print(FSUtils.get_python_command())"') do set PYTHON_CMD=%%i
+%PYTHON_CMD% -m pip install -r requirements.txt --user
 if errorlevel 1 (
     echo Error: Python dependencies installation failed
     exit /b 1

@@ -161,3 +161,34 @@ class FSUtils:
     def set_current_folder(self, folder_path: str):
         """Set the current folder path for tree building."""
         self.current_folder_path = os.path.abspath(folder_path)
+
+    @staticmethod
+    def get_python_command():
+        """
+        Determine the correct Python command for the system.
+        
+        Returns:
+            str: 'python3' or 'python' depending on what's available
+            
+        Raises:
+            RuntimeError: If no Python interpreter is found
+        """
+        import subprocess
+        
+        # Try python3 first
+        try:
+            subprocess.run(['python3', '--version'], 
+                         stdout=subprocess.PIPE, 
+                         stderr=subprocess.PIPE, 
+                         check=True)
+            return 'python3'
+        except (subprocess.SubprocessError, FileNotFoundError):
+            # Try python as fallback
+            try:
+                subprocess.run(['python', '--version'], 
+                             stdout=subprocess.PIPE, 
+                             stderr=subprocess.PIPE, 
+                             check=True)
+                return 'python'
+            except (subprocess.SubprocessError, FileNotFoundError):
+                raise RuntimeError("No Python interpreter found. Please ensure either 'python3' or 'python' is available.")

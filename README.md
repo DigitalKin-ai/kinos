@@ -45,7 +45,7 @@ You can also open an interactive session with `kin interactive` and ask it quest
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.9+ (accessible via 'python3' or 'python')
 - OpenAI API key
 - Perplexity API key (for research capabilities)
 - Git installed
