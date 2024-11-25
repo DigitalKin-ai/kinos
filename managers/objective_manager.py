@@ -223,6 +223,7 @@ Your proposals must be:
 
 # Planning
 Your planning:
+- Does not include timelines as they do not make sense in the context of a multi-agent system like KinOS
 - Prioritizes explicit mission instructions
 - Follows the todolist provided
 - Avoids repeating previous work

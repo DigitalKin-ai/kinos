@@ -15,6 +15,9 @@ See it in action: https://nlr.ai/
 - 🔗 **Git Integration**: Automatic version control and change tracking
 - 📊 **Progress Monitoring**: Real-time status tracking and logging
 
+## What's new?
+Version 6.1.2 is out! Check the [Changelog](./CHANGELOG.md)
+
 ## 📊 Project Structure
 ![Project Structure](./diagram.svg)
 
