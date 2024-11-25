@@ -154,8 +154,7 @@ kin run agents --generate --count 6
 kin run agents
 
 # Launch with specific model
-kin run agents --model gpt-4o-mini  # Default model
-kin run agents --model gpt-4o  # Other models may be supported in future
+kin run agents --model <model_name>  # Use any supported model
 
 # Use with local models via Ollama
 kin run agents --model ollama_chat/llama3.1:70B  # Use local Llama 3.1
