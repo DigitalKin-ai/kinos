@@ -51,14 +51,24 @@ class InteractiveManager:
         try:
             # Refresh visualization
             self.logger.info("🎨 Refreshing repository visualization...")
-            await self.vision_manager.generate_visualization()
+            try:
+                await self.vision_manager.generate_visualization()
+                self.logger.success("✨ Repository visualization updated")
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not update visualization: {str(e)}")
+                # Continue without visualization
             
             # Display current todolist
             if os.path.exists('todolist.md'):
-                with open('todolist.md', 'r', encoding='utf-8') as f:
-                    todolist = f.read()
-                self.logger.info("\n📋 Current Todolist:\n")
-                print(todolist)
+                try:
+                    with open('todolist.md', 'r', encoding='utf-8') as f:
+                        todolist = f.read()
+                    self.logger.info("\n📋 Current Todolist:\n")
+                    print(todolist)
+                except UnicodeDecodeError:
+                    self.logger.warning("⚠️ Could not read todolist.md - encoding issue")
+                except Exception as e:
+                    self.logger.warning(f"⚠️ Could not read todolist.md: {str(e)}")
             
             # Get multi-line user objective
             self.logger.info("\n🎯 Enter your objective (or 'quit' to exit):")
@@ -203,9 +213,19 @@ class InteractiveManager:
                 model=self.model
             )
             
+        except KeyboardInterrupt:
+            self.logger.info("\n👋 Interactive session interrupted by user")
+            raise
         except Exception as e:
             self.logger.error(f"Action phase error: {str(e)}")
             raise
+        finally:
+            # Clean up temporary objective file
+            try:
+                if os.path.exists('.aider.objective.interactive.md'):
+                    os.remove('.aider.objective.interactive.md')
+            except Exception as e:
+                self.logger.warning(f"⚠️ Could not clean up objective file: {str(e)}")
 
     async def _research_objective(self, query):
         """Perform research using Perplexity API if needed."""
@@ -338,19 +358,23 @@ Process this objective to be more specific and actionable while maintaining alig
             if not processed_objective:
                 raise ValueError("No processed objective provided for file context analysis")
 
-            # Get complete repository structure with actual files
-            fs_utils = FSUtils()
-            files = []
-            for root, _, filenames in os.walk('.'):
-                # Skip .git folder but allow other dot files/folders
-                if '.git' not in root.split(os.sep):
-                    for filename in filenames:
-                        full_path = os.path.join(root, filename)
-                        rel_path = os.path.relpath(full_path, '.').replace(os.sep, '/')
-                        files.append(f"- ./{rel_path}")
+            # Get list of valid files, excluding .aider and .git
+            valid_files = set()
+            for root, _, files in os.walk('.'):
+                # Skip .git and .aider folders
+                if '.git' in root.split(os.sep) or '.aider' in root.split(os.sep):
+                    continue
+                for file in files:
+                    # Skip .aider files
+                    if file.startswith('.aider'):
+                        continue
+                    rel_path = os.path.relpath(os.path.join(root, file), '.').replace('\\', '/')
+                    valid_files.add(rel_path)
+                    if rel_path.startswith('./'):
+                        valid_files.add(rel_path[2:])
 
-            # Create tree text with all files
-            tree_text = "\n".join(sorted(files)) if files else "No existing files"
+            # Create tree text with valid files
+            tree_text = "\n".join(f"- ./{f}" for f in sorted(valid_files)) if valid_files else "No existing files"
             
             self.logger.debug(f"\n🌳 Available files:\n{tree_text}")
 
