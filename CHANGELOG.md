@@ -4,14 +4,10 @@ All notable changes to KinOS will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [6.1.4] - 2024-11-25
+## [6.1.2] - 2024-11-25
 
 ### Added
-- ✨ Added update command to installation scripts
-- 📝 Added update documentation to README
 - 🔄 Simplified repository updates with single command
-
-## [6.1.3] - 2024-11-25
 
 ### Changed
 - 🔄 Updated required Python version to 3.9+
