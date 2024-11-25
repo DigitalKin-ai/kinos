@@ -119,37 +119,55 @@ class InteractiveManager:
         try:
             self.logger.info("\n🚀 Starting aider session...")
             
-            # Extract and validate files from objective
+            # Extract and validate files from objective using regex
+            import re
             files_to_modify = []
             filtered_lines = []
             
-            for line in objective.split('\n'):
-                # Handle paths with backticks
-                if '`' in line and './' in line:
-                    # Extract path between backticks
-                    start = line.find('`') + 1
-                    end = line.find('`', start)
-                    if start > 0 and end > start:
-                        file_path = line[start:end]
-                    else:
-                        filtered_lines.append(line)
-                        continue
-                elif line.strip().startswith('- ./'):
-                    # Handle traditional format
-                    parts = line.strip()[3:].split(' ', 1)
-                    file_path = parts[0]
-                else:
-                    filtered_lines.append(line)
+            # Match anything that looks like a filename with extension
+            potential_files = re.findall(r'[\w\-./\\]+\.[A-Za-z]+', objective)
+            
+            # Get list of all existing files in project
+            existing_files = set()
+            for root, _, files in os.walk('.'):
+                # Skip .aider folders
+                if '.aider' in root.split(os.sep):
                     continue
-
-                description = parts[1] if len(parts) > 1 else ""
-                    
-                if os.path.exists(file_path):
-                    files_to_modify.append((file_path, description))
-                    filtered_lines.append(line)
-                else:
-                    self.logger.warning(f"⚠️ Skipping missing file: {file_path}")
-                    filtered_lines.append(line)
+                for file in files:
+                    # Skip .aider files
+                    if file.startswith('.aider'):
+                        continue
+                    # Convert to relative path with forward slashes
+                    rel_path = os.path.relpath(os.path.join(root, file), '.').replace('\\', '/')
+                    existing_files.add(rel_path)
+                    # Also add without ./ prefix
+                    if rel_path.startswith('./'):
+                        existing_files.add(rel_path[2:])
+            
+            # Track found files to avoid duplicates
+            found_files = set()
+            
+            # Process each potential file
+            for potential_file in potential_files:
+                # Clean up the path
+                clean_path = potential_file.replace('\\', '/').strip()
+                if clean_path.startswith('./'):
+                    clean_path = clean_path[2:]
+                
+                # Check against existing files
+                if clean_path in existing_files:
+                    if clean_path not in found_files:
+                        found_files.add(clean_path)
+                        description = ""
+                        # Try to find description in original objective
+                        for line in objective.split('\n'):
+                            if clean_path in line:
+                                parts = line.split(clean_path, 1)
+                                if len(parts) > 1:
+                                    description = parts[1].strip()
+                                break
+                        files_to_modify.append((clean_path, description))
+                        filtered_lines.append(f"- ./{clean_path} {description}")
 
             if not files_to_modify:
                 self.logger.error("❌ No valid files to modify")
