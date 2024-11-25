@@ -378,18 +378,45 @@ class AiderManager:
         # Extract context files from objective if not provided
         if not context_files:
             context_files = []
+            # Extract agent name from filepath
+            agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '') if agent_filepath else 'interactive'
+            context_file = f".aider.context.{agent_name}.md"
+
             try:
                 with open(objective_filepath, 'r', encoding='utf-8') as f:
                     content = f.read()
-                # Look for "Required Files" section
-                if "# Required Files" in content:
-                    required_section = content.split("# Required Files")[1].split("#")[0]
-                    for line in required_section.split('\n'):
-                        if line.strip().startswith('- ./'):
-                            file_path = line.strip()[3:].split(' ')[0]
-                            if os.path.exists(file_path):
-                                context_files.append(file_path)
-                                self.logger.debug(f"Added required file: {file_path}")
+                    
+                # Generate context file content
+                context_content = "# Context Files\n\n"
+                    
+                # Find files mentioned in quotes
+                import re
+                quoted_files = re.findall(r'\*\*(.*?)\*\*', content)
+                if quoted_files:
+                    context_content += "## Mentioned Files\n"
+                    for file in quoted_files:
+                        # Convert to likely filename
+                        file_path = file.lower().replace(' ', '_') + '.md'
+                        context_content += f"- {file_path} (from: {file})\n"
+                        if os.path.exists(file_path):
+                            context_files.append(file_path)
+                            self.logger.debug(f"Added quoted file: {file_path}")
+                    
+                # Look for traditional ./path format
+                traditional_files = re.findall(r'- \./([^\s]+)', content)
+                if traditional_files:
+                    context_content += "\n## Explicit Paths\n"
+                    for file in traditional_files:
+                        file_path = file.split(' ')[0]
+                        context_content += f"- {file_path}\n"
+                        if os.path.exists(file_path):
+                            context_files.append(file_path)
+                            self.logger.debug(f"Added traditional file: {file_path}")
+                    
+                # Save context file
+                with open(context_file, 'w', encoding='utf-8') as f:
+                    f.write(context_content)
+                self.logger.debug(f"Saved context file: {context_file}")
             except Exception as e:
                 self.logger.warning(f"⚠️ Could not extract context files: {str(e)}")
 
@@ -411,6 +438,16 @@ class AiderManager:
         
         # Add todolist.md and context files as writable files
         cmd.extend(['--file', 'todolist.md'])
+            
+        # Add context file as read-only if it exists
+        agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '') if agent_filepath else 'interactive'
+        context_file = f".aider.context.{agent_name}.md"
+        if os.path.exists(context_file):
+            cmd.extend(['--read', context_file])
+            self.logger.debug(f"Added context file to aider command: {context_file}")
+        else:
+            self.logger.warning(f"Context file not found: {context_file}")
+
         # Add all context files as writable
         for context_file in context_files:
             cmd.extend(['--file', context_file])
