@@ -1,9 +1,14 @@
 import sys
 import logging
 import asyncio
+from dotenv import load_dotenv
+import os
 
-# Default configuration
-DEFAULT_MODEL = "gpt-4o-mini"  # Default AI model to use
+# Load environment variables
+load_dotenv()
+
+# Get default model from environment or fallback
+DEFAULT_MODEL = os.getenv('DEFAULT_MODEL', 'gpt-4o-mini')
 from managers.agents_manager import AgentsManager
 from managers.objective_manager import ObjectiveManager
 from managers.aider_manager import AiderManager
