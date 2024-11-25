@@ -429,7 +429,7 @@ class AgentRunner:
         return [agent_type for agent_type in agent_types 
                 if os.path.exists(f".aider.agent.{agent_type}.md")]
         
-    async def _execute_agent_cycle(self, agent_name, mission_filepath, model="gpt-4o-mini"):
+    async def _execute_agent_cycle(self, agent_name, mission_filepath, model=None):
         """Execute a single agent cycle."""
         try:
             agent_filepath = f".aider.agent.{agent_name}.md"
