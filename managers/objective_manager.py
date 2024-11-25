@@ -378,7 +378,7 @@ Respond only with the file lists in the format shown above.
             messages.append({"role": "user", "content": prompt})
 
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=self.model,
                 messages=messages,
                 temperature=0.5,
                 max_tokens=2000
