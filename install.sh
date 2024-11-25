@@ -73,6 +73,11 @@ if [ $? -ne 0 ]; then
 fi
 cd ../..
 
+# Create and make kin executable 
+echo '#!/bin/bash' > kin
+echo 'python "$(dirname "$0")/routes.py" "$@"' >> kin
+chmod +x kin
+
 # Create symbolic link for kin command
 if [[ "$OSTYPE" == "darwin"* ]] || [[ "$OSTYPE" == "linux-gnu"* ]]; then
     sudo ln -sf "$(pwd)/kin" /usr/local/bin/kin
