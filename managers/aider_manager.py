@@ -20,12 +20,13 @@ DEFAULT_MODEL = os.getenv('DEFAULT_MODEL', 'gpt-4o-mini')
 class AiderManager:
     """Manager class for handling aider operations."""
     
-    def __init__(self, model="gpt-4o-mini"):
+    def __init__(self, model=None):
         """Initialize the manager with logger."""
         self.logger = Logger(model=model)
         self._vision_manager = VisionManager()
         self.encoding_utils = EncodingUtils()  # Add encoding utils
-        self.model = model
+        # Initialize model with fallback chain
+        self.model = model or os.getenv('DEFAULT_MODEL', 'gpt-4o-mini')
 
     def _validate_repo_visualizer(self):
         """
@@ -397,7 +398,7 @@ class AiderManager:
 
         # Add required aider arguments
         cmd.extend([
-            "--model", model,
+            "--model", model or self.model,  # Use passed model or instance model
             "--edit-format", "diff", 
             "--yes-always",
             "--no-pretty",
