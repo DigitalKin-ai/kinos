@@ -13,7 +13,7 @@ def main():
         sys.exit(1)
 
     # Get model from command line args
-    model = "gpt-4o-mini"  # Default model
+    model = None  # Will be set to default in each manager if not specified
     if "--model" in sys.argv:
         try:
             model_index = sys.argv.index("--model") + 1
@@ -78,7 +78,7 @@ def main():
             # Create and initialize runner asynchronously
             async def init_and_run_agents():
                 # Get model name
-                run_model = "gpt-4o-mini"  # Default value
+                run_model = model  # Use the model from command line
                 if "--model" in sys.argv:
                     try:
                         model_index = sys.argv.index("--model") + 1

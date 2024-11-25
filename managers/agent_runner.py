@@ -11,7 +11,7 @@ from managers.objective_manager import ObjectiveManager
 from managers.aider_manager import AiderManager
 
 # Configuration constants
-DEFAULT_MODEL = "gpt-4o-mini"
+DEFAULT_MODEL = None  # Will use the model passed in from command line
 DEFAULT_AGENT_COUNT = 10
 AGENT_START_DELAY = 10  # seconds between agent starts
 DEFAULT_MISSION_FILE = ".aider.mission.md"
@@ -32,7 +32,7 @@ class AgentRunner:
         _agent_lock (asyncio.Lock): Lock for synchronizing agent operations
     """
     
-    def __init__(self, model="gpt-4o-mini"):
+    def __init__(self, model=None):
         """Initialize the runner with required managers and synchronization primitives."""
         self.logger = Logger(model=model)
         self.agents_manager = AgentsManager(model=model)
