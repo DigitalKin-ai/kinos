@@ -1,6 +1,9 @@
 import sys
 import logging
 import asyncio
+
+# Default configuration
+DEFAULT_MODEL = "gpt-4o-mini"  # Default AI model to use
 from managers.agents_manager import AgentsManager
 from managers.objective_manager import ObjectiveManager
 from managers.aider_manager import AiderManager
@@ -13,13 +16,13 @@ def main():
         sys.exit(1)
 
     # Get model from command line args
-    model = None  # Will be set to default in each manager if not specified
+    model = DEFAULT_MODEL  # Set default value
     if "--model" in sys.argv:
         try:
             model_index = sys.argv.index("--model") + 1
             model = sys.argv[model_index]
         except (ValueError, IndexError):
-            print("Invalid value for --model. Using default (gpt-4o-mini)")
+            print(f"Invalid value for --model. Using default ({DEFAULT_MODEL})")
 
     command = sys.argv[1]
     
