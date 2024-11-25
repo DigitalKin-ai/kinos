@@ -16,7 +16,7 @@ class Logger:
     
     def __init__(self, model=None):
         """Initialize the logger with mission context."""
-        self.model = model or "gpt-4o-mini"  # Use default if none specified
+        self.model = model  # Will use default from command line if None
         # Force UTF-8 for stdin/stdout
         import sys
         sys.stdin.reconfigure(encoding='utf-8')
