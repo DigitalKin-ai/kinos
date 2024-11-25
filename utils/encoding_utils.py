@@ -6,7 +6,7 @@ from utils.logger import Logger
 class EncodingUtils:
     """Utility class for handling file encodings."""
     
-    def __init__(self, model="gpt-4o-mini"):
+    def __init__(self, model=None):
         self.logger = Logger(model=model)
         self.model = model
 
