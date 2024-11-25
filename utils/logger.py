@@ -265,7 +265,7 @@ class Logger:
                 
                 client = openai.OpenAI()
                 response = client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model=self.model,
                     messages=[
                         {"role": "system", "content": """You are an expert project progress analyst.
 Your task is to summarize project logs in relation to the mission objectives.
