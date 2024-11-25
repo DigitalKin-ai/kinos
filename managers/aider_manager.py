@@ -389,31 +389,44 @@ class AiderManager:
                 # Generate context file content
                 context_content = "# Context Files\n\n"
                     
-                # Find files mentioned in quotes
+                # Find all potential file references using a more comprehensive regex
                 import re
-                quoted_files = re.findall(r'\*\*(.*?)\*\*', content)
-                if quoted_files:
-                    context_content += "## Mentioned Files\n"
-                    for file in quoted_files:
-                        # Convert to likely filename
-                        file_path = file.lower().replace(' ', '_') + '.md'
-                        context_content += f"- {file_path} (from: {file})\n"
-                        if os.path.exists(file_path):
-                            context_files.append(file_path)
-                            self.logger.debug(f"Added quoted file: {file_path}")
+                # Match anything that looks like a filename with extension
+                potential_files = re.findall(r'[\w\-./\\]+\.[A-Za-z]+', content)
                     
-                # Look for traditional ./path format
-                traditional_files = re.findall(r'- \./([^\s]+)', content)
-                if traditional_files:
-                    context_content += "\n## Explicit Paths\n"
-                    for file in traditional_files:
-                        file_path = file.split(' ')[0]
-                        context_content += f"- {file_path}\n"
-                        if os.path.exists(file_path):
-                            context_files.append(file_path)
-                            self.logger.debug(f"Added traditional file: {file_path}")
-                    
-                # Save context file
+                # Get list of all existing files in project
+                existing_files = set()
+                for root, _, files in os.walk('.'):
+                    for file in files:
+                        # Convert to relative path with forward slashes
+                        rel_path = os.path.relpath(os.path.join(root, file), '.').replace('\\', '/')
+                        existing_files.add(rel_path)
+                        # Also add without ./ prefix
+                        if rel_path.startswith('./'):
+                            existing_files.add(rel_path[2:])
+
+                # Track found files to avoid duplicates
+                found_files = set()
+
+                # Process each potential file
+                for potential_file in potential_files:
+                    # Clean up the path
+                    clean_path = potential_file.replace('\\', '/').strip()
+                    if clean_path.startswith('./'):
+                        clean_path = clean_path[2:]
+
+                    # Check against existing files
+                    if clean_path in existing_files:
+                        if clean_path not in found_files:
+                            found_files.add(clean_path)
+                            context_files.append(clean_path)
+                            self.logger.debug(f"Found file reference: {clean_path}")
+
+                # Save context file with found files
+                context_content += "## Found Files\n"
+                for file in sorted(found_files):
+                    context_content += f"- {file}\n"
+
                 with open(context_file, 'w', encoding='utf-8') as f:
                     f.write(context_content)
                 self.logger.debug(f"Saved context file: {context_file}")
@@ -439,11 +452,11 @@ class AiderManager:
         # Add todolist.md and context files as writable files
         cmd.extend(['--file', 'todolist.md'])
             
-        # Add context file as read-only if it exists
+        # Add context file as writable
         agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '') if agent_filepath else 'interactive'
         context_file = f".aider.context.{agent_name}.md"
         if os.path.exists(context_file):
-            cmd.extend(['--read', context_file])
+            cmd.extend(['--file', context_file])  # Changed from --read to --file
             self.logger.debug(f"Added context file to aider command: {context_file}")
         else:
             self.logger.warning(f"Context file not found: {context_file}")
