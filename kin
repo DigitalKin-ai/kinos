@@ -1,4 +1,4 @@
 #!/bin/bash
 SCRIPT_DIR="$(dirname "$0")"
 export PYTHONPATH="$SCRIPT_DIR:$PYTHONPATH"
-"$(python3 -c "import sys; sys.path.insert(0, '$SCRIPT_DIR'); from utils.fs_utils import FSUtils; print(FSUtils.get_python_command())")" "$SCRIPT_DIR/routes.py" "$@"
+"$(python3 -c "import sys; sys.path.insert(0, r'$SCRIPT_DIR'.replace('\\\\', '/')); from utils.fs_utils import FSUtils; print(FSUtils.get_python_command())")" "$SCRIPT_DIR/routes.py" "$@"
