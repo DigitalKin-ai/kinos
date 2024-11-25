@@ -182,7 +182,7 @@ class InteractiveManager:
             await self.aider_manager.run_aider(
                 objective_filepath='.aider.objective.interactive.md',
                 agent_filepath=None,  # No agent file needed for interactive
-                model="gpt-4o-mini"
+                model=model
             )
             
         except Exception as e:
@@ -284,7 +284,7 @@ Process this objective to be more specific and actionable while maintaining alig
             
             client = openai.OpenAI()
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=self.model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}

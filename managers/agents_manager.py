@@ -276,7 +276,7 @@ Remember:
 
             client = openai.OpenAI()
             response = client.chat.completions.create(
-                model="gpt-4o",  # Using the BIG Omni model!
+                model=self.model,
                 messages=[
                     {"role": "system", "content": """
 # KinOS Agent Generator
