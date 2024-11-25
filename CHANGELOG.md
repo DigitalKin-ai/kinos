@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - 🔄 Simplified repository updates with single command
+- 🔍 More robust file detection with improved filtering
 
 ### Changed
 - 🔄 Updated required Python version to 3.9+
