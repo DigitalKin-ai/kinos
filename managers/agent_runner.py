@@ -205,7 +205,7 @@ class AgentRunner:
                 
         return missing_agents
         
-    async def _run_single_agent_cycle(self, mission_filepath, model="gpt-4o-mini"):
+    async def _run_single_agent_cycle(self, mission_filepath, model=None):
         """Execute a single cycle for one agent."""
         agent_name = None
         try:

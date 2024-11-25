@@ -50,7 +50,7 @@ class AiderManager:
                 "Please check file permissions."
             )
 
-    async def run_aider(self, objective_filepath, agent_filepath, model="gpt-4o-mini"):
+    async def run_aider(self, objective_filepath, agent_filepath, model=None):
         """Execute aider operation with defined context."""
         try:
             self.logger.debug(f"Starting aider for agent: {agent_filepath}")
@@ -344,7 +344,7 @@ class AiderManager:
             self.logger.error(f"Error loading context map: {str(e)}")
             raise
 
-    def _build_aider_command(self, objective_filepath, agent_filepath, context_files, model="gpt-4o-mini"):
+    def _build_aider_command(self, objective_filepath, agent_filepath, context_files, model=None):
         """
         Build aider command with all required arguments.
         
