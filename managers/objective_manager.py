@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 class ObjectiveManager:
     """Manager class for generating agent-specific objectives."""
     
-    def __init__(self, model="gpt-4o-mini"):
-        self.logger = Logger()
+    def __init__(self, model=None):
+        self.logger = Logger(model=model)
         self.encoding_utils = EncodingUtils()
         self.model = model
         load_dotenv()

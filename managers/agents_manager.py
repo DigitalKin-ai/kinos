@@ -9,9 +9,9 @@ from dotenv import load_dotenv
 class AgentsManager:
     """Manager class for handling agents and their operations."""
     
-    def __init__(self, model="gpt-4o-mini"):
+    def __init__(self, model=None):
         self.mission_path = None
-        self.logger = Logger()
+        self.logger = Logger(model=model)
         self.model = model
         load_dotenv()  # Load environment variables
         openai.api_key = os.getenv('OPENAI_API_KEY')

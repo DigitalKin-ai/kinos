@@ -10,9 +10,9 @@ from managers.vision_manager import VisionManager
 class InteractiveManager:
     """Manager class for interactive agent sessions."""
     
-    def __init__(self, model="gpt-4o-mini"):
+    def __init__(self, model=None):
         """Initialize the interactive manager."""
-        self.logger = Logger()
+        self.logger = Logger(model=model)
         self.model = model
         self.aider_manager = AiderManager(model=model)
         self.vision_manager = VisionManager(model=model)

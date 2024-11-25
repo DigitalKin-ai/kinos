@@ -77,7 +77,7 @@ class AgentRunner:
         return self
 
     @classmethod
-    async def create(cls, model="gpt-4o-mini"):
+    async def create(cls, model=None):
         """Factory method to create and initialize an AgentRunner instance."""
         runner = cls(model=model)
         return await runner.initialize()
