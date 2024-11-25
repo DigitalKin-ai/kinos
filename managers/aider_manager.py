@@ -9,6 +9,13 @@ from utils.fs_utils import FSUtils
 from utils.encoding_utils import EncodingUtils
 from pathlib import Path
 from managers.vision_manager import VisionManager
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Get default model from environment or fallback
+DEFAULT_MODEL = os.getenv('DEFAULT_MODEL', 'gpt-4o-mini')
 
 class AiderManager:
     """Manager class for handling aider operations."""
@@ -384,6 +391,9 @@ class AiderManager:
                                 self.logger.debug(f"Added required file: {file_path}")
             except Exception as e:
                 self.logger.warning(f"⚠️ Could not extract context files: {str(e)}")
+
+        # Ensure model is not None, use default if needed
+        model = model or DEFAULT_MODEL
 
         # Add required aider arguments
         cmd.extend([
