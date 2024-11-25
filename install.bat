@@ -10,6 +10,27 @@ if "%1"=="update" (
     echo ✓ Repository updated
 )
 
+:: Check Python availability
+python -c "from utils.fs_utils import FSUtils; FSUtils.get_python_command()" >nul 2>&1
+if errorlevel 1 (
+    echo Error: Python 3.9+ is required but not found
+    echo Please install Python 3.9 or later from https://www.python.org/downloads/
+    exit /b 1
+)
+
+:: Verify Python version
+set MIN_PYTHON_VERSION=3.9.0
+for /f %%i in ('python -c "from utils.fs_utils import FSUtils; print(FSUtils.get_python_command())"') do set PYTHON_CMD=%%i
+for /f %%i in ('%PYTHON_CMD% -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"') do set CURRENT_VERSION=%%i
+
+%PYTHON_CMD% -c "import sys; from packaging import version; sys.exit(0 if version.parse('%CURRENT_VERSION%') >= version.parse('%MIN_PYTHON_VERSION%') else 1)"
+if errorlevel 1 (
+    echo Error: Python %MIN_PYTHON_VERSION% or later is required
+    echo Current version: %CURRENT_VERSION%
+    echo Please upgrade Python from https://www.python.org/downloads/
+    exit /b 1
+)
+
 :: Check for .env file (skip check if updating)
 if not exist .env (
     echo Error: .env file not found

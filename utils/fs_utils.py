@@ -191,4 +191,11 @@ class FSUtils:
                              check=True)
                 return 'python'
             except (subprocess.SubprocessError, FileNotFoundError):
-                raise RuntimeError("No Python interpreter found. Please ensure either 'python3' or 'python' is available.")
+                raise RuntimeError(
+                    "No Python interpreter found!\n"
+                    "Please ensure either 'python3' or 'python' is available in your PATH.\n"
+                    "Installation instructions:\n"
+                    "- Windows: https://www.python.org/downloads/\n"
+                    "- Linux: Use your package manager (apt, yum, etc)\n"
+                    "- macOS: Use homebrew 'brew install python3' or https://www.python.org/downloads/"
+                )

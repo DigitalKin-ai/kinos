@@ -26,6 +26,25 @@ fi
 
 echo "✓ Environment configuration verified"
 
+# Check Python availability
+if ! $(python3 -c 'from utils.fs_utils import FSUtils; print(FSUtils.get_python_command())' 2>/dev/null); then
+    echo "Error: Python 3.9+ is required but not found"
+    echo "Please install Python 3.9 or later from https://www.python.org/downloads/"
+    exit 1
+fi
+
+# Verify Python version
+MIN_PYTHON_VERSION="3.9.0"
+PYTHON_CMD=$(python3 -c 'from utils.fs_utils import FSUtils; print(FSUtils.get_python_command())')
+CURRENT_VERSION=$($PYTHON_CMD -c "import sys; print('.'.join(map(str, sys.version_info[:3])))")
+
+if ! $PYTHON_CMD -c "import sys; from packaging import version; sys.exit(0 if version.parse('$CURRENT_VERSION') >= version.parse('$MIN_PYTHON_VERSION') else 1)"; then
+    echo "Error: Python $MIN_PYTHON_VERSION or later is required"
+    echo "Current version: $CURRENT_VERSION"
+    echo "Please upgrade Python from https://www.python.org/downloads/"
+    exit 1
+fi
+
 # Check for Cairo
 if ! pkg-config --exists cairo; then
     echo "Warning: Cairo graphics library not found"
