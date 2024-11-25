@@ -462,7 +462,7 @@ class AiderManager:
         agent_name = os.path.basename(agent_filepath).replace('.aider.agent.', '').replace('.md', '') if agent_filepath else 'interactive'
         context_file = f".aider.context.{agent_name}.md"
         if os.path.exists(context_file):
-            cmd.extend(['--file', context_file])  # Changed from --read to --file
+            cmd.extend(['--read', context_file])  # Use --read for context files
             self.logger.debug(f"Added context file to aider command: {context_file}")
         else:
             self.logger.warning(f"Context file not found: {context_file}")
