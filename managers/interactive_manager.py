@@ -182,7 +182,7 @@ class InteractiveManager:
             await self.aider_manager.run_aider(
                 objective_filepath='.aider.objective.interactive.md',
                 agent_filepath=None,  # No agent file needed for interactive
-                model=model
+                model=self.model
             )
             
         except Exception as e:
