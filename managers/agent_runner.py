@@ -83,7 +83,7 @@ class AgentRunner:
         return await runner.initialize()
         
     async def run(self, mission_filepath=DEFAULT_MISSION_FILE, generate_agents=False, 
-                 agent_count=DEFAULT_AGENT_COUNT, model=DEFAULT_MODEL):
+                 agent_count=DEFAULT_AGENT_COUNT, model=None):
         """Run agents in parallel."""
         try:
             # First validate mission file
