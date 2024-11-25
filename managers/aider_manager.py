@@ -397,7 +397,13 @@ class AiderManager:
                 # Get list of all existing files in project
                 existing_files = set()
                 for root, _, files in os.walk('.'):
+                    # Skip .aider folders
+                    if '.aider' in root.split(os.sep):
+                        continue
                     for file in files:
+                        # Skip .aider files
+                        if file.startswith('.aider'):
+                            continue
                         # Convert to relative path with forward slashes
                         rel_path = os.path.relpath(os.path.join(root, file), '.').replace('\\', '/')
                         existing_files.add(rel_path)
