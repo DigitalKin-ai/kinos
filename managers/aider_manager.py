@@ -816,7 +816,7 @@ Update map.md to reflect the current project structure while maintaining its for
             aider_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'vendor', 'aider')
             cmd = ["python", os.path.join(aider_path, "aider")]
             cmd.extend([
-                "--model", "gpt-4o-mini",
+                "--model", self.model,
                 "--edit-format", "diff", 
                 "--no-pretty",
                 "--no-fancy-input",

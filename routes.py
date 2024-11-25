@@ -356,7 +356,7 @@ def main():
 
         elif subcommand == "reset":
             # Reset the redundancy database
-            manager = RedundancyManager()
+            manager = RedundancyManager(model=model)
             manager._reset_collection()
             print("✨ Redundancy database has been reset")
         else:

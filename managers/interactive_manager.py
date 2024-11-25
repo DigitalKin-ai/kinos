@@ -14,8 +14,8 @@ class InteractiveManager:
         """Initialize the interactive manager."""
         self.logger = Logger()
         self.model = model
-        self.aider_manager = AiderManager()
-        self.vision_manager = VisionManager()
+        self.aider_manager = AiderManager(model=model)
+        self.vision_manager = VisionManager(model=model)
         self.fs_utils = FSUtils()
         self._init_history_files()
         
