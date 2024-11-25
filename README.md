@@ -39,7 +39,7 @@ See it in action: https://nlr.ai/
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.9+
 - OpenAI API key
 - Perplexity API key (for research capabilities)
 - Git installed

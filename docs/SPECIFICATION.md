@@ -214,7 +214,7 @@ KinOS v6 represents a fundamental shift towards true AI autonomy, implementing:
 ## 4. Deployment & Configuration
 
 ### 4.1 System Requirements
-- Python 3.8+
+- Python 3.9+
 - 4GB RAM minimum
 - 2 CPU cores
 - Network access
