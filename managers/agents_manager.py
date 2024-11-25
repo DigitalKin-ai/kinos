@@ -71,7 +71,18 @@ class AgentsManager:
             bool: True if file is valid, False otherwise
         """
         try:
-            return os.path.exists(self.mission_path) and os.access(self.mission_path, os.R_OK)
+            if not (os.path.exists(self.mission_path) and os.access(self.mission_path, os.R_OK)):
+                return False
+                
+            # Try reading with UTF-8 to validate encoding
+            try:
+                with open(self.mission_path, 'r', encoding='utf-8') as f:
+                    f.read()
+                return True
+            except UnicodeDecodeError:
+                self.logger.error(f"❌ Mission file must be in UTF-8 encoding: {self.mission_path}")
+                return False
+                
         except Exception as e:
             self.logger.error(f"⚠️ Error validating mission file: {str(e)}")
             return False
@@ -115,7 +126,7 @@ class AgentsManager:
 
     def _read_mission_content(self):
         """Helper method to read mission content."""
-        with open(self.mission_path, 'r') as f:
+        with open(self.mission_path, 'r', encoding='utf-8') as f:
             return f.read()
 
     def _save_agent_config(self, output_path, content):
